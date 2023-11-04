@@ -16,7 +16,7 @@ private:
     UInt32 m_location;
 
 public:
-    DirectX12InputAttachmentMappingImpl(DirectX12InputAttachmentMapping* parent, const DirectX12RenderPass* renderPass, const RenderTarget& renderTarget, const UInt32& location) :
+    DirectX12InputAttachmentMappingImpl(DirectX12InputAttachmentMapping* parent, const DirectX12RenderPass* renderPass, const RenderTarget& renderTarget, UInt32 location) :
         base(parent), m_renderPass(renderPass), m_location(location), m_renderTarget(renderTarget)
     {
     }
@@ -31,7 +31,7 @@ DirectX12InputAttachmentMapping::DirectX12InputAttachmentMapping() noexcept :
 {
 }
 
-DirectX12InputAttachmentMapping::DirectX12InputAttachmentMapping(const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget, const UInt32& location) :
+DirectX12InputAttachmentMapping::DirectX12InputAttachmentMapping(const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget, UInt32 location) :
     m_impl(makePimpl<DirectX12InputAttachmentMappingImpl>(this, &renderPass, renderTarget, location))
 {
 }
@@ -71,7 +71,7 @@ const DirectX12RenderPass* DirectX12InputAttachmentMapping::inputAttachmentSourc
     return m_impl->m_renderPass;
 }
 
-const UInt32& DirectX12InputAttachmentMapping::location() const noexcept
+UInt32 DirectX12InputAttachmentMapping::location() const noexcept
 {
     return m_impl->m_location;
 }

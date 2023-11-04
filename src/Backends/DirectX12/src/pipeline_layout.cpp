@@ -30,7 +30,7 @@ public:
     }
 
 private:
-    D3D12_FILTER getFilterMode(FilterMode minFilter, FilterMode magFilter, MipMapMode mipFilter, const Float& anisotropy = 0.f)
+    D3D12_FILTER getFilterMode(FilterMode minFilter, FilterMode magFilter, MipMapMode mipFilter, Float anisotropy = 0.f)
     {
         if (anisotropy > 0.f)
             return D3D12_ENCODE_ANISOTROPIC_FILTER(D3D12_FILTER_REDUCTION_TYPE_STANDARD);
@@ -225,7 +225,7 @@ const DirectX12Device& DirectX12PipelineLayout::device() const noexcept
     return m_impl->m_device;
 }
 
-const DirectX12DescriptorSetLayout& DirectX12PipelineLayout::descriptorSet(const UInt32& space) const
+const DirectX12DescriptorSetLayout& DirectX12PipelineLayout::descriptorSet(UInt32 space) const
 {
     if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](const UniquePtr<DirectX12DescriptorSetLayout>& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
         return *match->get();

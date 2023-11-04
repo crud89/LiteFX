@@ -19,7 +19,7 @@ private:
     BufferType m_bufferType{ BufferType::Vertex };
 
 public:
-    VulkanVertexBufferLayoutImpl(VulkanVertexBufferLayout* parent, const size_t& vertexSize, const UInt32& binding) : 
+    VulkanVertexBufferLayoutImpl(VulkanVertexBufferLayout* parent, size_t vertexSize, UInt32 binding) : 
         base(parent), m_vertexSize(vertexSize), m_binding(binding) 
     {
     }
@@ -29,7 +29,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanVertexBufferLayout::VulkanVertexBufferLayout(const size_t& vertexSize, const UInt32& binding) :
+VulkanVertexBufferLayout::VulkanVertexBufferLayout(size_t vertexSize, UInt32 binding) :
     m_impl(makePimpl<VulkanVertexBufferLayoutImpl>(this, vertexSize, binding))
 {
 }
@@ -41,7 +41,7 @@ size_t VulkanVertexBufferLayout::elementSize() const noexcept
     return m_impl->m_vertexSize;
 }
 
-const UInt32& VulkanVertexBufferLayout::binding() const noexcept
+UInt32 VulkanVertexBufferLayout::binding() const noexcept
 {
     return m_impl->m_binding;
 }

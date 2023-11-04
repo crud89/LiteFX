@@ -74,7 +74,7 @@ constexpr void VulkanBarrier::transition(IVulkanBuffer& buffer, ResourceAccess a
     m_impl->m_bufferBarriers.push_back({ accessBefore, accessAfter, buffer, std::numeric_limits<UInt32>::max() });
 }
 
-constexpr void VulkanBarrier::transition(IVulkanBuffer& buffer, const UInt32& element, ResourceAccess accessBefore, ResourceAccess accessAfter)
+constexpr void VulkanBarrier::transition(IVulkanBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter)
 {
     m_impl->m_bufferBarriers.push_back({ accessBefore, accessAfter, buffer, element });
 }
@@ -89,12 +89,12 @@ constexpr void VulkanBarrier::transition(IVulkanImage& image, ResourceAccess acc
     m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, fromLayout, toLayout, 0, image.levels(), 0, image.layers(), 0 });
 }
 
-constexpr void VulkanBarrier::transition(IVulkanImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout)
+constexpr void VulkanBarrier::transition(IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout)
 {
     m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, std::nullopt, layout, level, levels, layer, layers, plane });
 }
 
-constexpr void VulkanBarrier::transition(IVulkanImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout)
+constexpr void VulkanBarrier::transition(IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout)
 {
     m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, fromLayout, toLayout, level, levels, layer, layers, plane });
 }

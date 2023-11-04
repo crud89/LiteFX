@@ -45,12 +45,12 @@ DirectX12GraphicsFactory::DirectX12GraphicsFactory(const DirectX12Device& device
 
 DirectX12GraphicsFactory::~DirectX12GraphicsFactory() noexcept = default;
 
-UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(BufferType type, BufferUsage usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const
+UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const
 {
 	return this->createBuffer("", type, usage, elementSize, elements, allowWrite);
 }
 
-UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String& name, BufferType type, BufferUsage usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const
+UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const
 {
 	// Constant buffers are aligned to 256 byte chunks. All other buffers can be aligned to a multiple of 4 bytes (`sizeof(DWORD)`). The actual amount of memory allocated 
 	// is then defined as the smallest multiple of 64kb, that's greater or equal to `resourceDesc.Width` below. For more info, see:
@@ -92,12 +92,12 @@ UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String&
 	return DirectX12Buffer::allocate(name, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, resourceDesc, allocationDesc);
 }
 
-UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(const DirectX12VertexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const
+UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(const DirectX12VertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const
 {
 	return this->createVertexBuffer("", layout, usage, elements);
 }
 
-UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(const String& name, const DirectX12VertexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const
+UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(const String& name, const DirectX12VertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const
 {
 	D3D12_RESOURCE_DESC1 resourceDesc { };
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -133,12 +133,12 @@ UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(c
 	return DirectX12VertexBuffer::allocate(name, layout, m_impl->m_allocator, elements, resourceDesc, allocationDesc);
 }
 
-UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(const DirectX12IndexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const
+UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(const DirectX12IndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const
 {
 	return this->createIndexBuffer("", layout, usage, elements);
 }
 
-UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(const String& name, const DirectX12IndexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const
+UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(const String& name, const DirectX12IndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const
 {
 	D3D12_RESOURCE_DESC1 resourceDesc { };
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -209,12 +209,12 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Stri
 	}
 }
 
-UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(Format format, const Size3d& size, ImageDimensions dimension, const UInt32& levels, const UInt32& layers, MultiSamplingLevel samples, const bool& allowWrite) const
+UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const
 {
 	return this->createTexture("", format, size, dimension, levels, layers, samples, allowWrite);
 }
 
-UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, const UInt32& levels, const UInt32& layers, MultiSamplingLevel samples, const bool& allowWrite) const
+UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const
 {
 	if (dimension == ImageDimensions::CUBE && layers != 6) [[unlikely]]
 		throw ArgumentOutOfRangeException("A cube map must be defined with 6 layers, but only {0} are provided.", layers);
@@ -243,7 +243,7 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String&
 	return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, depth }, format, dimension, levels, layers, samples, allowWrite, ImageLayout::Common, resourceDesc, allocationDesc);
 }
 
-Enumerable<UniquePtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(const UInt32& elements, Format format, const Size3d& size, ImageDimensions dimension, const UInt32& levels, const UInt32& layers, MultiSamplingLevel samples, const bool& allowWrite) const
+Enumerable<UniquePtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const
 {
 	return [&, this]() -> std::generator<UniquePtr<IDirectX12Image>> {
 		for (UInt32 i = 0; i < elements; ++i)
@@ -251,17 +251,17 @@ Enumerable<UniquePtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(
 	}() | std::views::as_rvalue;
 }
 
-UniquePtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
+UniquePtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
 {
 	return makeUnique<DirectX12Sampler>(m_impl->m_device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
 }
 
-UniquePtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
+UniquePtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
 {
 	return makeUnique<DirectX12Sampler>(m_impl->m_device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
 }
 
-Enumerable<UniquePtr<IDirectX12Sampler>> DirectX12GraphicsFactory::createSamplers(const UInt32& elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
+Enumerable<UniquePtr<IDirectX12Sampler>> DirectX12GraphicsFactory::createSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
 {
 	return [&, this]() -> std::generator<UniquePtr<IDirectX12Sampler>> {
 		for (UInt32 i = 0; i < elements; ++i)

@@ -38,7 +38,7 @@ size_t VulkanIndexBufferLayout::elementSize() const noexcept
     return static_cast<UInt32>(m_impl->m_indexType) >> 3;
 }
 
-const UInt32& VulkanIndexBufferLayout::binding() const noexcept
+UInt32 VulkanIndexBufferLayout::binding() const noexcept
 {
     return m_impl->m_binding;
 }

@@ -845,7 +845,7 @@ constexpr VkImageType LiteFX::Rendering::Backends::Vk::getImageType(ImageDimensi
 	}
 }
 
-constexpr VkImageViewType LiteFX::Rendering::Backends::Vk::getImageViewType(ImageDimensions dimension, const UInt32& layers)
+constexpr VkImageViewType LiteFX::Rendering::Backends::Vk::getImageViewType(ImageDimensions dimension, UInt32 layers)
 {
 	switch (dimension)
 	{

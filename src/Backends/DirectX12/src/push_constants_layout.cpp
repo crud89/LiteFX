@@ -18,7 +18,7 @@ private:
     UInt32 m_size;
 
 public:
-    DirectX12PushConstantsLayoutImpl(DirectX12PushConstantsLayout* parent, const UInt32& size) :
+    DirectX12PushConstantsLayoutImpl(DirectX12PushConstantsLayout* parent, UInt32 size) :
         base(parent), m_size(size)
     {
         // Align the size to 4 bytes.
@@ -47,20 +47,20 @@ private:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(Enumerable<UniquePtr<DirectX12PushConstantsRange>>&& ranges, const UInt32& size) :
+DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(Enumerable<UniquePtr<DirectX12PushConstantsRange>>&& ranges, UInt32 size) :
     m_impl(makePimpl<DirectX12PushConstantsLayoutImpl>(this, size))
 {
     m_impl->setRanges(std::move(ranges));
 }
 
-DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(const UInt32& size) :
+DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(UInt32 size) :
     m_impl(makePimpl<DirectX12PushConstantsLayoutImpl>(this, size))
 {
 }
 
 DirectX12PushConstantsLayout::~DirectX12PushConstantsLayout() noexcept = default;
 
-const UInt32& DirectX12PushConstantsLayout::size() const noexcept
+UInt32 DirectX12PushConstantsLayout::size() const noexcept
 {
     return m_impl->m_size;
 }

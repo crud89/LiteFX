@@ -18,7 +18,7 @@ private:
     DepthStencilState m_depthStencilState;
 
 public:
-    RasterizerImpl(Rasterizer* parent, PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, const Float& lineWidth, const DepthStencilState& depthStencilState) :
+    RasterizerImpl(Rasterizer* parent, PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth, const DepthStencilState& depthStencilState) :
         base(parent), m_polygonMode(polygonMode), m_cullMode(cullMode), m_cullOrder(cullOrder), m_lineWidth(lineWidth), m_depthStencilState(depthStencilState)
     {
     }
@@ -28,7 +28,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-Rasterizer::Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, const Float& lineWidth, const DepthStencilState& depthStencilState) noexcept :
+Rasterizer::Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth, const DepthStencilState& depthStencilState) noexcept :
     m_impl(makePimpl<RasterizerImpl>(this, polygonMode, cullMode, cullOrder, lineWidth, depthStencilState))
 {
 }
@@ -62,7 +62,7 @@ CullOrder Rasterizer::cullOrder() const noexcept
     return m_impl->m_cullOrder;
 }
 
-const Float& Rasterizer::lineWidth() const noexcept
+Float Rasterizer::lineWidth() const noexcept
 {
     return m_impl->m_lineWidth;
 }

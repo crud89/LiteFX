@@ -21,7 +21,7 @@ private:
 	const VulkanRenderPass& m_renderPass;
 
 public:
-	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass, const bool& alphaToCoverage, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer) :
+	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass, bool alphaToCoverage, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer) :
 		base(parent), m_renderPass(renderPass), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer)
 	{
 	}
@@ -230,7 +230,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, const bool& enableAlphaToCoverage, const String& name) :
+VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, bool enableAlphaToCoverage, const String& name) :
 	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer)), VulkanPipelineState(VK_NULL_HANDLE)
 {
 	this->handle() = m_impl->initialize();
@@ -271,7 +271,7 @@ SharedPtr<VulkanRasterizer> VulkanRenderPipeline::rasterizer() const noexcept
 	return m_impl->m_rasterizer;
 }
 
-const bool& VulkanRenderPipeline::alphaToCoverage() const noexcept
+bool VulkanRenderPipeline::alphaToCoverage() const noexcept
 {
 	return m_impl->m_alphaToCoverage;
 }

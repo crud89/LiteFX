@@ -74,7 +74,7 @@ constexpr void DirectX12Barrier::transition(IDirectX12Buffer& buffer, ResourceAc
 	m_impl->m_bufferBarriers.push_back({ accessBefore, accessAfter, buffer, D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES });
 }
 
-constexpr void DirectX12Barrier::transition(IDirectX12Buffer& buffer, const UInt32& element, ResourceAccess accessBefore, ResourceAccess accessAfter)
+constexpr void DirectX12Barrier::transition(IDirectX12Buffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter)
 {
 	m_impl->m_bufferBarriers.push_back({ accessBefore, accessAfter, buffer, element });
 }
@@ -89,12 +89,12 @@ constexpr void DirectX12Barrier::transition(IDirectX12Image& image, ResourceAcce
 	m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, fromLayout, toLayout, 0, image.levels(), 0, image.layers(), 0 });
 }
 
-constexpr void DirectX12Barrier::transition(IDirectX12Image& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout)
+constexpr void DirectX12Barrier::transition(IDirectX12Image& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout)
 {
 	m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, std::nullopt, layout, level, levels, layer, layers, plane });
 }
 
-constexpr void DirectX12Barrier::transition(IDirectX12Image& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout)
+constexpr void DirectX12Barrier::transition(IDirectX12Image& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout)
 {
 	m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, fromLayout, toLayout, level, levels, layer, layers, plane });
 }

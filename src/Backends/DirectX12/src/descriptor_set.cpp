@@ -29,7 +29,7 @@ public:
     }
 
 public:
-    D3D12_FILTER getFilterMode(FilterMode minFilter, FilterMode magFilter, MipMapMode mipFilter, const Float& anisotropy = 0.f)
+    D3D12_FILTER getFilterMode(FilterMode minFilter, FilterMode magFilter, MipMapMode mipFilter, Float anisotropy = 0.f)
     {
         if (anisotropy > 0.f)
             return D3D12_ENCODE_ANISOTROPIC_FILTER(D3D12_FILTER_REDUCTION_TYPE_STANDARD);
@@ -56,7 +56,7 @@ public:
         }
     }
 
-    void updateGlobalBuffers(const UInt32& offset, const UInt32& descriptors)
+    void updateGlobalBuffers(UInt32 offset, UInt32 descriptors)
     {
         m_layout.device().updateBufferDescriptors(*this->m_parent, offset, descriptors);
     }
@@ -83,7 +83,7 @@ const DirectX12DescriptorSetLayout& DirectX12DescriptorSet::layout() const noexc
     return m_impl->m_layout;
 }
 
-void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffer& buffer, const UInt32& bufferElement, const UInt32& elements, const UInt32& firstDescriptor) const
+void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const
 {
     UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;
 
@@ -219,7 +219,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
     m_impl->updateGlobalBuffers(offset, elementCount);
 }
 
-void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Image& texture, const UInt32& descriptor, const UInt32& firstLevel, const UInt32& levels, const UInt32& firstLayer, const UInt32& layers) const
+void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
 {
     // TODO: Add LOD lower bound (for clamping) as parameter?
     // Acquire a descriptor handle.
@@ -351,7 +351,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Image
     m_impl->updateGlobalBuffers(offset, 1);
 }
 
-void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Sampler& sampler, const UInt32& descriptor) const
+void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sampler, UInt32 descriptor) const
 {
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
 
@@ -373,7 +373,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Sampl
     m_impl->m_layout.device().updateSamplerDescriptors(*this, offset, 1);
 }
 
-void DirectX12DescriptorSet::attach(const UInt32& binding, const IDirectX12Image& image) const
+void DirectX12DescriptorSet::attach(UInt32 binding, const IDirectX12Image& image) const
 {
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
 
@@ -409,7 +409,7 @@ const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::bufferHeap() const n
     return m_impl->m_bufferHeap;
 }
 
-const UInt32& DirectX12DescriptorSet::bufferOffset() const noexcept
+UInt32 DirectX12DescriptorSet::bufferOffset() const noexcept
 {
     return m_impl->m_bufferOffset;
 }
@@ -419,7 +419,7 @@ const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::samplerHeap() const 
     return m_impl->m_samplerHeap;
 }
 
-const UInt32& DirectX12DescriptorSet::samplerOffset() const noexcept
+UInt32 DirectX12DescriptorSet::samplerOffset() const noexcept
 {
     return m_impl->m_samplerOffset;
 }

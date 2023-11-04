@@ -48,7 +48,7 @@ const VulkanDescriptorSetLayout& VulkanDescriptorSet::layout() const noexcept
     return m_impl->m_layout;
 }
 
-void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanBuffer& buffer, const UInt32& bufferElement, const UInt32& elements, const UInt32& firstDescriptor) const
+void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const
 {
     VkWriteDescriptorSet descriptorWrite{ };
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -157,7 +157,7 @@ void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanBuffer& buf
     ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
-void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanImage& texture, const UInt32& descriptor, const UInt32& firstLevel, const UInt32& levels, const UInt32& firstLayer, const UInt32& layers) const
+void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
 {
     VkDescriptorImageInfo imageInfo{ };
     VkWriteDescriptorSet descriptorWrite{ };
@@ -230,7 +230,7 @@ void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanImage& text
     ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
-void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanSampler& sampler, const UInt32& descriptor) const
+void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, UInt32 descriptor) const
 {
     const auto& layout = m_impl->m_layout.descriptor(binding);
 
@@ -252,7 +252,7 @@ void VulkanDescriptorSet::update(const UInt32& binding, const IVulkanSampler& sa
     ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
-void VulkanDescriptorSet::attach(const UInt32& binding, const IVulkanImage& image) const
+void VulkanDescriptorSet::attach(UInt32 binding, const IVulkanImage& image) const
 {
     const auto& layout = m_impl->m_layout.descriptor(binding);
 

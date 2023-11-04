@@ -149,7 +149,7 @@ void DirectX12Queue::release()
 	this->released(this, { });
 }
 
-SharedPtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(const bool& beginRecording, const bool& secondary) const
+SharedPtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(bool beginRecording, bool secondary) const
 {
 	return makeShared<DirectX12CommandBuffer>(*this, beginRecording, !secondary);
 }
@@ -224,7 +224,7 @@ UInt64 DirectX12Queue::submit(const Enumerable<SharedPtr<const DirectX12CommandB
 	return fence;
 }
 
-void DirectX12Queue::waitFor(const UInt64& fence) const noexcept
+void DirectX12Queue::waitFor(UInt64 fence) const noexcept
 {
 	auto completedValue = m_impl->m_fence->GetCompletedValue();
 

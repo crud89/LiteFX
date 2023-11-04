@@ -29,7 +29,7 @@ private:
 	Array<std::pair<UInt32, UInt32>> m_bufferDescriptorFragments, m_samplerDescriptorFragments;
 
 public:
-	DirectX12DeviceImpl(DirectX12Device* parent, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, const DirectX12Backend& backend, const UInt32& globalBufferHeapSize, const UInt32& globalSamplerHeapSize) :
+	DirectX12DeviceImpl(DirectX12Device* parent, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, const DirectX12Backend& backend, UInt32 globalBufferHeapSize, UInt32 globalSamplerHeapSize) :
 		base(parent), m_adapter(adapter), m_surface(std::move(surface)), m_backend(backend), m_globalBufferHeapSize(globalBufferHeapSize), m_globalSamplerHeapSize(globalSamplerHeapSize)
 	{
 		if (m_surface == nullptr)
@@ -177,7 +177,7 @@ public:
 		m_factory = makeUnique<DirectX12GraphicsFactory>(*m_parent);
 	}
 
-	void createSwapChain(Format format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
+	void createSwapChain(Format format, const Size2d& frameBufferSize, UInt32 frameBuffers)
 	{
 		m_swapChain = makeUnique<DirectX12SwapChain>(*m_parent, format, frameBufferSize, frameBuffers);
 	}
@@ -253,7 +253,7 @@ DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX1
 {
 }
 
-DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const UInt32& globalBufferHeapSize, const UInt32& globalSamplerHeapSize) :
+DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, UInt32 globalBufferHeapSize, UInt32 globalSamplerHeapSize) :
 	ComResource<ID3D12Device10>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, std::move(surface), backend, globalBufferHeapSize, globalSamplerHeapSize))
 {
 	LITEFX_DEBUG(DIRECTX12_LOG, "Creating DirectX 12 device {{ Surface: {0}, Adapter: {1} }}...", fmt::ptr(&surface), adapter.deviceId());
@@ -376,7 +376,7 @@ void DirectX12Device::releaseGlobalDescriptors(const DirectX12DescriptorSet& des
 		m_impl->m_samplerDescriptorFragments.push_back(std::make_pair(descriptorSet.samplerOffset(), descriptorSet.samplerHeap()->GetDesc().NumDescriptors));
 }
 
-void DirectX12Device::updateBufferDescriptors(const DirectX12DescriptorSet& descriptorSet, const UInt32& firstDescriptor, const UInt32& descriptors) const noexcept
+void DirectX12Device::updateBufferDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 firstDescriptor, UInt32 descriptors) const noexcept
 {
 	if (descriptors > 0) [[likely]]
 	{
@@ -386,7 +386,7 @@ void DirectX12Device::updateBufferDescriptors(const DirectX12DescriptorSet& desc
 	}
 }
 
-void DirectX12Device::updateSamplerDescriptors(const DirectX12DescriptorSet& descriptorSet, const UInt32& firstDescriptor, const UInt32& descriptors) const noexcept
+void DirectX12Device::updateSamplerDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 firstDescriptor, UInt32 descriptors) const noexcept
 {
 	if (descriptors > 0) [[likely]]
 	{
@@ -445,12 +445,12 @@ DirectX12ComputePipeline& DirectX12Device::blitPipeline() const noexcept
 }
 
 #if defined(BUILD_DEFINE_BUILDERS)
-DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(MultiSamplingLevel samples, const UInt32& commandBuffers) const
+DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(MultiSamplingLevel samples, UInt32 commandBuffers) const
 {
 	return DirectX12RenderPassBuilder(*this, commandBuffers, samples);
 }
 
-DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const String& name, MultiSamplingLevel samples, const UInt32& commandBuffers) const
+DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const String& name, MultiSamplingLevel samples, UInt32 commandBuffers) const
 {
 	return DirectX12RenderPassBuilder(*this, commandBuffers, samples, name);
 }

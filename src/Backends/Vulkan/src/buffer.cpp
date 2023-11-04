@@ -19,7 +19,7 @@ private:
 	bool m_writable;
 
 public:
-	VulkanBufferImpl(VulkanBuffer* parent, BufferType type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const VmaAllocator& allocator, const VmaAllocation& allocation) :
+	VulkanBufferImpl(VulkanBuffer* parent, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, bool writable, const VmaAllocator& allocator, const VmaAllocation& allocation) :
 		base(parent), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_writable(writable), m_allocator(allocator), m_allocation(allocation)
 	{
 	}
@@ -29,7 +29,7 @@ public:
 // Buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
+VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, bool writable, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
 	m_impl(makePimpl<VulkanBufferImpl>(this, type, elements, elementSize, alignment, writable, allocator, allocation)), Resource<VkBuffer>(buffer)
 {
 	if (!name.empty())
@@ -47,7 +47,7 @@ BufferType VulkanBuffer::type() const noexcept
 	return m_impl->m_type;
 }
 
-const UInt32& VulkanBuffer::elements() const noexcept
+UInt32 VulkanBuffer::elements() const noexcept
 {
 	return m_impl->m_elements;
 }
@@ -72,12 +72,12 @@ size_t VulkanBuffer::alignedElementSize() const noexcept
 	return m_impl->m_alignment == 0 ? m_impl->m_elementSize : (m_impl->m_elementSize + m_impl->m_alignment - 1) & ~(m_impl->m_alignment - 1);
 }
 
-const bool& VulkanBuffer::writable() const noexcept
+bool VulkanBuffer::writable() const noexcept
 {
 	return m_impl->m_writable;
 }
 
-void VulkanBuffer::map(const void* const data, const size_t& size, const UInt32& element)
+void VulkanBuffer::map(const void* const data, size_t size, UInt32 element)
 {
 	if (element >= m_impl->m_elements)
 		throw ArgumentOutOfRangeException("The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
@@ -98,12 +98,12 @@ void VulkanBuffer::map(const void* const data, const size_t& size, const UInt32&
 		throw RuntimeException("Error mapping buffer to device memory: {#X}.", result);
 }
 
-void VulkanBuffer::map(Span<const void* const> data, const size_t& elementSize, const UInt32& firstElement)
+void VulkanBuffer::map(Span<const void* const> data, size_t elementSize, UInt32 firstElement)
 {
 	std::ranges::for_each(data, [this, &elementSize, i = firstElement](const void* const mem) mutable { this->map(mem, elementSize, i++); });
 }
 
-void VulkanBuffer::map(void* data, const size_t& size, const UInt32& element, bool write)
+void VulkanBuffer::map(void* data, size_t size, UInt32 element, bool write)
 {
 	if (element >= m_impl->m_elements)
 		throw ArgumentOutOfRangeException("The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
@@ -126,17 +126,17 @@ void VulkanBuffer::map(void* data, const size_t& size, const UInt32& element, bo
 		throw RuntimeException("Error mapping buffer to device memory: {#X}.", result);
 }
 
-void VulkanBuffer::map(Span<void*> data, const size_t& elementSize, const UInt32& firstElement, bool write)
+void VulkanBuffer::map(Span<void*> data, size_t elementSize, UInt32 firstElement, bool write)
 {
 	std::ranges::for_each(data, [this, &elementSize, &write, i = firstElement](void* mem) mutable { this->map(mem, elementSize, i++, write); });
 }
 
-UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(BufferType type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, bool writable, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	return VulkanBuffer::allocate("", type, elements, elementSize, alignment, writable, allocator, createInfo, allocationInfo, allocationResult);
 }
 
-UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, BufferType type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, bool writable, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkBuffer buffer;
 	VmaAllocation allocation;
@@ -169,7 +169,7 @@ public:
 // Vertex buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanVertexBuffer::VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
+VulkanVertexBuffer::VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, UInt32 elements, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
 	m_impl(makePimpl<VulkanVertexBufferImpl>(this, layout)), VulkanBuffer(buffer, BufferType::Vertex, elements, layout.elementSize(), 0, false, allocator, allocation, name)
 {
 }
@@ -181,12 +181,12 @@ const VulkanVertexBufferLayout& VulkanVertexBuffer::layout() const noexcept
 	return m_impl->m_layout;
 }
 
-UniquePtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const VulkanVertexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const VulkanVertexBufferLayout& layout, UInt32 elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	return VulkanVertexBuffer::allocate("", layout, elements, allocator, createInfo, allocationInfo, allocationResult);
 }
 
-UniquePtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const String& name, const VulkanVertexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const String& name, const VulkanVertexBufferLayout& layout, UInt32 elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkBuffer buffer;
 	VmaAllocation allocation;
@@ -219,7 +219,7 @@ public:
 // Index buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanIndexBuffer::VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
+VulkanIndexBuffer::VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, UInt32 elements, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
 	m_impl(makePimpl<VulkanIndexBufferImpl>(this, layout)), VulkanBuffer(buffer, BufferType::Index, elements, layout.elementSize(), 0, false, allocator, allocation, name)
 {
 }
@@ -231,12 +231,12 @@ const VulkanIndexBufferLayout& VulkanIndexBuffer::layout() const noexcept
 	return m_impl->m_layout;
 }
 
-UniquePtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const VulkanIndexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const VulkanIndexBufferLayout& layout, UInt32 elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	return VulkanIndexBuffer::allocate("", layout, elements, allocator, createInfo, allocationInfo, allocationResult);
 }
 
-UniquePtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const String& name, const VulkanIndexBufferLayout& layout, const UInt32& elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const String& name, const VulkanIndexBufferLayout& layout, UInt32 elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkBuffer buffer;
 	VmaAllocation allocation;

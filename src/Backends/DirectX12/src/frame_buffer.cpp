@@ -22,7 +22,7 @@ private:
     const DirectX12RenderPass& m_renderPass;
 
 public:
-    DirectX12FrameBufferImpl(DirectX12FrameBuffer* parent, const DirectX12RenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea, const UInt32& commandBuffers) :
+    DirectX12FrameBufferImpl(DirectX12FrameBuffer* parent, const DirectX12RenderPass& renderPass, UInt32 bufferIndex, const Size2d& renderArea, UInt32 commandBuffers) :
         base(parent), m_renderPass(renderPass), m_bufferIndex(bufferIndex), m_size(renderArea)
     {
         // Initialize the command buffers from the graphics queue.
@@ -121,7 +121,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12FrameBuffer::DirectX12FrameBuffer(const DirectX12RenderPass& renderPass, const UInt32& bufferIndex, const Size2d& renderArea, const UInt32& commandBuffers) :
+DirectX12FrameBuffer::DirectX12FrameBuffer(const DirectX12RenderPass& renderPass, UInt32 bufferIndex, const Size2d& renderArea, UInt32 commandBuffers) :
     m_impl(makePimpl<DirectX12FrameBufferImpl>(this, renderPass, bufferIndex, renderArea, commandBuffers))
 {
     m_impl->initialize();
@@ -139,12 +139,12 @@ ID3D12DescriptorHeap* DirectX12FrameBuffer::depthStencilTargetHeap() const noexc
     return m_impl->m_depthStencilHeap.Get();
 }
 
-const UInt32& DirectX12FrameBuffer::renderTargetDescriptorSize() const noexcept
+UInt32 DirectX12FrameBuffer::renderTargetDescriptorSize() const noexcept
 {
     return m_impl->m_renderTargetDescriptorSize;
 }
 
-const UInt32& DirectX12FrameBuffer::depthStencilTargetDescriptorSize() const noexcept
+UInt32 DirectX12FrameBuffer::depthStencilTargetDescriptorSize() const noexcept
 {
     return m_impl->m_depthStencilDescriptorSize;
 }
@@ -154,7 +154,7 @@ UInt64& DirectX12FrameBuffer::lastFence() const noexcept
     return m_impl->m_lastFence;
 }
 
-const UInt32& DirectX12FrameBuffer::bufferIndex() const noexcept
+UInt32 DirectX12FrameBuffer::bufferIndex() const noexcept
 {
     return m_impl->m_bufferIndex;
 }
@@ -174,7 +174,7 @@ size_t DirectX12FrameBuffer::getHeight() const noexcept
     return m_impl->m_size.height();
 }
 
-SharedPtr<const DirectX12CommandBuffer> DirectX12FrameBuffer::commandBuffer(const UInt32& index) const
+SharedPtr<const DirectX12CommandBuffer> DirectX12FrameBuffer::commandBuffer(UInt32 index) const
 {
     if (index >= static_cast<UInt32>(m_impl->m_commandBuffers.size())) [[unlikely]]
         throw ArgumentOutOfRangeException("No command buffer with index {1} is stored in the frame buffer. The frame buffer only contains {0} command buffers.", m_impl->m_commandBuffers.size(), index);
@@ -192,7 +192,7 @@ Enumerable<const IDirectX12Image*> DirectX12FrameBuffer::images() const noexcept
     return m_impl->m_renderTargetViews;
 }
 
-const IDirectX12Image& DirectX12FrameBuffer::image(const UInt32& location) const
+const IDirectX12Image& DirectX12FrameBuffer::image(UInt32 location) const
 {
     if (location >= m_impl->m_renderTargetViews.size())
         throw ArgumentOutOfRangeException("No render target is mapped to location {0}.", location);

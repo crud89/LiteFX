@@ -67,7 +67,7 @@ Enumerable<const VulkanVertexBufferLayout*> VulkanInputAssembler::vertexBufferLa
     return m_impl->m_vertexBufferLayouts | std::views::transform([](const auto& pair) { return pair.second.get(); });
 }
 
-const VulkanVertexBufferLayout& VulkanInputAssembler::vertexBufferLayout(const UInt32& binding) const
+const VulkanVertexBufferLayout& VulkanInputAssembler::vertexBufferLayout(UInt32 binding) const
 {
     [[likely]] if (m_impl->m_vertexBufferLayouts.contains(binding))
         return *m_impl->m_vertexBufferLayouts[binding];

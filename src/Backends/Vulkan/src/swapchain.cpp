@@ -50,7 +50,7 @@ public:
 	}
 
 public:
-	void initialize(Format format, const Size2d& renderArea, const UInt32& buffers)
+	void initialize(Format format, const Size2d& renderArea, UInt32 buffers)
 	{
 		if (format == Format::Other || format == Format::None)
 			throw InvalidArgumentException("The provided surface format it not a valid value.");
@@ -174,7 +174,7 @@ public:
 		m_timestamps.resize(timingEvents.size());
 	}
 
-	void reset(Format format, const Size2d& renderArea, const UInt32& buffers)
+	void reset(Format format, const Size2d& renderArea, UInt32 buffers)
 	{
 		// Cleanup and re-initialize.
 		this->cleanup();
@@ -363,7 +363,7 @@ public:
 	}
 
 public:
-	void initialize(Format format, const Size2d& renderArea, const UInt32& buffers)
+	void initialize(Format format, const Size2d& renderArea, UInt32 buffers)
 	{
 		if (format == Format::Other || format == Format::None)
 			throw InvalidArgumentException("The provided surface format it not a valid value.");
@@ -485,7 +485,7 @@ public:
 			LITEFX_WARNING(VULKAN_LOG, "Unable disable keyboard control sequence for full-screen switching.");
 	}
 
-	void reset(Format format, const Size2d& renderArea, const UInt32& buffers)
+	void reset(Format format, const Size2d& renderArea, UInt32 buffers)
 	{
 		// Release the image memory of the previously allocated images.
 		std::ranges::for_each(m_presentImages, [this](const auto& image) { ::vkDestroyImage(m_device.handle(), std::as_const(*image).handle(), nullptr); });
@@ -534,7 +534,7 @@ public:
 			this->resetQueryPools(m_timingEvents);
 	}
 
-	void createImages(Format format, const Size2d& renderArea, const UInt32& buffers)
+	void createImages(Format format, const Size2d& renderArea, UInt32 buffers)
 	{	
 		// Acquire the swap chain images.
 		m_presentImages.resize(buffers);
@@ -824,7 +824,7 @@ private:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanSwapChain::VulkanSwapChain(const VulkanDevice& device, Format surfaceFormat, const Size2d& renderArea, const UInt32& buffers) :
+VulkanSwapChain::VulkanSwapChain(const VulkanDevice& device, Format surfaceFormat, const Size2d& renderArea, UInt32 buffers) :
 	m_impl(makePimpl<VulkanSwapChainImpl>(this, device))
 {
 	m_impl->initialize(surfaceFormat, renderArea, buffers);
@@ -847,7 +847,7 @@ Enumerable<SharedPtr<TimingEvent>> VulkanSwapChain::timingEvents() const noexcep
 	return m_impl->m_timingEvents;
 }
 
-SharedPtr<TimingEvent> VulkanSwapChain::timingEvent(const UInt32& queryId) const
+SharedPtr<TimingEvent> VulkanSwapChain::timingEvent(UInt32 queryId) const
 {
 	if (queryId >= m_impl->m_timingEvents.size())
 		throw ArgumentOutOfRangeException("No timing event has been registered for query ID {0}.", queryId);
@@ -888,7 +888,7 @@ Format VulkanSwapChain::surfaceFormat() const noexcept
 	return m_impl->m_format;
 }
 
-const UInt32& VulkanSwapChain::buffers() const noexcept
+UInt32 VulkanSwapChain::buffers() const noexcept
 {
 	return m_impl->m_buffers;
 }
@@ -898,7 +898,7 @@ const Size2d& VulkanSwapChain::renderArea() const noexcept
 	return m_impl->m_renderArea;
 }
 
-const IVulkanImage* VulkanSwapChain::image(const UInt32& backBuffer) const
+const IVulkanImage* VulkanSwapChain::image(UInt32 backBuffer) const
 {
 	if (backBuffer >= m_impl->m_presentImages.size()) [[unlikely]]
 		throw ArgumentOutOfRangeException("The back buffer must be a valid index.");
@@ -936,7 +936,7 @@ void VulkanSwapChain::addTimingEvent(SharedPtr<TimingEvent> timingEvent)
 	m_impl->resetQueryPools(events);
 }
 
-void VulkanSwapChain::reset(Format surfaceFormat, const Size2d& renderArea, const UInt32& buffers)
+void VulkanSwapChain::reset(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers)
 {
 	m_impl->reset(surfaceFormat, renderArea, buffers);
 	this->reseted(this, { surfaceFormat, renderArea, buffers });

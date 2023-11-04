@@ -156,7 +156,7 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkImageViewType LITEFX_VULKAN_API getImageViewType(ImageDimensions dimension, const UInt32& layers = 1);
+        constexpr inline VkImageViewType LITEFX_VULKAN_API getImageViewType(ImageDimensions dimension, UInt32 layers = 1);
 
         /// <summary>
         /// 

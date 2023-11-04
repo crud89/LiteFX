@@ -20,13 +20,13 @@ private:
 
 	public:
 		QueueType type() const noexcept { return m_type; }
-		const UInt32& total() const noexcept { return m_queueCount; }
+		UInt32 total() const noexcept { return m_queueCount; }
 		const UInt32 active() const noexcept { return static_cast<UInt32>(m_queues.size()); }
-		const UInt32& id() const noexcept { return m_id; }
+		UInt32 id() const noexcept { return m_id; }
 		const Array<UniquePtr<VulkanQueue>>& queues() const noexcept { return m_queues; }
 
 	public:
-		QueueFamily(const UInt32& id, const UInt32& queueCount, QueueType type) :
+		QueueFamily(UInt32 id, UInt32 queueCount, QueueType type) :
 			m_id(id), m_queueCount(queueCount), m_type(type) { 
 		}
 		QueueFamily(const QueueFamily& _other) = delete;
@@ -281,7 +281,7 @@ public:
 		m_factory = makeUnique<VulkanGraphicsFactory>(*m_parent);
 	}
 
-	void createSwapChain(Format format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
+	void createSwapChain(Format format, const Size2d& frameBufferSize, UInt32 frameBuffers)
 	{
 		m_swapChain = makeUnique<VulkanSwapChain>(*m_parent, format, frameBufferSize, frameBuffers);
 	}
@@ -331,7 +331,7 @@ VulkanDevice::VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAda
 {
 }
 
-VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& frameBufferSize, const UInt32& frameBuffers, Span<String> extensions) :
+VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, Span<String> extensions) :
 	Resource<VkDevice>(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, std::move(surface), extensions))
 {
 	LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", fmt::ptr(reinterpret_cast<const void*>(m_impl->m_surface.get())), adapter.deviceId(), Join(this->enabledExtensions(), ", "));
@@ -392,12 +392,12 @@ VulkanSwapChain& VulkanDevice::swapChain() noexcept
 }
 
 #if defined(BUILD_DEFINE_BUILDERS)
-VulkanRenderPassBuilder VulkanDevice::buildRenderPass(MultiSamplingLevel samples, const UInt32& commandBuffers) const
+VulkanRenderPassBuilder VulkanDevice::buildRenderPass(MultiSamplingLevel samples, UInt32 commandBuffers) const
 {
 	return VulkanRenderPassBuilder(*this, commandBuffers, samples);
 }
 
-VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const String& name, MultiSamplingLevel samples, const UInt32& commandBuffers) const
+VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const String& name, MultiSamplingLevel samples, UInt32 commandBuffers) const
 {
 	return VulkanRenderPassBuilder(*this, commandBuffers, samples, name);
 }

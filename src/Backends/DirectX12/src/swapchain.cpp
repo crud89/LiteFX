@@ -46,7 +46,7 @@ private:
 
 public:
 	[[nodiscard]]
-	ComPtr<IDXGISwapChain4> initialize(Format format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
+	ComPtr<IDXGISwapChain4> initialize(Format format, const Size2d& frameBufferSize, UInt32 frameBuffers)
 	{
 		if (!std::ranges::any_of(m_parent->getSurfaceFormats(), [&format](Format surfaceFormat) { return surfaceFormat == format; }))
 			throw InvalidArgumentException("The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats());
@@ -97,7 +97,7 @@ public:
 		return swapChain;
 	}
 
-	void reset(Format format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
+	void reset(Format format, const Size2d& frameBufferSize, UInt32 frameBuffers)
 	{
 		if (!std::ranges::any_of(m_parent->getSurfaceFormats(), [&format](Format surfaceFormat) { return surfaceFormat == format; }))
 			throw InvalidArgumentException("The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats());
@@ -193,7 +193,7 @@ private:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12SwapChain::DirectX12SwapChain(const DirectX12Device& device, Format format, const Size2d& frameBufferSize, const UInt32& frameBuffers) :
+DirectX12SwapChain::DirectX12SwapChain(const DirectX12Device& device, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers) :
 	m_impl(makePimpl<DirectX12SwapChainImpl>(this, device)), ComResource<IDXGISwapChain4>(nullptr)
 {
 	this->handle() = m_impl->initialize(format, frameBufferSize, frameBuffers);
@@ -201,7 +201,7 @@ DirectX12SwapChain::DirectX12SwapChain(const DirectX12Device& device, Format for
 
 DirectX12SwapChain::~DirectX12SwapChain() noexcept = default;
 
-const bool& DirectX12SwapChain::supportsVariableRefreshRate() const noexcept
+bool DirectX12SwapChain::supportsVariableRefreshRate() const noexcept
 {
 	return m_impl->m_supportsVariableRefreshRates;
 }
@@ -216,7 +216,7 @@ Enumerable<SharedPtr<TimingEvent>> DirectX12SwapChain::timingEvents() const noex
 	return m_impl->m_timingEvents;
 }
 
-SharedPtr<TimingEvent> DirectX12SwapChain::timingEvent(const UInt32& queryId) const
+SharedPtr<TimingEvent> DirectX12SwapChain::timingEvent(UInt32 queryId) const
 {
 	if (queryId >= m_impl->m_timingEvents.size())
 		throw ArgumentOutOfRangeException("No timing event has been registered for query ID {0}.", queryId);
@@ -251,7 +251,7 @@ Format DirectX12SwapChain::surfaceFormat() const noexcept
 	return m_impl->m_format;
 }
 
-const UInt32& DirectX12SwapChain::buffers() const noexcept
+UInt32 DirectX12SwapChain::buffers() const noexcept
 {
 	return m_impl->m_buffers;
 }
@@ -261,7 +261,7 @@ const Size2d& DirectX12SwapChain::renderArea() const noexcept
 	return m_impl->m_renderArea;
 }
 
-const IDirectX12Image* DirectX12SwapChain::image(const UInt32& backBuffer) const
+const IDirectX12Image* DirectX12SwapChain::image(UInt32 backBuffer) const
 {
 	if (backBuffer >= m_impl->m_presentImages.size()) [[unlikely]]
 		throw ArgumentOutOfRangeException("The back buffer must be a valid index.");
@@ -308,7 +308,7 @@ void DirectX12SwapChain::addTimingEvent(SharedPtr<TimingEvent> timingEvent)
 	m_impl->resetQueryHeaps(events);
 }
 
-void DirectX12SwapChain::reset(Format surfaceFormat, const Size2d& renderArea, const UInt32& buffers)
+void DirectX12SwapChain::reset(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers)
 {
 	m_impl->reset(surfaceFormat, renderArea, buffers);
 }

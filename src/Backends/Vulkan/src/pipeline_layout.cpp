@@ -91,7 +91,7 @@ const VulkanDevice& VulkanPipelineLayout::device() const noexcept
     return m_impl->m_device;
 }
 
-const VulkanDescriptorSetLayout& VulkanPipelineLayout::descriptorSet(const UInt32& space) const
+const VulkanDescriptorSetLayout& VulkanPipelineLayout::descriptorSet(UInt32 space) const
 {
     if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
         return *match->get();

@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRasterizer::VulkanRasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, const Float& lineWidth, const DepthStencilState& depthStencilState) noexcept :
+VulkanRasterizer::VulkanRasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth, const DepthStencilState& depthStencilState) noexcept :
     Rasterizer(polygonMode, cullMode, cullOrder, lineWidth, depthStencilState)
 {
 }
@@ -19,7 +19,7 @@ VulkanRasterizer::VulkanRasterizer() noexcept :
 
 VulkanRasterizer::~VulkanRasterizer() noexcept = default;
 
-void VulkanRasterizer::updateLineWidth(const Float& lineWidth) noexcept
+void VulkanRasterizer::updateLineWidth(Float lineWidth) noexcept
 {
     this->lineWidth() = lineWidth;
 }

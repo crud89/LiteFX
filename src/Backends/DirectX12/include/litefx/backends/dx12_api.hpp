@@ -174,7 +174,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="vendorId"></param>
         /// <returns></returns>
-        constexpr inline String LITEFX_DIRECTX12_API getVendorName(const UInt32& vendorId);
+        constexpr inline String LITEFX_DIRECTX12_API getVendorName(UInt32 vendorId);
 
         /// <summary>
         /// 

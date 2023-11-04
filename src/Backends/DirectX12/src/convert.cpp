@@ -518,7 +518,7 @@ constexpr LPCTSTR LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getSem
 	}
 }
 
-constexpr String LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getVendorName(const UInt32& vendorId)
+constexpr String LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getVendorName(UInt32 vendorId)
 {
 	switch (vendorId)
 	{

@@ -19,7 +19,7 @@ private:
     UInt32 m_size;
 
 public:
-    VulkanPushConstantsLayoutImpl(VulkanPushConstantsLayout* parent, const UInt32& size) :
+    VulkanPushConstantsLayoutImpl(VulkanPushConstantsLayout* parent, UInt32 size) :
         base(parent), m_size(size)
     {
         // Align the size to 4 bytes.
@@ -48,13 +48,13 @@ private:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanPushConstantsLayout::VulkanPushConstantsLayout(Enumerable<UniquePtr<VulkanPushConstantsRange>>&& ranges, const UInt32& size) :
+VulkanPushConstantsLayout::VulkanPushConstantsLayout(Enumerable<UniquePtr<VulkanPushConstantsRange>>&& ranges, UInt32 size) :
     m_impl(makePimpl<VulkanPushConstantsLayoutImpl>(this, size))
 {
     m_impl->setRanges(std::move(ranges));
 }
 
-VulkanPushConstantsLayout::VulkanPushConstantsLayout(const UInt32& size) :
+VulkanPushConstantsLayout::VulkanPushConstantsLayout(UInt32 size) :
     m_impl(makePimpl<VulkanPushConstantsLayoutImpl>(this, size))
 {
 }
@@ -77,7 +77,7 @@ void VulkanPushConstantsLayout::pipelineLayout(const VulkanPipelineLayout& pipel
         throw RuntimeException("The push constant layout has already been initialized from another pipeline layout.");
 }
 
-const UInt32& VulkanPushConstantsLayout::size() const noexcept
+UInt32 VulkanPushConstantsLayout::size() const noexcept
 {
     return m_impl->m_size;
 }

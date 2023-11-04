@@ -27,7 +27,7 @@ private:
 	const VulkanDevice& m_device;
 
 public:
-	VulkanImageImpl(VulkanImage* parent, const VulkanDevice& device, const Size3d& extent, Format format, ImageDimensions dimensions, const UInt32& levels, const UInt32& layers, MultiSamplingLevel samples, const bool& writable, ImageLayout initialLayout, VmaAllocator allocator, VmaAllocation allocation) :
+	VulkanImageImpl(VulkanImage* parent, const VulkanDevice& device, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool writable, ImageLayout initialLayout, VmaAllocator allocator, VmaAllocation allocation) :
 		base(parent), m_device(device), m_allocator(allocator), m_allocationInfo(allocation), m_extent(extent), m_format(format), m_dimensions(dimensions), m_levels(levels), m_layers(layers), m_writable(writable), m_samples(samples)
 	{	
 		VkImageViewCreateInfo createInfo = {
@@ -91,7 +91,7 @@ public:
 // Image Base shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanImage::VulkanImage(const VulkanDevice& device, VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, const UInt32& levels, const UInt32& layers, MultiSamplingLevel samples, const bool& writable, ImageLayout initialLayout, VmaAllocator allocator, VmaAllocation allocation, const String& name) :
+VulkanImage::VulkanImage(const VulkanDevice& device, VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool writable, ImageLayout initialLayout, VmaAllocator allocator, VmaAllocation allocation, const String& name) :
 	m_impl(makePimpl<VulkanImageImpl>(this, device, extent, format, dimensions, levels, layers, samples, writable, initialLayout, allocator, allocation)), Resource<VkImage>(image)
 {
 	if (!name.empty())
@@ -110,7 +110,7 @@ VulkanImage::~VulkanImage() noexcept
 	}
 }
 
-const UInt32& VulkanImage::elements() const noexcept
+UInt32 VulkanImage::elements() const noexcept
 {
 	return m_impl->m_elements;
 }
@@ -153,12 +153,12 @@ size_t VulkanImage::alignedElementSize() const noexcept
 	return this->elementSize();
 }
 
-const bool& VulkanImage::writable() const noexcept
+bool VulkanImage::writable() const noexcept
 {
 	return m_impl->m_writable;
 }
 
-ImageLayout VulkanImage::layout(const UInt32& subresource) const
+ImageLayout VulkanImage::layout(UInt32 subresource) const
 {
 	if (subresource >= m_impl->m_layouts.size()) [[unlikely]]
 		throw ArgumentOutOfRangeException("The sub-resource with the provided index {0} does not exist.", subresource);
@@ -166,7 +166,7 @@ ImageLayout VulkanImage::layout(const UInt32& subresource) const
 	return m_impl->m_layouts[subresource];
 }
 
-ImageLayout& VulkanImage::layout(const UInt32& subresource)
+ImageLayout& VulkanImage::layout(UInt32 subresource)
 {
 	if (subresource >= m_impl->m_layouts.size()) [[unlikely]]
 		throw ArgumentOutOfRangeException("The sub-resource with the provided index {0} does not exist.", subresource);
@@ -174,7 +174,7 @@ ImageLayout& VulkanImage::layout(const UInt32& subresource)
 	return m_impl->m_layouts[subresource];
 }
 
-size_t VulkanImage::size(const UInt32& level) const noexcept
+size_t VulkanImage::size(UInt32 level) const noexcept
 {
 	if (level >= m_impl->m_levels)
 		return 0;
@@ -191,7 +191,7 @@ size_t VulkanImage::size(const UInt32& level) const noexcept
 	}
 }
 
-Size3d VulkanImage::extent(const UInt32& level) const noexcept
+Size3d VulkanImage::extent(UInt32 level) const noexcept
 {
 	if (level >= m_impl->m_levels)
 		return Size3d{ 0, 0, 0 };
@@ -218,17 +218,17 @@ ImageDimensions VulkanImage::dimensions() const noexcept
 	return m_impl->m_dimensions;
 }
 
-const UInt32& VulkanImage::levels() const noexcept
+UInt32 VulkanImage::levels() const noexcept
 {
 	return m_impl->m_levels;
 }
 
-const UInt32& VulkanImage::layers() const noexcept
+UInt32 VulkanImage::layers() const noexcept
 {
 	return m_impl->m_layers;
 }
 
-const UInt32& VulkanImage::planes() const noexcept
+UInt32 VulkanImage::planes() const noexcept
 {
 	return m_impl->m_planes;
 }
@@ -273,7 +273,7 @@ VkImageAspectFlags VulkanImage::aspectMask() const noexcept
 	}
 }
 
-VkImageAspectFlags VulkanImage::aspectMask(const UInt32& plane) const 
+VkImageAspectFlags VulkanImage::aspectMask(UInt32 plane) const 
 {
 	if (::hasDepth(m_impl->m_format) && ::hasStencil(m_impl->m_format))
 	{
@@ -313,7 +313,7 @@ VkImageAspectFlags VulkanImage::aspectMask(const UInt32& plane) const
 	}
 }
 
-const VkImageView& VulkanImage::imageView(const UInt32& plane) const
+const VkImageView& VulkanImage::imageView(UInt32 plane) const
 {
 	if (plane >= m_impl->m_views.size()) [[unlikely]]
 		throw ArgumentOutOfRangeException("The image does not have a plane {0}.", plane);
@@ -331,7 +331,7 @@ VmaAllocation& VulkanImage::allocationInfo() const noexcept
 	return m_impl->m_allocationInfo;
 }
 
-VkImageView& VulkanImage::imageView(const UInt32& plane)
+VkImageView& VulkanImage::imageView(UInt32 plane)
 {
 	if (plane >= m_impl->m_views.size()) [[unlikely]]
 		throw ArgumentOutOfRangeException("The image does not have a plane {0}.", plane);
@@ -339,12 +339,12 @@ VkImageView& VulkanImage::imageView(const UInt32& plane)
 	return m_impl->m_views[plane];
 }
 
-UniquePtr<VulkanImage> VulkanImage::allocate(const VulkanDevice& device, const Size3d& extent, Format format, ImageDimensions dimensions, const UInt32& levels, const UInt32& layers, MultiSamplingLevel samples, const bool& writable, ImageLayout initialLayout, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<VulkanImage> VulkanImage::allocate(const VulkanDevice& device, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool writable, ImageLayout initialLayout, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	return VulkanImage::allocate("", device, extent, format, dimensions, levels, layers, samples, writable, initialLayout, allocator, createInfo, allocationInfo, allocationResult);
 }
 
-UniquePtr<VulkanImage> VulkanImage::allocate(const String& name, const VulkanDevice& device, const Size3d& extent, Format format, ImageDimensions dimensions, const UInt32& levels, const UInt32& layers, MultiSamplingLevel samples, const bool& writable, ImageLayout initialLayout, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<VulkanImage> VulkanImage::allocate(const String& name, const VulkanDevice& device, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool writable, ImageLayout initialLayout, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkImage image;
 	VmaAllocation allocation;
@@ -373,7 +373,7 @@ private:
 	const VulkanDevice& m_device;
 
 public:
-	VulkanSamplerImpl(VulkanSampler* parent, const VulkanDevice& device, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
+	VulkanSamplerImpl(VulkanSampler* parent, const VulkanDevice& device, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) :
 		base(parent), m_device(device), m_magFilter(magFilter), m_minFilter(minFilter), m_borderU(borderU), m_borderV(borderV), m_borderW(borderW), m_mipMapMode(mipMapMode), m_mipMapBias(mipMapBias), m_minLod(minLod), m_maxLod(maxLod), m_anisotropy(anisotropy)
 	{
 	}
@@ -444,7 +444,7 @@ public:
 // Sampler shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanSampler::VulkanSampler(const VulkanDevice& device, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy, const String& name) :
+VulkanSampler::VulkanSampler(const VulkanDevice& device, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy, const String& name) :
 	Resource<VkSampler>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanSamplerImpl>(this, device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy))
 {
 	this->handle() = m_impl->initialize();
@@ -483,7 +483,7 @@ BorderMode VulkanSampler::getBorderModeW() const noexcept
 	return m_impl->m_borderW;
 }
 
-const Float& VulkanSampler::getAnisotropy() const noexcept
+Float VulkanSampler::getAnisotropy() const noexcept
 {
 	return m_impl->m_anisotropy;
 }
@@ -493,17 +493,17 @@ MipMapMode VulkanSampler::getMipMapMode() const noexcept
 	return m_impl->m_mipMapMode;
 }
 
-const Float& VulkanSampler::getMipMapBias() const noexcept
+Float VulkanSampler::getMipMapBias() const noexcept
 {
 	return m_impl->m_mipMapBias;
 }
 
-const Float& VulkanSampler::getMaxLOD() const noexcept
+Float VulkanSampler::getMaxLOD() const noexcept
 {
 	return m_impl->m_maxLod;
 }
 
-const Float& VulkanSampler::getMinLOD() const noexcept
+Float VulkanSampler::getMinLOD() const noexcept
 {
 	return m_impl->m_minLod;
 }

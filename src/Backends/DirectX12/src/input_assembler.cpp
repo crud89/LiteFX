@@ -66,7 +66,7 @@ Enumerable<const DirectX12VertexBufferLayout*> DirectX12InputAssembler::vertexBu
     return m_impl->m_vertexBufferLayouts | std::views::transform([](const auto& pair) { return pair.second.get(); });
 }
 
-const DirectX12VertexBufferLayout& DirectX12InputAssembler::vertexBufferLayout(const UInt32 & binding) const
+const DirectX12VertexBufferLayout& DirectX12InputAssembler::vertexBufferLayout(UInt32 binding) const
 {
     [[likely]] if (m_impl->m_vertexBufferLayouts.contains(binding))
         return *m_impl->m_vertexBufferLayouts[binding];
