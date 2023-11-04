@@ -18,7 +18,7 @@ private:
     DepthStencilState m_depthStencilState;
 
 public:
-    RasterizerImpl(Rasterizer* parent, const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth, const DepthStencilState& depthStencilState) :
+    RasterizerImpl(Rasterizer* parent, PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, const Float& lineWidth, const DepthStencilState& depthStencilState) :
         base(parent), m_polygonMode(polygonMode), m_cullMode(cullMode), m_cullOrder(cullOrder), m_lineWidth(lineWidth), m_depthStencilState(depthStencilState)
     {
     }
@@ -28,7 +28,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-Rasterizer::Rasterizer(const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth, const DepthStencilState& depthStencilState) noexcept :
+Rasterizer::Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, const Float& lineWidth, const DepthStencilState& depthStencilState) noexcept :
     m_impl(makePimpl<RasterizerImpl>(this, polygonMode, cullMode, cullOrder, lineWidth, depthStencilState))
 {
 }
@@ -47,17 +47,17 @@ Rasterizer::Rasterizer(Rasterizer&& _other) noexcept :
 
 Rasterizer::~Rasterizer() noexcept = default;
 
-const PolygonMode& Rasterizer::polygonMode() const noexcept
+PolygonMode Rasterizer::polygonMode() const noexcept
 {
     return m_impl->m_polygonMode;
 }
 
-const CullMode& Rasterizer::cullMode() const noexcept
+CullMode Rasterizer::cullMode() const noexcept
 {
     return m_impl->m_cullMode;
 }
 
-const CullOrder& Rasterizer::cullOrder() const noexcept
+CullOrder Rasterizer::cullOrder() const noexcept
 {
     return m_impl->m_cullOrder;
 }

@@ -28,7 +28,7 @@ private:
 	Array<Tuple<UInt64, SharedPtr<const VulkanCommandBuffer>>> m_submittedCommandBuffers;
 
 public:
-	VulkanQueueImpl(VulkanQueue* parent, const VulkanDevice& device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId) :
+	VulkanQueueImpl(VulkanQueue* parent, const VulkanDevice& device, QueueType type, QueuePriority priority, const UInt32& familyId, const UInt32& queueId) :
 		base(parent), m_type(type), m_priority(priority), m_familyId(familyId), m_queueId(queueId), m_bound(false), m_device(device)
 	{
 	}
@@ -98,7 +98,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanQueue::VulkanQueue(const VulkanDevice& device, const QueueType& type, const QueuePriority& priority, const UInt32& familyId, const UInt32& queueId) :
+VulkanQueue::VulkanQueue(const VulkanDevice& device, QueueType type, QueuePriority priority, const UInt32& familyId, const UInt32& queueId) :
 	Resource<VkQueue>(nullptr), m_impl(makePimpl<VulkanQueueImpl>(this, device, type, priority, familyId, queueId))
 {
 }
@@ -135,7 +135,7 @@ bool VulkanQueue::isBound() const noexcept
 	return m_impl->m_bound;
 }
 
-const QueueType& VulkanQueue::type() const noexcept
+QueueType VulkanQueue::type() const noexcept
 {
 	return m_impl->m_type;
 }
@@ -169,7 +169,7 @@ void VulkanQueue::SetDebugMarker(const String& label, const Vectors::ByteVector3
 }
 #endif
 
-const QueuePriority& VulkanQueue::priority() const noexcept
+QueuePriority VulkanQueue::priority() const noexcept
 {
 	return m_impl->m_priority;
 }

@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Rasterizer::DirectX12Rasterizer(const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth, const DepthStencilState& depthStencilState) noexcept :
+DirectX12Rasterizer::DirectX12Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, const Float& lineWidth, const DepthStencilState& depthStencilState) noexcept :
     Rasterizer(polygonMode, cullMode, cullOrder, lineWidth, depthStencilState)
 {
 }

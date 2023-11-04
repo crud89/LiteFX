@@ -112,22 +112,22 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline DXGI_FORMAT LITEFX_DIRECTX12_API getFormat(const Format& format);
+        constexpr inline DXGI_FORMAT LITEFX_DIRECTX12_API getFormat(Format format);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline DXGI_FORMAT LITEFX_DIRECTX12_API getFormat(const BufferFormat& format);
+        constexpr inline DXGI_FORMAT LITEFX_DIRECTX12_API getFormat(BufferFormat format);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline bool LITEFX_DIRECTX12_API isSRGB(const Format& format);
+        constexpr inline bool LITEFX_DIRECTX12_API isSRGB(Format format);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_RESOURCE_DIMENSION LITEFX_DIRECTX12_API getImageType(const ImageDimensions& dimensions);
+        constexpr inline D3D12_RESOURCE_DIMENSION LITEFX_DIRECTX12_API getImageType(ImageDimensions dimensions);
 
         /// <summary>
         /// 
@@ -137,7 +137,7 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_FILL_MODE LITEFX_DIRECTX12_API getPolygonMode(const PolygonMode& mode);
+        constexpr inline D3D12_FILL_MODE LITEFX_DIRECTX12_API getPolygonMode(PolygonMode mode);
 
         /// <summary>
         /// 
@@ -147,7 +147,7 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_CULL_MODE LITEFX_DIRECTX12_API getCullMode(const CullMode& mode);
+        constexpr inline D3D12_CULL_MODE LITEFX_DIRECTX12_API getCullMode(CullMode mode);
 
         /// <summary>
         /// 
@@ -167,7 +167,7 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline LPCTSTR LITEFX_DIRECTX12_API getSemanticName(const AttributeSemantic& semantic);
+        constexpr inline LPCTSTR LITEFX_DIRECTX12_API getSemanticName(AttributeSemantic semantic);
 
         /// <summary>
         /// 
@@ -179,37 +179,37 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_COMPARISON_FUNC LITEFX_DIRECTX12_API getCompareOp(const CompareOperation& compareOp);
+        constexpr inline D3D12_COMPARISON_FUNC LITEFX_DIRECTX12_API getCompareOp(CompareOperation compareOp);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_STENCIL_OP LITEFX_DIRECTX12_API getStencilOp(const StencilOperation& stencilOp);
+        constexpr inline D3D12_STENCIL_OP LITEFX_DIRECTX12_API getStencilOp(StencilOperation stencilOp);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_BLEND LITEFX_DIRECTX12_API getBlendFactor(const BlendFactor& blendFactor);
+        constexpr inline D3D12_BLEND LITEFX_DIRECTX12_API getBlendFactor(BlendFactor blendFactor);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_BLEND_OP LITEFX_DIRECTX12_API getBlendOperation(const BlendOperation& blendOperation);
+        constexpr inline D3D12_BLEND_OP LITEFX_DIRECTX12_API getBlendOperation(BlendOperation blendOperation);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_BARRIER_SYNC LITEFX_DIRECTX12_API getPipelineStage(const PipelineStage& pipelineStage);
+        constexpr inline D3D12_BARRIER_SYNC LITEFX_DIRECTX12_API getPipelineStage(PipelineStage pipelineStage);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_BARRIER_ACCESS LITEFX_DIRECTX12_API getResourceAccess(const ResourceAccess& resourceAccess);
+        constexpr inline D3D12_BARRIER_ACCESS LITEFX_DIRECTX12_API getResourceAccess(ResourceAccess resourceAccess);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_BARRIER_LAYOUT LITEFX_DIRECTX12_API getImageLayout(const ImageLayout& imageLayout);
+        constexpr inline D3D12_BARRIER_LAYOUT LITEFX_DIRECTX12_API getImageLayout(ImageLayout imageLayout);
     }
 
     /// <summary>

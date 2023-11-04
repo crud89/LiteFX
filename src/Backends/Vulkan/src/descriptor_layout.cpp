@@ -18,7 +18,7 @@ private:
     UniquePtr<IVulkanSampler> m_staticSampler;
 
 public:
-    VulkanDescriptorLayoutImpl(VulkanDescriptorLayout* parent, const DescriptorType& type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors) :
+    VulkanDescriptorLayoutImpl(VulkanDescriptorLayout* parent, DescriptorType type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors) :
         base(parent), m_descriptorType(type), m_binding(binding), m_elementSize(elementSize), m_descriptors(descriptors)
     {
         switch (m_descriptorType)
@@ -56,7 +56,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDescriptorLayout::VulkanDescriptorLayout(const DescriptorType& type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors) :
+VulkanDescriptorLayout::VulkanDescriptorLayout(DescriptorType type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors) :
     m_impl(makePimpl<VulkanDescriptorLayoutImpl>(this, type, binding, elementSize, descriptors))
 {
 }
@@ -83,12 +83,12 @@ const UInt32& VulkanDescriptorLayout::descriptors() const noexcept
     return m_impl->m_descriptors;
 }
 
-const BufferType& VulkanDescriptorLayout::type() const noexcept
+BufferType VulkanDescriptorLayout::type() const noexcept
 {
     return m_impl->m_bufferType;
 }
 
-const DescriptorType& VulkanDescriptorLayout::descriptorType() const noexcept
+DescriptorType VulkanDescriptorLayout::descriptorType() const noexcept
 {
     return m_impl->m_descriptorType;
 }

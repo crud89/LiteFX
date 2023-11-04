@@ -15,7 +15,7 @@ private:
     UInt32 m_offset, m_size, m_space, m_binding, m_rootParameterIndex{ 0 };
 
 public:
-    DirectX12PushConstantsRangeImpl(DirectX12PushConstantsRange* parent, const ShaderStage& shaderStage, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) :
+    DirectX12PushConstantsRangeImpl(DirectX12PushConstantsRange* parent, ShaderStage shaderStage, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) :
         base(parent), m_stage(shaderStage), m_offset(offset), m_size(size), m_space(space), m_binding(binding)
     {
         if (offset % 4 != 0)
@@ -33,7 +33,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12PushConstantsRange::DirectX12PushConstantsRange(const ShaderStage& shaderStage, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) :
+DirectX12PushConstantsRange::DirectX12PushConstantsRange(ShaderStage shaderStage, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding) :
     m_impl(makePimpl<DirectX12PushConstantsRangeImpl>(this, shaderStage, offset, size, space, binding))
 {
 }
@@ -60,7 +60,7 @@ const UInt32& DirectX12PushConstantsRange::size() const noexcept
     return m_impl->m_size;
 }
 
-const ShaderStage& DirectX12PushConstantsRange::stage() const noexcept
+ShaderStage DirectX12PushConstantsRange::stage() const noexcept
 {
     return m_impl->m_stage;
 }

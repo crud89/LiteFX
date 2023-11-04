@@ -19,7 +19,7 @@ private:
 	bool m_writable;
 
 public:
-	DirectX12BufferImpl(DirectX12Buffer* parent, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, AllocatorPtr allocator, AllocationPtr&& allocation) :
+	DirectX12BufferImpl(DirectX12Buffer* parent, BufferType type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, AllocatorPtr allocator, AllocationPtr&& allocation) :
 		base(parent), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_writable(writable), m_allocator(allocator), m_allocation(std::move(allocation))
 	{
 	}
@@ -29,7 +29,7 @@ public:
 // Buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Buffer::DirectX12Buffer(ComPtr<ID3D12Resource>&& buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
+DirectX12Buffer::DirectX12Buffer(ComPtr<ID3D12Resource>&& buffer, BufferType type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
 	m_impl(makePimpl<DirectX12BufferImpl>(this, type, elements, elementSize, alignment, writable, allocator, std::move(allocation))), ComResource<ID3D12Resource>(nullptr)
 {
 	this->handle() = std::move(buffer);
@@ -46,7 +46,7 @@ DirectX12Buffer::DirectX12Buffer(ComPtr<ID3D12Resource>&& buffer, const BufferTy
 
 DirectX12Buffer::~DirectX12Buffer() noexcept = default;
 
-const BufferType& DirectX12Buffer::type() const noexcept
+BufferType DirectX12Buffer::type() const noexcept
 {
 	return m_impl->m_type;
 }
@@ -146,12 +146,12 @@ const D3D12MA::Allocation* DirectX12Buffer::allocationInfo() const noexcept
 	return m_impl->m_allocation.get();
 }
 
-UniquePtr<IDirectX12Buffer> DirectX12Buffer::allocate(AllocatorPtr allocator, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
+UniquePtr<IDirectX12Buffer> DirectX12Buffer::allocate(AllocatorPtr allocator, BufferType type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
 {
 	return DirectX12Buffer::allocate("", allocator, type, elements, elementSize, alignment, writable, resourceDesc, allocationDesc);
 }
 
-UniquePtr<IDirectX12Buffer> DirectX12Buffer::allocate(const String& name, AllocatorPtr allocator, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
+UniquePtr<IDirectX12Buffer> DirectX12Buffer::allocate(const String& name, AllocatorPtr allocator, BufferType type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
 {
 	if (allocator == nullptr) [[unlikely]]
 		throw ArgumentNotInitializedException("The allocator must be initialized.");

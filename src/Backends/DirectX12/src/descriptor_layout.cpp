@@ -19,7 +19,7 @@ private:
     UniquePtr<IDirectX12Sampler> m_staticSampler;
 
 public:
-    DirectX12DescriptorLayoutImpl(DirectX12DescriptorLayout* parent, const DescriptorType& type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors) :
+    DirectX12DescriptorLayoutImpl(DirectX12DescriptorLayout* parent, DescriptorType type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors) :
         base(parent), m_descriptorType(type), m_binding(binding), m_elementSize(elementSize), m_descriptors(descriptors)
     {
         switch (m_descriptorType)
@@ -56,7 +56,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12DescriptorLayout::DirectX12DescriptorLayout(const DescriptorType& type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors) :
+DirectX12DescriptorLayout::DirectX12DescriptorLayout(DescriptorType type, const UInt32& binding, const size_t& elementSize, const UInt32& descriptors) :
     m_impl(makePimpl<DirectX12DescriptorLayoutImpl>(this, type, binding, elementSize, descriptors))
 {
 }
@@ -83,12 +83,12 @@ const UInt32& DirectX12DescriptorLayout::binding() const noexcept
     return m_impl->m_binding;
 }
 
-const BufferType& DirectX12DescriptorLayout::type() const noexcept
+BufferType DirectX12DescriptorLayout::type() const noexcept
 {
     return m_impl->m_bufferType;
 }
 
-const DescriptorType& DirectX12DescriptorLayout::descriptorType() const noexcept
+DescriptorType DirectX12DescriptorLayout::descriptorType() const noexcept
 {
     return m_impl->m_descriptorType;
 }

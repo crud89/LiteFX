@@ -45,7 +45,7 @@ private:
     Dictionary<const VkDescriptorSet*, const VkDescriptorPool*> m_descriptorSetSources;
 
 public:
-    VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages) :
+    VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, ShaderStage stages) :
         base(parent), m_device(device), m_space(space), m_stages(stages), m_poolSize(0)
     {
         m_descriptorLayouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
@@ -233,7 +233,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize, const UInt32& maxUnboundedArraySize) :
+VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, ShaderStage stages, const UInt32& poolSize, const UInt32& maxUnboundedArraySize) :
     m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, device, std::move(descriptorLayouts), space, stages)), Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize(poolSize, maxUnboundedArraySize);
@@ -274,7 +274,7 @@ const UInt32& VulkanDescriptorSetLayout::space() const noexcept
     return m_impl->m_space;
 }
 
-const ShaderStage& VulkanDescriptorSetLayout::shaderStages() const noexcept
+ShaderStage VulkanDescriptorSetLayout::shaderStages() const noexcept
 {
     return m_impl->m_stages;
 }

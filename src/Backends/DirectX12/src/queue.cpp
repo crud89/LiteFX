@@ -22,7 +22,7 @@ private:
 	Array<Tuple<UInt64, SharedPtr<const DirectX12CommandBuffer>>> m_submittedCommandBuffers;
 
 public:
-	DirectX12QueueImpl(DirectX12Queue* parent, const DirectX12Device& device, const QueueType& type, const QueuePriority& priority) :
+	DirectX12QueueImpl(DirectX12Queue* parent, const DirectX12Device& device, QueueType type, QueuePriority priority) :
 		base(parent), m_device(device), m_bound(false), m_type(type), m_priority(priority)
 	{
 	}
@@ -89,7 +89,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Queue::DirectX12Queue(const DirectX12Device& device, const QueueType& type, const QueuePriority& priority) :
+DirectX12Queue::DirectX12Queue(const DirectX12Device& device, QueueType type, QueuePriority priority) :
 	ComResource<ID3D12CommandQueue>(nullptr), m_impl(makePimpl<DirectX12QueueImpl>(this, device, type, priority))
 {
 	this->handle() = m_impl->initialize();
@@ -110,7 +110,7 @@ bool DirectX12Queue::isBound() const noexcept
 	return m_impl->m_bound;
 }
 
-const QueueType& DirectX12Queue::type() const noexcept
+QueueType DirectX12Queue::type() const noexcept
 {
 	return m_impl->m_type;
 }
@@ -132,7 +132,7 @@ void DirectX12Queue::SetDebugMarker(const String& label, const Vectors::ByteVect
 }
 #endif // !defined(NDEBUG) && defined(_WIN64)
 
-const QueuePriority& DirectX12Queue::priority() const noexcept
+QueuePriority DirectX12Queue::priority() const noexcept
 {
 	return m_impl->m_priority;
 }

@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRasterizer::VulkanRasterizer(const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth, const DepthStencilState& depthStencilState) noexcept :
+VulkanRasterizer::VulkanRasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, const Float& lineWidth, const DepthStencilState& depthStencilState) noexcept :
     Rasterizer(polygonMode, cullMode, cullOrder, lineWidth, depthStencilState)
 {
 }

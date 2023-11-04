@@ -26,45 +26,45 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        constexpr inline virtual void transition(buffer_type& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) = 0;
+        constexpr inline virtual void transition(buffer_type& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
 
         /// <inheritdoc />
-        constexpr inline virtual void transition(buffer_type& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) = 0;
+        constexpr inline virtual void transition(buffer_type& buffer, const UInt32& element, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
 
         /// <inheritdoc />
-        constexpr inline virtual void transition(image_type& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) = 0;
+        constexpr inline virtual void transition(image_type& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
 
         /// <inheritdoc />
-        constexpr inline virtual void transition(image_type& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) = 0;
+        constexpr inline virtual void transition(image_type& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
 
         /// <inheritdoc />
-        constexpr inline virtual void transition(image_type& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) = 0;
+        constexpr inline virtual void transition(image_type& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
 
         /// <inheritdoc />
-        constexpr inline virtual void transition(image_type& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) = 0;
+        constexpr inline virtual void transition(image_type& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
 
     private:
-        constexpr inline virtual void doTransition(IBuffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override {
+        constexpr inline virtual void doTransition(IBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) override {
             this->transition(dynamic_cast<buffer_type&>(buffer), accessBefore, accessAfter);
         }
 
-        constexpr inline virtual void doTransition(IBuffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) override {
+        constexpr inline virtual void doTransition(IBuffer& buffer, const UInt32& element, ResourceAccess accessBefore, ResourceAccess accessAfter) override {
             this->transition(dynamic_cast<buffer_type&>(buffer), element, accessBefore, accessAfter);
         }
 
-        constexpr inline virtual void doTransition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override {
+        constexpr inline virtual void doTransition(IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override {
             this->transition(dynamic_cast<image_type&>(image), accessBefore, accessAfter, layout);
         }
 
-        constexpr inline virtual void doTransition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) override {
+        constexpr inline virtual void doTransition(IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override {
             this->transition(dynamic_cast<image_type&>(image), accessBefore, accessAfter, fromLayout, toLayout);
         }
 
-        constexpr inline virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) override {
+        constexpr inline virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override {
             this->transition(dynamic_cast<image_type&>(image), level, levels, layer, layers, plane, accessBefore, accessAfter, layout);
         }
 
-        constexpr inline virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) override {
+        constexpr inline virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override {
             this->transition(dynamic_cast<image_type&>(image), level, levels, layer, layers, plane, accessBefore, accessAfter, fromLayout, toLayout);
         }
     };
@@ -991,101 +991,101 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual UniquePtr<TBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const = 0;
+        virtual UniquePtr<TBuffer> createBuffer(BufferType type, BufferUsage usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const = 0;
         
         /// <inheritdoc />
-        virtual UniquePtr<TBuffer> createBuffer(const String& name, const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const = 0;
+        virtual UniquePtr<TBuffer> createBuffer(const String& name, BufferType type, BufferUsage usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const vertex_buffer_layout_type& layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
+        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const vertex_buffer_layout_type& layout, BufferUsage usage, const UInt32& elements = 1) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const String& name, const vertex_buffer_layout_type& layout, const BufferUsage& usage, const UInt32& elements = 1) const = 0;
+        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const String& name, const vertex_buffer_layout_type& layout, BufferUsage usage, const UInt32& elements = 1) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const index_buffer_layout_type& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
+        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const index_buffer_layout_type& layout, BufferUsage usage, const UInt32& elements) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const String& name, const index_buffer_layout_type& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
+        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const String& name, const index_buffer_layout_type& layout, BufferUsage usage, const UInt32& elements) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
+        virtual UniquePtr<TImage> createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TImage> createAttachment(const String& name, const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const = 0;
+        virtual UniquePtr<TImage> createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TImage> createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
+        virtual UniquePtr<TImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TImage> createTexture(const String& name, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
+        virtual UniquePtr<TImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<UniquePtr<TImage>> createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32 & layers = 1, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
+        virtual Enumerable<UniquePtr<TImage>> createTextures(const UInt32& elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, const UInt32 & layers = 1, const UInt32& levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TSampler> createSampler(const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
+        virtual UniquePtr<TSampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TSampler> createSampler(const String& name, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
+        virtual UniquePtr<TSampler> createSampler(const String& name, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<UniquePtr<TSampler>> createSamplers(const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
+        virtual Enumerable<UniquePtr<TSampler>> createSamplers(const UInt32& elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const = 0;
 
     private:
-        virtual UniquePtr<IBuffer> getBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const override { 
+        virtual UniquePtr<IBuffer> getBuffer(BufferType type, BufferUsage usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const override { 
             return this->createBuffer(type, usage, elementSize, elements, allowWrite);
         }
 
-        virtual UniquePtr<IBuffer> getBuffer(const String& name, const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const override {
+        virtual UniquePtr<IBuffer> getBuffer(const String& name, BufferType type, BufferUsage usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const override {
             return this->createBuffer(name, type, usage, elementSize, elements, allowWrite);
         }
 
-        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override { 
+        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const override { 
             return this->createVertexBuffer(dynamic_cast<const vertex_buffer_layout_type&>(layout), usage, elements);
         }
 
-        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override {
+        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const override {
             return this->createVertexBuffer(name, dynamic_cast<const vertex_buffer_layout_type&>(layout), usage, elements);
         }
         
-        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override {
+        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const override {
             return this->createIndexBuffer(dynamic_cast<const index_buffer_layout_type&>(layout), usage, elements);
         }
 
-        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const override {
+        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const override {
             return this->createIndexBuffer(name, dynamic_cast<const index_buffer_layout_type&>(layout), usage, elements);
         }
 
-        virtual UniquePtr<IImage> getAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const override { 
+        virtual UniquePtr<IImage> getAttachment(Format format, const Size2d& size, MultiSamplingLevel samples) const override { 
             return this->createAttachment(format, size, samples);
         }
 
-        virtual UniquePtr<IImage> getAttachment(const String& name, const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const override {
+        virtual UniquePtr<IImage> getAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples) const override {
             return this->createAttachment(name, format, size, samples);
         }
         
-        virtual UniquePtr<IImage> getTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const override { 
+        virtual UniquePtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, const UInt32& levels, const UInt32& layers, MultiSamplingLevel samples, const bool& allowWrite) const override { 
             return this->createTexture(format, size, dimension, levels, layers, samples, allowWrite);
         }
 
-        virtual UniquePtr<IImage> getTexture(const String& name, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const override {
+        virtual UniquePtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, const UInt32& levels, const UInt32& layers, MultiSamplingLevel samples, const bool& allowWrite) const override {
             return this->createTexture(name, format, size, dimension, levels, layers, samples, allowWrite);
         }
 
-        virtual Enumerable<UniquePtr<IImage>> getTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& layers, const UInt32& levels, const MultiSamplingLevel& samples, const bool& allowWrite) const override {
+        virtual Enumerable<UniquePtr<IImage>> getTextures(const UInt32& elements, Format format, const Size3d& size, ImageDimensions dimension, const UInt32& layers, const UInt32& levels, MultiSamplingLevel samples, const bool& allowWrite) const override {
             return this->getTextures(elements, format, size, dimension, layers, levels, samples, allowWrite) | std::views::as_rvalue;
         }
         
-        virtual UniquePtr<ISampler> getSampler(const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const override { 
+        virtual UniquePtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const override { 
             return this->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
-        virtual UniquePtr<ISampler> getSampler(const String& name, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const override {
+        virtual UniquePtr<ISampler> getSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const override {
             return this->createSampler(name, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
         
-        virtual Enumerable<UniquePtr<ISampler>> getSamplers(const UInt32& elements, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const override {
+        virtual Enumerable<UniquePtr<ISampler>> getSamplers(const UInt32& elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const override {
             return this->createSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy) | std::views::as_rvalue;
         }
     };
@@ -1172,10 +1172,10 @@ namespace LiteFX::Rendering {
         virtual const command_queue_type& computeQueue() const noexcept = 0;
 
         /// <inheritdoc />
-        [[nodiscard]] virtual UniquePtr<barrier_type> makeBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept = 0;
+        [[nodiscard]] virtual UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
 
     private:
-        virtual UniquePtr<IBarrier> getNewBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept override {
+        virtual UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override {
             return this->makeBarrier(syncBefore, syncAfter);
         }
 
@@ -1196,7 +1196,7 @@ namespace LiteFX::Rendering {
         /// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
         /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
         /// <returns>An instance of a builder that is used to create a new render pass.</returns>
-        [[nodiscard]] virtual render_pass_builder_type buildRenderPass(const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const = 0;
+        [[nodiscard]] virtual render_pass_builder_type buildRenderPass(MultiSamplingLevel samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const = 0;
 
         /// <summary>
         /// Returns a builder for a <see cref="RenderPass" />.
@@ -1205,7 +1205,7 @@ namespace LiteFX::Rendering {
         /// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
         /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
         /// <returns>An instance of a builder that is used to create a new render pass.</returns>
-        [[nodiscard]] virtual render_pass_builder_type buildRenderPass(const String& name, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const = 0;
+        [[nodiscard]] virtual render_pass_builder_type buildRenderPass(const String& name, MultiSamplingLevel samples = MultiSamplingLevel::x1, const UInt32& commandBuffers = 1) const = 0;
 
         /// <summary>
         /// Returns a builder for a <see cref="ComputePipeline" />.

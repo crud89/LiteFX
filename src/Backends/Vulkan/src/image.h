@@ -14,7 +14,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanImageImpl);
 
 	public:
-		explicit VulkanImage(const VulkanDevice& device, VkImage image, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ImageLayout& initialLayout, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr, const String& name = "");
+		explicit VulkanImage(const VulkanDevice& device, VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, const UInt32& levels, const UInt32& layers, MultiSamplingLevel samples, const bool& writable, ImageLayout initialLayout, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr, const String& name = "");
 		VulkanImage(VulkanImage&&) = delete;
 		VulkanImage(const VulkanImage&) = delete;
 		virtual ~VulkanImage() noexcept;
@@ -40,7 +40,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const bool& writable() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const ImageLayout& layout(const UInt32& subresource = 0) const override;
+		virtual ImageLayout layout(const UInt32& subresource = 0) const override;
 
 		/// <inheritdoc />
 		virtual ImageLayout& layout(const UInt32& subresource = 0) override;
@@ -54,10 +54,10 @@ namespace LiteFX::Rendering::Backends {
 		virtual Size3d extent(const UInt32& level = 0) const noexcept override;
 
 		/// <inheritdoc />
-		virtual const Format& format() const noexcept override;
+		virtual Format format() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const ImageDimensions& dimensions() const noexcept override;
+		virtual ImageDimensions dimensions() const noexcept override;
 
 		/// <inheritdoc />
 		virtual const UInt32& levels() const noexcept override;
@@ -69,7 +69,7 @@ namespace LiteFX::Rendering::Backends {
 		virtual const UInt32& planes() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const MultiSamplingLevel& samples() const noexcept override;
+		virtual MultiSamplingLevel samples() const noexcept override;
 
 		// IVulkanImage interface.
 	public:
@@ -83,8 +83,8 @@ namespace LiteFX::Rendering::Backends {
 		virtual VkImageView& imageView(const UInt32& plane = 0);
 
 	public:
-		static UniquePtr<VulkanImage> allocate(const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ImageLayout& initialLayout, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
-		static UniquePtr<VulkanImage> allocate(const String& name, const VulkanDevice& device, const Size3d& extent, const Format& format, const ImageDimensions& dimensions, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ImageLayout& initialLayout, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<VulkanImage> allocate(const VulkanDevice& device, const Size3d& extent, Format format, ImageDimensions dimensions, const UInt32& levels, const UInt32& layers, MultiSamplingLevel samples, const bool& writable, ImageLayout initialLayout, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static UniquePtr<VulkanImage> allocate(const String& name, const VulkanDevice& device, const Size3d& extent, Format format, ImageDimensions dimensions, const UInt32& levels, const UInt32& layers, MultiSamplingLevel samples, const bool& writable, ImageLayout initialLayout, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	/// <summary>
@@ -108,7 +108,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="maxLod"></param>
 		/// <param name="minLod"></param>
 		/// <param name="anisotropy"></param>
-		explicit VulkanSampler(const VulkanDevice& device, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f, const String& name = "");
+		explicit VulkanSampler(const VulkanDevice& device, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f, const String& name = "");
 		VulkanSampler(VulkanSampler&&) = delete;
 		VulkanSampler(const VulkanSampler&) = delete;
 		virtual ~VulkanSampler() noexcept;
@@ -116,25 +116,25 @@ namespace LiteFX::Rendering::Backends {
 		// ISampler interface.
 	public:
 		/// <inheritdoc />
-		virtual const FilterMode& getMinifyingFilter() const noexcept override;
+		virtual FilterMode getMinifyingFilter() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const FilterMode& getMagnifyingFilter() const noexcept override;
+		virtual FilterMode getMagnifyingFilter() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const BorderMode& getBorderModeU() const noexcept override;
+		virtual BorderMode getBorderModeU() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const BorderMode& getBorderModeV() const noexcept override;
+		virtual BorderMode getBorderModeV() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const BorderMode& getBorderModeW() const noexcept override;
+		virtual BorderMode getBorderModeW() const noexcept override;
 
 		/// <inheritdoc />
 		virtual const Float& getAnisotropy() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const MipMapMode& getMipMapMode() const noexcept override;
+		virtual MipMapMode getMipMapMode() const noexcept override;
 
 		/// <inheritdoc />
 		virtual const Float& getMipMapBias() const noexcept override;

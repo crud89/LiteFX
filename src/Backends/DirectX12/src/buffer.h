@@ -23,7 +23,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12BufferImpl);
 
 	public:
-		explicit DirectX12Buffer(ComPtr<ID3D12Resource>&& buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr, const String& name = "");
+		explicit DirectX12Buffer(ComPtr<ID3D12Resource>&& buffer, BufferType type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr, const String& name = "");
 		DirectX12Buffer(DirectX12Buffer&&) = delete;
 		DirectX12Buffer(const DirectX12Buffer&) = delete;
 		virtual ~DirectX12Buffer() noexcept;
@@ -31,7 +31,7 @@ namespace LiteFX::Rendering::Backends {
 		// IBuffer interface.
 	public:
 		/// <inheritdoc />
-		virtual const BufferType& type() const noexcept override;
+		virtual BufferType type() const noexcept override;
 
 		// IDeviceMemory interface.
 	public:
@@ -73,8 +73,8 @@ namespace LiteFX::Rendering::Backends {
 		virtual const D3D12MA::Allocation* allocationInfo() const noexcept;
 
 	public:
-		static UniquePtr<IDirectX12Buffer> allocate(AllocatorPtr allocator, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
-		static UniquePtr<IDirectX12Buffer> allocate(const String& name, AllocatorPtr allocator, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
+		static UniquePtr<IDirectX12Buffer> allocate(AllocatorPtr allocator, BufferType type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
+		static UniquePtr<IDirectX12Buffer> allocate(const String& name, AllocatorPtr allocator, BufferType type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
 	};
 
 	/// <summary>

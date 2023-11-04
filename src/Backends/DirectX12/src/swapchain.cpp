@@ -46,9 +46,9 @@ private:
 
 public:
 	[[nodiscard]]
-	ComPtr<IDXGISwapChain4> initialize(const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
+	ComPtr<IDXGISwapChain4> initialize(Format format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
 	{
-		if (!std::ranges::any_of(m_parent->getSurfaceFormats(), [&format](const Format& surfaceFormat) { return surfaceFormat == format; }))
+		if (!std::ranges::any_of(m_parent->getSurfaceFormats(), [&format](Format surfaceFormat) { return surfaceFormat == format; }))
 			throw InvalidArgumentException("The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats());
 
 		auto adapter = m_device.adapter().handle();
@@ -97,9 +97,9 @@ public:
 		return swapChain;
 	}
 
-	void reset(const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
+	void reset(Format format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
 	{
-		if (!std::ranges::any_of(m_parent->getSurfaceFormats(), [&format](const Format& surfaceFormat) { return surfaceFormat == format; }))
+		if (!std::ranges::any_of(m_parent->getSurfaceFormats(), [&format](Format surfaceFormat) { return surfaceFormat == format; }))
 			throw InvalidArgumentException("The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats());
 
 		// Release all back buffers.
@@ -184,7 +184,7 @@ private:
 		auto formats = m_parent->getSurfaceFormats();
 
 		return Join(formats |
-			std::views::transform([](const Format& format) { return fmt::to_string(format); }) |
+			std::views::transform([](Format format) { return fmt::to_string(format); }) |
 			std::ranges::to<Array<String>>(), ", ");
 	}
 };
@@ -193,7 +193,7 @@ private:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12SwapChain::DirectX12SwapChain(const DirectX12Device& device, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers) :
+DirectX12SwapChain::DirectX12SwapChain(const DirectX12Device& device, Format format, const Size2d& frameBufferSize, const UInt32& frameBuffers) :
 	m_impl(makePimpl<DirectX12SwapChainImpl>(this, device)), ComResource<IDXGISwapChain4>(nullptr)
 {
 	this->handle() = m_impl->initialize(format, frameBufferSize, frameBuffers);
@@ -246,7 +246,7 @@ UInt32 DirectX12SwapChain::resolveQueryId(SharedPtr<const TimingEvent> timingEve
 	throw InvalidArgumentException("The timing event is not registered on the swap chain.");
 }
 
-const Format& DirectX12SwapChain::surfaceFormat() const noexcept
+Format DirectX12SwapChain::surfaceFormat() const noexcept
 {
 	return m_impl->m_format;
 }
@@ -308,7 +308,7 @@ void DirectX12SwapChain::addTimingEvent(SharedPtr<TimingEvent> timingEvent)
 	m_impl->resetQueryHeaps(events);
 }
 
-void DirectX12SwapChain::reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers)
+void DirectX12SwapChain::reset(Format surfaceFormat, const Size2d& renderArea, const UInt32& buffers)
 {
 	m_impl->reset(surfaceFormat, renderArea, buffers);
 }

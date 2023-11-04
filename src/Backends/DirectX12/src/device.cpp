@@ -177,7 +177,7 @@ public:
 		m_factory = makeUnique<DirectX12GraphicsFactory>(*m_parent);
 	}
 
-	void createSwapChain(const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
+	void createSwapChain(Format format, const Size2d& frameBufferSize, const UInt32& frameBuffers)
 	{
 		m_swapChain = makeUnique<DirectX12SwapChain>(*m_parent, format, frameBufferSize, frameBuffers);
 	}
@@ -253,7 +253,7 @@ DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX1
 {
 }
 
-DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, const Format& format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const UInt32& globalBufferHeapSize, const UInt32& globalSamplerHeapSize) :
+DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& frameBufferSize, const UInt32& frameBuffers, const UInt32& globalBufferHeapSize, const UInt32& globalSamplerHeapSize) :
 	ComResource<ID3D12Device10>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, std::move(surface), backend, globalBufferHeapSize, globalSamplerHeapSize))
 {
 	LITEFX_DEBUG(DIRECTX12_LOG, "Creating DirectX 12 device {{ Surface: {0}, Adapter: {1} }}...", fmt::ptr(&surface), adapter.deviceId());
@@ -445,12 +445,12 @@ DirectX12ComputePipeline& DirectX12Device::blitPipeline() const noexcept
 }
 
 #if defined(BUILD_DEFINE_BUILDERS)
-DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
+DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(MultiSamplingLevel samples, const UInt32& commandBuffers) const
 {
 	return DirectX12RenderPassBuilder(*this, commandBuffers, samples);
 }
 
-DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const String& name, const MultiSamplingLevel& samples, const UInt32& commandBuffers) const
+DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const String& name, MultiSamplingLevel samples, const UInt32& commandBuffers) const
 {
 	return DirectX12RenderPassBuilder(*this, commandBuffers, samples, name);
 }
@@ -541,12 +541,12 @@ const DirectX12Queue& DirectX12Device::computeQueue() const noexcept
 	return *m_impl->m_computeQueue;
 }
 
-UniquePtr<DirectX12Barrier> DirectX12Device::makeBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept
+UniquePtr<DirectX12Barrier> DirectX12Device::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept
 {
 	return makeUnique<DirectX12Barrier>(syncBefore, syncAfter);
 }
 
-MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(const Format& format) const noexcept
+MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(Format format) const noexcept
 {
 	constexpr std::array<MultiSamplingLevel, 7> allLevels = { MultiSamplingLevel::x64, MultiSamplingLevel::x32, MultiSamplingLevel::x16, MultiSamplingLevel::x8, MultiSamplingLevel::x4, MultiSamplingLevel::x2, MultiSamplingLevel::x1 };
 	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS levels{ .Format = DX12::getFormat(format) };

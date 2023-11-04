@@ -19,7 +19,7 @@ private:
 	bool m_writable;
 
 public:
-	VulkanBufferImpl(VulkanBuffer* parent, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const VmaAllocator& allocator, const VmaAllocation& allocation) :
+	VulkanBufferImpl(VulkanBuffer* parent, BufferType type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const VmaAllocator& allocator, const VmaAllocation& allocation) :
 		base(parent), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_writable(writable), m_allocator(allocator), m_allocation(allocation)
 	{
 	}
@@ -29,7 +29,7 @@ public:
 // Buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBuffer::VulkanBuffer(VkBuffer buffer, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
+VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
 	m_impl(makePimpl<VulkanBufferImpl>(this, type, elements, elementSize, alignment, writable, allocator, allocation)), Resource<VkBuffer>(buffer)
 {
 	if (!name.empty())
@@ -42,7 +42,7 @@ VulkanBuffer::~VulkanBuffer() noexcept
 	LITEFX_TRACE(VULKAN_LOG, "Destroyed buffer {0}", fmt::ptr(reinterpret_cast<void*>(this->handle())));
 }
 
-const BufferType& VulkanBuffer::type() const noexcept
+BufferType VulkanBuffer::type() const noexcept
 {
 	return m_impl->m_type;
 }
@@ -131,12 +131,12 @@ void VulkanBuffer::map(Span<void*> data, const size_t& elementSize, const UInt32
 	std::ranges::for_each(data, [this, &elementSize, &write, i = firstElement](void* mem) mutable { this->map(mem, elementSize, i++, write); });
 }
 
-UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(BufferType type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	return VulkanBuffer::allocate("", type, elements, elementSize, alignment, writable, allocator, createInfo, allocationInfo, allocationResult);
 }
 
-UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, const BufferType& type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, BufferType type, const UInt32& elements, const size_t& elementSize, const size_t& alignment, const bool& writable, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkBuffer buffer;
 	VmaAllocation allocation;

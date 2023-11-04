@@ -303,7 +303,7 @@ constexpr Format LiteFX::Rendering::Backends::Vk::getFormat(const VkFormat& form
 	}
 }
 
-constexpr VkFormat LiteFX::Rendering::Backends::Vk::getFormat(const Format& format)
+constexpr VkFormat LiteFX::Rendering::Backends::Vk::getFormat(Format format)
 {
 	switch (format)
 	{
@@ -604,7 +604,7 @@ constexpr VkFormat LiteFX::Rendering::Backends::Vk::getFormat(const Format& form
 	}
 }
 
-constexpr VkFormat LiteFX::Rendering::Backends::Vk::getFormat(const BufferFormat& format)
+constexpr VkFormat LiteFX::Rendering::Backends::Vk::getFormat(BufferFormat format)
 {
 	switch (format)
 	{
@@ -676,7 +676,7 @@ constexpr PolygonMode LiteFX::Rendering::Backends::Vk::getPolygonMode(const VkPo
 	}
 }
 
-constexpr VkPolygonMode LiteFX::Rendering::Backends::Vk::getPolygonMode(const PolygonMode& mode)
+constexpr VkPolygonMode LiteFX::Rendering::Backends::Vk::getPolygonMode(PolygonMode mode)
 {
 	switch (mode)
 	{
@@ -708,7 +708,7 @@ constexpr CullMode LiteFX::Rendering::Backends::Vk::getCullMode(const VkCullMode
 	}
 }
 
-constexpr VkCullModeFlags LiteFX::Rendering::Backends::Vk::getCullMode(const CullMode& mode)
+constexpr VkCullModeFlags LiteFX::Rendering::Backends::Vk::getCullMode(CullMode mode)
 {
 	switch (mode)
 	{
@@ -784,7 +784,7 @@ constexpr ShaderStage LiteFX::Rendering::Backends::Vk::getShaderStage(const VkSh
 	}
 }
 
-constexpr VkShaderStageFlagBits LiteFX::Rendering::Backends::Vk::getShaderStage(const ShaderStage& shaderType)
+constexpr VkShaderStageFlagBits LiteFX::Rendering::Backends::Vk::getShaderStage(ShaderStage shaderType)
 {
 	switch (shaderType)
 	{
@@ -829,7 +829,7 @@ constexpr MultiSamplingLevel LiteFX::Rendering::Backends::Vk::getSamples(const V
 	}
 }
 
-constexpr VkImageType LiteFX::Rendering::Backends::Vk::getImageType(const ImageDimensions& dimension)
+constexpr VkImageType LiteFX::Rendering::Backends::Vk::getImageType(ImageDimensions dimension)
 {
 	switch (dimension)
 	{
@@ -845,7 +845,7 @@ constexpr VkImageType LiteFX::Rendering::Backends::Vk::getImageType(const ImageD
 	}
 }
 
-constexpr VkImageViewType LiteFX::Rendering::Backends::Vk::getImageViewType(const ImageDimensions& dimension, const UInt32& layers)
+constexpr VkImageViewType LiteFX::Rendering::Backends::Vk::getImageViewType(ImageDimensions dimension, const UInt32& layers)
 {
 	switch (dimension)
 	{
@@ -862,7 +862,7 @@ constexpr VkImageViewType LiteFX::Rendering::Backends::Vk::getImageViewType(cons
 	}
 }
 
-constexpr VkSampleCountFlagBits LiteFX::Rendering::Backends::Vk::getSamples(const MultiSamplingLevel& samples)
+constexpr VkSampleCountFlagBits LiteFX::Rendering::Backends::Vk::getSamples(MultiSamplingLevel samples)
 {
 	switch (samples)
 	{
@@ -885,7 +885,7 @@ constexpr VkSampleCountFlagBits LiteFX::Rendering::Backends::Vk::getSamples(cons
 	}
 }
 
-constexpr VkCompareOp LiteFX::Rendering::Backends::Vk::getCompareOp(const CompareOperation& compareOp)
+constexpr VkCompareOp LiteFX::Rendering::Backends::Vk::getCompareOp(CompareOperation compareOp)
 {
 	switch (compareOp) {
 	case CompareOperation::Never: return VkCompareOp::VK_COMPARE_OP_NEVER;
@@ -900,7 +900,7 @@ constexpr VkCompareOp LiteFX::Rendering::Backends::Vk::getCompareOp(const Compar
 	}
 }
 
-constexpr VkStencilOp LiteFX::Rendering::Backends::Vk::getStencilOp(const StencilOperation& stencilOp)
+constexpr VkStencilOp LiteFX::Rendering::Backends::Vk::getStencilOp(StencilOperation stencilOp)
 {
 	switch (stencilOp) {
 	case StencilOperation::Keep: return VkStencilOp::VK_STENCIL_OP_KEEP;
@@ -915,7 +915,7 @@ constexpr VkStencilOp LiteFX::Rendering::Backends::Vk::getStencilOp(const Stenci
 	}
 }
 
-constexpr VkBlendFactor LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendFactor(const BlendFactor& blendFactor)
+constexpr VkBlendFactor LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendFactor(BlendFactor blendFactor)
 {
 	switch (blendFactor) {
 	case BlendFactor::Zero: return VkBlendFactor::VK_BLEND_FACTOR_ZERO;
@@ -941,7 +941,7 @@ constexpr VkBlendFactor LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBl
 	}
 }
 
-constexpr VkBlendOp LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendOperation(const BlendOperation& blendOperation)
+constexpr VkBlendOp LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendOperation(BlendOperation blendOperation)
 {
 	switch (blendOperation) {
 	case BlendOperation::Add: return VkBlendOp::VK_BLEND_OP_ADD;
@@ -953,7 +953,7 @@ constexpr VkBlendOp LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendO
 	}
 }
 
-constexpr VkPipelineStageFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getPipelineStage(const PipelineStage& pipelineStage)
+constexpr VkPipelineStageFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getPipelineStage(PipelineStage pipelineStage)
 {
 	if (pipelineStage == PipelineStage::None)
 		return VK_PIPELINE_STAGE_NONE;
@@ -1000,7 +1000,7 @@ constexpr VkPipelineStageFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk
 	return sync;
 }
 
-constexpr VkAccessFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getResourceAccess(const ResourceAccess& resourceAccess)
+constexpr VkAccessFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getResourceAccess(ResourceAccess resourceAccess)
 {
 	if (resourceAccess == ResourceAccess::None)
 		return VK_ACCESS_NONE;
@@ -1052,7 +1052,7 @@ constexpr VkAccessFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getRe
 	return access;
 }
 
-constexpr VkImageLayout LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getImageLayout(const ImageLayout& imageLayout)
+constexpr VkImageLayout LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getImageLayout(ImageLayout imageLayout)
 {
 	switch (imageLayout) {
 	case ImageLayout::Common: return VK_IMAGE_LAYOUT_GENERAL;

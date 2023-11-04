@@ -91,7 +91,7 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkFormat LITEFX_VULKAN_API getFormat(const Format& format);
+        constexpr inline VkFormat LITEFX_VULKAN_API getFormat(Format format);
 
         /// <summary>
         /// 
@@ -101,7 +101,7 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkFormat LITEFX_VULKAN_API getFormat(const BufferFormat& format);
+        constexpr inline VkFormat LITEFX_VULKAN_API getFormat(BufferFormat format);
 
         /// <summary>
         /// 
@@ -111,7 +111,7 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkPolygonMode LITEFX_VULKAN_API getPolygonMode(const PolygonMode& mode);
+        constexpr inline VkPolygonMode LITEFX_VULKAN_API getPolygonMode(PolygonMode mode);
 
         /// <summary>
         /// 
@@ -121,7 +121,7 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkCullModeFlags LITEFX_VULKAN_API getCullMode(const CullMode& mode);
+        constexpr inline VkCullModeFlags LITEFX_VULKAN_API getCullMode(CullMode mode);
 
         /// <summary>
         /// 
@@ -141,7 +141,7 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkShaderStageFlagBits LITEFX_VULKAN_API getShaderStage(const ShaderStage& shaderType);
+        constexpr inline VkShaderStageFlagBits LITEFX_VULKAN_API getShaderStage(ShaderStage shaderType);
 
         /// <summary>
         /// 
@@ -151,52 +151,52 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkImageType LITEFX_VULKAN_API getImageType(const ImageDimensions& dimension);
+        constexpr inline VkImageType LITEFX_VULKAN_API getImageType(ImageDimensions dimension);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkImageViewType LITEFX_VULKAN_API getImageViewType(const ImageDimensions& dimension, const UInt32& layers = 1);
+        constexpr inline VkImageViewType LITEFX_VULKAN_API getImageViewType(ImageDimensions dimension, const UInt32& layers = 1);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkSampleCountFlagBits LITEFX_VULKAN_API getSamples(const MultiSamplingLevel& samples);
+        constexpr inline VkSampleCountFlagBits LITEFX_VULKAN_API getSamples(MultiSamplingLevel samples);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkCompareOp LITEFX_VULKAN_API getCompareOp(const CompareOperation& compareOp);
+        constexpr inline VkCompareOp LITEFX_VULKAN_API getCompareOp(CompareOperation compareOp);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkStencilOp LITEFX_VULKAN_API getStencilOp(const StencilOperation& stencilOp);
+        constexpr inline VkStencilOp LITEFX_VULKAN_API getStencilOp(StencilOperation stencilOp);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkBlendFactor LITEFX_VULKAN_API getBlendFactor(const BlendFactor& blendFactor);
+        constexpr inline VkBlendFactor LITEFX_VULKAN_API getBlendFactor(BlendFactor blendFactor);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkBlendOp LITEFX_VULKAN_API getBlendOperation(const BlendOperation& blendOperation);
+        constexpr inline VkBlendOp LITEFX_VULKAN_API getBlendOperation(BlendOperation blendOperation);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkPipelineStageFlags LITEFX_VULKAN_API getPipelineStage(const PipelineStage& pipelineStage);
+        constexpr inline VkPipelineStageFlags LITEFX_VULKAN_API getPipelineStage(PipelineStage pipelineStage);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkAccessFlags LITEFX_VULKAN_API getResourceAccess(const ResourceAccess& resourceAccess);
+        constexpr inline VkAccessFlags LITEFX_VULKAN_API getResourceAccess(ResourceAccess resourceAccess);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkImageLayout LITEFX_VULKAN_API getImageLayout(const ImageLayout& imageLayout);
+        constexpr inline VkImageLayout LITEFX_VULKAN_API getImageLayout(ImageLayout imageLayout);
     }
 
     /// <summary>

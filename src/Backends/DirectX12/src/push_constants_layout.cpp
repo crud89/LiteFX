@@ -65,7 +65,7 @@ const UInt32& DirectX12PushConstantsLayout::size() const noexcept
     return m_impl->m_size;
 }
 
-const DirectX12PushConstantsRange& DirectX12PushConstantsLayout::range(const ShaderStage& stage) const
+const DirectX12PushConstantsRange& DirectX12PushConstantsLayout::range(ShaderStage stage) const
 {
     auto bits = std::to_underlying(stage);
 

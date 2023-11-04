@@ -82,7 +82,7 @@ const UInt32& VulkanPushConstantsLayout::size() const noexcept
     return m_impl->m_size;
 }
 
-const VulkanPushConstantsRange& VulkanPushConstantsLayout::range(const ShaderStage& stage) const
+const VulkanPushConstantsRange& VulkanPushConstantsLayout::range(ShaderStage stage) const
 {
     if (!(std::to_underlying(stage) && !(std::to_underlying(stage) & (std::to_underlying(stage) - 1))))
         throw ArgumentOutOfRangeException("The stage mask must only contain one shader stage.");

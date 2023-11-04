@@ -24,7 +24,7 @@ private:
     mutable std::mutex m_mutex;
 
 public:
-    DirectX12DescriptorSetLayoutImpl(DirectX12DescriptorSetLayout* parent, const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages) :
+    DirectX12DescriptorSetLayoutImpl(DirectX12DescriptorSetLayout* parent, const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, ShaderStage stages) :
         base(parent), m_device(device), m_space(space), m_stages(stages)
     {
         m_layouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
@@ -127,7 +127,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages) :
+DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, const UInt32& space, ShaderStage stages) :
     m_impl(makePimpl<DirectX12DescriptorSetLayoutImpl>(this, device, std::move(descriptorLayouts), space, stages))
 {
     m_impl->initialize();
@@ -186,7 +186,7 @@ const UInt32& DirectX12DescriptorSetLayout::space() const noexcept
     return m_impl->m_space;
 }
 
-const ShaderStage& DirectX12DescriptorSetLayout::shaderStages() const noexcept
+ShaderStage DirectX12DescriptorSetLayout::shaderStages() const noexcept
 {
     return m_impl->m_stages;
 }

@@ -16,7 +16,7 @@ private:
 	const DirectX12Device& m_device;
 
 public:
-	DirectX12ShaderModuleImpl(DirectX12ShaderModule* parent, const DirectX12Device& device, const ShaderStage& type, const String& fileName, const String& entryPoint) :
+	DirectX12ShaderModuleImpl(DirectX12ShaderModule* parent, const DirectX12Device& device, ShaderStage type, const String& fileName, const String& entryPoint) :
 		base(parent), m_device(device), m_fileName(fileName), m_entryPoint(entryPoint), m_type(type) 
 	{
 	}
@@ -54,13 +54,13 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12ShaderModule::DirectX12ShaderModule(const DirectX12Device& device, const ShaderStage& type, const String& fileName, const String& entryPoint) :
+DirectX12ShaderModule::DirectX12ShaderModule(const DirectX12Device& device, ShaderStage type, const String& fileName, const String& entryPoint) :
 	m_impl(makePimpl<DirectX12ShaderModuleImpl>(this, device, type, fileName, entryPoint)), ComResource<IDxcBlob>(nullptr)
 {
 	this->handle() = m_impl->initialize();
 }
 
-DirectX12ShaderModule::DirectX12ShaderModule(const DirectX12Device& device, const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint) :
+DirectX12ShaderModule::DirectX12ShaderModule(const DirectX12Device& device, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint) :
 	m_impl(makePimpl<DirectX12ShaderModuleImpl>(this, device, type, name, entryPoint)), ComResource<IDxcBlob>(nullptr)
 {
 	this->handle() = m_impl->initialize(stream);
@@ -68,7 +68,7 @@ DirectX12ShaderModule::DirectX12ShaderModule(const DirectX12Device& device, cons
 
 DirectX12ShaderModule::~DirectX12ShaderModule() noexcept = default;
 
-const ShaderStage& DirectX12ShaderModule::type() const noexcept
+ShaderStage DirectX12ShaderModule::type() const noexcept
 {
 	return m_impl->m_type;
 }

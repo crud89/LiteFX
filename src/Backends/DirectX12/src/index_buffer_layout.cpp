@@ -16,7 +16,7 @@ private:
     BufferType m_bufferType{ BufferType::Index };
 
 public:
-    DirectX12IndexBufferLayoutImpl(DirectX12IndexBufferLayout* parent, const IndexType& type) : 
+    DirectX12IndexBufferLayoutImpl(DirectX12IndexBufferLayout* parent, IndexType type) : 
         base(parent), m_indexType(type) 
     {
     }
@@ -26,7 +26,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12IndexBufferLayout::DirectX12IndexBufferLayout(const IndexType& type) :
+DirectX12IndexBufferLayout::DirectX12IndexBufferLayout(IndexType type) :
     m_impl(makePimpl<DirectX12IndexBufferLayoutImpl>(this, type))
 {
 }
@@ -43,12 +43,12 @@ const UInt32& DirectX12IndexBufferLayout::binding() const noexcept
     return m_impl->m_binding;
 }
 
-const BufferType& DirectX12IndexBufferLayout::type() const noexcept
+BufferType DirectX12IndexBufferLayout::type() const noexcept
 {
     return m_impl->m_bufferType;
 }
 
-const IndexType& DirectX12IndexBufferLayout::indexType() const noexcept
+IndexType DirectX12IndexBufferLayout::indexType() const noexcept
 {
     return m_impl->m_indexType;
 }

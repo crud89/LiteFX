@@ -1438,7 +1438,7 @@ namespace LiteFX::Rendering {
     /// Returns the number of channels for a buffer format.
     /// </summary>
     /// <seealso cref="BufferFormat" />
-    inline UInt32 getBufferFormatChannels(const BufferFormat& format) {
+    constexpr inline UInt32 getBufferFormatChannels(BufferFormat format) {
         return static_cast<UInt32>(format) & 0x000000FF;
     }
 
@@ -1446,7 +1446,7 @@ namespace LiteFX::Rendering {
     /// Returns the number of bytes used by a channel of a buffer format.
     /// </summary>
     /// <seealso cref="BufferFormat" />
-    inline UInt32 getBufferFormatChannelSize(const BufferFormat& format) {
+    constexpr inline UInt32 getBufferFormatChannelSize(BufferFormat format) {
         return (static_cast<UInt32>(format) & 0xFF000000) >> 24;
     }
 
@@ -1454,26 +1454,26 @@ namespace LiteFX::Rendering {
     /// Returns the underlying data type of a buffer format.
     /// </summary>
     /// <seealso cref="BufferFormat" />
-    inline UInt32 getBufferFormatType(const BufferFormat& format) {
+    constexpr inline UInt32 getBufferFormatType(BufferFormat format) {
         return (static_cast<UInt32>(format) & 0x0000FF00) >> 8;
     }
 
     /// <summary>
     /// Returns the size of an element of a specified format.
     /// </summary>
-    size_t LITEFX_RENDERING_API getSize(const Format& format);
+    constexpr inline size_t LITEFX_RENDERING_API getSize(Format format);
 
     /// <summary>
     /// Returns <c>true</c>, if the format contains a depth channel.
     /// </summary>
     /// <seealso cref="DepthStencilState" />
-    bool LITEFX_RENDERING_API hasDepth(const Format& format);
+    constexpr inline bool LITEFX_RENDERING_API hasDepth(Format format);
 
     /// <summary>
     /// Returns <c>true</c>, if the format contains a stencil channel.
     /// </summary>
     /// <seealso cref="DepthStencilState" />
-    bool LITEFX_RENDERING_API hasStencil(const Format& format);
+    constexpr inline bool LITEFX_RENDERING_API hasStencil(Format format);
 
 #pragma endregion
 
@@ -1878,7 +1878,7 @@ namespace LiteFX::Rendering {
         /// Returns the type of the shader module.
         /// </summary>
         /// <returns>The type of the shader module.</returns>
-        virtual const ShaderStage& type() const noexcept = 0;
+        virtual ShaderStage type() const noexcept = 0;
 
         /// <summary>
         /// Returns the file name of the shader module.
@@ -1976,13 +1976,13 @@ namespace LiteFX::Rendering {
         /// Returns the type of the render target.
         /// </summary>
         /// <returns>The type of the render target.</returns>
-        virtual const RenderTargetType& type() const noexcept = 0;
+        virtual RenderTargetType type() const noexcept = 0;
 
         /// <summary>
         /// Returns the internal format of the render target.
         /// </summary>
         /// <returns>The internal format of the render target.</returns>
-        virtual const Format& format() const noexcept = 0;
+        virtual Format format() const noexcept = 0;
 
         /// <summary>
         /// Returns <c>true</c>, if the render target should be cleared, when the render pass is started. If the <see cref="format" /> is set to a depth format, this clears the
@@ -2053,7 +2053,7 @@ namespace LiteFX::Rendering {
         /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared, when a render pass is started.</param>
         /// <param name="isVolatile"><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</param>
         /// <param name="blendState">The render target blend state.</param>
-        explicit RenderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const bool& isVolatile = false, const BlendState& blendState = {});
+        explicit RenderTarget(const UInt32& location, RenderTargetType type, Format format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const bool& isVolatile = false, const BlendState& blendState = {});
 
         /// <summary>
         /// Initializes the render target.
@@ -2067,7 +2067,7 @@ namespace LiteFX::Rendering {
         /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared, when a render pass is started.</param>
         /// <param name="isVolatile"><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</param>
         /// <param name="blendState">The render target blend state.</param>
-        explicit RenderTarget(const String& name, const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const bool& isVolatile = false, const BlendState& blendState = {});
+        explicit RenderTarget(const String& name, const UInt32& location, RenderTargetType type, Format format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const bool& isVolatile = false, const BlendState& blendState = {});
         RenderTarget(const RenderTarget&) noexcept;
         RenderTarget(RenderTarget&&) noexcept;
         virtual ~RenderTarget() noexcept;
@@ -2084,10 +2084,10 @@ namespace LiteFX::Rendering {
         virtual const UInt32& location() const noexcept override;
 
         /// <inheritdoc />
-        virtual const RenderTargetType& type() const noexcept override;
+        virtual RenderTargetType type() const noexcept override;
 
         /// <inheritdoc />
-        virtual const Format& format() const noexcept override;
+        virtual Format format() const noexcept override;
 
         /// <inheritdoc />
         virtual const bool& clearBuffer() const noexcept override;
@@ -2295,19 +2295,19 @@ namespace LiteFX::Rendering {
         /// Returns the polygon mode of the rasterizer state.
         /// </summary>
         /// <returns>The polygon mode of the rasterizer state.</returns>
-        virtual const PolygonMode& polygonMode() const noexcept = 0;
+        virtual PolygonMode polygonMode() const noexcept = 0;
 
         /// <summary>
         /// Returns the cull mode of the rasterizer state.
         /// </summary>
         /// <returns>The cull mode of the rasterizer state.</returns>
-        virtual const CullMode& cullMode() const noexcept = 0;
+        virtual CullMode cullMode() const noexcept = 0;
 
         /// <summary>
         /// Returns the cull mode of the rasterizer state.
         /// </summary>
         /// <returns>The cull mode of the rasterizer state.</returns>
-        virtual const CullOrder& cullOrder() const noexcept = 0;
+        virtual CullOrder cullOrder() const noexcept = 0;
 
         /// <summary>
         /// Returns the line width of the rasterizer state.
@@ -2341,20 +2341,20 @@ namespace LiteFX::Rendering {
         /// <param name="cullOrder">The cull order of the rasterizer state.</param>
         /// <param name="lineWidth">The line width of the rasterizer state.</param>
         /// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
-        explicit Rasterizer(const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
+        explicit Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, const Float& lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
         Rasterizer(Rasterizer&&) noexcept;
         Rasterizer(const Rasterizer&) noexcept;
         virtual ~Rasterizer() noexcept;
 
     public:
         /// <inheritdoc />
-        virtual const PolygonMode& polygonMode() const noexcept override;
+        virtual PolygonMode polygonMode() const noexcept override;
 
         /// <inheritdoc />
-        virtual const CullMode& cullMode() const noexcept override;
+        virtual CullMode cullMode() const noexcept override;
 
         /// <inheritdoc />
-        virtual const CullOrder& cullOrder() const noexcept override;
+        virtual CullOrder cullOrder() const noexcept override;
 
         /// <inheritdoc />
         virtual const Float& lineWidth() const noexcept override;
@@ -2585,7 +2585,7 @@ namespace LiteFX::Rendering {
         /// <param name="format">The format of the buffer attribute.</param>
         /// <param name="semantic">The semantic of the buffer attribute.</param>
         /// <param name="semanticIndex">The semantic index of the buffer attribute.</param>
-        BufferAttribute(const UInt32& location, const UInt32& offset, const BufferFormat& format, const AttributeSemantic& semantic, const UInt32& semanticIndex = 0);
+        BufferAttribute(const UInt32& location, const UInt32& offset, BufferFormat format, AttributeSemantic semantic, const UInt32& semanticIndex = 0);
         BufferAttribute(BufferAttribute&&) noexcept;
         BufferAttribute(const BufferAttribute&);
         virtual ~BufferAttribute() noexcept;
@@ -2604,7 +2604,7 @@ namespace LiteFX::Rendering {
         /// Returns the format of the buffer attribute.
         /// </summary>
         /// <returns>The format of the buffer attribute.</returns>
-        virtual const BufferFormat& format() const noexcept;
+        virtual BufferFormat format() const noexcept;
 
         /// <summary>
         /// Returns the offset of the buffer attribute.
@@ -2620,7 +2620,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The semantic of the buffer attribute.</returns>
         /// <seealso cref="semanticIndex" />
-        virtual const AttributeSemantic& semantic() const noexcept;
+        virtual AttributeSemantic semantic() const noexcept;
 
         /// <summary>
         /// Returns the semantic index of the buffer attribute.
@@ -2663,7 +2663,7 @@ namespace LiteFX::Rendering {
         /// Returns the buffer type of the buffer.
         /// </summary>
         /// <returns>The buffer type of the buffer.</returns>
-        virtual const BufferType& type() const noexcept = 0;
+        virtual BufferType type() const noexcept = 0;
     };
 
     /// <summary>
@@ -2695,7 +2695,7 @@ namespace LiteFX::Rendering {
         /// Returns the index type of the index buffer.
         /// </summary>
         /// <returns>The index type of the index buffer.</returns>
-        virtual const IndexType& indexType() const noexcept = 0;
+        virtual IndexType indexType() const noexcept = 0;
     };
 
     /// <summary>
@@ -2729,7 +2729,7 @@ namespace LiteFX::Rendering {
         /// Returns the type of the descriptor.
         /// </summary>
         /// <returns>The type of the descriptor.</returns>
-        virtual const DescriptorType& descriptorType() const noexcept = 0;
+        virtual DescriptorType descriptorType() const noexcept = 0;
 
         /// <summary>
         /// Returns the number of descriptors in the descriptor array, or `-1` if the array is unbounded.
@@ -2884,7 +2884,7 @@ namespace LiteFX::Rendering {
         /// Returns the type of the buffer.
         /// </summary>
         /// <returns>The type of the buffer.</returns>
-        virtual const BufferType& type() const noexcept = 0;
+        virtual BufferType type() const noexcept = 0;
     };
 
     /// <summary>
@@ -2921,7 +2921,7 @@ namespace LiteFX::Rendering {
         /// Gets the internal format of the image.
         /// </summary>
         /// <returns>The internal format of the image.</returns>
-        virtual const Format& format() const noexcept = 0;
+        virtual Format format() const noexcept = 0;
 
         /// <summary>
         /// Gets the images dimensionality.
@@ -2931,7 +2931,7 @@ namespace LiteFX::Rendering {
         /// extent is used.
         /// </remarks>
         /// <returns>The images dimensionality.</returns>
-        virtual const ImageDimensions& dimensions() const noexcept = 0;
+        virtual ImageDimensions dimensions() const noexcept = 0;
 
         /// <summary>
         /// Gets the number of mip-map levels of the image.
@@ -2959,7 +2959,7 @@ namespace LiteFX::Rendering {
         /// Gets the number of samples of the texture.
         /// </summary>
         /// <returns>The number of samples of the texture.</returns>
-        virtual const MultiSamplingLevel& samples() const noexcept = 0;
+        virtual MultiSamplingLevel samples() const noexcept = 0;
 
         /// <summary>
         /// Returns the current image layout.
@@ -2967,7 +2967,7 @@ namespace LiteFX::Rendering {
         /// <param name="subresource">The sub-resource ID for which to return the layout.</param>
         /// <returns>The current image layout.</returns>
         /// <seealso cref="subresourceId" />
-        virtual const ImageLayout& layout(const UInt32& subresource = 0) const = 0;
+        virtual ImageLayout layout(const UInt32& subresource = 0) const = 0;
 
         // TODO: getSampler() for combined samplers?
 
@@ -3013,31 +3013,31 @@ namespace LiteFX::Rendering {
         /// Gets the filtering mode that is used for minifying lookups.
         /// </summary>
         /// <returns>The filtering mode that is used for minifying lookups.</returns>
-        virtual const FilterMode& getMinifyingFilter() const noexcept = 0;
+        virtual FilterMode getMinifyingFilter() const noexcept = 0;
 
         /// <summary>
         /// Gets the filtering mode that is used for magnifying lookups.
         /// </summary>
         /// <returns>The filtering mode that is used for magnifying lookups.</returns>
-        virtual const FilterMode& getMagnifyingFilter() const noexcept = 0;
+        virtual FilterMode getMagnifyingFilter() const noexcept = 0;
 
         /// <summary>
         /// Gets the addressing mode at the horizontal border.
         /// </summary>
         /// <returns>The addressing mode at the horizontal border.</returns>
-        virtual const BorderMode& getBorderModeU() const noexcept = 0;
+        virtual BorderMode getBorderModeU() const noexcept = 0;
 
         /// <summary>
         /// Gets the addressing mode at the vertical border.
         /// </summary>
         /// <returns>The addressing mode at the vertical border.</returns>
-        virtual const BorderMode& getBorderModeV() const noexcept = 0;
+        virtual BorderMode getBorderModeV() const noexcept = 0;
 
         /// <summary>
         /// Gets the addressing mode at the depth border.
         /// </summary>
         /// <returns>The addressing mode at the depth border.</returns>
-        virtual const BorderMode& getBorderModeW() const noexcept = 0;
+        virtual BorderMode getBorderModeW() const noexcept = 0;
 
         /// <summary>
         /// Gets the anisotropy value used when sampling this texture.
@@ -3052,7 +3052,7 @@ namespace LiteFX::Rendering {
         /// Gets the mip-map selection mode.
         /// </summary>
         /// <returns>The mip-map selection mode.</returns>
-        virtual const MipMapMode& getMipMapMode() const noexcept = 0;
+        virtual MipMapMode getMipMapMode() const noexcept = 0;
 
         /// <summary>
         /// Gets the mip-map level of detail bias.
@@ -3125,13 +3125,13 @@ namespace LiteFX::Rendering {
         /// Returns the stage that all previous commands need to reach before continuing execution.
         /// </summary>
         /// <returns>The stage that all previous commands need to reach before continuing execution.</returns>
-        constexpr inline virtual const PipelineStage& syncBefore() const noexcept = 0;
+        constexpr inline virtual PipelineStage syncBefore() const noexcept = 0;
         
         /// <summary>
         /// Returns the stage all subsequent commands need to wait for before continuing execution.
         /// </summary>
         /// <returns>The stage all subsequent commands need to wait for before continuing execution.</returns>
-        constexpr inline virtual const PipelineStage& syncAfter() const noexcept = 0;
+        constexpr inline virtual PipelineStage syncAfter() const noexcept = 0;
 
         /// <summary>
         /// Inserts a global barrier that waits for previous commands to finish accesses described by <paramref name="accessBefore" /> before subsequent commands can continue
@@ -3139,7 +3139,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="accessBefore">The access types previous commands have to finish.</param>
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
-        constexpr inline virtual void wait(const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) noexcept = 0;
+        constexpr inline virtual void wait(ResourceAccess accessBefore, ResourceAccess accessAfter) noexcept = 0;
 
         /// <summary>
         /// Inserts a buffer barrier that blocks access to <paramref name="buffer"/> of types contained in <paramref name="accessAfter" /> for subsequent commands until 
@@ -3148,7 +3148,7 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">The buffer resource to transition.</param>
         /// <param name="accessBefore">The access types previous commands have to finish.</param>
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
-        constexpr inline void transition(IBuffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) {
+        constexpr inline void transition(IBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) {
             this->doTransition(buffer, accessBefore, accessAfter);
         };
 
@@ -3164,7 +3164,7 @@ namespace LiteFX::Rendering {
         /// <param name="element">The element of the resource to transition.</param>
         /// <param name="accessBefore">The access types previous commands have to finish.</param>
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
-        constexpr inline void transition(IBuffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) {
+        constexpr inline void transition(IBuffer& buffer, const UInt32& element, ResourceAccess accessBefore, ResourceAccess accessAfter) {
             this->doTransition(buffer, element, accessBefore, accessAfter);
         }
 
@@ -3177,7 +3177,7 @@ namespace LiteFX::Rendering {
         /// <param name="accessBefore">The access types previous commands have to finish.</param>
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
         /// <param name="layout">The image layout to transition into.</param>
-        constexpr inline void transition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) {
+        constexpr inline void transition(IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) {
             this->doTransition(image, accessBefore, accessAfter, layout);
         }
 
@@ -3195,7 +3195,7 @@ namespace LiteFX::Rendering {
         /// <param name="accessBefore">The access types previous commands have to finish.</param>
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
         /// <param name="layout">The image layout to transition into.</param>
-        constexpr inline void transition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) {
+        constexpr inline void transition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) {
             this->doTransition(image, level, levels, layer, layers, plane, accessBefore, accessAfter, layout);
         }
 
@@ -3213,7 +3213,7 @@ namespace LiteFX::Rendering {
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
         /// <param name="fromLayout">The image layout to transition from.</param>
         /// <param name="toLayout">The image layout to transition into.</param>
-        constexpr inline void transition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) {
+        constexpr inline void transition(IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) {
             this->doTransition(image, accessBefore, accessAfter, fromLayout, toLayout);
         }
 
@@ -3236,17 +3236,17 @@ namespace LiteFX::Rendering {
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
         /// <param name="fromLayout">The image layout to transition from.</param>
         /// <param name="toLayout">The image layout to transition into.</param>
-        constexpr inline void transition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) {
+        constexpr inline void transition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) {
             this->doTransition(image, level, levels, layer, layers, plane, accessBefore, accessAfter, fromLayout, toLayout);
         }
 
     private:
-        constexpr inline virtual void doTransition(IBuffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) = 0;
-        constexpr inline virtual void doTransition(IBuffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) = 0;
-        constexpr inline virtual void doTransition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) = 0;
-        constexpr inline virtual void doTransition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) = 0;
-        constexpr inline virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) = 0;
-        constexpr inline virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) = 0;
+        constexpr inline virtual void doTransition(IBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
+        constexpr inline virtual void doTransition(IBuffer& buffer, const UInt32& element, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
+        constexpr inline virtual void doTransition(IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
+        constexpr inline virtual void doTransition(IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
+        constexpr inline virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
+        constexpr inline virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
     };
 
     /// <summary>
@@ -3425,7 +3425,7 @@ namespace LiteFX::Rendering {
         /// Returns the shader stages, the descriptor set is used in.
         /// </summary>
         /// <returns>The shader stages, the descriptor set is used in.</returns>
-        virtual const ShaderStage& shaderStages() const noexcept = 0;
+        virtual ShaderStage shaderStages() const noexcept = 0;
 
         /// <summary>
         /// Returns the number of uniform/constant buffer descriptors within the descriptor set.
@@ -3613,7 +3613,7 @@ namespace LiteFX::Rendering {
         /// Returns the shader stage(s), the range is accessible from.
         /// </summary>
         /// <returns>The shader stage(s), the range is accessible from.</returns>
-        virtual const ShaderStage& stage() const noexcept = 0;
+        virtual ShaderStage stage() const noexcept = 0;
     };
 
     /// <summary>
@@ -3638,7 +3638,7 @@ namespace LiteFX::Rendering {
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if no range is mapped to the provided shader stage.</exception>
         /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="stage" /> contains multiple shader stages.</exception>
         /// <seealso cref="ranges" />
-        virtual const IPushConstantsRange& range(const ShaderStage& stage) const = 0;
+        virtual const IPushConstantsRange& range(ShaderStage stage) const = 0;
 
         /// <summary>
         /// Returns all push constant ranges.
@@ -4620,7 +4620,7 @@ namespace LiteFX::Rendering {
         /// Returns the number of samples, the render targets are sampled with.
         /// </summary>
         /// <returns>The number of samples, the render targets are sampled with.</returns>
-        virtual const MultiSamplingLevel& multiSamplingLevel() const noexcept = 0;
+        virtual MultiSamplingLevel multiSamplingLevel() const noexcept = 0;
 
     public:
         /// <summary>
@@ -4666,7 +4666,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="samples">The number of samples per edge pixel.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if one or more of the render targets have a format, that does not support the provided multi-sampling level.</exception>
-        virtual void changeMultiSamplingLevel(const MultiSamplingLevel& samples) = 0;
+        virtual void changeMultiSamplingLevel(MultiSamplingLevel samples) = 0;
 
         /// <summary>
         /// Resolves the input attachments mapped to the render pass and updates them on the descriptor set provided with <see cref="descriptorSet" />.
@@ -4692,12 +4692,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         struct SwapChainResetEventArgs : public EventArgs {
         private:
-            const Format& m_surfaceFormat;
+            Format m_surfaceFormat;
             const Size2d& m_renderArea;
             const UInt32& m_buffers;
 
         public:
-            SwapChainResetEventArgs(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) :
+            SwapChainResetEventArgs(Format surfaceFormat, const Size2d& renderArea, const UInt32& buffers) :
                 EventArgs(), m_surfaceFormat(surfaceFormat), m_renderArea(renderArea), m_buffers(buffers) { }
             SwapChainResetEventArgs(const SwapChainResetEventArgs&) = default;
             SwapChainResetEventArgs(SwapChainResetEventArgs&&) = default;
@@ -4712,7 +4712,7 @@ namespace LiteFX::Rendering {
             /// Gets the new surface format of the swap chain back-buffers.
             /// </summary>
             /// <returns>The new surface format of the swap chain back-buffers.</returns>
-            const Format& surfaceFormat() const noexcept {
+            Format surfaceFormat() const noexcept {
                 return m_surfaceFormat;
             }
 
@@ -4790,7 +4790,7 @@ namespace LiteFX::Rendering {
         /// Returns the swap chain image format.
         /// </summary>
         /// <returns>The swap chain image format.</returns>
-        virtual const Format& surfaceFormat() const noexcept = 0;
+        virtual Format surfaceFormat() const noexcept = 0;
 
         /// <summary>
         /// Returns the number of images in the swap chain.
@@ -4860,7 +4860,7 @@ namespace LiteFX::Rendering {
         /// <param name="renderArea">The dimensions of the frame buffers.</param>
         /// <param name="buffers">The number of buffers in the swap chain.</param>
         /// <seealso cref="multiSamplingLevel" />
-        virtual void reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) = 0;
+        virtual void reset(Format surfaceFormat, const Size2d& renderArea, const UInt32& buffers) = 0;
 
         /// <summary>
         /// Swaps the front buffer with the next back buffer in order.
@@ -4954,13 +4954,13 @@ namespace LiteFX::Rendering {
         /// Returns the priority of the queue.
         /// </summary>
         /// <returns>The priority of the queue.</returns>
-        virtual const QueuePriority& priority() const noexcept = 0;
+        virtual QueuePriority priority() const noexcept = 0;
 
         /// <summary>
         /// Returns the type of the queue.
         /// </summary>
         /// <returns>The type of the queue.</returns>
-        virtual const QueueType& type() const noexcept = 0;
+        virtual QueueType type() const noexcept = 0;
 
     public:
         /// <summary>
@@ -5156,7 +5156,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const {
+        UniquePtr<IBuffer> createBuffer(BufferType type, BufferUsage usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const {
             return this->getBuffer(type, usage, elementSize, elements, allowWrite);
         };
 
@@ -5169,7 +5169,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
+        UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, const UInt32& binding, BufferUsage usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->createBuffer(descriptor.type(), usage, descriptor.elementSize(), elements, allowWrite);
         };
@@ -5183,7 +5183,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, const UInt32& binding, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements, const bool& allowWrite = false) const {
+        UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, const UInt32& binding, BufferUsage usage, const UInt32& elementSize, const UInt32& elements, const bool& allowWrite = false) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->createBuffer(descriptor.type(), usage, elementSize, elements, allowWrite);
         };
@@ -5198,7 +5198,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, const UInt32& space, const UInt32& binding, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements, const bool& allowWrite = false) const {
+        UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, const UInt32& space, const UInt32& binding, BufferUsage usage, const UInt32& elementSize, const UInt32& elements, const bool& allowWrite = false) const {
             return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, usage, elementSize, elements, allowWrite);
         };
 
@@ -5212,7 +5212,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, const UInt32& space, const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
+        UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, const UInt32& space, const UInt32& binding, BufferUsage usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
             return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, usage, elements, allowWrite);
         };
 
@@ -5226,7 +5226,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const String& name, const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite = false) const {
+        UniquePtr<IBuffer> createBuffer(const String& name, BufferType type, BufferUsage usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite = false) const {
             return this->getBuffer(name, type, usage, elementSize, elements, allowWrite);
         };
 
@@ -5240,7 +5240,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
+        UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, const UInt32& binding, BufferUsage usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->createBuffer(name, descriptor.type(), usage, descriptor.elementSize(), elements, allowWrite);
         };
@@ -5256,7 +5256,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, const UInt32& binding, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite = false) const {
+        UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, const UInt32& binding, BufferUsage usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite = false) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->createBuffer(name, descriptor.type(), usage, elementSize, elements, allowWrite);
         };
@@ -5272,7 +5272,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, const UInt32& space, const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
+        UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, const UInt32& space, const UInt32& binding, BufferUsage usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
             return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, usage, elements, allowWrite);
         };
 
@@ -5288,7 +5288,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, const UInt32& space, const UInt32& binding, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const {
+        UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, const UInt32& space, const UInt32& binding, BufferUsage usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const {
             return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, usage, elementSize, elements, allowWrite);
         };
 
@@ -5304,7 +5304,7 @@ namespace LiteFX::Rendering {
         /// <param name="usage">The buffer usage.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
         /// <returns>The instance of the vertex buffer.</returns>
-        UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const {
+        UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout& layout, BufferUsage usage, const UInt32& elements = 1) const {
             return this->getVertexBuffer(layout, usage, elements);
         }
 
@@ -5321,7 +5321,7 @@ namespace LiteFX::Rendering {
         /// <param name="usage">The buffer usage.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
         /// <returns>The instance of the vertex buffer.</returns>
-        UniquePtr<IVertexBuffer> createVertexBuffer(const String& name, const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const {
+        UniquePtr<IVertexBuffer> createVertexBuffer(const String& name, const IVertexBufferLayout& layout, BufferUsage usage, const UInt32& elements = 1) const {
             return this->getVertexBuffer(name, layout, usage, elements);
         }
 
@@ -5337,7 +5337,7 @@ namespace LiteFX::Rendering {
         /// <param name="usage">The buffer usage.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
         /// <returns>The instance of the index buffer.</returns>
-        UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const {
+        UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const {
             return this->getIndexBuffer(layout, usage, elements);
         }
 
@@ -5354,7 +5354,7 @@ namespace LiteFX::Rendering {
         /// <param name="usage">The buffer usage.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
         /// <returns>The instance of the index buffer.</returns>
-        UniquePtr<IIndexBuffer> createIndexBuffer(const String& name, const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const {
+        UniquePtr<IIndexBuffer> createIndexBuffer(const String& name, const IIndexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const {
             return this->getIndexBuffer(name, layout, usage, elements);
         }
 
@@ -5365,7 +5365,7 @@ namespace LiteFX::Rendering {
         /// <param name="size">The extent of the image.</param>
         /// <param name="samples">The number of samples, the image should be sampled with.</param>
         /// <returns>The instance of the attachment image.</returns>
-        UniquePtr<IImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const {
+        UniquePtr<IImage> createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const {
             return this->getAttachment(format, size, samples);
         }
 
@@ -5377,7 +5377,7 @@ namespace LiteFX::Rendering {
         /// <param name="size">The extent of the image.</param>
         /// <param name="samples">The number of samples, the image should be sampled with.</param>
         /// <returns>The instance of the attachment image.</returns>
-        UniquePtr<IImage> createAttachment(const String& name, const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const {
+        UniquePtr<IImage> createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const {
             return this->getAttachment(name, format, size, samples);
         }
 
@@ -5397,7 +5397,7 @@ namespace LiteFX::Rendering {
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the texture.</returns>
         /// <seealso cref="createTextures" />
-        UniquePtr<IImage> createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const {
+        UniquePtr<IImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const {
             return this->getTexture(format, size, dimension, levels, layers, samples, allowWrite);
         }
 
@@ -5418,7 +5418,7 @@ namespace LiteFX::Rendering {
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the texture.</returns>
         /// <seealso cref="createTextures" />
-        UniquePtr<IImage> createTexture(const String& name, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const {
+        UniquePtr<IImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const {
             return this->getTexture(name, format, size, dimension, levels, layers, samples, allowWrite);
         }
 
@@ -5435,7 +5435,7 @@ namespace LiteFX::Rendering {
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>An array of texture instances.</returns>
         /// <seealso cref="createTexture" />
-        Enumerable<UniquePtr<IImage>> createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& layers = 1, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const {
+        Enumerable<UniquePtr<IImage>> createTextures(const UInt32& elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, const UInt32& layers = 1, const UInt32& levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const {
             return this->getTextures(elements, format, size, dimension, layers, levels, samples, allowWrite);
         }
 
@@ -5454,7 +5454,7 @@ namespace LiteFX::Rendering {
         /// <param name="anisotropy">The level of anisotropic filtering.</param>
         /// <returns>The instance of the sampler.</returns>
         /// <seealso cref="createSamplers" />
-        UniquePtr<ISampler> createSampler(const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const {
+        UniquePtr<ISampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const {
             return this->getSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
@@ -5474,7 +5474,7 @@ namespace LiteFX::Rendering {
         /// <param name="anisotropy">The level of anisotropic filtering.</param>
         /// <returns>The instance of the sampler.</returns>
         /// <seealso cref="createSamplers" />
-        UniquePtr<ISampler> createSampler(const String& name, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const {
+        UniquePtr<ISampler> createSampler(const String& name, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const {
             return this->getSampler(name, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
@@ -5494,25 +5494,25 @@ namespace LiteFX::Rendering {
         /// <param name="anisotropy">The level of anisotropic filtering.</param>
         /// <returns>An array of sampler instances.</returns>
         /// <seealso cref="createSampler" />
-        Enumerable<UniquePtr<ISampler>> createSamplers(const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const {
+        Enumerable<UniquePtr<ISampler>> createSamplers(const UInt32& elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const {
             return this->getSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
     private:
-        virtual UniquePtr<IBuffer> getBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const = 0;
-        virtual UniquePtr<IBuffer> getBuffer(const String& name, const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const = 0;
-        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
-        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
-        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
-        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
-        virtual UniquePtr<IImage> getAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const = 0;
-        virtual UniquePtr<IImage> getAttachment(const String& name, const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const = 0;
-        virtual UniquePtr<IImage> getTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const = 0;
-        virtual UniquePtr<IImage> getTexture(const String& name, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const = 0;
-        virtual Enumerable<UniquePtr<IImage>> getTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& layers, const UInt32& levels, const MultiSamplingLevel& samples, const bool& allowWrite) const = 0;
-        virtual UniquePtr<ISampler> getSampler(const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const = 0;
-        virtual UniquePtr<ISampler> getSampler(const String& name, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const = 0;
-        virtual Enumerable<UniquePtr<ISampler>> getSamplers(const UInt32& elements, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const = 0;
+        virtual UniquePtr<IBuffer> getBuffer(BufferType type, BufferUsage usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const = 0;
+        virtual UniquePtr<IBuffer> getBuffer(const String& name, BufferType type, BufferUsage usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const = 0;
+        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const = 0;
+        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const = 0;
+        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const = 0;
+        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const = 0;
+        virtual UniquePtr<IImage> getAttachment(Format format, const Size2d& size, MultiSamplingLevel samples) const = 0;
+        virtual UniquePtr<IImage> getAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples) const = 0;
+        virtual UniquePtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, const UInt32& levels, const UInt32& layers, MultiSamplingLevel samples, const bool& allowWrite) const = 0;
+        virtual UniquePtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, const UInt32& levels, const UInt32& layers, MultiSamplingLevel samples, const bool& allowWrite) const = 0;
+        virtual Enumerable<UniquePtr<IImage>> getTextures(const UInt32& elements, Format format, const Size3d& size, ImageDimensions dimension, const UInt32& layers, const UInt32& levels, MultiSamplingLevel samples, const bool& allowWrite) const = 0;
+        virtual UniquePtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const = 0;
+        virtual UniquePtr<ISampler> getSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const = 0;
+        virtual Enumerable<UniquePtr<ISampler>> getSamplers(const UInt32& elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const = 0;
     };
 
     /// <summary>
@@ -5598,7 +5598,7 @@ namespace LiteFX::Rendering {
 		/// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
 		/// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
         /// <returns>The instance of the memory barrier.</returns>
-        UniquePtr<IBarrier> makeBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept {
+        UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
             return this->getNewBarrier(syncBefore, syncAfter);
         }
 
@@ -5611,7 +5611,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="format">The target (i.e. back-buffer) format.</param>
         /// <returns>The maximum multi-sampling level.</returns>
-        virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept = 0;
+        virtual MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept = 0;
 
         /// <summary>
         /// Returns the number of GPU ticks per milliseconds.
@@ -5631,7 +5631,7 @@ namespace LiteFX::Rendering {
         virtual void wait() const = 0;
 
     private:
-        virtual UniquePtr<IBarrier> getNewBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept = 0;
+        virtual UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
     };
 
     /// <summary>

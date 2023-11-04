@@ -46,7 +46,7 @@ const UInt32& VulkanVertexBufferLayout::binding() const noexcept
     return m_impl->m_binding;
 }
 
-const BufferType& VulkanVertexBufferLayout::type() const noexcept
+BufferType VulkanVertexBufferLayout::type() const noexcept
 {
     return m_impl->m_bufferType;
 }

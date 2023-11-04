@@ -47,12 +47,12 @@ VulkanGraphicsFactory::VulkanGraphicsFactory(const VulkanDevice& device) :
 
 VulkanGraphicsFactory::~VulkanGraphicsFactory() noexcept = default;
 
-UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const
+UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(BufferType type, BufferUsage usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const
 {
 	return this->createBuffer("", type, usage, elementSize, elements, allowWrite);
 }
 
-UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name, const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const
+UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name, BufferType type, BufferUsage usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	VkBufferUsageFlags usageFlags = {};
@@ -142,12 +142,12 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 	return buffer;
 }
 
-UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
+UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const
 {
 	return this->createVertexBuffer("", layout, usage, elements);
 }
 
-UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
+UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = layout.elementSize() * elements;
@@ -205,12 +205,12 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 	return buffer;
 }
 
-UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
+UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanIndexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const
 {
 	return this->createIndexBuffer("", layout, usage, elements);
 }
 
-UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const
+UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, BufferUsage usage, const UInt32& elements) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = layout.elementSize() * elements;
@@ -268,12 +268,12 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 	return buffer;
 }
 
-UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const
+UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples) const
 {
 	return this->createAttachment("", format, size, samples);
 }
 
-UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& name, const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const
+UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples) const
 {
 	auto width = std::max<UInt32>(1, size.width());
 	auto height = std::max<UInt32>(1, size.height());
@@ -315,12 +315,12 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& na
 	return image;
 }
 
-UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
+UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(Format format, const Size3d& size, ImageDimensions dimension, const UInt32& levels, const UInt32& layers, MultiSamplingLevel samples, const bool& allowWrite) const
 {
 	return this->createTexture("", format, size, dimension, levels, layers, samples, allowWrite);
 }
 
-UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
+UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, const UInt32& levels, const UInt32& layers, MultiSamplingLevel samples, const bool& allowWrite) const
 {
 	if (dimension == ImageDimensions::CUBE && layers != 6) [[unlikely]]
 		throw ArgumentOutOfRangeException("A cube map must be defined with 6 layers, but only {0} are provided.", layers);
@@ -374,7 +374,7 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	return image;
 }
 
-Enumerable<UniquePtr<IVulkanImage>> VulkanGraphicsFactory::createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const
+Enumerable<UniquePtr<IVulkanImage>> VulkanGraphicsFactory::createTextures(const UInt32& elements, Format format, const Size3d& size, ImageDimensions dimension, const UInt32& levels, const UInt32& layers, MultiSamplingLevel samples, const bool& allowWrite) const
 {
 	return [&, this]() -> std::generator<UniquePtr<IVulkanImage>> {
 		for (UInt32 i = 0; i < elements; ++i)
@@ -382,12 +382,12 @@ Enumerable<UniquePtr<IVulkanImage>> VulkanGraphicsFactory::createTextures(const 
 	}() | std::views::as_rvalue;
 }
 
-UniquePtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
+UniquePtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
 {
 	return makeUnique<VulkanSampler>(m_impl->m_device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
 }
 
-UniquePtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(const String& name, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
+UniquePtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
 {
 	auto sampler = makeUnique<VulkanSampler>(m_impl->m_device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
 
@@ -399,7 +399,7 @@ UniquePtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(const String& nam
 	return sampler;
 }
 
-Enumerable<UniquePtr<IVulkanSampler>> VulkanGraphicsFactory::createSamplers(const UInt32& elements, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
+Enumerable<UniquePtr<IVulkanSampler>> VulkanGraphicsFactory::createSamplers(const UInt32& elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const
 {
 	return [&, this]() -> std::generator<UniquePtr<IVulkanSampler>> {
 		for (UInt32 i = 0; i < elements; ++i)

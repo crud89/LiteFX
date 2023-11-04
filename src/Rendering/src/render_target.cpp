@@ -20,7 +20,7 @@ private:
     String m_name;
 
 public:
-    RenderTargetImpl(RenderTarget* parent, const String& name, const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues, const bool& clearStencil, const bool& isVolatile, const BlendState& blendState) :
+    RenderTargetImpl(RenderTarget* parent, const String& name, const UInt32& location, RenderTargetType type, Format format, const bool& clearBuffer, const Vector4f& clearValues, const bool& clearStencil, const bool& isVolatile, const BlendState& blendState) :
         base(parent), m_name(name), m_location(location), m_type(type), m_format(format), m_clearBuffer(clearBuffer), m_clearValues(clearValues), m_clearStencil(clearStencil), m_volatile(isVolatile), m_blendState(blendState)
     {
     }
@@ -35,12 +35,12 @@ RenderTarget::RenderTarget() noexcept :
 {
 }
 
-RenderTarget::RenderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues, const bool& clearStencil, const bool& isVolatile, const BlendState& blendState) :
+RenderTarget::RenderTarget(const UInt32& location, RenderTargetType type, Format format, const bool& clearBuffer, const Vector4f& clearValues, const bool& clearStencil, const bool& isVolatile, const BlendState& blendState) :
     RenderTarget("", location, type, format, clearBuffer, clearValues, clearStencil, isVolatile, blendState)
 {
 }
 
-RenderTarget::RenderTarget(const String& name, const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues, const bool& clearStencil, const bool& isVolatile, const BlendState& blendState) :
+RenderTarget::RenderTarget(const String& name, const UInt32& location, RenderTargetType type, Format format, const bool& clearBuffer, const Vector4f& clearValues, const bool& clearStencil, const bool& isVolatile, const BlendState& blendState) :
     m_impl(makePimpl<RenderTargetImpl>(this, name, location, type, format, clearBuffer, clearValues, clearStencil, isVolatile, blendState))
 {
 }
@@ -97,12 +97,12 @@ const UInt32& RenderTarget::location() const noexcept
     return m_impl->m_location;
 }
 
-const RenderTargetType& RenderTarget::type() const noexcept
+RenderTargetType RenderTarget::type() const noexcept
 {
     return m_impl->m_type;
 }
 
-const Format& RenderTarget::format() const noexcept
+Format RenderTarget::format() const noexcept
 {
     return m_impl->m_format;
 }

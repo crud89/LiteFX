@@ -29,7 +29,7 @@ public:
     }
 
 public:
-    D3D12_FILTER getFilterMode(const FilterMode& minFilter, const FilterMode& magFilter, const MipMapMode& mipFilter, const Float& anisotropy = 0.f)
+    D3D12_FILTER getFilterMode(FilterMode minFilter, FilterMode magFilter, MipMapMode mipFilter, const Float& anisotropy = 0.f)
     {
         if (anisotropy > 0.f)
             return D3D12_ENCODE_ANISOTROPIC_FILTER(D3D12_FILTER_REDUCTION_TYPE_STANDARD);
@@ -43,7 +43,7 @@ public:
         }
     }
 
-    D3D12_TEXTURE_ADDRESS_MODE getBorderMode(const BorderMode& mode)
+    D3D12_TEXTURE_ADDRESS_MODE getBorderMode(BorderMode mode)
     {
         switch (mode)
         {

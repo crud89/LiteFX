@@ -50,7 +50,7 @@ public:
 	}
 
 public:
-	void initialize(const Format& format, const Size2d& renderArea, const UInt32& buffers)
+	void initialize(Format format, const Size2d& renderArea, const UInt32& buffers)
 	{
 		if (format == Format::Other || format == Format::None)
 			throw InvalidArgumentException("The provided surface format it not a valid value.");
@@ -62,7 +62,7 @@ public:
 		auto surfaceFormats = this->getSurfaceFormats(adapter, surface);
 		Format selectedFormat{ Format::None };
 		
-		if (auto match = std::ranges::find_if(surfaceFormats, [format](const Format& surfaceFormat) { return surfaceFormat == format; }); match != surfaceFormats.end()) [[likely]]
+		if (auto match = std::ranges::find_if(surfaceFormats, [format](Format surfaceFormat) { return surfaceFormat == format; }); match != surfaceFormats.end()) [[likely]]
 			selectedFormat = *match;
 		else
 			throw InvalidArgumentException("The requested format is not supported by this device.");
@@ -174,7 +174,7 @@ public:
 		m_timestamps.resize(timingEvents.size());
 	}
 
-	void reset(const Format& format, const Size2d& renderArea, const UInt32& buffers)
+	void reset(Format format, const Size2d& renderArea, const UInt32& buffers)
 	{
 		// Cleanup and re-initialize.
 		this->cleanup();
@@ -265,7 +265,7 @@ public:
 		return availableFormats | std::views::transform([](const VkSurfaceFormatKHR& format) { return Vk::getFormat(format.format); }) | std::ranges::to<Array<Format>>();
 	}
 
-	VkColorSpaceKHR findColorSpace(const VkPhysicalDevice adapter, const VkSurfaceKHR surface, const Format& format) const noexcept
+	VkColorSpaceKHR findColorSpace(const VkPhysicalDevice adapter, const VkSurfaceKHR surface, Format format) const noexcept
 	{
 		uint32_t formats;
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, nullptr);
@@ -363,7 +363,7 @@ public:
 	}
 
 public:
-	void initialize(const Format& format, const Size2d& renderArea, const UInt32& buffers)
+	void initialize(Format format, const Size2d& renderArea, const UInt32& buffers)
 	{
 		if (format == Format::Other || format == Format::None)
 			throw InvalidArgumentException("The provided surface format it not a valid value.");
@@ -372,7 +372,7 @@ public:
 		auto surfaceFormats = this->getSurfaceFormats(m_device.adapter().handle(), m_device.surface().handle());
 		Format selectedFormat{ Format::None };
 
-		if (auto match = std::ranges::find_if(surfaceFormats, [format](const Format& surfaceFormat) { return surfaceFormat == format; }); match != surfaceFormats.end()) [[likely]]
+		if (auto match = std::ranges::find_if(surfaceFormats, [format](Format surfaceFormat) { return surfaceFormat == format; }); match != surfaceFormats.end()) [[likely]]
 			selectedFormat = *match;
 		else
 			throw InvalidArgumentException("The requested format is not supported by this device.");
@@ -485,7 +485,7 @@ public:
 			LITEFX_WARNING(VULKAN_LOG, "Unable disable keyboard control sequence for full-screen switching.");
 	}
 
-	void reset(const Format& format, const Size2d& renderArea, const UInt32& buffers)
+	void reset(Format format, const Size2d& renderArea, const UInt32& buffers)
 	{
 		// Release the image memory of the previously allocated images.
 		std::ranges::for_each(m_presentImages, [this](const auto& image) { ::vkDestroyImage(m_device.handle(), std::as_const(*image).handle(), nullptr); });
@@ -494,7 +494,7 @@ public:
 		auto surfaceFormats = this->getSurfaceFormats(m_device.adapter().handle(), m_device.surface().handle());
 		Format selectedFormat{ Format::None };
 
-		if (auto match = std::ranges::find_if(surfaceFormats, [format](const Format& surfaceFormat) { return surfaceFormat == format; }); match != surfaceFormats.end()) [[likely]]
+		if (auto match = std::ranges::find_if(surfaceFormats, [format](Format surfaceFormat) { return surfaceFormat == format; }); match != surfaceFormats.end()) [[likely]]
 			selectedFormat = *match;
 		else
 			throw InvalidArgumentException("The requested format is not supported by this device.");
@@ -534,7 +534,7 @@ public:
 			this->resetQueryPools(m_timingEvents);
 	}
 
-	void createImages(const Format& format, const Size2d& renderArea, const UInt32& buffers)
+	void createImages(Format format, const Size2d& renderArea, const UInt32& buffers)
 	{	
 		// Acquire the swap chain images.
 		m_presentImages.resize(buffers);
@@ -771,7 +771,7 @@ public:
 		return availableFormats | std::views::transform([](const VkSurfaceFormatKHR& format) { return Vk::getFormat(format.format); });
 	}
 
-	VkColorSpaceKHR findColorSpace(const VkPhysicalDevice adapter, const VkSurfaceKHR surface, const Format& format) const noexcept
+	VkColorSpaceKHR findColorSpace(const VkPhysicalDevice adapter, const VkSurfaceKHR surface, Format format) const noexcept
 	{
 		uint32_t formats;
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, nullptr);
@@ -824,7 +824,7 @@ private:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanSwapChain::VulkanSwapChain(const VulkanDevice& device, const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) :
+VulkanSwapChain::VulkanSwapChain(const VulkanDevice& device, Format surfaceFormat, const Size2d& renderArea, const UInt32& buffers) :
 	m_impl(makePimpl<VulkanSwapChainImpl>(this, device))
 {
 	m_impl->initialize(surfaceFormat, renderArea, buffers);
@@ -883,7 +883,7 @@ UInt32 VulkanSwapChain::resolveQueryId(SharedPtr<const TimingEvent> timingEvent)
 	throw InvalidArgumentException("The timing event is not registered on the swap chain.");
 }
 
-const Format& VulkanSwapChain::surfaceFormat() const noexcept
+Format VulkanSwapChain::surfaceFormat() const noexcept
 {
 	return m_impl->m_format;
 }
@@ -936,7 +936,7 @@ void VulkanSwapChain::addTimingEvent(SharedPtr<TimingEvent> timingEvent)
 	m_impl->resetQueryPools(events);
 }
 
-void VulkanSwapChain::reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers)
+void VulkanSwapChain::reset(Format surfaceFormat, const Size2d& renderArea, const UInt32& buffers)
 {
 	m_impl->reset(surfaceFormat, renderArea, buffers);
 	this->reseted(this, { surfaceFormat, renderArea, buffers });
