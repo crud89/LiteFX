@@ -66,16 +66,16 @@ namespace LiteFX::Logging {
 
     public:
         /// <inheritdoc />
-        virtual LogLevel getLevel() const override;
+        LogLevel getLevel() const override;
 
         /// <inheritdoc />
-        virtual String getName() const override;
+        String getName() const override;
 
         /// <inheritdoc />
-        virtual String getPattern() const override;
+        String getPattern() const override;
 
     protected:
-        virtual spdlog::sink_ptr get() const override;
+        spdlog::sink_ptr get() const override;
     };
 
     class LITEFX_LOGGING_API RollingFileSink : public ISink {
@@ -89,13 +89,13 @@ namespace LiteFX::Logging {
 
     public:
         /// <inheritdoc />
-        virtual LogLevel getLevel() const override;
+        LogLevel getLevel() const override;
 
         /// <inheritdoc />
-        virtual String getName() const override;
+        String getName() const override;
 
         /// <inheritdoc />
-        virtual String getPattern() const override;
+        String getPattern() const override;
 
         virtual String getFileName() const;
 
@@ -104,7 +104,7 @@ namespace LiteFX::Logging {
         virtual int getMaxFiles() const;
 
     protected:
-        virtual spdlog::sink_ptr get() const override;
+        spdlog::sink_ptr get() const override;
     };
 
     class LITEFX_LOGGING_API Log {

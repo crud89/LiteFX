@@ -31,41 +31,41 @@ namespace LiteFX::Rendering::Backends {
 		// IBuffer interface.
 	public:
 		/// <inheritdoc />
-		virtual BufferType type() const noexcept override;
+		BufferType type() const noexcept override;
 
 		// IDeviceMemory interface.
 	public:
 		/// <inheritdoc />
-		virtual UInt32 elements() const noexcept override;
+		UInt32 elements() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t size() const noexcept override;
+		size_t size() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t elementSize() const noexcept override;
+		size_t elementSize() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t elementAlignment() const noexcept override;
+		size_t elementAlignment() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t alignedElementSize() const noexcept override;
+		size_t alignedElementSize() const noexcept override;
 
 		/// <inheritdoc />
-		virtual bool writable() const noexcept override;
+		bool writable() const noexcept override;
 
 		// IMappable interface.
 	public:
 		/// <inheritdoc />
-		virtual void map(const void* const data, size_t size, UInt32 element = 0) override;
+		void map(const void* const data, size_t size, UInt32 element = 0) override;
 
 		/// <inheritdoc />
-		virtual void map(Span<const void* const> data, size_t elementSize, UInt32 firstElement = 0) override;
+		void map(Span<const void* const> data, size_t elementSize, UInt32 firstElement = 0) override;
 
 		/// <inheritdoc />
-		virtual void map(void* data, size_t size, UInt32 element = 0, bool write = true) override;
+		void map(void* data, size_t size, UInt32 element = 0, bool write = true) override;
 
 		/// <inheritdoc />
-		virtual void map(Span<void*> data, size_t elementSize, UInt32 firstElement = 0, bool write = true) override;
+		void map(Span<void*> data, size_t elementSize, UInt32 firstElement = 0, bool write = true) override;
 
 		// DirectX 12 buffer.
 	protected:
@@ -96,7 +96,7 @@ namespace LiteFX::Rendering::Backends {
 
 		// IDirectX12VertexBuffer interface.
 	public:
-		virtual const D3D12_VERTEX_BUFFER_VIEW& view() const noexcept override;
+		const D3D12_VERTEX_BUFFER_VIEW& view() const noexcept override;
 
 		// DirectX 12 Vertex Buffer.
 	public:
@@ -123,7 +123,7 @@ namespace LiteFX::Rendering::Backends {
 
 		// IDirectX12IndexBuffer interface.
 	public:
-		virtual const D3D12_INDEX_BUFFER_VIEW& view() const noexcept override;
+		const D3D12_INDEX_BUFFER_VIEW& view() const noexcept override;
 
 		// DirectX 12 Index Buffer.
 	public:

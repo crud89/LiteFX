@@ -33,18 +33,18 @@ namespace LiteFX::Rendering::Backends {
 		// IVertexBufferLayout interface.
 	public:
 		/// <inheritdoc />
-		virtual Enumerable<const BufferAttribute*> attributes() const noexcept override;
+		Enumerable<const BufferAttribute*> attributes() const noexcept override;
 
 		// IBufferLayout interface.
 	public:
 		/// <inheritdoc />
-		virtual size_t elementSize() const noexcept override;
+		size_t elementSize() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 binding() const noexcept override;
+		UInt32 binding() const noexcept override;
 
 		/// <inheritdoc />
-		virtual BufferType type() const noexcept override;
+		BufferType type() const noexcept override;
 	};
 
 	/// <summary>
@@ -68,18 +68,18 @@ namespace LiteFX::Rendering::Backends {
 		// IIndexBufferLayout interface.
 	public:
 		/// <inheritdoc />
-		virtual IndexType indexType() const noexcept override;
+		IndexType indexType() const noexcept override;
 
 		// IBufferLayout interface.
 	public:
 		/// <inheritdoc />
-		virtual size_t elementSize() const noexcept override;
+		size_t elementSize() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 binding() const noexcept override;
+		UInt32 binding() const noexcept override;
 
 		/// <inheritdoc />
-		virtual BufferType type() const noexcept override;
+		BufferType type() const noexcept override;
 	};
 
 	/// <summary>
@@ -253,13 +253,13 @@ namespace LiteFX::Rendering::Backends {
 		// IShaderModule interface.
 	public:
 		/// <inheritdoc />
-		virtual const String& fileName() const noexcept override;
+		const String& fileName() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const String& entryPoint() const noexcept override;
+		const String& entryPoint() const noexcept override;
 
 		/// <inheritdoc />
-		virtual ShaderStage type() const noexcept override;
+		ShaderStage type() const noexcept override;
 	};
 
 	/// <summary>
@@ -291,13 +291,13 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual Enumerable<const DirectX12ShaderModule*> modules() const noexcept override;
+		Enumerable<const DirectX12ShaderModule*> modules() const noexcept override;
 
 		/// <inheritdoc />
 		virtual SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout() const;
 
 	private:
-		virtual SharedPtr<IPipelineLayout> parsePipelineLayout() const override {
+		SharedPtr<IPipelineLayout> parsePipelineLayout() const override {
 			return std::static_pointer_cast<IPipelineLayout>(this->reflectPipelineLayout());
 		}
 
@@ -350,16 +350,16 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual void update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0) const override;
+		void update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0) const override;
 
 		/// <inheritdoc />
-		virtual void update(UInt32 binding, const IDirectX12Image& texture, UInt32 descriptor = 0, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const override;
+		void update(UInt32 binding, const IDirectX12Image& texture, UInt32 descriptor = 0, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const override;
 
 		/// <inheritdoc />
-		virtual void update(UInt32 binding, const IDirectX12Sampler& sampler, UInt32 descriptor = 0) const override;
+		void update(UInt32 binding, const IDirectX12Sampler& sampler, UInt32 descriptor = 0) const override;
 
 		/// <inheritdoc />
-		virtual void attach(UInt32 binding, const IDirectX12Image& image) const override;
+		void attach(UInt32 binding, const IDirectX12Image& image) const override;
 
 	public:
 		/// <summary>
@@ -422,24 +422,24 @@ namespace LiteFX::Rendering::Backends {
 		// IDescriptorLayout interface.
 	public:
 		/// <inheritdoc />
-		virtual DescriptorType descriptorType() const noexcept override;
+		DescriptorType descriptorType() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 descriptors() const noexcept override;
+		UInt32 descriptors() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const IDirectX12Sampler* staticSampler() const noexcept override;
+		const IDirectX12Sampler* staticSampler() const noexcept override;
 
 		// IBufferLayout interface.
 	public:
 		/// <inheritdoc />
-		virtual size_t elementSize() const noexcept override;
+		size_t elementSize() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 binding() const noexcept override;
+		UInt32 binding() const noexcept override;
 
 		/// <inheritdoc />
-		virtual BufferType type() const noexcept override;
+		BufferType type() const noexcept override;
 	};
 
 	/// <summary>
@@ -516,59 +516,59 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual Enumerable<const DirectX12DescriptorLayout*> descriptors() const noexcept override;
+		Enumerable<const DirectX12DescriptorLayout*> descriptors() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12DescriptorLayout& descriptor(UInt32 binding) const override;
+		const DirectX12DescriptorLayout& descriptor(UInt32 binding) const override;
 
 		/// <inheritdoc />
-		virtual UInt32 space() const noexcept override;
+		UInt32 space() const noexcept override;
 
 		/// <inheritdoc />
-		virtual ShaderStage shaderStages() const noexcept override;
+		ShaderStage shaderStages() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 uniforms() const noexcept override;
+		UInt32 uniforms() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 storages() const noexcept override;
+		UInt32 storages() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 images() const noexcept override;
+		UInt32 images() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 buffers() const noexcept override;
+		UInt32 buffers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 samplers() const noexcept override;
+		UInt32 samplers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 staticSamplers() const noexcept override;
+		UInt32 staticSamplers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 inputAttachments() const noexcept override;
+		UInt32 inputAttachments() const noexcept override;
 
 	public:
 		/// <inheritdoc />
-		virtual UniquePtr<DirectX12DescriptorSet> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const override;
+		UniquePtr<DirectX12DescriptorSet> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<DirectX12DescriptorSet> allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const override;
+		UniquePtr<DirectX12DescriptorSet> allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override;
+		Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override;
+		Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override;
+		Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override;
+		Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override;
 
 		/// <inheritdoc />
-		virtual void free(const DirectX12DescriptorSet& descriptorSet) const noexcept override;
+		void free(const DirectX12DescriptorSet& descriptorSet) const noexcept override;
 	};
 
 	/// <summary>
@@ -595,19 +595,19 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual UInt32 space() const noexcept override;
+		UInt32 space() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 binding() const noexcept override;
+		UInt32 binding() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 offset() const noexcept override;
+		UInt32 offset() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 size() const noexcept override;
+		UInt32 size() const noexcept override;
 
 		/// <inheritdoc />
-		virtual ShaderStage stage() const noexcept override;
+		ShaderStage stage() const noexcept override;
 
 	public:
 		/// <summary>
@@ -660,13 +660,13 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual UInt32 size() const noexcept override;
+		UInt32 size() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12PushConstantsRange& range(ShaderStage stage) const override;
+		const DirectX12PushConstantsRange& range(ShaderStage stage) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<const DirectX12PushConstantsRange*> ranges() const noexcept override;
+		Enumerable<const DirectX12PushConstantsRange*> ranges() const noexcept override;
 
 	protected:
 		/// <summary>
@@ -713,13 +713,13 @@ namespace LiteFX::Rendering::Backends {
 		// PipelineLayout interface.
 	public:
 		/// <inheritdoc />
-		virtual const DirectX12DescriptorSetLayout& descriptorSet(UInt32 space) const override;
+		const DirectX12DescriptorSetLayout& descriptorSet(UInt32 space) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<const DirectX12DescriptorSetLayout*> descriptorSets() const noexcept override;
+		Enumerable<const DirectX12DescriptorSetLayout*> descriptorSets() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12PushConstantsLayout* pushConstants() const noexcept override;
+		const DirectX12PushConstantsLayout* pushConstants() const noexcept override;
 	};
 
 	/// <summary>
@@ -750,16 +750,16 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual Enumerable<const DirectX12VertexBufferLayout*> vertexBufferLayouts() const noexcept override;
+		Enumerable<const DirectX12VertexBufferLayout*> vertexBufferLayouts() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12VertexBufferLayout& vertexBufferLayout(UInt32 binding) const override;
+		const DirectX12VertexBufferLayout& vertexBufferLayout(UInt32 binding) const override;
 
 		/// <inheritdoc />
-		virtual const DirectX12IndexBufferLayout& indexBufferLayout() const override;
+		const DirectX12IndexBufferLayout& indexBufferLayout() const override;
 
 		/// <inheritdoc />
-		virtual PrimitiveTopology topology() const noexcept override;
+		PrimitiveTopology topology() const noexcept override;
 	};
 
 	/// <summary>
@@ -842,97 +842,97 @@ namespace LiteFX::Rendering::Backends {
 		// CommandBuffer interface.
 	public:
 		/// <inheritdoc />
-		virtual void begin() const override;
+		void begin() const override;
 
 		/// <inheritdoc />
-		virtual void end() const override;
+		void end() const override;
 
 		/// <inheritdoc />
-		virtual bool isSecondary() const noexcept override;
+		bool isSecondary() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void setViewports(Span<const IViewport*> viewports) const noexcept override;
+		void setViewports(Span<const IViewport*> viewports) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void setViewports(const IViewport* viewport) const noexcept override;
+		void setViewports(const IViewport* viewport) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void setScissors(Span<const IScissor*> scissors) const noexcept override;
+		void setScissors(Span<const IScissor*> scissors) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void setScissors(const IScissor* scissor) const noexcept override;
+		void setScissors(const IScissor* scissor) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void setBlendFactors(const Vector4f& blendFactors) const noexcept override;
+		void setBlendFactors(const Vector4f& blendFactors) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void setStencilRef(UInt32 stencilRef) const noexcept override;
+		void setStencilRef(UInt32 stencilRef) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void generateMipMaps(IDirectX12Image& image) noexcept override;
+		void generateMipMaps(IDirectX12Image& image) noexcept override;
 
 		/// <inheritdoc />
-		virtual void barrier(const DirectX12Barrier& barrier) const noexcept override;
+		void barrier(const DirectX12Barrier& barrier) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void transfer(IDirectX12Buffer& source, IDirectX12Buffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
+		void transfer(IDirectX12Buffer& source, IDirectX12Buffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(IDirectX12Buffer& source, IDirectX12Image& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
+		void transfer(IDirectX12Buffer& source, IDirectX12Image& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(IDirectX12Image& source, IDirectX12Image& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
+		void transfer(IDirectX12Image& source, IDirectX12Image& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(IDirectX12Image& source, IDirectX12Buffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
+		void transfer(IDirectX12Image& source, IDirectX12Buffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(SharedPtr<IDirectX12Buffer> source, IDirectX12Buffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
+		void transfer(SharedPtr<IDirectX12Buffer> source, IDirectX12Buffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(SharedPtr<IDirectX12Buffer> source, IDirectX12Image& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
+		void transfer(SharedPtr<IDirectX12Buffer> source, IDirectX12Image& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(SharedPtr<IDirectX12Image> source, IDirectX12Image& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
+		void transfer(SharedPtr<IDirectX12Image> source, IDirectX12Image& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
 
 		/// <inheritdoc />
-		virtual void transfer(SharedPtr<IDirectX12Image> source, IDirectX12Buffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
+		void transfer(SharedPtr<IDirectX12Image> source, IDirectX12Buffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
 
 		/// <inheritdoc />
-		virtual void use(const DirectX12PipelineState& pipeline) const noexcept override;
+		void use(const DirectX12PipelineState& pipeline) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept override;
+		void bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void bind(const IDirectX12VertexBuffer& buffer) const noexcept override;
+		void bind(const IDirectX12VertexBuffer& buffer) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void bind(const IDirectX12IndexBuffer& buffer) const noexcept override;
+		void bind(const IDirectX12IndexBuffer& buffer) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void dispatch(const Vector3u& threadCount) const noexcept override;
+		void dispatch(const Vector3u& threadCount) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void draw(UInt32 vertices, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const noexcept override;
+		void draw(UInt32 vertices, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void drawIndexed(UInt32 indices, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const noexcept override;
+		void drawIndexed(UInt32 indices, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const noexcept override;
 		
 		/// <inheritdoc />
-		virtual void pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept override;
+		void pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
+		void writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
 
 		/// <inheritdoc />
-		virtual void execute(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const override;
+		void execute(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const override;
 
 		/// <inheritdoc />
-		virtual void execute(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const override;
+		void execute(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const override;
 
 	private:
-		virtual void releaseSharedState() const override;
+		void releaseSharedState() const override;
 	};
 
 	/// <summary>
@@ -971,26 +971,26 @@ namespace LiteFX::Rendering::Backends {
 		// Pipeline interface.
 	public:
 		/// <inheritdoc />
-		virtual SharedPtr<const DirectX12ShaderProgram> program() const noexcept override;
+		SharedPtr<const DirectX12ShaderProgram> program() const noexcept override;
 
 		/// <inheritdoc />
-		virtual SharedPtr<const DirectX12PipelineLayout> layout() const noexcept override;
+		SharedPtr<const DirectX12PipelineLayout> layout() const noexcept override;
 
 		// RenderPipeline interface.
 	public:
 		/// <inheritdoc />
-		virtual SharedPtr<DirectX12InputAssembler> inputAssembler() const noexcept override;
+		SharedPtr<DirectX12InputAssembler> inputAssembler() const noexcept override;
 
 		/// <inheritdoc />
-		virtual SharedPtr<DirectX12Rasterizer> rasterizer() const noexcept override;
+		SharedPtr<DirectX12Rasterizer> rasterizer() const noexcept override;
 
 		/// <inheritdoc />
-		virtual bool alphaToCoverage() const noexcept override;
+		bool alphaToCoverage() const noexcept override;
 
 		// DirectX12PipelineState interface.
 	public:
 		/// <inheritdoc />
-		virtual void use(const DirectX12CommandBuffer& commandBuffer) const noexcept override;
+		void use(const DirectX12CommandBuffer& commandBuffer) const noexcept override;
 	};
 
 	/// <summary>
@@ -1025,14 +1025,14 @@ namespace LiteFX::Rendering::Backends {
 		// Pipeline interface.
 	public:
 		/// <inheritdoc />
-		virtual SharedPtr<const DirectX12ShaderProgram> program() const noexcept override;
+		SharedPtr<const DirectX12ShaderProgram> program() const noexcept override;
 
 		/// <inheritdoc />
-		virtual SharedPtr<const DirectX12PipelineLayout> layout() const noexcept override;
+		SharedPtr<const DirectX12PipelineLayout> layout() const noexcept override;
 
 		// DirectX12PipelineState interface.
 	public:
-		virtual void use(const DirectX12CommandBuffer& commandBuffer) const noexcept override;
+		void use(const DirectX12CommandBuffer& commandBuffer) const noexcept override;
 	};
 
 	/// <summary>
@@ -1102,32 +1102,32 @@ namespace LiteFX::Rendering::Backends {
 		// FrameBuffer interface.
 	public:
 		/// <inheritdoc />
-		virtual UInt32 bufferIndex() const noexcept override;
+		UInt32 bufferIndex() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const Size2d& size() const noexcept override;
+		const Size2d& size() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t getWidth() const noexcept override;
+		size_t getWidth() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t getHeight() const noexcept override;
+		size_t getHeight() const noexcept override;
 
 		/// <inheritdoc />
-		virtual Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers() const noexcept override;
+		Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual SharedPtr<const DirectX12CommandBuffer> commandBuffer(UInt32 index) const override;
+		SharedPtr<const DirectX12CommandBuffer> commandBuffer(UInt32 index) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<const IDirectX12Image*> images() const noexcept override;
+		Enumerable<const IDirectX12Image*> images() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const IDirectX12Image& image(UInt32 location) const override;
+		const IDirectX12Image& image(UInt32 location) const override;
 
 	public:
 		/// <inheritdoc />
-		virtual void resize(const Size2d& renderArea) override;
+		void resize(const Size2d& renderArea) override;
 	};
 
 	/// <summary>
@@ -1183,7 +1183,7 @@ namespace LiteFX::Rendering::Backends {
 		// IInputAttachmentMappingSource interface.
 	public:
 		/// <inheritdoc />
-		virtual const DirectX12FrameBuffer& frameBuffer(UInt32 buffer) const override;
+		const DirectX12FrameBuffer& frameBuffer(UInt32 buffer) const override;
 
 		// RenderPass interface.
 	public:
@@ -1194,44 +1194,44 @@ namespace LiteFX::Rendering::Backends {
 		virtual const DirectX12Device& device() const noexcept;
 
 		/// <inheritdoc />
-		virtual const DirectX12FrameBuffer& activeFrameBuffer() const override;
+		const DirectX12FrameBuffer& activeFrameBuffer() const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<const DirectX12FrameBuffer*> frameBuffers() const noexcept override;
+		Enumerable<const DirectX12FrameBuffer*> frameBuffers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual Enumerable<const DirectX12RenderPipeline*> pipelines() const noexcept override;
+		Enumerable<const DirectX12RenderPipeline*> pipelines() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const RenderTarget& renderTarget(UInt32 location) const override;
+		const RenderTarget& renderTarget(UInt32 location) const override;
 
 		/// <inheritdoc />
-		virtual Span<const RenderTarget> renderTargets() const noexcept override;
+		Span<const RenderTarget> renderTargets() const noexcept override;
 
 		/// <inheritdoc />
-		virtual bool hasPresentTarget() const noexcept override;
+		bool hasPresentTarget() const noexcept override;
 
 		/// <inheritdoc />
-		virtual Span<const DirectX12InputAttachmentMapping> inputAttachments() const noexcept override;
+		Span<const DirectX12InputAttachmentMapping> inputAttachments() const noexcept override;
 
 		/// <inheritdoc />
-		virtual MultiSamplingLevel multiSamplingLevel() const noexcept override;
+		MultiSamplingLevel multiSamplingLevel() const noexcept override;
 
 	public:
 		/// <inheritdoc />
-		virtual void begin(UInt32 buffer) override;
+		void begin(UInt32 buffer) override;
 
 		/// <inheritdoc />
-		virtual void end() const override;
+		void end() const override;
 
 		/// <inheritdoc />
-		virtual void resizeFrameBuffers(const Size2d& renderArea) override;
+		void resizeFrameBuffers(const Size2d& renderArea) override;
 
 		/// <inheritdoc />
-		virtual void changeMultiSamplingLevel(MultiSamplingLevel samples) override;
+		void changeMultiSamplingLevel(MultiSamplingLevel samples) override;
 
 		/// <inheritdoc />
-		virtual void updateAttachments(const DirectX12DescriptorSet& descriptorSet) const override;
+		void updateAttachments(const DirectX12DescriptorSet& descriptorSet) const override;
 	};
 
 	/// <summary>
@@ -1331,47 +1331,47 @@ namespace LiteFX::Rendering::Backends {
 		// SwapChain interface.
 	public:
 		/// <inheritdoc />
-		virtual Enumerable<SharedPtr<TimingEvent>> timingEvents() const noexcept override;
+		Enumerable<SharedPtr<TimingEvent>> timingEvents() const noexcept override;
 
 		/// <inheritdoc />
-		virtual SharedPtr<TimingEvent> timingEvent(UInt32 queryId) const override;
+		SharedPtr<TimingEvent> timingEvent(UInt32 queryId) const override;
 
 		/// <inheritdoc />
-		virtual UInt64 readTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
+		UInt64 readTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
 
 		/// <inheritdoc />
-		virtual UInt32 resolveQueryId(SharedPtr<const TimingEvent> timingEvent) const override;
+		UInt32 resolveQueryId(SharedPtr<const TimingEvent> timingEvent) const override;
 
 		/// <inheritdoc />
-		virtual Format surfaceFormat() const noexcept override;
+		Format surfaceFormat() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 buffers() const noexcept override;
+		UInt32 buffers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const Size2d& renderArea() const noexcept override;
+		const Size2d& renderArea() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const IDirectX12Image* image(UInt32 backBuffer) const override;
+		const IDirectX12Image* image(UInt32 backBuffer) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<const IDirectX12Image*> images() const noexcept override;
+		Enumerable<const IDirectX12Image*> images() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void present(const DirectX12FrameBuffer& frameBuffer) const override;
+		void present(const DirectX12FrameBuffer& frameBuffer) const override;
 
 	public:
 		/// <inheritdoc />
-		virtual Enumerable<Format> getSurfaceFormats() const noexcept override;
+		Enumerable<Format> getSurfaceFormats() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void addTimingEvent(SharedPtr<TimingEvent> timingEvent) override;
+		void addTimingEvent(SharedPtr<TimingEvent> timingEvent) override;
 
 		/// <inheritdoc />
-		virtual void reset(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers) override;
+		void reset(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers) override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual UInt32 swapBackBuffer() const override;
+		[[nodiscard]] UInt32 swapBackBuffer() const override;
 
 	private:
 		void resolveQueryHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept;
@@ -1411,47 +1411,47 @@ namespace LiteFX::Rendering::Backends {
 		// CommandQueue interface.
 	public:
 		/// <inheritdoc />
-		virtual bool isBound() const noexcept override;
+		bool isBound() const noexcept override;
 
 		/// <inheritdoc />
-		virtual QueuePriority priority() const noexcept override;
+		QueuePriority priority() const noexcept override;
 
 		/// <inheritdoc />
-		virtual QueueType type() const noexcept override;
+		QueueType type() const noexcept override;
 
 #if !defined(NDEBUG) && defined(_WIN64)
 	public:
 		/// <inheritdoc />
-		virtual void BeginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
+		void BeginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
 
 		/// <inheritdoc />
-		virtual void EndDebugRegion() const noexcept override;
+		void EndDebugRegion() const noexcept override;
 
 		/// <inheritdoc />
-		virtual void SetDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
+		void SetDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
 #endif // !defined(NDEBUG) && defined(_WIN64)
 
 	public:
 		/// <inheritdoc />
-		virtual void bind() override;
+		void bind() override;
 
 		/// <inheritdoc />
-		virtual void release() override;
+		void release() override;
 
 		/// <inheritdoc />
-		virtual SharedPtr<DirectX12CommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const override;
+		SharedPtr<DirectX12CommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const override;
 
 		/// <inheritdoc />
-		virtual UInt64 submit(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const override;
+		UInt64 submit(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const override;
 
 		/// <inheritdoc />
-		virtual UInt64 submit(const Enumerable<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers) const override;
+		UInt64 submit(const Enumerable<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers) const override;
 
 		/// <inheritdoc />
-		virtual void waitFor(UInt64 fence) const noexcept override;
+		void waitFor(UInt64 fence) const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt64 currentFence() const noexcept override;
+		UInt64 currentFence() const noexcept override;
 	};
 
 	/// <summary>
@@ -1486,46 +1486,46 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12Buffer> createBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
+		UniquePtr<IDirectX12Buffer> createBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12Buffer> createBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
+		UniquePtr<IDirectX12Buffer> createBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12VertexBuffer> createVertexBuffer(const DirectX12VertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const override;
+		UniquePtr<IDirectX12VertexBuffer> createVertexBuffer(const DirectX12VertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12VertexBuffer> createVertexBuffer(const String& name, const DirectX12VertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const override;
+		UniquePtr<IDirectX12VertexBuffer> createVertexBuffer(const String& name, const DirectX12VertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12IndexBuffer> createIndexBuffer(const DirectX12IndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override;
+		UniquePtr<IDirectX12IndexBuffer> createIndexBuffer(const DirectX12IndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12IndexBuffer> createIndexBuffer(const String& name, const DirectX12IndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override;
+		UniquePtr<IDirectX12IndexBuffer> createIndexBuffer(const String& name, const DirectX12IndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12Image> createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
+		UniquePtr<IDirectX12Image> createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12Image> createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
+		UniquePtr<IDirectX12Image> createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12Image> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;
+		UniquePtr<IDirectX12Image> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12Image> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;
+		UniquePtr<IDirectX12Image> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<UniquePtr<IDirectX12Image>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;
+		Enumerable<UniquePtr<IDirectX12Image>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12Sampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
+		UniquePtr<IDirectX12Sampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
 
 		/// <inheritdoc />
-		virtual UniquePtr<IDirectX12Sampler> createSampler(const String& name, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
+		UniquePtr<IDirectX12Sampler> createSampler(const String& name, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
 
 		/// <inheritdoc />
-		virtual Enumerable<UniquePtr<IDirectX12Sampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
+		Enumerable<UniquePtr<IDirectX12Sampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
 	};
 
 	/// <summary>
@@ -1650,80 +1650,80 @@ namespace LiteFX::Rendering::Backends {
 		// GraphicsDevice interface.
 	public:
 		/// <inheritdoc />
-		virtual DeviceState& state() const noexcept override;
+		DeviceState& state() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12SwapChain& swapChain() const noexcept override;
+		const DirectX12SwapChain& swapChain() const noexcept override;
 
 		/// <inheritdoc />
-		virtual DirectX12SwapChain& swapChain() noexcept override;
+		DirectX12SwapChain& swapChain() noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12Surface& surface() const noexcept override;
+		const DirectX12Surface& surface() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12GraphicsAdapter& adapter() const noexcept override;
+		const DirectX12GraphicsAdapter& adapter() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12GraphicsFactory& factory() const noexcept override;
+		const DirectX12GraphicsFactory& factory() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12Queue& graphicsQueue() const noexcept override;
+		const DirectX12Queue& graphicsQueue() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12Queue& transferQueue() const noexcept override;
+		const DirectX12Queue& transferQueue() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12Queue& bufferQueue() const noexcept override;
+		const DirectX12Queue& bufferQueue() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12Queue& computeQueue() const noexcept override;
+		const DirectX12Queue& computeQueue() const noexcept override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
+		[[nodiscard]] UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
 
 		/// <inheritdoc />
 		/// <seealso href="https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_standard_multisample_quality_levels" />
-		virtual MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept override;
+		MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept override;
 
 		/// <inheritdoc />
-		virtual double ticksPerMillisecond() const noexcept override;
+		double ticksPerMillisecond() const noexcept override;
 
 	public:
 		/// <inheritdoc />
-		virtual void wait() const override;
+		void wait() const override;
 
 #if defined(BUILD_DEFINE_BUILDERS)
 	public:
 		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12RenderPassBuilder buildRenderPass(MultiSamplingLevel samples = MultiSamplingLevel::x1, UInt32 commandBuffers = 1) const override;
+		[[nodiscard]] DirectX12RenderPassBuilder buildRenderPass(MultiSamplingLevel samples = MultiSamplingLevel::x1, UInt32 commandBuffers = 1) const override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12RenderPassBuilder buildRenderPass(const String& name, MultiSamplingLevel samples = MultiSamplingLevel::x1, UInt32 commandBuffers = 1) const override;
+		[[nodiscard]] DirectX12RenderPassBuilder buildRenderPass(const String& name, MultiSamplingLevel samples = MultiSamplingLevel::x1, UInt32 commandBuffers = 1) const override;
 
 		/// <inheritdoc />
-		//[[nodiscard]] virtual DirectX12RenderPipelineBuilder buildRenderPipeline(const String& name) const override;
+		//[[nodiscard]] DirectX12RenderPipelineBuilder buildRenderPipeline(const String& name) const override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12RenderPipelineBuilder buildRenderPipeline(const DirectX12RenderPass& renderPass, const String& name) const override;
+		[[nodiscard]] DirectX12RenderPipelineBuilder buildRenderPipeline(const DirectX12RenderPass& renderPass, const String& name) const override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12ComputePipelineBuilder buildComputePipeline(const String& name) const override;
+		[[nodiscard]] DirectX12ComputePipelineBuilder buildComputePipeline(const String& name) const override;
 		
 		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12PipelineLayoutBuilder buildPipelineLayout() const override;
+		[[nodiscard]] DirectX12PipelineLayoutBuilder buildPipelineLayout() const override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12InputAssemblerBuilder buildInputAssembler() const override;
+		[[nodiscard]] DirectX12InputAssemblerBuilder buildInputAssembler() const override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12RasterizerBuilder buildRasterizer() const override;
+		[[nodiscard]] DirectX12RasterizerBuilder buildRasterizer() const override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12ShaderProgramBuilder buildShaderProgram() const override;
+		[[nodiscard]] DirectX12ShaderProgramBuilder buildShaderProgram() const override;
 
 		/// <inheritdoc />
-		[[nodiscard]] virtual DirectX12BarrierBuilder buildBarrier() const override;
+		[[nodiscard]] DirectX12BarrierBuilder buildBarrier() const override;
 #endif // defined(BUILD_DEFINE_BUILDERS)
 	};
 	
@@ -1742,37 +1742,37 @@ namespace LiteFX::Rendering::Backends {
 		// IBackend interface.
 	public:
 		/// <inheritdoc />
-		virtual BackendType type() const noexcept override;
+		BackendType type() const noexcept override;
 
 		/// <inheritdoc />
-		virtual String name() const noexcept override;
+		String name() const noexcept override;
 
 	protected:
 		/// <inheritdoc />
-		virtual void activate() override;
+		void activate() override;
 
 		/// <inheritdoc />
-		virtual void deactivate() override;
+		void deactivate() override;
 
 		// RenderBackend interface.
 	public:
 		/// <inheritdoc />
-		virtual Enumerable<const DirectX12GraphicsAdapter*> listAdapters() const override;
+		Enumerable<const DirectX12GraphicsAdapter*> listAdapters() const override;
 
 		/// <inheritdoc />
-		virtual const DirectX12GraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override;
+		const DirectX12GraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override;
 
 		/// <inheritdoc />
-		virtual void registerDevice(String name, UniquePtr<DirectX12Device>&& device) override;
+		void registerDevice(String name, UniquePtr<DirectX12Device>&& device) override;
 
 		/// <inheritdoc />
-		virtual void releaseDevice(const String& name) override;
+		void releaseDevice(const String& name) override;
 
 		/// <inheritdoc />
-		virtual DirectX12Device* device(const String& name) noexcept override;
+		DirectX12Device* device(const String& name) noexcept override;
 
 		/// <inheritdoc />
-		virtual const DirectX12Device* device(const String& name) const noexcept override;
+		const DirectX12Device* device(const String& name) const noexcept override;
 
 	public:
 		/// <summary>

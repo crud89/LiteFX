@@ -19,7 +19,7 @@ public:
     Foo(int i) : _i(i) { }
     virtual ~Foo() noexcept = default;
 
-    virtual int index() const noexcept override {
+    int index() const noexcept override {
         return _i;
     }
 };
@@ -32,7 +32,7 @@ public:
     Bar(int i) : _i(i) { }
     virtual ~Bar() noexcept = default;
 
-    virtual int index() const noexcept override {
+    int index() const noexcept override {
         return _i;
     }
 };

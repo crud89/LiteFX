@@ -44,27 +44,27 @@ namespace LiteFX::Rendering {
         constexpr inline virtual void transition(image_type& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
 
     private:
-        constexpr inline virtual void doTransition(IBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) override {
+        constexpr inline void doTransition(IBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) override {
             this->transition(dynamic_cast<buffer_type&>(buffer), accessBefore, accessAfter);
         }
 
-        constexpr inline virtual void doTransition(IBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) override {
+        constexpr inline void doTransition(IBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) override {
             this->transition(dynamic_cast<buffer_type&>(buffer), element, accessBefore, accessAfter);
         }
 
-        constexpr inline virtual void doTransition(IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override {
+        constexpr inline void doTransition(IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override {
             this->transition(dynamic_cast<image_type&>(image), accessBefore, accessAfter, layout);
         }
 
-        constexpr inline virtual void doTransition(IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override {
+        constexpr inline void doTransition(IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override {
             this->transition(dynamic_cast<image_type&>(image), accessBefore, accessAfter, fromLayout, toLayout);
         }
 
-        constexpr inline virtual void doTransition(IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override {
+        constexpr inline void doTransition(IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override {
             this->transition(dynamic_cast<image_type&>(image), level, levels, layer, layers, plane, accessBefore, accessAfter, layout);
         }
 
-        constexpr inline virtual void doTransition(IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override {
+        constexpr inline void doTransition(IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override {
             this->transition(dynamic_cast<image_type&>(image), level, levels, layer, layers, plane, accessBefore, accessAfter, fromLayout, toLayout);
         }
     };
@@ -164,19 +164,19 @@ namespace LiteFX::Rendering {
         virtual void attach(UInt32 binding, const image_type& image) const = 0;
 
     private:
-        virtual void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const override {
+        void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const override {
             this->update(binding, dynamic_cast<const buffer_type&>(buffer), bufferElement, elements, firstDescriptor);
         }
 
-        virtual void doUpdate(UInt32 binding, const IImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const  override {
+        void doUpdate(UInt32 binding, const IImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const  override {
             this->update(binding, dynamic_cast<const image_type&>(texture), descriptor, firstLevel, levels, firstLayer, layers);
         }
 
-        virtual void doUpdate(UInt32 binding, const ISampler& sampler, UInt32 descriptor) const  override {
+        void doUpdate(UInt32 binding, const ISampler& sampler, UInt32 descriptor) const  override {
             this->update(binding, dynamic_cast<const sampler_type&>(sampler), descriptor);
         }
 
-        virtual void doAttach(UInt32 binding, const IImage& image) const  override {
+        void doAttach(UInt32 binding, const IImage& image) const  override {
             this->attach(binding, dynamic_cast<const image_type&>(image));
         }
     };
@@ -235,23 +235,23 @@ namespace LiteFX::Rendering {
         virtual void free(const descriptor_set_type& descriptorSet) const noexcept = 0;
 
     private:
-        virtual Enumerable<const IDescriptorLayout*> getDescriptors() const noexcept override {
+        Enumerable<const IDescriptorLayout*> getDescriptors() const noexcept override {
             return this->descriptors();
         }
 
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const override {
+        UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const override {
             return this->allocate(descriptors, bindings);
         }
 
-        virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override {
+        Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override {
             return this->allocateMultiple(descriptorSets, descriptors, bindings) | std::views::as_rvalue;
         }
 
-        virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override {
+        Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override {
             return this->allocateMultiple(descriptorSets, descriptors, bindingFactory) | std::views::as_rvalue;
         }
 
-        virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept override {
+        void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept override {
             this->releaseDescriptorSet(dynamic_cast<const descriptor_set_type&>(descriptorSet));
         }
     };
@@ -293,7 +293,7 @@ namespace LiteFX::Rendering {
         virtual Enumerable<const push_constants_range_type*> ranges() const noexcept = 0;
 
     private:
-        virtual Enumerable<const IPushConstantsRange*> getRanges() const noexcept override {
+        Enumerable<const IPushConstantsRange*> getRanges() const noexcept override {
             return this->ranges();
         }
     };
@@ -349,7 +349,7 @@ namespace LiteFX::Rendering {
         virtual const push_constants_layout_type* pushConstants() const noexcept = 0;
 
     private:
-        virtual Enumerable<const IDescriptorSetLayout*> getDescriptorSets() const noexcept override {
+        Enumerable<const IDescriptorSetLayout*> getDescriptorSets() const noexcept override {
             return this->descriptorSets();
         }
     };
@@ -417,7 +417,7 @@ namespace LiteFX::Rendering {
         virtual const index_buffer_layout_type& indexBufferLayout() const = 0;
 
     private:
-        virtual Enumerable<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept override {
+        Enumerable<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept override {
             return this->vertexBufferLayouts();
         }
     };
@@ -448,11 +448,11 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<const pipeline_layout_type> layout() const noexcept = 0;
 
     private:
-        virtual SharedPtr<const IShaderProgram> getProgram() const noexcept override {
+        SharedPtr<const IShaderProgram> getProgram() const noexcept override {
             return std::static_pointer_cast<const IShaderProgram>(this->program());
         }
 
-        virtual SharedPtr<const IPipelineLayout> getLayout() const noexcept override {
+        SharedPtr<const IPipelineLayout> getLayout() const noexcept override {
             return std::static_pointer_cast<const IPipelineLayout>(this->layout());
         }
     };
@@ -571,83 +571,83 @@ namespace LiteFX::Rendering {
         virtual void execute(Enumerable<SharedPtr<const command_buffer_type>> commandBuffers) const = 0;
 
     private:
-        virtual void cmdBarrier(const IBarrier& barrier) const noexcept override { 
+        void cmdBarrier(const IBarrier& barrier) const noexcept override { 
             this->barrier(dynamic_cast<const barrier_type&>(barrier));
         }
 
-        virtual void cmdGenerateMipMaps(IImage& image) noexcept override { 
+        void cmdGenerateMipMaps(IImage& image) noexcept override { 
             this->generateMipMaps(dynamic_cast<image_type&>(image));
         }
 
-        virtual void cmdTransfer(IBuffer& source, IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const override { 
+        void cmdTransfer(IBuffer& source, IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const override { 
             this->transfer(dynamic_cast<buffer_type&>(source), dynamic_cast<buffer_type&>(target), sourceElement, targetElement, elements);
         }
         
-        virtual void cmdTransfer(IBuffer& source, IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const override { 
+        void cmdTransfer(IBuffer& source, IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const override { 
             this->transfer(dynamic_cast<buffer_type&>(source), dynamic_cast<image_type&>(target), sourceElement, firstSubresource, elements);
         }
         
-        virtual void cmdTransfer(IImage& source, IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const override {
+        void cmdTransfer(IImage& source, IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const override {
             this->transfer(dynamic_cast<image_type&>(source), dynamic_cast<image_type&>(target), sourceSubresource, targetSubresource, subresources);
         }
 
-        virtual void cmdTransfer(IImage& source, IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const override {
+        void cmdTransfer(IImage& source, IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const override {
             this->transfer(dynamic_cast<image_type&>(source), dynamic_cast<buffer_type&>(target), firstSubresource, targetElement, subresources);
         }
 
-        virtual void cmdTransfer(SharedPtr<IBuffer> source, IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const override {
+        void cmdTransfer(SharedPtr<IBuffer> source, IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const override {
             this->transfer(std::dynamic_pointer_cast<buffer_type>(source), dynamic_cast<buffer_type&>(target), sourceElement, targetElement, elements);
         }
         
-        virtual void cmdTransfer(SharedPtr<IBuffer> source, IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const override {
+        void cmdTransfer(SharedPtr<IBuffer> source, IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const override {
             this->transfer(std::dynamic_pointer_cast<buffer_type>(source), dynamic_cast<image_type&>(target), sourceElement, firstSubresource, elements);
         }
         
-        virtual void cmdTransfer(SharedPtr<IImage> source, IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const override {
+        void cmdTransfer(SharedPtr<IImage> source, IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const override {
             this->transfer(std::dynamic_pointer_cast<image_type>(source), dynamic_cast<image_type&>(target), sourceSubresource, targetSubresource, subresources);
         }
         
-        virtual void cmdTransfer(SharedPtr<IImage> source, IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const override {
+        void cmdTransfer(SharedPtr<IImage> source, IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const override {
             this->transfer(std::dynamic_pointer_cast<image_type>(source), dynamic_cast<buffer_type&>(target), firstSubresource, targetElement, subresources);
         }
 
-        virtual void cmdUse(const IPipeline& pipeline) const noexcept override { 
+        void cmdUse(const IPipeline& pipeline) const noexcept override { 
             this->use(dynamic_cast<const pipeline_type&>(pipeline));
         }
 
-        virtual void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept override { 
+        void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept override { 
             this->bind(dynamic_cast<const descriptor_set_type&>(descriptorSet), dynamic_cast<const pipeline_type&>(pipeline));
         }
         
-        virtual void cmdBind(const IVertexBuffer& buffer) const noexcept override { 
+        void cmdBind(const IVertexBuffer& buffer) const noexcept override { 
             this->bind(dynamic_cast<const vertex_buffer_type&>(buffer));
         }
 
-        virtual void cmdBind(const IIndexBuffer& buffer) const noexcept override { 
+        void cmdBind(const IIndexBuffer& buffer) const noexcept override { 
             this->bind(dynamic_cast<const index_buffer_type&>(buffer));
         }
         
-        virtual void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept override { 
+        void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept override { 
             this->pushConstants(dynamic_cast<const push_constants_layout_type&>(layout), memory);
         }
         
-        virtual void cmdDraw(const IVertexBuffer& vertexBuffer, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const override { 
+        void cmdDraw(const IVertexBuffer& vertexBuffer, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const override { 
             this->draw(dynamic_cast<const vertex_buffer_type&>(vertexBuffer), instances, firstVertex, firstInstance);
         }
         
-        virtual void cmdDrawIndexed(const IIndexBuffer& indexBuffer, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const override { 
+        void cmdDrawIndexed(const IIndexBuffer& indexBuffer, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const override { 
             this->drawIndexed(dynamic_cast<const index_buffer_type&>(indexBuffer), instances, firstIndex, vertexOffset, firstInstance);
         }
         
-        virtual void cmdDrawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const override { 
+        void cmdDrawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const override { 
             this->drawIndexed(dynamic_cast<const vertex_buffer_type&>(vertexBuffer), dynamic_cast<const index_buffer_type&>(indexBuffer), instances, firstIndex, vertexOffset, firstInstance);
         }
 
-        virtual void cmdExecute(SharedPtr<const ICommandBuffer> commandBuffer) const override {
+        void cmdExecute(SharedPtr<const ICommandBuffer> commandBuffer) const override {
             this->execute(std::dynamic_pointer_cast<const command_buffer_type>(commandBuffer));
         }
         
-        virtual void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const override {
+        void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const override {
             return this->execute(commandBuffers | std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }));
         }
 
@@ -680,11 +680,11 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<rasterizer_type> rasterizer() const noexcept = 0;
 
     private:
-        virtual SharedPtr<IInputAssembler> getInputAssembler() const noexcept override {
+        SharedPtr<IInputAssembler> getInputAssembler() const noexcept override {
             return this->inputAssembler();
         }
 
-        virtual SharedPtr<IRasterizer> getRasterizer() const noexcept override {
+        SharedPtr<IRasterizer> getRasterizer() const noexcept override {
             return this->rasterizer();
         }
     };
@@ -730,15 +730,15 @@ namespace LiteFX::Rendering {
         virtual const image_type& image(UInt32 location) const = 0;
 
     private:
-        virtual SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept override {
+        SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept override {
             return this->commandBuffer(index);
         }
 
-        virtual Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept override {
+        Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept override {
             return this->commandBuffers();
         }
 
-        virtual Enumerable<const IImage*> getImages() const noexcept override {
+        Enumerable<const IImage*> getImages() const noexcept override {
             return this->images();
         }
     };
@@ -852,15 +852,15 @@ namespace LiteFX::Rendering {
         virtual void updateAttachments(const descriptor_set_type& descriptorSet) const = 0;
 
     private:
-        virtual Enumerable<const IFrameBuffer*> getFrameBuffers() const noexcept override {
+        Enumerable<const IFrameBuffer*> getFrameBuffers() const noexcept override {
             return this->frameBuffers();
         }
 
-        virtual Enumerable<const IRenderPipeline*> getPipelines() const noexcept override {
+        Enumerable<const IRenderPipeline*> getPipelines() const noexcept override {
             return this->pipelines();
         }
 
-        virtual void setAttachments(const IDescriptorSet& descriptorSet) const override {
+        void setAttachments(const IDescriptorSet& descriptorSet) const override {
             this->updateAttachments(dynamic_cast<const descriptor_set_type&>(descriptorSet));
         }
     };
@@ -891,12 +891,12 @@ namespace LiteFX::Rendering {
         virtual void present(const frame_buffer_type& frameBuffer) const = 0;
 
         /// <inheritdoc />
-        virtual void present(const IFrameBuffer& frameBuffer) const override {
+        void present(const IFrameBuffer& frameBuffer) const override {
             this->present(dynamic_cast<const frame_buffer_type&>(frameBuffer));
         }
 
     private:
-        virtual Enumerable<const IImage*> getImages() const noexcept override {
+        Enumerable<const IImage*> getImages() const noexcept override {
             return this->images();
         }
     };
@@ -937,15 +937,15 @@ namespace LiteFX::Rendering {
         virtual UInt64 submit(const Enumerable<SharedPtr<const command_buffer_type>>& commandBuffers) const = 0;
 
     private:
-        virtual SharedPtr<ICommandBuffer> getCommandBuffer(bool beginRecording, bool secondary) const override {
+        SharedPtr<ICommandBuffer> getCommandBuffer(bool beginRecording, bool secondary) const override {
             return this->createCommandBuffer(beginRecording, secondary);
         }
 
-        virtual UInt64 submitCommandBuffer(SharedPtr<const ICommandBuffer> commandBuffer) const override {
+        UInt64 submitCommandBuffer(SharedPtr<const ICommandBuffer> commandBuffer) const override {
             return this->submit(std::dynamic_pointer_cast<const command_buffer_type>(commandBuffer));
         }
 
-        virtual UInt64 submitCommandBuffers(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const override {
+        UInt64 submitCommandBuffers(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const override {
             return this->submit(commandBuffers | std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) | std::ranges::to<Enumerable<SharedPtr<const command_buffer_type>>>());
         }
     };
@@ -1033,59 +1033,59 @@ namespace LiteFX::Rendering {
         virtual Enumerable<UniquePtr<TSampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const = 0;
 
     private:
-        virtual UniquePtr<IBuffer> getBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const override { 
+        UniquePtr<IBuffer> getBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const override { 
             return this->createBuffer(type, usage, elementSize, elements, allowWrite);
         }
 
-        virtual UniquePtr<IBuffer> getBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const override {
+        UniquePtr<IBuffer> getBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const override {
             return this->createBuffer(name, type, usage, elementSize, elements, allowWrite);
         }
 
-        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override { 
+        UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override { 
             return this->createVertexBuffer(dynamic_cast<const vertex_buffer_layout_type&>(layout), usage, elements);
         }
 
-        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override {
+        UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override {
             return this->createVertexBuffer(name, dynamic_cast<const vertex_buffer_layout_type&>(layout), usage, elements);
         }
         
-        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override {
+        UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override {
             return this->createIndexBuffer(dynamic_cast<const index_buffer_layout_type&>(layout), usage, elements);
         }
 
-        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override {
+        UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override {
             return this->createIndexBuffer(name, dynamic_cast<const index_buffer_layout_type&>(layout), usage, elements);
         }
 
-        virtual UniquePtr<IImage> getAttachment(Format format, const Size2d& size, MultiSamplingLevel samples) const override { 
+        UniquePtr<IImage> getAttachment(Format format, const Size2d& size, MultiSamplingLevel samples) const override { 
             return this->createAttachment(format, size, samples);
         }
 
-        virtual UniquePtr<IImage> getAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples) const override {
+        UniquePtr<IImage> getAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples) const override {
             return this->createAttachment(name, format, size, samples);
         }
         
-        virtual UniquePtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const override { 
+        UniquePtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const override { 
             return this->createTexture(format, size, dimension, levels, layers, samples, allowWrite);
         }
 
-        virtual UniquePtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const override {
+        UniquePtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const override {
             return this->createTexture(name, format, size, dimension, levels, layers, samples, allowWrite);
         }
 
-        virtual Enumerable<UniquePtr<IImage>> getTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, bool allowWrite) const override {
+        Enumerable<UniquePtr<IImage>> getTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, bool allowWrite) const override {
             return this->getTextures(elements, format, size, dimension, layers, levels, samples, allowWrite) | std::views::as_rvalue;
         }
         
-        virtual UniquePtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override { 
+        UniquePtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override { 
             return this->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
-        virtual UniquePtr<ISampler> getSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {
+        UniquePtr<ISampler> getSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {
             return this->createSampler(name, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
         
-        virtual Enumerable<UniquePtr<ISampler>> getSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {
+        Enumerable<UniquePtr<ISampler>> getSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {
             return this->createSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy) | std::views::as_rvalue;
         }
     };
@@ -1175,7 +1175,7 @@ namespace LiteFX::Rendering {
         [[nodiscard]] virtual UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
 
     private:
-        virtual UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override {
+        UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override {
             return this->makeBarrier(syncBefore, syncAfter);
         }
 
@@ -1342,7 +1342,7 @@ namespace LiteFX::Rendering {
 
         // IRenderBackend interface
     private:
-        virtual Enumerable<const IGraphicsAdapter*> getAdapters() const override {
+        Enumerable<const IGraphicsAdapter*> getAdapters() const override {
             return this->listAdapters();
         }
     };

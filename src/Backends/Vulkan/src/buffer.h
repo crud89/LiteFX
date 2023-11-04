@@ -22,41 +22,41 @@ namespace LiteFX::Rendering::Backends {
 		// IBuffer interface.
 	public:
 		/// <inheritdoc />
-		virtual BufferType type() const noexcept override;
+		BufferType type() const noexcept override;
 
 		// IDeviceMemory interface.
 	public:
 		/// <inheritdoc />
-		virtual UInt32 elements() const noexcept override;
+		UInt32 elements() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t size() const noexcept override;
+		size_t size() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t elementSize() const noexcept override;
+		size_t elementSize() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t elementAlignment() const noexcept override;
+		size_t elementAlignment() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t alignedElementSize() const noexcept override;
+		size_t alignedElementSize() const noexcept override;
 
 		/// <inheritdoc />
-		virtual bool writable() const noexcept override;
+		bool writable() const noexcept override;
 
 		// IMappable interface.
 	public:
 		/// <inheritdoc />
-		virtual void map(const void* const data, size_t size, UInt32 element = 0) override;
+		void map(const void* const data, size_t size, UInt32 element = 0) override;
 
 		/// <inheritdoc />
-		virtual void map(Span<const void* const> data, size_t elementSize, UInt32 firstElement = 0) override;
+		void map(Span<const void* const> data, size_t elementSize, UInt32 firstElement = 0) override;
 
 		/// <inheritdoc />
-		virtual void map(void* data, size_t size, UInt32 element = 0, bool write = true) override;
+		void map(void* data, size_t size, UInt32 element = 0, bool write = true) override;
 
 		/// <inheritdoc />
-		virtual void map(Span<void*> data, size_t elementSize, UInt32 firstElement = 0, bool write = true) override;
+		void map(Span<void*> data, size_t elementSize, UInt32 firstElement = 0, bool write = true) override;
 
 		// VulkanBuffer.
 	public:
@@ -102,7 +102,7 @@ namespace LiteFX::Rendering::Backends {
 		// IndexBuffer interface.
 	public:
 		/// <inheritdoc />
-		virtual const VulkanIndexBufferLayout& layout() const noexcept override;
+		const VulkanIndexBufferLayout& layout() const noexcept override;
 
 		// VulkanIndexBuffer.
 	public:

@@ -217,28 +217,28 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        virtual String name() const noexcept override;
+        String name() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt64 uniqueId() const noexcept override;
+        UInt64 uniqueId() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 vendorId() const noexcept override;
+        UInt32 vendorId() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 deviceId() const noexcept override;
+        UInt32 deviceId() const noexcept override;
 
         /// <inheritdoc />
-        virtual GraphicsAdapterType type() const noexcept override;
+        GraphicsAdapterType type() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 driverVersion() const noexcept override;
+        UInt32 driverVersion() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 apiVersion() const noexcept override;
+        UInt32 apiVersion() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt64 dedicatedMemory() const noexcept override;
+        UInt64 dedicatedMemory() const noexcept override;
 
     public:
         /// <summary>

@@ -1517,7 +1517,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual const String& name() const noexcept override;
+        const String& name() const noexcept override;
     };
 
     /// <summary>
@@ -2078,31 +2078,31 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual const String& name() const noexcept override;
+        const String& name() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 location() const noexcept override;
+        UInt32 location() const noexcept override;
 
         /// <inheritdoc />
-        virtual RenderTargetType type() const noexcept override;
+        RenderTargetType type() const noexcept override;
 
         /// <inheritdoc />
-        virtual Format format() const noexcept override;
+        Format format() const noexcept override;
 
         /// <inheritdoc />
-        virtual bool clearBuffer() const noexcept override;
+        bool clearBuffer() const noexcept override;
 
         /// <inheritdoc />
-        virtual bool clearStencil() const noexcept override;
+        bool clearStencil() const noexcept override;
 
         /// <inheritdoc />
-        virtual const Vector4f& clearValues() const noexcept override;
+        const Vector4f& clearValues() const noexcept override;
 
         /// <inheritdoc />
-        virtual bool isVolatile() const noexcept override;
+        bool isVolatile() const noexcept override;
 
         /// <inheritdoc />
-        virtual const BlendState& blendState() const noexcept override;
+        const BlendState& blendState() const noexcept override;
     };
 
     /// <summary>
@@ -2348,19 +2348,19 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual PolygonMode polygonMode() const noexcept override;
+        PolygonMode polygonMode() const noexcept override;
 
         /// <inheritdoc />
-        virtual CullMode cullMode() const noexcept override;
+        CullMode cullMode() const noexcept override;
 
         /// <inheritdoc />
-        virtual CullOrder cullOrder() const noexcept override;
+        CullOrder cullOrder() const noexcept override;
 
         /// <inheritdoc />
-        virtual Float lineWidth() const noexcept override;
+        Float lineWidth() const noexcept override;
 
         /// <inheritdoc />
-        virtual const DepthStencilState& depthStencilState() const noexcept override;
+        const DepthStencilState& depthStencilState() const noexcept override;
 
     protected:
         virtual PolygonMode& polygonMode() noexcept;
@@ -2436,22 +2436,22 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual RectF getRectangle() const noexcept override;
+        RectF getRectangle() const noexcept override;
 
         /// <inheritdoc />
-        virtual void setRectangle(const RectF& rectangle) noexcept override;
+        void setRectangle(const RectF& rectangle) noexcept override;
 
         /// <inheritdoc />
-        virtual Float getMinDepth() const noexcept override;
+        Float getMinDepth() const noexcept override;
 
         /// <inheritdoc />
-        virtual void setMinDepth(Float depth) const noexcept override;
+        void setMinDepth(Float depth) const noexcept override;
 
         /// <inheritdoc />
-        virtual Float getMaxDepth() const noexcept override;
+        Float getMaxDepth() const noexcept override;
 
         /// <inheritdoc />
-        virtual void setMaxDepth(Float depth) const noexcept override;
+        void setMaxDepth(Float depth) const noexcept override;
     };
 
     /// <summary>
@@ -2494,10 +2494,10 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual RectF getRectangle() const noexcept override;
+        RectF getRectangle() const noexcept override;
 
         /// <inheritdoc />
-        virtual void setRectangle(const RectF& rectangle) noexcept override;
+        void setRectangle(const RectF& rectangle) noexcept override;
     };
 
     /// <summary>

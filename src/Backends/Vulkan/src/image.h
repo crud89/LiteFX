@@ -22,60 +22,60 @@ namespace LiteFX::Rendering::Backends {
 		// IDeviceMemory interface.
 	public:
 		/// <inheritdoc />
-		virtual UInt32 elements() const noexcept override;
+		UInt32 elements() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t size() const noexcept override;
+		size_t size() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t elementSize() const noexcept override;
+		size_t elementSize() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t elementAlignment() const noexcept override;
+		size_t elementAlignment() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t alignedElementSize() const noexcept override;
+		size_t alignedElementSize() const noexcept override;
 
 		/// <inheritdoc />
-		virtual bool writable() const noexcept override;
+		bool writable() const noexcept override;
 
 		/// <inheritdoc />
-		virtual ImageLayout layout(UInt32 subresource = 0) const override;
+		ImageLayout layout(UInt32 subresource = 0) const override;
 
 		/// <inheritdoc />
-		virtual ImageLayout& layout(UInt32 subresource = 0) override;
+		ImageLayout& layout(UInt32 subresource = 0) override;
 
 		// IImage interface.
 	public:
 		/// <inheritdoc />
-		virtual size_t size(UInt32 level) const noexcept override;
+		size_t size(UInt32 level) const noexcept override;
 
 		/// <inheritdoc />
-		virtual Size3d extent(UInt32 level = 0) const noexcept override;
+		Size3d extent(UInt32 level = 0) const noexcept override;
 
 		/// <inheritdoc />
-		virtual Format format() const noexcept override;
+		Format format() const noexcept override;
 
 		/// <inheritdoc />
-		virtual ImageDimensions dimensions() const noexcept override;
+		ImageDimensions dimensions() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 levels() const noexcept override;
+		UInt32 levels() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 layers() const noexcept override;
+		UInt32 layers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual UInt32 planes() const noexcept override;
+		UInt32 planes() const noexcept override;
 
 		/// <inheritdoc />
-		virtual MultiSamplingLevel samples() const noexcept override;
+		MultiSamplingLevel samples() const noexcept override;
 
 		// IVulkanImage interface.
 	public:
-		virtual VkImageAspectFlags aspectMask() const noexcept override;
-		virtual VkImageAspectFlags aspectMask(UInt32 plane) const override;
-		virtual const VkImageView& imageView(UInt32 plane = 0) const override;
+		VkImageAspectFlags aspectMask() const noexcept override;
+		VkImageAspectFlags aspectMask(UInt32 plane) const override;
+		const VkImageView& imageView(UInt32 plane = 0) const override;
 
 	protected:
 		virtual VmaAllocator& allocator() const noexcept;
@@ -116,33 +116,33 @@ namespace LiteFX::Rendering::Backends {
 		// ISampler interface.
 	public:
 		/// <inheritdoc />
-		virtual FilterMode getMinifyingFilter() const noexcept override;
+		FilterMode getMinifyingFilter() const noexcept override;
 
 		/// <inheritdoc />
-		virtual FilterMode getMagnifyingFilter() const noexcept override;
+		FilterMode getMagnifyingFilter() const noexcept override;
 
 		/// <inheritdoc />
-		virtual BorderMode getBorderModeU() const noexcept override;
+		BorderMode getBorderModeU() const noexcept override;
 
 		/// <inheritdoc />
-		virtual BorderMode getBorderModeV() const noexcept override;
+		BorderMode getBorderModeV() const noexcept override;
 
 		/// <inheritdoc />
-		virtual BorderMode getBorderModeW() const noexcept override;
+		BorderMode getBorderModeW() const noexcept override;
 
 		/// <inheritdoc />
-		virtual Float getAnisotropy() const noexcept override;
+		Float getAnisotropy() const noexcept override;
 
 		/// <inheritdoc />
-		virtual MipMapMode getMipMapMode() const noexcept override;
+		MipMapMode getMipMapMode() const noexcept override;
 
 		/// <inheritdoc />
-		virtual Float getMipMapBias() const noexcept override;
+		Float getMipMapBias() const noexcept override;
 
 		/// <inheritdoc />
-		virtual Float getMaxLOD() const noexcept override;
+		Float getMaxLOD() const noexcept override;
 
 		/// <inheritdoc />
-		virtual Float getMinLOD() const noexcept override;
+		Float getMinLOD() const noexcept override;
 	};
 }

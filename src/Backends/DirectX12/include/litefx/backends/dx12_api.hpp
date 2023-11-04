@@ -230,34 +230,34 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        virtual String name() const noexcept override;
+        String name() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt64 uniqueId() const noexcept override;
+        UInt64 uniqueId() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 vendorId() const noexcept override;
+        UInt32 vendorId() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 deviceId() const noexcept override;
+        UInt32 deviceId() const noexcept override;
 
         /// <inheritdoc />
-        virtual GraphicsAdapterType type() const noexcept override;
-
-        /// <inheritdoc />
-        /// <remarks>
-        /// This property is not supported by DirectX 12. The method always returns `0`.
-        /// </remarks>
-        virtual UInt32 driverVersion() const noexcept override;
+        GraphicsAdapterType type() const noexcept override;
 
         /// <inheritdoc />
         /// <remarks>
         /// This property is not supported by DirectX 12. The method always returns `0`.
         /// </remarks>
-        virtual UInt32 apiVersion() const noexcept override;
+        UInt32 driverVersion() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt64 dedicatedMemory() const noexcept override;
+        /// <remarks>
+        /// This property is not supported by DirectX 12. The method always returns `0`.
+        /// </remarks>
+        UInt32 apiVersion() const noexcept override;
+
+        /// <inheritdoc />
+        UInt64 dedicatedMemory() const noexcept override;
     };
 
     /// <summary>
