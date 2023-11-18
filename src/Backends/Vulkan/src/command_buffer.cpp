@@ -13,39 +13,49 @@ public:
 private:
 	const VulkanQueue& m_queue;
 	bool m_recording{ false }, m_secondary{ false };
-	Optional<VkCommandPool> m_commandPool;
-	Array<SharedPtr<const IStateResource>> m_sharedResources;
+	VkCommandPool m_commandPool{ };
+	Array<SharedPtr<const IStateResource>> m_sharedResources{ };
 
 public:
-	VulkanCommandBufferImpl(VulkanCommandBuffer* parent, const VulkanQueue& queue) :
-		base(parent), m_queue(queue)
+	VulkanCommandBufferImpl(VulkanCommandBuffer* parent, const VulkanQueue& queue, bool primary) :
+		base(parent), m_queue(queue), m_secondary(!primary)
 	{
 	}
 
-public:
-	VkCommandBuffer initialize(bool primary)
+	~VulkanCommandBufferImpl() 
 	{
-		// Secondary command buffers have their own command pool.
-		if (!primary)
-		{
-			VkCommandPoolCreateInfo poolInfo = {
-				.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-				.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-				.queueFamilyIndex = m_queue.queueId()
-			};
+		this->release();
+	}
 
-			VkCommandPool commandPool;
-			raiseIfFailed<RuntimeException>(::vkCreateCommandPool(m_queue.device().handle(), &poolInfo, nullptr, &commandPool), "Unable to create command pool.");
-			m_commandPool = commandPool;
-			m_secondary = true;
-		}
+public:
+	void release() 
+	{
+		::vkFreeCommandBuffers(m_queue.device().handle(), m_commandPool, 1, &m_parent->handle());
+		::vkDestroyCommandPool(m_queue.device().handle(), m_commandPool, nullptr);
+	}
+
+	VkCommandBuffer initialize()
+	{
+		// Create command pool.
+		VkCommandPoolCreateInfo poolInfo = {
+			.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+			.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+			.queueFamilyIndex = m_queue.familyId(),
+		};
+
+		// Primary command buffers are frequently reset and re-allocated, whilst secondary command buffers must be recorded once and never reset.
+		if (!m_secondary)
+			poolInfo.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+
+		raiseIfFailed<RuntimeException>(::vkCreateCommandPool(m_queue.device().handle(), &poolInfo, nullptr, &m_commandPool), "Unable to create command pool.");
 
 		// Create the command buffer.
-		VkCommandBufferAllocateInfo bufferInfo{};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		bufferInfo.level = primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
-		bufferInfo.commandPool = primary ? m_queue.commandPool() : m_commandPool.value();
-		bufferInfo.commandBufferCount = 1;
+		VkCommandBufferAllocateInfo bufferInfo = {
+			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+			.commandPool = m_commandPool,
+			.level = m_secondary ? VK_COMMAND_BUFFER_LEVEL_SECONDARY : VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+			.commandBufferCount = 1
+		};
 
 		VkCommandBuffer buffer;
 		raiseIfFailed<RuntimeException>(::vkAllocateCommandBuffers(m_queue.device().handle(), &bufferInfo, &buffer), "Unable to allocate command buffer.");
@@ -59,27 +69,15 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, bool begin, bool primary) :
-	m_impl(makePimpl<VulkanCommandBufferImpl>(this, queue)), Resource<VkCommandBuffer>(nullptr)
+	m_impl(makePimpl<VulkanCommandBufferImpl>(this, queue, primary)), Resource<VkCommandBuffer>(nullptr)
 {
-	if (!queue.isBound())
-		throw InvalidArgumentException("You must bind the queue before creating a command buffer from it.");
-
-	this->handle() = m_impl->initialize(primary);
+	this->handle() = m_impl->initialize();
 
 	if (begin)
 		this->begin();
 }
 
-VulkanCommandBuffer::~VulkanCommandBuffer() noexcept
-{
-	if (!m_impl->m_commandPool.has_value())
-		::vkFreeCommandBuffers(m_impl->m_queue.device().handle(), m_impl->m_queue.commandPool(), 1, &this->handle());
-	else
-	{
-		::vkFreeCommandBuffers(m_impl->m_queue.device().handle(), m_impl->m_commandPool.value(), 1, &this->handle());
-		::vkDestroyCommandPool(m_impl->m_queue.device().handle(), m_impl->m_commandPool.value(), nullptr);
-	}
-}
+VulkanCommandBuffer::~VulkanCommandBuffer() noexcept = default
 
 void VulkanCommandBuffer::begin() const
 {
