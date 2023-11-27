@@ -7,6 +7,46 @@
 using namespace LiteFX::Rendering::Backends;
 
 // ------------------------------------------------------------------------------------------------
+// Formatter for SpvReflectResult.
+// ------------------------------------------------------------------------------------------------
+
+template <>
+struct LITEFX_VULKAN_API fmt::formatter<SpvReflectResult> : formatter<string_view> {
+    template <typename FormatContext>
+    auto format(SpvReflectResult t, FormatContext& ctx) {
+        string_view name;
+
+        switch (t)
+        {
+        case SPV_REFLECT_RESULT_SUCCESS: name = "SPV_REFLECT_RESULT_SUCCESS"; break;
+        case SPV_REFLECT_RESULT_NOT_READY: name = "SPV_REFLECT_RESULT_NOT_READY"; break;
+        case SPV_REFLECT_RESULT_ERROR_PARSE_FAILED: name = "SPV_REFLECT_RESULT_ERROR_PARSE_FAILED"; break;
+        case SPV_REFLECT_RESULT_ERROR_ALLOC_FAILED: name = "SPV_REFLECT_RESULT_ERROR_ALLOC_FAILED"; break;
+        case SPV_REFLECT_RESULT_ERROR_RANGE_EXCEEDED: name = "SPV_REFLECT_RESULT_ERROR_RANGE_EXCEEDED"; break;
+        case SPV_REFLECT_RESULT_ERROR_NULL_POINTER: name = "SPV_REFLECT_RESULT_ERROR_NULL_POINTER"; break;
+        case SPV_REFLECT_RESULT_ERROR_INTERNAL_ERROR: name = "SPV_REFLECT_RESULT_ERROR_INTERNAL_ERROR"; break;
+        case SPV_REFLECT_RESULT_ERROR_COUNT_MISMATCH: name = "SPV_REFLECT_RESULT_ERROR_COUNT_MISMATCH"; break;
+        case SPV_REFLECT_RESULT_ERROR_ELEMENT_NOT_FOUND: name = "SPV_REFLECT_RESULT_ERROR_ELEMENT_NOT_FOUND"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_CODE_SIZE: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_CODE_SIZE"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_MAGIC_NUMBER: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_MAGIC_NUMBER"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_UNEXPECTED_EOF: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_UNEXPECTED_EOF"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_ID_REFERENCE: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_ID_REFERENCE"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_SET_NUMBER_OVERFLOW: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_SET_NUMBER_OVERFLOW"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_STORAGE_CLASS: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_STORAGE_CLASS"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_RECURSION: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_RECURSION"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_INSTRUCTION: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_INSTRUCTION"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_UNEXPECTED_BLOCK_DATA: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_UNEXPECTED_BLOCK_DATA"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_BLOCK_MEMBER_REFERENCE: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_BLOCK_MEMBER_REFERENCE"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_ENTRY_POINT: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_ENTRY_POINT"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_EXECUTION_MODE: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_EXECUTION_MODE"; break;
+        default: name = "Status: unknown"; break;
+        }
+
+        return formatter<string_view>::format(name, ctx);
+    }
+};
+
+// ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
