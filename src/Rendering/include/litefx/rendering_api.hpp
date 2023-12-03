@@ -4959,7 +4959,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="label">The name of the debug region.</param>
         /// <param name="color">The color of the debug region.</param>
-        virtual void BeginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
+        virtual void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
         
         /// <summary>
         /// Ends the current debug region.
@@ -4967,7 +4967,7 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// This is a debug helper, that is not required to be implemented. In the built-in backends, it will no-op by default in non-debug builds.
         /// </remarks>
-        virtual void EndDebugRegion() const noexcept { };
+        virtual void endDebugRegion() const noexcept { };
 
         /// <summary>
         /// Inserts a debug marker.
@@ -4977,7 +4977,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="label">The name of the debug marker.</param>
         /// <param name="color">The color of the debug marker.</param>
-        virtual void SetDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
+        virtual void setDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
 
     public:
         /// <summary>

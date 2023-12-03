@@ -110,7 +110,7 @@ QueueType VulkanQueue::type() const noexcept
 }
 
 #ifndef NDEBUG
-void VulkanQueue::BeginDebugRegion(const String& label, const Vectors::ByteVector3& color) const noexcept
+void VulkanQueue::beginDebugRegion(const String& label, const Vectors::ByteVector3& color) const noexcept
 {
 	VkDebugUtilsLabelEXT labelInfo {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
@@ -121,12 +121,12 @@ void VulkanQueue::BeginDebugRegion(const String& label, const Vectors::ByteVecto
 	::vkQueueBeginDebugUtilsLabel(this->handle(), &labelInfo);
 }
 
-void VulkanQueue::EndDebugRegion() const noexcept
+void VulkanQueue::endDebugRegion() const noexcept
 {
 	::vkQueueEndDebugUtilsLabel(this->handle());
 }
 
-void VulkanQueue::SetDebugMarker(const String& label, const Vectors::ByteVector3& color) const noexcept
+void VulkanQueue::setDebugMarker(const String& label, const Vectors::ByteVector3& color) const noexcept
 {
 	VkDebugUtilsLabelEXT labelInfo{
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,

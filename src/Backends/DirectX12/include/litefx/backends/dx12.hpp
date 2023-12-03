@@ -1422,13 +1422,13 @@ namespace LiteFX::Rendering::Backends {
 #if !defined(NDEBUG) && defined(_WIN64)
     public:
         /// <inheritdoc />
-        void BeginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
+        void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
 
         /// <inheritdoc />
-        void EndDebugRegion() const noexcept override;
+        void endDebugRegion() const noexcept override;
 
         /// <inheritdoc />
-        void SetDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
+        void setDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
 #endif // !defined(NDEBUG) && defined(_WIN64)
 
     public:
