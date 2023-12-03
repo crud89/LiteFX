@@ -251,6 +251,11 @@ void DirectX12Queue::waitFor(UInt64 fence) const noexcept
 	m_impl->m_submittedCommandBuffers.erase(from, to);
 }
 
+void DirectX12Queue::waitFor(const DirectX12Queue& queue, UInt64 fence) const noexcept
+{
+	this->handle()->Wait(queue.m_impl->m_fence.Get(), fence);
+}
+
 UInt64 DirectX12Queue::currentFence() const noexcept
 {
 	return m_impl->m_fenceValue;

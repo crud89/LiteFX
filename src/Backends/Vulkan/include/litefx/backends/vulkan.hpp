@@ -1485,7 +1485,20 @@ namespace LiteFX::Rendering::Backends {
         void waitFor(UInt64 fence) const noexcept override;
 
         /// <inheritdoc />
+        void waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept;
+
+        /// <inheritdoc />
         UInt64 currentFence() const noexcept override;
+
+    private:
+        inline void waitForQueue(const ICommandQueue& queue, UInt64 fence) const override {
+            auto vkQueue = dynamic_cast<const VulkanQueue*>(&queue);
+
+            if (vkQueue == nullptr) [[unlikely]]
+                throw InvalidArgumentException("Cannot wait for queues from other backends.");
+
+            this->waitFor(*vkQueue, fence);
+        }
     };
 
     /// <summary>

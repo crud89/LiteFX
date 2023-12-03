@@ -312,6 +312,24 @@ void VulkanQueue::waitFor(UInt64 fence) const noexcept
 	m_impl->m_submittedCommandBuffers.erase(from, to);
 }
 
+void VulkanQueue::waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept
+{
+	VkTimelineSemaphoreSubmitInfo timelineInfo {
+		.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO,
+		.waitSemaphoreValueCount = 1,
+		.pWaitSemaphoreValues = &fence
+	};
+
+	VkSubmitInfo submitInfo{
+		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+		.pNext = &timelineInfo,
+		.waitSemaphoreCount = 1,
+		.pWaitSemaphores = &queue.m_impl->m_timelineSemaphore
+	};
+
+	::vkQueueSubmit(this->handle(), 1, &submitInfo, VK_NULL_HANDLE);
+}
+
 UInt64 VulkanQueue::currentFence() const noexcept
 {
 	return m_impl->m_fenceValue;

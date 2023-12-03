@@ -5072,21 +5072,27 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Waits for a certain fence value to complete on the command queue.
+        /// Lets the CPU wait for a certain fence value to complete on the command queue.
         /// </summary>
         /// <remarks>
-        /// Each time one or more command buffers are submitted to the queue, a fence is inserted and its value will be returned. By calling this method, it is possible to
-        /// wait for this fence. A fence value is guaranteed to be larger than earlier fences, so the method returns, if the latest signaled fence value is larger or equal
-        /// to the value specified in <paramref name="fence" />. 
-        /// 
-        /// Note that this behavior can cause overflows when performing *excessive* fencing! Take for example a scenario, where each frame requires 80 fences to be signaled
-        /// and an application that runs at 60 frames per second in average. In this case, each second 4.800 fences are inserted into the queue. Given the limit of an 64
-        /// bit unsigned integer fence value, the application can run ~2.9 billion years before overflowing. Drop me an e-mail or open an issue, if you ever happen to run 
-        /// into such a situation.
+        /// This overload performs a CPU-side wait, i.e., the CPU blocks until the current queue has passed the fence value provided by the <paramref name="fence" /> parameter.
         /// </remarks>
         /// <param name="fence">The value of the fence to wait for.</param>
         /// <seealso cref="submit" />
         virtual void waitFor(UInt64 fence) const noexcept = 0;
+
+        /// <summary>
+        /// Lets the command queue wait for a certain fence value to complete on another queue.
+        /// </summary>
+        /// <remarks>
+        /// This overload performs a GPU-side wait, i.e., the current command queue waits until <paramref name="queue" /> has passed the fence value provided by the <paramref name="fence" />
+        /// parameter. This overload does return immediately and does not block the CPU.
+        /// </remarks>
+        /// <param name="queue">The queue to wait upon.</param>
+        /// <param name="fence">The value of the fence to wait upon on the other queue.</param>
+        inline void waitFor(const ICommandQueue& queue, UInt64 fence) const {
+            this->waitForQueue(queue, fence);
+        }
 
         /// <summary>
         /// Returns the value of the latest fence inserted into the queue.
@@ -5099,6 +5105,7 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<ICommandBuffer> getCommandBuffer(bool beginRecording, bool secondary) const = 0;
         virtual UInt64 submitCommandBuffer(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
         virtual UInt64 submitCommandBuffers(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const = 0;
+        virtual void waitForQueue(const ICommandQueue& queue, UInt64 fence) const = 0;
         
     protected:
         inline void releaseSharedState(const ICommandBuffer& commandBuffer) const {
