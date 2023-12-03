@@ -1127,17 +1127,17 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a Vulkan render pass.
     /// </summary>
     /// <seealso cref="VulkanRenderPassBuilder" />
-    class LITEFX_VULKAN_API VulkanRenderPass final : public RenderPass<VulkanRenderPipeline, VulkanFrameBuffer, VulkanInputAttachmentMapping>, public Resource<VkRenderPass> {
+    class LITEFX_VULKAN_API VulkanRenderPass final : public RenderPass<VulkanRenderPipeline, VulkanQueue, VulkanFrameBuffer, VulkanInputAttachmentMapping>, public Resource<VkRenderPass> {
         LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
         LITEFX_BUILDER(VulkanRenderPassBuilder);
 
     public:
-        using base_type = RenderPass<VulkanRenderPipeline, VulkanFrameBuffer, VulkanInputAttachmentMapping>;
+        using base_type = RenderPass<VulkanRenderPipeline, VulkanQueue, VulkanFrameBuffer, VulkanInputAttachmentMapping>;
         using base_type::updateAttachments;
 
     public:
         /// <summary>
-        /// Creates and initializes a new Vulkan render pass instance.
+        /// Creates and initializes a new Vulkan render pass instance that executes on the default graphics queue.
         /// </summary>
         /// <param name="device">The parent device instance.</param>
         /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
@@ -1147,7 +1147,7 @@ namespace LiteFX::Rendering::Backends {
         explicit VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
 
         /// <summary>
-        /// Creates and initializes a new Vulkan render pass instance.
+        /// Creates and initializes a new Vulkan render pass instance that executes on the default graphics queue.
         /// </summary>
         /// <param name="device">The parent device instance.</param>
         /// <param name="name">The name of the render pass state resource.</param>
@@ -1157,6 +1157,29 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         explicit VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
         
+        /// <summary>
+        /// Creates and initializes a new Vulkan render pass instance.
+        /// </summary>
+        /// <param name="device">The parent device instance.</param>
+        /// <param name="queue">The command queue to execute the render pass on.</param>
+        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
+        /// <param name="samples">The number of samples for the render targets in this render pass.</param>
+        /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+        explicit VulkanRenderPass(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
+
+        /// <summary>
+        /// Creates and initializes a new Vulkan render pass instance.
+        /// </summary>
+        /// <param name="device">The parent device instance.</param>
+        /// <param name="name">The name of the render pass state resource.</param>
+        /// <param name="queue">The command queue to execute the render pass on.</param>
+        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
+        /// <param name="samples">The number of samples for the render targets in this render pass.</param>
+        /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+        explicit VulkanRenderPass(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
+
         VulkanRenderPass(const VulkanRenderPass&) = delete;
         VulkanRenderPass(VulkanRenderPass&&) = delete;
         virtual ~VulkanRenderPass() noexcept;
@@ -1188,6 +1211,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         const VulkanFrameBuffer& activeFrameBuffer() const override;
+
+        /// <inheritdoc />
+        const VulkanQueue& commandQueue() const noexcept override;
 
         /// <inheritdoc />
         Enumerable<const VulkanFrameBuffer*> frameBuffers() const noexcept override;

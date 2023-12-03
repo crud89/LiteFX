@@ -464,7 +464,8 @@ const VulkanQueue& VulkanDevice::defaultQueue(QueueType type) const
         throw InvalidArgumentException("No default queue for the provided queue type has was found.");
 }
 
-const VulkanQueue* VulkanDevice::createQueue(QueueType type, QueuePriority priority) noexcept {
+const VulkanQueue* VulkanDevice::createQueue(QueueType type, QueuePriority priority) noexcept 
+{
     return m_impl->createQueue(type, priority);
 }
 

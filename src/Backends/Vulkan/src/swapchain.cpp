@@ -240,7 +240,7 @@ public:
 			.pResults = nullptr
 		};
 
-		raiseIfFailed<RuntimeException>(::vkQueuePresentKHR(m_device.graphicsQueue().handle(), &presentInfo), "Unable to present swap chain.");
+		raiseIfFailed<RuntimeException>(::vkQueuePresentKHR(m_device.defaultQueue(QueueType::Graphics).handle(), &presentInfo), "Unable to present swap chain.");
 	}
 
 	const VkSemaphore& currentSemaphore()
@@ -520,7 +520,7 @@ public:
 		LITEFX_TRACE(VULKAN_LOG, "Resetting swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4} }}...", fmt::ptr(&m_device), images, extent.width(), extent.height(), selectedFormat);
 
 		// Wait for both devices to be idle.
-		//m_device.graphicsQueue().waitFor(m_lastFence);
+		//m_device.defaultQueue(QueueType::Graphics).waitFor(m_lastFence);
 		this->waitForInteropDevice();
 		m_presentImages.clear();
 		m_imageResources.clear();
@@ -711,7 +711,7 @@ public:
 			.pSignalSemaphores = &this->currentSemaphore()
 		};
 
-		raiseIfFailed<RuntimeException>(::vkQueueSubmit(m_device.graphicsQueue().handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit the present queue signal.");
+		raiseIfFailed<RuntimeException>(::vkQueueSubmit(m_device.defaultQueue(QueueType::Graphics).handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit the present queue signal.");
 
 		// Query the timing events.
 		if (m_supportsTiming && !m_timingEvents.empty()) [[likely]]
@@ -742,10 +742,11 @@ public:
 		};
 
 		// Wait for the frame buffer semaphore, as well as for the rendering fence to complete.
-		raiseIfFailed<RuntimeException>(::vkQueueSubmit(m_device.graphicsQueue().handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit the present queue signal.");
+		auto& queue = m_device.defaultQueue(QueueType::Graphics);
+		raiseIfFailed<RuntimeException>(::vkQueueSubmit(queue.handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit the present queue signal.");
 
 		// Present needs to happen on UI thread, so we cannot do this asynchronously.
-		m_device.graphicsQueue().waitFor(frameBuffer.lastFence());
+		queue.waitFor(frameBuffer.lastFence());
 		D3D::raiseIfFailed<RuntimeException>(m_swapChain->Present(0, m_supportsTearing ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to queue present event on swap chain.");
 	}
 

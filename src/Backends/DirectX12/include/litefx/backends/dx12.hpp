@@ -1134,17 +1134,17 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a DirectX 12 render pass.
     /// </summary>
     /// <seealso cref="DirectX12RenderPassBuilder" />
-    class LITEFX_DIRECTX12_API DirectX12RenderPass final : public RenderPass<DirectX12RenderPipeline, DirectX12FrameBuffer, DirectX12InputAttachmentMapping> {
+    class LITEFX_DIRECTX12_API DirectX12RenderPass final : public RenderPass<DirectX12RenderPipeline, DirectX12Queue, DirectX12FrameBuffer, DirectX12InputAttachmentMapping> {
         LITEFX_IMPLEMENTATION(DirectX12RenderPassImpl);
         LITEFX_BUILDER(DirectX12RenderPassBuilder);
 
     public:
-        using base_type = RenderPass<DirectX12RenderPipeline, DirectX12FrameBuffer, DirectX12InputAttachmentMapping>;
+        using base_type = RenderPass<DirectX12RenderPipeline, DirectX12Queue, DirectX12FrameBuffer, DirectX12InputAttachmentMapping>;
         using base_type::updateAttachments;
 
     public:
         /// <summary>
-        /// Creates and initializes a new DirectX 12 render pass instance.
+        /// Creates and initializes a new DirectX 12 render pass instance that executes on the default graphics queue.
         /// </summary>
         /// <param name="device">The parent device instance.</param>
         /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
@@ -1154,7 +1154,7 @@ namespace LiteFX::Rendering::Backends {
         explicit DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12InputAttachmentMapping> inputAttachments = { });
 
         /// <summary>
-        /// Creates and initializes a new DirectX 12 render pass instance.
+        /// Creates and initializes a new DirectX 12 render pass instance that executes on the default graphics queue.
         /// </summary>
         /// <param name="device">The parent device instance.</param>
         /// <param name="name">The name of the render pass state resource.</param>
@@ -1163,6 +1163,29 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="samples">The number of samples for the render targets in this render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12InputAttachmentMapping> inputAttachments = { });
+        
+        /// <summary>
+        /// Creates and initializes a new DirectX 12 render pass instance.
+        /// </summary>
+        /// <param name="device">The parent device instance.</param>
+        /// <param name="queue">The command queue to execute the render pass on.</param>
+        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
+        /// <param name="samples">The number of samples for the render targets in this render pass.</param>
+        /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+        explicit DirectX12RenderPass(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12InputAttachmentMapping> inputAttachments = { });
+
+        /// <summary>
+        /// Creates and initializes a new DirectX 12 render pass instance.
+        /// </summary>
+        /// <param name="device">The parent device instance.</param>
+        /// <param name="name">The name of the render pass state resource.</param>
+        /// <param name="queue">The command queue to execute the render pass on.</param>
+        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
+        /// <param name="samples">The number of samples for the render targets in this render pass.</param>
+        /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+        explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12InputAttachmentMapping> inputAttachments = { });
 
         DirectX12RenderPass(const DirectX12RenderPass&) = delete;
         DirectX12RenderPass(DirectX12RenderPass&&) = delete;
@@ -1195,6 +1218,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         const DirectX12FrameBuffer& activeFrameBuffer() const override;
+
+        /// <inheritdoc />
+        const DirectX12Queue& commandQueue() const noexcept override;
 
         /// <inheritdoc />
         Enumerable<const DirectX12FrameBuffer*> frameBuffers() const noexcept override;
@@ -1411,9 +1437,6 @@ namespace LiteFX::Rendering::Backends {
         // CommandQueue interface.
     public:
         /// <inheritdoc />
-        bool isBound() const noexcept override;
-
-        /// <inheritdoc />
         QueuePriority priority() const noexcept override;
 
         /// <inheritdoc />
@@ -1432,12 +1455,6 @@ namespace LiteFX::Rendering::Backends {
 #endif // !defined(NDEBUG) && defined(_WIN64)
 
     public:
-        /// <inheritdoc />
-        void bind() override;
-
-        /// <inheritdoc />
-        void release() override;
-
         /// <inheritdoc />
         SharedPtr<DirectX12CommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const override;
 
@@ -1681,16 +1698,10 @@ namespace LiteFX::Rendering::Backends {
         const DirectX12GraphicsFactory& factory() const noexcept override;
 
         /// <inheritdoc />
-        const DirectX12Queue& graphicsQueue() const noexcept override;
+        const DirectX12Queue& defaultQueue(QueueType type) const override;
 
         /// <inheritdoc />
-        const DirectX12Queue& transferQueue() const noexcept override;
-
-        /// <inheritdoc />
-        const DirectX12Queue& bufferQueue() const noexcept override;
-
-        /// <inheritdoc />
-        const DirectX12Queue& computeQueue() const noexcept override;
+        const DirectX12Queue* createQueue(QueueType type, QueuePriority priority) noexcept override;
 
         /// <inheritdoc />
         [[nodiscard]] UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;

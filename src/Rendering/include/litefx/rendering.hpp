@@ -814,16 +814,19 @@ namespace LiteFX::Rendering {
     /// GPU, that processes data using different <see cref="RenderPipeline" />s and stores the outputs in the <see cref="IRenderTarget" />s of a <see cref="FrameBuffer" />.
     /// </remarks>
     /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="RenderPipeline" />.</typeparam>
+    /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="CommandQueue" />.</typeparam>
     /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
     /// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
-    template <typename TRenderPipeline, typename TFrameBuffer, typename TInputAttachmentMapping> requires
+    template <typename TRenderPipeline, typename TCommandQueue, typename TFrameBuffer, typename TInputAttachmentMapping> requires
         rtti::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>> &&
+        /*rtti::implements<TCommandQueue, CommandQueue<typename TFrameBuffer::command_buffer_type>> &&*/
         rtti::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>> /*&&
         rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
     class RenderPass : public virtual StateResource, public IRenderPass, public IInputAttachmentMappingSource<TFrameBuffer> {
     public:
         using IRenderPass::updateAttachments;
 
+        using command_queue_type = TCommandQueue;
         using frame_buffer_type = TFrameBuffer;
         using render_pipeline_type = TRenderPipeline;
         using input_attachment_mapping_type = TInputAttachmentMapping;
@@ -837,6 +840,9 @@ namespace LiteFX::Rendering {
     public:
         /// <inheritdoc />
         virtual const frame_buffer_type& activeFrameBuffer() const = 0;
+
+        /// <inheritdoc />
+        virtual const command_queue_type& commandQueue() const noexcept = 0;
 
         /// <inheritdoc />
         virtual Enumerable<const frame_buffer_type*> frameBuffers() const noexcept = 0;
@@ -861,6 +867,10 @@ namespace LiteFX::Rendering {
 
         inline void setAttachments(const IDescriptorSet& descriptorSet) const override {
             this->updateAttachments(dynamic_cast<const descriptor_set_type&>(descriptorSet));
+        }
+
+        inline const ICommandQueue& getCommandQueue() const noexcept override {
+            return this->commandQueue();
         }
     };
 
@@ -1111,7 +1121,7 @@ namespace LiteFX::Rendering {
         rtti::implements<TSwapChain, SwapChain<typename TFactory::image_type, typename TRenderPass::frame_buffer_type>> &&
         rtti::implements<TCommandQueue, CommandQueue<typename TCommandQueue::command_buffer_type>> &&
         rtti::implements<TFactory, GraphicsFactory<typename TFactory::descriptor_layout_type, typename TFactory::buffer_type, typename TFactory::vertex_buffer_type, typename TFactory::index_buffer_type, typename TFactory::image_type, typename TFactory::sampler_type>> &&
-        rtti::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, typename TRenderPass::frame_buffer_type, typename TRenderPass::input_attachment_mapping_type>> &&
+        rtti::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, TCommandQueue, typename TRenderPass::frame_buffer_type, typename TRenderPass::input_attachment_mapping_type>> &&
         rtti::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>> &&
         rtti::implements<TBarrier, Barrier<typename TFactory::buffer_type, typename TFactory::image_type>>
     class GraphicsDevice : public IGraphicsDevice {

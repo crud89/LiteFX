@@ -77,7 +77,7 @@ VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, bool begin, b
 		this->begin();
 }
 
-VulkanCommandBuffer::~VulkanCommandBuffer() noexcept = default
+VulkanCommandBuffer::~VulkanCommandBuffer() noexcept = default;
 
 void VulkanCommandBuffer::begin() const
 {

@@ -1326,12 +1326,13 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TRenderPass">The type of the render pass. Must implement <see cref="RenderPass" />.</typeparam>
     /// <seealso cref="RenderPass" />
     template <typename TRenderPass> requires
-        rtti::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, typename TRenderPass::frame_buffer_type, typename TRenderPass::input_attachment_mapping_type>>
+        rtti::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, typename TRenderPass::command_queue_type, typename TRenderPass::frame_buffer_type, typename TRenderPass::input_attachment_mapping_type>>
     class RenderPassBuilder : public Builder<TRenderPass> {
     public:
         using Builder<TRenderPass>::Builder;
         using render_pass_type = TRenderPass;
         using input_attachment_mapping_type = render_pass_type::input_attachment_mapping_type;
+        using command_queue_type = render_pass_type::command_queue_type;
 
     protected:
         /// <summary>
@@ -1351,12 +1352,17 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The render targets of the render pass.
             /// </summary>
-            Array<RenderTarget> renderTargets;
+            Array<RenderTarget> renderTargets{ };
 
             /// <summary>
             /// The input attachments of the render pass.
             /// </summary>
-            Array<input_attachment_mapping_type> inputAttachments;
+            Array<input_attachment_mapping_type> inputAttachments{ };
+
+            /// <summary>
+            /// The command queue, the render pass will execute on.
+            /// </summary>
+            const command_queue_type* commandQueue{ nullptr };
         } m_state;
 
         /// <summary>
@@ -1369,6 +1375,20 @@ namespace LiteFX::Rendering {
         virtual inline input_attachment_mapping_type makeInputAttachment(UInt32 inputLocation, const render_pass_type& renderPass, const RenderTarget& renderTarget) = 0;
 
     public:
+        /// <summary>
+        /// Sets the command queue, the render pass will execute on.
+        /// </summary>
+        /// <remarks>
+        /// This method can be called to set the command queue, the render pass will submit it's commands to. If no queue is provided, the render pass will execute on the
+        /// default graphics queue of the parent device.
+        /// </remarks>
+        /// <param name="queue">The command queue, the render pass will execute on.</param>
+        template <typename TSelf>
+        constexpr inline auto executeOn(this TSelf&& self, const command_queue_type& queue) -> TSelf& {
+            self.m_state.commandQueue = &queue;
+            return self;
+        }
+
         /// <summary>
         /// Sets the number of command buffers allocated by the render pass.
         /// </summary>

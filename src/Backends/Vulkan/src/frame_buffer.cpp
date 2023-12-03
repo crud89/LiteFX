@@ -33,7 +33,7 @@ public:
 
         // Retrieve a command buffer from the graphics queue.
         m_commandBuffers.resize(commandBuffers);
-        std::ranges::generate(m_commandBuffers, [this, &device]() { return device.graphicsQueue().createCommandBuffer(false, true); });
+        std::ranges::generate(m_commandBuffers, [this]() { return m_renderPass.commandQueue().createCommandBuffer(false, true); });
 	}
 
 	~VulkanFrameBufferImpl()

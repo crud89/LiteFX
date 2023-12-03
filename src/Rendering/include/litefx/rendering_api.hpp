@@ -4569,6 +4569,15 @@ namespace LiteFX::Rendering {
         virtual const IFrameBuffer& activeFrameBuffer() const = 0;
 
         /// <summary>
+        /// Returns the command queue, the render pass is executing on.
+        /// </summary>
+        /// <returns>A reference of the command queue, the render pass is executing on.</returns>
+        inline const ICommandQueue& commandQueue() const noexcept {
+            // NOTE: This should be a covariant, though?!
+            return this->getCommandQueue();
+        }
+
+        /// <summary>
         /// Returns a list of all frame buffers.
         /// </summary>
         /// <returns>A list of all frame buffers. </returns>
@@ -4680,6 +4689,7 @@ namespace LiteFX::Rendering {
         virtual Enumerable<const IFrameBuffer*> getFrameBuffers() const noexcept = 0;
         virtual Enumerable<const IRenderPipeline*> getPipelines() const noexcept = 0;
         virtual void setAttachments(const IDescriptorSet& descriptorSet) const = 0;
+        virtual const ICommandQueue& getCommandQueue() const noexcept = 0;
     };
 
     /// <summary>

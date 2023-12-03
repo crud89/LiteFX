@@ -53,7 +53,7 @@ public:
 
 		auto adapter = m_device.adapter().handle();
 		auto surface = m_device.surface().handle();
-		auto graphicsQueue = m_device.graphicsQueue().handle();
+		auto graphicsQueue = m_device.defaultQueue(QueueType::Graphics).handle();
 		const auto& backend = m_device.backend();
 
 		// Create the swap chain.
@@ -169,7 +169,7 @@ public:
 	UInt32 swapBackBuffer()
 	{
 		m_currentImage = m_parent->handle()->GetCurrentBackBufferIndex();
-		m_device.graphicsQueue().waitFor(m_presentFences[m_currentImage]);
+		m_device.defaultQueue(QueueType::Graphics).waitFor(m_presentFences[m_currentImage]);
 
 		// Read back the timestamps.
 		if (!m_timestamps.empty())

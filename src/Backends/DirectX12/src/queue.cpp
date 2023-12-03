@@ -16,15 +16,19 @@ private:
 	QueuePriority m_priority;
 	ComPtr<ID3D12Fence> m_fence;
 	UInt64 m_fenceValue{ 0 };
-	bool m_bound;
 	mutable std::mutex m_mutex;
 	const DirectX12Device& m_device;
 	Array<Tuple<UInt64, SharedPtr<const DirectX12CommandBuffer>>> m_submittedCommandBuffers;
 
 public:
 	DirectX12QueueImpl(DirectX12Queue* parent, const DirectX12Device& device, QueueType type, QueuePriority priority) :
-		base(parent), m_device(device), m_bound(false), m_type(type), m_priority(priority)
+		base(parent), m_device(device), m_type(type), m_priority(priority)
 	{
+	}
+
+	~DirectX12QueueImpl() 
+	{
+		m_submittedCommandBuffers.clear();
 	}
 
 public:
@@ -63,26 +67,6 @@ public:
 
 		return commandQueue;
 	}
-
-	void release()
-	{
-		if (!m_bound)
-			return;
-
-		m_submittedCommandBuffers.clear();
-
-		// TODO: Destroy command pool, if bound.
-		m_bound = false;
-	}
-
-	void bind()
-	{
-		if (m_bound)
-			return;
-
-		// TODO: Create a command pool.
-		m_bound = true;
-	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -95,19 +79,11 @@ DirectX12Queue::DirectX12Queue(const DirectX12Device& device, QueueType type, Qu
 	this->handle() = m_impl->initialize();
 }
 
-DirectX12Queue::~DirectX12Queue() noexcept
-{
-	this->release();
-}
+DirectX12Queue::~DirectX12Queue() noexcept = default;
 
 const DirectX12Device& DirectX12Queue::device() const noexcept
 {
 	return m_impl->m_device;
-}
-
-bool DirectX12Queue::isBound() const noexcept
-{
-	return m_impl->m_bound;
 }
 
 QueueType DirectX12Queue::type() const noexcept
@@ -135,18 +111,6 @@ void DirectX12Queue::setDebugMarker(const String& label, const Vectors::ByteVect
 QueuePriority DirectX12Queue::priority() const noexcept
 {
 	return m_impl->m_priority;
-}
-
-void DirectX12Queue::bind()
-{
-	m_impl->bind();
-	this->bound(this, { });
-}
-
-void DirectX12Queue::release()
-{
-	m_impl->release();
-	this->released(this, { });
 }
 
 SharedPtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(bool beginRecording, bool secondary) const
