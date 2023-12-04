@@ -5570,9 +5570,12 @@ namespace LiteFX::Rendering {
         /// 
         /// If this method is not able to create a new queue (i.e., it returns `nullptr`), you can either fall back to the default queue (<see cref="defaultQueue" />) or use any queue
         /// that you created earlier instead.
+        /// 
+        /// The <paramref name="priority" /> parameter can be specified to request a queue with a certain priority. However, the backend is not required to return a queue with that 
+        /// actual priority. The default queues are always prioritized highest.
         /// </remarks>
-        /// <param name="type"></param>
-        /// <param name="priority"></param>
+        /// <param name="type">The type of the queue or a combination of capabilities the queue is required to support.</param>
+        /// <param name="priority">The preferred priority of the queue.</param>
         /// <returns>A pointer to the newly created queue, or `nullptr`, if no queue could be created.</returns>
         /// <seealso cref="defaultQueue" />
         inline const ICommandQueue* createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) noexcept {
@@ -5609,11 +5612,11 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
-        /// Waits until the device is idle.
+        /// Waits until all queues allocated from the device have finished the work issued prior to this point.
         /// </summary>
         /// <remarks>
-        /// The complexity of this operation may depend on the graphics API that implements this method. Calling this method guarantees, that the device resources are in an unused state and 
-        /// may safely be released.
+        /// Note that you must synchronize calls to this method, i.e., you have to ensure no other thread is submitting work on any queue while waiting. Calling this method only 
+        /// guarantees that all *prior* work is finished after returning. If any other thread submits work to any queue after calling this method, this workload is not waited on.
         /// </remarks>
         virtual void wait() const = 0;
 
