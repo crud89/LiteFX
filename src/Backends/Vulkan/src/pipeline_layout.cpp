@@ -35,6 +35,30 @@ public:
         // Since Vulkan does not know spaces, descriptor sets are mapped to their indices based on the order they are defined. Hence we need to sort the descriptor set layouts accordingly.
         std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<VulkanDescriptorSetLayout>& a, const UniquePtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
 
+        // Find unused and duplicate descriptor sets.
+        Array<UInt32> emptySets;
+
+        for (UInt32 i{ 0 }; Tuple spaces : m_descriptorSetLayouts | std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout->space(); }) | std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
+        {
+            auto [a, b] = spaces;
+
+            if (a == b) [[unlikely]]
+                throw InvalidArgumentException("Two layouts defined for the same descriptor set {}. Each descriptor set must use it's own space.", a);
+            
+            while (i != a)
+                emptySets.push_back(i++);
+        }
+
+        // Add empty sets.
+        if (!emptySets.empty())
+        {
+            for (auto s : emptySets)
+                m_descriptorSetLayouts.push_back(UniquePtr<VulkanDescriptorSetLayout>{ new VulkanDescriptorSetLayout(m_device, { }, s, ShaderStage::Vertex | ShaderStage::Fragment, 0, 0) }); // No descriptor can ever be allocated from an empty descriptor set.
+
+            // Re-order them.
+            std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<VulkanDescriptorSetLayout>& a, const UniquePtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
+        }
+
         // Store the pipeline layout on the push constants.
         if (m_pushConstantsLayout != nullptr)
             m_pushConstantsLayout->pipelineLayout(*this->m_parent);

@@ -60,6 +60,14 @@ public:
     VkDescriptorSetLayout initialize(UInt32 poolSize, UInt32 maxUnboundedArraySize)
     {
         LITEFX_TRACE(VULKAN_LOG, "Defining layout for descriptor set {0} {{ Stages: {1}, Pool Size: {2} }}...", m_space, m_stages, poolSize);
+
+        // Figure out the proper pool size.
+        if (m_descriptorLayouts.empty() && poolSize > 0)
+        {
+            LITEFX_WARNING(VULKAN_LOG, "The descriptor set layout does not contain any descriptors but pool size is set to `{}` and will be reset to `0`. Allocating empty descriptor sets is not valid will raise an error.", poolSize);
+            poolSize = 0;
+        }
+
         m_poolSize = poolSize;
 
         // Parse the shader stage descriptor.
@@ -167,6 +175,10 @@ public:
 
     void addDescriptorPool()
     {
+        // Don't add a pool for empty descriptor sets.
+        if (m_poolSize == 0) [[unlikely]]
+            return;
+
         LITEFX_TRACE(VULKAN_LOG, "Allocating descriptor pool with {5} sets {{ Uniforms: {0}, Storages: {1}, Images: {2}, Samplers: {3}, Input attachments: {4} }}...", m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]].descriptorCount, m_poolSize);
 
         // Filter pool sizes, since descriptorCount must be greater than 0, according to the specs.
@@ -190,6 +202,10 @@ public:
 
     VkDescriptorSet tryAllocate(UInt32 descriptors)
     {
+        // If the descriptor set layout is empty, no descriptor set can be allocated.
+        if (m_poolSize == 0) [[unlikely]]
+            throw RuntimeException("Cannot allocate descriptor set from empty layout.");
+
         VkDescriptorSetVariableDescriptorCountAllocateInfo variableCountInfo;
         VkDescriptorSetAllocateInfo descriptorSetInfo = {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
