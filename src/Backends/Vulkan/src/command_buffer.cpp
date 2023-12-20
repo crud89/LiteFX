@@ -15,6 +15,7 @@ private:
 	bool m_recording{ false }, m_secondary{ false };
 	Optional<VkCommandPool> m_commandPool;
 	Array<SharedPtr<const IStateResource>> m_sharedResources;
+	const VulkanPipelineState* m_lastPipeline = nullptr;
 
 public:
 	VulkanCommandBufferImpl(VulkanCommandBuffer* parent, const VulkanQueue& queue) :
@@ -398,7 +399,16 @@ void VulkanCommandBuffer::transfer(SharedPtr<IVulkanImage> source, IVulkanBuffer
 
 void VulkanCommandBuffer::use(const VulkanPipelineState& pipeline) const noexcept
 {
+	m_impl->m_lastPipeline = &pipeline;
 	pipeline.use(*this);
+}
+
+void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet) const
+{
+	if (m_impl->m_lastPipeline) [[likely]]
+		m_impl->m_lastPipeline->bind(*this, descriptorSet);
+	else
+		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
 }
 
 void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept
