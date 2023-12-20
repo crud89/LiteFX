@@ -3327,21 +3327,26 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IDescriptorSetLayout" />
     struct LITEFX_RENDERING_API DescriptorBinding {
     public:
-        using resource_container = Variant<Ref<IBuffer>, Ref<IImage>, Ref<ISampler>>;
+        using resource_container = Variant<std::monostate, Ref<IBuffer>, Ref<IImage>, Ref<ISampler>>;
         
     public:
         /// <summary>
-        /// The binding point to bind the resource at.
+        /// The binding point to bind the resource at. If not provided (i.e., `std::nullopt`), the index within the collection of `DescriptorBindings` is used.
         /// </summary>
-        UInt32 binding;
+        Optional<UInt32> binding = std::nullopt;
 
         /// <summary>
-        /// The resource to bind.
+        /// The resource to bind or `std::monostate` if no resource should be bound.
         /// </summary>
+        /// <remarks>
+        /// Note that not providing any resource does not perform any binding, in which case a resource needs to be manually bound to the descriptor set later 
+        /// (<see cref="IDescriptorSet::update" />). This is useful in situations where you frequently update the resource bound to a descriptor set or where you do no have
+        /// access to the resource at the time the descriptor set is allocated.
+        /// </remarks>
         /// <seealso cref="IBuffer" />
         /// <seealso cref="IImage" />
         /// <seealso cref="ISampler" />
-        resource_container resource;
+        resource_container resource = {};
 
         /// <summary>
         /// The index of the descriptor in a descriptor array at which binding the resource arrays starts.
