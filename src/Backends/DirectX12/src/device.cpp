@@ -184,8 +184,8 @@ public:
 	{
 		//m_graphicsQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Graphics, QueuePriority::Realtime);
 		m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::High);
-		m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Normal);
-		m_computeQueue = this->createQueue(QueueType::Compute, QueuePriority::High);
+		m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::High);
+		m_computeQueue  = this->createQueue(QueueType::Compute,  QueuePriority::High);
 	}
 
 	DirectX12Queue* createQueue(QueueType type, QueuePriority priority)
@@ -578,36 +578,48 @@ double DirectX12Device::ticksPerMillisecond() const noexcept
 
 void DirectX12Device::wait() const
 {
-	// TODO: We need to wait for all queues here.
-	throw;
+	using event_type = std::tuple<HANDLE, ComPtr<ID3D12Fence>>;
 
-	// NOTE: Currently we are only waiting for the graphics queue here - all other queues may continue their work.
-	// Create a fence.
-	ComPtr<ID3D12Fence> fence;
-	raiseIfFailed<RuntimeException>(this->handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)), "Unable to create queue synchronization fence.");
-	
-	// Create a signal event.
-	HANDLE eventHandle = ::CreateEvent(nullptr, false, false, nullptr);
-	HRESULT hr = fence->SetEventOnCompletion(1, eventHandle);
+	// Insert a fence into each queue.
+	Array<event_type> events(m_impl->m_queues.size());
+	std::ranges::generate(events, [this, i = 0]() mutable -> event_type {
+		ComPtr<ID3D12Fence> fence;
+		raiseIfFailed<RuntimeException>(this->handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)), "Unable to create queue synchronization fence.");
 
-	if (FAILED(hr))
-	{
+		// Create a signal event.
+		HANDLE eventHandle = ::CreateEvent(nullptr, false, false, nullptr);
+
+		if (eventHandle == nullptr)
+			throw RuntimeException("Unable to create event handle for fence.");
+
+		HRESULT hr = fence->SetEventOnCompletion(1, eventHandle);
+
+		if (FAILED(hr))
+		{
+			::CloseHandle(eventHandle);
+			raiseIfFailed<RuntimeException>(hr, "Unable to register queue synchronization fence completion event.");
+		}
+
+		// Signal the event value on the graphics queue.
+		hr = std::as_const(*m_impl->m_queues[i++]).handle()->Signal(fence.Get(), 1);
+
+		if (FAILED(hr))
+		{
+			::CloseHandle(eventHandle);
+			raiseIfFailed<RuntimeException>(hr, "Unable to wait for queue synchronization fence.");
+		}
+
+		return { std::move(eventHandle), std::move(fence) };
+	});
+
+	// Wait for all the fences.
+	std::ranges::for_each(events, [](event_type& e) {
+		auto eventHandle = std::get<0>(e);
+
+		if (std::get<1>(e)->GetCompletedValue() < 1)
+			::WaitForSingleObject(eventHandle, INFINITE);
+
+		// Close the handle.
 		::CloseHandle(eventHandle);
-		raiseIfFailed<RuntimeException>(hr, "Unable to register queue synchronization fence completion event.");
-	}
-
-	// Signal the event value on the graphics queue.
-	hr = std::as_const(*m_impl->m_graphicsQueue).handle()->Signal(fence.Get(), 1);
-	
-	if (FAILED(hr))
-	{
-		::CloseHandle(eventHandle);
-		raiseIfFailed<RuntimeException>(hr, "Unable to wait for queue synchronization fence.");
-	}
-
-	// Wait for the fence signal.
-	if (fence->GetCompletedValue() < 1)
-		::WaitForSingleObject(eventHandle, INFINITE);
-
-	::CloseHandle(eventHandle);
+	});
 }

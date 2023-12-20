@@ -147,6 +147,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// The highest possible queue priority. Submitting work to this queue might block other queues.
         /// </summary>
+        /// <remarks>
+        /// Do not use this queue priority when creating queues, as it is reserved for the default (builtin) queues.
+        /// </remarks>
         Realtime = 100
     };
 
