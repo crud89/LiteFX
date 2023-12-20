@@ -411,10 +411,10 @@ namespace LiteFX::Rendering {
         virtual Enumerable<const vertex_buffer_layout_type*> vertexBufferLayouts() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const vertex_buffer_layout_type& vertexBufferLayout(UInt32 binding) const = 0;
+        virtual const vertex_buffer_layout_type* vertexBufferLayout(UInt32 binding) const = 0;
 
         /// <inheritdoc />
-        virtual const index_buffer_layout_type& indexBufferLayout() const = 0;
+        virtual const index_buffer_layout_type* indexBufferLayout() const noexcept = 0;
 
     private:
         Enumerable<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept override {

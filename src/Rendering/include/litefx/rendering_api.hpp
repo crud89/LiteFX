@@ -3783,17 +3783,18 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Returns the vertex buffer layout for binding provided with <paramref name="binding" />.
+        /// Returns a pointer the vertex buffer layout for binding provided with <paramref name="binding" />.
         /// </summary>
         /// <param name="binding">The binding point of the vertex buffer layout.</param>
         /// <returns>The vertex buffer layout for binding provided with <paramref name="binding" />.</returns>
-        virtual const IVertexBufferLayout& vertexBufferLayout(UInt32 binding) const = 0;
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if no vertex buffer layout is bound to <paramref name="binding" />.</exception>
+        virtual const IVertexBufferLayout* vertexBufferLayout(UInt32 binding) const = 0;
 
         /// <summary>
-        /// Returns the index buffer layout.
+        /// Returns a pointer to the index buffer layout, or `nullptr` if the input assembler does not handle indices.
         /// </summary>
-        /// <returns>The index buffer layout.</returns>
-        virtual const IIndexBufferLayout& indexBufferLayout() const = 0;
+        /// <returns>The index buffer layout, or `nullptr` if the input assembler does not handle indices.</returns>
+        virtual const IIndexBufferLayout* indexBufferLayout() const noexcept = 0;
 
         /// <summary>
         /// Returns the primitive topology.
