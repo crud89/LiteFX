@@ -4167,8 +4167,15 @@ namespace LiteFX::Rendering {
             this->cmdUse(pipeline);
         }
 
-        // TODO: Allow bind to last used pipeline (throw, if no pipeline is in use).
-        //void bind(const IDescriptorSet& descriptorSet) const;
+        /// <summary>
+        /// Binds the provided descriptor to the last pipeline that was used by the command buffer.
+        /// </summary>
+        /// <param name="descriptorSet">The descriptor set to bind.</param>
+        /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
+        /// <seealso cref="use" />
+        void bind(const IDescriptorSet& descriptorSet) const {
+            this->cmdBind(descriptorSet);
+        }
 
         /// <summary>
         /// Binds the provided descriptor set to the provided pipeline.
@@ -4359,6 +4366,7 @@ namespace LiteFX::Rendering {
         virtual void cmdTransfer(SharedPtr<IImage> source, IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const = 0;
         virtual void cmdTransfer(SharedPtr<IImage> source, IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const = 0;
         virtual void cmdUse(const IPipeline& pipeline) const noexcept = 0;
+        virtual void cmdBind(const IDescriptorSet& descriptorSet) const = 0;
         virtual void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept = 0;
         virtual void cmdBind(const IVertexBuffer& buffer) const noexcept = 0;
         virtual void cmdBind(const IIndexBuffer& buffer) const noexcept = 0;

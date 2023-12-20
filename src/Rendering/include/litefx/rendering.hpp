@@ -534,6 +534,9 @@ namespace LiteFX::Rendering {
         virtual void use(const pipeline_type& pipeline) const noexcept = 0;
 
         /// <inheritdoc />
+        virtual void bind(const descriptor_set_type& descriptorSet) const = 0;
+
+        /// <inheritdoc />
         virtual void bind(const descriptor_set_type& descriptorSet, const pipeline_type& pipeline) const noexcept = 0;
 
         /// <inheritdoc />
@@ -613,6 +616,10 @@ namespace LiteFX::Rendering {
 
         void cmdUse(const IPipeline& pipeline) const noexcept override { 
             this->use(dynamic_cast<const pipeline_type&>(pipeline));
+        }
+
+        void cmdBind(const IDescriptorSet& descriptorSet) const override {
+            this->bind(dynamic_cast<const descriptor_set_type&>(descriptorSet));
         }
 
         void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept override { 

@@ -915,6 +915,9 @@ namespace LiteFX::Rendering::Backends {
 		void use(const VulkanPipelineState& pipeline) const noexcept override;
 
 		/// <inheritdoc />
+		void bind(const VulkanDescriptorSet& descriptorSet) const override;
+
+		/// <inheritdoc />
 		void bind(const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept override;
 
 		/// <inheritdoc />
