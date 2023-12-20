@@ -25,10 +25,6 @@ public:
     void initialize(Enumerable<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology)
     {
         m_primitiveTopology = primitiveTopology;
-
-        if (indexBufferLayout == nullptr)
-            throw ArgumentNotInitializedException("The index buffer layout must be initialized.");
-
         m_indexBufferLayout = std::move(indexBufferLayout);
 
         for (auto& vertexBufferLayout : vertexBufferLayouts)
@@ -66,17 +62,17 @@ Enumerable<const DirectX12VertexBufferLayout*> DirectX12InputAssembler::vertexBu
     return m_impl->m_vertexBufferLayouts | std::views::transform([](const auto& pair) { return pair.second.get(); });
 }
 
-const DirectX12VertexBufferLayout& DirectX12InputAssembler::vertexBufferLayout(UInt32 binding) const
+const DirectX12VertexBufferLayout* DirectX12InputAssembler::vertexBufferLayout(UInt32 binding) const
 {
     [[likely]] if (m_impl->m_vertexBufferLayouts.contains(binding))
-        return *m_impl->m_vertexBufferLayouts[binding];
+        return m_impl->m_vertexBufferLayouts[binding].get();
 
     throw ArgumentOutOfRangeException("No vertex buffer layout is bound to binding point {0}.", binding);
 }
 
-const DirectX12IndexBufferLayout& DirectX12InputAssembler::indexBufferLayout() const
+const DirectX12IndexBufferLayout* DirectX12InputAssembler::indexBufferLayout() const noexcept
 {
-    return *m_impl->m_indexBufferLayout;
+    return m_impl->m_indexBufferLayout.get();
 }
 
 PrimitiveTopology DirectX12InputAssembler::topology() const noexcept
