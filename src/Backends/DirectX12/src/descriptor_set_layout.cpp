@@ -240,12 +240,17 @@ UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(UInt32 
     auto descriptorSet = makeUnique<DirectX12DescriptorSet>(*this, std::move(bufferHeap), std::move(samplerHeap));
 
     // Apply the default bindings.
-    for (auto& binding : bindings)
+    for (UInt32 i{ 0 }; auto & binding : bindings)
+    {
         std::visit(type_switch{
-            [&descriptorSet, &binding](const ISampler& sampler) { descriptorSet->update(binding.binding, sampler, binding.firstDescriptor); },
-            [&descriptorSet, &binding](const IBuffer& buffer) { descriptorSet->update(binding.binding, buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
-            [&descriptorSet, &binding](const IImage& image) { descriptorSet->update(binding.binding, image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
+            [](const std::monostate&) { }, // Default: don't bind anything.
+            [&descriptorSet, &binding, i](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
+            [&descriptorSet, &binding, i](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
+            [&descriptorSet, &binding, i](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
         }, binding.resource);
+
+        ++i;
+    }
 
     // Return the descriptor set.
     return descriptorSet;

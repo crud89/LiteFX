@@ -117,7 +117,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
     auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, BufferUsage::Resource);
-    auto cameraBindings = cameraBindingLayout.allocate({ { 0, *cameraBuffer } });
+    auto cameraBindings = cameraBindingLayout.allocate({ { .resource = *cameraBuffer } });
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraBuffer);
@@ -127,9 +127,9 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
     auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, BufferUsage::Dynamic, 3);
     auto transformBindings = transformBindingLayout.allocateMultiple(3, {
-        { { .binding = 0, .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
-        { { .binding = 0, .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
-        { { .binding = 0, .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
+        { { .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
+        { { .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
+        { { .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
     });
     
     // End and submit the command buffer.
