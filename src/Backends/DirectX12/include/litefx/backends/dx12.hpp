@@ -730,17 +730,17 @@ namespace LiteFX::Rendering::Backends {
         LITEFX_IMPLEMENTATION(DirectX12InputAssemblerImpl);
         LITEFX_BUILDER(DirectX12InputAssemblerBuilder);
 
-    public:
-        /// <summary>
-        /// Initializes a new DirectX 12 input assembler state.
-        /// </summary>
-        /// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
-        /// <param name="indexBufferLayout">The index buffer layout.</param>
-        /// <param name="primitiveTopology">The primitive topology.</param>
-        explicit DirectX12InputAssembler(Enumerable<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList);
-        DirectX12InputAssembler(DirectX12InputAssembler&&) noexcept = delete;
-        DirectX12InputAssembler(const DirectX12InputAssembler&) noexcept = delete;
-        virtual ~DirectX12InputAssembler() noexcept;
+	public:
+		/// <summary>
+		/// Initializes a new DirectX 12 input assembler state.
+		/// </summary>
+		/// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
+		/// <param name="indexBufferLayout">The index buffer layout.</param>
+		/// <param name="primitiveTopology">The primitive topology.</param>
+		explicit DirectX12InputAssembler(Enumerable<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout = nullptr, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList);
+		DirectX12InputAssembler(DirectX12InputAssembler&&) noexcept = delete;
+		DirectX12InputAssembler(const DirectX12InputAssembler&) noexcept = delete;
+		virtual ~DirectX12InputAssembler() noexcept;
 
     private:
         /// <summary>
@@ -752,11 +752,11 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         Enumerable<const DirectX12VertexBufferLayout*> vertexBufferLayouts() const noexcept override;
 
-        /// <inheritdoc />
-        const DirectX12VertexBufferLayout& vertexBufferLayout(UInt32 binding) const override;
+		/// <inheritdoc />
+		const DirectX12VertexBufferLayout* vertexBufferLayout(UInt32 binding) const override;
 
-        /// <inheritdoc />
-        const DirectX12IndexBufferLayout& indexBufferLayout() const override;
+		/// <inheritdoc />
+		const DirectX12IndexBufferLayout* indexBufferLayout() const noexcept override;
 
         /// <inheritdoc />
         PrimitiveTopology topology() const noexcept override;
@@ -917,8 +917,11 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void use(const DirectX12PipelineState& pipeline) const noexcept override;
 
-        /// <inheritdoc />
-        void bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept override;
+		/// <inheritdoc />
+		void bind(const DirectX12DescriptorSet& descriptorSet) const override;
+
+		/// <inheritdoc />
+		void bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept override;
 
         /// <inheritdoc />
         void bind(const IDirectX12VertexBuffer& buffer) const noexcept override;

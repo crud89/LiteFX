@@ -15,6 +15,7 @@ private:
 	bool m_recording{ false }, m_secondary{ false };
 	const DirectX12Queue& m_queue;
 	Array<SharedPtr<const IStateResource>> m_sharedResources;
+	const DirectX12PipelineState* m_lastPipeline = nullptr;
 
 public:
 	DirectX12CommandBufferImpl(DirectX12CommandBuffer* parent, const DirectX12Queue& queue) :
@@ -336,7 +337,16 @@ void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Image> source, IDirect
 
 void DirectX12CommandBuffer::use(const DirectX12PipelineState& pipeline) const noexcept
 {
+	m_impl->m_lastPipeline = &pipeline;
 	pipeline.use(*this);
+}
+
+void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet) const
+{
+	if (m_impl->m_lastPipeline) [[likely]]
+		m_impl->m_queue.device().bindDescriptorSet(*this, descriptorSet, *m_impl->m_lastPipeline);
+	else
+		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
 }
 
 void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept

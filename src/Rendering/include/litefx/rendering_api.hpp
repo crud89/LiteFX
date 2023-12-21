@@ -3346,21 +3346,26 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IDescriptorSetLayout" />
     struct LITEFX_RENDERING_API DescriptorBinding {
     public:
-        using resource_container = Variant<Ref<IBuffer>, Ref<IImage>, Ref<ISampler>>;
+        using resource_container = Variant<std::monostate, Ref<IBuffer>, Ref<IImage>, Ref<ISampler>>;
         
     public:
         /// <summary>
-        /// The binding point to bind the resource at.
+        /// The binding point to bind the resource at. If not provided (i.e., `std::nullopt`), the index within the collection of `DescriptorBindings` is used.
         /// </summary>
-        UInt32 binding;
+        Optional<UInt32> binding = std::nullopt;
 
         /// <summary>
-        /// The resource to bind.
+        /// The resource to bind or `std::monostate` if no resource should be bound.
         /// </summary>
+        /// <remarks>
+        /// Note that not providing any resource does not perform any binding, in which case a resource needs to be manually bound to the descriptor set later 
+        /// (<see cref="IDescriptorSet::update" />). This is useful in situations where you frequently update the resource bound to a descriptor set or where you do no have
+        /// access to the resource at the time the descriptor set is allocated.
+        /// </remarks>
         /// <seealso cref="IBuffer" />
         /// <seealso cref="IImage" />
         /// <seealso cref="ISampler" />
-        resource_container resource;
+        resource_container resource = {};
 
         /// <summary>
         /// The index of the descriptor in a descriptor array at which binding the resource arrays starts.
@@ -3802,17 +3807,18 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Returns the vertex buffer layout for binding provided with <paramref name="binding" />.
+        /// Returns a pointer the vertex buffer layout for binding provided with <paramref name="binding" />.
         /// </summary>
         /// <param name="binding">The binding point of the vertex buffer layout.</param>
         /// <returns>The vertex buffer layout for binding provided with <paramref name="binding" />.</returns>
-        virtual const IVertexBufferLayout& vertexBufferLayout(UInt32 binding) const = 0;
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if no vertex buffer layout is bound to <paramref name="binding" />.</exception>
+        virtual const IVertexBufferLayout* vertexBufferLayout(UInt32 binding) const = 0;
 
         /// <summary>
-        /// Returns the index buffer layout.
+        /// Returns a pointer to the index buffer layout, or `nullptr` if the input assembler does not handle indices.
         /// </summary>
-        /// <returns>The index buffer layout.</returns>
-        virtual const IIndexBufferLayout& indexBufferLayout() const = 0;
+        /// <returns>The index buffer layout, or `nullptr` if the input assembler does not handle indices.</returns>
+        virtual const IIndexBufferLayout* indexBufferLayout() const noexcept = 0;
 
         /// <summary>
         /// Returns the primitive topology.
@@ -4180,8 +4186,15 @@ namespace LiteFX::Rendering {
             this->cmdUse(pipeline);
         }
 
-        // TODO: Allow bind to last used pipeline (throw, if no pipeline is in use).
-        //void bind(const IDescriptorSet& descriptorSet) const;
+        /// <summary>
+        /// Binds the provided descriptor to the last pipeline that was used by the command buffer.
+        /// </summary>
+        /// <param name="descriptorSet">The descriptor set to bind.</param>
+        /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
+        /// <seealso cref="use" />
+        void bind(const IDescriptorSet& descriptorSet) const {
+            this->cmdBind(descriptorSet);
+        }
 
         /// <summary>
         /// Binds the provided descriptor set to the provided pipeline.
@@ -4378,6 +4391,7 @@ namespace LiteFX::Rendering {
         virtual void cmdTransfer(SharedPtr<IImage> source, IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const = 0;
         virtual void cmdTransfer(SharedPtr<IImage> source, IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const = 0;
         virtual void cmdUse(const IPipeline& pipeline) const noexcept = 0;
+        virtual void cmdBind(const IDescriptorSet& descriptorSet) const = 0;
         virtual void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept = 0;
         virtual void cmdBind(const IVertexBuffer& buffer) const noexcept = 0;
         virtual void cmdBind(const IIndexBuffer& buffer) const noexcept = 0;

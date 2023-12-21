@@ -60,6 +60,17 @@ private:
 public:
     ComPtr<ID3D12RootSignature> initialize()
     {
+        // Sort and check if there are duplicate space indices.
+        std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<DirectX12DescriptorSetLayout>& a, const UniquePtr<DirectX12DescriptorSetLayout>& b) { return a->space() < b->space(); });
+
+        for (Tuple spaces : m_descriptorSetLayouts | std::views::transform([](const UniquePtr<DirectX12DescriptorSetLayout>& layout) { return layout->space(); }) | std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
+        {
+            auto [a, b] = spaces;
+
+            if (a == b) [[unlikely]]
+                throw InvalidArgumentException("Two layouts defined for the same descriptor set {}. Each descriptor set must use it's own space.", a);
+        }
+
         // Define the descriptor range from descriptor set layouts.
         Array<D3D12_ROOT_PARAMETER1> descriptorParameters;
         Array<D3D12_STATIC_SAMPLER_DESC> staticSamplers;

@@ -411,10 +411,10 @@ namespace LiteFX::Rendering {
         virtual Enumerable<const vertex_buffer_layout_type*> vertexBufferLayouts() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const vertex_buffer_layout_type& vertexBufferLayout(UInt32 binding) const = 0;
+        virtual const vertex_buffer_layout_type* vertexBufferLayout(UInt32 binding) const = 0;
 
         /// <inheritdoc />
-        virtual const index_buffer_layout_type& indexBufferLayout() const = 0;
+        virtual const index_buffer_layout_type* indexBufferLayout() const noexcept = 0;
 
     private:
         inline Enumerable<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept override {
@@ -534,6 +534,9 @@ namespace LiteFX::Rendering {
         virtual void use(const pipeline_type& pipeline) const noexcept = 0;
 
         /// <inheritdoc />
+        virtual void bind(const descriptor_set_type& descriptorSet) const = 0;
+
+        /// <inheritdoc />
         virtual void bind(const descriptor_set_type& descriptorSet, const pipeline_type& pipeline) const noexcept = 0;
 
         /// <inheritdoc />
@@ -613,6 +616,10 @@ namespace LiteFX::Rendering {
 
         inline void cmdUse(const IPipeline& pipeline) const noexcept override {
             this->use(dynamic_cast<const pipeline_type&>(pipeline));
+        }
+
+        inline void cmdBind(const IDescriptorSet& descriptorSet) const override {
+            this->bind(dynamic_cast<const descriptor_set_type&>(descriptorSet));
         }
 
         inline void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept override {

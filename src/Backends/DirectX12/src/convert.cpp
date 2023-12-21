@@ -620,7 +620,7 @@ constexpr D3D12_BARRIER_SYNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::D
 	D3D12_BARRIER_SYNC sync { };
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::InputAssembly))
-		sync |= D3D12_BARRIER_SYNC_INPUT_ASSEMBLER;
+		sync |= D3D12_BARRIER_SYNC_INDEX_INPUT;	// D3D12_BARRIER_SYNC_INPUT_ASSEMBLER appears to be deprecated but I could not find any info about the deprecation.
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Vertex) || 
 		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::TessellationControl) ||

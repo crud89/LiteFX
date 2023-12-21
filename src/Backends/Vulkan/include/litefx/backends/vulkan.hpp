@@ -713,17 +713,17 @@ namespace LiteFX::Rendering::Backends {
         LITEFX_IMPLEMENTATION(VulkanInputAssemblerImpl);
         LITEFX_BUILDER(VulkanInputAssemblerBuilder);
 
-    public:
-        /// <summary>
-        /// Initializes a new Vulkan input assembler state.
-        /// </summary>
-        /// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
-        /// <param name="indexBufferLayout">The index buffer layout.</param>
-        /// <param name="primitiveTopology">The primitive topology.</param>
-        explicit VulkanInputAssembler(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList);
-        VulkanInputAssembler(VulkanInputAssembler&&) noexcept = delete;
-        VulkanInputAssembler(const VulkanInputAssembler&) noexcept = delete;
-        virtual ~VulkanInputAssembler() noexcept;
+	public:
+		/// <summary>
+		/// Initializes a new Vulkan input assembler state.
+		/// </summary>
+		/// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
+		/// <param name="indexBufferLayout">The index buffer layout.</param>
+		/// <param name="primitiveTopology">The primitive topology.</param>
+		explicit VulkanInputAssembler(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout = nullptr, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList);
+		VulkanInputAssembler(VulkanInputAssembler&&) noexcept = delete;
+		VulkanInputAssembler(const VulkanInputAssembler&) noexcept = delete;
+		virtual ~VulkanInputAssembler() noexcept;
 
     private:
         /// <summary>
@@ -735,11 +735,11 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         Enumerable<const VulkanVertexBufferLayout*> vertexBufferLayouts() const noexcept override;
 
-        /// <inheritdoc />
-        const VulkanVertexBufferLayout& vertexBufferLayout(UInt32 binding) const override;
+		/// <inheritdoc />
+		const VulkanVertexBufferLayout* vertexBufferLayout(UInt32 binding) const override;
 
-        /// <inheritdoc />
-        const VulkanIndexBufferLayout& indexBufferLayout() const override;
+		/// <inheritdoc />
+		const VulkanIndexBufferLayout* indexBufferLayout() const noexcept override;
 
         /// <inheritdoc />
         PrimitiveTopology topology() const noexcept override;
@@ -931,8 +931,11 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void use(const VulkanPipelineState& pipeline) const noexcept override;
 
-        /// <inheritdoc />
-        void bind(const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept override;
+		/// <inheritdoc />
+		void bind(const VulkanDescriptorSet& descriptorSet) const override;
+
+		/// <inheritdoc />
+		void bind(const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept override;
 
         /// <inheritdoc />
         void bind(const IVulkanVertexBuffer& buffer) const noexcept override;
