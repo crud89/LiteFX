@@ -41,12 +41,18 @@ public:
 		desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 		desc.NodeMask = 0;
 
-		if (LITEFX_FLAG_IS_SET(m_type, QueueType::Graphics))
+		if (m_type == QueueType::Graphics)
 			desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-		else if (LITEFX_FLAG_IS_SET(m_type, QueueType::Compute))
+		else if (m_type == QueueType::Compute)
 			desc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
-		else if (LITEFX_FLAG_IS_SET(m_type, QueueType::Transfer))
+		else if (m_type == QueueType::VideoDecode)
+			desc.Type = D3D12_COMMAND_LIST_TYPE_VIDEO_DECODE;
+		else if (m_type == QueueType::VideoEncode)
+			desc.Type = D3D12_COMMAND_LIST_TYPE_VIDEO_ENCODE;
+		else if (m_type == QueueType::Transfer)
 			desc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
+		else // Combinations are not supported here. All queues implicitly support transfer operations, but it is not valid to provide combinations like `QueueType::Graphics | QueueType::VideoEncode`.
+			throw InvalidArgumentException("Unsupported combination of queue types. Only specify one queue type, even if the queue needs to support other tasks).");
 
 		switch (m_priority)
 		{

@@ -184,8 +184,8 @@ public:
 	{
 		//m_graphicsQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Graphics, QueuePriority::Realtime);
 		m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::High);
-		m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Normal);
-		m_computeQueue = this->createQueue(QueueType::Compute, QueuePriority::High);
+		m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::High);
+		m_computeQueue  = this->createQueue(QueueType::Compute,  QueuePriority::High);
 	}
 
 	DirectX12Queue* createQueue(QueueType type, QueuePriority priority)
