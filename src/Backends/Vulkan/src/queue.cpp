@@ -145,7 +145,7 @@ QueuePriority VulkanQueue::priority() const noexcept
 
 SharedPtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(bool beginRecording, bool secondary) const
 {
-	return makeShared<VulkanCommandBuffer>(*this, beginRecording, !secondary);
+	return VulkanCommandBuffer::create(*this, beginRecording, !secondary);
 }
 
 UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) const

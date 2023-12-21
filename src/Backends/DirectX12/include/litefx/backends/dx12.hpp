@@ -812,7 +812,7 @@ namespace LiteFX::Rendering::Backends {
     /// Records commands for a <see cref="DirectX12CommandQueue" />
     /// </summary>
     /// <seealso cref="DirectX12CommandQueue" />
-    class LITEFX_DIRECTX12_API DirectX12CommandBuffer final : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>, public ComResource<ID3D12GraphicsCommandList7> {
+    class LITEFX_DIRECTX12_API DirectX12CommandBuffer final : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>, public ComResource<ID3D12GraphicsCommandList7>, std::enable_shared_from_this<DirectX12CommandBuffer> {
         LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
 
     public:
@@ -827,7 +827,7 @@ namespace LiteFX::Rendering::Backends {
         using base_type::use;
         using base_type::pushConstants;
 
-    public:
+    private:
         /// <summary>
         /// Initializes the command buffer from a command queue.
         /// </summary>
@@ -835,9 +835,22 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
         /// <param name="primary"><c>true</c>, if the command buffer is a primary command buffer.</param>
         explicit DirectX12CommandBuffer(const DirectX12Queue& queue, bool begin = false, bool primary = true);
+
+    public:
         DirectX12CommandBuffer(const DirectX12CommandBuffer&) = delete;
         DirectX12CommandBuffer(DirectX12CommandBuffer&&) = delete;
         virtual ~DirectX12CommandBuffer() noexcept;
+
+    public:
+        /// <summary>
+        /// Initializes the command buffer from a command queue.
+        /// </summary>
+        /// <param name="queue">The parent command queue, the buffer gets submitted to.</param>
+        /// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
+        /// <param name="primary"><c>true</c>, if the command buffer is a primary command buffer.</param>
+        static inline SharedPtr<DirectX12CommandBuffer> create(const DirectX12Queue& queue, bool begin = false, bool primary = true) {
+            return SharedPtr<DirectX12CommandBuffer>(new DirectX12CommandBuffer(queue, begin, primary));
+        }
 
         // CommandBuffer interface.
     public:
@@ -867,6 +880,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void setStencilRef(UInt32 stencilRef) const noexcept override;
+
+        /// <inheritdoc />
+        UInt64 submit() const override;
 
         /// <inheritdoc />
         void generateMipMaps(IDirectX12Image& image) noexcept override;

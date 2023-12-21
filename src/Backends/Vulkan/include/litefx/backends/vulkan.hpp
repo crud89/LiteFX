@@ -817,7 +817,7 @@ namespace LiteFX::Rendering::Backends {
     /// Records commands for a <see cref="VulkanCommandQueue" />
     /// </summary>
     /// <seealso cref="VulkanQueue" />
-    class LITEFX_VULKAN_API VulkanCommandBuffer final : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>, public Resource<VkCommandBuffer> {
+    class LITEFX_VULKAN_API VulkanCommandBuffer final : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>, public Resource<VkCommandBuffer>, public std::enable_shared_from_this<VulkanCommandBuffer> {
         LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
 
     public:
@@ -832,7 +832,7 @@ namespace LiteFX::Rendering::Backends {
         using base_type::use;
         using base_type::pushConstants;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a command buffer from a command queue.
         /// </summary>
@@ -840,9 +840,23 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
         /// <param name="primary"><c>true</c>, if the command buffer is a primary command buffer.</param>
         explicit VulkanCommandBuffer(const VulkanQueue& queue, bool begin = false, bool primary = true);
+
+    public:
         VulkanCommandBuffer(const VulkanCommandBuffer&) = delete;
         VulkanCommandBuffer(VulkanCommandBuffer&&) = delete;
         virtual ~VulkanCommandBuffer() noexcept;
+
+        // Factory method.
+    public:
+        /// <summary>
+        /// Initializes a command buffer from a command queue.
+        /// </summary>
+        /// <param name="queue">The parent command queue, the buffer gets submitted to.</param>
+        /// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
+        /// <param name="primary"><c>true</c>, if the command buffer is a primary command buffer.</param>
+        static inline SharedPtr<VulkanCommandBuffer> create(const VulkanQueue& queue, bool begin = false, bool primary = true) {
+            return SharedPtr<VulkanCommandBuffer>(new VulkanCommandBuffer(queue, begin, primary));
+        }
 
         // Vulkan Command Buffer interface.
     public:
@@ -880,6 +894,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void setStencilRef(UInt32 stencilRef) const noexcept override;
+
+        /// <inheritdoc />
+        UInt64 submit() const override;
 
         /// <inheritdoc />
         void generateMipMaps(IVulkanImage& image) noexcept override;

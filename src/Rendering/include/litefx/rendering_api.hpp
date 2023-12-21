@@ -4339,6 +4339,12 @@ namespace LiteFX::Rendering {
         virtual void setStencilRef(UInt32 stencilRef) const noexcept = 0;
 
         /// <summary>
+        /// Submits the command buffer to parent command
+        /// </summary>
+        /// <exception cref="RuntimeException">Thrown, if the command buffer is a secondary command buffer.</exception>
+        virtual UInt64 submit() const = 0;
+
+        /// <summary>
         /// Writes the current GPU time stamp value for the timing event.
         /// </summary>
         /// <param name="timingEvent">The timing event for which the time stamp is written.</param>

@@ -172,6 +172,14 @@ void VulkanCommandBuffer::setStencilRef(UInt32 stencilRef) const noexcept
 	::vkCmdSetStencilReference(this->handle(), VK_STENCIL_FACE_FRONT_AND_BACK, stencilRef);
 }
 
+UInt64 VulkanCommandBuffer::submit() const 
+{
+	if (this->isSecondary())
+		throw RuntimeException("A secondary command buffer cannot be directly submitted to a command queue and must be executed on a primary command buffer instead.");
+
+	return m_impl->m_queue.submit(this->shared_from_this());
+}
+
 void VulkanCommandBuffer::generateMipMaps(IVulkanImage& image) noexcept
 {
 	VulkanBarrier startBarrier(PipelineStage::None, PipelineStage::Transfer);

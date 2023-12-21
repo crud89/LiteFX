@@ -146,6 +146,14 @@ void DirectX12CommandBuffer::setStencilRef(UInt32 stencilRef) const noexcept
 	this->handle()->OMSetStencilRef(stencilRef);
 }
 
+UInt64 DirectX12CommandBuffer::submit() const
+{
+	if (this->isSecondary())
+		throw RuntimeException("A secondary command buffer cannot be directly submitted to a command queue and must be executed on a primary command buffer instead.");
+
+	return m_impl->m_queue.submit(this->shared_from_this());
+}
+
 void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 {
 	struct Parameters {
