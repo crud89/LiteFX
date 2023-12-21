@@ -1,5 +1,6 @@
 #include <litefx/backends/vulkan.hpp>
 #include <litefx/backends/vulkan_builders.hpp>
+#include <bit>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -15,6 +16,7 @@ private:
     class QueueFamily {
     private:
         Array<UniquePtr<VulkanQueue>> m_queues;
+        Array<Float> m_queuePriorities;
         UInt32 m_id, m_queueCount;
         QueueType m_type;
 
@@ -27,7 +29,28 @@ private:
 
     public:
         QueueFamily(UInt32 id, UInt32 queueCount, QueueType type) :
-            m_id(id), m_queueCount(queueCount), m_type(type) { 
+            m_id(id), m_queueCount(queueCount), m_type(type) 
+        {
+            if (queueCount == 0) [[unlikely]]
+                throw InvalidArgumentException("An empty queue family is invalid.");
+
+            // Initialize queue priorities. First queue always has the highest priority possible, as those become the default queues. After this we fill up the space evenly 
+            // through all available priorities. Currently there are two priorities (`High` and `Normal`)
+            auto chunkSize = (queueCount - 1) / 2;
+            auto remainder = (queueCount - 1) % 2;
+
+            auto high = std::views::repeat(static_cast<Float>(QueuePriority::High) / 100.0f)   | std::views::take(chunkSize);
+            auto low  = std::views::repeat(static_cast<Float>(QueuePriority::Normal) / 100.0f) | std::views::take(chunkSize + remainder);
+            
+            m_queuePriorities.push_back(1.0f);
+
+#ifdef __cpp_lib_containers_ranges
+            m_queuePriorities.append_range(high);
+            m_queuePriorities.append_range(low);
+#else
+            m_queuePriorities.insert(m_queuePriorities.end(), high.cbegin(), high.cend());
+            m_queuePriorities.insert(m_queuePriorities.end(), low.cbegin(), low.cend());
+#endif
         }
         QueueFamily(const QueueFamily& _other) = delete;
         QueueFamily(QueueFamily&& _other) noexcept {
@@ -35,6 +58,7 @@ private:
             m_id = std::move(_other.m_id);
             m_queueCount = std::move(_other.m_queueCount);
             m_type = std::move(_other.m_type);
+            m_queuePriorities = std::move(_other.m_queuePriorities);
         }
         ~QueueFamily() noexcept {
             m_queues.clear();
@@ -42,13 +66,36 @@ private:
 
     public:
         VulkanQueue* createQueue(const VulkanDevice& device, QueuePriority priority) {
-            if (this->active() >= this->total())
+            // First, list all queues with the requested priority.
+            auto left  = std::ranges::lower_bound(m_queuePriorities, static_cast<Float>(priority) / 100.0f, std::greater<float>{});
+            auto right = std::ranges::upper_bound(m_queuePriorities, static_cast<Float>(priority) / 100.0f, std::greater<float>{});
+
+            if (left == std::end(m_queuePriorities)) [[unlikely]]
             {
-                LITEFX_ERROR(VULKAN_LOG, "Unable to create another queue for family {0}, since all {1} queues are already created.", m_id, m_queueCount);
-                return nullptr;
+                QueuePriority nextPriority;
+                
+                switch (priority)
+                {
+                using enum QueuePriority;
+                case Normal: nextPriority = QueuePriority::High; break;
+                case High: nextPriority = QueuePriority::Realtime; break; // This will find the default queue
+                case Realtime: [[unlikely]] // Should never actually happen, as there should be at least one queue in the family.
+                default: throw RuntimeException("No queue found in this priority. Check if the queue family contains any queues.");
+                }
+
+                LITEFX_WARNING(VULKAN_LOG, "No queues found at priority {0}. Attempting higher priority {1}.", priority, nextPriority);
+                return this->createQueue(device, nextPriority);
             }
 
-            auto queue = makeUnique<VulkanQueue>(device, m_type, priority, m_id, this->active());
+            // List the queue indices for the matched priorities and how often they are used.
+            auto indices = std::views::iota(std::ranges::distance(std::cbegin(m_queuePriorities), left), std::ranges::distance(std::cbegin(m_queuePriorities), right)) |
+                std::views::transform([this](auto i) { return std::make_tuple(i, std::ranges::count_if(m_queues, [i](const auto& q) { return q->queueId() == i; })); });
+            auto [queueId, refCount] = *std::ranges::min_element(indices, {}, [](const auto& i) { return std::get<1>(i); });
+
+            LITEFX_DEBUG(VULKAN_LOG, "Creating queue with id {0} (referenced {1} times).", queueId, refCount);
+
+            // Create a queue instance with the queue id.
+            auto queue = makeUnique<VulkanQueue>(device, m_type, priority, m_id, queueId);
             auto queuePointer = queue.get();
             m_queues.push_back(std::move(queue));
             return queuePointer;
@@ -62,7 +109,6 @@ private:
     VulkanQueue* m_transferQueue;
     VulkanQueue* m_computeQueue;
 
-    VkCommandPool m_commandPool;
     UniquePtr<VulkanSwapChain> m_swapChain;
     Array<String> m_extensions;
 
@@ -134,8 +180,8 @@ public:
         Array<VkQueueFamilyProperties> familyProperties(queueFamilies);
         ::vkGetPhysicalDeviceQueueFamilyProperties(m_adapter.handle(), &queueFamilies, familyProperties.data());
 
-        m_families = familyProperties | 
-            std::views::transform([i = 0](const VkQueueFamilyProperties& familyProperty) mutable {
+        auto families = familyProperties | 
+            std::views::transform([i = 0](const VkQueueFamilyProperties& familyProperty) mutable -> Tuple<int, UInt32, QueueType> {
                 QueueType type = QueueType::None;
 
                 if (familyProperty.queueFlags & VK_QUEUE_COMPUTE_BIT)
@@ -144,9 +190,24 @@ public:
                     type |= QueueType::Graphics;
                 if (familyProperty.queueFlags & VK_QUEUE_TRANSFER_BIT)
                     type |= QueueType::Transfer;
+                if (familyProperty.queueFlags & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
+                    type |= QueueType::VideoDecode;
 
-                return QueueFamily(i++, familyProperty.queueCount, type);
-            }) | std::ranges::to<Array<QueueFamily>>();
+#ifdef VK_ENABLE_BETA_EXTENSIONS
+                if (familyProperty.queueFlags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
+                    type |= QueueType::VideoEncode;
+#endif // VK_ENABLE_BETA_EXTENSIONS
+
+                return { i++, familyProperty.queueCount, type };
+            }) | std::ranges::to<std::vector>();
+
+        // Sort by flag popcount, so that the most specialized queues are always first.
+        std::ranges::sort(families, std::less<>{}, [](const auto& family) -> int { return std::popcount(std::to_underlying(std::get<2>(family))); });
+
+        // Create all the queues.
+        m_families = families |
+            std::views::transform([](const auto& family) { return QueueFamily(std::get<0>(family), std::get<1>(family), std::get<2>(family)); }) |
+            std::ranges::to<Array<QueueFamily>>();
     }
 
     VkDevice initialize()
@@ -155,44 +216,24 @@ public:
             throw InvalidArgumentException("Some required device extensions are not supported by the system.");
 
         auto const requiredExtensions = m_extensions | std::views::transform([](const auto& extension) { return extension.c_str(); }) | std::ranges::to<Array<const char*>>();
+        
+        // Creating queues in Vulkan is a bit odd in that we need to specify how many queues we want before actually allocating them. Since this is different to other APIs,
+        // where we can create queues, as we need them, we allocate as many as possible and only hand them out if required. This will cause most of the queues to idle, in
+        // which case it should not matter, that we created them in the first place. On NVidia it seems that all queues from one family are virtualized into a single queue
+        // anyway, which is similar to D3D12. On AMD it appears that there is only one queue per family in the first place. Regarding queue priority, we assign the highest 
+        // priority to the first queue in each family (as they are used for default queues).
+        auto maxQueueCount = std::ranges::max(m_families | std::views::transform([](auto& family) { return family.total(); }));
+        Array<Float> priorities(maxQueueCount);
+        std::ranges::generate(priorities, [i = 0]() mutable { return static_cast<Float>(i++ == 0 ? QueuePriority::High : QueuePriority::Normal) / 100.0f; });
 
-        // Initialize default queues.
-        m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::Realtime, std::as_const(*m_surface).handle());
-        m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Normal);
-        m_computeQueue = this->createQueue(QueueType::Compute, QueuePriority::Normal);
-
-        if (m_graphicsQueue == nullptr)
-            throw RuntimeException("Unable to find a fitting command queue to present the specified surface.");
-
-        if (m_transferQueue == nullptr)
-        {
-            LITEFX_INFO(VULKAN_LOG, "Unable to find dedicated transfer queue for device-device transfer. Using graphics queue instead.");
-            m_transferQueue = m_graphicsQueue;
-        }
-
-        if (m_computeQueue == nullptr)
-        {
-            LITEFX_INFO(VULKAN_LOG, "Unable to find dedicated compute queue for host-device transfer. Using graphics queue instead.");
-            m_computeQueue = m_graphicsQueue;
-        }
-
-        // Define used queue families.
-        Array<Array<Float>> queuePriorities;
         auto const queueCreateInfos = m_families |
-            std::views::filter([](const QueueFamily& family) { return family.active() > 0; }) |
-            std::views::transform([&queuePriorities](const QueueFamily& family) {
-                auto const priorities = family.queues() | 
-                    std::views::transform([](const UniquePtr<VulkanQueue>& queue) { return static_cast<Float>(queue->priority()) / 100.f; }) |
-                    std::ranges::to<Array<Float>>();
-                queuePriorities.push_back(priorities);
-
-                VkDeviceQueueCreateInfo queueCreateInfo = {};
-                queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-                queueCreateInfo.queueFamilyIndex = family.id();
-                queueCreateInfo.queueCount = family.active();
-                queueCreateInfo.pQueuePriorities = queuePriorities.back().data();
-
-                return queueCreateInfo;
+            std::views::transform([&priorities](auto& family) {
+                return VkDeviceQueueCreateInfo {
+                    .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                    .queueFamilyIndex = family.id(),
+                    .queueCount = family.total(),
+                    .pQueuePriorities = priorities.data()
+                };
             }) | std::ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
         // Allow geometry and tessellation shader stages.
@@ -265,6 +306,29 @@ public:
         return device;
     }
 
+    void initializeDefaultQueues() 
+    {
+        // Initialize default queues.
+        m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::Realtime, std::as_const(*m_surface).handle());
+        m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Realtime);
+        m_computeQueue  = this->createQueue(QueueType::Compute,  QueuePriority::Realtime);
+
+        if (m_graphicsQueue == nullptr)
+            throw RuntimeException("Unable to find a fitting command queue to present the specified surface.");
+
+        if (m_transferQueue == nullptr)
+        {
+            LITEFX_INFO(VULKAN_LOG, "Unable to find dedicated transfer queue for device-device transfer. Using default graphics queue instead.");
+            m_transferQueue = m_graphicsQueue;
+        }
+
+        if (m_computeQueue == nullptr)
+        {
+            LITEFX_INFO(VULKAN_LOG, "Unable to find dedicated compute queue. Using default graphics queue instead.");
+            m_computeQueue = m_graphicsQueue;
+        }
+    }
+
     void createFactory()
     {
         m_factory = makeUnique<VulkanGraphicsFactory>(*m_parent);
@@ -276,30 +340,26 @@ public:
     }
 
 public:
-    VulkanQueue* createQueue(QueueType type, QueuePriority priority)
+    VulkanQueue* createQueue(QueueType type, QueuePriority priority, const VkSurfaceKHR& surface = VK_NULL_HANDLE)
     {
-        // If a transfer queue is requested, look up only dedicated transfer queues. If none is available, fallbacks need to be handled manually. Every queue implicitly handles transfer.
-        auto match = type == QueueType::Transfer ?
-            std::ranges::find_if(m_families, [](const auto& family) { return family.type() == QueueType::Transfer; }) :
-            std::ranges::find_if(m_families, [&type](const auto& family) { return LITEFX_FLAG_IS_SET(family.type(), type); });
+        // Find the queue that is most specialized for the provided queue type. Since the queues are ordered based on their type popcount (most specialized queues come first, as they have 
+        // lower type flags set), we can simply pick the first one we find, that matches all the flags.
+        auto match = std::ranges::find_if(m_families, [&](const auto& family) { 
+            VkBool32 result = LITEFX_FLAG_IS_SET(family.type(), type);
 
-        return match == m_families.end() ? nullptr : match->createQueue(*m_parent, priority);
-    }
-
-    VulkanQueue* createQueue(QueueType type, QueuePriority priority, const VkSurfaceKHR& surface)
-    {
-        if (auto match = std::ranges::find_if(m_families, [&](const auto& family) {
-                if (!LITEFX_FLAG_IS_SET(family.type(), type))
-                    return false;
-
+            if (surface != VK_NULL_HANDLE) [[unlikely]]
+            {
+                // Check if presenting to the surface is supported.
                 VkBool32 canPresent = VK_FALSE;
                 ::vkGetPhysicalDeviceSurfaceSupportKHR(m_adapter.handle(), family.id(), surface, &canPresent);
 
-                return static_cast<bool>(canPresent);
-            }); match != m_families.end()) [[likely]]
-            return match->createQueue(*m_parent, priority);
-        
-        return nullptr;
+                result &= canPresent;
+            }
+
+            return result != VK_FALSE;
+        });
+
+        return match == m_families.end() ? nullptr : match->createQueue(*m_parent, priority);
     }
 };
 
@@ -330,6 +390,7 @@ VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphic
         LITEFX_INFO(VULKAN_LOG, "Enabled validation layers: {0}", Join(extensions, ", "));
 
     this->handle() = m_impl->initialize();
+    m_impl->initializeDefaultQueues();
     m_impl->createFactory();
     m_impl->createSwapChain(format, frameBufferSize, frameBuffers);
 }
