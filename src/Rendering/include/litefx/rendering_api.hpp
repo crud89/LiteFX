@@ -103,7 +103,7 @@ namespace LiteFX::Rendering {
     /// graphics queue, you do not need to synchronize in order to wait for the result, however this also means that no rendering can take place until the workloads have
     /// finished.
     /// </remarks>
-    enum class LITEFX_RENDERING_API QueueType {
+    enum class LITEFX_RENDERING_API QueueType : UInt32 {
         /// <summary>
         /// Describes an unspecified command queue. It is not valid to create a queue instance with this type.
         /// </summary>
@@ -123,6 +123,22 @@ namespace LiteFX::Rendering {
         /// Represents a queue that can execute only transfer workloads.
         /// </summary>
         Transfer = 0x00000004,
+
+        /// <summary>
+        /// Represents a queue that can perform hardware video decoding.
+        /// </summary>
+        /// <remarks>
+        /// Video encoding/decoding is currently not a supported feature, but knowing all the capabilities of a queue is useful to select the best queue family for a particular task.
+        /// </remarks>
+        VideoDecode = 0x00000010,
+
+        /// <summary>
+        /// Represents a queue that can perform hardware video encoding.
+        /// </summary>
+        /// <remarks>
+        /// Video encoding/decoding is currently a supported feature, but knowing all the capabilities of a queue is useful to select the best queue family for a particular task.
+        /// </remarks>
+        VideoEncode = 0x00000020,
 
         /// <summary>
         /// Represents an invalid queue type.
@@ -147,6 +163,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// The highest possible queue priority. Submitting work to this queue might block other queues.
         /// </summary>
+        /// <remarks>
+        /// Do not use this queue priority when creating queues, as it is reserved for the default (builtin) queues.
+        /// </remarks>
         Realtime = 100
     };
 
