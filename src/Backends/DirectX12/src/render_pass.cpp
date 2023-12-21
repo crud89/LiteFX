@@ -27,19 +27,19 @@ private:
     MultiSamplingLevel m_multiSamplingLevel{ MultiSamplingLevel::x1 };
     Array<RenderPassContext> m_contexts;
     const DirectX12Device& m_device;
-    const DirectX12Queue& m_queue;
+    const DirectX12Queue* m_queue;
     String m_name;
 
 public:
     DirectX12RenderPassImpl(DirectX12RenderPass* parent, const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, MultiSamplingLevel samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
-        base(parent), m_device(device), m_multiSamplingLevel(samples), m_queue(queue)
+        base(parent), m_device(device), m_multiSamplingLevel(samples), m_queue(&queue)
     {
         this->mapRenderTargets(renderTargets);
         this->mapInputAttachments(inputAttachments);
     }
 
     DirectX12RenderPassImpl(DirectX12RenderPass* parent, const DirectX12Device& device) :
-        base(parent), m_device(device), m_queue(device.defaultQueue(QueueType::Graphics))
+        base(parent), m_device(device), m_queue(&device.defaultQueue(QueueType::Graphics))
     {
     }
 
@@ -62,7 +62,7 @@ public:
 
         // TODO: If there is a present target, we need to check if the provided queue can actually present on the surface. Currently, 
         //       we simply check if the queue is the same as the swap chain queue (which is the default graphics queue).
-        if (m_presentTarget != nullptr && &m_queue != &m_device.defaultQueue(QueueType::Graphics)) [[unlikely]]
+        if (m_presentTarget != nullptr && m_queue != std::addressof(m_device.defaultQueue(QueueType::Graphics))) [[unlikely]]
             throw InvalidArgumentException("A render pass with a present target must be executed on the default graphics queue.");
     }
 
@@ -160,7 +160,7 @@ public:
         // Initialize the primary command buffers used to begin and end the render pass.
         this->m_beginCommandBuffers.resize(m_device.swapChain().buffers());
         std::ranges::generate(this->m_beginCommandBuffers, [&, i = 0]() mutable {
-            auto commandBuffer = m_queue.createCommandBuffer(false);
+            auto commandBuffer = m_queue->createCommandBuffer(false);
 
 #ifndef NDEBUG
             std::as_const(*commandBuffer).handle()->SetName(Widen(fmt::format("{0} Begin Commands {1}", m_parent->name(), i++)).c_str());
@@ -171,7 +171,7 @@ public:
 
         this->m_endCommandBuffers.resize(m_device.swapChain().buffers());
         std::ranges::generate(this->m_endCommandBuffers, [&, i = 0]() mutable {
-            auto commandBuffer = m_queue.createCommandBuffer(false);
+            auto commandBuffer = m_queue->createCommandBuffer(false);
 
 #ifndef NDEBUG
             std::as_const(*commandBuffer).handle()->SetName(Widen(fmt::format("{0} End Commands {1}", m_parent->name(), i++)).c_str());
@@ -247,7 +247,7 @@ const DirectX12FrameBuffer& DirectX12RenderPass::activeFrameBuffer() const
 
 const DirectX12Queue& DirectX12RenderPass::commandQueue() const noexcept 
 {
-    return m_impl->m_queue;
+    return *m_impl->m_queue;
 }
 
 Enumerable<const DirectX12FrameBuffer*> DirectX12RenderPass::frameBuffers() const noexcept
@@ -326,7 +326,7 @@ void DirectX12RenderPass::begin(UInt32 buffer)
     beginCommandBuffer->barrier(depthStencilBarrier);
 
     if (!m_impl->m_name.empty())
-        m_impl->m_queue.beginDebugRegion(fmt::format("{0} Render Pass", m_impl->m_name));
+        m_impl->m_queue->beginDebugRegion(fmt::format("{0} Render Pass", m_impl->m_name));
 
     // Begin a suspending render pass for the transition and a suspend-the-resume render pass on each command buffer of the frame buffer.
     std::as_const(*beginCommandBuffer).handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
@@ -420,10 +420,10 @@ void DirectX12RenderPass::end() const
     commandBuffers.push_back(endCommandBuffer);
 
     // Submit and store the fence.
-    m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_queue.submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const DirectX12CommandBuffer>>>());
+    m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const DirectX12CommandBuffer>>>());
 
     if (!m_impl->m_name.empty())
-        m_impl->m_queue.endDebugRegion();
+        m_impl->m_queue->endDebugRegion();
 
     // NOTE: No need to wait for the fence here, since `Present` will wait for the back buffer to be ready. If we have multiple frames in flight, this will block until the first
     //       frame in the queue has been drawn and the back buffer can be written again.
@@ -500,6 +500,7 @@ constexpr DirectX12RenderPassBuilder::~DirectX12RenderPassBuilder() noexcept = d
 void DirectX12RenderPassBuilder::build()
 {
     auto instance = this->instance();
+    instance->m_impl->m_queue = m_state.commandQueue;
     instance->m_impl->mapRenderTargets(m_state.renderTargets);
     instance->m_impl->mapInputAttachments(m_state.inputAttachments);
     instance->m_impl->m_multiSamplingLevel = m_state.multiSamplingLevel;

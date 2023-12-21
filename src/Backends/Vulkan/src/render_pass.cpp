@@ -24,18 +24,18 @@ private:
     UInt32 m_backBuffer{ 0 };
     MultiSamplingLevel m_samples;
     const VulkanDevice& m_device;
-    const VulkanQueue& m_queue;
+    const VulkanQueue* m_queue;
 
 public:
     VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, MultiSamplingLevel samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
-        base(parent), m_samples(samples), m_device(device), m_queue(queue)
+        base(parent), m_samples(samples), m_device(device), m_queue(&queue)
     {
         this->mapRenderTargets(renderTargets);
         this->mapInputAttachments(inputAttachments);
     }
 
     VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanDevice& device) :
-        base(parent), m_device(device), m_queue(device.defaultQueue(QueueType::Graphics))
+        base(parent), m_device(device), m_queue(&device.defaultQueue(QueueType::Graphics))
     {
     }
 
@@ -49,7 +49,7 @@ public:
         // TODO: If there is a present target, we need to check if the provided queue can actually present on the surface. Currently, 
         //       we simply check if the queue is the same as the swap chain queue (which is the default graphics queue).
         if (std::ranges::any_of(m_renderTargets, [](const auto& renderTarget) { return renderTarget.type() == RenderTargetType::Present; }) &&
-            &m_queue != &m_device.defaultQueue(QueueType::Graphics)) [[unlikely]]
+            m_queue != std::addressof(m_device.defaultQueue(QueueType::Graphics))) [[unlikely]]
             throw InvalidArgumentException("A render pass with a present target must be executed on the default graphics queue.");
     }
 
@@ -284,7 +284,7 @@ public:
         // Initialize the primary command buffers, that are used to record begin and end commands for the render pass on each frame buffer.
         m_primaryCommandBuffers.resize(this->m_device.swapChain().buffers());
         std::ranges::generate(m_primaryCommandBuffers, [&, i = 0]() mutable {
-            auto commandBuffer = m_queue.createCommandBuffer(false);
+            auto commandBuffer = m_queue->createCommandBuffer(false);
 
 #ifndef NDEBUG
             m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*commandBuffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, fmt::format("{0} Primary Command Buffer {1}", m_parent->name(), i++));
@@ -358,7 +358,7 @@ const VulkanFrameBuffer& VulkanRenderPass::activeFrameBuffer() const
 
 const VulkanQueue& VulkanRenderPass::commandQueue() const noexcept
 {
-    return m_impl->m_queue;
+    return *m_impl->m_queue;
 }
 
 Enumerable<const VulkanFrameBuffer*> VulkanRenderPass::frameBuffers() const noexcept
@@ -414,7 +414,7 @@ void VulkanRenderPass::begin(UInt32 buffer)
     m_impl->m_backBuffer = buffer;
 
     // Begin the command recording on the frame buffers command buffer. Before we can do that, we need to make sure it has not being executed anymore.
-    m_impl->m_queue.waitFor(frameBuffer->lastFence());
+    m_impl->m_queue->waitFor(frameBuffer->lastFence());
     commandBuffer->begin();
 
     // Begin the render pass.
@@ -459,14 +459,14 @@ void VulkanRenderPass::end() const
 
     // Submit the command buffer.
     if (!this->hasPresentTarget())
-        frameBuffer->lastFence() = m_impl->m_queue.submit(commandBuffer);
+        frameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffer);
     else
     {
         // Draw the frame, if the result of the render pass it should be presented to the swap chain.
         std::array<VkSemaphore, 1> waitForSemaphores = { m_impl->m_device.swapChain().semaphore() };
         std::array<VkPipelineStageFlags, 1> waitForStages = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
         std::array<VkSemaphore, 1> signalSemaphores = { frameBuffer->semaphore() };
-        frameBuffer->lastFence() = m_impl->m_queue.submit(commandBuffer, waitForSemaphores, waitForStages, signalSemaphores);
+        frameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffer, waitForSemaphores, waitForStages, signalSemaphores);
 
         // Present the swap chain.
         m_impl->m_device.swapChain().present(*frameBuffer);
@@ -542,6 +542,7 @@ constexpr VulkanRenderPassBuilder::~VulkanRenderPassBuilder() noexcept = default
 void VulkanRenderPassBuilder::build()
 {
     auto instance = this->instance();
+    instance->m_impl->m_queue = m_state.commandQueue;
     instance->m_impl->mapRenderTargets(m_state.renderTargets);
     instance->m_impl->mapInputAttachments(m_state.inputAttachments);
     instance->m_impl->m_samples = m_state.multiSamplingLevel;
