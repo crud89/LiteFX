@@ -95,7 +95,7 @@ private:
             LITEFX_DEBUG(VULKAN_LOG, "Creating queue with id {0} (referenced {1} times).", queueId, refCount);
 
             // Create a queue instance with the queue id.
-            auto queue = makeUnique<VulkanQueue>(device, m_type, priority, m_id, queueId);
+            auto queue = makeUnique<VulkanQueue>(device, m_type, priority, m_id, static_cast<UInt32>(queueId));
             auto queuePointer = queue.get();
             m_queues.push_back(std::move(queue));
             return queuePointer;

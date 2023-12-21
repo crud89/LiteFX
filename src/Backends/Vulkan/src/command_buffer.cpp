@@ -13,7 +13,7 @@ public:
 private:
 	const VulkanQueue& m_queue;
 	bool m_recording{ false }, m_secondary{ false };
-	Optional<VkCommandPool> m_commandPool;
+	VkCommandPool m_commandPool;
 	Array<SharedPtr<const IStateResource>> m_sharedResources;
 	const VulkanPipelineState* m_lastPipeline = nullptr;
 
