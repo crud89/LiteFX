@@ -500,7 +500,10 @@ constexpr DirectX12RenderPassBuilder::~DirectX12RenderPassBuilder() noexcept = d
 void DirectX12RenderPassBuilder::build()
 {
     auto instance = this->instance();
-    instance->m_impl->m_queue = m_state.commandQueue;
+
+    if (m_state.commandQueue != nullptr)
+        instance->m_impl->m_queue = m_state.commandQueue;
+
     instance->m_impl->mapRenderTargets(m_state.renderTargets);
     instance->m_impl->mapInputAttachments(m_state.inputAttachments);
     instance->m_impl->m_multiSamplingLevel = m_state.multiSamplingLevel;
