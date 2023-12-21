@@ -435,7 +435,7 @@ Next, let's transfer the buffers to the GPU. We start of by storing the input as
 
 ```cxx
 auto inputAssembler = m_pipeline->inputAssembler();
-auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 ```
 
 We then create a CPU visible vertex buffer and copy the vertex data into it:
@@ -525,7 +525,7 @@ m_cameraBindings->update(cameraBufferLayout.binding(), *m_cameraBuffer, 0);
 Here we first allocate a descriptor set that holds our descriptor for the camera buffer. We then update the descriptor bound to register *0* to point to the GPU-visible camera buffer. Finally, with all the transfer commands being recorded to the command buffer, we can submit the buffer and wait for it to be executed:
 
 ```cxx
-auto fence = m_device->bufferQueue().submit(commandBuffer);
+auto fence = commandBuffer->submit();
 m_device->bufferQueue().waitFor(fence);
 commandBuffer = nullptr;
 stagedVertices = nullptr;
@@ -684,7 +684,7 @@ glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001
 projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
 camera.ViewProjection = projection * view;
 
-auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
 commandBuffer->transfer(*m_cameraStagingBuffer, *m_cameraBuffer);
 commandBuffer->end(true, true);

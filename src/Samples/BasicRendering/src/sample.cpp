@@ -92,7 +92,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 void SampleApp::initBuffers(IRenderBackend* backend)
 {
     // Get a command buffer
-    auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 
     // Create the staging buffer.
     // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
@@ -133,7 +133,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     });
     
     // End and submit the command buffer.
-    m_transferFence = m_device->bufferQueue().submit(commandBuffer);
+    m_transferFence = commandBuffer->submit();
     
     // Add everything to the state.
     m_device->state().add(std::move(vertexBuffer));
@@ -261,9 +261,9 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
 
     // Also update the camera.
     auto& cameraBuffer = m_device->state().buffer("Camera");
-    auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
     this->updateCamera(*commandBuffer, cameraBuffer);
-    m_transferFence = m_device->bufferQueue().submit(commandBuffer);
+    m_transferFence = commandBuffer->submit();
 }
 
 void SampleApp::keyDown(int key, int scancode, int action, int mods)
@@ -372,7 +372,7 @@ void SampleApp::drawFrame()
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 
     // Wait for all transfers to finish.
-    m_device->bufferQueue().waitFor(m_transferFence);
+    renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     renderPass.begin(backBuffer);
