@@ -730,10 +730,10 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<const command_buffer_type> commandBuffer(UInt32 index) const = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<const image_type*> images() const noexcept = 0;
+        virtual Enumerable<image_type*> images() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const image_type& image(UInt32 location) const = 0;
+        virtual image_type& image(UInt32 location) const = 0;
 
     private:
         inline SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept override {
@@ -744,7 +744,7 @@ namespace LiteFX::Rendering {
             return this->commandBuffers();
         }
 
-        inline Enumerable<const IImage*> getImages() const noexcept override {
+        inline Enumerable<IImage*> getImages() const noexcept override {
             return this->images();
         }
     };
@@ -889,7 +889,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const image_interface_type*> images() const noexcept = 0;
+        virtual Enumerable<image_interface_type*> images() const noexcept = 0;
 
         /// <summary>
         /// Queues a present that gets executed after <paramref name="frameBuffer" /> signals its readiness.
@@ -903,7 +903,7 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        inline Enumerable<const IImage*> getImages() const noexcept override {
+        inline Enumerable<IImage*> getImages() const noexcept override {
             return this->images();
         }
     };

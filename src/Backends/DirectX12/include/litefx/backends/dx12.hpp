@@ -1140,10 +1140,10 @@ namespace LiteFX::Rendering::Backends {
         SharedPtr<const DirectX12CommandBuffer> commandBuffer(UInt32 index) const override;
 
         /// <inheritdoc />
-        Enumerable<const IDirectX12Image*> images() const noexcept override;
+        Enumerable<IDirectX12Image*> images() const noexcept override;
 
         /// <inheritdoc />
-        const IDirectX12Image& image(UInt32 location) const override;
+        IDirectX12Image& image(UInt32 location) const override;
 
     public:
         /// <inheritdoc />
@@ -1398,10 +1398,10 @@ namespace LiteFX::Rendering::Backends {
         const Size2d& renderArea() const noexcept override;
 
         /// <inheritdoc />
-        const IDirectX12Image* image(UInt32 backBuffer) const override;
+        IDirectX12Image* image(UInt32 backBuffer) const override;
 
         /// <inheritdoc />
-        Enumerable<const IDirectX12Image*> images() const noexcept override;
+        Enumerable<IDirectX12Image*> images() const noexcept override;
 
         /// <inheritdoc />
         void present(const DirectX12FrameBuffer& frameBuffer) const override;

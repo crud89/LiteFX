@@ -145,7 +145,7 @@ public:
             int renderTarget = 0;
 
             for (auto& image : images)
-                image->handle()->SetName(Widen(m_renderTargets[renderTarget++].name()).c_str());
+                std::as_const(*image).handle()->SetName(Widen(m_renderTargets[renderTarget++].name()).c_str());
 
             auto secondaryCommandBuffers = frameBuffer->commandBuffers();
             int commandBuffer = 0;

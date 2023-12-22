@@ -1134,10 +1134,10 @@ namespace LiteFX::Rendering::Backends {
         Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers() const noexcept override;
 
         /// <inheritdoc />
-        Enumerable<const IVulkanImage*> images() const noexcept override;
+        Enumerable<IVulkanImage*> images() const noexcept override;
 
         /// <inheritdoc />
-        const IVulkanImage& image(UInt32 location) const override;
+        IVulkanImage& image(UInt32 location) const override;
 
     public:
         /// <inheritdoc />
@@ -1391,10 +1391,10 @@ namespace LiteFX::Rendering::Backends {
         const Size2d& renderArea() const noexcept override;
 
         /// <inheritdoc />
-        const IVulkanImage* image(UInt32 backBuffer) const override;
+        IVulkanImage* image(UInt32 backBuffer) const override;
 
         /// <inheritdoc />
-        Enumerable<const IVulkanImage*> images() const noexcept override;
+        Enumerable<IVulkanImage*> images() const noexcept override;
 
         /// <inheritdoc />
         void present(const VulkanFrameBuffer& frameBuffer) const override;

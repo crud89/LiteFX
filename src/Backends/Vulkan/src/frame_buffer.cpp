@@ -13,7 +13,7 @@ public:
 private:
     const VulkanRenderPass& m_renderPass;
     Array<UniquePtr<IVulkanImage>> m_outputAttachments;
-    Array<const IVulkanImage*> m_renderTargetViews;
+    Array<IVulkanImage*> m_renderTargetViews;
 	Array<SharedPtr<VulkanCommandBuffer>> m_commandBuffers;
 	Size2d m_size;
 	VkSemaphore m_semaphore;
@@ -175,12 +175,12 @@ Enumerable<SharedPtr<const VulkanCommandBuffer>> VulkanFrameBuffer::commandBuffe
     return m_impl->m_commandBuffers;
 }
 
-Enumerable<const IVulkanImage*> VulkanFrameBuffer::images() const noexcept
+Enumerable<IVulkanImage*> VulkanFrameBuffer::images() const noexcept
 {
     return m_impl->m_renderTargetViews;
 }
 
-const IVulkanImage& VulkanFrameBuffer::image(UInt32 location) const
+IVulkanImage& VulkanFrameBuffer::image(UInt32 location) const
 {
     if (location >= m_impl->m_renderTargetViews.size())
         throw ArgumentOutOfRangeException("No render target is mapped to location {0}.", location);

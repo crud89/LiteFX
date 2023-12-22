@@ -4529,7 +4529,7 @@ namespace LiteFX::Rendering {
         /// Returns the images that store the output attachments for the render targets of the <see cref="RenderPass" />.
         /// </summary>
         /// <returns>The images that store the output attachments for the render targets of the <see cref="RenderPass" />.</returns>
-        inline Enumerable<const IImage*> images() const noexcept {
+        inline Enumerable<IImage*> images() const noexcept {
             return this->getImages();
         }
 
@@ -4537,7 +4537,7 @@ namespace LiteFX::Rendering {
         /// Returns the image that stores the output attachment for the render target mapped the location passed with <paramref name="location" />.
         /// </summary>
         /// <returns>The image that stores the output attachment for the render target mapped the location passed with <paramref name="location" />.</returns>
-        virtual const IImage& image(UInt32 location) const = 0;
+        virtual IImage& image(UInt32 location) const = 0;
 
     public:
         /// <summary>
@@ -4555,7 +4555,7 @@ namespace LiteFX::Rendering {
     private:
         virtual SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept = 0;
         virtual Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept = 0;
-        virtual Enumerable<const IImage*> getImages() const noexcept = 0;
+        virtual Enumerable<IImage*> getImages() const noexcept = 0;
     };
 
     /// <summary>
@@ -4879,13 +4879,13 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="backBuffer">The index of the back buffer for which to return the swap chain present image.</param>
         /// <returns>A pointer to the back buffers swap chain present image.</returns>
-        virtual const IImage* image(UInt32 backBuffer) const = 0;
+        virtual IImage* image(UInt32 backBuffer) const = 0;
 
         /// <summary>
         /// Returns an array of the swap chain present images.
         /// </summary>
         /// <returns>Returns an array of the swap chain present images.</returns>
-        inline Enumerable<const IImage*> images() const noexcept {
+        inline Enumerable<IImage*> images() const noexcept {
             return this->getImages();
         };
 
@@ -4939,7 +4939,7 @@ namespace LiteFX::Rendering {
         [[nodiscard]] virtual UInt32 swapBackBuffer() const = 0;
 
     private:
-        virtual Enumerable<const IImage*> getImages() const noexcept = 0;
+        virtual Enumerable<IImage*> getImages() const noexcept = 0;
         virtual void addTimingEvent(SharedPtr<TimingEvent> timingEvent) = 0;
     };
 

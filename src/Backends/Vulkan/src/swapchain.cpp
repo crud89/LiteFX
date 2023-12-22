@@ -899,7 +899,7 @@ const Size2d& VulkanSwapChain::renderArea() const noexcept
 	return m_impl->m_renderArea;
 }
 
-const IVulkanImage* VulkanSwapChain::image(UInt32 backBuffer) const
+IVulkanImage* VulkanSwapChain::image(UInt32 backBuffer) const
 {
 	if (backBuffer >= m_impl->m_presentImages.size()) [[unlikely]]
 		throw ArgumentOutOfRangeException("The back buffer must be a valid index.");
@@ -907,9 +907,9 @@ const IVulkanImage* VulkanSwapChain::image(UInt32 backBuffer) const
 	return m_impl->m_presentImages[backBuffer].get();
 }
 
-Enumerable<const IVulkanImage*> VulkanSwapChain::images() const noexcept
+Enumerable<IVulkanImage*> VulkanSwapChain::images() const noexcept
 {
-	return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IVulkanImage>& image) { return image.get(); });
+	return m_impl->m_presentImages | std::views::transform([](UniquePtr<IVulkanImage>& image) { return image.get(); });
 }
 
 void VulkanSwapChain::present(const VulkanFrameBuffer& frameBuffer) const

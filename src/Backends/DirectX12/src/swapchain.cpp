@@ -261,7 +261,7 @@ const Size2d& DirectX12SwapChain::renderArea() const noexcept
 	return m_impl->m_renderArea;
 }
 
-const IDirectX12Image* DirectX12SwapChain::image(UInt32 backBuffer) const
+IDirectX12Image* DirectX12SwapChain::image(UInt32 backBuffer) const
 {
 	if (backBuffer >= m_impl->m_presentImages.size()) [[unlikely]]
 		throw ArgumentOutOfRangeException("The back buffer must be a valid index.");
@@ -269,9 +269,9 @@ const IDirectX12Image* DirectX12SwapChain::image(UInt32 backBuffer) const
 	return m_impl->m_presentImages[backBuffer].get();
 }
 
-Enumerable<const IDirectX12Image*> DirectX12SwapChain::images() const noexcept
+Enumerable<IDirectX12Image*> DirectX12SwapChain::images() const noexcept
 {
-	return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IDirectX12Image>& image) { return image.get(); });
+	return m_impl->m_presentImages | std::views::transform([](UniquePtr<IDirectX12Image>& image) { return image.get(); });
 }
 
 void DirectX12SwapChain::present(const DirectX12FrameBuffer& frameBuffer) const
