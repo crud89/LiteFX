@@ -92,7 +92,7 @@ private:
                 std::views::transform([this](auto i) { return std::make_tuple(i, std::ranges::count_if(m_queues, [i](const auto& q) { return q->queueId() == i; })); });
             auto [queueId, refCount] = *std::ranges::min_element(indices, {}, [](const auto& i) { return std::get<1>(i); });
 
-            LITEFX_DEBUG(VULKAN_LOG, "Creating queue with id {0} (referenced {1} times).", queueId, refCount);
+            LITEFX_DEBUG(VULKAN_LOG, "Creating queue with id {0} of type {2} (referenced {1} times).", queueId, refCount, m_type);
 
             // Create a queue instance with the queue id.
             auto queue = makeUnique<VulkanQueue>(device, m_type, priority, m_id, static_cast<UInt32>(queueId));
