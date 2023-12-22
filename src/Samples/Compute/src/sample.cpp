@@ -44,6 +44,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 {
     using RenderPass = TRenderBackend::render_pass_type;
     using RenderPipeline = TRenderBackend::render_pipeline_type;
+    using ComputePipeline = TRenderBackend::compute_pipeline_type;
     using PipelineLayout = TRenderBackend::pipeline_layout_type;
     using ShaderProgram = TRenderBackend::shader_program_type;
     using InputAssembler = TRenderBackend::input_assembler_type;
@@ -65,7 +66,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     // Create a geometry render pass.
     UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
-        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, {0.1f, 0.1f, 0.1f, 1.f}, true, false, false)
+        .renderTarget("Color Target", RenderTargetType::Color, Format::R8G8B8A8_UNORM, {0.1f, 0.1f, 0.1f, 1.f}, true, false, false)
         .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, {1.f, 0.f, 0.f, 0.f}, true, false, false);
 
     // Create the shader program.
@@ -84,9 +85,44 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .layout(shaderProgram->reflectPipelineLayout())
         .shaderProgram(shaderProgram);
 
+    // Create the blur shader program.
+    SharedPtr<ShaderProgram> blurProgram = device->buildShaderProgram()
+        .withComputeShaderModule("shaders/compute_blur_cs." + FileExtensions<TRenderBackend>::SHADER);
+
+    // Create a compute pipeline.
+    UniquePtr<ComputePipeline> blurPipeline = device->buildComputePipeline("Blur")
+        .layout(blurProgram->reflectPipelineLayout())
+        .shaderProgram(blurProgram);
+
+    // Build a present render pass.
+    UniquePtr<RenderPass> presentPass = device->buildRenderPass("Present")
+        .renderTarget("Present Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.0f, 0.0f, 0.0f, 1.f }, false, false, false);
+
+    // Create a shader program for resolving the blurred image.
+    SharedPtr<ShaderProgram> presentProgram = device->buildShaderProgram()
+        .withVertexShaderModule("shaders/compute_present_vs." + FileExtensions<TRenderBackend>::SHADER)
+        .withFragmentShaderModule("shaders/compute_present_fs." + FileExtensions<TRenderBackend>::SHADER);
+
+    // Create a render pipeline for presentation.
+    SharedPtr<InputAssembler> screenQuadAssembler = device->buildInputAssembler()
+        .topology(PrimitiveTopology::TriangleStrip);
+
+    UniquePtr<RenderPipeline> presentPipeline = device->buildRenderPipeline(*presentPass, "Present")
+        .inputAssembler(device->buildInputAssembler()
+            .topology(PrimitiveTopology::TriangleStrip))
+        .rasterizer(device->buildRasterizer()
+            .polygonMode(PolygonMode::Solid)
+            .cullMode(CullMode::Disabled)
+            .cullOrder(CullOrder::ClockWise))
+        .layout(presentProgram->reflectPipelineLayout())
+        .shaderProgram(presentProgram);
+
     // Add the resources to the device state.
     device->state().add(std::move(renderPass));
+    device->state().add(std::move(presentPass));
     device->state().add(std::move(renderPipeline));
+    device->state().add(std::move(blurPipeline));
+    device->state().add(std::move(presentPipeline));
 }
 
 void SampleApp::initBuffers(IRenderBackend* backend)
@@ -364,6 +400,7 @@ void SampleApp::drawFrame()
 
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
     auto& renderPass = m_device->state().renderPass("Opaque");
+    auto& presentPass = m_device->state().renderPass("Present");
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& transformBuffer = m_device->state().buffer("Transform");
     auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
@@ -371,33 +408,51 @@ void SampleApp::drawFrame()
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 
-    // Wait for all transfers to finish.
-    renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
+    // Draw geometry.
+    {
+        // Wait for all transfers to finish.
+        renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
 
-    // Begin rendering on the render pass and use the only pipeline we've created for it.
-    renderPass.begin(backBuffer);
-    auto commandBuffer = renderPass.activeFrameBuffer().commandBuffer(0);
-    commandBuffer->use(geometryPipeline);
-    commandBuffer->setViewports(m_viewport.get());
-    commandBuffer->setScissors(m_scissor.get());
+        // Begin rendering on the render pass and use the only pipeline we've created for it.
+        renderPass.begin(backBuffer);
+        auto commandBuffer = renderPass.activeFrameBuffer().commandBuffer(0);
+        commandBuffer->use(geometryPipeline);
+        commandBuffer->setViewports(m_viewport.get());
+        commandBuffer->setScissors(m_scissor.get());
 
-    // Get the amount of time that has passed since the first frame.
-    auto now = std::chrono::high_resolution_clock::now();
-    auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+        // Get the amount of time that has passed since the first frame.
+        auto now = std::chrono::high_resolution_clock::now();
+        auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
-    // Compute world transform and update the transform buffer.
-    transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
+        // Compute world transform and update the transform buffer.
+        transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
-    // Bind both descriptor sets to the pipeline.
-    commandBuffer->bind(cameraBindings);
-    commandBuffer->bind(transformBindings);
+        // Bind both descriptor sets to the pipeline.
+        commandBuffer->bind(cameraBindings);
+        commandBuffer->bind(transformBindings);
 
-    // Bind the vertex and index buffers.
-    commandBuffer->bind(vertexBuffer);
-    commandBuffer->bind(indexBuffer);
+        // Bind the vertex and index buffers.
+        commandBuffer->bind(vertexBuffer);
+        commandBuffer->bind(indexBuffer);
 
-    // Draw the object and present the frame by ending the render pass.
-    commandBuffer->drawIndexed(indexBuffer.elements());
-    renderPass.end();
+        // Draw the object and present the frame by ending the render pass.
+        commandBuffer->drawIndexed(indexBuffer.elements());
+        renderPass.end();
+    }
+
+    // Perform post processing on compute queue.
+    {
+
+    }
+
+    // Execute present pass.
+    {
+        presentPass.begin(backBuffer);
+        auto commandBuffer = presentPass.activeFrameBuffer().commandBuffer(0);
+
+        // Draw 4 instances of "nothing" to create the screen quad and end the render pass.
+        commandBuffer->draw(0, 4);
+        presentPass.end();
+    }
 }
