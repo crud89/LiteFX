@@ -107,7 +107,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     SharedPtr<InputAssembler> screenQuadAssembler = device->buildInputAssembler()
         .topology(PrimitiveTopology::TriangleStrip);
 
-    UniquePtr<RenderPipeline> presentPipeline = device->buildRenderPipeline(*presentPass, "Present")
+    UniquePtr<RenderPipeline> presentPipeline = device->buildRenderPipeline(*presentPass, "Resolve")
         .inputAssembler(device->buildInputAssembler()
             .topology(PrimitiveTopology::TriangleStrip))
         .rasterizer(device->buildRasterizer()
@@ -157,6 +157,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraBuffer);
+    m_transferFence = commandBuffer->submit();
 
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
@@ -167,9 +168,15 @@ void SampleApp::initBuffers(IRenderBackend* backend)
         { { .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
         { { .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
     });
-    
-    // End and submit the command buffer.
-    m_transferFence = commandBuffer->submit();
+
+    // Allocate bindings for the blur pass and presentation.
+    auto& blurPipeline = m_device->state().pipeline("Blur");
+    auto& blurInputLayout = blurPipeline.layout()->descriptorSet(0);
+    auto blurBindings = blurInputLayout.allocate({ { } });
+
+    auto& presentPipeline = m_device->state().pipeline("Resolve");
+    auto& presentInputLayout = presentPipeline.layout()->descriptorSet(0);
+    auto presentBindings = presentInputLayout.allocate({ { } });
     
     // Add everything to the state.
     m_device->state().add(std::move(vertexBuffer));
@@ -177,6 +184,8 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_device->state().add(std::move(cameraBuffer));
     m_device->state().add(std::move(transformBuffer));
     m_device->state().add("Camera Bindings", std::move(cameraBindings));
+    m_device->state().add("Blur Bindings", std::move(blurBindings));
+    m_device->state().add("Present Bindings", std::move(presentBindings));
     std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Transform Bindings {0}", i++), std::move(binding)); });
 }
 
@@ -290,6 +299,7 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     //       gets re-created. This is hard to detect, since some frame buffers can have a constant size, that does not change with the render area and do not need to be 
     //       re-created. We should either think of a clever implicit dependency management for this, or at least document this behavior!
     m_device->state().renderPass("Opaque").resizeFrameBuffers(renderArea);
+    m_device->state().renderPass("Present").resizeFrameBuffers(renderArea);
 
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
@@ -401,9 +411,13 @@ void SampleApp::drawFrame()
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
     auto& renderPass = m_device->state().renderPass("Opaque");
     auto& presentPass = m_device->state().renderPass("Present");
+    auto& blurPipeline = m_device->state().pipeline("Blur");
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
+    auto& resolvePipeline = m_device->state().pipeline("Resolve");
     auto& transformBuffer = m_device->state().buffer("Transform");
     auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
+    auto& blurBindings = m_device->state().descriptorSet("Blur Bindings");
+    auto& presentBindings = m_device->state().descriptorSet("Present Bindings");
     auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer));
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
@@ -442,17 +456,68 @@ void SampleApp::drawFrame()
     }
 
     // Perform post processing on compute queue.
-    {
+    UInt64 postProcessFence = 0;
 
+    {
+        // Create a command buffer.
+        auto commandBuffer = m_device->defaultQueue(QueueType::Compute).createCommandBuffer(true);
+        commandBuffer->use(blurPipeline);
+
+        // Get the image from the back buffer of the geometry pass.
+        auto& frameBuffer = renderPass.frameBuffer(backBuffer);
+        auto& image = frameBuffer.image(0);
+
+        // Create a barrier that handles image transition.
+        auto barrier = m_device->makeBarrier(PipelineStage::Fragment, PipelineStage::Compute);
+        barrier->transition(image, ResourceAccess::RenderTarget, ResourceAccess::ShaderReadWrite, ImageLayout::ReadWrite);
+        commandBuffer->barrier(*barrier);
+
+        // Bind the image to the texture descriptor.
+        blurBindings.update(0, image);
+        commandBuffer->bind(blurBindings);
+
+        // Dispatch the blur pass.
+        commandBuffer->dispatch({ static_cast<UInt32>(image.extent().x()), static_cast<UInt32>(image.extent().y()), 1 });
+
+        // Submit the command buffer.
+        //m_device->defaultQueue(QueueType::Compute).waitFor(renderPass.commandQueue(), frameBuffer.lastFence());
+        postProcessFence = commandBuffer->submit();
+
+        // NOTE: Since the queues might have different priorities, we have to wait for the dispatch either later by using a barrier, or explicitly somewhere. Otherwise more 
+        //       command buffers will be allocated than actually being processed.
     }
 
     // Execute present pass.
     {
         presentPass.begin(backBuffer);
         auto commandBuffer = presentPass.activeFrameBuffer().commandBuffer(0);
+        commandBuffer->use(resolvePipeline);
+        commandBuffer->setViewports(m_viewport.get());
+        commandBuffer->setScissors(m_scissor.get());
 
-        // Draw 4 instances of "nothing" to create the screen quad and end the render pass.
+        // Get the image from the back buffer of the geometry pass, as it is the one that was previously handled in the compute queue.
+        auto& frameBuffer = renderPass.frameBuffer(backBuffer);
+        auto& image = frameBuffer.image(0);        
+
+        // Transition the image back to a shader resource.
+        auto barrier = m_device->makeBarrier(PipelineStage::Compute, PipelineStage::Vertex);
+        barrier->transition(image, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderRead, ImageLayout::ShaderResource);
+        commandBuffer->barrier(*barrier);
+
+        // Bind the image to the 
+        presentBindings.update(0, image);
+        commandBuffer->bind(presentBindings);
+
+        // Draw 4 instances of "nothing" to create the screen quad.
         commandBuffer->draw(0, 4);
+
+        // Important: transition the image back to a render target, for the next iteration of this back buffer to be able to render into it.
+        barrier = m_device->makeBarrier(PipelineStage::Fragment, PipelineStage::Fragment);
+        barrier->transition(image, ResourceAccess::ShaderRead, ResourceAccess::RenderTarget, ImageLayout::RenderTarget);
+        commandBuffer->barrier(*barrier);
+
+        // End the render pass in order to present the image.
+        //presentPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Compute), postProcessFence);
         presentPass.end();
     }
 }
