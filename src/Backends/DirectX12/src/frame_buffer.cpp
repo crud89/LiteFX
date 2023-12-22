@@ -27,7 +27,7 @@ public:
     {
         // Initialize the command buffers from the graphics queue.
         m_commandBuffers.resize(commandBuffers);
-        std::ranges::generate(m_commandBuffers, [this]() { return m_renderPass.device().graphicsQueue().createCommandBuffer(false); });
+        std::ranges::generate(m_commandBuffers, [this]() { return m_renderPass.commandQueue().createCommandBuffer(false); });
     }
 
 public:

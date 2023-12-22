@@ -61,9 +61,9 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .topology(PrimitiveTopology::TriangleList)
         .indexType(IndexType::UInt16)
         .vertexBuffer(sizeof(Vertex), 0)
-        .withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
-        .withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
-        .withAttribute(2, BufferFormat::XY32F, offsetof(Vertex, TextureCoordinate0), AttributeSemantic::TextureCoordinate, 0)
+            .withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
+            .withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
+            .withAttribute(2, BufferFormat::XY32F, offsetof(Vertex, TextureCoordinate0), AttributeSemantic::TextureCoordinate, 0)
         .add();
 
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
@@ -96,7 +96,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
 template<typename TDevice> requires
     rtti::implements<TDevice, IGraphicsDevice>
-UInt64 loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampler>& sampler)
+void loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampler>& sampler)
 {
     using TBarrier = typename TDevice::barrier_type;
 
@@ -118,8 +118,8 @@ UInt64 loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampl
     auto stagedTexture = device.factory().createBuffer(BufferType::Other, BufferUsage::Staging, texture->size(0));
     stagedTexture->map(imageData.get(), texture->size(0), 0);
 
-    // Transfer the texture using the compute queue (since we want to be able to generate mip maps, which is done on the compute queue).
-    auto commandBuffer = device.graphicsQueue().createCommandBuffer(true);
+    // Transfer the texture using the graphics queue (since we want to be able to generate mip maps, which is done on the graphics queue in Vulkan and a compute-capable queue in D3D12).
+    auto commandBuffer = device.defaultQueue(QueueType::Graphics).createCommandBuffer(true);
     commandBuffer->transfer(asShared(std::move(stagedTexture)), *texture);
 
     // Generate the rest of the mip maps.
@@ -134,12 +134,10 @@ UInt64 loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampl
 
     // Submit the command buffer and wait for it to execute. Note that it is possible to do the waiting later when we actually use the texture during rendering. This
     // would not block earlier draw calls, if the texture would be streamed in at run-time.
-    auto transferFence = device.graphicsQueue().submit(commandBuffer);
+    auto transferFence = commandBuffer->submit();
 
     // Create a sampler state for the texture.
     sampler = device.factory().createSampler("Sampler", FilterMode::Linear, FilterMode::Linear, BorderMode::Repeat, BorderMode::Repeat, BorderMode::Repeat, MipMapMode::Linear, 0.f, std::numeric_limits<Float>::max(), 0.f, 16.f);
-
-    return transferFence;
 }
 
 template<typename TDevice> requires
@@ -147,7 +145,7 @@ template<typename TDevice> requires
 UInt64 initBuffers(SampleApp& app, TDevice& device, SharedPtr<IInputAssembler> inputAssembler)
 {
     // Get a command buffer
-    auto commandBuffer = device.bufferQueue().createCommandBuffer(true);
+    auto commandBuffer = device.defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 
     // Create the staging buffer.
     // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
@@ -190,13 +188,13 @@ UInt64 initBuffers(SampleApp& app, TDevice& device, SharedPtr<IInputAssembler> i
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
     auto transformBuffer = device.factory().createBuffer("Transform", transformBindingLayout, 0, BufferUsage::Dynamic, 3);
     auto transformBindings = transformBindingLayout.allocateMultiple(3, {
-        { {.binding = 0, .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
-        { {.binding = 0, .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
-        { {.binding = 0, .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
+        { { .binding = 0, .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
+        { { .binding = 0, .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
+        { { .binding = 0, .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
     });
 
     // End and submit the command buffer.
-    auto transferFence = device.bufferQueue().submit(commandBuffer);
+    auto transferFence = commandBuffer->submit();
 
     // Add everything to the state.
     device.state().add(std::move(vertexBuffer));
@@ -331,9 +329,9 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
 
     // Also update the camera.
     auto& cameraBuffer = m_device->state().buffer("Camera");
-    auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
     this->updateCamera(*commandBuffer, cameraBuffer);
-    m_transferFence = m_device->bufferQueue().submit(commandBuffer);
+    m_transferFence = commandBuffer->submit();
 }
 
 void SampleApp::keyDown(int key, int scancode, int action, int mods)
@@ -429,9 +427,6 @@ void SampleApp::drawFrame()
     // Store the initial time this method has been called first.
     static auto start = std::chrono::high_resolution_clock::now();
 
-    // Wait for all transfers to finish.
-    m_device->bufferQueue().waitFor(m_transferFence);
-
     // Swap the back buffers for the next frame.
     auto backBuffer = m_device->swapChain().swapBackBuffer();
 
@@ -444,6 +439,9 @@ void SampleApp::drawFrame()
     auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer));
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
+
+    // Wait for all transfers to finish.
+    renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     renderPass.begin(backBuffer);

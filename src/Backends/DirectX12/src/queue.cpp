@@ -16,15 +16,19 @@ private:
 	QueuePriority m_priority;
 	ComPtr<ID3D12Fence> m_fence;
 	UInt64 m_fenceValue{ 0 };
-	bool m_bound;
 	mutable std::mutex m_mutex;
 	const DirectX12Device& m_device;
 	Array<Tuple<UInt64, SharedPtr<const DirectX12CommandBuffer>>> m_submittedCommandBuffers;
 
 public:
 	DirectX12QueueImpl(DirectX12Queue* parent, const DirectX12Device& device, QueueType type, QueuePriority priority) :
-		base(parent), m_device(device), m_bound(false), m_type(type), m_priority(priority)
+		base(parent), m_device(device), m_type(type), m_priority(priority)
 	{
+	}
+
+	~DirectX12QueueImpl() 
+	{
+		m_submittedCommandBuffers.clear();
 	}
 
 public:
@@ -37,12 +41,18 @@ public:
 		desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 		desc.NodeMask = 0;
 
-		if (LITEFX_FLAG_IS_SET(m_type, QueueType::Graphics))
+		if (m_type == QueueType::Graphics)
 			desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-		else if (LITEFX_FLAG_IS_SET(m_type, QueueType::Compute))
+		else if (m_type == QueueType::Compute)
 			desc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
-		else if (LITEFX_FLAG_IS_SET(m_type, QueueType::Transfer))
+		else if (m_type == QueueType::VideoDecode)
+			desc.Type = D3D12_COMMAND_LIST_TYPE_VIDEO_DECODE;
+		else if (m_type == QueueType::VideoEncode)
+			desc.Type = D3D12_COMMAND_LIST_TYPE_VIDEO_ENCODE;
+		else if (m_type == QueueType::Transfer)
 			desc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
+		else // Combinations are not supported here. All queues implicitly support transfer operations, but it is not valid to provide combinations like `QueueType::Graphics | QueueType::VideoEncode`.
+			throw InvalidArgumentException("Unsupported combination of queue types. Only specify one queue type, even if the queue needs to support other tasks).");
 
 		switch (m_priority)
 		{
@@ -63,26 +73,6 @@ public:
 
 		return commandQueue;
 	}
-
-	void release()
-	{
-		if (!m_bound)
-			return;
-
-		m_submittedCommandBuffers.clear();
-
-		// TODO: Destroy command pool, if bound.
-		m_bound = false;
-	}
-
-	void bind()
-	{
-		if (m_bound)
-			return;
-
-		// TODO: Create a command pool.
-		m_bound = true;
-	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -95,19 +85,11 @@ DirectX12Queue::DirectX12Queue(const DirectX12Device& device, QueueType type, Qu
 	this->handle() = m_impl->initialize();
 }
 
-DirectX12Queue::~DirectX12Queue() noexcept
-{
-	this->release();
-}
+DirectX12Queue::~DirectX12Queue() noexcept = default;
 
 const DirectX12Device& DirectX12Queue::device() const noexcept
 {
 	return m_impl->m_device;
-}
-
-bool DirectX12Queue::isBound() const noexcept
-{
-	return m_impl->m_bound;
 }
 
 QueueType DirectX12Queue::type() const noexcept
@@ -116,17 +98,17 @@ QueueType DirectX12Queue::type() const noexcept
 }
 
 #if !defined(NDEBUG) && defined(_WIN64)
-void DirectX12Queue::BeginDebugRegion(const String& label, const Vectors::ByteVector3& color) const noexcept
+void DirectX12Queue::beginDebugRegion(const String& label, const Vectors::ByteVector3& color) const noexcept
 {
 	::PIXBeginEvent(this->handle().Get(), PIX_COLOR(color.x(), color.y(), color.z()), label.c_str());
 }
 
-void DirectX12Queue::EndDebugRegion() const noexcept
+void DirectX12Queue::endDebugRegion() const noexcept
 {
 	::PIXEndEvent(this->handle().Get());
 }
 
-void DirectX12Queue::SetDebugMarker(const String& label, const Vectors::ByteVector3& color) const noexcept
+void DirectX12Queue::setDebugMarker(const String& label, const Vectors::ByteVector3& color) const noexcept
 {
 	::PIXSetMarker(this->handle().Get(), PIX_COLOR(color.x(), color.y(), color.z()), label.c_str());
 }
@@ -137,21 +119,9 @@ QueuePriority DirectX12Queue::priority() const noexcept
 	return m_impl->m_priority;
 }
 
-void DirectX12Queue::bind()
-{
-	m_impl->bind();
-	this->bound(this, { });
-}
-
-void DirectX12Queue::release()
-{
-	m_impl->release();
-	this->released(this, { });
-}
-
 SharedPtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(bool beginRecording, bool secondary) const
 {
-	return makeShared<DirectX12CommandBuffer>(*this, beginRecording, !secondary);
+	return DirectX12CommandBuffer::create(*this, beginRecording, !secondary);
 }
 
 UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const
@@ -249,6 +219,11 @@ void DirectX12Queue::waitFor(UInt64 fence) const noexcept
 		return true;
 	});
 	m_impl->m_submittedCommandBuffers.erase(from, to);
+}
+
+void DirectX12Queue::waitFor(const DirectX12Queue& queue, UInt64 fence) const noexcept
+{
+	this->handle()->Wait(queue.m_impl->m_fence.Get(), fence);
 }
 
 UInt64 DirectX12Queue::currentFence() const noexcept

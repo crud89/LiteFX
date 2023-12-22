@@ -103,7 +103,7 @@ namespace LiteFX::Rendering {
     /// graphics queue, you do not need to synchronize in order to wait for the result, however this also means that no rendering can take place until the workloads have
     /// finished.
     /// </remarks>
-    enum class LITEFX_RENDERING_API QueueType {
+    enum class LITEFX_RENDERING_API QueueType : UInt32 {
         /// <summary>
         /// Describes an unspecified command queue. It is not valid to create a queue instance with this type.
         /// </summary>
@@ -123,6 +123,22 @@ namespace LiteFX::Rendering {
         /// Represents a queue that can execute only transfer workloads.
         /// </summary>
         Transfer = 0x00000004,
+
+        /// <summary>
+        /// Represents a queue that can perform hardware video decoding.
+        /// </summary>
+        /// <remarks>
+        /// Video encoding/decoding is currently not a supported feature, but knowing all the capabilities of a queue is useful to select the best queue family for a particular task.
+        /// </remarks>
+        VideoDecode = 0x00000010,
+
+        /// <summary>
+        /// Represents a queue that can perform hardware video encoding.
+        /// </summary>
+        /// <remarks>
+        /// Video encoding/decoding is currently a supported feature, but knowing all the capabilities of a queue is useful to select the best queue family for a particular task.
+        /// </remarks>
+        VideoEncode = 0x00000020,
 
         /// <summary>
         /// Represents an invalid queue type.
@@ -147,6 +163,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// The highest possible queue priority. Submitting work to this queue might block other queues.
         /// </summary>
+        /// <remarks>
+        /// Do not use this queue priority when creating queues, as it is reserved for the default (builtin) queues.
+        /// </remarks>
         Realtime = 100
     };
 
@@ -2527,7 +2546,7 @@ namespace LiteFX::Rendering {
         /// Returns a pointer with shared ownership to the current instance.
         /// </summary>
         /// <returns>A pointer with shared ownership to the current instance.</returns>
-        std::shared_ptr<TimingEvent> getptr() {
+        inline std::shared_ptr<TimingEvent> getptr() {
             return shared_from_this();
         }
 
@@ -3406,7 +3425,7 @@ namespace LiteFX::Rendering {
         /// Returns the layouts of the descriptors within the descriptor set.
         /// </summary>
         /// <returns>The layouts of the descriptors within the descriptor set.</returns>
-        Enumerable<const IDescriptorLayout*> descriptors() const noexcept {
+        inline Enumerable<const IDescriptorLayout*> descriptors() const noexcept {
             return this->getDescriptors();
         }
 
@@ -3503,7 +3522,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The instance of the descriptor set.</returns>
         /// <seealso cref="IDescriptorLayout" />
-        UniquePtr<IDescriptorSet> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const {
+        inline UniquePtr<IDescriptorSet> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const {
             return this->allocate(0, bindings);
         }
 
@@ -3514,7 +3533,7 @@ namespace LiteFX::Rendering {
         /// <param name="bindings">Optional default bindings for descriptors in the descriptor set.</param>
         /// <returns>The instance of the descriptor set.</returns>
         /// <seealso cref="IDescriptorLayout" />
-        UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const {
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const {
             return this->getDescriptorSet(descriptors, bindings);
         }
 
@@ -3525,7 +3544,7 @@ namespace LiteFX::Rendering {
         /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
-        Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const {
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const {
             return this->allocateMultiple(descriptorSets, 0, bindings);
         }
 
@@ -3536,7 +3555,7 @@ namespace LiteFX::Rendering {
         /// <param name="bindingFactory">A factory function that is called for each descriptor set in order to provide the default bindings.</param>
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
-        Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const {
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const {
             return this->allocateMultiple(descriptorSets, 0, bindingFactory);
         }
 
@@ -3548,7 +3567,7 @@ namespace LiteFX::Rendering {
         /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
-        Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const {
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const {
             return this->getDescriptorSets(descriptorSets, descriptors, bindings);
         }
 
@@ -3560,7 +3579,7 @@ namespace LiteFX::Rendering {
         /// <param name="bindingFactory">A factory function that is called for each descriptor set in order to provide the default bindings.</param>
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
-        Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const {
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const {
             return this->getDescriptorSets(descriptorSets, descriptors, bindingFactory);
         }
 
@@ -3568,7 +3587,7 @@ namespace LiteFX::Rendering {
         /// Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.
         /// </summary>
         /// <seealso cref="allocate" />
-        void free(const IDescriptorSet& descriptorSet) const noexcept {
+        inline void free(const IDescriptorSet& descriptorSet) const noexcept {
             this->releaseDescriptorSet(descriptorSet);
         }
 
@@ -3650,7 +3669,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>All push constant ranges.</returns>
         /// <seealso cref="range" />
-        Enumerable<const IPushConstantsRange*> ranges() const noexcept {
+        inline Enumerable<const IPushConstantsRange*> ranges() const noexcept {
             return this->getRanges();
         }
 
@@ -3671,7 +3690,7 @@ namespace LiteFX::Rendering {
         /// Returns the modules, the shader program is build from.
         /// </summary>
         /// <returns>The modules, the shader program is build from.</returns>
-        Enumerable<const IShaderModule*> modules() const noexcept {
+        inline Enumerable<const IShaderModule*> modules() const noexcept {
             return this->getModules();
         }
 
@@ -3699,7 +3718,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The pipeline layout extracted from shader reflection.</returns>
         /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
-        SharedPtr<IPipelineLayout> reflectPipelineLayout() const {
+        inline SharedPtr<IPipelineLayout> reflectPipelineLayout() const {
             return this->parsePipelineLayout();
         };
 
@@ -3727,7 +3746,7 @@ namespace LiteFX::Rendering {
         /// Returns all descriptor set layouts, the pipeline has been initialized with.
         /// </summary>
         /// <returns>All descriptor set layouts, the pipeline has been initialized with.</returns>
-        Enumerable<const IDescriptorSetLayout*> descriptorSets() const noexcept {
+        inline Enumerable<const IDescriptorSetLayout*> descriptorSets() const noexcept {
             return this->getDescriptorSets();
         }
 
@@ -3783,7 +3802,7 @@ namespace LiteFX::Rendering {
         /// Returns all vertex buffer layouts of the input assembly.
         /// </summary>
         /// <returns>All vertex buffer layouts of the input assembly.</returns>
-        Enumerable<const IVertexBufferLayout*> vertexBufferLayouts() const noexcept {
+        inline Enumerable<const IVertexBufferLayout*> vertexBufferLayouts() const noexcept {
             return this->getVertexBufferLayouts();
         }
 
@@ -3823,7 +3842,7 @@ namespace LiteFX::Rendering {
         /// Returns the shader program used by the pipeline.
         /// </summary>
         /// <returns>The shader program used by the pipeline.</returns>
-        SharedPtr<const IShaderProgram> program() const noexcept {
+        inline SharedPtr<const IShaderProgram> program() const noexcept {
             return this->getProgram();
         }
 
@@ -3831,7 +3850,7 @@ namespace LiteFX::Rendering {
         /// Returns the layout of the render pipeline.
         /// </summary>
         /// <returns>The layout of the render pipeline.</returns>
-        SharedPtr<const IPipelineLayout> layout() const noexcept {
+        inline SharedPtr<const IPipelineLayout> layout() const noexcept {
             return this->getLayout();
         }
 
@@ -3886,7 +3905,7 @@ namespace LiteFX::Rendering {
         /// order. You might have to manually synchronize barrier execution.
         /// </remarks>
         /// <param name="barrier">The barrier containing the transitions to perform.</param>
-        void barrier(const IBarrier& barrier) const noexcept {
+        inline void barrier(const IBarrier& barrier) const noexcept {
             this->cmdBarrier(barrier);
         }
 
@@ -3903,7 +3922,7 @@ namespace LiteFX::Rendering {
         /// Note that generating mip maps might require the texture to be writable. You can transfer the texture into a non-writable resource afterwards to improve performance.
         /// </remarks>
         /// <param name="commandBuffer">The command buffer used to issue the transition and transfer operations.</param>
-        void generateMipMaps(IImage& image) noexcept {
+        inline void generateMipMaps(IImage& image) noexcept {
             this->cmdGenerateMipMaps(image);
         }
 
@@ -3921,7 +3940,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements to copy from the source buffer into the target buffer.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
         /// <seealso cref="IBarrier" />
-        void transfer(IBuffer& source, IBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const {
+        inline void transfer(IBuffer& source, IBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, targetElement, elements);
         }
         
@@ -3945,7 +3964,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetElement">The index of the first element in the target buffer to copy to.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target buffer.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(SharedPtr<IBuffer> source, IBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const {
+        inline void transfer(SharedPtr<IBuffer> source, IBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, targetElement, elements);
         }
 
@@ -3984,7 +4003,7 @@ namespace LiteFX::Rendering {
         /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(IBuffer& source, IImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
+        inline void transfer(IBuffer& source, IImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, firstSubresource, elements);
         }
 
@@ -4030,7 +4049,7 @@ namespace LiteFX::Rendering {
         /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(SharedPtr<IBuffer> source, IImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
+        inline void transfer(SharedPtr<IBuffer> source, IImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, firstSubresource, elements);
         }
 
@@ -4047,7 +4066,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetSubresource">The image of the first sub-resource in the target image to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy between the images.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(IImage& source, IImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const {
+        inline void transfer(IImage& source, IImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, sourceSubresource, targetSubresource, subresources);
         }
 
@@ -4071,7 +4090,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetSubresource">The image of the first sub-resource in the target image to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy between the images.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(SharedPtr<IImage> source, IImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const {
+        inline void transfer(SharedPtr<IImage> source, IImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, sourceSubresource, targetSubresource, subresources);
         }
 
@@ -4110,7 +4129,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetElement">The index of the first target element to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(IImage& source, IBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const {
+        inline void transfer(IImage& source, IBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, firstSubresource, targetElement, subresources);
         }
 
@@ -4156,14 +4175,14 @@ namespace LiteFX::Rendering {
         /// <param name="targetElement">The index of the first target element to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(SharedPtr<IImage> source, IBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const {
+        inline void transfer(SharedPtr<IImage> source, IBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, firstSubresource, targetElement, subresources);
         }
 
         /// <summary>
         /// Sets the active pipeline state.
         /// </summary>
-        void use(const IPipeline& pipeline) const noexcept {
+        inline void use(const IPipeline& pipeline) const noexcept {
             this->cmdUse(pipeline);
         }
 
@@ -4182,7 +4201,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="descriptorSet">The descriptor set to bind.</param>
         /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
-        void bind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept {
+        inline void bind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept {
             this->cmdBind(descriptorSet, pipeline);
         }
 
@@ -4196,7 +4215,7 @@ namespace LiteFX::Rendering {
         /// <seealso cref="VertexBuffer" />
         /// <seealso cref="draw" />
         /// <seealso cref="drawIndexed" />
-        void bind(const IVertexBuffer& buffer) const noexcept {
+        inline void bind(const IVertexBuffer& buffer) const noexcept {
             this->cmdBind(buffer);
         }
 
@@ -4209,7 +4228,7 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">The index buffer to bind to the pipeline.</param>
         /// <seealso cref="IndexBuffer" />
         /// <seealso cref="drawIndexed" />
-        void bind(const IIndexBuffer& buffer) const noexcept {
+        inline void bind(const IIndexBuffer& buffer) const noexcept {
             this->cmdBind(buffer);
         }
 
@@ -4243,7 +4262,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="layout">The layout of the push constants to update.</param>
         /// <param name="memory">A pointer to the source memory.</param>
-        void pushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept {
+        inline void pushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept {
             this->cmdPushConstants(layout, memory);
         }
 
@@ -4257,7 +4276,7 @@ namespace LiteFX::Rendering {
         /// <param name="instances">The number of instances to draw.</param>
         /// <param name="firstVertex">The index of the first vertex to start drawing from.</param>
         /// <param name="firstInstance">The index of the first instance to draw.</param>
-        void draw(const IVertexBuffer& vertexBuffer, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const {
+        inline void draw(const IVertexBuffer& vertexBuffer, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const {
             this->cmdDraw(vertexBuffer, instances, firstVertex, firstInstance);
         }
 
@@ -4272,7 +4291,7 @@ namespace LiteFX::Rendering {
         /// <param name="firstIndex">The index of the first element of the index buffer to start drawing from.</param>
         /// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
         /// <param name="firstInstance">The index of the first instance to draw.</param>
-        void drawIndexed(const IIndexBuffer& indexBuffer, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const {
+        inline void drawIndexed(const IIndexBuffer& indexBuffer, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const {
             this->cmdDrawIndexed(indexBuffer, instances, firstIndex, vertexOffset, firstInstance);
         }
 
@@ -4288,7 +4307,7 @@ namespace LiteFX::Rendering {
         /// <param name="firstIndex">The index of the first element of the index buffer to start drawing from.</param>
         /// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
         /// <param name="firstInstance">The index of the first instance to draw.</param>
-        void drawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const {
+        inline void drawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const {
             this->cmdDrawIndexed(vertexBuffer, indexBuffer, instances, firstIndex, vertexOffset, firstInstance);
         }
 
@@ -4333,6 +4352,12 @@ namespace LiteFX::Rendering {
         virtual void setStencilRef(UInt32 stencilRef) const noexcept = 0;
 
         /// <summary>
+        /// Submits the command buffer to parent command
+        /// </summary>
+        /// <exception cref="RuntimeException">Thrown, if the command buffer is a secondary command buffer.</exception>
+        virtual UInt64 submit() const = 0;
+
+        /// <summary>
         /// Writes the current GPU time stamp value for the timing event.
         /// </summary>
         /// <param name="timingEvent">The timing event for which the time stamp is written.</param>
@@ -4342,7 +4367,7 @@ namespace LiteFX::Rendering {
         /// Executes a secondary command buffer/bundle.
         /// </summary>
         /// <param name="commandBuffer">The secondary command buffer/bundle to execute.</param>
-        void execute(SharedPtr<const ICommandBuffer> commandBuffer) const {
+        inline void execute(SharedPtr<const ICommandBuffer> commandBuffer) const {
             this->cmdExecute(commandBuffer);
         }
 
@@ -4350,7 +4375,7 @@ namespace LiteFX::Rendering {
         /// Executes a series of secondary command buffers/bundles.
         /// </summary>
         /// <param name="commandBuffers">The command buffers to execute.</param>
-        void execute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const {
+        inline void execute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const {
             this->cmdExecute(commandBuffers);
         }
 
@@ -4395,7 +4420,7 @@ namespace LiteFX::Rendering {
         /// Returns the input assembler state used by the render pipeline.
         /// </summary>
         /// <returns>The input assembler state used by the render pipeline.</returns>
-        SharedPtr<IInputAssembler> inputAssembler() const noexcept {
+        inline SharedPtr<IInputAssembler> inputAssembler() const noexcept {
             return this->getInputAssembler();
         }
 
@@ -4403,7 +4428,7 @@ namespace LiteFX::Rendering {
         /// Returns the rasterizer state used by the render pipeline.
         /// </summary>
         /// <returns>The rasterizer state used by the render pipeline.</returns>
-        SharedPtr<IRasterizer> rasterizer() const noexcept {
+        inline SharedPtr<IRasterizer> rasterizer() const noexcept {
             return this->getRasterizer();
         }
 
@@ -4485,7 +4510,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>All command buffers, the frame buffer stores.</returns>
         /// <seealso cref="commandBuffer" />
-        Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers() const noexcept {
+        inline Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers() const noexcept {
             return this->getCommandBuffers();
         }
 
@@ -4496,7 +4521,7 @@ namespace LiteFX::Rendering {
         /// <returns>A command buffer that records draw commands for the frame buffer</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the frame buffer does not store a command buffer at <paramref name="index" />.</exception>
         /// <seealso cref="commandBuffers" />
-        SharedPtr<const ICommandBuffer> commandBuffer(UInt32 index) const {
+        inline SharedPtr<const ICommandBuffer> commandBuffer(UInt32 index) const {
             return this->getCommandBuffer(index);
         }
 
@@ -4504,7 +4529,7 @@ namespace LiteFX::Rendering {
         /// Returns the images that store the output attachments for the render targets of the <see cref="RenderPass" />.
         /// </summary>
         /// <returns>The images that store the output attachments for the render targets of the <see cref="RenderPass" />.</returns>
-        Enumerable<const IImage*> images() const noexcept {
+        inline Enumerable<const IImage*> images() const noexcept {
             return this->getImages();
         }
 
@@ -4562,7 +4587,7 @@ namespace LiteFX::Rendering {
             /// Gets the index of the next back-buffer used in the render pass.
             /// </summary>
             /// <returns>The index of the next back-buffer used in the render pass.</returns>
-            UInt32 backBuffer() const noexcept {
+            inline UInt32 backBuffer() const noexcept {
                 return m_backBuffer;
             }
         };
@@ -4583,10 +4608,19 @@ namespace LiteFX::Rendering {
         virtual const IFrameBuffer& activeFrameBuffer() const = 0;
 
         /// <summary>
+        /// Returns the command queue, the render pass is executing on.
+        /// </summary>
+        /// <returns>A reference of the command queue, the render pass is executing on.</returns>
+        inline const ICommandQueue& commandQueue() const noexcept {
+            // NOTE: This should be a covariant, though?!
+            return this->getCommandQueue();
+        }
+
+        /// <summary>
         /// Returns a list of all frame buffers.
         /// </summary>
         /// <returns>A list of all frame buffers. </returns>
-        Enumerable<const IFrameBuffer*> frameBuffers() const noexcept {
+        inline Enumerable<const IFrameBuffer*> frameBuffers() const noexcept {
             return this->getFrameBuffers();
         }
 
@@ -4595,7 +4629,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>An array of all render pipelines, owned by the render pass.</returns>
         /// <seealso cref="IRenderPipeline" />
-        Enumerable<const IRenderPipeline*> pipelines() const noexcept {
+        inline Enumerable<const IRenderPipeline*> pipelines() const noexcept {
             return this->getPipelines();
         }
 
@@ -4686,7 +4720,7 @@ namespace LiteFX::Rendering {
         /// Resolves the input attachments mapped to the render pass and updates them on the descriptor set provided with <see cref="descriptorSet" />.
         /// </summary>
         /// <param name="descriptorSet">The descriptor set to update the input attachments on.</param>
-        void updateAttachments(const IDescriptorSet& descriptorSet) const {
+        inline void updateAttachments(const IDescriptorSet& descriptorSet) const {
             this->setAttachments(descriptorSet);
         }
 
@@ -4694,6 +4728,7 @@ namespace LiteFX::Rendering {
         virtual Enumerable<const IFrameBuffer*> getFrameBuffers() const noexcept = 0;
         virtual Enumerable<const IRenderPipeline*> getPipelines() const noexcept = 0;
         virtual void setAttachments(const IDescriptorSet& descriptorSet) const = 0;
+        virtual const ICommandQueue& getCommandQueue() const noexcept = 0;
     };
 
     /// <summary>
@@ -4726,7 +4761,7 @@ namespace LiteFX::Rendering {
             /// Gets the new surface format of the swap chain back-buffers.
             /// </summary>
             /// <returns>The new surface format of the swap chain back-buffers.</returns>
-            Format surfaceFormat() const noexcept {
+            inline Format surfaceFormat() const noexcept {
                 return m_surfaceFormat;
             }
 
@@ -4734,7 +4769,7 @@ namespace LiteFX::Rendering {
             /// Gets the new render area of the swap chain back-buffers.
             /// </summary>
             /// <returns>The size of the new render area of the swap chain back-buffers.</returns>
-            const Size2d& renderArea() const noexcept {
+            inline const Size2d& renderArea() const noexcept {
                 return m_renderArea;
             }
 
@@ -4742,7 +4777,7 @@ namespace LiteFX::Rendering {
             /// Gets the number of back-buffers in the swap chain.
             /// </summary>
             /// <returns>The number of back-buffers in the swap chain.</returns>
-            UInt32 buffers() const noexcept {
+            inline UInt32 buffers() const noexcept {
                 return m_buffers;
             }
         };
@@ -4760,7 +4795,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="name">The name of the timing event.</param>
         /// <returns>A pointer with shared ownership to the newly created timing event instance.</returns>
-        [[nodiscard]] std::shared_ptr<TimingEvent> registerTimingEvent(StringView name = "") noexcept {
+        [[nodiscard]] inline std::shared_ptr<TimingEvent> registerTimingEvent(StringView name = "") noexcept {
             auto timingEvent = SharedPtr<TimingEvent>(new TimingEvent(*this, name));
             this->addTimingEvent(timingEvent);
             return timingEvent;
@@ -4829,7 +4864,7 @@ namespace LiteFX::Rendering {
         /// Returns an array of the swap chain present images.
         /// </summary>
         /// <returns>Returns an array of the swap chain present images.</returns>
-        Enumerable<const IImage*> images() const noexcept {
+        inline Enumerable<const IImage*> images() const noexcept {
             return this->getImages();
         };
 
@@ -4915,7 +4950,7 @@ namespace LiteFX::Rendering {
             /// Gets the command buffers that are about to be submitted to the queue.
             /// </summary>
             /// <returns>An array containing the command buffers that are about to be submitted to the queue.</returns>
-            const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers() const noexcept {
+            inline const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers() const noexcept {
                 return m_commandBuffers;
             }
         };
@@ -4943,7 +4978,7 @@ namespace LiteFX::Rendering {
             /// Gets the fence that is triggered, if the command buffers have been executed.
             /// </summary>
             /// <returns>The fence that is triggered, if the command buffers have been executed.</returns>
-            UInt64 fence() const noexcept {
+            inline UInt64 fence() const noexcept {
                 return m_fence;
             }
         };
@@ -4952,18 +4987,6 @@ namespace LiteFX::Rendering {
         virtual ~ICommandQueue() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns <c>true</c>, if the command queue is bound on the parent device.
-        /// </summary>
-        /// <remarks>
-        /// Before a command queue can receive commands, it needs to be bound to a device. This ensures, that the queue is actually able to allocate commands. A 
-        /// command queue starts in unbound state until <see cref="bind" /> gets called. Destroying the queue also releases it by calling <see cref="release" />.
-        /// </remarks>
-        /// <seealso cref="bind" />
-        /// <seealso cref="release" />
-        /// <returns><c>true</c>, if the command queue is bound on a device.</returns>
-        virtual bool isBound() const noexcept = 0;
-
         /// <summary>
         /// Returns the priority of the queue.
         /// </summary>
@@ -4985,7 +5008,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="label">The name of the debug region.</param>
         /// <param name="color">The color of the debug region.</param>
-        virtual void BeginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
+        virtual void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
         
         /// <summary>
         /// Ends the current debug region.
@@ -4993,7 +5016,7 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// This is a debug helper, that is not required to be implemented. In the built-in backends, it will no-op by default in non-debug builds.
         /// </remarks>
-        virtual void EndDebugRegion() const noexcept { };
+        virtual void endDebugRegion() const noexcept { };
 
         /// <summary>
         /// Inserts a debug marker.
@@ -5003,19 +5026,9 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="label">The name of the debug marker.</param>
         /// <param name="color">The color of the debug marker.</param>
-        virtual void SetDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
+        virtual void setDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
 
     public:
-        /// <summary>
-        /// Invoked, when the queue has been bound on the parent device.
-        /// </summary>
-        mutable Event<EventArgs> bound;
-
-        /// <summary>
-        /// Invoked, when the queue is released from the parent device.
-        /// </summary>
-        mutable Event<EventArgs> released;
-
         /// <summary>
         /// Invoked, when one or more command buffers are submitted to the queue.
         /// </summary>
@@ -5025,17 +5038,6 @@ namespace LiteFX::Rendering {
         /// Invoked, after one or more command buffers have been submitted to the queue.
         /// </summary>
         mutable Event<QueueSubmittedEventArgs> submitted;
-
-        /// <summary>
-        /// Binds the queue on the parent device.
-        /// </summary>
-        /// <seealso cref="isBound" />
-        virtual void bind() = 0;
-
-        /// <summary>
-        /// Releases the queue from the parent device.
-        /// </summary>
-        virtual void release() = 0;
 
         /// <summary>
         /// Creates a command buffer that can be used to allocate commands on the queue.
@@ -5050,7 +5052,7 @@ namespace LiteFX::Rendering {
         /// <param name="beginRecording">If set to <c>true</c>, the command buffer will be initialized in recording state and can receive commands straight away.</param>
         /// <param name="secondary">If set to `true`, the method will create a secondary command buffer/bundle.</param>
         /// <returns>The instance of the command buffer.</returns>
-        SharedPtr<ICommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const {
+        inline SharedPtr<ICommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const {
             return this->getCommandBuffer(beginRecording, secondary);
         }
 
@@ -5066,7 +5068,7 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffer.</returns>
         /// <seealso cref="waitFor" />
-        UInt64 submit(SharedPtr<const ICommandBuffer> commandBuffer) const {
+        inline UInt64 submit(SharedPtr<const ICommandBuffer> commandBuffer) const {
             return this->submitCommandBuffer(commandBuffer);
         }
 
@@ -5082,7 +5084,7 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffer.</returns>
         /// <seealso cref="waitFor" />
-        UInt64 submit(SharedPtr<ICommandBuffer> commandBuffer) const {
+        inline UInt64 submit(SharedPtr<ICommandBuffer> commandBuffer) const {
             return this->submitCommandBuffer(commandBuffer);
         }
 
@@ -5098,7 +5100,7 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffers.</returns>
         /// <seealso cref="waitFor" />
-        UInt64 submit(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const {
+        inline UInt64 submit(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const {
             return this->submitCommandBuffers(commandBuffers);
         }
 
@@ -5114,26 +5116,32 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffers.</returns>
         /// <seealso cref="waitFor" />
-        UInt64 submit(const Enumerable<SharedPtr<ICommandBuffer>>& commandBuffers) const {
+        inline UInt64 submit(const Enumerable<SharedPtr<ICommandBuffer>>& commandBuffers) const {
             return this->submitCommandBuffers(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const ICommandBuffer>>>());
         }
 
         /// <summary>
-        /// Waits for a certain fence value to complete on the command queue.
+        /// Lets the CPU wait for a certain fence value to complete on the command queue.
         /// </summary>
         /// <remarks>
-        /// Each time one or more command buffers are submitted to the queue, a fence is inserted and its value will be returned. By calling this method, it is possible to
-        /// wait for this fence. A fence value is guaranteed to be larger than earlier fences, so the method returns, if the latest signaled fence value is larger or equal
-        /// to the value specified in <paramref name="fence" />. 
-        /// 
-        /// Note that this behavior can cause overflows when performing *excessive* fencing! Take for example a scenario, where each frame requires 80 fences to be signaled
-        /// and an application that runs at 60 frames per second in average. In this case, each second 4.800 fences are inserted into the queue. Given the limit of an 64
-        /// bit unsigned integer fence value, the application can run ~2.9 billion years before overflowing. Drop me an e-mail or open an issue, if you ever happen to run 
-        /// into such a situation.
+        /// This overload performs a CPU-side wait, i.e., the CPU blocks until the current queue has passed the fence value provided by the <paramref name="fence" /> parameter.
         /// </remarks>
         /// <param name="fence">The value of the fence to wait for.</param>
         /// <seealso cref="submit" />
         virtual void waitFor(UInt64 fence) const noexcept = 0;
+
+        /// <summary>
+        /// Lets the command queue wait for a certain fence value to complete on another queue.
+        /// </summary>
+        /// <remarks>
+        /// This overload performs a GPU-side wait, i.e., the current command queue waits until <paramref name="queue" /> has passed the fence value provided by the <paramref name="fence" />
+        /// parameter. This overload does return immediately and does not block the CPU.
+        /// </remarks>
+        /// <param name="queue">The queue to wait upon.</param>
+        /// <param name="fence">The value of the fence to wait upon on the other queue.</param>
+        inline void waitFor(const ICommandQueue& queue, UInt64 fence) const {
+            this->waitForQueue(queue, fence);
+        }
 
         /// <summary>
         /// Returns the value of the latest fence inserted into the queue.
@@ -5146,9 +5154,10 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<ICommandBuffer> getCommandBuffer(bool beginRecording, bool secondary) const = 0;
         virtual UInt64 submitCommandBuffer(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
         virtual UInt64 submitCommandBuffers(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const = 0;
+        virtual void waitForQueue(const ICommandQueue& queue, UInt64 fence) const = 0;
         
     protected:
-        void releaseSharedState(const ICommandBuffer& commandBuffer) const {
+        inline void releaseSharedState(const ICommandBuffer& commandBuffer) const {
             commandBuffer.releaseSharedState();
         }
     };
@@ -5170,7 +5179,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const {
             return this->getBuffer(type, usage, elementSize, elements, allowWrite);
         };
 
@@ -5183,7 +5192,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, BufferUsage usage, UInt32 elements = 1, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, BufferUsage usage, UInt32 elements = 1, bool allowWrite = false) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->createBuffer(descriptor.type(), usage, descriptor.elementSize(), elements, allowWrite);
         };
@@ -5197,7 +5206,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, BufferUsage usage, UInt32 elementSize, UInt32 elements, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, BufferUsage usage, UInt32 elementSize, UInt32 elements, bool allowWrite = false) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->createBuffer(descriptor.type(), usage, elementSize, elements, allowWrite);
         };
@@ -5212,7 +5221,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, BufferUsage usage, UInt32 elementSize, UInt32 elements, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, BufferUsage usage, UInt32 elementSize, UInt32 elements, bool allowWrite = false) const {
             return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, usage, elementSize, elements, allowWrite);
         };
 
@@ -5226,7 +5235,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, BufferUsage usage, UInt32 elements = 1, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, BufferUsage usage, UInt32 elements = 1, bool allowWrite = false) const {
             return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, usage, elements, allowWrite);
         };
 
@@ -5240,7 +5249,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite = false) const {
             return this->getBuffer(name, type, usage, elementSize, elements, allowWrite);
         };
 
@@ -5254,7 +5263,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, BufferUsage usage, UInt32 elements = 1, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, BufferUsage usage, UInt32 elements = 1, bool allowWrite = false) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->createBuffer(name, descriptor.type(), usage, descriptor.elementSize(), elements, allowWrite);
         };
@@ -5270,7 +5279,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite = false) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->createBuffer(name, descriptor.type(), usage, elementSize, elements, allowWrite);
         };
@@ -5286,7 +5295,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, BufferUsage usage, UInt32 elements = 1, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, BufferUsage usage, UInt32 elements = 1, bool allowWrite = false) const {
             return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, usage, elements, allowWrite);
         };
 
@@ -5302,7 +5311,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const {
             return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, usage, elementSize, elements, allowWrite);
         };
 
@@ -5318,7 +5327,7 @@ namespace LiteFX::Rendering {
         /// <param name="usage">The buffer usage.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
         /// <returns>The instance of the vertex buffer.</returns>
-        UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const {
+        inline UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const {
             return this->getVertexBuffer(layout, usage, elements);
         }
 
@@ -5335,7 +5344,7 @@ namespace LiteFX::Rendering {
         /// <param name="usage">The buffer usage.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
         /// <returns>The instance of the vertex buffer.</returns>
-        UniquePtr<IVertexBuffer> createVertexBuffer(const String& name, const IVertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const {
+        inline UniquePtr<IVertexBuffer> createVertexBuffer(const String& name, const IVertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const {
             return this->getVertexBuffer(name, layout, usage, elements);
         }
 
@@ -5351,7 +5360,7 @@ namespace LiteFX::Rendering {
         /// <param name="usage">The buffer usage.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
         /// <returns>The instance of the index buffer.</returns>
-        UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const {
+        inline UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const {
             return this->getIndexBuffer(layout, usage, elements);
         }
 
@@ -5368,7 +5377,7 @@ namespace LiteFX::Rendering {
         /// <param name="usage">The buffer usage.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
         /// <returns>The instance of the index buffer.</returns>
-        UniquePtr<IIndexBuffer> createIndexBuffer(const String& name, const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const {
+        inline UniquePtr<IIndexBuffer> createIndexBuffer(const String& name, const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const {
             return this->getIndexBuffer(name, layout, usage, elements);
         }
 
@@ -5379,7 +5388,7 @@ namespace LiteFX::Rendering {
         /// <param name="size">The extent of the image.</param>
         /// <param name="samples">The number of samples, the image should be sampled with.</param>
         /// <returns>The instance of the attachment image.</returns>
-        UniquePtr<IImage> createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const {
+        inline UniquePtr<IImage> createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const {
             return this->getAttachment(format, size, samples);
         }
 
@@ -5391,7 +5400,7 @@ namespace LiteFX::Rendering {
         /// <param name="size">The extent of the image.</param>
         /// <param name="samples">The number of samples, the image should be sampled with.</param>
         /// <returns>The instance of the attachment image.</returns>
-        UniquePtr<IImage> createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const {
+        inline UniquePtr<IImage> createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const {
             return this->getAttachment(name, format, size, samples);
         }
 
@@ -5411,7 +5420,7 @@ namespace LiteFX::Rendering {
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the texture.</returns>
         /// <seealso cref="createTextures" />
-        UniquePtr<IImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const {
+        inline UniquePtr<IImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const {
             return this->getTexture(format, size, dimension, levels, layers, samples, allowWrite);
         }
 
@@ -5432,7 +5441,7 @@ namespace LiteFX::Rendering {
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the texture.</returns>
         /// <seealso cref="createTextures" />
-        UniquePtr<IImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const {
+        inline UniquePtr<IImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const {
             return this->getTexture(name, format, size, dimension, levels, layers, samples, allowWrite);
         }
 
@@ -5449,7 +5458,7 @@ namespace LiteFX::Rendering {
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>An array of texture instances.</returns>
         /// <seealso cref="createTexture" />
-        Enumerable<UniquePtr<IImage>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const {
+        inline Enumerable<UniquePtr<IImage>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const {
             return this->getTextures(elements, format, size, dimension, layers, levels, samples, allowWrite);
         }
 
@@ -5468,7 +5477,7 @@ namespace LiteFX::Rendering {
         /// <param name="anisotropy">The level of anisotropic filtering.</param>
         /// <returns>The instance of the sampler.</returns>
         /// <seealso cref="createSamplers" />
-        UniquePtr<ISampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const {
+        inline UniquePtr<ISampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const {
             return this->getSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
@@ -5488,7 +5497,7 @@ namespace LiteFX::Rendering {
         /// <param name="anisotropy">The level of anisotropic filtering.</param>
         /// <returns>The instance of the sampler.</returns>
         /// <seealso cref="createSamplers" />
-        UniquePtr<ISampler> createSampler(const String& name, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const {
+        inline UniquePtr<ISampler> createSampler(const String& name, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const {
             return this->getSampler(name, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
@@ -5508,7 +5517,7 @@ namespace LiteFX::Rendering {
         /// <param name="anisotropy">The level of anisotropic filtering.</param>
         /// <returns>An array of sampler instances.</returns>
         /// <seealso cref="createSampler" />
-        Enumerable<UniquePtr<ISampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const {
+        inline Enumerable<UniquePtr<ISampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const {
             return this->getSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
@@ -5574,45 +5583,51 @@ namespace LiteFX::Rendering {
         virtual const IGraphicsFactory& factory() const noexcept = 0;
 
         /// <summary>
-        /// Returns the instance of the queue, used to process draw calls.
+        /// Returns the instance of the default <see cref="ICommandQueue" /> that supports the combination of queue types specified by the <paramref name="type" /> parameter.
         /// </summary>
+        /// <remarks>
+        /// When the device is created, it attempts to create a queue for each singular queue type. Each GPU is expected to provide at least one queue that is capable of supporting all
+        /// queue types. This queue is used as a fallback queue, if no dedicated queue for a certain type is supported. For example, if no dedicated <see cref="QueueType::Transfer" />
+        /// queue can be created, calling this method for the default transfer queue will return the same queue instance as the default graphics queue, which implicitly always supports
+        /// transfer operations. The same is true for compute queues. This default graphics queue is ensured to support presentation and is also created with the highest queue priority.
+        /// </remarks>
+        /// <param name="type">The type or a combination of types that specifies the operation the queue should support.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if no default queue for the combination of queue types specified with the <paramref name="type" /> parameter has been created.</exception>
         /// <returns>The instance of the queue, used to process draw calls.</returns>
-        virtual const ICommandQueue& graphicsQueue() const noexcept = 0;
+        /// <seealso cref="createQueue" />
+        inline const ICommandQueue& defaultQueue(QueueType type) const {
+            return this->getDefaultQueue(type);
+        }
 
         /// <summary>
-        /// Returns the instance of the queue used for device-device transfers (e.g. between render-passes).
+        /// Attempts to create a new queue that supports the combination of queue types specified by the <paramref name="type" /> parameter.
         /// </summary>
         /// <remarks>
-        /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
+        /// Note that a queue is not guaranteed to represent an *actual* hardware queue that runs in parallel to other hardware queues. Backends might create *virtual* queues, that map
+        /// the same hardware queue. In this case, creating a new queue is always possible but might not yield performance benefits. As a good practice, it is advised to create only as
+        /// few queues as required.
+        /// 
+        /// If this method is not able to create a new queue (i.e., it returns `nullptr`), you can either fall back to the default queue (<see cref="defaultQueue" />) or use any queue
+        /// that you created earlier instead.
+        /// 
+        /// The <paramref name="priority" /> parameter can be specified to request a queue with a certain priority. However, the backend is not required to return a queue with that 
+        /// actual priority. The default queues are always prioritized highest.
         /// </remarks>
-        /// <returns>The instance of the queue used for device-device transfers (e.g. between render-passes).</returns>
-        virtual const ICommandQueue& transferQueue() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the instance of the queue used for host-device transfers.
-        /// </summary>
-        /// <remarks>
-        /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
-        /// </remarks>
-        /// <returns>The instance of the queue used for host-device transfers.</returns>
-        virtual const ICommandQueue& bufferQueue() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the instance of the queue used for compute calls.
-        /// </summary>
-        /// <remarks>
-        /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated compute queues are supported on the device.
-        /// </remarks>
-        /// <returns>The instance of the queue used for compute calls.</returns>
-        virtual const ICommandQueue& computeQueue() const noexcept = 0;
+        /// <param name="type">The type of the queue or a combination of capabilities the queue is required to support.</param>
+        /// <param name="priority">The preferred priority of the queue.</param>
+        /// <returns>A pointer to the newly created queue, or `nullptr`, if no queue could be created.</returns>
+        /// <seealso cref="defaultQueue" />
+        inline const ICommandQueue* createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) noexcept {
+            return this->getNewQueue(type, priority);
+        }
 
         /// <summary>
         /// Creates a memory barrier instance.
         /// </summary>
-		/// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
-		/// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
+        /// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
+        /// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
         /// <returns>The instance of the memory barrier.</returns>
-        UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
+        inline UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
             return this->getNewBarrier(syncBefore, syncAfter);
         }
 
@@ -5636,16 +5651,18 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
-        /// Waits until the device is idle.
+        /// Waits until all queues allocated from the device have finished the work issued prior to this point.
         /// </summary>
         /// <remarks>
-        /// The complexity of this operation may depend on the graphics API that implements this method. Calling this method guarantees, that the device resources are in an unused state and 
-        /// may safely be released.
+        /// Note that you must synchronize calls to this method, i.e., you have to ensure no other thread is submitting work on any queue while waiting. Calling this method only 
+        /// guarantees that all *prior* work is finished after returning. If any other thread submits work to any queue after calling this method, this workload is not waited on.
         /// </remarks>
         virtual void wait() const = 0;
 
     private:
         virtual UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
+        virtual const ICommandQueue& getDefaultQueue(QueueType type) const = 0;
+        virtual const ICommandQueue* getNewQueue(QueueType type, QueuePriority priority) noexcept = 0;
     };
 
     /// <summary>
@@ -5660,7 +5677,7 @@ namespace LiteFX::Rendering {
         /// Lists all available graphics adapters.
         /// </summary>
         /// <returns>An array of pointers to all available graphics adapters.</returns>
-        Enumerable<const IGraphicsAdapter*> listAdapters() const {
+        inline Enumerable<const IGraphicsAdapter*> listAdapters() const {
             return this->getAdapters();
         }
 
@@ -5696,7 +5713,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="name">The name of the device.</param>
         /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
-        virtual const IGraphicsDevice* operator[](const String& name) const noexcept {
+        virtual inline const IGraphicsDevice* operator[](const String& name) const noexcept {
             return this->device(name);
         };
 
@@ -5705,7 +5722,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="name">The name of the device.</param>
         /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
-        virtual IGraphicsDevice* operator[](const String& name) noexcept {
+        virtual inline IGraphicsDevice* operator[](const String& name) noexcept {
             return this->device(name);
         };
 

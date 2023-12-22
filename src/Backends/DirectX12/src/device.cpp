@@ -17,7 +17,8 @@ private:
 	const DirectX12Backend& m_backend;
 	DeviceState m_deviceState;
 	UniquePtr<DirectX12Surface> m_surface;
-	UniquePtr<DirectX12Queue> m_graphicsQueue, m_transferQueue, m_bufferQueue, m_computeQueue;
+	DirectX12Queue* m_graphicsQueue, * m_transferQueue, * m_computeQueue;
+	Array<UniquePtr<DirectX12Queue>> m_queues;
 	UniquePtr<DirectX12GraphicsFactory> m_factory;
 	UniquePtr<DirectX12ComputePipeline> m_blitPipeline;
 	ComPtr<ID3D12InfoQueue1> m_eventQueue;
@@ -50,10 +51,7 @@ public:
 
 		// Release queues and swap chain.
 		m_swapChain = nullptr;
-		m_graphicsQueue = nullptr;
-		m_transferQueue = nullptr;
-		m_bufferQueue = nullptr;
-		m_computeQueue = nullptr;
+		m_queues.clear();
 	}
 
 #ifndef NDEBUG
@@ -185,10 +183,17 @@ public:
 	void createQueues()
 	{
 		//m_graphicsQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Graphics, QueuePriority::Realtime);
-		m_graphicsQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Graphics, QueuePriority::High);
-		m_transferQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Transfer, QueuePriority::Normal);
-		m_bufferQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Transfer, QueuePriority::High);
-		m_computeQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Compute, QueuePriority::High);
+		m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::High);
+		m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::High);
+		m_computeQueue  = this->createQueue(QueueType::Compute,  QueuePriority::High);
+	}
+
+	DirectX12Queue* createQueue(QueueType type, QueuePriority priority)
+	{
+		auto queue = makeUnique<DirectX12Queue>(*m_parent, type, priority);
+		auto result = queue.get();
+		m_queues.push_back(std::move(queue));
+		return result;
 	}
 
 	void createBlitPipeline()
@@ -521,24 +526,22 @@ const DirectX12GraphicsFactory& DirectX12Device::factory() const noexcept
 	return *m_impl->m_factory;
 }
 
-const DirectX12Queue& DirectX12Device::graphicsQueue() const noexcept
+const DirectX12Queue& DirectX12Device::defaultQueue(QueueType type) const
 {
-	return *m_impl->m_graphicsQueue;
+	// If the type contains the graphics flag, always return the graphics queue.
+	if (LITEFX_FLAG_IS_SET(type, QueueType::Graphics))
+		return *m_impl->m_graphicsQueue;
+	else if (LITEFX_FLAG_IS_SET(type, QueueType::Compute))
+		return *m_impl->m_computeQueue;
+	else if (LITEFX_FLAG_IS_SET(type, QueueType::Transfer))
+		return *m_impl->m_transferQueue;
+	else
+		throw InvalidArgumentException("No default queue for the provided queue type has was found.");
 }
 
-const DirectX12Queue& DirectX12Device::transferQueue() const noexcept
+const DirectX12Queue* DirectX12Device::createQueue(QueueType type, QueuePriority priority) noexcept
 {
-	return *m_impl->m_transferQueue;
-}
-
-const DirectX12Queue& DirectX12Device::bufferQueue() const noexcept
-{
-	return *m_impl->m_bufferQueue;
-}
-
-const DirectX12Queue& DirectX12Device::computeQueue() const noexcept
-{
-	return *m_impl->m_computeQueue;
+	return m_impl->createQueue(type, priority);
 }
 
 UniquePtr<DirectX12Barrier> DirectX12Device::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept
@@ -575,13 +578,20 @@ double DirectX12Device::ticksPerMillisecond() const noexcept
 
 void DirectX12Device::wait() const
 {
-	// NOTE: Currently we are only waiting for the graphics queue here - all other queues may continue their work.
-	// Create a fence.
+	using event_type = std::tuple<HANDLE, ComPtr<ID3D12Fence>>;
+
+	// Insert a fence into each queue.
+	Array<event_type> events(m_impl->m_queues.size());
+	std::ranges::generate(events, [this, i = 0]() mutable -> event_type {
 	ComPtr<ID3D12Fence> fence;
 	raiseIfFailed<RuntimeException>(this->handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)), "Unable to create queue synchronization fence.");
 	
 	// Create a signal event.
 	HANDLE eventHandle = ::CreateEvent(nullptr, false, false, nullptr);
+
+		if (eventHandle == nullptr)
+			throw RuntimeException("Unable to create event handle for fence.");
+
 	HRESULT hr = fence->SetEventOnCompletion(1, eventHandle);
 
 	if (FAILED(hr))
@@ -591,7 +601,7 @@ void DirectX12Device::wait() const
 	}
 
 	// Signal the event value on the graphics queue.
-	hr = std::as_const(*m_impl->m_graphicsQueue).handle()->Signal(fence.Get(), 1);
+		hr = std::as_const(*m_impl->m_queues[i++]).handle()->Signal(fence.Get(), 1);
 	
 	if (FAILED(hr))
 	{
@@ -599,9 +609,17 @@ void DirectX12Device::wait() const
 		raiseIfFailed<RuntimeException>(hr, "Unable to wait for queue synchronization fence.");
 	}
 
-	// Wait for the fence signal.
-	if (fence->GetCompletedValue() < 1)
+		return { std::move(eventHandle), std::move(fence) };
+	});
+
+	// Wait for all the fences.
+	std::ranges::for_each(events, [](event_type& e) {
+		auto eventHandle = std::get<0>(e);
+
+		if (std::get<1>(e)->GetCompletedValue() < 1)
 		::WaitForSingleObject(eventHandle, INFINITE);
 
+		// Close the handle.
 	::CloseHandle(eventHandle);
+	});
 }

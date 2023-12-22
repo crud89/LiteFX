@@ -16,24 +16,22 @@ public:
 	friend class VulkanQueue;
 
 private:
-	VkCommandPool m_commandPool{};
 	QueueType m_type;
 	QueuePriority m_priority;
 	UInt32 m_familyId, m_queueId;
 	VkSemaphore m_timelineSemaphore{};
 	UInt64 m_fenceValue{ 0 };
 	mutable std::mutex m_mutex;
-	bool m_bound;
 	const VulkanDevice& m_device;
 	Array<Tuple<UInt64, SharedPtr<const VulkanCommandBuffer>>> m_submittedCommandBuffers;
 
 public:
 	VulkanQueueImpl(VulkanQueue* parent, const VulkanDevice& device, QueueType type, QueuePriority priority, UInt32 familyId, UInt32 queueId) :
-		base(parent), m_type(type), m_priority(priority), m_familyId(familyId), m_queueId(queueId), m_bound(false), m_device(device)
+		base(parent), m_type(type), m_priority(priority), m_familyId(familyId), m_queueId(queueId), m_device(device)
 	{
 	}
 
-	~VulkanQueueImpl()
+	~VulkanQueueImpl() 
 	{
 		this->release();
 	}
@@ -46,51 +44,31 @@ public:
 		if (m_timelineSemaphore != nullptr)
 			::vkDestroySemaphore(m_device.handle(), m_timelineSemaphore, nullptr);
 
-		if (m_bound)
-			::vkDestroyCommandPool(m_device.handle(), m_commandPool, nullptr);
-
-		m_bound = false;
-		m_commandPool = {};
 		m_timelineSemaphore = {};
 	}
 
-	void bind()
+	VkQueue initialize()
 	{
-		if (m_bound)
-			return;
-
-		// Store the queue handle, if not done in previous binds.
-		if (m_parent->handle() == nullptr)
-			::vkGetDeviceQueue(m_device.handle(), m_familyId, m_queueId, &m_parent->handle());
-
-		// Create command pool.
-		VkCommandPoolCreateInfo poolInfo = {};
-		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		poolInfo.queueFamilyIndex = m_familyId;
-
-		// Transfer pools can be transient.
-		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-
-		if (m_type == QueueType::Transfer)
-			poolInfo.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
-
-		raiseIfFailed<RuntimeException>(::vkCreateCommandPool(m_device.handle(), &poolInfo, nullptr, &m_commandPool), "Unable to create command pool.");
+		// Create the queue instance.
+		VkQueue queue;
+		::vkGetDeviceQueue(m_device.handle(), m_familyId, m_queueId, &queue);
 
 		// Create a timeline semaphore for queue synchronization.
-		VkSemaphoreTypeCreateInfo timelineCreateInfo;
-		timelineCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO;
-		timelineCreateInfo.pNext = NULL;
-		timelineCreateInfo.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE;
-		timelineCreateInfo.initialValue = m_fenceValue;
+		VkSemaphoreTypeCreateInfo timelineCreateInfo = {
+			.sType = VK_STRUCTURE_TYPE_SEMAPHORE_TYPE_CREATE_INFO,
+			.semaphoreType = VK_SEMAPHORE_TYPE_TIMELINE,
+			.initialValue = m_fenceValue
+		};
 
-		VkSemaphoreCreateInfo createInfo;
-		createInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-		createInfo.pNext = &timelineCreateInfo;
-		createInfo.flags = 0;
+		VkSemaphoreCreateInfo createInfo = {
+			.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+			.pNext = &timelineCreateInfo,
+			.flags = 0
+		};
 
-		raiseIfFailed<RuntimeException>(::vkCreateSemaphore(m_device.handle(), &createInfo, NULL, &m_timelineSemaphore), "Unable to create queue synchronization semaphore.");
+		raiseIfFailed<RuntimeException>(::vkCreateSemaphore(m_device.handle(), &createInfo, nullptr, &m_timelineSemaphore), "Unable to create queue synchronization semaphore.");
 
-		m_bound = true;
+		return queue;
 	}
 };
 
@@ -101,6 +79,7 @@ public:
 VulkanQueue::VulkanQueue(const VulkanDevice& device, QueueType type, QueuePriority priority, UInt32 familyId, UInt32 queueId) :
 	Resource<VkQueue>(nullptr), m_impl(makePimpl<VulkanQueueImpl>(this, device, type, priority, familyId, queueId))
 {
+	this->handle() = m_impl->initialize();
 }
 
 VulkanQueue::~VulkanQueue() noexcept = default;
@@ -108,11 +87,6 @@ VulkanQueue::~VulkanQueue() noexcept = default;
 const VulkanDevice& VulkanQueue::device() const noexcept
 {
 	return m_impl->m_device;
-}
-
-const VkCommandPool& VulkanQueue::commandPool() const noexcept
-{
-	return m_impl->m_commandPool;
 }
 
 UInt32 VulkanQueue::familyId() const noexcept
@@ -130,18 +104,13 @@ const VkSemaphore& VulkanQueue::timelineSemaphore() const noexcept
 	return m_impl->m_timelineSemaphore;
 }
 
-bool VulkanQueue::isBound() const noexcept
-{
-	return m_impl->m_bound;
-}
-
 QueueType VulkanQueue::type() const noexcept
 {
 	return m_impl->m_type;
 }
 
 #ifndef NDEBUG
-void VulkanQueue::BeginDebugRegion(const String& label, const Vectors::ByteVector3& color) const noexcept
+void VulkanQueue::beginDebugRegion(const String& label, const Vectors::ByteVector3& color) const noexcept
 {
 	VkDebugUtilsLabelEXT labelInfo {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
@@ -152,12 +121,12 @@ void VulkanQueue::BeginDebugRegion(const String& label, const Vectors::ByteVecto
 	::vkQueueBeginDebugUtilsLabel(this->handle(), &labelInfo);
 }
 
-void VulkanQueue::EndDebugRegion() const noexcept
+void VulkanQueue::endDebugRegion() const noexcept
 {
 	::vkQueueEndDebugUtilsLabel(this->handle());
 }
 
-void VulkanQueue::SetDebugMarker(const String& label, const Vectors::ByteVector3& color) const noexcept
+void VulkanQueue::setDebugMarker(const String& label, const Vectors::ByteVector3& color) const noexcept
 {
 	VkDebugUtilsLabelEXT labelInfo{
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
@@ -174,21 +143,9 @@ QueuePriority VulkanQueue::priority() const noexcept
 	return m_impl->m_priority;
 }
 
-void VulkanQueue::bind()
-{
-	m_impl->bind();
-	this->bound(this, { });
-}
-
-void VulkanQueue::release()
-{
-	m_impl->release();
-	this->released(this, { });
-}
-
 SharedPtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(bool beginRecording, bool secondary) const
 {
-	return makeShared<VulkanCommandBuffer>(*this, beginRecording, !secondary);
+	return VulkanCommandBuffer::create(*this, beginRecording, !secondary);
 }
 
 UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) const
@@ -353,6 +310,24 @@ void VulkanQueue::waitFor(UInt64 fence) const noexcept
 		return true;
 	});
 	m_impl->m_submittedCommandBuffers.erase(from, to);
+}
+
+void VulkanQueue::waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept
+{
+	VkTimelineSemaphoreSubmitInfo timelineInfo {
+		.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO,
+		.waitSemaphoreValueCount = 1,
+		.pWaitSemaphoreValues = &fence
+	};
+
+	VkSubmitInfo submitInfo{
+		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+		.pNext = &timelineInfo,
+		.waitSemaphoreCount = 1,
+		.pWaitSemaphores = &queue.m_impl->m_timelineSemaphore
+	};
+
+	::vkQueueSubmit(this->handle(), 1, &submitInfo, VK_NULL_HANDLE);
 }
 
 UInt64 VulkanQueue::currentFence() const noexcept
