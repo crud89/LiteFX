@@ -1222,7 +1222,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="name">The name of the render pass state resource.</param>
         explicit DirectX12RenderPass(const DirectX12Device& device, const String& name = "") noexcept;
 
-        // IInputAttachmentMappingSource interface.
+        // InputAttachmentMappingSource interface.
     public:
         /// <inheritdoc />
         const DirectX12FrameBuffer& frameBuffer(UInt32 buffer) const override;

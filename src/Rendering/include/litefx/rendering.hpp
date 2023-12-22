@@ -752,36 +752,27 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Represents the source for an input attachment mapping.
     /// </summary>
-    /// <remarks>
-    /// This interface is implemented by a <see cref="RenderPass" /> to return the frame buffer for a given back buffer. It is called by a <see cref="FrameBuffer" /> 
-    /// during initialization or re-creation, in order to resolve input attachment dependencies.
-    /// </remarks>
     /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
     template <typename TFrameBuffer> requires
         rtti::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>>
-    class IInputAttachmentMappingSource {
+    class InputAttachmentMappingSource : public IInputAttachmentMappingSource {
     public:
         using frame_buffer_type = TFrameBuffer;
 
     public:
-        virtual ~IInputAttachmentMappingSource() noexcept = default;
+        virtual ~InputAttachmentMappingSource() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the frame buffer with the index provided in <paramref name="buffer" />.
-        /// </summary>
-        /// <param name="buffer">The index of a frame buffer within the source.</param>
-        /// <returns>The frame buffer with the index provided in <paramref name="buffer" />.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the <paramref name="buffer" /> does not map to a frame buffer within the source.</exception>
+        /// <inheritdoc />
         virtual const frame_buffer_type& frameBuffer(UInt32 buffer) const = 0;
     };
 
     /// <summary>
     /// Represents a mapping between a set of <see cref="IRenderTarget" /> instances and the input attachments of a <see cref="RenderPass" />.
     /// </summary>
-    /// <typeparam name="TInputAttachmentMappingSource">The type of the input attachment mapping source. Must implement <see cref="IInputAttachmentMappingSource" />.</typeparam>
+    /// <typeparam name="TInputAttachmentMappingSource">The type of the input attachment mapping source. Must implement <see cref="InputAttachmentMappingSource" />.</typeparam>
     template <typename TInputAttachmentMappingSource> requires
-        rtti::implements<TInputAttachmentMappingSource, IInputAttachmentMappingSource<typename TInputAttachmentMappingSource::frame_buffer_type>>
+        rtti::implements<TInputAttachmentMappingSource, InputAttachmentMappingSource<typename TInputAttachmentMappingSource::frame_buffer_type>>
     class IInputAttachmentMapping {
     public:
         using input_attachment_mapping_source_type = TInputAttachmentMappingSource;
@@ -829,7 +820,7 @@ namespace LiteFX::Rendering {
         /*rtti::implements<TCommandQueue, CommandQueue<typename TFrameBuffer::command_buffer_type>> &&*/
         rtti::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>> /*&&
         rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
-    class RenderPass : public virtual StateResource, public IRenderPass, public IInputAttachmentMappingSource<TFrameBuffer> {
+    class RenderPass : public virtual StateResource, public IRenderPass, public InputAttachmentMappingSource<TFrameBuffer> {
     public:
         using IRenderPass::updateAttachments;
 

@@ -1216,7 +1216,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="name">The name of the render pass state resource.</param>
         explicit VulkanRenderPass(const VulkanDevice& device, const String& name = "") noexcept;
 
-        // IInputAttachmentMappingSource interface.
+        // InputAttachmentMappingSource interface.
     public:
         /// <inheritdoc />
         const VulkanFrameBuffer& frameBuffer(UInt32 buffer) const override;

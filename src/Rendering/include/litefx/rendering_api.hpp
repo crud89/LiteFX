@@ -4559,9 +4559,30 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Interface for an input attachment mapping source.
+    /// </summary>
+    /// <remarks>
+    /// This interface is implemented by a <see cref="RenderPass" /> to return the frame buffer for a given back buffer. It is called by a <see cref="FrameBuffer" /> 
+    /// during initialization or re-creation, in order to resolve input attachment dependencies.
+    /// </remarks>
+    class IInputAttachmentMappingSource {
+    public:
+        virtual ~IInputAttachmentMappingSource() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns the frame buffer with the index provided in <paramref name="buffer" />.
+        /// </summary>
+        /// <param name="buffer">The index of a frame buffer within the source.</param>
+        /// <returns>The frame buffer with the index provided in <paramref name="buffer" />.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the <paramref name="buffer" /> does not map to a frame buffer within the source.</exception>
+        virtual const IFrameBuffer& frameBuffer(UInt32 buffer) const = 0;
+    };
+
+    /// <summary>
     /// The interface for a render pass.
     /// </summary>
-    class LITEFX_RENDERING_API IRenderPass : public virtual IStateResource {
+    class LITEFX_RENDERING_API IRenderPass : public virtual IInputAttachmentMappingSource, public virtual IStateResource {
     public:
         /// <summary>
         /// Event arguments that are published to subscribers when a render pass is beginning.
