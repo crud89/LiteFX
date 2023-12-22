@@ -55,6 +55,7 @@ IF(BUILD_EXAMPLES)
     ADD_SUBDIRECTORY(Samples/Multisampling)
     ADD_SUBDIRECTORY(Samples/Multithreading)
     ADD_SUBDIRECTORY(Samples/Bindless)
+    ADD_SUBDIRECTORY(Samples/Compute)
 ENDIF(BUILD_EXAMPLES)
 
 # Include tests.
