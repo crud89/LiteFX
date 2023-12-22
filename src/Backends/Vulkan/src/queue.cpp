@@ -70,6 +70,20 @@ public:
 
 		return queue;
 	}
+
+	void releaseCommandBuffers(UInt64 beforeFence)
+	{
+		// Release all shared command buffers until this point.
+		const auto [from, to] = std::ranges::remove_if(m_submittedCommandBuffers, [this, &beforeFence](auto& pair) {
+			if (std::get<0>(pair) > beforeFence)
+				return false;
+
+			this->m_parent->releaseSharedState(*std::get<1>(pair));
+			return true;
+		});
+
+		this->m_submittedCommandBuffers.erase(from, to);
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -166,6 +180,11 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer, S
 	// Begin event.
 	this->submitting(this, { { std::static_pointer_cast<const ICommandBuffer>(commandBuffer) } });
 
+	// Remove all previously submitted command buffers, that have already finished.
+	UInt64 completedValue = 0;
+	::vkGetSemaphoreCounterValue(m_impl->m_device.handle(), m_impl->m_timelineSemaphore, &completedValue);
+	m_impl->releaseCommandBuffers(completedValue);
+
 	// End the command buffer.
 	commandBuffer->end();
 
@@ -230,6 +249,11 @@ UInt64 VulkanQueue::submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>
 	// Begin event.
 	auto buffers = commandBuffers | std::views::transform([](auto& buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); });
 	this->submitting(this, { buffers });
+
+	// Remove all previously submitted command buffers, that have already finished.
+	UInt64 completedValue = 0;
+	::vkGetSemaphoreCounterValue(m_impl->m_device.handle(), m_impl->m_timelineSemaphore, &completedValue);
+	m_impl->releaseCommandBuffers(completedValue);
 
 	// End the command buffer.
 	auto handles = [&commandBuffers]() -> std::generator<VkCommandBuffer> {
@@ -301,15 +325,7 @@ void VulkanQueue::waitFor(UInt64 fence) const noexcept
 		::vkWaitSemaphores(m_impl->m_device.handle(), &waitInfo, std::numeric_limits<UInt64>::max());
 	}
 
-	// Release all shared command buffers until this point.
-	const auto [from, to] = std::ranges::remove_if(m_impl->m_submittedCommandBuffers, [this, &completedValue](auto& pair) {
-		if (std::get<0>(pair) > completedValue)
-			return false;
-
-		this->releaseSharedState(*std::get<1>(pair));
-		return true;
-	});
-	m_impl->m_submittedCommandBuffers.erase(from, to);
+	m_impl->releaseCommandBuffers(fence);
 }
 
 void VulkanQueue::waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept

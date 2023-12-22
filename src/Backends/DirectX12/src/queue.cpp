@@ -73,6 +73,20 @@ public:
 
 		return commandQueue;
 	}
+
+	void releaseCommandBuffers(UInt64 beforeFence)
+	{
+		// Release all shared command buffers until this point.
+		const auto [from, to] = std::ranges::remove_if(m_submittedCommandBuffers, [this, &beforeFence](auto& pair) {
+			if (std::get<0>(pair) > beforeFence)
+				return false;
+
+			this->m_parent->releaseSharedState(*std::get<1>(pair));
+			return true;
+		});
+
+		this->m_submittedCommandBuffers.erase(from, to);
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -137,6 +151,10 @@ UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuf
 	// Begin event.
 	this->submitting(this, { { std::static_pointer_cast<const ICommandBuffer>(commandBuffer) } });
 
+	// Remove all previously submitted command buffers, that have already finished.
+	auto completedValue = m_impl->m_fence->GetCompletedValue();
+	m_impl->releaseCommandBuffers(completedValue);
+
 	// End the command buffer.
 	commandBuffer->end();
 	
@@ -171,6 +189,10 @@ UInt64 DirectX12Queue::submit(const Enumerable<SharedPtr<const DirectX12CommandB
 		std::views::transform([](auto& buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); }) |
 		std::ranges::to<Array<SharedPtr<const ICommandBuffer>>>();
 	this->submitting(this, { buffers });
+
+	// Remove all previously submitted command buffers, that have already finished.
+	auto completedValue = m_impl->m_fence->GetCompletedValue();
+	m_impl->releaseCommandBuffers(completedValue);
 
 	// End and submit the command buffers.
 	auto handles = [&commandBuffers]() -> std::generator<ID3D12CommandList*> {
@@ -210,15 +232,7 @@ void DirectX12Queue::waitFor(UInt64 fence) const noexcept
 		raiseIfFailed<RuntimeException>(hr, "Unable to register fence completion event.");
 	}
 
-	// Release all shared command buffers until this point.
-	const auto [from, to] = std::ranges::remove_if(m_impl->m_submittedCommandBuffers, [this, &completedValue](auto& pair) {
-		if (std::get<0>(pair) > completedValue)
-			return false;
-
-		this->releaseSharedState(*std::get<1>(pair));
-		return true;
-	});
-	m_impl->m_submittedCommandBuffers.erase(from, to);
+	m_impl->releaseCommandBuffers(fence);
 }
 
 void DirectX12Queue::waitFor(const DirectX12Queue& queue, UInt64 fence) const noexcept
