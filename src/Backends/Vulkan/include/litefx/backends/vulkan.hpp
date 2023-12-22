@@ -152,6 +152,7 @@ namespace LiteFX::Rendering::Backends {
         
     private:
         virtual ImageLayout& layout(UInt32 subresource) = 0;
+        virtual ImageLayout layout(UInt32 subresource) const = 0;
     };
 
     /// <summary>
