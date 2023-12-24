@@ -188,7 +188,7 @@ void SimpleApp::onInit()
     // For Vulkan:
     auto surface = backend->createSurface([this](const VkInstance& instance) {
         VkSurfaceKHR surface;
-        raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, m_window, nullptr, &surface), "Unable to create GLFW window surface.");
+        raiseIfFailed(::glfwCreateWindowSurface(instance, m_window, nullptr, &surface), "Unable to create GLFW window surface.");
 
         return surface;
     });

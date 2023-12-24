@@ -195,7 +195,7 @@ public:
 				pipelineStateDescription.PS.BytecodeLength = shaderModule->handle()->GetBufferSize();
 				break;
 			default:
-				throw InvalidArgumentException("Trying to bind shader to unsupported shader stage '{0}'.", shaderModule->type());
+				throw InvalidArgumentException("shaderProgram", "Trying to bind shader to unsupported shader stage '{0}'.", shaderModule->type());
 			}
 		});
 
@@ -211,7 +211,7 @@ public:
 
 		// Create the pipeline state instance.
 		ComPtr<ID3D12PipelineState> pipelineState;
-		raiseIfFailed<RuntimeException>(m_renderPass.device().handle()->CreateGraphicsPipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
+		raiseIfFailed(m_renderPass.device().handle()->CreateGraphicsPipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
 		
 #ifndef NDEBUG
 		pipelineState->SetName(Widen(m_parent->name()).c_str());

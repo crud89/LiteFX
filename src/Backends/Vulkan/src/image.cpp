@@ -54,7 +54,7 @@ public:
 		{
 			VkImageView imageView;
 			createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			raiseIfFailed<RuntimeException>(::vkCreateImageView(m_device.handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
+			raiseIfFailed(::vkCreateImageView(m_device.handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
 			m_views.push_back(imageView);
 		}
 		else
@@ -64,14 +64,14 @@ public:
 			if (::hasDepth(m_format))
 			{
 				createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-				raiseIfFailed<RuntimeException>(::vkCreateImageView(m_device.handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
+				raiseIfFailed(::vkCreateImageView(m_device.handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
 				m_views.push_back(imageView);
 			}
 
 			if (::hasStencil(m_format))
 			{
 				createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
-				raiseIfFailed<RuntimeException>(::vkCreateImageView(m_device.handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
+				raiseIfFailed(::vkCreateImageView(m_device.handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
 				m_views.push_back(imageView);
 			}
 		}
@@ -161,7 +161,7 @@ bool VulkanImage::writable() const noexcept
 ImageLayout VulkanImage::layout(UInt32 subresource) const
 {
 	if (subresource >= m_impl->m_layouts.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("The sub-resource with the provided index {0} does not exist.", subresource);
+		throw ArgumentOutOfRangeException("subresource", 0u, static_cast<UInt32>(m_impl->m_layouts.size()), subresource, "The sub-resource with the provided index {0} does not exist.", subresource);
 
 	return m_impl->m_layouts[subresource];
 }
@@ -169,7 +169,7 @@ ImageLayout VulkanImage::layout(UInt32 subresource) const
 ImageLayout& VulkanImage::layout(UInt32 subresource)
 {
 	if (subresource >= m_impl->m_layouts.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("The sub-resource with the provided index {0} does not exist.", subresource);
+		throw ArgumentOutOfRangeException("subresource", 0u, static_cast<UInt32>(m_impl->m_layouts.size()), subresource, "The sub-resource with the provided index {0} does not exist.", subresource);
 
 	return m_impl->m_layouts[subresource];
 }
@@ -316,7 +316,7 @@ VkImageAspectFlags VulkanImage::aspectMask(UInt32 plane) const
 const VkImageView& VulkanImage::imageView(UInt32 plane) const
 {
 	if (plane >= m_impl->m_views.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("The image does not have a plane {0}.", plane);
+		throw ArgumentOutOfRangeException("plane", 0u, static_cast<UInt32>(m_impl->m_views.size()), plane, "The image does not have a plane {0}.", plane);
 
 	return m_impl->m_views[plane];
 }
@@ -334,7 +334,7 @@ VmaAllocation& VulkanImage::allocationInfo() const noexcept
 VkImageView& VulkanImage::imageView(UInt32 plane)
 {
 	if (plane >= m_impl->m_views.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("The image does not have a plane {0}.", plane);
+		throw ArgumentOutOfRangeException("plane", 0u, static_cast<UInt32>(m_impl->m_views.size()), plane, "The image does not have a plane {0}.", plane);
 
 	return m_impl->m_views[plane];
 }
@@ -349,7 +349,7 @@ UniquePtr<VulkanImage> VulkanImage::allocate(const String& name, const VulkanDev
 	VkImage image;
 	VmaAllocation allocation;
 
-	raiseIfFailed<RuntimeException>(::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult), "Unable to allocate texture.");
+	raiseIfFailed(::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult), "Unable to allocate texture.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Writable: {7} }}", name.empty() ? fmt::to_string(fmt::ptr(reinterpret_cast<void*>(image))) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, writable, samples);
 
 	return makeUnique<VulkanImage>(device, image, extent, format, dimensions, levels, layers, samples, writable, initialLayout, allocator, allocation, name);
@@ -434,7 +434,7 @@ public:
 		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
 
 		VkSampler sampler;
-		raiseIfFailed<RuntimeException>(::vkCreateSampler(m_device.handle(), &samplerInfo, nullptr, &sampler), "Unable to create sampler.");
+		raiseIfFailed(::vkCreateSampler(m_device.handle(), &samplerInfo, nullptr, &sampler), "Unable to create sampler.");
 
 		return sampler;
 	}

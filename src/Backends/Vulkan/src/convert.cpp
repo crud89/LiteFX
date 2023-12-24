@@ -896,7 +896,7 @@ constexpr VkCompareOp LiteFX::Rendering::Backends::Vk::getCompareOp(CompareOpera
 	case CompareOperation::GreaterEqual: return VkCompareOp::VK_COMPARE_OP_GREATER_OR_EQUAL;
 	case CompareOperation::NotEqual: return VkCompareOp::VK_COMPARE_OP_NOT_EQUAL;
 	case CompareOperation::Always: return VkCompareOp::VK_COMPARE_OP_ALWAYS;
-	default: throw InvalidArgumentException("Unsupported compare operation.");
+	default: throw InvalidArgumentException("compareOp", "Unsupported compare operation.");
 	}
 }
 
@@ -911,7 +911,7 @@ constexpr VkStencilOp LiteFX::Rendering::Backends::Vk::getStencilOp(StencilOpera
 	case StencilOperation::IncrementWrap: return VkStencilOp::VK_STENCIL_OP_INCREMENT_AND_WRAP;
 	case StencilOperation::DecrementClamp: return VkStencilOp::VK_STENCIL_OP_DECREMENT_AND_CLAMP;
 	case StencilOperation::DecrementWrap: return VkStencilOp::VK_STENCIL_OP_DECREMENT_AND_WRAP;
-	default: throw InvalidArgumentException("Unsupported stencil operation.");
+	default: throw InvalidArgumentException("stencilOp", "Unsupported stencil operation.");
 	}
 }
 
@@ -937,7 +937,7 @@ constexpr VkBlendFactor LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBl
 	case BlendFactor::OneMinusSource1Color: return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
 	case BlendFactor::Source1Alpha: return VK_BLEND_FACTOR_SRC1_ALPHA;
 	case BlendFactor::OneMinusSource1Alpha: return VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
-	default: throw InvalidArgumentException("Unsupported blend factor.");
+	default: throw InvalidArgumentException("blendFactor", "Unsupported blend factor.");
 	}
 }
 
@@ -949,7 +949,7 @@ constexpr VkBlendOp LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendO
 	case BlendOperation::ReverseSubtract: return VkBlendOp::VK_BLEND_OP_REVERSE_SUBTRACT;
 	case BlendOperation::Minimum: return VkBlendOp::VK_BLEND_OP_MIN;
 	case BlendOperation::Maximum: return VkBlendOp::VK_BLEND_OP_MAX;
-	default: throw InvalidArgumentException("Unsupported blend operation.");
+	default: throw InvalidArgumentException("blendOperation", "Unsupported blend operation.");
 	}
 }
 
@@ -1067,6 +1067,6 @@ constexpr VkImageLayout LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getIm
 	case ImageLayout::ResolveSource: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	case ImageLayout::ResolveDestination: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	case ImageLayout::Undefined: return VK_IMAGE_LAYOUT_UNDEFINED;
-	default: throw InvalidArgumentException("Unsupported image layout.");
+	default: throw InvalidArgumentException("imageLayout", "Unsupported image layout.");
 	}
 }

@@ -26,7 +26,7 @@ public:
 		allocatorInfo.instance = device.surface().instance();
 		allocatorInfo.device = device.handle();
 
-		raiseIfFailed<RuntimeException>(::vmaCreateAllocator(&allocatorInfo, &m_allocator), "Unable to create Vulkan memory allocator.");
+		raiseIfFailed(::vmaCreateAllocator(&allocatorInfo, &m_allocator), "Unable to create Vulkan memory allocator.");
 	}
 
 	~VulkanGraphicsFactoryImpl()
@@ -284,10 +284,10 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(Format format, cons
 UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const
 {
 	if (dimension == ImageDimensions::CUBE && layers != 6) [[unlikely]]
-		throw ArgumentOutOfRangeException("A cube map must be defined with 6 layers, but only {0} are provided.", layers);
+		throw ArgumentOutOfRangeException("layers", 6u, 6u, layers, "A cube map must be defined with 6 layers, but {0} are provided.", layers);
 
 	if (dimension == ImageDimensions::DIM_3 && layers != 1) [[unlikely]]
-		throw ArgumentOutOfRangeException("A 3D texture can only have one layer, but {0} are provided.", layers);
+		throw ArgumentOutOfRangeException("layers", 1u, 1u, layers, "A 3D texture can only have one layer, but {0} are provided.", layers);
 
 	auto width = std::max<UInt32>(1, size.width());
 	auto height = std::max<UInt32>(1, size.height());

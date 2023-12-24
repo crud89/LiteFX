@@ -216,7 +216,7 @@ public:
 		pipelineInfo.subpass = 0;
 
 		VkPipeline pipeline;
-		raiseIfFailed<RuntimeException>(::vkCreateGraphicsPipelines(m_renderPass.device().handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
+		raiseIfFailed(::vkCreateGraphicsPipelines(m_renderPass.device().handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
 
 #ifndef NDEBUG
 		m_renderPass.device().setDebugName(*reinterpret_cast<const UInt64*>(&pipeline), VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, m_parent->name());

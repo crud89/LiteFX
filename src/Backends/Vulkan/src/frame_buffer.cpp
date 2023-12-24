@@ -29,7 +29,7 @@ public:
 		// Initialize the semaphore.
 		VkSemaphoreCreateInfo semaphoreInfo{};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-		raiseIfFailed<RuntimeException>(::vkCreateSemaphore(device.handle(), &semaphoreInfo, nullptr, &m_semaphore), "Unable to create swap semaphore on frame buffer.");
+		raiseIfFailed(::vkCreateSemaphore(device.handle(), &semaphoreInfo, nullptr, &m_semaphore), "Unable to create swap semaphore on frame buffer.");
 
         // Retrieve a command buffer from the graphics queue.
         m_commandBuffers.resize(commandBuffers);
@@ -58,10 +58,10 @@ public:
                 LITEFX_WARNING(VULKAN_LOG, "Remapped input attachment from location {0} to location {1}. Please make sure that the input attachments are sorted within the render pass and do not have any gaps in their location mappings.", inputAttachment.location(), i);
 
             if (inputAttachment.renderTarget().type() == RenderTargetType::Present)
-                throw InvalidArgumentException("The input attachment mapped to location {0} is a present target, which cannot be used as input attachment.", i);
+                throw InvalidArgumentException("renderPass", "The input attachment mapped to location {0} is a present target, which cannot be used as input attachment.", i);
 
             if (inputAttachment.inputAttachmentSource() == nullptr)
-                throw InvalidArgumentException("The input attachment mapped to location {0} has no initialized source.", i);
+                throw InvalidArgumentException("renderPass", "The input attachment mapped to location {0} has no initialized source.", i);
 
             // Store the image view from the source frame buffer.
             attachmentViews.push_back(inputAttachment.inputAttachmentSource()->frameBuffer(m_bufferIndex).image(i++).imageView());
@@ -111,7 +111,7 @@ public:
         frameBufferInfo.layers = 1;
 
         VkFramebuffer frameBuffer;
-        raiseIfFailed<RuntimeException>(::vkCreateFramebuffer(m_renderPass.device().handle(), &frameBufferInfo, nullptr, &frameBuffer), "Unable to create frame buffer from swap chain frame.");
+        raiseIfFailed(::vkCreateFramebuffer(m_renderPass.device().handle(), &frameBufferInfo, nullptr, &frameBuffer), "Unable to create frame buffer from swap chain frame.");
 
         return frameBuffer;
 	}
@@ -165,7 +165,7 @@ size_t VulkanFrameBuffer::getHeight() const noexcept
 SharedPtr<const VulkanCommandBuffer> VulkanFrameBuffer::commandBuffer(UInt32 index) const
 {
     if (index >= static_cast<UInt32>(m_impl->m_commandBuffers.size())) [[unlikely]]
-        throw ArgumentOutOfRangeException("No command buffer with index {1} is stored in the frame buffer. The frame buffer only contains {0} command buffers.", m_impl->m_commandBuffers.size(), index);
+        throw ArgumentOutOfRangeException("index", 0u, static_cast<UInt32>(m_impl->m_commandBuffers.size()), index, "No command buffer with index {1} is stored in the frame buffer. The frame buffer only contains {0} command buffers.", m_impl->m_commandBuffers.size(), index);
 
 	return m_impl->m_commandBuffers[index];
 }
@@ -183,7 +183,7 @@ Enumerable<IVulkanImage*> VulkanFrameBuffer::images() const noexcept
 IVulkanImage& VulkanFrameBuffer::image(UInt32 location) const
 {
     if (location >= m_impl->m_renderTargetViews.size())
-        throw ArgumentOutOfRangeException("No render target is mapped to location {0}.", location);
+        throw ArgumentOutOfRangeException("location", 0u, static_cast<UInt32>(m_impl->m_renderTargetViews.size()), location, "No render target is mapped to location {0}.", location);
 
     return *m_impl->m_renderTargetViews[location];
 }

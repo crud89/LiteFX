@@ -48,7 +48,7 @@ public:
 		if (!m_secondary)
 			poolInfo.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
 
-		raiseIfFailed<RuntimeException>(::vkCreateCommandPool(m_queue.device().handle(), &poolInfo, nullptr, &m_commandPool), "Unable to create command pool.");
+		raiseIfFailed(::vkCreateCommandPool(m_queue.device().handle(), &poolInfo, nullptr, &m_commandPool), "Unable to create command pool.");
 
 		// Create the command buffer.
 		VkCommandBufferAllocateInfo bufferInfo = {
@@ -59,7 +59,7 @@ public:
 		};
 
 		VkCommandBuffer buffer;
-		raiseIfFailed<RuntimeException>(::vkAllocateCommandBuffers(m_queue.device().handle(), &bufferInfo, &buffer), "Unable to allocate command buffer.");
+		raiseIfFailed(::vkAllocateCommandBuffers(m_queue.device().handle(), &bufferInfo, &buffer), "Unable to allocate command buffer.");
 
 		return buffer;
 	}
@@ -89,7 +89,7 @@ void VulkanCommandBuffer::begin() const
 		.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
 	};
 
-	raiseIfFailed<RuntimeException>(::vkBeginCommandBuffer(this->handle(), &beginInfo), "Unable to begin command recording.");
+	raiseIfFailed(::vkBeginCommandBuffer(this->handle(), &beginInfo), "Unable to begin command recording.");
 	
 	m_impl->m_recording = true;
 }
@@ -114,7 +114,7 @@ void VulkanCommandBuffer::begin(const VulkanRenderPass& renderPass) const noexce
 		.pInheritanceInfo = &inheritanceInfo
 	};
 
-	raiseIfFailed<RuntimeException>(::vkBeginCommandBuffer(this->handle(), &beginInfo), "Unable to begin command recording.");
+	raiseIfFailed(::vkBeginCommandBuffer(this->handle(), &beginInfo), "Unable to begin command recording.");
 
 	m_impl->m_recording = true;
 }
@@ -123,7 +123,7 @@ void VulkanCommandBuffer::end() const
 {
 	// End recording.
 	if (m_impl->m_recording)
-		raiseIfFailed<RuntimeException>(::vkEndCommandBuffer(this->handle()), "Unable to stop command recording.");
+		raiseIfFailed(::vkEndCommandBuffer(this->handle()), "Unable to stop command recording.");
 
 	m_impl->m_recording = false;
 }
@@ -247,10 +247,10 @@ void VulkanCommandBuffer::barrier(const VulkanBarrier& barrier) const noexcept
 void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
+		throw ArgumentOutOfRangeException("sourceElement", "The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
 	if (target.elements() < targetElement + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, targetElement);
+		throw ArgumentOutOfRangeException("targetElement", "The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, targetElement);
 
 	VkBufferCopy copyInfo {
 		.srcOffset = sourceElement * source.alignedElementSize(),
@@ -264,10 +264,10 @@ void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanBuffer& target,
 void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
+		throw ArgumentOutOfRangeException("sourceElement", "The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
 	if (target.elements() < firstSubresource + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The target image has only {0} sub-resources, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, firstSubresource);
+		throw ArgumentOutOfRangeException("targetElement", "The target image has only {0} sub-resources, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, firstSubresource);
 
 	// Create a copy command and add it to the command buffer.
 	VulkanBarrier barrier(PipelineStage::None, PipelineStage::Transfer);
@@ -302,10 +302,10 @@ void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanImage& target, 
 void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
 	if (source.elements() < sourceSubresource + subresources) [[unlikely]]
-		throw ArgumentOutOfRangeException("The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, sourceSubresource);
+		throw ArgumentOutOfRangeException("sourceElement", "The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, sourceSubresource);
 
 	if (target.elements() < targetSubresource + subresources) [[unlikely]]
-		throw ArgumentOutOfRangeException("The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resources {2} has been requested.", target.elements(), subresources, targetSubresource);
+		throw ArgumentOutOfRangeException("targetElement", "The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resources {2} has been requested.", target.elements(), subresources, targetSubresource);
 
 	// Create a copy command and add it to the command buffer.
 	VulkanBarrier barrier(PipelineStage::None, PipelineStage::Transfer);
@@ -350,10 +350,10 @@ void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanImage& target, U
 void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
 	if (source.elements() < firstSubresource + subresources) [[unlikely]]
-		throw ArgumentOutOfRangeException("The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
+		throw ArgumentOutOfRangeException("sourceElement", "The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
 
 	if (target.elements() <= targetElement + subresources) [[unlikely]]
-		throw ArgumentOutOfRangeException("The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), subresources, targetElement);
+		throw ArgumentOutOfRangeException("targetElement", "The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), subresources, targetElement);
 	
 	// Create a copy command and add it to the command buffer.
 	Array<VkBufferImageCopy> copyInfos(subresources);
@@ -456,7 +456,7 @@ void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout,
 void VulkanCommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const
 {
 	if (timingEvent == nullptr) [[unlikely]]
-		throw ArgumentNotInitializedException("The timing event must be initialized.");
+		throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");
 
 	::vkCmdWriteTimestamp(this->handle(), VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, m_impl->m_queue.device().swapChain().timestampQueryPool(), timingEvent->queryId());
 }

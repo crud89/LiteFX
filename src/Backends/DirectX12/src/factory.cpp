@@ -29,7 +29,7 @@ public:
 		allocatorDesc.PreferredBlockSize = 0;	// TODO: Make configurable.
 
 		D3D12MA::Allocator* allocator;
-		raiseIfFailed<RuntimeException>(D3D12MA::CreateAllocator(&allocatorDesc, &allocator), "Unable to create D3D12 memory allocator.");
+		raiseIfFailed(D3D12MA::CreateAllocator(&allocatorDesc, &allocator), "Unable to create D3D12 memory allocator.");
 		m_allocator.reset(allocator, D3D12MADeleter{});
 	}
 };
@@ -86,7 +86,7 @@ UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String&
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
 		break;
 	default:
-		throw InvalidArgumentException("The buffer usage {0} is not supported.", usage);
+		throw InvalidArgumentException("usage", "The buffer usage {0} is not supported.", usage);
 	}
 
 	return DirectX12Buffer::allocate(name, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, resourceDesc, allocationDesc);
@@ -127,7 +127,7 @@ UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(c
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
 		break;
 	default:
-		throw InvalidArgumentException("The buffer usage {0} is not supported.", usage);
+		throw InvalidArgumentException("usage", "The buffer usage {0} is not supported.", usage);
 	}
 
 	return DirectX12VertexBuffer::allocate(name, layout, m_impl->m_allocator, elements, resourceDesc, allocationDesc);
@@ -168,7 +168,7 @@ UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(con
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
 		break;
 	default:
-		throw InvalidArgumentException("The buffer usage {0} is not supported.", usage);
+		throw InvalidArgumentException("usage", "The buffer usage {0} is not supported.", usage);
 	}
 
 	return DirectX12IndexBuffer::allocate(name, layout, m_impl->m_allocator, elements, resourceDesc, allocationDesc);
@@ -217,10 +217,10 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(Format format
 UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const
 {
 	if (dimension == ImageDimensions::CUBE && layers != 6) [[unlikely]]
-		throw ArgumentOutOfRangeException("A cube map must be defined with 6 layers, but only {0} are provided.", layers);
+		throw ArgumentOutOfRangeException("layers", 6u, 6u, layers, "A cube map must be defined with 6 layers, but {0} are provided.", layers);
 
 	if (dimension == ImageDimensions::DIM_3 && layers != 1) [[unlikely]]
-		throw ArgumentOutOfRangeException("A 3D texture can only have one layer, but {0} are provided.", layers);
+		throw ArgumentOutOfRangeException("layers", 1u, 1u, layers, "A 3D texture can only have one layer, but {0} are provided.", layers);
 
 	auto width = std::max<UInt32>(1, size.width());
 	auto height = std::max<UInt32>(1, size.height());

@@ -30,10 +30,10 @@ public:
         for (auto& vertexBufferLayout : vertexBufferLayouts)
         {
             if (vertexBufferLayout == nullptr)
-                throw ArgumentNotInitializedException("One of the provided vertex buffer layouts is not initialized.");
+                throw ArgumentNotInitializedException("vertexBufferLayouts", "One of the provided vertex buffer layouts is not initialized.");
 
             if (m_vertexBufferLayouts.contains(vertexBufferLayout->binding()))
-                throw InvalidArgumentException("Multiple vertex buffer layouts use the binding point {0}, but only one layout per binding point is allowed.", vertexBufferLayout->binding());
+                throw InvalidArgumentException("vertexBufferLayouts", "Multiple vertex buffer layouts use the binding point {0}, but only one layout per binding point is allowed.", vertexBufferLayout->binding());
 
             m_vertexBufferLayouts.emplace(vertexBufferLayout->binding(), std::move(vertexBufferLayout));
         }
@@ -67,7 +67,7 @@ const DirectX12VertexBufferLayout* DirectX12InputAssembler::vertexBufferLayout(U
     [[likely]] if (m_impl->m_vertexBufferLayouts.contains(binding))
         return m_impl->m_vertexBufferLayouts[binding].get();
 
-    throw ArgumentOutOfRangeException("No vertex buffer layout is bound to binding point {0}.", binding);
+    throw InvalidArgumentException("binding", "No vertex buffer layout is bound to binding point {0}.", binding);
 }
 
 const DirectX12IndexBufferLayout* DirectX12InputAssembler::indexBufferLayout() const noexcept

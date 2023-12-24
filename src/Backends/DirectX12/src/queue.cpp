@@ -52,7 +52,7 @@ public:
 		else if (m_type == QueueType::Transfer)
 			desc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
 		else // Combinations are not supported here. All queues implicitly support transfer operations, but it is not valid to provide combinations like `QueueType::Graphics | QueueType::VideoEncode`.
-			throw InvalidArgumentException("Unsupported combination of queue types. Only specify one queue type, even if the queue needs to support other tasks).");
+			throw InvalidArgumentException("type", "Unsupported combination of queue types. Only specify one queue type, even if the queue needs to support other tasks).");
 
 		switch (m_priority)
 		{
@@ -68,8 +68,8 @@ public:
 			break;
 		}
 
-		raiseIfFailed<RuntimeException>(m_device.handle()->CreateCommandQueue(&desc, IID_PPV_ARGS(&commandQueue)), "Unable to create command queue of type {0} with priority {1}.", m_type, m_priority);
-		raiseIfFailed<RuntimeException>(m_device.handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)), "Unable to create command buffer synchronization fence.");
+		raiseIfFailed(m_device.handle()->CreateCommandQueue(&desc, IID_PPV_ARGS(&commandQueue)), "Unable to create command queue of type {0} with priority {1}.", m_type, m_priority);
+		raiseIfFailed(m_device.handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)), "Unable to create command buffer synchronization fence.");
 
 		return commandQueue;
 	}
@@ -141,10 +141,10 @@ SharedPtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(bool begin
 UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const
 {
 	if (commandBuffer == nullptr)
-		throw InvalidArgumentException("The command buffer must be initialized.");
+		throw InvalidArgumentException("commandBuffer", "The command buffer must be initialized.");
 
 	if (commandBuffer->isSecondary())
-		throw InvalidArgumentException("The command buffer must be a primary command buffer.");
+		throw InvalidArgumentException("commandBuffer", "The command buffer must be a primary command buffer.");
 
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
@@ -164,7 +164,7 @@ UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuf
 
 	// Insert a fence and return the value.
 	auto fence = ++m_impl->m_fenceValue;
-	raiseIfFailed<RuntimeException>(this->handle()->Signal(m_impl->m_fence.Get(), fence), "Unable to add fence signal to command buffer.");
+	raiseIfFailed(this->handle()->Signal(m_impl->m_fence.Get(), fence), "Unable to add fence signal to command buffer.");
 
 	// Add the command buffer to the submitted command buffers list.
 	m_impl->m_submittedCommandBuffers.push_back({ fence, commandBuffer });
@@ -177,10 +177,10 @@ UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuf
 UInt64 DirectX12Queue::submit(const Enumerable<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers) const
 {
 	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return buffer != nullptr; }))
-		throw InvalidArgumentException("At least one command buffer is not initialized.");
+		throw InvalidArgumentException("commandBuffers", "At least one command buffer is not initialized.");
 
 	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return !buffer->isSecondary(); }))
-		throw InvalidArgumentException("At least one command buffer is a secondary command buffer, which is not allowed to be submitted to a command queue.");
+		throw InvalidArgumentException("commandBuffers", "At least one command buffer is a secondary command buffer, which is not allowed to be submitted to a command queue.");
 
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
@@ -206,7 +206,7 @@ UInt64 DirectX12Queue::submit(const Enumerable<SharedPtr<const DirectX12CommandB
 
 	// Insert a fence and return the value.
 	auto fence = ++m_impl->m_fenceValue;
-	raiseIfFailed<RuntimeException>(this->handle()->Signal(m_impl->m_fence.Get(), fence), "Unable to add fence signal to command buffer.");
+	raiseIfFailed(this->handle()->Signal(m_impl->m_fence.Get(), fence), "Unable to add fence signal to command buffer.");
 
 	// Add the command buffers to the submitted command buffers list.
 	std::ranges::for_each(commandBuffers, [this, &fence](auto& buffer) { m_impl->m_submittedCommandBuffers.push_back({ fence, buffer }); });
@@ -229,7 +229,7 @@ void DirectX12Queue::waitFor(UInt64 fence) const noexcept
 			::WaitForSingleObject(eventHandle, INFINITE);
 
 		::CloseHandle(eventHandle);
-		raiseIfFailed<RuntimeException>(hr, "Unable to register fence completion event.");
+		raiseIfFailed(hr, "Unable to register fence completion event.");
 	}
 
 	m_impl->releaseCommandBuffers(fence);
