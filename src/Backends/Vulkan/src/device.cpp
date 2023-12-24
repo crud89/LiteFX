@@ -32,7 +32,7 @@ private:
             m_id(id), m_queueCount(queueCount), m_type(type) 
         {
             if (queueCount == 0) [[unlikely]]
-                throw InvalidArgumentException("An empty queue family is invalid.");
+                throw InvalidArgumentException("queueCount", "An empty queue family is invalid.");
 
             // Initialize queue priorities. First queue always has the highest priority possible, as those become the default queues. After this we fill up the space evenly 
             // through all available priorities. Currently there are two priorities (`High` and `Normal`)
@@ -125,7 +125,7 @@ public:
         base(parent), m_adapter(adapter), m_surface(std::move(surface))
     {
         if (m_surface == nullptr)
-            throw ArgumentNotInitializedException("The surface must be initialized.");
+            throw ArgumentNotInitializedException("surface", "The surface must be initialized.");
 
         m_extensions.assign(std::begin(extensions), std::end(extensions));
 
@@ -213,7 +213,7 @@ public:
     VkDevice initialize()
     {
         if (!m_adapter.validateDeviceExtensions(m_extensions))
-            throw InvalidArgumentException("Some required device extensions are not supported by the system.");
+            throw InvalidArgumentException("extensions", "Some required device extensions are not supported by the system.");
 
         auto const requiredExtensions = m_extensions | std::views::transform([](const auto& extension) { return extension.c_str(); }) | std::ranges::to<Array<const char*>>();
         
@@ -297,7 +297,7 @@ public:
         // NOTE: This can time-out under very mysterious circumstances, in which case the event log shows a TDR error. Unfortunately, the only way I found
         //       to fix this is rebooting the entire system.
         VkDevice device;
-        raiseIfFailed<RuntimeException>(::vkCreateDevice(m_adapter.handle(), &createInfo, nullptr, &device), "Unable to create Vulkan device.");
+        raiseIfFailed(::vkCreateDevice(m_adapter.handle(), &createInfo, nullptr, &device), "Unable to create Vulkan device.");
 
 #ifndef NDEBUG
         debugMarkerSetObjectName = reinterpret_cast<PFN_vkDebugMarkerSetObjectNameEXT>(::vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectNameEXT"));
@@ -522,7 +522,7 @@ const VulkanQueue& VulkanDevice::defaultQueue(QueueType type) const
     else if (LITEFX_FLAG_IS_SET(type, QueueType::Transfer))
         return *m_impl->m_transferQueue;
     else
-        throw InvalidArgumentException("No default queue for the provided queue type has was found.");
+        throw InvalidArgumentException("type", "No default queue for the provided queue type has was found.");
 }
 
 const VulkanQueue* VulkanDevice::createQueue(QueueType type, QueuePriority priority) noexcept 
@@ -570,5 +570,5 @@ double VulkanDevice::ticksPerMillisecond() const noexcept
 
 void VulkanDevice::wait() const
 {
-    raiseIfFailed<RuntimeException>(::vkDeviceWaitIdle(this->handle()), "Unable to wait for the device.");
+    raiseIfFailed(::vkDeviceWaitIdle(this->handle()), "Unable to wait for the device.");
 }

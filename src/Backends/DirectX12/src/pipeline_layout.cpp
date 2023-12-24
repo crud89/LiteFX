@@ -68,7 +68,7 @@ public:
             auto [a, b] = spaces;
 
             if (a == b) [[unlikely]]
-                throw InvalidArgumentException("Two layouts defined for the same descriptor set {}. Each descriptor set must use it's own space.", a);
+                throw InvalidArgumentException("descriptorSetLayouts", "Two layouts defined for the same descriptor set {}. Each descriptor set must use it's own space.", a);
         }
 
         // Define the descriptor range from descriptor set layouts.
@@ -144,7 +144,7 @@ public:
 
                     descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, range->descriptors(), range->binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_NONE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND);
                     break;
-                default: throw InvalidArgumentException("Invalid descriptor type: {0}.", range->descriptorType());
+                default: throw InvalidArgumentException("descriptorSetLayouts", "Invalid descriptor type: {0}.", range->descriptorType());
                 }
 
                 return descriptorRange;
@@ -204,11 +204,11 @@ public:
         if (error != nullptr)
             errorString = String(reinterpret_cast<TCHAR*>(error->GetBufferPointer()), error->GetBufferSize());
         
-        raiseIfFailed<RuntimeException>(hr, "Unable to serialize root signature to create pipeline layout: {0}", errorString);
+        raiseIfFailed(hr, "Unable to serialize root signature to create pipeline layout: {0}", errorString);
 
         // Create the root signature.
         ComPtr<ID3D12RootSignature> rootSignature;
-        raiseIfFailed<RuntimeException>(m_device.handle()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for pipeline layout.");
+        raiseIfFailed(m_device.handle()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for pipeline layout.");
 
         return rootSignature;
     }
@@ -241,7 +241,7 @@ const DirectX12DescriptorSetLayout& DirectX12PipelineLayout::descriptorSet(UInt3
     if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](const UniquePtr<DirectX12DescriptorSetLayout>& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
         return *match->get();
 
-    throw ArgumentOutOfRangeException("No descriptor set layout uses the provided space {0}.", space);
+    throw ArgumentOutOfRangeException("space", "No descriptor set layout uses the provided space {0}.", space);
 }
 
 Enumerable<const DirectX12DescriptorSetLayout*> DirectX12PipelineLayout::descriptorSets() const noexcept

@@ -42,23 +42,23 @@ public:
 			}
 		}
 
-		raiseIfFailed<RuntimeException>(m_queue.device().handle()->CreateCommandAllocator(type, IID_PPV_ARGS(&m_commandAllocator)), "Unable to create command allocator for command buffer.");
+		raiseIfFailed(m_queue.device().handle()->CreateCommandAllocator(type, IID_PPV_ARGS(&m_commandAllocator)), "Unable to create command allocator for command buffer.");
 
 		// Create the actual command list.
 		ComPtr<ID3D12GraphicsCommandList7> commandList;
 
 		if (m_recording = begin)
-			raiseIfFailed<RuntimeException>(m_queue.device().handle()->CreateCommandList(0, type, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
+			raiseIfFailed(m_queue.device().handle()->CreateCommandList(0, type, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
 		else
-			raiseIfFailed<RuntimeException>(m_queue.device().handle()->CreateCommandList1(0, type, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
+			raiseIfFailed(m_queue.device().handle()->CreateCommandList1(0, type, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
 
 		return commandList;
 	}
 
 	void reset()
 	{
-		raiseIfFailed<RuntimeException>(m_commandAllocator->Reset(), "Unable to reset command allocator.");
-		raiseIfFailed<RuntimeException>(m_parent->handle()->Reset(m_commandAllocator.Get(), nullptr), "Unable to reset command list.");
+		raiseIfFailed(m_commandAllocator->Reset(), "Unable to reset command allocator.");
+		raiseIfFailed(m_parent->handle()->Reset(m_commandAllocator.Get(), nullptr), "Unable to reset command list.");
 		m_recording = true;
 	}
 
@@ -97,7 +97,7 @@ void DirectX12CommandBuffer::end() const
 {
 	// Close the command list, so that it does not longer record any commands.
 	if (m_impl->m_recording)
-		raiseIfFailed<RuntimeException>(this->handle()->Close(), "Unable to close command buffer for recording.");
+		raiseIfFailed(this->handle()->Close(), "Unable to close command buffer for recording.");
 
 	m_impl->m_recording = false;
 }
@@ -246,10 +246,10 @@ void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier) const noex
 void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Buffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
+		throw ArgumentOutOfRangeException("sourceElement", "The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
 	if (target.elements() < targetElement + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, targetElement);
+		throw ArgumentOutOfRangeException("targetElement", "The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, targetElement);
 
 	this->handle()->CopyBufferRegion(std::as_const(target).handle().Get(), targetElement * target.alignedElementSize(), std::as_const(source).handle().Get(), sourceElement * source.alignedElementSize(), elements * source.alignedElementSize());
 }
@@ -257,10 +257,10 @@ void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Buffer
 void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Image& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
+		throw ArgumentOutOfRangeException("sourceElement", "The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
 	if (target.elements() < firstSubresource + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The target image has only {0} sub-resources, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, firstSubresource);
+		throw ArgumentOutOfRangeException("targetElement", "The target image has only {0} sub-resources, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, firstSubresource);
 
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
 	const auto& targetDesc = std::as_const(target).handle()->GetDesc();
@@ -276,10 +276,10 @@ void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Image&
 void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Image& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
 	if (source.elements() < sourceSubresource + subresources) [[unlikely]]
-		throw ArgumentOutOfRangeException("The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, sourceSubresource);
+		throw ArgumentOutOfRangeException("sourceElement", "The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, sourceSubresource);
 
 	if (target.elements() < targetSubresource + subresources) [[unlikely]]
-		throw ArgumentOutOfRangeException("The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resources {2} has been requested.", target.elements(), subresources, targetSubresource);
+		throw ArgumentOutOfRangeException("targetElement", "The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resources {2} has been requested.", target.elements(), subresources, targetSubresource);
 
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
 	const auto& targetDesc = std::as_const(target).handle()->GetDesc();
@@ -295,10 +295,10 @@ void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Image& 
 void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Buffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
 	if (source.elements() < firstSubresource + subresources) [[unlikely]]
-		throw ArgumentOutOfRangeException("The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
+		throw ArgumentOutOfRangeException("sourceElement", "The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
 
 	if (target.elements() <= targetElement + subresources) [[unlikely]]
-		throw ArgumentOutOfRangeException("The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), subresources, targetElement);
+		throw ArgumentOutOfRangeException("targetElement", "The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), subresources, targetElement);
 
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
 	const auto& targetDesc = std::as_const(target).handle()->GetDesc();
@@ -387,7 +387,7 @@ void DirectX12CommandBuffer::pushConstants(const DirectX12PushConstantsLayout& l
 void DirectX12CommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const
 {
 	if (timingEvent == nullptr) [[unlikely]]
-		throw ArgumentNotInitializedException("The timing event must be initialized.");
+		throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");
 
 	this->handle()->EndQuery(m_impl->m_queue.device().swapChain().timestampQueryHeap(), D3D12_QUERY_TYPE_TIMESTAMP, timingEvent->queryId());
 }

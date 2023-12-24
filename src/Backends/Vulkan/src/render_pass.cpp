@@ -50,7 +50,7 @@ public:
         //       we simply check if the queue is the same as the swap chain queue (which is the default graphics queue).
         if (std::ranges::any_of(m_renderTargets, [](const auto& renderTarget) { return renderTarget.type() == RenderTargetType::Present; }) &&
             m_queue != std::addressof(m_device.defaultQueue(QueueType::Graphics))) [[unlikely]]
-            throw InvalidArgumentException("A render pass with a present target must be executed on the default graphics queue.");
+            throw InvalidArgumentException("renderTargets", "A render pass with a present target must be executed on the default graphics queue.");
     }
 
     void mapInputAttachments(Span<VulkanInputAttachmentMapping> inputAttachments)
@@ -74,8 +74,8 @@ public:
         std::ranges::for_each(m_inputAttachments, [&, i = 0](const VulkanInputAttachmentMapping& inputAttachment) mutable {
             UInt32 currentIndex = i++;
 
-            if (inputAttachment.location() != currentIndex)
-                throw InvalidArgumentException("No input attachment is mapped to location {0}. The locations must be within a contiguous domain.", currentIndex);
+            if (inputAttachment.location() != currentIndex) [[unlikely]]
+                throw InvalidArgumentException("inputAttachments", "No input attachment is mapped to location {0}. The locations must be within a contiguous domain.", currentIndex);
 
             VkAttachmentDescription attachment{};
             attachment.format = Vk::getFormat(inputAttachment.renderTarget().format());
@@ -91,7 +91,7 @@ public:
             switch (inputAttachment.renderTarget().type()) 
             {
             case RenderTargetType::Present: [[unlikely]]
-                throw InvalidArgumentException("The render pass input attachment at location {0} maps to a present render target, which can not be used as input attachment.", currentIndex);
+                throw InvalidArgumentException("inputAttachments", "The render pass input attachment at location {0} maps to a present render target, which can not be used as input attachment.", currentIndex);
             case RenderTargetType::Color:
                 attachment.initialLayout = attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
                 inputAttachments.push_back({ static_cast<UInt32>(currentIndex), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
@@ -120,13 +120,13 @@ public:
         std::ranges::for_each(m_renderTargets, [&, i = 0](const RenderTarget& renderTarget) mutable {
             UInt32 currentIndex = i++;
 
-            if (renderTarget.location() != currentIndex)
-                throw InvalidArgumentException("No render target is mapped to location {0}. The locations must be within a contiguous domain.", currentIndex);
+            if (renderTarget.location() != currentIndex) [[unlikely]]
+                throw InvalidArgumentException("renderTargets", "No render target is mapped to location {0}. The locations must be within a contiguous domain.", currentIndex);
 
             if ((renderTarget.type() == RenderTargetType::DepthStencil && depthTarget.has_value())) [[unlikely]]
-                throw InvalidArgumentException("The depth/stencil target at location {0} cannot be mapped. Another depth/stencil target is already bound to location {1} and only one is allowed.", renderTarget.location(), depthTarget->attachment);
+                throw InvalidArgumentException("renderTargets", "The depth/stencil target at location {0} cannot be mapped. Another depth/stencil target is already bound to location {1} and only one is allowed.", renderTarget.location(), depthTarget->attachment);
             else if (renderTarget.type() == RenderTargetType::Present && presentTarget.has_value()) [[unlikely]]
-                throw InvalidArgumentException("The present target at location {0} cannot be mapped. Another present target is already bound to location {1} and only one is allowed.", renderTarget.location(), presentTarget->attachment);
+                throw InvalidArgumentException("renderTargets", "The present target at location {0} cannot be mapped. Another present target is already bound to location {1} and only one is allowed.", renderTarget.location(), presentTarget->attachment);
             else [[likely]]
             {
                 VkAttachmentDescription attachment{};
@@ -242,7 +242,7 @@ public:
 
         // Create the render pass.
         VkRenderPass renderPass;
-        raiseIfFailed<RuntimeException>(::vkCreateRenderPass(m_device.handle(), &renderPassState, nullptr, &renderPass), "Unable to create render pass.");
+        raiseIfFailed(::vkCreateRenderPass(m_device.handle(), &renderPassState, nullptr, &renderPass), "Unable to create render pass.");
 
 #ifndef NDEBUG
         m_device.setDebugName(*reinterpret_cast<const UInt64*>(&renderPass), VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT, m_parent->name());
@@ -338,7 +338,7 @@ VulkanRenderPass::~VulkanRenderPass() noexcept
 const VulkanFrameBuffer& VulkanRenderPass::frameBuffer(UInt32 buffer) const
 {
     if (buffer >= m_impl->m_frameBuffers.size()) [[unlikely]]
-        throw ArgumentOutOfRangeException("The buffer {0} does not exist in this render pass. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
+        throw ArgumentOutOfRangeException("buffer", 0u, static_cast<UInt32>(m_impl->m_frameBuffers.size()), buffer, "The buffer {0} does not exist in this render pass. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
 
     return *m_impl->m_frameBuffers[buffer].get();
 }
@@ -373,10 +373,10 @@ Enumerable<const VulkanRenderPipeline*> VulkanRenderPass::pipelines() const noex
 
 const RenderTarget& VulkanRenderPass::renderTarget(UInt32 location) const
 {
-    if (auto match = std::ranges::find_if(m_impl->m_renderTargets, [&location](const RenderTarget& renderTarget) { return renderTarget.location() == location; }); match != m_impl->m_renderTargets.end())
+    if (auto match = std::ranges::find_if(m_impl->m_renderTargets, [&location](const RenderTarget& renderTarget) { return renderTarget.location() == location; }); match != m_impl->m_renderTargets.end()) [[likely]]
         return *match;
 
-    throw ArgumentOutOfRangeException("No render target is mapped to location {0} in this render pass.", location);
+    throw InvalidArgumentException("location", "No render target is mapped to location {0} in this render pass.", location);
 }
 
 Span<const RenderTarget> VulkanRenderPass::renderTargets() const noexcept
@@ -402,12 +402,12 @@ MultiSamplingLevel VulkanRenderPass::multiSamplingLevel() const noexcept
 void VulkanRenderPass::begin(UInt32 buffer)
 {
     // Only begin, if we are currently not running.
-    if (m_impl->m_activeFrameBuffer != nullptr)
+    if (m_impl->m_activeFrameBuffer != nullptr) [[unlikely]]
         throw RuntimeException("Unable to begin a render pass, that is already running. End the current pass first.");
 
     // Select the active frame buffer.
-    if (buffer >= m_impl->m_frameBuffers.size())
-        throw ArgumentOutOfRangeException("The frame buffer {0} is out of range. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
+    if (buffer >= m_impl->m_frameBuffers.size()) [[unlikely]]
+        throw ArgumentOutOfRangeException("buffer", 0u, static_cast<UInt32>(m_impl->m_frameBuffers.size()), buffer, "The frame buffer {0} is out of range. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
 
     auto frameBuffer = m_impl->m_activeFrameBuffer = m_impl->m_frameBuffers[buffer].get();
     auto commandBuffer = m_impl->m_activeCommandBuffer = m_impl->m_primaryCommandBuffers[buffer];
@@ -440,7 +440,7 @@ void VulkanRenderPass::begin(UInt32 buffer)
 void VulkanRenderPass::end() const
 {
     // Check if we are running.
-    if (m_impl->m_activeFrameBuffer == nullptr)
+    if (m_impl->m_activeFrameBuffer == nullptr) [[unlikely]]
         throw RuntimeException("Unable to end a render pass, that has not been begun. Start the render pass first.");
 
     // Publish ending event.
@@ -480,7 +480,7 @@ void VulkanRenderPass::end() const
 void VulkanRenderPass::resizeFrameBuffers(const Size2d& renderArea)
 {
     // Check if we're currently running.
-    if (m_impl->m_activeFrameBuffer != nullptr)
+    if (m_impl->m_activeFrameBuffer != nullptr) [[unlikely]]
         throw RuntimeException("Unable to reset the frame buffers while the render pass is running. End the render pass first.");
 
     std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<VulkanFrameBuffer>& frameBuffer) { frameBuffer->resize(renderArea); });
@@ -489,7 +489,7 @@ void VulkanRenderPass::resizeFrameBuffers(const Size2d& renderArea)
 void VulkanRenderPass::changeMultiSamplingLevel(MultiSamplingLevel samples)
 {
     // Check if we're currently running.
-    if (m_impl->m_activeFrameBuffer != nullptr)
+    if (m_impl->m_activeFrameBuffer != nullptr) [[unlikely]]
         throw RuntimeException("Unable to reset the frame buffers while the render pass is running. End the render pass first.");
 
     m_impl->m_samples = samples;
@@ -502,7 +502,7 @@ void VulkanRenderPass::updateAttachments(const VulkanDescriptorSet& descriptorSe
 
     std::ranges::for_each(m_impl->m_inputAttachments, [&descriptorSet, &backBuffer](const VulkanInputAttachmentMapping& inputAttachment) {
 #ifndef NDEBUG
-        if (inputAttachment.inputAttachmentSource() == nullptr)
+        if (inputAttachment.inputAttachmentSource() == nullptr) [[unlikely]]
             throw RuntimeException("No source render pass has been specified for the input attachment mapped to location {0}.", inputAttachment.location());
 #endif
 

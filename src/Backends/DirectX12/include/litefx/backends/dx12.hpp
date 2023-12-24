@@ -1497,7 +1497,7 @@ namespace LiteFX::Rendering::Backends {
             auto d3dQueue = dynamic_cast<const DirectX12Queue*>(&queue);
 
             if (d3dQueue == nullptr) [[unlikely]]
-                throw InvalidArgumentException("Cannot wait for queues from other backends.");
+                throw InvalidArgumentException("queue", "Cannot wait for queues from other backends.");
 
             this->waitFor(*d3dQueue, fence);
         }

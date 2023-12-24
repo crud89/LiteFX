@@ -92,13 +92,13 @@ public:
     {
         // Check if all extensions are available.
         if (!VulkanBackend::validateInstanceExtensions(m_extensions))
-            throw InvalidArgumentException("Some required Vulkan extensions are not supported by the system.");
+            throw InvalidArgumentException("extensions", "Some required Vulkan extensions are not supported by the system.");
 
         auto requiredExtensions = m_extensions | std::views::transform([this](const auto& extension) { return extension.c_str(); }) | std::ranges::to<Array<const char*>>();
 
         // Check if all extensions are available.
         if (!VulkanBackend::validateInstanceLayers(m_layers))
-            throw InvalidArgumentException("Some required Vulkan layers are not supported by the system.");
+            throw InvalidArgumentException("validationLayers", "Some required Vulkan layers are not supported by the system.");
 
         auto enabledLayers = m_layers | std::views::transform([this](const auto& layer) { return layer.c_str(); }) | std::ranges::to<Array<const char*>>();
 
@@ -135,7 +135,7 @@ public:
         createInfo.pNext = &debugCallbackInfo;
 #endif
         VkInstance instance;
-        raiseIfFailed<RuntimeException>(::vkCreateInstance(&createInfo, nullptr, &instance), "Unable to create Vulkan instance.");
+        raiseIfFailed(::vkCreateInstance(&createInfo, nullptr, &instance), "Unable to create Vulkan instance.");
 
 #ifndef NDEBUG
         vkCreateDebugUtilsMessenger     = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -155,7 +155,7 @@ public:
             if (result == VK_ERROR_EXTENSION_NOT_PRESENT)
                 LITEFX_WARNING(VULKAN_LOG, "The extension \"{0}\" is not present. Debug utilities will not be enabled.", VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             else
-                raiseIfFailed<RuntimeException>(result, "Unable to initialize debug callback.");
+                raiseIfFailed(result, "Unable to initialize debug callback.");
 
             // Remember the instance so we can destroy the debug messenger.
             m_instance = instance;
@@ -241,7 +241,7 @@ const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& 
 void VulkanBackend::registerDevice(String name, UniquePtr<VulkanDevice>&& device)
 {
     if (m_impl->m_devices.contains(name))
-        throw InvalidArgumentException("The backend already contains a device with the name \"{0}\".", name);
+        throw InvalidArgumentException("name", "The backend already contains a device with the name \"{0}\".", name);
 
 #ifndef NDEBUG
     device->setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*device).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT, name);
@@ -297,7 +297,7 @@ UniquePtr<VulkanSurface> VulkanBackend::createSurface(const HWND& hwnd) const
     createInfo.hinstance = ::GetModuleHandle(nullptr);
 
     VkSurfaceKHR surface;
-    raiseIfFailed<RuntimeException>(::vkCreateWin32SurfaceKHR(this->handle(), &createInfo, nullptr, &surface), "Unable to create vulkan surface for provided window.");
+    raiseIfFailed(::vkCreateWin32SurfaceKHR(this->handle(), &createInfo, nullptr, &surface), "Unable to create vulkan surface for provided window.");
 
     return makeUnique<VulkanSurface>(surface, this->handle(), hwnd);
 }

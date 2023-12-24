@@ -34,10 +34,10 @@ public:
 		base(parent), m_adapter(adapter), m_surface(std::move(surface)), m_backend(backend), m_globalBufferHeapSize(globalBufferHeapSize), m_globalSamplerHeapSize(globalSamplerHeapSize)
 	{
 		if (m_surface == nullptr)
-			throw ArgumentNotInitializedException("The surface must be initialized.");
+			throw ArgumentNotInitializedException("surface", "The surface must be initialized.");
 
-		if (globalSamplerHeapSize > 2048)
-			throw ArgumentOutOfRangeException("Only 2048 samplers are allowed in the global sampler heap, but {0} have been specified.", globalSamplerHeapSize);
+		if (globalSamplerHeapSize > 2048) [[unlikely]]
+			throw ArgumentOutOfRangeException("globalSamplerHeapSize", 0u, 2048u, globalSamplerHeapSize, "Only 2048 samplers are allowed in the global sampler heap, but {0} have been specified.", globalSamplerHeapSize);
 	}
 
 	~DirectX12DeviceImpl() noexcept
@@ -92,7 +92,7 @@ private:
 	bool checkRequiredExtensions(ID3D12Device10* device)
 	{
 		D3D12_FEATURE_DATA_D3D12_OPTIONS12 options {};
-		raiseIfFailed<RuntimeException>(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &options, sizeof(options)), "Unable to query device extensions.");
+		raiseIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &options, sizeof(options)), "Unable to query device extensions.");
 		
 		bool result = options.EnhancedBarriersSupported; // && ...
 
@@ -106,7 +106,7 @@ public:
 		ComPtr<ID3D12Device10> device;
 		HRESULT hr;
 
-		raiseIfFailed<RuntimeException>(::D3D12CreateDevice(m_adapter.handle().Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device)), "Unable to create DirectX 12 device.");
+		raiseIfFailed(::D3D12CreateDevice(m_adapter.handle().Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device)), "Unable to create DirectX 12 device.");
 
 		if (!this->checkRequiredExtensions(device.Get()))
 			throw RuntimeException("Not all required extensions are supported by this device. A driver update may resolve this problem.");
@@ -137,7 +137,7 @@ public:
 			infoQueueFilter.DenyList.NumSeverities = _countof(severities);
 			infoQueueFilter.DenyList.pSeverityList = severities;
 
-			raiseIfFailed<RuntimeException>(infoQueue->PushStorageFilter(&infoQueueFilter), "Unable to push message filter to info queue.");
+			raiseIfFailed(infoQueue->PushStorageFilter(&infoQueueFilter), "Unable to push message filter to info queue.");
 
 			// Try to register event callback.
 			if (FAILED(infoQueue.As(&m_eventQueue)))
@@ -152,14 +152,14 @@ public:
 		bufferHeapDesc.NumDescriptors = m_globalBufferHeapSize;
 		bufferHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 		bufferHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		raiseIfFailed<RuntimeException>(device->CreateDescriptorHeap(&bufferHeapDesc, IID_PPV_ARGS(&m_globalBufferHeap)), "Unable create global GPU descriptor heap for buffers.");
+		raiseIfFailed(device->CreateDescriptorHeap(&bufferHeapDesc, IID_PPV_ARGS(&m_globalBufferHeap)), "Unable create global GPU descriptor heap for buffers.");
 		m_bufferDescriptorIncrement = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 		D3D12_DESCRIPTOR_HEAP_DESC samplerHeapDesc = {};
 		samplerHeapDesc.NumDescriptors = m_globalSamplerHeapSize;
 		samplerHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
 		samplerHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-		raiseIfFailed<RuntimeException>(device->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&m_globalSamplerHeap)), "Unable create global GPU descriptor heap for samplers.");
+		raiseIfFailed(device->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&m_globalSamplerHeap)), "Unable create global GPU descriptor heap for samplers.");
 		m_samplerDescriptorIncrement = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 
 #ifndef NDEBUG
@@ -227,7 +227,7 @@ public:
 			// Create the pipeline.
 			m_blitPipeline = makeUnique<DirectX12ComputePipeline>(*m_parent, pipelineLayout, shaderProgram, "Blit");
 		}
-		catch (Exception& ex)
+		catch (const Exception& ex)
 		{
 			LITEFX_WARNING(DIRECTX12_LOG, "Unable to create blit pipeline. Blitting will not be available. Error: {0}", ex.what());
 		}	
@@ -536,7 +536,7 @@ const DirectX12Queue& DirectX12Device::defaultQueue(QueueType type) const
 	else if (LITEFX_FLAG_IS_SET(type, QueueType::Transfer))
 		return *m_impl->m_transferQueue;
 	else
-		throw InvalidArgumentException("No default queue for the provided queue type has was found.");
+		throw InvalidArgumentException("type", "No default queue for the provided queue type has was found.");
 }
 
 const DirectX12Queue* DirectX12Device::createQueue(QueueType type, QueuePriority priority) noexcept
@@ -584,7 +584,7 @@ void DirectX12Device::wait() const
 	Array<event_type> events(m_impl->m_queues.size());
 	std::ranges::generate(events, [this, i = 0]() mutable -> event_type {
 	ComPtr<ID3D12Fence> fence;
-	raiseIfFailed<RuntimeException>(this->handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)), "Unable to create queue synchronization fence.");
+	raiseIfFailed(this->handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)), "Unable to create queue synchronization fence.");
 	
 	// Create a signal event.
 	HANDLE eventHandle = ::CreateEvent(nullptr, false, false, nullptr);
@@ -597,7 +597,7 @@ void DirectX12Device::wait() const
 	if (FAILED(hr))
 	{
 		::CloseHandle(eventHandle);
-		raiseIfFailed<RuntimeException>(hr, "Unable to register queue synchronization fence completion event.");
+		raiseIfFailed(hr, "Unable to register queue synchronization fence completion event.");
 	}
 
 	// Signal the event value on the graphics queue.
@@ -606,7 +606,7 @@ void DirectX12Device::wait() const
 	if (FAILED(hr))
 	{
 		::CloseHandle(eventHandle);
-		raiseIfFailed<RuntimeException>(hr, "Unable to wait for queue synchronization fence.");
+		raiseIfFailed(hr, "Unable to wait for queue synchronization fence.");
 	}
 
 		return { std::move(eventHandle), std::move(fence) };

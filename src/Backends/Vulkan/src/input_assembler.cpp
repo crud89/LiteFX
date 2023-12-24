@@ -29,15 +29,12 @@ public:
         m_indexBufferLayout = std::move(indexBufferLayout);
 
         for (auto& vertexBufferLayout : vertexBufferLayouts)
-        {
-            if (vertexBufferLayout == nullptr)
-                throw ArgumentNotInitializedException("One of the provided vertex buffer layouts is not initialized.");
-
-            if (m_vertexBufferLayouts.contains(vertexBufferLayout->binding()))
-                throw InvalidArgumentException("Multiple vertex buffer layouts use the binding point {0}, but only one layout per binding point is allowed.", vertexBufferLayout->binding());
-
-            m_vertexBufferLayouts.emplace(vertexBufferLayout->binding(), std::move(vertexBufferLayout));
-        }
+            if (vertexBufferLayout == nullptr) [[unlikely]]
+                throw ArgumentNotInitializedException("vertexBufferLayouts", "One of the provided vertex buffer layouts is not initialized.");
+            else if (m_vertexBufferLayouts.contains(vertexBufferLayout->binding())) [[unlikely]]
+                throw InvalidArgumentException("vertexBufferLayouts", "Multiple vertex buffer layouts use the binding point {0}, but only one layout per binding point is allowed.", vertexBufferLayout->binding());
+            else
+                m_vertexBufferLayouts.emplace(vertexBufferLayout->binding(), std::move(vertexBufferLayout));
     }
 };
 
@@ -65,10 +62,10 @@ Enumerable<const VulkanVertexBufferLayout*> VulkanInputAssembler::vertexBufferLa
 
 const VulkanVertexBufferLayout* VulkanInputAssembler::vertexBufferLayout(UInt32 binding) const
 {
-    [[likely]] if (m_impl->m_vertexBufferLayouts.contains(binding))
+    if (m_impl->m_vertexBufferLayouts.contains(binding)) [[likely]]
         return m_impl->m_vertexBufferLayouts[binding].get();
 
-    throw ArgumentOutOfRangeException("No vertex buffer layout is bound to binding point {0}.", binding);
+    throw InvalidArgumentException("binding", "No vertex buffer layout is bound to binding point {0}.", binding);
 }
 
 const VulkanIndexBufferLayout* VulkanInputAssembler::indexBufferLayout() const noexcept

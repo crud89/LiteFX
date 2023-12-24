@@ -37,7 +37,7 @@ private:
 
         std::ranges::for_each(m_rangePointers, [this](const UniquePtr<VulkanPushConstantsRange>& range) {
             if (m_ranges.contains(static_cast<ShaderStage>(range->stage())))
-                throw InvalidArgumentException("Only one push constant range can be mapped to a shader stage.");
+                throw InvalidArgumentException("ranges", "Only one push constant range can be mapped to a shader stage.");
 
             m_ranges[range->stage()] = range.get();
         });
@@ -85,10 +85,10 @@ UInt32 VulkanPushConstantsLayout::size() const noexcept
 const VulkanPushConstantsRange& VulkanPushConstantsLayout::range(ShaderStage stage) const
 {
     if (!(std::to_underlying(stage) && !(std::to_underlying(stage) & (std::to_underlying(stage) - 1))))
-        throw ArgumentOutOfRangeException("The stage mask must only contain one shader stage.");
+        throw InvalidArgumentException("stage", "The stage mask must only contain one shader stage.");
 
     if (!m_impl->m_ranges.contains(stage))
-        throw InvalidArgumentException("No push constant range has been associated with the provided shader stage.");
+        throw InvalidArgumentException("stage", "No push constant range has been associated with the provided shader stage.");
 
     return *m_impl->m_ranges[stage];
 }

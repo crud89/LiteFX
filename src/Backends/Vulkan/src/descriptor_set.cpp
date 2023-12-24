@@ -29,7 +29,7 @@ VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout
     m_impl(makePimpl<VulkanDescriptorSetImpl>(this, layout)), Resource<VkDescriptorSet>(descriptorSet)
 {
     if (descriptorSet == VK_NULL_HANDLE)
-        throw ArgumentNotInitializedException("The descriptor set handle must be initialized.");
+        throw ArgumentNotInitializedException("descriptorSet", "The descriptor set handle must be initialized.");
 }
 
 VulkanDescriptorSet::~VulkanDescriptorSet() noexcept
@@ -115,7 +115,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
         };
 
         VkBufferView bufferView;
-        raiseIfFailed<RuntimeException>(::vkCreateBufferView(m_impl->m_layout.device().handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
+        raiseIfFailed(::vkCreateBufferView(m_impl->m_layout.device().handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
         m_impl->m_bufferViews[binding] = bufferView;
 
         descriptorWrite.pTexelBufferView = &bufferView;
@@ -136,14 +136,14 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
         };
 
         VkBufferView bufferView;
-        raiseIfFailed<RuntimeException>(::vkCreateBufferView(m_impl->m_layout.device().handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
+        raiseIfFailed(::vkCreateBufferView(m_impl->m_layout.device().handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
         m_impl->m_bufferViews[binding] = bufferView;
 
         descriptorWrite.pTexelBufferView = &bufferView;
         break;
     }
     default: [[unlikely]]
-        throw InvalidArgumentException("Invalid descriptor type. The binding {0} does not point to a buffer descriptor.", binding);
+        throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a buffer descriptor.", binding);
     }
 
     // Remove the buffer view, if there is one bound to the current descriptor.
@@ -181,7 +181,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
         break;
     default: [[unlikely]]
-        throw InvalidArgumentException("Invalid descriptor type. The binding {0} does not point to a texture descriptor.", binding);
+        throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a texture descriptor.", binding);
     }
 
     // Remove the image view, if there is one bound to the current descriptor.
@@ -223,7 +223,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
         imageViewDesc.subresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
 
     VkImageView imageView;
-    raiseIfFailed<RuntimeException>(::vkCreateImageView(m_impl->m_layout.device().handle(), &imageViewDesc, nullptr, &imageView), "Unable to create image view.");
+    raiseIfFailed(::vkCreateImageView(m_impl->m_layout.device().handle(), &imageViewDesc, nullptr, &imageView), "Unable to create image view.");
     m_impl->m_imageViews[binding] = imageView;
     imageInfo.imageView = imageView;
 
@@ -235,7 +235,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, 
     const auto& layout = m_impl->m_layout.descriptor(binding);
 
     if (layout.descriptorType() != DescriptorType::Sampler) [[unlikely]]
-        throw InvalidArgumentException("Invalid descriptor type. The binding {0} does not point to a sampler descriptor.", binding);
+        throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a sampler descriptor.", binding);
 
     VkDescriptorImageInfo imageInfo{ };
     imageInfo.sampler = sampler.handle();
@@ -257,7 +257,7 @@ void VulkanDescriptorSet::attach(UInt32 binding, const IVulkanImage& image) cons
     const auto& layout = m_impl->m_layout.descriptor(binding);
 
     if (layout.descriptorType() != DescriptorType::InputAttachment) [[unlikely]]
-        throw InvalidArgumentException("Invalid descriptor type. The binding {0} does not point to a input attachment descriptor.", binding);
+        throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a input attachment descriptor.", binding);
 
     VkDescriptorImageInfo imageInfo{};
     imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
