@@ -18,7 +18,7 @@ private:
     Array<VulkanInputAttachmentMapping> m_inputAttachments;
     Array<UniquePtr<VulkanFrameBuffer>> m_frameBuffers;
     Array<SharedPtr<VulkanCommandBuffer>> m_primaryCommandBuffers;
-    const VulkanFrameBuffer* m_activeFrameBuffer = nullptr;
+    VulkanFrameBuffer* m_activeFrameBuffer = nullptr;
     SharedPtr<const VulkanCommandBuffer> m_activeCommandBuffer;
     Array<VkClearValue> m_clearValues;
     UInt32 m_backBuffer{ 0 };
@@ -421,7 +421,7 @@ void VulkanRenderPass::begin(UInt32 buffer)
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = this->handle();
-    renderPassInfo.framebuffer = frameBuffer->handle();
+    renderPassInfo.framebuffer = std::as_const(*frameBuffer).handle();
     renderPassInfo.renderArea.offset = { 0, 0 };
     renderPassInfo.renderArea.extent.width = static_cast<UInt32>(frameBuffer->getWidth());
     renderPassInfo.renderArea.extent.height = static_cast<UInt32>(frameBuffer->getHeight());
@@ -437,7 +437,7 @@ void VulkanRenderPass::begin(UInt32 buffer)
     this->beginning(this, { buffer });
 }
 
-void VulkanRenderPass::end() const
+UInt64 VulkanRenderPass::end() const
 {
     // Check if we are running.
     if (m_impl->m_activeFrameBuffer == nullptr) [[unlikely]]
@@ -475,6 +475,9 @@ void VulkanRenderPass::end() const
     // Reset the frame buffer.
     m_impl->m_activeFrameBuffer = nullptr;
     m_impl->m_activeCommandBuffer = nullptr;
+
+    // Return the last fence.
+    return frameBuffer->lastFence();
 }
 
 void VulkanRenderPass::resizeFrameBuffers(const Size2d& renderArea)

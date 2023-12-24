@@ -20,7 +20,7 @@ private:
     Array<DirectX12InputAttachmentMapping> m_inputAttachments;
     Array<UniquePtr<DirectX12FrameBuffer>> m_frameBuffers;
     Array<SharedPtr<DirectX12CommandBuffer>> m_beginCommandBuffers, m_endCommandBuffers;
-    const DirectX12FrameBuffer* m_activeFrameBuffer = nullptr;
+    DirectX12FrameBuffer* m_activeFrameBuffer = nullptr;
     UInt32 m_backBuffer{ 0 };
     const RenderTarget* m_presentTarget = nullptr;
     const RenderTarget* m_depthStencilTarget = nullptr;
@@ -340,7 +340,7 @@ void DirectX12RenderPass::begin(UInt32 buffer)
     this->beginning(this, { buffer });
 }
 
-void DirectX12RenderPass::end() const
+UInt64 DirectX12RenderPass::end() const
 {
     // Check if we are running.
     if (m_impl->m_activeFrameBuffer == nullptr)
@@ -420,7 +420,7 @@ void DirectX12RenderPass::end() const
     commandBuffers.push_back(endCommandBuffer);
 
     // Submit and store the fence.
-    m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const DirectX12CommandBuffer>>>());
+    UInt64 fence = m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const DirectX12CommandBuffer>>>());
 
     if (!m_impl->m_name.empty())
         m_impl->m_queue->endDebugRegion();
@@ -433,6 +433,9 @@ void DirectX12RenderPass::end() const
 
     // Reset the frame buffer.
     m_impl->m_activeFrameBuffer = nullptr;
+
+    // Return the last fence of the frame buffer.
+    return fence;
 }
 
 void DirectX12RenderPass::resizeFrameBuffers(const Size2d& renderArea)

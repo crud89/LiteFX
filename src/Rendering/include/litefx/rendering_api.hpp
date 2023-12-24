@@ -4469,6 +4469,15 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// Returns the value of the fence that indicates the last submission drawing into the frame buffer.
+        /// </summary>
+        /// <remarks>
+        /// The frame buffer must only be re-used if this fence has been passed in the command queue that executes the parent render pass.
+        /// </remarks>
+        /// <returns>The value of the last submission targeting the frame buffer.</returns>
+        virtual UInt64 lastFence() const noexcept = 0;
+
+        /// <summary>
         /// Returns the index of the buffer within the <see cref="RenderPass" />.
         /// </summary>
         /// <remarks>
@@ -4717,7 +4726,8 @@ namespace LiteFX::Rendering {
         /// If the frame buffer has a present render target, this causes the render pass to synchronize with the swap chain and issue a present command.
         /// </remarks>
         /// <param name="buffer">The back buffer to use. Typically this is the same as the value returned from <see cref="ISwapChain::swapBackBuffer" />.</param>
-        virtual void end() const = 0;
+        /// <returns>The value of the fence that indicates the end of the render pass.</returns>
+        virtual UInt64 end() const = 0;
 
         /// <summary>
         /// Resets the frame buffers of the render pass.

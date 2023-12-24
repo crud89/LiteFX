@@ -1102,19 +1102,21 @@ namespace LiteFX::Rendering::Backends {
         /// Returns a reference of the semaphore, that can be used to signal, that the frame buffer is finished.
         /// </summary>
         /// <returns>A reference of the semaphore, that can be used to signal, that the frame buffer is finished.</returns>
-        virtual const VkSemaphore& semaphore() const noexcept;
+        const VkSemaphore& semaphore() const noexcept;
 
-        /// <summary>
-        /// Returns a reference of the last fence value for the frame buffer.
+        /// Returns a reference to the value of the fence that indicates the last submission drawing into the frame buffer.
         /// </summary>
         /// <remarks>
-        /// The frame buffer must only be re-used, if this fence is reached in the graphics queue.
+        /// The frame buffer must only be re-used if this fence has been passed in the command queue that executes the parent render pass.
         /// </remarks>
-        /// <returns>A reference of the last fence value for the frame buffer.</returns>
-        virtual UInt64& lastFence() const noexcept;
+        /// <returns>A reference to the of the last submission targeting the frame buffer.</returns>
+        UInt64& lastFence() noexcept;
 
         // FrameBuffer interface.
     public:
+        /// <inheritdoc />
+        UInt64 lastFence() const noexcept override;
+
         /// <inheritdoc />
         UInt32 bufferIndex() const noexcept override;
 
@@ -1262,7 +1264,7 @@ namespace LiteFX::Rendering::Backends {
         void begin(UInt32 buffer) override;
         
         /// <inheritdoc />
-        void end() const override;
+        UInt64 end() const override;
 
         /// <inheritdoc />
         void resizeFrameBuffers(const Size2d& renderArea) override;

@@ -149,7 +149,12 @@ UInt32 DirectX12FrameBuffer::depthStencilTargetDescriptorSize() const noexcept
     return m_impl->m_depthStencilDescriptorSize;
 }
 
-UInt64& DirectX12FrameBuffer::lastFence() const noexcept
+UInt64& DirectX12FrameBuffer::lastFence() noexcept
+{
+    return m_impl->m_lastFence;
+}
+
+UInt64 DirectX12FrameBuffer::lastFence() const noexcept
 {
     return m_impl->m_lastFence;
 }

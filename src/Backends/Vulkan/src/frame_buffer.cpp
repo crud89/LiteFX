@@ -137,7 +137,12 @@ const VkSemaphore& VulkanFrameBuffer::semaphore() const noexcept
     return m_impl->m_semaphore;
 }
 
-UInt64& VulkanFrameBuffer::lastFence() const noexcept
+UInt64& VulkanFrameBuffer::lastFence() noexcept
+{
+    return m_impl->m_lastFence;
+}
+
+UInt64 VulkanFrameBuffer::lastFence() const noexcept
 {
     return m_impl->m_lastFence;
 }
