@@ -85,7 +85,7 @@ public:
             else
             {
                 // Create an image view for the render target.
-                auto image = m_renderPass.device().factory().createAttachment(renderTarget.format(), m_size, samples);
+                auto image = m_renderPass.device().factory().createAttachment(renderTarget, m_size, samples);
                 attachmentViews.push_back(image->imageView());
                 m_renderTargetViews.push_back(image.get());
                 m_outputAttachments.push_back(std::move(image));

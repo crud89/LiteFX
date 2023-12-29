@@ -1600,10 +1600,10 @@ namespace LiteFX::Rendering::Backends {
         UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanImage> createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
+        UniquePtr<IVulkanImage> createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanImage> createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
+        UniquePtr<IVulkanImage> createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
 
         /// <inheritdoc />
         UniquePtr<IVulkanImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;

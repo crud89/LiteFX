@@ -174,15 +174,16 @@ UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(con
 	return DirectX12IndexBuffer::allocate(name, layout, m_impl->m_allocator, elements, resourceDesc, allocationDesc);
 }
 
-UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples) const
+UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const
 {
-	return this->createAttachment("", format, size, samples);
+	return this->createAttachment("", target, size, samples);
 }
 
-UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples) const
+UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const
 {
-	auto width = std::max<UInt32>(1, size.width());
-	auto height = std::max<UInt32>(1, size.height());
+	const auto format = target.format();
+	const auto width = std::max<UInt32>(1, size.width());
+	const auto height = std::max<UInt32>(1, size.height());
 
 	D3D12_RESOURCE_DESC1 resourceDesc { };
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -194,18 +195,25 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Stri
 	resourceDesc.Format = DX12::getFormat(format);
 	resourceDesc.SampleDesc = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
 	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	if (target.allowStorage())
+		resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+
+	if (target.multiQueueAccess())
+		resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS;
 
 	D3D12MA::ALLOCATION_DESC allocationDesc { .HeapType = D3D12_HEAP_TYPE_DEFAULT };
 
 	if (::hasDepth(format) || ::hasStencil(format))
 	{
-		resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+		resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 		return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ImageLayout::DepthRead, resourceDesc, allocationDesc);
 	}
 	else
 	{
-		resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-		return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ImageLayout::Common, resourceDesc, allocationDesc);
+		resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+		return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, true, ImageLayout::Common, resourceDesc, allocationDesc);
 	}
 }
 

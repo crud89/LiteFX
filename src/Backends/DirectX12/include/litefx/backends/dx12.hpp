@@ -1556,10 +1556,10 @@ namespace LiteFX::Rendering::Backends {
         UniquePtr<IDirectX12IndexBuffer> createIndexBuffer(const String& name, const DirectX12IndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12Image> createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
+        UniquePtr<IDirectX12Image> createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12Image> createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
+        UniquePtr<IDirectX12Image> createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
 
         /// <inheritdoc />
         UniquePtr<IDirectX12Image> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;

@@ -775,6 +775,63 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Describes the behavior of render targets.
+    /// </summary>
+    enum class LITEFX_RENDERING_API RenderTargetFlags {
+        /// <summary>
+        /// No flags are enabled.
+        /// </summary>
+        None = 0x00,
+
+        /// <summary>
+        /// If enabled, color or depth (depending on the render target type) are cleared when starting a render pass that renders to the render target.
+        /// </summary>
+        Clear = 0x01,
+
+        /// <summary>
+        /// If enabled and the render target format supports stencil storage, the stencil part is cleared when the render pass that renders to the render target is started.
+        /// </summary>
+        ClearStencil = 0x02,
+
+        /// <summary>
+        /// If enabled, the render target is discarded after ending the render pass.
+        /// </summary>
+        /// <remarks>
+        /// When this flag is set, the render target storage is freed after the render pass has finished. The main use of this is to have depth/stencil targets on a render 
+        /// pass that are only required during this render pass. It is not valid to attempt accessing the render target before or after the render pass.
+        /// </remarks>
+        Volatile = 0x04,
+
+        /// <summary>
+        /// If enabled, the render target is initialized with storage/unordered access enabled.
+        /// </summary>
+        /// <remarks>
+        /// This flag is set, the render target image is created with storage/unordered access enabled. This allows the render target to be transitioned into a read/write
+        /// resource outside of the render pass. However, enabling this might be less efficient than creating a new texture and copying the render target into it on some
+        /// hardware.
+        /// 
+        /// This flag must not be combined with depth/stencil formats.
+        /// </remarks>
+        /// <seealso cref="https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_flags" />
+        AllowStorage = 0x08,
+
+        /// <summary>
+        /// If enabled, the image can be used simultaneously from multiple queues.
+        /// </summary>
+        /// <remarks>
+        /// If this flag is specified, the render target image is created with support for multi-queue access. This allows multiple queues to read from the image 
+        /// simultaneously, as long as writes are properly synchronized using fences and barriers. If this flag is not specified, the render target image can only be 
+        /// accessed by the queue that first uses the render target (which must be the queue that executes the render target).
+        /// 
+        /// Note that it is currently not possible to transfer ownership between queues, so if multi-queue access is required, this flag must be specified when creating the
+        /// render target.
+        /// 
+        /// This flag must not be combined with depth/stencil formats.
+        /// </remarks>
+        Shared = 0x10
+    };
+
+    /// <summary>
     /// Describes the dimensions of a image resource, i.e. the dimensions that are required to access a texel or describe the image extent.
     /// </summary>
     /// <seealso cref="IImage" />
@@ -1448,6 +1505,7 @@ namespace LiteFX::Rendering {
     LITEFX_DEFINE_FLAGS(ResourceAccess);
     LITEFX_DEFINE_FLAGS(BufferFormat);
     LITEFX_DEFINE_FLAGS(WriteMask);
+    LITEFX_DEFINE_FLAGS(RenderTargetFlags);
 
 #pragma endregion
 
@@ -1998,6 +2056,12 @@ namespace LiteFX::Rendering {
         virtual RenderTargetType type() const noexcept = 0;
 
         /// <summary>
+        /// Returns the flags that control the behavior of the render target.
+        /// </summary>
+        /// <returns>The flags that control the behavior of the render target.</returns>
+        virtual RenderTargetFlags flags() const noexcept = 0;
+
+        /// <summary>
         /// Returns the internal format of the render target.
         /// </summary>
         /// <returns>The internal format of the render target.</returns>
@@ -2010,6 +2074,8 @@ namespace LiteFX::Rendering {
         /// <returns><c>true</c>, if the render target should be cleared, when the render pass is started</returns>
         /// <seealso cref="clearStencil" />
         /// <seealso cref="clearValues" />
+        /// <seealso cref="flags" />
+        /// <seealso cref="RenderTargetFlags" />
         virtual bool clearBuffer() const noexcept = 0;
 
         /// <summary>
@@ -2019,6 +2085,8 @@ namespace LiteFX::Rendering {
         /// <returns><c>true</c>, if the render target stencil should be cleared, when the render pass is started</returns>
         /// <seealso cref="clearStencil" />
         /// <seealso cref="clearValues" />
+        /// <seealso cref="flags" />
+        /// <seealso cref="RenderTargetFlags" />
         virtual bool clearStencil() const noexcept = 0;
 
         /// <summary>
@@ -2042,7 +2110,25 @@ namespace LiteFX::Rendering {
         /// the GPU memory again in the first place.
         /// </remarks>
         /// <returns><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</returns>
+        /// <seealso cref="flags" />
+        /// <seealso cref="RenderTargetFlags" />
         virtual bool isVolatile() const noexcept = 0;
+
+        /// <summary>
+        /// Return <c>true</c>, if the render target image can be used for storage/unordered access.
+        /// </summary>
+        /// <returns><c>true</c>, if the render target image can be used for storage/unordered access.</returns>
+        /// <seealso cref="flags" />
+        /// <seealso cref="RenderTargetFlags" />
+        virtual bool allowStorage() const noexcept = 0;
+
+        /// <summary>
+        /// Return <c>true</c>, if the render target image can be accessed simultaneously from different queues.
+        /// </summary>
+        /// <returns><c>true</c>, if the render target image can be accessed simultaneously from different queues.</returns>
+        /// <seealso cref="flags" />
+        /// <seealso cref="RenderTargetFlags" />
+        virtual bool multiQueueAccess() const noexcept = 0;
 
         /// <summary>
         /// Returns the render targets blend state.
@@ -2067,26 +2153,22 @@ namespace LiteFX::Rendering {
         /// <param name="location">The location of the render target output attachment.</param>
         /// <param name="type">The type of the render target.</param>
         /// <param name="format">The format of the render target.</param>
-        /// <param name="clearBuffer"><c>true</c>, if the render target should be cleared, when a render pass is started.</param>
+        /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="clearValues">The values with which the render target gets cleared.</param>
-        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared, when a render pass is started.</param>
-        /// <param name="isVolatile"><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</param>
         /// <param name="blendState">The render target blend state.</param>
-        explicit RenderTarget(UInt32 location, RenderTargetType type, Format format, bool clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, bool clearStencil = true, bool isVolatile = false, const BlendState& blendState = {});
+        explicit RenderTarget(UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const BlendState& blendState = {});
 
         /// <summary>
         /// Initializes the render target.
         /// </summary>
-        /// <param name="location">The name of the render target.</param>
+        /// <param name="name">The name of the render target.</param>
         /// <param name="location">The location of the render target output attachment.</param>
         /// <param name="type">The type of the render target.</param>
         /// <param name="format">The format of the render target.</param>
-        /// <param name="clearBuffer"><c>true</c>, if the render target should be cleared, when a render pass is started.</param>
+        /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="clearValues">The values with which the render target gets cleared.</param>
-        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared, when a render pass is started.</param>
-        /// <param name="isVolatile"><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</param>
         /// <param name="blendState">The render target blend state.</param>
-        explicit RenderTarget(const String& name, UInt32 location, RenderTargetType type, Format format, bool clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, bool clearStencil = true, bool isVolatile = false, const BlendState& blendState = {});
+        explicit RenderTarget(const String& name, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const BlendState& blendState = {});
         RenderTarget(const RenderTarget&) noexcept;
         RenderTarget(RenderTarget&&) noexcept;
         virtual ~RenderTarget() noexcept;
@@ -2106,6 +2188,9 @@ namespace LiteFX::Rendering {
         RenderTargetType type() const noexcept override;
 
         /// <inheritdoc />
+        RenderTargetFlags flags() const noexcept override;
+
+        /// <inheritdoc />
         Format format() const noexcept override;
 
         /// <inheritdoc />
@@ -2119,6 +2204,12 @@ namespace LiteFX::Rendering {
 
         /// <inheritdoc />
         bool isVolatile() const noexcept override;
+
+        /// <inheritdoc />
+        bool allowStorage() const noexcept override;
+
+        /// <inheritdoc />
+        bool multiQueueAccess() const noexcept override;
 
         /// <inheritdoc />
         const BlendState& blendState() const noexcept override;
@@ -5415,24 +5506,24 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Creates an image that is used as render target attachment.
         /// </summary>
-        /// <param name="format">The format of the image.</param>
+        /// <param name="target">The render target description.</param>
         /// <param name="size">The extent of the image.</param>
         /// <param name="samples">The number of samples, the image should be sampled with.</param>
         /// <returns>The instance of the attachment image.</returns>
-        inline UniquePtr<IImage> createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const {
-            return this->getAttachment(format, size, samples);
+        inline UniquePtr<IImage> createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const {
+            return this->getAttachment(target, size, samples);
         }
 
         /// <summary>
         /// Creates an image that is used as render target attachment.
         /// </summary>
         /// <param name="name">The name of the image.</param>
-        /// <param name="format">The format of the image.</param>
+        /// <param name="target">The render target description.</param>
         /// <param name="size">The extent of the image.</param>
         /// <param name="samples">The number of samples, the image should be sampled with.</param>
         /// <returns>The instance of the attachment image.</returns>
-        inline UniquePtr<IImage> createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const {
-            return this->getAttachment(name, format, size, samples);
+        inline UniquePtr<IImage> createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const {
+            return this->getAttachment(name, target, size, samples);
         }
 
         /// <summary>
@@ -5559,8 +5650,8 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const = 0;
         virtual UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const = 0;
         virtual UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const = 0;
-        virtual UniquePtr<IImage> getAttachment(Format format, const Size2d& size, MultiSamplingLevel samples) const = 0;
-        virtual UniquePtr<IImage> getAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples) const = 0;
+        virtual UniquePtr<IImage> getAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const = 0;
+        virtual UniquePtr<IImage> getAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const = 0;
         virtual UniquePtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const = 0;
         virtual UniquePtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const = 0;
         virtual Enumerable<UniquePtr<IImage>> getTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, bool allowWrite) const = 0;

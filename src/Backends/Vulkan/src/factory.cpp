@@ -229,15 +229,16 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 	return buffer;
 }
 
-UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples) const
+UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const
 {
-	return this->createAttachment("", format, size, samples);
+	return this->createAttachment("", target, size, samples);
 }
 
-UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples) const
+UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const
 {
-	auto width = std::max<UInt32>(1, size.width());
-	auto height = std::max<UInt32>(1, size.height());
+	const auto format = target.format();
+	const auto width = std::max<UInt32>(1, size.width());
+	const auto height = std::max<UInt32>(1, size.height());
 
 	VkImageCreateInfo imageInfo{};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -251,12 +252,20 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& na
 	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	imageInfo.samples = Vk::getSamples(samples);
-	imageInfo.usage = (::hasDepth(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+	imageInfo.usage = (::hasDepth(format) || ::hasStencil(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
 
-	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
-	imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
-	imageInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
-	imageInfo.pQueueFamilyIndices = queueFamilies.data();
+	if (target.allowStorage())
+		imageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+
+	if (!target.multiQueueAccess())
+		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	else
+	{
+		auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
+		imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+		imageInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
+		imageInfo.pQueueFamilyIndices = queueFamilies.data();
+	}
 
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;

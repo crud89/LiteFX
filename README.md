@@ -20,8 +20,8 @@ The engine design follows an descriptive approach, which means that an applicati
 
 ```cxx
 UniquePtr<RenderPass> renderPass = device->buildRenderPass("Geometry")
-    .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 1.f }, true, false)
-    .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, MultiSamplingLevel::x1, { 1.f, 0.f, 0.f, 0.f }, true, false);
+    .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, RenderTargetFlags::Clear, { 0.f, 0.f, 0.f, 1.f })
+    .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, MultiSamplingLevel::x1, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
 UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
     .inputAssembler(inputAssembler)

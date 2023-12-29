@@ -84,7 +84,7 @@ public:
                 // Create an image view for the render target.
                 // TODO: Pass the optimized clear value from the render target to the attachment. (May need to refactor `CreateAttachment` to accept the render target and a size). Then
                 //       remove the warning from the info queue.
-                auto image = m_renderPass.device().factory().createAttachment(renderTarget.format(), m_size, m_renderPass.multiSamplingLevel());
+                auto image = m_renderPass.device().factory().createAttachment(renderTarget, m_size, m_renderPass.multiSamplingLevel());
                 renderTargetView = image.get();
                 m_outputAttachments.push_back(std::move(image));
             }

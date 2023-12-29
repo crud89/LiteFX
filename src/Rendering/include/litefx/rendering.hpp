@@ -1016,10 +1016,10 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<TIndexBuffer> createIndexBuffer(const String& name, const index_buffer_layout_type& layout, BufferUsage usage, UInt32 elements) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TImage> createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const = 0;
+        virtual UniquePtr<TImage> createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TImage> createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const = 0;
+        virtual UniquePtr<TImage> createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const = 0;
 
         /// <inheritdoc />
         virtual UniquePtr<TImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const = 0;
@@ -1064,12 +1064,12 @@ namespace LiteFX::Rendering {
             return this->createIndexBuffer(name, dynamic_cast<const index_buffer_layout_type&>(layout), usage, elements);
         }
 
-        inline UniquePtr<IImage> getAttachment(Format format, const Size2d& size, MultiSamplingLevel samples) const override {
-            return this->createAttachment(format, size, samples);
+        inline UniquePtr<IImage> getAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const override {
+            return this->createAttachment(target, size, samples);
         }
 
-        inline UniquePtr<IImage> getAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples) const override {
-            return this->createAttachment(name, format, size, samples);
+        inline UniquePtr<IImage> getAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const override {
+            return this->createAttachment(name, target, size, samples);
         }
         
         inline UniquePtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const override {

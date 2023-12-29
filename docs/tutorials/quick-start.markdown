@@ -237,13 +237,11 @@ The other values that are provided to a render target are:
 
 - The render target format, which in our example is dictated by the swap chain format we've chosen earlier.
 - A clear value vector, which contains the values that the render target will be cleared with when starting the render pass. For our *BGRA* image, we want to clear it with black and an alpha value of `0.0`.
-- A boolean switch to enable or disable clearing the values, which we set to true, since we want to clear our image with the clear values specified earlier.
-- A boolean switch to enable clearing for stencil buffers. This switch is only used, if the render target is a `DepthStencil` target and the format supports stencil values. It can be used to disable clearing stencil values and only clear depth values for depth/stencil targets.
-- A boolean switch that states, if we want to preserve the contents of the image after the render pass has finished. Since we do not want to use our render target as input attachment for another render pass, we also set this value to `false`.
+- A flag set that in our example enables clearing the render target when starting the render pass.
 
 ```cxx
 m_renderPass = m_device->buildRenderPass()
-    .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, { 0.f, 0.f, 0.f, 0.f }, true, false, false);
+    .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, RenderTargetFlags::Clear, { 0.f, 0.f, 0.f, 0.f });
 ```
 
 #### Creating a Render Pipeline

@@ -95,8 +95,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     // Create a geometry render pass.
     UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
-        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, {0.1f, 0.1f, 0.1f, 1.f}, true, false, false)
-        .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, {1.f, 0.f, 0.f, 0.f}, true, false, false);
+        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
+        .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
     // Create the shader program.
     SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
