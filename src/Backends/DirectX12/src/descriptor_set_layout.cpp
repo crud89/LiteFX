@@ -50,7 +50,7 @@ public:
             if (layout->descriptors() == -1)
             {
                 if (m_layouts.size() != 1) [[unlikely]]
-                    throw InvalidArgumentException("If an unbounded runtime array descriptor is used, it must be the only descriptor in the descriptor set, however the current descriptor set specifies {0} descriptors", m_layouts.size());
+                    throw InvalidArgumentException("descriptorLayouts", "If an unbounded runtime array descriptor is used, it must be the only descriptor in the descriptor set, however the current descriptor set specifies {0} descriptors", m_layouts.size());
                 else
                     m_isRuntimeArray = true;
             }
@@ -94,7 +94,7 @@ public:
                     .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE
                 };
 
-                raiseIfFailed<RuntimeException>(m_device.handle()->CreateDescriptorHeap(&bufferHeapDesc, IID_PPV_ARGS(&bufferHeap)), "Unable create constant CPU descriptor heap for constant buffers and images.");
+                raiseIfFailed(m_device.handle()->CreateDescriptorHeap(&bufferHeapDesc, IID_PPV_ARGS(&bufferHeap)), "Unable create constant CPU descriptor heap for constant buffers and images.");
             }
         }
 
@@ -117,7 +117,7 @@ public:
                     .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE
                 };
 
-                raiseIfFailed<RuntimeException>(m_device.handle()->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&samplerHeap)), "Unable create constant CPU descriptor heap for samplers.");
+                raiseIfFailed(m_device.handle()->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&samplerHeap)), "Unable create constant CPU descriptor heap for samplers.");
             }
         }
     }
@@ -148,7 +148,7 @@ UInt32 DirectX12DescriptorSetLayout::rootParameterIndex() const noexcept
 UInt32 DirectX12DescriptorSetLayout::descriptorOffsetForBinding(UInt32 binding) const
 {
     if (!m_impl->m_bindingToDescriptor.contains(binding)) [[unlikely]]
-        throw ArgumentOutOfRangeException("The descriptor set does not contain a descriptor at binding {0}.", binding);
+        throw InvalidArgumentException("binding", "The descriptor set does not contain a descriptor at binding {0}.", binding);
 
     return m_impl->m_bindingToDescriptor[binding];
 }
@@ -175,10 +175,10 @@ Enumerable<const DirectX12DescriptorLayout*> DirectX12DescriptorSetLayout::descr
 
 const DirectX12DescriptorLayout& DirectX12DescriptorSetLayout::descriptor(UInt32 binding) const
 {
-    if (auto match = std::ranges::find_if(m_impl->m_layouts, [&binding](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->binding() == binding; }); match != m_impl->m_layouts.end())
+    if (auto match = std::ranges::find_if(m_impl->m_layouts, [&binding](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->binding() == binding; }); match != m_impl->m_layouts.end()) [[likely]]
         return *match->get();
 
-    throw ArgumentOutOfRangeException("No layout has been provided for the binding {0}.", binding);
+    throw InvalidArgumentException("binding", "No layout has been provided for the binding {0}.", binding);
 }
 
 UInt32 DirectX12DescriptorSetLayout::space() const noexcept

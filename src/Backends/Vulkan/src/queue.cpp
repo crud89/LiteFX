@@ -66,7 +66,7 @@ public:
 			.flags = 0
 		};
 
-		raiseIfFailed<RuntimeException>(::vkCreateSemaphore(m_device.handle(), &createInfo, nullptr, &m_timelineSemaphore), "Unable to create queue synchronization semaphore.");
+		raiseIfFailed(::vkCreateSemaphore(m_device.handle(), &createInfo, nullptr, &m_timelineSemaphore), "Unable to create queue synchronization semaphore.");
 
 		return queue;
 	}
@@ -156,10 +156,10 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) c
 UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores) const
 {
 	if (commandBuffer == nullptr)
-		throw InvalidArgumentException("The command buffer must be initialized.");
+		throw InvalidArgumentException("commandBuffer", "The command buffer must be initialized.");
 
 	if (commandBuffer->isSecondary())
-		throw InvalidArgumentException("The command buffer must be a primary command buffer.");
+		throw InvalidArgumentException("commandBuffer", "The command buffer must be a primary command buffer.");
 
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
@@ -202,7 +202,7 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer, S
 	};
 
 	// Submit the command buffer to the transfer queue.
-	raiseIfFailed<RuntimeException>(::vkQueueSubmit(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
+	raiseIfFailed(::vkQueueSubmit(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
 
 	// Add the command buffer to the submitted command buffers list.
 	m_impl->m_submittedCommandBuffers.push_back({ fence, commandBuffer });
@@ -220,10 +220,10 @@ UInt64 VulkanQueue::submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>
 UInt64 VulkanQueue::submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores) const
 {
 	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return buffer != nullptr; }))
-		throw InvalidArgumentException("At least one command buffer is not initialized.");
+		throw InvalidArgumentException("commandBuffers", "At least one command buffer is not initialized.");
 
 	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return !buffer->isSecondary(); }))
-		throw InvalidArgumentException("At least one command buffer is a secondary command buffer, which is not allowed to be submitted to a command queue.");
+		throw InvalidArgumentException("commandBuffers", "At least one command buffer is a secondary command buffer, which is not allowed to be submitted to a command queue.");
 
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
@@ -272,7 +272,7 @@ UInt64 VulkanQueue::submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>
 	};
 
 	// Submit the command buffer to the transfer queue.
-	raiseIfFailed<RuntimeException>(::vkQueueSubmit(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
+	raiseIfFailed(::vkQueueSubmit(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
 
 	// Add the command buffers to the submitted command buffers list.
 	std::ranges::for_each(commandBuffers, [this, &fence](auto& buffer) { m_impl->m_submittedCommandBuffers.push_back({ fence, buffer }); });
@@ -285,7 +285,7 @@ UInt64 VulkanQueue::submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>
 void VulkanQueue::waitFor(UInt64 fence) const noexcept
 {
 	UInt64 completedValue{ 0 };
-	//raiseIfFailed<RuntimeException>(::vkGetSemaphoreCounterValue(this->getDevice()->handle(), m_impl->m_timelineSemaphore, &completedValue), "Unable to query current queue timeline semaphore value.");
+	//raiseIfFailed(::vkGetSemaphoreCounterValue(this->getDevice()->handle(), m_impl->m_timelineSemaphore, &completedValue), "Unable to query current queue timeline semaphore value.");
 	::vkGetSemaphoreCounterValue(m_impl->m_device.handle(), m_impl->m_timelineSemaphore, &completedValue);
 
 	if (completedValue < fence)
@@ -297,7 +297,7 @@ void VulkanQueue::waitFor(UInt64 fence) const noexcept
 			.pValues = &fence
 		};
 
-		//raiseIfFailed<RuntimeException>(::vkWaitSemaphores(this->getDevice()->handle(), &waitInfo, std::numeric_limits<UInt64>::max()), "Unable to wait for queue timeline semaphore.");
+		//raiseIfFailed(::vkWaitSemaphores(this->getDevice()->handle(), &waitInfo, std::numeric_limits<UInt64>::max()), "Unable to wait for queue timeline semaphore.");
 		::vkWaitSemaphores(m_impl->m_device.handle(), &waitInfo, std::numeric_limits<UInt64>::max());
 	}
 

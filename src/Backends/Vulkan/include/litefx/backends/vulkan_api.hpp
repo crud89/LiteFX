@@ -321,21 +321,67 @@ namespace LiteFX::Rendering::Backends {
 #endif // VK_USE_PLATFORM_WIN32_KHR
     };
 
-    DEFINE_EXCEPTION(VulkanPlatformException, std::runtime_error);
+    /// <summary>
+    /// An exception that is thrown, if a requested Vulkan operation could not be executed.
+    /// </summary>
+    class VulkanPlatformException : public RuntimeException {
+    private:
+        VkResult m_code;
+
+    public:
+        /// <summary>
+        /// Initializes a new exception.
+        /// </summary>
+        /// <param name="result">The error code returned by the operation.</param>
+        explicit VulkanPlatformException(VkResult result) noexcept :
+            m_code(result), RuntimeException("Operation returned {0}.", result) { }
+
+        /// <summary>
+        /// Initializes a new exception.
+        /// </summary>
+        /// <param name="result">The error code returned by the operation.</param>
+        /// <param name="message">The error message.</param>
+        explicit VulkanPlatformException(VkResult result, StringView message) noexcept :
+            m_code(result), RuntimeException("{1} Operation returned {0}.", message, result) { }
+
+        /// <summary>
+        /// Initializes a new exception.
+        /// </summary>
+        /// <param name="format">The format string for the error message.</param>
+        /// <param name="result">The error code returned by the operation.</param>
+        /// <param name="args">The arguments passed to the error message format string.</param>
+        template <typename ...TArgs>
+        explicit VulkanPlatformException(VkResult result, StringView format, TArgs&&... args) noexcept :
+            VulkanPlatformException(fmt::vformat(format, fmt::make_format_args(args...)), result) { }
+
+        VulkanPlatformException(const VulkanPlatformException&) = delete;
+        VulkanPlatformException(VulkanPlatformException&&) = delete;
+        virtual ~VulkanPlatformException() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns the error code.
+        /// </summary>
+        /// <returns>The code of the error.</returns>
+        VkResult code() const noexcept {
+            return m_code;
+        }
+    };
 
     /// <summary>
-    /// 
+    /// Raises a <see cref="VulkanPlatformException" />, if <paramref name="result" /> does not equal `VK_SUCCESS`.
     /// </summary>
-    /// <typeparam name="TException"></typeparam>
-    /// <typeparam name="...TArgs"></typeparam>
-    /// <param name="result"></param>
-    /// <param name="message"></param>
-    /// <param name="...args"></param>
-    template <typename TException, typename ...TArgs>
-    inline void raiseIfFailed(VkResult result, StringView message, TArgs&&... args) {
+    /// <param name="hr">The error code returned by the operation.</param>
+    /// <param name="message">The format string for the error message.</param>
+    /// <param name="args">The arguments passed to the error message format string.</param>
+    template <typename ...TArgs>
+    static inline void raiseIfFailed(VkResult result, StringView message, TArgs&&... args) {
         if (result == VK_SUCCESS) [[likely]]
             return;
 
-        throw TException(VulkanPlatformException("Result: {0}", result), fmt::format(fmt::runtime(message), std::forward<TArgs>(args)...));
+        if (message.empty())
+            throw VulkanPlatformException(result, message);
+        else
+            throw VulkanPlatformException(result, message, std::forward<TArgs>(args)...);
     }
 }

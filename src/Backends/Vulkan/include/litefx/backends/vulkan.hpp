@@ -1541,7 +1541,7 @@ namespace LiteFX::Rendering::Backends {
             auto vkQueue = dynamic_cast<const VulkanQueue*>(&queue);
 
             if (vkQueue == nullptr) [[unlikely]]
-                throw InvalidArgumentException("Cannot wait for queues from other backends.");
+                throw InvalidArgumentException("queue", "Cannot wait for queues from other backends.");
 
             this->waitFor(*vkQueue, fence);
         }

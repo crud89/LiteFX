@@ -84,7 +84,7 @@ bool DirectX12Buffer::writable() const noexcept
 void DirectX12Buffer::map(const void* const data, size_t size, UInt32 element)
 {
 	if (element >= m_impl->m_elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
+		throw ArgumentOutOfRangeException("element", 0u, m_impl->m_elements, element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
 
 	size_t alignedSize = size;
 	size_t alignment = this->elementAlignment();
@@ -94,11 +94,11 @@ void DirectX12Buffer::map(const void* const data, size_t size, UInt32 element)
 
 	D3D12_RANGE mappedRange = {};
 	char* buffer;
-	raiseIfFailed<RuntimeException>(this->handle()->Map(0, &mappedRange, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
+	raiseIfFailed(this->handle()->Map(0, &mappedRange, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
 	auto result = ::memcpy_s(reinterpret_cast<void*>(buffer + (element * alignedSize)), alignedSize, data, size);
 	this->handle()->Unmap(0, nullptr);
 
-	if (result != 0)
+	if (result != 0) [[unlikely]]
 		throw RuntimeException("Error mapping buffer to device memory: {#X}.", result);
 }
 
@@ -110,7 +110,7 @@ void DirectX12Buffer::map(Span<const void* const> data, size_t elementSize, UInt
 void DirectX12Buffer::map(void* data, size_t size, UInt32 element, bool write)
 {
 	if (element >= m_impl->m_elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
+		throw ArgumentOutOfRangeException("element", 0u, m_impl->m_elements, element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
 
 	size_t alignedSize = size;
 	size_t alignment = this->elementAlignment();
@@ -120,14 +120,14 @@ void DirectX12Buffer::map(void* data, size_t size, UInt32 element, bool write)
 
 	D3D12_RANGE mappedRange = {};
 	char* buffer;
-	raiseIfFailed<RuntimeException>(this->handle()->Map(0, &mappedRange, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
+	raiseIfFailed(this->handle()->Map(0, &mappedRange, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
 	auto result = write ?
 		::memcpy_s(reinterpret_cast<void*>(buffer + (element * alignedSize)), alignedSize, data, size) :
 		::memcpy_s(data, size, reinterpret_cast<void*>(buffer + (element * alignedSize)), alignedSize);
 
 	this->handle()->Unmap(0, nullptr);
 
-	if (result != 0)
+	if (result != 0) [[unlikely]]
 		throw RuntimeException("Error mapping buffer to device memory: {#X}.", result);
 }
 
@@ -154,11 +154,11 @@ UniquePtr<IDirectX12Buffer> DirectX12Buffer::allocate(AllocatorPtr allocator, Bu
 UniquePtr<IDirectX12Buffer> DirectX12Buffer::allocate(const String& name, AllocatorPtr allocator, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, bool writable, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
 {
 	if (allocator == nullptr) [[unlikely]]
-		throw ArgumentNotInitializedException("The allocator must be initialized.");
+		throw ArgumentNotInitializedException("allocator", "The allocator must be initialized.");
 
 	ComPtr<ID3D12Resource> resource;
 	D3D12MA::Allocation* allocation;
-	raiseIfFailed<RuntimeException>(allocator->CreateResource3(&allocationDesc, &resourceDesc, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate buffer.");
+	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate buffer.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Writable: {5} }}", name.empty() ? fmt::to_string(fmt::ptr(resource.Get())) : name, type, elements, elementSize, elements * elementSize, writable);
 
 	return makeUnique<DirectX12Buffer>(std::move(resource), type, elements, elementSize, alignment, writable, allocator, AllocationPtr(allocation), name);
@@ -228,7 +228,7 @@ UniquePtr<IDirectX12VertexBuffer> DirectX12VertexBuffer::allocate(const String& 
 
 	ComPtr<ID3D12Resource> resource;
 	D3D12MA::Allocation* allocation;
-	raiseIfFailed<RuntimeException>(allocator->CreateResource3(&allocationDesc, &resourceDesc, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
+	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", name.empty() ? fmt::to_string(fmt::ptr(resource.Get())) : name, BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements);
 
 	return makeUnique<DirectX12VertexBuffer>(std::move(resource), layout, elements, allocator, AllocationPtr(allocation), name);
@@ -298,7 +298,7 @@ UniquePtr<IDirectX12IndexBuffer> DirectX12IndexBuffer::allocate(const String& na
 
 	ComPtr<ID3D12Resource> resource;
 	D3D12MA::Allocation* allocation;
-	raiseIfFailed<RuntimeException>(allocator->CreateResource3(&allocationDesc, &resourceDesc, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
+	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", name.empty() ? fmt::to_string(fmt::ptr(resource.Get())) : name, BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements);
 
 	return makeUnique<DirectX12IndexBuffer>(std::move(resource), layout, elements, allocator, AllocationPtr(allocation), name);

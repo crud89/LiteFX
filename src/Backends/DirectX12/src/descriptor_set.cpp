@@ -22,10 +22,10 @@ public:
         auto buffers = m_layout.uniforms() + m_layout.images() + m_layout.storages() + m_layout.buffers();
 
         if (buffers > 0 && m_bufferHeap == nullptr)
-            throw ArgumentNotInitializedException("The buffer descriptor heap handle must be initialized, if the descriptor set layout contains uniform buffers, storage buffers or images.");
+            throw ArgumentNotInitializedException("bufferHeap", "The buffer descriptor heap handle must be initialized, if the descriptor set layout contains uniform buffers, storage buffers or images.");
 
         if (m_layout.samplers() > 0 && m_samplerHeap == nullptr)
-            throw ArgumentNotInitializedException("The sampler descriptor heap handle must be initialized, if the descriptor set layout contains samplers.");
+            throw ArgumentNotInitializedException("samplerHeap", "The sampler descriptor heap handle must be initialized, if the descriptor set layout contains samplers.");
     }
 
 public:
@@ -52,7 +52,7 @@ public:
         case BorderMode::ClampToBorder: return D3D12_TEXTURE_ADDRESS_MODE_BORDER;
         case BorderMode::RepeatMirrored: return D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
         case BorderMode::ClampToEdgeMirrored: return D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
-        default: throw std::invalid_argument("Invalid border mode.");
+        default: [[unlikely]] throw InvalidArgumentException("mode", "Invalid border mode.");
         }
     }
 
@@ -213,7 +213,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
         break;
     }
     default: [[unlikely]]
-        throw InvalidArgumentException("The descriptor at binding point {0} does not reference a buffer, uniform or storage resource.", binding);
+        throw InvalidArgumentException("binding", "The descriptor at binding point {0} does not reference a buffer, uniform or storage resource.", binding);
     }
 
     m_impl->updateGlobalBuffers(offset, elementCount);
@@ -297,7 +297,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
     else if (descriptorLayout.descriptorType() == DescriptorType::RWTexture)
     {
         if (!texture.writable())
-            throw InvalidArgumentException("The provided texture is not writable and cannot be bound to a read/write descriptor.");
+            throw InvalidArgumentException("binding", "The provided texture is not writable and cannot be bound to a read/write descriptor.");
 
         D3D12_UNORDERED_ACCESS_VIEW_DESC textureView = {
             .Format = DX12::getFormat(texture.format())
@@ -345,7 +345,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
     }
     else [[unlikely]]
     {
-        throw InvalidArgumentException("The provided texture is bound to a descriptor that is does neither describe a `Texture`, nor a `WritableTexture`.");
+        throw InvalidArgumentException("binding", "The provided texture is bound to a descriptor that is does neither describe a `Texture`, nor a `WritableTexture`.");
     }
 
     m_impl->updateGlobalBuffers(offset, 1);

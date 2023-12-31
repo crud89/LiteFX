@@ -134,7 +134,7 @@ public:
             {
                 // Unbounded arrays must be the only descriptor within a descriptor set.
                 if (m_descriptorLayouts.size() != 1) [[unlikely]]
-                    throw InvalidArgumentException("If an unbounded runtime array descriptor is used, it must be the only descriptor in the descriptor set, however the current descriptor set specifies {0} descriptors", m_descriptorLayouts.size());
+                    throw InvalidArgumentException("descriptorLayouts", "If an unbounded runtime array descriptor is used, it must be the only descriptor in the descriptor set, however the current descriptor set specifies {0} descriptors", m_descriptorLayouts.size());
 
                 bindingFlags.push_back(VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT_EXT);
                 m_usesDescriptorIndexing = true;
@@ -165,7 +165,7 @@ public:
             descriptorSetLayoutInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
 
         VkDescriptorSetLayout layout;
-        raiseIfFailed<RuntimeException>(::vkCreateDescriptorSetLayout(m_device.handle(), &descriptorSetLayoutInfo, nullptr, &layout), "Unable to create descriptor set layout.");
+        raiseIfFailed(::vkCreateDescriptorSetLayout(m_device.handle(), &descriptorSetLayoutInfo, nullptr, &layout), "Unable to create descriptor set layout.");
 
         // Create the initial descriptor pool.
         this->addDescriptorPool();
@@ -196,7 +196,7 @@ public:
             poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;
 
         VkDescriptorPool descriptorPool;
-        raiseIfFailed<RuntimeException>(::vkCreateDescriptorPool(m_device.handle(), &poolInfo, nullptr, &descriptorPool), "Unable to create buffer pool.");
+        raiseIfFailed(::vkCreateDescriptorPool(m_device.handle(), &poolInfo, nullptr, &descriptorPool), "Unable to create buffer pool.");
         m_descriptorPools.push_back(descriptorPool);
     }
 
@@ -236,7 +236,7 @@ public:
         }
         else if (result != VK_ERROR_OUT_OF_POOL_MEMORY)
         {
-            raiseIfFailed<RuntimeException>(result, "Unable to allocate descriptor set.");
+            raiseIfFailed(result, "Unable to allocate descriptor set.");
         }
 
         // The pool is full, so we have to create a new one and retry.
@@ -279,10 +279,10 @@ Enumerable<const VulkanDescriptorLayout*> VulkanDescriptorSetLayout::descriptors
 
 const VulkanDescriptorLayout& VulkanDescriptorSetLayout::descriptor(UInt32 binding) const
 {
-    if (auto match = std::ranges::find_if(m_impl->m_descriptorLayouts, [&binding](const UniquePtr<VulkanDescriptorLayout>& layout) { return layout->binding() == binding; }); match != m_impl->m_descriptorLayouts.end())
+    if (auto match = std::ranges::find_if(m_impl->m_descriptorLayouts, [&binding](const UniquePtr<VulkanDescriptorLayout>& layout) { return layout->binding() == binding; }); match != m_impl->m_descriptorLayouts.end()) [[likely]]
         return *match->get();
 
-    throw ArgumentOutOfRangeException("No layout has been provided for the binding {0}.", binding);
+    throw InvalidArgumentException("binding", "No layout has been provided for the binding {0}.", binding);
 }
 
 UInt32 VulkanDescriptorSetLayout::space() const noexcept

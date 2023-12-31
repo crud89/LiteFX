@@ -54,9 +54,9 @@ public:
         depthStencilHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
         m_depthStencilDescriptorSize = m_renderPass.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
-        raiseIfFailed<RuntimeException>(m_renderPass.device().handle()->CreateDescriptorHeap(&renderTargetHeapDesc, IID_PPV_ARGS(&m_renderTargetHeap)), "Unable to create render target descriptor heap.");
+        raiseIfFailed(m_renderPass.device().handle()->CreateDescriptorHeap(&renderTargetHeapDesc, IID_PPV_ARGS(&m_renderTargetHeap)), "Unable to create render target descriptor heap.");
         CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetViewDescriptor(m_renderTargetHeap->GetCPUDescriptorHandleForHeapStart());
-        raiseIfFailed<RuntimeException>(m_renderPass.device().handle()->CreateDescriptorHeap(&depthStencilHeapDesc, IID_PPV_ARGS(&m_depthStencilHeap)), "Unable to create depth/stencil descriptor heap.");
+        raiseIfFailed(m_renderPass.device().handle()->CreateDescriptorHeap(&depthStencilHeapDesc, IID_PPV_ARGS(&m_depthStencilHeap)), "Unable to create depth/stencil descriptor heap.");
         CD3DX12_CPU_DESCRIPTOR_HANDLE depthStencilViewDescriptor(m_depthStencilHeap->GetCPUDescriptorHandleForHeapStart());
 
         // Initialize the output attachments from render targets of the parent render pass.
@@ -69,7 +69,7 @@ public:
             auto samples = m_renderPass.multiSamplingLevel();
 
             if (m_renderPass.device().maximumMultiSamplingLevel(renderTarget.format()) < samples)
-                throw InvalidArgumentException("Render target {0} with format {1} does not support {2} samples.", i, renderTarget.format(), std::to_underlying(samples));
+                throw InvalidArgumentException("renderPass", "Render target {0} with format {1} does not support {2} samples.", i, renderTarget.format(), std::to_underlying(samples));
 
             const IDirectX12Image* renderTargetView;
 
@@ -177,7 +177,7 @@ size_t DirectX12FrameBuffer::getHeight() const noexcept
 SharedPtr<const DirectX12CommandBuffer> DirectX12FrameBuffer::commandBuffer(UInt32 index) const
 {
     if (index >= static_cast<UInt32>(m_impl->m_commandBuffers.size())) [[unlikely]]
-        throw ArgumentOutOfRangeException("No command buffer with index {1} is stored in the frame buffer. The frame buffer only contains {0} command buffers.", m_impl->m_commandBuffers.size(), index);
+        throw ArgumentOutOfRangeException("index", 0u, static_cast<UInt32>(m_impl->m_commandBuffers.size()), index, "No command buffer with index {1} is stored in the frame buffer. The frame buffer only contains {0} command buffers.", m_impl->m_commandBuffers.size(), index);
 
     return m_impl->m_commandBuffers[index];
 }
@@ -195,7 +195,7 @@ Enumerable<const IDirectX12Image*> DirectX12FrameBuffer::images() const noexcept
 const IDirectX12Image& DirectX12FrameBuffer::image(UInt32 location) const
 {
     if (location >= m_impl->m_renderTargetViews.size())
-        throw ArgumentOutOfRangeException("No render target is mapped to location {0}.", location);
+        throw ArgumentOutOfRangeException("location", 0u, static_cast<UInt32>(m_impl->m_renderTargetViews.size()), location, "No render target is mapped to location {0}.", location);
 
     return *m_impl->m_renderTargetViews[location];
 }

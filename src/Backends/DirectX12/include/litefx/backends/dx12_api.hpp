@@ -275,18 +275,76 @@ namespace LiteFX::Rendering::Backends {
         virtual ~DirectX12Surface() noexcept;
     };
 
-    DEFINE_EXCEPTION(DX12PlatformException, std::runtime_error);
+    /// <summary>
+    /// An exception that is thrown, if a requested D3D12 operation could not be executed.
+    /// </summary>
+    class DX12PlatformException : public RuntimeException {
+    private:
+        _com_error m_error;
+        HRESULT m_code;
 
-    template <typename TException, typename ...TArgs>
-    inline void raiseIfFailed(HRESULT hr, StringView message, TArgs&&... args) {
+    public:
+        /// <summary>
+        /// Initializes a new exception.
+        /// </summary>
+        /// <param name="result">The error code returned by the operation.</param>
+        explicit DX12PlatformException(HRESULT result) noexcept :
+            m_code(result), m_error(result), RuntimeException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), m_error.ErrorMessage()) { }
+
+        /// <summary>
+        /// Initializes a new exception.
+        /// </summary>
+        /// <param name="result">The error code returned by the operation.</param>
+        /// <param name="message">The error message.</param>
+        explicit DX12PlatformException(HRESULT result, StringView message) noexcept :
+            m_code(result), m_error(result), RuntimeException("{2} {1} (HRESULT 0x{0:08X})", message, static_cast<unsigned>(result), m_error.ErrorMessage()) { }
+
+        /// <summary>
+        /// Initializes a new exception.
+        /// </summary>
+        /// <param name="format">The format string for the error message.</param>
+        /// <param name="result">The error code returned by the operation.</param>
+        /// <param name="args">The arguments passed to the error message format string.</param>
+        template <typename ...TArgs>
+        explicit DX12PlatformException(HRESULT result, StringView format, TArgs&&... args) noexcept :
+            DX12PlatformException(result, fmt::vformat(format, fmt::make_format_args(args...))) { }
+
+        DX12PlatformException(const DX12PlatformException&) = delete;
+        DX12PlatformException(DX12PlatformException&&) = delete;
+        virtual ~DX12PlatformException() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns the error object that contains details about the error.
+        /// </summary>
+        /// <returns>An error object that contains details about the error.</returns>
+        const _com_error& error() const noexcept {
+            return m_error;
+        }
+
+        /// <summary>
+        /// Returns the error code.
+        /// </summary>
+        /// <returns>The code of the error.</returns>
+        HRESULT code() const noexcept {
+            return m_code;
+        }
+    };
+
+    /// <summary>
+    /// Raises a <see cref="DirectX12PlatformException" />, if <paramref name="hr" /> does not equal `S_OK`.
+    /// </summary>
+    /// <param name="hr">The error code returned by the operation.</param>
+    /// <param name="message">The format string for the error message.</param>
+    /// <param name="args">The arguments passed to the error message format string.</param>
+    template <typename ...TArgs>
+    static inline void raiseIfFailed(HRESULT hr, StringView message, TArgs&&... args) {
         if (SUCCEEDED(hr)) [[likely]]
             return;
 
-        _com_error error(hr);
-
         if (message.empty())
-            throw TException(DX12PlatformException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(hr), error.ErrorMessage()));
+            throw DX12PlatformException(hr, message);
         else
-            throw TException(DX12PlatformException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(hr), error.ErrorMessage()), fmt::format(fmt::runtime(message), std::forward<TArgs>(args)...));
+            throw DX12PlatformException(hr, message, std::forward<TArgs>(args)...);
     }
 }

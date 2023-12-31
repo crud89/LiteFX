@@ -43,7 +43,7 @@ public:
             auto [a, b] = spaces;
 
             if (a == b) [[unlikely]]
-                throw InvalidArgumentException("Two layouts defined for the same descriptor set {}. Each descriptor set must use it's own space.", a);
+                throw InvalidArgumentException("descriptorSetLayouts", "Two layouts defined for the same descriptor set {}. Each descriptor set must use it's own space.", a);
             
             while (i != a)
                 emptySets.push_back(i);
@@ -87,7 +87,7 @@ public:
         pipelineLayoutInfo.pPushConstantRanges = rangeHandles.data();
 
         VkPipelineLayout layout;
-        raiseIfFailed<RuntimeException>(::vkCreatePipelineLayout(m_device.handle(), &pipelineLayoutInfo, nullptr, &layout), "Unable to create pipeline layout.");
+        raiseIfFailed(::vkCreatePipelineLayout(m_device.handle(), &pipelineLayoutInfo, nullptr, &layout), "Unable to create pipeline layout.");
         return layout;
     }
 };
@@ -122,7 +122,7 @@ const VulkanDescriptorSetLayout& VulkanPipelineLayout::descriptorSet(UInt32 spac
     if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
         return *match->get();
 
-    throw ArgumentOutOfRangeException("No descriptor set layout uses the provided space {0}.", space);
+    throw InvalidArgumentException("space", "No descriptor set layout uses the provided space {0}.", space);
 }
 
 Enumerable<const VulkanDescriptorSetLayout*> VulkanPipelineLayout::descriptorSets() const noexcept

@@ -63,7 +63,7 @@ public:
         // TODO: If there is a present target, we need to check if the provided queue can actually present on the surface. Currently, 
         //       we simply check if the queue is the same as the swap chain queue (which is the default graphics queue).
         if (m_presentTarget != nullptr && m_queue != std::addressof(m_device.defaultQueue(QueueType::Graphics))) [[unlikely]]
-            throw InvalidArgumentException("A render pass with a present target must be executed on the default graphics queue.");
+            throw InvalidArgumentException("renderTargets", "A render pass with a present target must be executed on the default graphics queue.");
     }
 
     void mapInputAttachments(Span<DirectX12InputAttachmentMapping> inputAttachments)
@@ -232,7 +232,7 @@ const DirectX12Device& DirectX12RenderPass::device() const noexcept
 const DirectX12FrameBuffer& DirectX12RenderPass::frameBuffer(UInt32 buffer) const
 {
     if (buffer >= m_impl->m_frameBuffers.size()) [[unlikely]]
-        throw ArgumentOutOfRangeException("The buffer {0} does not exist in this render pass. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
+        throw ArgumentOutOfRangeException("buffer", 0u, static_cast<UInt32>(m_impl->m_frameBuffers.size()), buffer, "The buffer {0} does not exist in this render pass. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
 
     return *m_impl->m_frameBuffers[buffer].get();
 }
@@ -265,7 +265,7 @@ const RenderTarget& DirectX12RenderPass::renderTarget(UInt32 location) const
     if (auto match = std::ranges::find_if(m_impl->m_renderTargets, [&location](const RenderTarget& renderTarget) { return renderTarget.location() == location; }); match != m_impl->m_renderTargets.end())
         return *match;
 
-    throw ArgumentOutOfRangeException("No render target is mapped to location {0} in this render pass.", location);
+    throw InvalidArgumentException("location", "No render target is mapped to location {0} in this render pass.", location);
 }
 
 Span<const RenderTarget> DirectX12RenderPass::renderTargets() const noexcept
@@ -296,7 +296,7 @@ void DirectX12RenderPass::begin(UInt32 buffer)
 
     // Select the active frame buffer.
     if (buffer >= m_impl->m_frameBuffers.size())
-        throw ArgumentOutOfRangeException("The frame buffer {0} is out of range. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
+        throw ArgumentOutOfRangeException("buffer", 0u, static_cast<UInt32>(m_impl->m_frameBuffers.size()), buffer, "The frame buffer {0} is out of range. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
 
     auto frameBuffer = m_impl->m_activeFrameBuffer = m_impl->m_frameBuffers[buffer].get();
     m_impl->m_backBuffer = buffer;
