@@ -252,13 +252,19 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& na
 	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	imageInfo.samples = Vk::getSamples(samples);
-	imageInfo.usage = (::hasDepth(format) || ::hasStencil(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+	imageInfo.usage = ::hasDepth(format) || ::hasStencil(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-	if (!target.attachment())
-		imageInfo.usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
+	if (target.attachment())
+		imageInfo.usage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+	else
+		imageInfo.usage |= VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 
 	if (target.allowStorage())
 		imageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+
+	// Present targets should also allow copying.
+	if (target.allowStorage())
+		imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
 
