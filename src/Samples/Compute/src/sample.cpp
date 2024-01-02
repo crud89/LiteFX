@@ -66,8 +66,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     // Create a geometry render pass.
     UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
-        .renderTarget("Color Target", RenderTargetType::Color, Format::R8G8B8A8_UNORM, {0.1f, 0.1f, 0.1f, 1.f}, true, false, false)
-        .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, {1.f, 0.f, 0.f, 0.f}, true, false, false);
+        .renderTarget("Color Target", RenderTargetType::Color, Format::R8G8B8A8_UNORM, RenderTargetFlags::Clear | RenderTargetFlags::Shared | RenderTargetFlags::AllowStorage, { 0.1f, 0.1f, 0.1f, 1.f })
+        .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
     // Create the shader program.
     SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
@@ -85,44 +85,24 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .layout(shaderProgram->reflectPipelineLayout())
         .shaderProgram(shaderProgram);
 
-    // Create the blur shader program.
-    SharedPtr<ShaderProgram> blurProgram = device->buildShaderProgram()
-        .withComputeShaderModule("shaders/compute_blur_cs." + FileExtensions<TRenderBackend>::SHADER);
+    // Create the post-processing shader program.
+    SharedPtr<ShaderProgram> postProgram = device->buildShaderProgram()
+        .withComputeShaderModule("shaders/compute_lum_cs." + FileExtensions<TRenderBackend>::SHADER); // RGB -> Luminosity
 
     // Create a compute pipeline.
-    UniquePtr<ComputePipeline> blurPipeline = device->buildComputePipeline("Blur")
-        .layout(blurProgram->reflectPipelineLayout())
-        .shaderProgram(blurProgram);
+    UniquePtr<ComputePipeline> postPipeline = device->buildComputePipeline("Post")
+        .layout(postProgram->reflectPipelineLayout())
+        .shaderProgram(postProgram);
 
     // Build a present render pass.
     UniquePtr<RenderPass> presentPass = device->buildRenderPass("Present")
-        .renderTarget("Present Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.0f, 0.0f, 0.0f, 1.f }, false, false, false);
-
-    // Create a shader program for resolving the blurred image.
-    SharedPtr<ShaderProgram> presentProgram = device->buildShaderProgram()
-        .withVertexShaderModule("shaders/compute_present_vs." + FileExtensions<TRenderBackend>::SHADER)
-        .withFragmentShaderModule("shaders/compute_present_fs." + FileExtensions<TRenderBackend>::SHADER);
-
-    // Create a render pipeline for presentation.
-    SharedPtr<InputAssembler> screenQuadAssembler = device->buildInputAssembler()
-        .topology(PrimitiveTopology::TriangleStrip);
-
-    UniquePtr<RenderPipeline> presentPipeline = device->buildRenderPipeline(*presentPass, "Resolve")
-        .inputAssembler(device->buildInputAssembler()
-            .topology(PrimitiveTopology::TriangleStrip))
-        .rasterizer(device->buildRasterizer()
-            .polygonMode(PolygonMode::Solid)
-            .cullMode(CullMode::Disabled)
-            .cullOrder(CullOrder::ClockWise))
-        .layout(presentProgram->reflectPipelineLayout())
-        .shaderProgram(presentProgram);
+        .renderTarget("Present Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::None, { 0.0f, 0.0f, 0.0f, 1.f });
 
     // Add the resources to the device state.
     device->state().add(std::move(renderPass));
     device->state().add(std::move(presentPass));
     device->state().add(std::move(renderPipeline));
-    device->state().add(std::move(blurPipeline));
-    device->state().add(std::move(presentPipeline));
+    device->state().add(std::move(postPipeline));
 }
 
 void SampleApp::initBuffers(IRenderBackend* backend)
@@ -169,14 +149,15 @@ void SampleApp::initBuffers(IRenderBackend* backend)
         { { .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
     });
 
-    // Allocate bindings for the blur pass and presentation.
-    auto& blurPipeline = m_device->state().pipeline("Blur");
-    auto& blurInputLayout = blurPipeline.layout()->descriptorSet(0);
-    auto blurBindings = blurInputLayout.allocate({ { } });
-
-    auto& presentPipeline = m_device->state().pipeline("Resolve");
-    auto& presentInputLayout = presentPipeline.layout()->descriptorSet(0);
-    auto presentBindings = presentInputLayout.allocate({ { } });
+    // Allocate bindings for the post-processing pass.
+    auto& renderPass = m_device->state().renderPass("Opaque");
+    auto& postPipeline = m_device->state().pipeline("Post");
+    auto& postInputLayout = postPipeline.layout()->descriptorSet(0);
+    auto postBindings = postInputLayout.allocateMultiple(3, {
+        { { .resource = renderPass.frameBuffer(0).image(0) } },
+        { { .resource = renderPass.frameBuffer(1).image(0) } },
+        { { .resource = renderPass.frameBuffer(2).image(0) } }
+    });
     
     // Add everything to the state.
     m_device->state().add(std::move(vertexBuffer));
@@ -184,8 +165,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_device->state().add(std::move(cameraBuffer));
     m_device->state().add(std::move(transformBuffer));
     m_device->state().add("Camera Bindings", std::move(cameraBindings));
-    m_device->state().add("Blur Bindings", std::move(blurBindings));
-    m_device->state().add("Present Bindings", std::move(presentBindings));
+    std::ranges::for_each(postBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Post Bindings {0}", i++), std::move(binding)); });
     std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Transform Bindings {0}", i++), std::move(binding)); });
 }
 
@@ -411,18 +391,18 @@ void SampleApp::drawFrame()
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
     auto& renderPass = m_device->state().renderPass("Opaque");
     auto& presentPass = m_device->state().renderPass("Present");
-    auto& blurPipeline = m_device->state().pipeline("Blur");
+    auto& postPipeline = m_device->state().pipeline("Post");
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
-    auto& resolvePipeline = m_device->state().pipeline("Resolve");
     auto& transformBuffer = m_device->state().buffer("Transform");
     auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
-    auto& blurBindings = m_device->state().descriptorSet("Blur Bindings");
-    auto& presentBindings = m_device->state().descriptorSet("Present Bindings");
+    auto& postBindings = m_device->state().descriptorSet(fmt::format("Post Bindings {0}", backBuffer));
     auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer));
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 
     // Draw geometry.
+    UInt64 geometryFence = 0;
+
     {
         // Wait for all transfers to finish.
         renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
@@ -452,7 +432,7 @@ void SampleApp::drawFrame()
 
         // Draw the object and present the frame by ending the render pass.
         commandBuffer->drawIndexed(indexBuffer.elements());
-        renderPass.end();
+        geometryFence = renderPass.end();
     }
 
     // Perform post processing on compute queue.
@@ -461,63 +441,54 @@ void SampleApp::drawFrame()
     {
         // Create a command buffer.
         auto commandBuffer = m_device->defaultQueue(QueueType::Compute).createCommandBuffer(true);
-        commandBuffer->use(blurPipeline);
+        commandBuffer->use(postPipeline);
 
         // Get the image from the back buffer of the geometry pass.
         auto& frameBuffer = renderPass.frameBuffer(backBuffer);
         auto& image = frameBuffer.image(0);
 
         // Create a barrier that handles image transition.
-        auto barrier = m_device->makeBarrier(PipelineStage::Fragment, PipelineStage::Compute);
-        barrier->transition(image, ResourceAccess::RenderTarget, ResourceAccess::ShaderReadWrite, ImageLayout::ReadWrite);
+        // NOTE: Since we did not specify the `RenderTargetFlags::Attachment` flag for the render target during pipeline creation, the render target is in `Common` layout and only needs 
+        //       transitioning into a writeable state.
+        auto barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Compute);
+        barrier->transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::Common, ImageLayout::ReadWrite);
         commandBuffer->barrier(*barrier);
 
         // Bind the image to the texture descriptor.
-        blurBindings.update(0, image);
-        commandBuffer->bind(blurBindings);
+        commandBuffer->bind(postBindings);
 
-        // Dispatch the blur pass.
+        // Dispatch the post-processing pass.
         commandBuffer->dispatch({ static_cast<UInt32>(image.extent().x()), static_cast<UInt32>(image.extent().y()), 1 });
 
-        // Submit the command buffer.
-        //m_device->defaultQueue(QueueType::Compute).waitFor(renderPass.commandQueue(), frameBuffer.lastFence());
-        postProcessFence = commandBuffer->submit();
+        // After post-processing, transition the image back into a state where it can be copied from.
+        barrier = m_device->makeBarrier(PipelineStage::Compute, PipelineStage::None);
+        barrier->transition(image, ResourceAccess::ShaderReadWrite, ResourceAccess::None, ImageLayout::CopySource);
+        commandBuffer->barrier(*barrier);
 
-        // NOTE: Since the queues might have different priorities, we have to wait for the dispatch either later by using a barrier, or explicitly somewhere. Otherwise more 
-        //       command buffers will be allocated than actually being processed.
+        // Submit the command buffer.
+        m_device->defaultQueue(QueueType::Compute).waitFor(renderPass.commandQueue(), geometryFence);
+        postProcessFence = commandBuffer->submit();
     }
 
     // Execute present pass.
     {
+        // Copy the post-processed image into the render target.
+        // NOTE: This implicitly transitions the image into `CopyDestination` layout.
+        auto& queue = presentPass.commandQueue();
+        auto commandBuffer = queue.createCommandBuffer(true);
+        commandBuffer->transfer(renderPass.frameBuffer(backBuffer).image(0), presentPass.frameBuffer(backBuffer).image(0));
+
+        // Transition the image back into `Present` layout.
+        auto barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::Resolve);
+        barrier->transition(presentPass.frameBuffer(backBuffer).image(0), ResourceAccess::TransferWrite, ResourceAccess::ResolveRead, ImageLayout::CopyDestination, ImageLayout::Present);
+        commandBuffer->barrier(*barrier);
+
+        // Wait for the compute queue to finish before performing the transfer.
+        queue.waitFor(m_device->defaultQueue(QueueType::Compute), postProcessFence);
+        queue.submit(commandBuffer);
+
+        // Begin and immediately end the present pass (that does not do any actual work except presenting on end).
         presentPass.begin(backBuffer);
-        auto commandBuffer = presentPass.activeFrameBuffer().commandBuffer(0);
-        commandBuffer->use(resolvePipeline);
-        commandBuffer->setViewports(m_viewport.get());
-        commandBuffer->setScissors(m_scissor.get());
-
-        // Get the image from the back buffer of the geometry pass, as it is the one that was previously handled in the compute queue.
-        auto& frameBuffer = renderPass.frameBuffer(backBuffer);
-        auto& image = frameBuffer.image(0);        
-
-        // Transition the image back to a shader resource.
-        auto barrier = m_device->makeBarrier(PipelineStage::Compute, PipelineStage::Vertex);
-        barrier->transition(image, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderRead, ImageLayout::ShaderResource);
-        commandBuffer->barrier(*barrier);
-
-        // Bind the image to the 
-        presentBindings.update(0, image);
-        commandBuffer->bind(presentBindings);
-
-        // Draw 4 instances of "nothing" to create the screen quad.
-        commandBuffer->draw(0, 4);
-
-        // Important: transition the image back to a render target, for the next iteration of this back buffer to be able to render into it.
-        barrier = m_device->makeBarrier(PipelineStage::Fragment, PipelineStage::Fragment);
-        barrier->transition(image, ResourceAccess::ShaderRead, ResourceAccess::RenderTarget, ImageLayout::RenderTarget);
-        commandBuffer->barrier(*barrier);
-
-        // End the render pass in order to present the image.
-        //presentPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Compute), postProcessFence);
         presentPass.end();
     }
 }
