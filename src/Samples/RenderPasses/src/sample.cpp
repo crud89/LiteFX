@@ -76,9 +76,10 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     // Create a geometry and lighting render passes.
     // NOTE: For Vulkan, input attachments need to be in a continuous range, starting at index 0.
+    // NOTE: RenderTargetFlags::Attachment is not required 
     UniquePtr<RenderPass> geometryPass = device->buildRenderPass("Geometry Pass")
-        .renderTarget("G-Buffer Color", 0, RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
-        .renderTarget("G-Buffer Depth/Stencil", 1, RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear | RenderTargetFlags::ClearStencil, { 1.f, 0.f, 0.f, 0.f });
+        .renderTarget("G-Buffer Color", 0, RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear | RenderTargetFlags::Attachment, { 0.1f, 0.1f, 0.1f, 1.f })
+        .renderTarget("G-Buffer Depth/Stencil", 1, RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear | RenderTargetFlags::ClearStencil | RenderTargetFlags::Attachment, { 1.f, 0.f, 0.f, 0.f });
     
     UniquePtr<RenderPass> lightingPass = device->buildRenderPass("Lighting Pass")
         .inputAttachment(0, *geometryPass, 0)  // Map color attachment from geometry pass render target 0 to location 0.

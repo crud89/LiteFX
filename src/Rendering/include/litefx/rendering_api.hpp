@@ -828,7 +828,24 @@ namespace LiteFX::Rendering {
         /// 
         /// This flag must not be combined with depth/stencil formats.
         /// </remarks>
-        Shared = 0x10
+        Shared = 0x10,
+
+        /// <summary>
+        /// If enabled and supported, the render target will transition into an optimized attachment layout instead of a general image layout.
+        /// </summary>
+        /// <remarks>
+        /// In Vulkan render passes are more elaborate compared to DirectX, which does not have any concept similar to "attachments". In DirectX all attachments are regular
+        /// images and later render passes use them as they would with any image in a shader. In Vulkan however, there is a special set of instructions to load data from 
+        /// input attachments. If a render target is mapped to a input attachment and should use optimized layouts, this flag can be specified to enable it. Note, that it
+        /// might require to provide different shaders based on which backend is used. The shader targets created by the engine will define a macro (`DXIL`/`SPIRV`) to
+        /// support targeting different backends.
+        /// 
+        /// If attachments are unsupported, creating a render pass with a render target that has this flag enabled, a warning will be issued to remind you to pay attention
+        /// to the differences in the backends.
+        /// 
+        /// This flag is ignored for present targets.
+        /// </remarks>
+        Attachment = 0x20
     };
 
     /// <summary>
@@ -2115,7 +2132,7 @@ namespace LiteFX::Rendering {
         virtual bool isVolatile() const noexcept = 0;
 
         /// <summary>
-        /// Return <c>true</c>, if the render target image can be used for storage/unordered access.
+        /// Returns <c>true</c>, if the render target image can be used for storage/unordered access.
         /// </summary>
         /// <returns><c>true</c>, if the render target image can be used for storage/unordered access.</returns>
         /// <seealso cref="flags" />
@@ -2123,12 +2140,20 @@ namespace LiteFX::Rendering {
         virtual bool allowStorage() const noexcept = 0;
 
         /// <summary>
-        /// Return <c>true</c>, if the render target image can be accessed simultaneously from different queues.
+        /// Returns <c>true</c>, if the render target image can be accessed simultaneously from different queues.
         /// </summary>
         /// <returns><c>true</c>, if the render target image can be accessed simultaneously from different queues.</returns>
         /// <seealso cref="flags" />
         /// <seealso cref="RenderTargetFlags" />
         virtual bool multiQueueAccess() const noexcept = 0;
+
+        /// <summary>
+        /// Returns <c>true</c>, if the render target should transition into an optimized attachment layout, rather than a general image layout after executing the render pass.
+        /// </summary>
+        /// <returns><c>true</c>, if the render target should transition into an optimized attachment layout.</returns>
+        /// <seealso cref="flags" />
+        /// <seealso cref="RenderTargetFlags" />
+        virtual bool attachment() const noexcept = 0;
 
         /// <summary>
         /// Returns the render targets blend state.
@@ -2210,6 +2235,9 @@ namespace LiteFX::Rendering {
 
         /// <inheritdoc />
         bool multiQueueAccess() const noexcept override;
+
+        /// <inheritdoc />
+        bool attachment() const noexcept override;
 
         /// <inheritdoc />
         const BlendState& blendState() const noexcept override;

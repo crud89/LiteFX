@@ -272,6 +272,7 @@ public:
             .descriptorBindingPartiallyBound = true,
             .descriptorBindingVariableDescriptorCount = true,
             .runtimeDescriptorArray = true,
+            .separateDepthStencilLayouts = true,
             .hostQueryReset = true,
             .timelineSemaphore = true
         };

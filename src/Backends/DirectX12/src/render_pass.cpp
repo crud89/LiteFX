@@ -60,6 +60,10 @@ public:
         else
             m_depthStencilTarget = nullptr;
 
+        // Check if there are render targets that are used as attachments and issue a warning.
+        if (auto match = std::ranges::find_if(m_renderTargets, [](const RenderTarget& renderTarget) { return renderTarget.attachment(); }); match != m_renderTargets.end()) [[unlikely]]
+            LITEFX_WARNING(DIRECTX12_LOG, "DirectX 12 does not support optimized layouts for render pass attachments. Render targets will be transitioned into general image layouts and need to be sampled accordingly.");
+
         // TODO: If there is a present target, we need to check if the provided queue can actually present on the surface. Currently, 
         //       we simply check if the queue is the same as the swap chain queue (which is the default graphics queue).
         if (m_presentTarget != nullptr && m_queue != std::addressof(m_device.defaultQueue(QueueType::Graphics))) [[unlikely]]
@@ -89,8 +93,8 @@ public:
                     D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD, { } };
                 
                 D3D12_RENDER_PASS_ENDING_ACCESS endAccess = renderTarget.isVolatile() ?
-                        D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, {} } :
-                        D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, {} };
+                    D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, {} } :
+                    D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, {} };
 
                 D3D12_RENDER_PASS_RENDER_TARGET_DESC renderTargetDesc{ renderTargetView, beginAccess, endAccess };
                 renderTargetView = renderTargetView.Offset(frameBuffer->renderTargetDescriptorSize());
