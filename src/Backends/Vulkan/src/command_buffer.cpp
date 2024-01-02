@@ -278,7 +278,7 @@ void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanImage& target, 
 		target.resolveSubresource(subresource, plane, layer, level);
 
 		if (static_cast<const IImage&>(target).layout(subresource) != ImageLayout::CopyDestination)
-			barrier.transition(target, level, 1, layer, 1, plane, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::CopyDestination);
+			barrier.transition(target, level, 1, layer, 1, plane, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
 
 		return VkBufferImageCopy {
 			.bufferOffset = source.alignedElementSize() * sourceElement,
@@ -322,7 +322,7 @@ void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanImage& target, U
 		//	barrier.transition(source, sourceLayer, 1, sourceLevel, 1, sourcePlane, ResourceAccess::None, ResourceAccess::TransferRead, ImageLayout::CopySource);
 
 		if (static_cast<const IImage&>(target).layout(targetSubresource) != ImageLayout::CopyDestination)
-			barrier.transition(target, targetLayer, 1, targetLevel, 1, targetPlane, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::CopyDestination);
+			barrier.transition(target, targetLayer, 1, targetLevel, 1, targetPlane, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
 
 		return VkImageCopy {
 			.srcSubresource = VkImageSubresourceLayers {
