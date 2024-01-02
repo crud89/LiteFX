@@ -254,6 +254,9 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& na
 	imageInfo.samples = Vk::getSamples(samples);
 	imageInfo.usage = (::hasDepth(format) || ::hasStencil(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
 
+	if (!target.attachment())
+		imageInfo.usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
+
 	if (target.allowStorage())
 		imageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
 
