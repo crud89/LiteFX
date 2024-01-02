@@ -260,11 +260,12 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& na
 	if (target.allowStorage())
 		imageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
 
+	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
+
 	if (!target.multiQueueAccess())
 		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	else
 	{
-		auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
 		imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
 		imageInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 		imageInfo.pQueueFamilyIndices = queueFamilies.data();
