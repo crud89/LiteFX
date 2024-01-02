@@ -1989,7 +1989,7 @@ namespace LiteFX::Rendering {
 
     /// <summary>
     /// Represents a render target, i.e. an abstract view of the output of an <see cref="RenderPass" />.
-    /// </remarks>
+    /// </summary>
     /// <remarks>
     /// A render target represents one output of a render pass, stored within an <see cref="IImage" />. It is contained by a <see cref="RenderPass" />, that contains 
     /// the <see cref="FrameBuffer" />, that stores the actual render target image resource.
