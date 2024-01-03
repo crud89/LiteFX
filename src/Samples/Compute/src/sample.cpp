@@ -281,6 +281,12 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     m_device->state().renderPass("Opaque").resizeFrameBuffers(renderArea);
     m_device->state().renderPass("Present").resizeFrameBuffers(renderArea);
 
+    // Update the post-processing bindings that reference the "opaque" frame buffer.
+    auto opaqueFrameBuffers = m_device->state().renderPass("Opaque").frameBuffers();
+    
+    for (size_t i{ 0 }; auto& frameBuffer : opaqueFrameBuffers)
+        m_device->state().descriptorSet(fmt::format("Post Bindings {0}", i++)).update(0, frameBuffer->image(0));
+
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
     m_scissor->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
