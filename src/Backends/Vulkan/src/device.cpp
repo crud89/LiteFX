@@ -151,6 +151,10 @@ public:
 private:
     void defineMandatoryExtensions() noexcept
     {
+        // NOTE: If an extension is not supported, update the graphics driver to the most recent one. You can lookup extension support for individual drivers here:
+        // https://vulkan.gpuinfo.org/listdevicescoverage.php?extension=VK_KHR_present_wait (replace the extension name to adjust the filter).
+
+        // Required to query image and buffer requirements.
         m_extensions.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
 
 #ifdef BUILD_DIRECTX_12_BACKEND
@@ -165,6 +169,7 @@ private:
 #ifndef NDEBUG
         auto availableExtensions = m_adapter.getAvailableDeviceExtensions();
 
+        // Required to set debug names.
         if (auto match = std::ranges::find_if(availableExtensions, [](const String& extension) { return extension == VK_EXT_DEBUG_MARKER_EXTENSION_NAME; }); match != availableExtensions.end())
             m_extensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
 #endif
@@ -237,17 +242,23 @@ public:
             }) | std::ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
         // Allow geometry and tessellation shader stages.
-        VkPhysicalDeviceFeatures deviceFeatures = {
-            .geometryShader = true,
-            .tessellationShader = true,
-            .samplerAnisotropy = true
+        VkPhysicalDeviceFeatures2 deviceFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+            .features = {
+                .geometryShader = true,
+                .tessellationShader = true,
+                .samplerAnisotropy = true
+            }
         };
 
+        // Enable synchronization overhaul.
         VkPhysicalDeviceVulkan13Features deviceFeatures13 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
+            .pNext = &deviceFeatures,
             .synchronization2 = true
         };
 
+        // Enable various descriptor related features, as well as timelime semaphores and other little QoL improvements.
         VkPhysicalDeviceVulkan12Features deviceFeatures12 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
             .pNext = &deviceFeatures13,
@@ -285,14 +296,14 @@ public:
         };
 
         // Define the device itself.
-        VkDeviceCreateInfo createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-        createInfo.pNext = &extendedDynamicStateFeatures;
-        createInfo.queueCreateInfoCount = static_cast<UInt32>(queueCreateInfos.size());
-        createInfo.pQueueCreateInfos = queueCreateInfos.data();
-        createInfo.pEnabledFeatures = &deviceFeatures;
-        createInfo.enabledExtensionCount = static_cast<UInt32>(requiredExtensions.size());
-        createInfo.ppEnabledExtensionNames = requiredExtensions.data();
+        VkDeviceCreateInfo createInfo = {
+            .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+            .pNext = &extendedDynamicStateFeatures,
+            .queueCreateInfoCount = static_cast<UInt32>(queueCreateInfos.size()),
+            .pQueueCreateInfos = queueCreateInfos.data(),
+            .enabledExtensionCount = static_cast<UInt32>(requiredExtensions.size()),
+            .ppEnabledExtensionNames = requiredExtensions.data()
+        };
 
         // Create the device.
         // NOTE: This can time-out under very mysterious circumstances, in which case the event log shows a TDR error. Unfortunately, the only way I found
