@@ -297,7 +297,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="result">The error code returned by the operation.</param>
         /// <param name="message">The error message.</param>
         explicit DX12PlatformException(HRESULT result, StringView message) noexcept :
-            m_code(result), m_error(result), RuntimeException("{2} {1} (HRESULT 0x{0:08X})", message, static_cast<unsigned>(result), m_error.ErrorMessage()) { }
+            m_code(result), m_error(result), RuntimeException("{2} {1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), m_error.ErrorMessage(), message) { }
 
         /// <summary>
         /// Initializes a new exception.
