@@ -13,7 +13,7 @@ on:
     - cron: '1 0 * * 1'         # Run every monday night at 00:01 AM (UTC).
     
 env:
-  vulkanSdkVersion: '1.3.239.0' # Lowest version that ships with DXC is 1.2.148.0
+  vulkanSdkVersion: '1.3.268.0'
 
 jobs:
   job:
