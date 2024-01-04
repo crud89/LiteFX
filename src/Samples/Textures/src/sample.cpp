@@ -120,13 +120,18 @@ void loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampler
 
     // Transfer the texture using the graphics queue (since we want to be able to generate mip maps, which is done on the graphics queue in Vulkan and a compute-capable queue in D3D12).
     auto commandBuffer = device.defaultQueue(QueueType::Graphics).createCommandBuffer(true);
+    UniquePtr<TBarrier> barrier = device.buildBarrier()
+        .waitFor(PipelineStage::None).toContinueWith(PipelineStage::Transfer)
+        .blockAccessTo(*texture, ResourceAccess::TransferWrite).transitionLayout(ImageLayout::CopyDestination).whenFinishedWith(ResourceAccess::None);
+
+    commandBuffer->barrier(*barrier);
     commandBuffer->transfer(asShared(std::move(stagedTexture)), *texture);
 
     // Generate the rest of the mip maps.
     commandBuffer->generateMipMaps(*texture);
 
     // Create a barrier to ensure the texture is readable.
-    UniquePtr<TBarrier> barrier = device.buildBarrier()
+    barrier = device.buildBarrier()
         .waitFor(PipelineStage::None).toContinueWith(PipelineStage::Fragment)
         .blockAccessTo(*texture, ResourceAccess::ShaderRead).transitionLayout(ImageLayout::ShaderResource).whenFinishedWith(ResourceAccess::None);
 
