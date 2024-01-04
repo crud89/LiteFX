@@ -1358,12 +1358,6 @@ namespace LiteFX::Rendering::Backends {
         // Vulkan Swap Chain interface.
     public:
         /// <summary>
-        /// Returns a reference of the current swap semaphore, a command queue can wait on for presenting.
-        /// </summary>
-        /// <returns>A reference of the current swap semaphore, a command queue can wait on for presenting.</returns>
-        virtual const VkSemaphore& semaphore() const noexcept;
-
-        /// <summary>
         /// Returns the query pool for the current frame.
         /// </summary>
         /// <returns>A reference of the query pool for the current frame.</returns>
@@ -1465,40 +1459,6 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <returns>The internal timeline semaphore.</returns>
         virtual const VkSemaphore& timelineSemaphore() const noexcept;
-
-        /// <summary>
-        /// Submits a single command buffer and inserts a fence to wait for it.
-        /// </summary>
-        /// <remarks>
-        /// By calling this method, the queue takes shared ownership over the <paramref name="commandBuffers" /> until the fence is passed. The reference will be released
-        /// during a <see cref="waitFor" />, if the awaited fence is inserted after the associated one.
-        /// 
-        /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
-        /// </remarks>
-        /// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
-        /// <param name="waitForSemaphores">The semaphores to wait for on each pipeline stage. There must be a semaphore for each entry in the <see cref="waitForStages" /> array.</param>
-        /// <param name="waitForStages">The pipeline stages of the current render pass to wait for before submitting the command buffer.</param>
-        /// <param name="signalSemaphores">The semaphores to signal, when the command buffer is executed.</param>
-        /// <returns>The value of the fence, inserted after the command buffer.</returns>
-        /// <seealso cref="waitFor" />
-        virtual UInt64 submit(SharedPtr<const VulkanCommandBuffer> commandBuffer, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores = { }) const;
-
-        /// <summary>
-        /// Submits a set of command buffers and inserts a fence to wait for them.
-        /// </summary>
-        /// <remarks>
-        /// By calling this method, the queue takes shared ownership over the <paramref name="commandBuffers" /> until the fence is passed. The reference will be released
-        /// during a <see cref="waitFor" />, if the awaited fence is inserted after the associated one.
-        /// 
-        /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
-        /// </remarks>
-        /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
-        /// <param name="waitForSemaphores">The semaphores to wait for on each pipeline stage. There must be a semaphore for each entry in the <see cref="waitForStages" /> array.</param>
-        /// <param name="waitForStages">The pipeline stages of the current render pass to wait for before submitting the command buffer.</param>
-        /// <param name="signalSemaphores">The semaphores to signal, when the command buffer is executed.</param>
-        /// <returns>The value of the fence, inserted after the command buffers.</returns>
-        /// <seealso cref="waitFor" />
-        virtual UInt64 submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores = { }) const;
 
         // CommandQueue interface.
     public:

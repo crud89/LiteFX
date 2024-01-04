@@ -162,6 +162,10 @@ private:
         m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
         m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
         m_extensions.push_back(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
+
+        // Required to synchronize Vulkan command execution with D3D presentation.
+        m_extensions.push_back(VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME);
+        //m_extensions.push_back(VK_KHR_EXTERNAL_FENCE_WIN32_EXTENSION_NAME);
 #else
         m_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 #endif // BUILD_DIRECTX_12_BACKEND

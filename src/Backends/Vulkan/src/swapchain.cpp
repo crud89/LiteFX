@@ -17,11 +17,11 @@ private:
 	Size2d m_renderArea { };
 	Format m_format { Format::None };
 	UInt32 m_buffers { };
-	Array<VkSemaphore> m_swapSemaphores { };
 	UInt32 m_currentImage { };
 	Array<UniquePtr<IVulkanImage>> m_presentImages { };
 	const VulkanDevice& m_device;
 	VkSwapchainKHR m_handle = VK_NULL_HANDLE;
+	VkFence m_waitForImage = VK_NULL_HANDLE;
 
 	Array<SharedPtr<TimingEvent>> m_timingEvents;
 	Array<UInt64> m_timestamps;
@@ -110,17 +110,9 @@ public:
 		VkSwapchainKHR swapChain;
 		raiseIfFailed(::vkCreateSwapchainKHR(m_device.handle(), &createInfo, nullptr, &swapChain), "Swap chain could not be created.");
 
-		// Create a semaphore for swapping images.
-		VkSemaphoreCreateInfo semaphoreInfo{};
-		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-		m_swapSemaphores.resize(images);
-		std::ranges::generate(m_swapSemaphores, [&]() mutable {
-			VkSemaphore semaphore;
-			raiseIfFailed(::vkCreateSemaphore(m_device.handle(), &semaphoreInfo, nullptr, &semaphore), "Unable to create swap semaphore.");
-			
-			return semaphore;
-		});
+		// Initialize the fence used to wait for image access.
+		VkFenceCreateInfo fenceInfo { .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+		raiseIfFailed(::vkCreateFence(m_device.handle(), &fenceInfo, nullptr, &m_waitForImage), "Unable to create image acquisition fence.");
 
 		// Create the swap chain images.
 		auto actualRenderArea = Size2d(static_cast<size_t>(createInfo.imageExtent.width), static_cast<size_t>(createInfo.imageExtent.height));
@@ -186,11 +178,10 @@ public:
 		// Destroy the swap chain itself.
 		::vkDestroySwapchainKHR(m_device.handle(), m_handle, nullptr);
 
-		// Destroy the image swap semaphores.
-		std::ranges::for_each(m_swapSemaphores, [&](const auto& semaphore) { ::vkDestroySemaphore(m_device.handle(), semaphore, nullptr); });
+		// Destroy the fence used to wait for image acquisition.
+		::vkDestroyFence(m_device.handle(), m_waitForImage, nullptr);
 
 		// Destroy state.
-		m_swapSemaphores.clear();
 		m_buffers = 0;
 		m_renderArea = {};
 		m_format = Format::None;
@@ -199,14 +190,16 @@ public:
 
 	UInt32 swapBackBuffer()
 	{
-		// NOTE: m_currentImage may overflow, but this is okay. If we use nextImage to index semaphores, however, this may result in errors, since the image order is not necessarily preserved.
+		// Queue an image acquisition request, then wait for the fence and reset it for the next iteration. Note how this is similar to the DirectX behavior, where the swap call blocks until the 
+		// image is acquired and ready.
 		UInt32 nextImage;
-		m_currentImage++;
-		raiseIfFailed(::vkAcquireNextImageKHR(m_device.handle(), m_handle, UINT64_MAX, this->currentSemaphore(), VK_NULL_HANDLE, &nextImage), "Unable to swap front buffer.");
+		raiseIfFailed(::vkAcquireNextImageKHR(m_device.handle(), m_handle, UINT64_MAX, VK_NULL_HANDLE, m_waitForImage, &nextImage), "Unable to swap front buffer. Make sure that all previously acquired images are actually presented before acquiring another image.");
+		raiseIfFailed(::vkWaitForFences(m_device.handle(), 1, &m_waitForImage, VK_TRUE, UINT64_MAX), "Unable to wait for image acquisition.");
+		raiseIfFailed(::vkResetFences(m_device.handle(), 1, &m_waitForImage), "Unable to reset image acquisition fence.");
 
 		// Query the timing events.
 		// TODO: In rare situations, and only when using this swap chain implementation, the validation layers will complain about query pools not being reseted, when writing time stamps. I could
-		//       not find out why and when this happens, but I maybe waiting explicitly on the last frame's fence (for the respective image) will fix the issue.
+		//       not find out why and when this happens, but maybe waiting explicitly on the last frame's fence (for the respective image) will fix the issue.
 		if (m_supportsTiming && !m_timingEvents.empty()) [[likely]]
 		{
 			m_currentQueryPool = m_timingQueryPools[nextImage];
@@ -226,14 +219,10 @@ public:
 	{
 		// Draw the frame, if the result of the render pass it should be presented to the swap chain.
 		std::array<VkSwapchainKHR, 1> swapChains = { m_handle };
-		std::array<VkSemaphore, 1> signalSemaphores = { frameBuffer.semaphore() };
 		const auto bufferIndex = frameBuffer.bufferIndex();
 
-		VkPresentInfoKHR presentInfo {
+		VkPresentInfoKHR presentInfo = {
 			.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-			.pNext = nullptr,
-			.waitSemaphoreCount = static_cast<UInt32>(signalSemaphores.size()),
-			.pWaitSemaphores = signalSemaphores.data(),
 			.swapchainCount = static_cast<UInt32>(swapChains.size()),
 			.pSwapchains = swapChains.data(),
 			.pImageIndices = &bufferIndex,
@@ -241,11 +230,6 @@ public:
 		};
 
 		raiseIfFailed(::vkQueuePresentKHR(m_device.defaultQueue(QueueType::Graphics).handle(), &presentInfo), "Unable to present swap chain.");
-	}
-
-	const VkSemaphore& currentSemaphore()
-	{
-		return m_swapSemaphores[m_currentImage % m_buffers];
 	}
 
 	const VkQueryPool& currentTimestampQueryPool()
@@ -281,6 +265,15 @@ public:
 };
 #else
 #include <litefx/backends/dx12_api.hpp>
+
+#if VK_HEADER_VERSION < 268
+// Warn about this bug: https://github.com/KhronosGroup/Vulkan-ValidationLayers/issues/5295.
+#if __cplusplus >= 202302L
+#   warning "Vulkan SDK version is below 1.3.268.0, which will cause false validation errors about invalid command buffer resets. This bug has been fixed in later versions."
+#else
+#   pragma message("Note: Vulkan SDK version is below 1.3.268.0, which will cause false validation errors about invalid command buffer resets. This bug has been fixed in later versions.")
+#endif
+#endif
 
 namespace D3D 
 {
@@ -331,20 +324,25 @@ private:
 	Size2d m_renderArea{ };
 	Format m_format{ Format::None };
 	UInt32 m_buffers{ };
-	Array<VkSemaphore> m_swapSemaphores{ };
 	UInt32 m_currentImage{ };
 	Array<UniquePtr<IVulkanImage>> m_presentImages{ };
 	Array<ImageResource> m_imageResources;
+	Array<UInt64> m_presentFences;
+	//Array<VkFence> m_presentFences;
 	const VulkanDevice& m_device;
 	ComPtr<ID3D12Device> m_d3dDevice;
 	ComPtr<IDXGISwapChain4> m_swapChain;
 	ComPtr<ID3D12CommandQueue> m_presentQueue;
 	bool m_supportsTearing = false;
+	ComPtr<ID3D12Fence> m_fence = nullptr;
+	HANDLE m_fenceHandle;
 
 	Array<SharedPtr<TimingEvent>> m_timingEvents;
 	Array<UInt64> m_timestamps;
 	Array<VkQueryPool> m_timingQueryPools;
 	bool m_supportsTiming = false;
+
+	PFN_vkImportSemaphoreWin32HandleKHR importSemaphoreWin32HandleKHR = nullptr;
 
 public:
 	VulkanSwapChainImpl(VulkanSwapChain* parent, const VulkanDevice& device) :
@@ -354,6 +352,8 @@ public:
 
 		if (!m_supportsTiming)
 			LITEFX_WARNING(VULKAN_LOG, "Timestamp queries are not supported and will be disabled. Reading timestamps will always return 0.");
+
+		importSemaphoreWin32HandleKHR = reinterpret_cast<PFN_vkImportSemaphoreWin32HandleKHR>(::vkGetDeviceProcAddr(device.handle(), "vkImportSemaphoreWin32HandleKHR"));
 	}
 
 	~VulkanSwapChainImpl()
@@ -432,8 +432,8 @@ public:
 		{
 			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
 			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
-			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, TRUE);
-			//infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_INFO, TRUE);
+			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, FALSE);
+			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_INFO, FALSE);
 
 			// Suppress individual messages by their ID
 			D3D12_MESSAGE_ID suppressIds[] = { D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE, D3D12_MESSAGE_ID_CLEARDEPTHSTENCILVIEW_MISMATCHINGCLEARVALUE };
@@ -452,7 +452,7 @@ public:
 		// Create a command queue.
 		D3D12_COMMAND_QUEUE_DESC presentQueueDesc {
 			.Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
-			.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL,
+			.Priority = D3D12_COMMAND_QUEUE_PRIORITY_HIGH,
 			.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
 			//.NodeMask = m_d3dDevice->GetNodeCount() <= 1 ? 0 : pdidProps.deviceNodeMask
 		};
@@ -467,12 +467,12 @@ public:
 			.Format = DX12::getFormat(selectedFormat),
 			.Stereo = FALSE,
 			.SampleDesc = { 1, 0 },
-			.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
+			.BufferUsage = DXGI_USAGE_BACK_BUFFER, // DXGI_USAGE_RENDER_TARGET_OUTPUT
 			.BufferCount = images,
 			.Scaling = DXGI_SCALING_STRETCH,
 			.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
 			.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED,
-			.Flags = (m_supportsTearing = static_cast<bool>(tearingSupport)) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UInt32)0,
+			.Flags = (m_supportsTearing = static_cast<bool>(tearingSupport)) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UInt32)0
 		};
 
 		ComPtr<IDXGISwapChain1> swapChain;
@@ -486,6 +486,23 @@ public:
 		// Disable Alt+Enter shortcut for fullscreen-toggle.
 		if (FAILED(factory->MakeWindowAssociation(hwnd, DXGI_MWA_NO_ALT_ENTER))) [[unlikely]]
 			LITEFX_WARNING(VULKAN_LOG, "Unable disable keyboard control sequence for full-screen switching.");
+
+		// Initialize the present fences array.
+		m_presentFences.resize(images, 0ul);
+
+		// Create a fence for synchronization.
+		D3D::raiseIfFailed(m_d3dDevice->CreateFence(0, D3D12_FENCE_FLAG_SHARED, IID_PPV_ARGS(&m_fence)), "Unable to create interop synchronization fence for swap chain.");
+		D3D::raiseIfFailed(m_d3dDevice->CreateSharedHandle(m_fence.Get(), nullptr, GENERIC_ALL, L"", &m_fenceHandle), "Unable to create shared handle for swap chain interop synchronization fence.");
+
+		// Import the fence handle to signal it from Vulkan workloads.
+		VkImportSemaphoreWin32HandleInfoKHR fenceImportInfo = {
+			.sType = VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_WIN32_HANDLE_INFO_KHR,
+			.semaphore = m_device.defaultQueue(QueueType::Graphics).timelineSemaphore(),
+			.handleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_D3D12_FENCE_BIT,
+			.handle = m_fenceHandle
+		};
+		
+		raiseIfFailed(importSemaphoreWin32HandleKHR(m_device.handle(), &fenceImportInfo), "Unable to import interop synchronization fence for swap chain.");
 	}
 
 	void reset(Format format, const Size2d& renderArea, UInt32 buffers)
@@ -535,6 +552,9 @@ public:
 		// Initialize the query pools.
 		if (m_timingQueryPools.size() != images)
 			this->resetQueryPools(m_timingEvents);
+
+		// Reset the present fences array.
+		m_presentFences.resize(images, 0ul);
 	}
 
 	void createImages(Format format, const Size2d& renderArea, UInt32 buffers)
@@ -625,21 +645,6 @@ public:
 			return makeUnique<VulkanImage>(m_device, backBuffer, Size3d { imageInfo.extent.width, imageInfo.extent.height, imageInfo.extent.depth }, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ImageLayout::Present);
 		});
 
-		// Destroy the image swap semaphores.
-		std::ranges::for_each(m_swapSemaphores, [&](const auto& semaphore) { ::vkDestroySemaphore(m_device.handle(), semaphore, nullptr); });
-
-		// Create a semaphore for swapping images.
-		VkSemaphoreCreateInfo semaphoreInfo{};
-		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-		m_swapSemaphores.resize(buffers);
-		std::ranges::generate(m_swapSemaphores, [&]() mutable {
-			VkSemaphore semaphore;
-			raiseIfFailed(::vkCreateSemaphore(m_device.handle(), &semaphoreInfo, nullptr, &semaphore), "Unable to create swap semaphore.");
-
-			return semaphore;
-		});
-
 		// Store state variables.
 		m_renderArea = renderArea;
 		m_format = format;
@@ -691,11 +696,9 @@ public:
 		m_swapChain.Reset();
 		m_d3dDevice.Reset();
 
-		// Destroy the image swap semaphores.
-		std::ranges::for_each(m_swapSemaphores, [&](const auto& semaphore) { ::vkDestroySemaphore(m_device.handle(), semaphore, nullptr); });
-
 		// Destroy state.
-		m_swapSemaphores.clear();
+		::CloseHandle(m_fenceHandle);
+		m_presentFences.clear();
 		m_buffers = 0;
 		m_renderArea = {};
 		m_format = Format::None;
@@ -707,15 +710,9 @@ public:
 		// Get the current back buffer index.
 		m_currentImage = m_swapChain->GetCurrentBackBufferIndex();
 
-		// We need to manually signal the current semaphore on the graphics queue, to inform it that the swap chain image is ready to be written.
-		VkSubmitInfo submitInfo = {
-			.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-			.signalSemaphoreCount = 1,
-			.pSignalSemaphores = &this->currentSemaphore()
-		};
-
-		raiseIfFailed(::vkQueueSubmit(m_device.defaultQueue(QueueType::Graphics).handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit the present queue signal.");
-
+		// Wait for all workloads on this image to finish in order to be able to re-use the associated command buffers.
+		m_device.defaultQueue(QueueType::Graphics).waitFor(m_presentFences[m_currentImage]);
+		
 		// Query the timing events.
 		if (m_supportsTiming && !m_timingEvents.empty()) [[likely]]
 		{
@@ -734,30 +731,13 @@ public:
 
 	void present(const VulkanFrameBuffer& frameBuffer)
 	{
-		// We need to manually signal the current semaphore on the graphics queue, to inform it, that the swap chain is ready.
-		Array<VkPipelineStageFlags> waitForStages = { VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT };
-
-		VkSubmitInfo submitInfo = {
-			.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-			.waitSemaphoreCount = 1,
-			.pWaitSemaphores = &frameBuffer.semaphore(),
-			.pWaitDstStageMask = waitForStages.data()
-		};
-
-		// Wait for the frame buffer semaphore, as well as for the rendering fence to complete.
-		auto& queue = m_device.defaultQueue(QueueType::Graphics);
-		raiseIfFailed(::vkQueueSubmit(queue.handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit the present queue signal.");
-
-		// Present needs to happen on UI thread, so we cannot do this asynchronously.
-		queue.waitFor(frameBuffer.lastFence());
+		// Wait for all commands to finish on the default graphics queue. We assume that this is the last queue that receives (synchronized) workloads, as it is expected to
+		// handle presentation by convention.
+		// TODO: In some rare situations, there are visible scanlines that look like the wait does not actually wait for all writes on the back buffer, but I am not sure how to debug this properly.
+		m_presentQueue->Wait(m_fence.Get(), m_presentFences[m_currentImage] = frameBuffer.lastFence());
 		D3D::raiseIfFailed(m_swapChain->Present(0, m_supportsTearing ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to queue present event on swap chain.");
 	}
-
-	const VkSemaphore& currentSemaphore()
-	{
-		return m_swapSemaphores[m_currentImage];
-	}
-
+	
 	const VkQueryPool& currentTimestampQueryPool()
 	{
 		return m_timingQueryPools[m_currentImage];
@@ -835,11 +815,6 @@ VulkanSwapChain::VulkanSwapChain(const VulkanDevice& device, Format surfaceForma
 }
 
 VulkanSwapChain::~VulkanSwapChain() noexcept = default;
-
-const VkSemaphore& VulkanSwapChain::semaphore() const noexcept
-{
-	return m_impl->currentSemaphore();
-}
 
 const VkQueryPool& VulkanSwapChain::timestampQueryPool() const noexcept
 {

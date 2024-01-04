@@ -181,7 +181,11 @@ public:
 
                     // If we have a multi-sampled present attachment, we also need to attach a resolve attachment for it.
                     if (m_samples == MultiSamplingLevel::x1)
+#ifdef BUILD_DIRECTX_12_BACKEND
+                        attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+#else
                         attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+#endif
                     else
                     {
                         attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -194,7 +198,11 @@ public:
                         presentResolveAttachment->stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
                         presentResolveAttachment->stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
                         presentResolveAttachment->initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+#ifdef BUILD_DIRECTX_12_BACKEND
+                        presentResolveAttachment->finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+#else
                         presentResolveAttachment->finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+#endif
                     }
 
                     presentTarget = VkAttachmentReference { static_cast<UInt32>(currentIndex + inputAttachments.size()), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
@@ -468,19 +476,11 @@ UInt64 VulkanRenderPass::end() const
     ::vkCmdEndRenderPass(std::as_const(*commandBuffer).handle());
 
     // Submit the command buffer.
-    if (!this->hasPresentTarget())
-        frameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffer);
-    else
-    {
-        // Draw the frame, if the result of the render pass it should be presented to the swap chain.
-        std::array<VkSemaphore, 1> waitForSemaphores = { m_impl->m_device.swapChain().semaphore() };
-        std::array<VkPipelineStageFlags, 1> waitForStages = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
-        std::array<VkSemaphore, 1> signalSemaphores = { frameBuffer->semaphore() };
-        frameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffer, waitForSemaphores, waitForStages, signalSemaphores);
+    frameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffer);
 
-        // Present the swap chain.
+    // Present the swap chain.
+    if (this->hasPresentTarget())
         m_impl->m_device.swapChain().present(*frameBuffer);
-    }
 
     // Reset the frame buffer.
     m_impl->m_activeFrameBuffer = nullptr;
