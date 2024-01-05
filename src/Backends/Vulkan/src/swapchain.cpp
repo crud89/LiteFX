@@ -328,13 +328,15 @@ private:
 	Array<UniquePtr<IVulkanImage>> m_presentImages{ };
 	Array<ImageResource> m_imageResources;
 	Array<UInt64> m_presentFences;
-	//Array<VkFence> m_presentFences;
 	const VulkanDevice& m_device;
-	ComPtr<ID3D12Device> m_d3dDevice;
+	ComPtr<ID3D12Device4> m_d3dDevice;
 	ComPtr<IDXGISwapChain4> m_swapChain;
 	ComPtr<ID3D12CommandQueue> m_presentQueue;
+	ComPtr<ID3D12Fence> m_workloadFence = nullptr, m_presentationFence = nullptr;
+	Array<ComPtr<ID3D12CommandAllocator>> m_presentCommandAllocators;
+	Array<ComPtr<ID3D12GraphicsCommandList7>> m_presentCommandLists;
+	
 	bool m_supportsTearing = false;
-	ComPtr<ID3D12Fence> m_fence = nullptr;
 	HANDLE m_fenceHandle;
 
 	Array<SharedPtr<TimingEvent>> m_timingEvents;
@@ -354,6 +356,9 @@ public:
 			LITEFX_WARNING(VULKAN_LOG, "Timestamp queries are not supported and will be disabled. Reading timestamps will always return 0.");
 
 		importSemaphoreWin32HandleKHR = reinterpret_cast<PFN_vkImportSemaphoreWin32HandleKHR>(::vkGetDeviceProcAddr(device.handle(), "vkImportSemaphoreWin32HandleKHR"));
+
+		if (importSemaphoreWin32HandleKHR == nullptr) [[unlikely]]
+			throw RuntimeException("Semaphore importing is not available. Check if all required extensions are available.");
 	}
 
 	~VulkanSwapChainImpl()
@@ -490,9 +495,10 @@ public:
 		// Initialize the present fences array.
 		m_presentFences.resize(images, 0ul);
 
-		// Create a fence for synchronization.
-		D3D::raiseIfFailed(m_d3dDevice->CreateFence(0, D3D12_FENCE_FLAG_SHARED, IID_PPV_ARGS(&m_fence)), "Unable to create interop synchronization fence for swap chain.");
-		D3D::raiseIfFailed(m_d3dDevice->CreateSharedHandle(m_fence.Get(), nullptr, GENERIC_ALL, L"", &m_fenceHandle), "Unable to create shared handle for swap chain interop synchronization fence.");
+		// Create fences for synchronization.
+		D3D::raiseIfFailed(m_d3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_presentationFence)), "Unable to create presentation synchronization fence for swap chain.");
+		D3D::raiseIfFailed(m_d3dDevice->CreateFence(0, D3D12_FENCE_FLAG_SHARED, IID_PPV_ARGS(&m_workloadFence)), "Unable to create interop synchronization fence for swap chain.");
+		D3D::raiseIfFailed(m_d3dDevice->CreateSharedHandle(m_workloadFence.Get(), nullptr, GENERIC_ALL, L"", &m_fenceHandle), "Unable to create shared handle for swap chain interop synchronization fence.");
 
 		// Import the fence handle to signal it from Vulkan workloads.
 		VkImportSemaphoreWin32HandleInfoKHR fenceImportInfo = {
@@ -503,6 +509,18 @@ public:
 		};
 		
 		raiseIfFailed(importSemaphoreWin32HandleKHR(m_device.handle(), &fenceImportInfo), "Unable to import interop synchronization fence for swap chain.");
+
+		// Allocate command lists.
+		m_presentCommandAllocators.clear();
+		m_presentCommandLists.clear();
+		m_presentCommandAllocators.resize(images);
+		m_presentCommandLists.resize(images);
+
+		for (UInt32 i{ 0 }; i < images; ++i)
+		{
+			D3D::raiseIfFailed(m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_presentCommandAllocators[i])), "Unable to create command allocator for present queue commands.");
+			D3D::raiseIfFailed(m_d3dDevice->CreateCommandList1(0, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&m_presentCommandLists[i])), "Unable to create command list for present queue commands.");
+		}
 	}
 
 	void reset(Format format, const Size2d& renderArea, UInt32 buffers)
@@ -555,10 +573,27 @@ public:
 
 		// Reset the present fences array.
 		m_presentFences.resize(images, 0ul);
+
+		// Resize and re-allocate command lists.
+		m_presentCommandAllocators.clear();
+		m_presentCommandLists.clear();
+		m_presentCommandAllocators.resize(images);
+		m_presentCommandLists.resize(images);
+
+		for (UInt32 i{ 0 }; i < images; ++i)
+		{
+			D3D::raiseIfFailed(m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_presentCommandAllocators[i])), "Unable to create command allocator for present queue commands.");
+			D3D::raiseIfFailed(m_d3dDevice->CreateCommandList1(0, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&m_presentCommandLists[i])), "Unable to create command list for present queue commands.");
+		}
 	}
 
 	void createImages(Format format, const Size2d& renderArea, UInt32 buffers)
-	{	
+	{
+		// NOTE: We maintain two sets of images: the swap chain back buffers and separate image resources that are shared and written to by the Vulkan renderer. During present
+		//       the `m_workloadFence` is waited upon before copying the shared images into the swap chain back buffers. While it is possible to share and write the back buffers
+		//       directly, they are not synchronized (even waiting for the workload fence before presenting is not enough). This causes back buffers to be written whilst they
+		//       presented, resulting in artifacts or flickering.
+
 		// Acquire the swap chain images.
 		m_presentImages.resize(buffers);
 		m_imageResources.resize(buffers);
@@ -567,7 +602,24 @@ public:
 			ComPtr<ID3D12Resource> resource;
 			HANDLE resourceHandle = nullptr;
 			const int image = i++;
-			D3D::raiseIfFailed(m_swapChain->GetBuffer(image, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", image);
+			//D3D::raiseIfFailed(m_swapChain->GetBuffer(image, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", image);
+			
+			// Create a image resource.
+			D3D12_RESOURCE_DESC imageDesc = {
+				.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
+				.Width = renderArea.width(),
+				.Height = static_cast<UInt32>(renderArea.height()),
+				.DepthOrArraySize = 1,
+				.MipLevels = 1,
+				.Format = DX12::getFormat(format),
+				.SampleDesc = { 1, 0 },
+				.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
+				.Flags = D3D12_RESOURCE_FLAG_NONE
+			};
+
+			auto heapInfo = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+			
+			D3D::raiseIfFailed(m_d3dDevice->CreateCommittedResource(&heapInfo, D3D12_HEAP_FLAG_SHARED, &imageDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&resource)), "Unable to create image resource to interop back buffer.");
 			D3D::raiseIfFailed(m_d3dDevice->CreateSharedHandle(resource.Get(), nullptr, GENERIC_ALL, nullptr, &resourceHandle), "Unable to create shared handle for interop back buffer.");
 
 			// Wrap the back buffer images in an vulkan image.
@@ -712,7 +764,20 @@ public:
 
 		// Wait for all workloads on this image to finish in order to be able to re-use the associated command buffers.
 		m_device.defaultQueue(QueueType::Graphics).waitFor(m_presentFences[m_currentImage]);
-		
+
+		// Wait for the last presentation on the current image to finish, so that we can re-use the command buffers associated with it.
+		if (m_presentationFence->GetCompletedValue() < m_presentFences[m_currentImage])
+		{
+			HANDLE eventHandle = ::CreateEvent(nullptr, false, false, nullptr);
+			HRESULT hr = m_presentationFence->SetEventOnCompletion(m_presentFences[m_currentImage], eventHandle);
+
+			if (SUCCEEDED(hr))
+				::WaitForSingleObject(eventHandle, INFINITE);
+
+			::CloseHandle(eventHandle);
+			raiseIfFailed(hr, "Unable to register presentation fence completion event.");
+		}
+
 		// Query the timing events.
 		if (m_supportsTiming && !m_timingEvents.empty()) [[likely]]
 		{
@@ -733,9 +798,61 @@ public:
 	{
 		// Wait for all commands to finish on the default graphics queue. We assume that this is the last queue that receives (synchronized) workloads, as it is expected to
 		// handle presentation by convention.
-		// TODO: In some rare situations, there are visible scanlines that look like the wait does not actually wait for all writes on the back buffer, but I am not sure how to debug this properly.
-		m_presentQueue->Wait(m_fence.Get(), m_presentFences[m_currentImage] = frameBuffer.lastFence());
+		m_presentQueue->Wait(m_workloadFence.Get(), m_presentFences[m_currentImage] = frameBuffer.lastFence());
+
+		// Copy shared images to back buffers. See `createImages` for details on why we do this.
+		ComPtr<ID3D12Resource> resource;
+		D3D::raiseIfFailed(m_swapChain->GetBuffer(m_currentImage, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", m_currentImage);
+		
+		auto& allocator = m_presentCommandAllocators[m_currentImage];
+		auto& commandList = m_presentCommandLists[m_currentImage];
+		D3D::raiseIfFailed(allocator->Reset(), "Unable to reset command allocator before presentation.");
+		D3D::raiseIfFailed(commandList->Reset(allocator.Get(), nullptr), "Unable to reset command list before presentation.");
+
+		// Transition into copy destination state and copy the resource.
+		D3D12_TEXTURE_BARRIER barrier = {
+			.SyncBefore = D3D12_BARRIER_SYNC_NONE,
+			.SyncAfter = D3D12_BARRIER_SYNC_COPY,
+			.AccessBefore = D3D12_BARRIER_ACCESS_NO_ACCESS,
+			.AccessAfter = D3D12_BARRIER_ACCESS_COPY_DEST,
+			.LayoutBefore = D3D12_BARRIER_LAYOUT_UNDEFINED,
+			.LayoutAfter = D3D12_BARRIER_LAYOUT_COPY_DEST,
+			.pResource = resource.Get(),
+			.Subresources = {.NumMipLevels = 1, .NumArraySlices = 1, .NumPlanes = 1 }
+		};
+
+		D3D12_BARRIER_GROUP barrierGroup = {
+			.Type = D3D12_BARRIER_TYPE_TEXTURE,
+			.NumBarriers = 1,
+			.pTextureBarriers = &barrier
+		};
+
+		commandList->Barrier(1, &barrierGroup);
+		commandList->CopyResource(resource.Get(), m_imageResources[m_currentImage].image.Get());
+
+		// Transition into present state and close the command list.
+		barrier = {
+			.SyncBefore = D3D12_BARRIER_SYNC_COPY,
+			.SyncAfter = D3D12_BARRIER_SYNC_NONE,
+			.AccessBefore = D3D12_BARRIER_ACCESS_COPY_DEST,
+			.AccessAfter = D3D12_BARRIER_ACCESS_NO_ACCESS,
+			.LayoutBefore = D3D12_BARRIER_LAYOUT_COPY_DEST,
+			.LayoutAfter = D3D12_BARRIER_LAYOUT_PRESENT,
+			.pResource = resource.Get(),
+			.Subresources = { .NumMipLevels = 1, .NumArraySlices = 1, .NumPlanes = 1 }
+		};
+
+		commandList->Barrier(1, &barrierGroup);
+
+		D3D::raiseIfFailed(commandList->Close(), "Unable to close command list for presentation.");
+		
+		// Submit the command buffer.
+		std::array<ID3D12CommandList*, 1> commandBuffers = { commandList.Get() };
+		m_presentQueue->ExecuteCommandLists(commandBuffers.size(), commandBuffers.data());
+
+		// Do the presentation.
 		D3D::raiseIfFailed(m_swapChain->Present(0, m_supportsTearing ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to queue present event on swap chain.");
+		D3D::raiseIfFailed(m_presentQueue->Signal(m_presentationFence.Get(), m_presentFences[m_currentImage]), "Unable to signal presentation fence.");
 	}
 	
 	const VkQueryPool& currentTimestampQueryPool()
