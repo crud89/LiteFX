@@ -94,13 +94,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .layout(postProgram->reflectPipelineLayout())
         .shaderProgram(postProgram);
 
-    // Build a present render pass.
-    UniquePtr<RenderPass> presentPass = device->buildRenderPass("Present")
-        .renderTarget("Present Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::None, { 0.0f, 0.0f, 0.0f, 1.f });
-
     // Add the resources to the device state.
     device->state().add(std::move(renderPass));
-    device->state().add(std::move(presentPass));
     device->state().add(std::move(renderPipeline));
     device->state().add(std::move(postPipeline));
 }
@@ -274,13 +269,12 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     auto surfaceFormat = m_device->swapChain().surfaceFormat();
     auto renderArea = Size2d(e.width(), e.height());
     m_device->swapChain().reset(surfaceFormat, renderArea, 3);
-
+    
     // NOTE: Important to do this in order, since dependencies (i.e. input attachments) are re-created and might be mapped to images that do no longer exist when a dependency
     //       gets re-created. This is hard to detect, since some frame buffers can have a constant size, that does not change with the render area and do not need to be 
     //       re-created. We should either think of a clever implicit dependency management for this, or at least document this behavior!
     m_device->state().renderPass("Opaque").resizeFrameBuffers(renderArea);
-    m_device->state().renderPass("Present").resizeFrameBuffers(renderArea);
-
+    
     // Update the post-processing bindings that reference the "opaque" frame buffer.
     auto opaqueFrameBuffers = m_device->state().renderPass("Opaque").frameBuffers();
     
@@ -396,7 +390,6 @@ void SampleApp::drawFrame()
 
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
     auto& renderPass = m_device->state().renderPass("Opaque");
-    auto& presentPass = m_device->state().renderPass("Present");
     auto& postPipeline = m_device->state().pipeline("Post");
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& transformBuffer = m_device->state().buffer("Transform");
@@ -436,17 +429,16 @@ void SampleApp::drawFrame()
         commandBuffer->bind(vertexBuffer);
         commandBuffer->bind(indexBuffer);
 
-        // Draw the object and present the frame by ending the render pass.
+        // Draw the object and end the render pass.
         commandBuffer->drawIndexed(indexBuffer.elements());
         geometryFence = renderPass.end();
     }
 
     // Perform post processing on compute queue.
-    UInt64 postProcessFence = 0;
-
     {
         // Create a command buffer.
-        auto commandBuffer = m_device->defaultQueue(QueueType::Compute).createCommandBuffer(true);
+        auto& computeQueue = m_device->defaultQueue(QueueType::Compute);
+        auto commandBuffer = computeQueue.createCommandBuffer(true);
         commandBuffer->use(postPipeline);
 
         // Get the image from the back buffer of the geometry pass.
@@ -473,35 +465,30 @@ void SampleApp::drawFrame()
 
         // Submit the command buffer.
         m_device->defaultQueue(QueueType::Compute).waitFor(renderPass.commandQueue(), geometryFence);
-        postProcessFence = commandBuffer->submit();
-    }
+        auto postProcessFence = computeQueue.submit(commandBuffer);
 
-    // Execute present pass.
-    {
         // Copy the post-processed image into the render target.
-        // NOTE: This implicitly transitions the image into `CopyDestination` layout.
-        auto& queue = presentPass.commandQueue();
-        auto commandBuffer = queue.createCommandBuffer(true);
+        auto& graphicsQueue = m_device->defaultQueue(QueueType::Graphics);
+        commandBuffer = graphicsQueue.createCommandBuffer(true);
 
         // Transition the image back into `CopyDestination` layout.
-        auto barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Transfer);
-        barrier->transition(presentPass.frameBuffer(backBuffer).image(0), ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
+        barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Transfer);
+        barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
         commandBuffer->barrier(*barrier);
 
         // Copy the image.
-        commandBuffer->transfer(renderPass.frameBuffer(backBuffer).image(0), presentPass.frameBuffer(backBuffer).image(0));
+        commandBuffer->transfer(renderPass.frameBuffer(backBuffer).image(0), *m_device->swapChain().image(backBuffer));
 
         // Transition the image back into `Present` layout.
         barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::Resolve);
-        barrier->transition(presentPass.frameBuffer(backBuffer).image(0), ResourceAccess::TransferWrite, ResourceAccess::Common, ImageLayout::CopyDestination, ImageLayout::Present);
+        barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::TransferWrite, ResourceAccess::Common, ImageLayout::CopyDestination, ImageLayout::Present);
         commandBuffer->barrier(*barrier);
 
         // Wait for the compute queue to finish before performing the transfer.
-        queue.waitFor(m_device->defaultQueue(QueueType::Compute), postProcessFence);
-        queue.submit(commandBuffer);
+        graphicsQueue.waitFor(m_device->defaultQueue(QueueType::Compute), postProcessFence);
+        auto fence = graphicsQueue.submit(commandBuffer);
 
-        // Begin and immediately end the present pass (that does not do any actual work except presenting on end).
-        presentPass.begin(backBuffer);
-        presentPass.end();
+        // Present after the transfer is finished.
+        m_device->swapChain().present(fence);
     }
 }
