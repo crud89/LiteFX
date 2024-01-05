@@ -730,10 +730,10 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<const command_buffer_type> commandBuffer(UInt32 index) const = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<const image_type*> images() const noexcept = 0;
+        virtual Enumerable<image_type*> images() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const image_type& image(UInt32 location) const = 0;
+        virtual image_type& image(UInt32 location) const = 0;
 
     private:
         inline SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept override {
@@ -744,7 +744,7 @@ namespace LiteFX::Rendering {
             return this->commandBuffers();
         }
 
-        inline Enumerable<const IImage*> getImages() const noexcept override {
+        inline Enumerable<IImage*> getImages() const noexcept override {
             return this->images();
         }
     };
@@ -752,36 +752,27 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Represents the source for an input attachment mapping.
     /// </summary>
-    /// <remarks>
-    /// This interface is implemented by a <see cref="RenderPass" /> to return the frame buffer for a given back buffer. It is called by a <see cref="FrameBuffer" /> 
-    /// during initialization or re-creation, in order to resolve input attachment dependencies.
-    /// </remarks>
     /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
     template <typename TFrameBuffer> requires
         rtti::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>>
-    class IInputAttachmentMappingSource {
+    class InputAttachmentMappingSource : public IInputAttachmentMappingSource {
     public:
         using frame_buffer_type = TFrameBuffer;
 
     public:
-        virtual ~IInputAttachmentMappingSource() noexcept = default;
+        virtual ~InputAttachmentMappingSource() noexcept = default;
 
     public:
-        /// <summary>
-        /// Returns the frame buffer with the index provided in <paramref name="buffer" />.
-        /// </summary>
-        /// <param name="buffer">The index of a frame buffer within the source.</param>
-        /// <returns>The frame buffer with the index provided in <paramref name="buffer" />.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the <paramref name="buffer" /> does not map to a frame buffer within the source.</exception>
+        /// <inheritdoc />
         virtual const frame_buffer_type& frameBuffer(UInt32 buffer) const = 0;
     };
 
     /// <summary>
     /// Represents a mapping between a set of <see cref="IRenderTarget" /> instances and the input attachments of a <see cref="RenderPass" />.
     /// </summary>
-    /// <typeparam name="TInputAttachmentMappingSource">The type of the input attachment mapping source. Must implement <see cref="IInputAttachmentMappingSource" />.</typeparam>
+    /// <typeparam name="TInputAttachmentMappingSource">The type of the input attachment mapping source. Must implement <see cref="InputAttachmentMappingSource" />.</typeparam>
     template <typename TInputAttachmentMappingSource> requires
-        rtti::implements<TInputAttachmentMappingSource, IInputAttachmentMappingSource<typename TInputAttachmentMappingSource::frame_buffer_type>>
+        rtti::implements<TInputAttachmentMappingSource, InputAttachmentMappingSource<typename TInputAttachmentMappingSource::frame_buffer_type>>
     class IInputAttachmentMapping {
     public:
         using input_attachment_mapping_source_type = TInputAttachmentMappingSource;
@@ -829,7 +820,7 @@ namespace LiteFX::Rendering {
         /*rtti::implements<TCommandQueue, CommandQueue<typename TFrameBuffer::command_buffer_type>> &&*/
         rtti::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>> /*&&
         rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
-    class RenderPass : public virtual StateResource, public IRenderPass, public IInputAttachmentMappingSource<TFrameBuffer> {
+    class RenderPass : public virtual StateResource, public IRenderPass, public InputAttachmentMappingSource<TFrameBuffer> {
     public:
         using IRenderPass::updateAttachments;
 
@@ -898,7 +889,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const image_interface_type*> images() const noexcept = 0;
+        virtual Enumerable<image_interface_type*> images() const noexcept = 0;
 
         /// <summary>
         /// Queues a present that gets executed after <paramref name="frameBuffer" /> signals its readiness.
@@ -912,7 +903,7 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        inline Enumerable<const IImage*> getImages() const noexcept override {
+        inline Enumerable<IImage*> getImages() const noexcept override {
             return this->images();
         }
     };
@@ -1025,10 +1016,10 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<TIndexBuffer> createIndexBuffer(const String& name, const index_buffer_layout_type& layout, BufferUsage usage, UInt32 elements) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TImage> createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const = 0;
+        virtual UniquePtr<TImage> createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TImage> createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const = 0;
+        virtual UniquePtr<TImage> createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const = 0;
 
         /// <inheritdoc />
         virtual UniquePtr<TImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const = 0;
@@ -1073,12 +1064,12 @@ namespace LiteFX::Rendering {
             return this->createIndexBuffer(name, dynamic_cast<const index_buffer_layout_type&>(layout), usage, elements);
         }
 
-        inline UniquePtr<IImage> getAttachment(Format format, const Size2d& size, MultiSamplingLevel samples) const override {
-            return this->createAttachment(format, size, samples);
+        inline UniquePtr<IImage> getAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const override {
+            return this->createAttachment(target, size, samples);
         }
 
-        inline UniquePtr<IImage> getAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples) const override {
-            return this->createAttachment(name, format, size, samples);
+        inline UniquePtr<IImage> getAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const override {
+            return this->createAttachment(name, target, size, samples);
         }
         
         inline UniquePtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const override {

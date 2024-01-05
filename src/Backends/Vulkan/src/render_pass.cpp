@@ -18,7 +18,7 @@ private:
     Array<VulkanInputAttachmentMapping> m_inputAttachments;
     Array<UniquePtr<VulkanFrameBuffer>> m_frameBuffers;
     Array<SharedPtr<VulkanCommandBuffer>> m_primaryCommandBuffers;
-    const VulkanFrameBuffer* m_activeFrameBuffer = nullptr;
+    VulkanFrameBuffer* m_activeFrameBuffer = nullptr;
     SharedPtr<const VulkanCommandBuffer> m_activeCommandBuffer;
     Array<VkClearValue> m_clearValues;
     UInt32 m_backBuffer{ 0 };
@@ -93,17 +93,27 @@ public:
             case RenderTargetType::Present: [[unlikely]]
                 throw InvalidArgumentException("inputAttachments", "The render pass input attachment at location {0} maps to a present render target, which can not be used as input attachment.", currentIndex);
             case RenderTargetType::Color:
-                attachment.initialLayout = attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                attachment.initialLayout = inputAttachment.renderTarget().attachment() ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL;
+                attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
                 inputAttachments.push_back({ static_cast<UInt32>(currentIndex), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
                 attachments.push_back(attachment);
                 break;
             case RenderTargetType::DepthStencil:
                 if (::hasDepth(inputAttachment.renderTarget().format()) && ::hasStencil(inputAttachment.renderTarget().format())) [[likely]]
-                    attachment.initialLayout = attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                {
+                    attachment.initialLayout = inputAttachment.renderTarget().attachment() ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+                    attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                }
                 else if (::hasDepth(inputAttachment.renderTarget().format()))
-                    attachment.initialLayout = attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+                {
+                    attachment.initialLayout = inputAttachment.renderTarget().attachment() ? VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+                    attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+                }
                 else if (::hasStencil(inputAttachment.renderTarget().format()))
-                    attachment.initialLayout = attachment.finalLayout = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;
+                {
+                    attachment.initialLayout = inputAttachment.renderTarget().attachment() ? VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL;
+                    attachment.finalLayout = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;
+                }
                 else [[unlikely]]
                 {
                     LITEFX_WARNING(VULKAN_LOG, "The depth/stencil input attachment at location {0} does not have a valid depth/stencil format ({1}). Falling back to VK_IMAGE_LAYOUT_GENERAL.", currentIndex, inputAttachment.renderTarget().format());
@@ -147,16 +157,16 @@ public:
                 {
                 case RenderTargetType::Color:
                     attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                    attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                    attachment.finalLayout = renderTarget.attachment() ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL;
                     outputAttachments.push_back({ static_cast<UInt32>(currentIndex + inputAttachments.size()), attachment.finalLayout });
                     break;
                 case RenderTargetType::DepthStencil:
                     if (::hasDepth(renderTarget.format()) || ::hasStencil(renderTarget.format())) [[likely]]
-                        attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                        attachment.finalLayout = renderTarget.attachment() ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
                     else if (::hasDepth(renderTarget.format()))
-                        attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+                        attachment.finalLayout = renderTarget.attachment() ? VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
                     else if (::hasStencil(renderTarget.format()))
-                        attachment.finalLayout = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;
+                        attachment.finalLayout = renderTarget.attachment() ? VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL;
                     else [[unlikely]]
                     {
                         LITEFX_WARNING(VULKAN_LOG, "The depth/stencil render target at location {0} does not have a valid depth/stencil format ({1}). Falling back to VK_IMAGE_LAYOUT_GENERAL.", currentIndex, renderTarget.format());
@@ -171,7 +181,11 @@ public:
 
                     // If we have a multi-sampled present attachment, we also need to attach a resolve attachment for it.
                     if (m_samples == MultiSamplingLevel::x1)
+#ifdef BUILD_DIRECTX_12_BACKEND
+                        attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+#else
                         attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+#endif
                     else
                     {
                         attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -184,7 +198,11 @@ public:
                         presentResolveAttachment->stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
                         presentResolveAttachment->stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
                         presentResolveAttachment->initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+#ifdef BUILD_DIRECTX_12_BACKEND
+                        presentResolveAttachment->finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+#else
                         presentResolveAttachment->finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+#endif
                     }
 
                     presentTarget = VkAttachmentReference { static_cast<UInt32>(currentIndex + inputAttachments.size()), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
@@ -421,7 +439,7 @@ void VulkanRenderPass::begin(UInt32 buffer)
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = this->handle();
-    renderPassInfo.framebuffer = frameBuffer->handle();
+    renderPassInfo.framebuffer = std::as_const(*frameBuffer).handle();
     renderPassInfo.renderArea.offset = { 0, 0 };
     renderPassInfo.renderArea.extent.width = static_cast<UInt32>(frameBuffer->getWidth());
     renderPassInfo.renderArea.extent.height = static_cast<UInt32>(frameBuffer->getHeight());
@@ -437,7 +455,7 @@ void VulkanRenderPass::begin(UInt32 buffer)
     this->beginning(this, { buffer });
 }
 
-void VulkanRenderPass::end() const
+UInt64 VulkanRenderPass::end() const
 {
     // Check if we are running.
     if (m_impl->m_activeFrameBuffer == nullptr) [[unlikely]]
@@ -458,23 +476,18 @@ void VulkanRenderPass::end() const
     ::vkCmdEndRenderPass(std::as_const(*commandBuffer).handle());
 
     // Submit the command buffer.
-    if (!this->hasPresentTarget())
-        frameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffer);
-    else
-    {
-        // Draw the frame, if the result of the render pass it should be presented to the swap chain.
-        std::array<VkSemaphore, 1> waitForSemaphores = { m_impl->m_device.swapChain().semaphore() };
-        std::array<VkPipelineStageFlags, 1> waitForStages = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
-        std::array<VkSemaphore, 1> signalSemaphores = { frameBuffer->semaphore() };
-        frameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffer, waitForSemaphores, waitForStages, signalSemaphores);
+    frameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffer);
 
-        // Present the swap chain.
+    // Present the swap chain.
+    if (this->hasPresentTarget())
         m_impl->m_device.swapChain().present(*frameBuffer);
-    }
 
     // Reset the frame buffer.
     m_impl->m_activeFrameBuffer = nullptr;
     m_impl->m_activeCommandBuffer = nullptr;
+
+    // Return the last fence.
+    return frameBuffer->lastFence();
 }
 
 void VulkanRenderPass::resizeFrameBuffers(const Size2d& renderArea)

@@ -136,6 +136,7 @@ namespace LiteFX::Rendering::Backends {
 
     private:
         virtual ImageLayout& layout(UInt32 subresource) = 0;
+        virtual ImageLayout layout(UInt32 subresource) const = 0;
     };
 
     /// <summary>
@@ -1082,7 +1083,7 @@ namespace LiteFX::Rendering::Backends {
         /// <returns>A pointer to the descriptor heap that allocates the render targets for this frame buffer.</returns>
         /// <seealso cref="depthStencilTargetHeap" />
         /// <seealso cref="renderTargetDescriptorSize" />
-        virtual ID3D12DescriptorHeap* renderTargetHeap() const noexcept;
+        ID3D12DescriptorHeap* renderTargetHeap() const noexcept;
 
         /// <summary>
         /// Returns a pointer to the descriptor heap that allocates the depth/stencil views for this frame buffer.
@@ -1093,33 +1094,35 @@ namespace LiteFX::Rendering::Backends {
         /// <returns>A pointer to the descriptor heap that allocates the depth/stencil views for this frame buffer.</returns>
         /// <seealso cref="renderTargetHeap" />
         /// <seealso cref="depthStencilDescriptorSize" />
-        virtual ID3D12DescriptorHeap* depthStencilTargetHeap() const noexcept;
+        ID3D12DescriptorHeap* depthStencilTargetHeap() const noexcept;
 
         /// <summary>
         /// Returns the size of a descriptor for a render target within the frame buffer.
         /// </summary>
         /// <returns>The size of a descriptor for a render target within the frame buffer.</returns>
         /// <seealso cref="renderTargetHeap" />
-        virtual UInt32 renderTargetDescriptorSize() const noexcept;
+        UInt32 renderTargetDescriptorSize() const noexcept;
 
         /// <summary>
         /// Returns the size of a descriptor for a depth/stencil view within the frame buffer.
         /// </summary>
         /// <returns>The size of a descriptor for a depth/stencil view within the frame buffer.</returns>
         /// <seealso cref="depthStencilTargetHeap" />
-        virtual UInt32 depthStencilTargetDescriptorSize() const noexcept;
+        UInt32 depthStencilTargetDescriptorSize() const noexcept;
 
-        /// <summary>
-        /// Returns a reference of the last fence value for the frame buffer.
+        /// Returns a reference to the value of the fence that indicates the last submission drawing into the frame buffer.
         /// </summary>
         /// <remarks>
-        /// The frame buffer must only be re-used, if this fence is reached in the graphics queue.
+        /// The frame buffer must only be re-used if this fence has been passed in the command queue that executes the parent render pass.
         /// </remarks>
-        /// <returns>A reference of the last fence value for the frame buffer.</returns>
-        virtual UInt64& lastFence() const noexcept;
+        /// <returns>A reference to the of the last submission targeting the frame buffer.</returns>
+        UInt64& lastFence() noexcept;
 
         // FrameBuffer interface.
     public:
+        /// <inheritdoc />
+        UInt64 lastFence() const noexcept override;
+
         /// <inheritdoc />
         UInt32 bufferIndex() const noexcept override;
 
@@ -1139,10 +1142,10 @@ namespace LiteFX::Rendering::Backends {
         SharedPtr<const DirectX12CommandBuffer> commandBuffer(UInt32 index) const override;
 
         /// <inheritdoc />
-        Enumerable<const IDirectX12Image*> images() const noexcept override;
+        Enumerable<IDirectX12Image*> images() const noexcept override;
 
         /// <inheritdoc />
-        const IDirectX12Image& image(UInt32 location) const override;
+        IDirectX12Image& image(UInt32 location) const override;
 
     public:
         /// <inheritdoc />
@@ -1222,7 +1225,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="name">The name of the render pass state resource.</param>
         explicit DirectX12RenderPass(const DirectX12Device& device, const String& name = "") noexcept;
 
-        // IInputAttachmentMappingSource interface.
+        // InputAttachmentMappingSource interface.
     public:
         /// <inheritdoc />
         const DirectX12FrameBuffer& frameBuffer(UInt32 buffer) const override;
@@ -1267,7 +1270,7 @@ namespace LiteFX::Rendering::Backends {
         void begin(UInt32 buffer) override;
 
         /// <inheritdoc />
-        void end() const override;
+        UInt64 end() const override;
 
         /// <inheritdoc />
         void resizeFrameBuffers(const Size2d& renderArea) override;
@@ -1397,13 +1400,16 @@ namespace LiteFX::Rendering::Backends {
         const Size2d& renderArea() const noexcept override;
 
         /// <inheritdoc />
-        const IDirectX12Image* image(UInt32 backBuffer) const override;
+        IDirectX12Image* image(UInt32 backBuffer) const override;
 
         /// <inheritdoc />
-        Enumerable<const IDirectX12Image*> images() const noexcept override;
+        Enumerable<IDirectX12Image*> images() const noexcept override;
 
         /// <inheritdoc />
         void present(const DirectX12FrameBuffer& frameBuffer) const override;
+
+        /// <inheritdoc />
+        void present(UInt64 fence) const override;
 
     public:
         /// <inheritdoc />
@@ -1553,10 +1559,10 @@ namespace LiteFX::Rendering::Backends {
         UniquePtr<IDirectX12IndexBuffer> createIndexBuffer(const String& name, const DirectX12IndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12Image> createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
+        UniquePtr<IDirectX12Image> createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12Image> createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
+        UniquePtr<IDirectX12Image> createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
 
         /// <inheritdoc />
         UniquePtr<IDirectX12Image> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;

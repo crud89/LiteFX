@@ -152,6 +152,7 @@ namespace LiteFX::Rendering::Backends {
         
     private:
         virtual ImageLayout& layout(UInt32 subresource) = 0;
+        virtual ImageLayout layout(UInt32 subresource) const = 0;
     };
 
     /// <summary>
@@ -1097,23 +1098,19 @@ namespace LiteFX::Rendering::Backends {
 
         // Vulkan frame buffer interface.
     public:
-        /// <summary>
-        /// Returns a reference of the semaphore, that can be used to signal, that the frame buffer is finished.
-        /// </summary>
-        /// <returns>A reference of the semaphore, that can be used to signal, that the frame buffer is finished.</returns>
-        virtual const VkSemaphore& semaphore() const noexcept;
-
-        /// <summary>
-        /// Returns a reference of the last fence value for the frame buffer.
+        /// Returns a reference to the value of the fence that indicates the last submission drawing into the frame buffer.
         /// </summary>
         /// <remarks>
-        /// The frame buffer must only be re-used, if this fence is reached in the graphics queue.
+        /// The frame buffer must only be re-used if this fence has been passed in the command queue that executes the parent render pass.
         /// </remarks>
-        /// <returns>A reference of the last fence value for the frame buffer.</returns>
-        virtual UInt64& lastFence() const noexcept;
+        /// <returns>A reference to the of the last submission targeting the frame buffer.</returns>
+        UInt64& lastFence() noexcept;
 
         // FrameBuffer interface.
     public:
+        /// <inheritdoc />
+        UInt64 lastFence() const noexcept override;
+
         /// <inheritdoc />
         UInt32 bufferIndex() const noexcept override;
 
@@ -1133,10 +1130,10 @@ namespace LiteFX::Rendering::Backends {
         Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers() const noexcept override;
 
         /// <inheritdoc />
-        Enumerable<const IVulkanImage*> images() const noexcept override;
+        Enumerable<IVulkanImage*> images() const noexcept override;
 
         /// <inheritdoc />
-        const IVulkanImage& image(UInt32 location) const override;
+        IVulkanImage& image(UInt32 location) const override;
 
     public:
         /// <inheritdoc />
@@ -1216,7 +1213,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="name">The name of the render pass state resource.</param>
         explicit VulkanRenderPass(const VulkanDevice& device, const String& name = "") noexcept;
 
-        // IInputAttachmentMappingSource interface.
+        // InputAttachmentMappingSource interface.
     public:
         /// <inheritdoc />
         const VulkanFrameBuffer& frameBuffer(UInt32 buffer) const override;
@@ -1261,7 +1258,7 @@ namespace LiteFX::Rendering::Backends {
         void begin(UInt32 buffer) override;
         
         /// <inheritdoc />
-        void end() const override;
+        UInt64 end() const override;
 
         /// <inheritdoc />
         void resizeFrameBuffers(const Size2d& renderArea) override;
@@ -1355,12 +1352,6 @@ namespace LiteFX::Rendering::Backends {
         // Vulkan Swap Chain interface.
     public:
         /// <summary>
-        /// Returns a reference of the current swap semaphore, a command queue can wait on for presenting.
-        /// </summary>
-        /// <returns>A reference of the current swap semaphore, a command queue can wait on for presenting.</returns>
-        virtual const VkSemaphore& semaphore() const noexcept;
-
-        /// <summary>
         /// Returns the query pool for the current frame.
         /// </summary>
         /// <returns>A reference of the query pool for the current frame.</returns>
@@ -1390,13 +1381,16 @@ namespace LiteFX::Rendering::Backends {
         const Size2d& renderArea() const noexcept override;
 
         /// <inheritdoc />
-        const IVulkanImage* image(UInt32 backBuffer) const override;
+        IVulkanImage* image(UInt32 backBuffer) const override;
 
         /// <inheritdoc />
-        Enumerable<const IVulkanImage*> images() const noexcept override;
+        Enumerable<IVulkanImage*> images() const noexcept override;
 
         /// <inheritdoc />
         void present(const VulkanFrameBuffer& frameBuffer) const override;
+
+        /// <inheritdoc />
+        void present(UInt64 fence) const override;
 
     public:
         /// <inheritdoc />
@@ -1462,40 +1456,6 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <returns>The internal timeline semaphore.</returns>
         virtual const VkSemaphore& timelineSemaphore() const noexcept;
-
-        /// <summary>
-        /// Submits a single command buffer and inserts a fence to wait for it.
-        /// </summary>
-        /// <remarks>
-        /// By calling this method, the queue takes shared ownership over the <paramref name="commandBuffers" /> until the fence is passed. The reference will be released
-        /// during a <see cref="waitFor" />, if the awaited fence is inserted after the associated one.
-        /// 
-        /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
-        /// </remarks>
-        /// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
-        /// <param name="waitForSemaphores">The semaphores to wait for on each pipeline stage. There must be a semaphore for each entry in the <see cref="waitForStages" /> array.</param>
-        /// <param name="waitForStages">The pipeline stages of the current render pass to wait for before submitting the command buffer.</param>
-        /// <param name="signalSemaphores">The semaphores to signal, when the command buffer is executed.</param>
-        /// <returns>The value of the fence, inserted after the command buffer.</returns>
-        /// <seealso cref="waitFor" />
-        virtual UInt64 submit(SharedPtr<const VulkanCommandBuffer> commandBuffer, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores = { }) const;
-
-        /// <summary>
-        /// Submits a set of command buffers and inserts a fence to wait for them.
-        /// </summary>
-        /// <remarks>
-        /// By calling this method, the queue takes shared ownership over the <paramref name="commandBuffers" /> until the fence is passed. The reference will be released
-        /// during a <see cref="waitFor" />, if the awaited fence is inserted after the associated one.
-        /// 
-        /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
-        /// </remarks>
-        /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
-        /// <param name="waitForSemaphores">The semaphores to wait for on each pipeline stage. There must be a semaphore for each entry in the <see cref="waitForStages" /> array.</param>
-        /// <param name="waitForStages">The pipeline stages of the current render pass to wait for before submitting the command buffer.</param>
-        /// <param name="signalSemaphores">The semaphores to signal, when the command buffer is executed.</param>
-        /// <returns>The value of the fence, inserted after the command buffers.</returns>
-        /// <seealso cref="waitFor" />
-        virtual UInt64 submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>>& commandBuffers, Span<VkSemaphore> waitForSemaphores, Span<VkPipelineStageFlags> waitForStages, Span<VkSemaphore> signalSemaphores = { }) const;
 
         // CommandQueue interface.
     public:
@@ -1597,10 +1557,10 @@ namespace LiteFX::Rendering::Backends {
         UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanImage> createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
+        UniquePtr<IVulkanImage> createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanImage> createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
+        UniquePtr<IVulkanImage> createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
 
         /// <inheritdoc />
         UniquePtr<IVulkanImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;

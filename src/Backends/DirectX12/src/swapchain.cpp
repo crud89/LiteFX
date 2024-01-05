@@ -168,7 +168,10 @@ public:
 
 	UInt32 swapBackBuffer()
 	{
+		// Get the next image index.
 		m_currentImage = m_parent->handle()->GetCurrentBackBufferIndex();
+
+		// Wait for all rendering commands to finish on the image index (otherwise we would not be able to re-use the command buffers).
 		m_device.defaultQueue(QueueType::Graphics).waitFor(m_presentFences[m_currentImage]);
 
 		// Read back the timestamps.
@@ -261,7 +264,7 @@ const Size2d& DirectX12SwapChain::renderArea() const noexcept
 	return m_impl->m_renderArea;
 }
 
-const IDirectX12Image* DirectX12SwapChain::image(UInt32 backBuffer) const
+IDirectX12Image* DirectX12SwapChain::image(UInt32 backBuffer) const
 {
 	if (backBuffer >= m_impl->m_presentImages.size()) [[unlikely]]
 		throw ArgumentOutOfRangeException("backBuffer", 0u, static_cast<UInt32>(m_impl->m_presentImages.size()), backBuffer, "The back buffer must be a valid index.");
@@ -269,17 +272,21 @@ const IDirectX12Image* DirectX12SwapChain::image(UInt32 backBuffer) const
 	return m_impl->m_presentImages[backBuffer].get();
 }
 
-Enumerable<const IDirectX12Image*> DirectX12SwapChain::images() const noexcept
+Enumerable<IDirectX12Image*> DirectX12SwapChain::images() const noexcept
 {
-	return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IDirectX12Image>& image) { return image.get(); });
+	return m_impl->m_presentImages | std::views::transform([](UniquePtr<IDirectX12Image>& image) { return image.get(); });
 }
 
 void DirectX12SwapChain::present(const DirectX12FrameBuffer& frameBuffer) const
 {
-	// NOTE: Present is similar to issuing a command on the graphics queue, so there is no need to wait for the fence here. However,
-	//       we must wait for the fence before handing out the back-buffer to a new frame again, so we queue up the fence to be able
-	//       to wait for it later.
-	m_impl->m_presentFences[m_impl->m_currentImage] = frameBuffer.lastFence();
+	this->present(frameBuffer.lastFence());
+}
+
+void DirectX12SwapChain::present(UInt64 fence) const
+{
+	// Store the last fence here that marks the end of the rendering to this frame buffer. Presenting is queued after rendering anyway, but when swapping the back buffers buffers,
+	// we need to wait for all commands to finish before being able to re-use the command buffers associated with queued commands.
+	m_impl->m_presentFences[m_impl->m_currentImage] = fence;
 	raiseIfFailed(this->handle()->Present(0, this->supportsVariableRefreshRate() ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to present swap chain");
 }
 

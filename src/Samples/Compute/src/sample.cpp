@@ -1,25 +1,21 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
 enum DescriptorSets : UInt32
 {
     Constant = 0,                                       // All buffers that are immutable.
-    Samplers = 1,                                       // All samplers that are immutable.
-    PerFrame = 2,                                       // All buffers that are updated each frame.
+    PerFrame = 1,                                       // All buffers that are updated each frame.
 };
 
 const Array<Vertex> vertices =
 {
-    { { -0.5f, -0.5f, 0.0f }, { 1.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-    { { 0.5f, -0.5f, 0.0f },  { 0.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f } },
-    { { 0.5f, 0.5f, 0.0f },   { 1.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f } },
-    { { -0.5f, 0.5f, 0.0f },  { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 1.0f } }
+    { { -0.5f, -0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { 0.5f, 0.5f, 0.5f },   { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, 0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { 0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } }
 };
 
-const Array<UInt16> indices = { 2, 1, 0, 3, 2, 0 };
+const Array<UInt16> indices = { 0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3 };
 
 struct CameraBuffer {
     glm::mat4 ViewProjection;
@@ -30,7 +26,7 @@ struct TransformBuffer {
 } transform;
 
 template<typename TRenderBackend> requires
-rtti::implements<TRenderBackend, IRenderBackend>
+    rtti::implements<TRenderBackend, IRenderBackend>
 struct FileExtensions {
     static const String SHADER;
 };
@@ -48,6 +44,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 {
     using RenderPass = TRenderBackend::render_pass_type;
     using RenderPipeline = TRenderBackend::render_pipeline_type;
+    using ComputePipeline = TRenderBackend::compute_pipeline_type;
     using PipelineLayout = TRenderBackend::pipeline_layout_type;
     using ShaderProgram = TRenderBackend::shader_program_type;
     using InputAssembler = TRenderBackend::input_assembler_type;
@@ -63,20 +60,19 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .vertexBuffer(sizeof(Vertex), 0)
             .withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
             .withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
-            .withAttribute(2, BufferFormat::XY32F, offsetof(Vertex, TextureCoordinate0), AttributeSemantic::TextureCoordinate, 0)
-        .add();
+            .add();
 
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
 
     // Create a geometry render pass.
     UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
-        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
+        .renderTarget("Color Target", RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear | RenderTargetFlags::Shared | RenderTargetFlags::AllowStorage, { 0.1f, 0.1f, 0.1f, 1.f })
         .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
-    // Create a shader program.
+    // Create the shader program.
     SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
-        .withVertexShaderModule("shaders/textures_vs." + FileExtensions<TRenderBackend>::SHADER)
-        .withFragmentShaderModule("shaders/textures_fs." + FileExtensions<TRenderBackend>::SHADER);
+        .withVertexShaderModule("shaders/compute_geom_vs." + FileExtensions<TRenderBackend>::SHADER)
+        .withFragmentShaderModule("shaders/compute_geom_fs." + FileExtensions<TRenderBackend>::SHADER);
 
     // Create a render pipeline.
     UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
@@ -89,131 +85,83 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .layout(shaderProgram->reflectPipelineLayout())
         .shaderProgram(shaderProgram);
 
+    // Create the post-processing shader program.
+    SharedPtr<ShaderProgram> postProgram = device->buildShaderProgram()
+        .withComputeShaderModule("shaders/compute_lum_cs." + FileExtensions<TRenderBackend>::SHADER); // RGB -> Luminosity
+
+    // Create a compute pipeline.
+    UniquePtr<ComputePipeline> postPipeline = device->buildComputePipeline("Post")
+        .layout(postProgram->reflectPipelineLayout())
+        .shaderProgram(postProgram);
+
     // Add the resources to the device state.
     device->state().add(std::move(renderPass));
     device->state().add(std::move(renderPipeline));
+    device->state().add(std::move(postPipeline));
 }
 
-template<typename TDevice> requires
-    rtti::implements<TDevice, IGraphicsDevice>
-void loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampler>& sampler)
-{
-    using TBarrier = typename TDevice::barrier_type;
-
-    // Load the image.
-    using ImageDataPtr = UniquePtr<stbi_uc, decltype(&::stbi_image_free)>;
-
-    int width, height, channels;
-    auto imageData = ImageDataPtr(::stbi_load("assets/logo_quad.tga", &width, &height, &channels, STBI_rgb_alpha), ::stbi_image_free);
-
-    if (imageData == nullptr)
-        throw std::runtime_error("Texture could not be loaded: \"assets/logo_quad.tga\".");
-
-    // Create the texture from the constant buffer descriptor set, since we only load the texture once and use it for all frames.
-    // NOTE: For Vulkan, the texture does not need to be writable, however DX12 does not support mip-map generation out of the box. This functionality is emulated
-    //       in the backend using a compute shader, that needs to write back to the texture.
-    texture = device.factory().createTexture("Texture", Format::R8G8B8A8_UNORM, Size2d(width, height), ImageDimensions::DIM_2, 6, 1, MultiSamplingLevel::x1, true);
-
-    // Create a staging buffer for the first mip-map of the texture.
-    auto stagedTexture = device.factory().createBuffer(BufferType::Other, BufferUsage::Staging, texture->size(0));
-    stagedTexture->map(imageData.get(), texture->size(0), 0);
-
-    // Transfer the texture using the graphics queue (since we want to be able to generate mip maps, which is done on the graphics queue in Vulkan and a compute-capable queue in D3D12).
-    auto commandBuffer = device.defaultQueue(QueueType::Graphics).createCommandBuffer(true);
-    UniquePtr<TBarrier> barrier = device.buildBarrier()
-        .waitFor(PipelineStage::None).toContinueWith(PipelineStage::Transfer)
-        .blockAccessTo(*texture, ResourceAccess::TransferWrite).transitionLayout(ImageLayout::CopyDestination).whenFinishedWith(ResourceAccess::None);
-
-    commandBuffer->barrier(*barrier);
-    commandBuffer->transfer(asShared(std::move(stagedTexture)), *texture);
-
-    // Generate the rest of the mip maps.
-    commandBuffer->generateMipMaps(*texture);
-
-    // Create a barrier to ensure the texture is readable.
-    barrier = device.buildBarrier()
-        .waitFor(PipelineStage::None).toContinueWith(PipelineStage::Fragment)
-        .blockAccessTo(*texture, ResourceAccess::ShaderRead).transitionLayout(ImageLayout::ShaderResource).whenFinishedWith(ResourceAccess::None);
-
-    commandBuffer->barrier(*barrier);
-
-    // Submit the command buffer and wait for it to execute. Note that it is possible to do the waiting later when we actually use the texture during rendering. This
-    // would not block earlier draw calls, if the texture would be streamed in at run-time.
-    auto transferFence = commandBuffer->submit();
-
-    // Create a sampler state for the texture.
-    sampler = device.factory().createSampler("Sampler", FilterMode::Linear, FilterMode::Linear, BorderMode::Repeat, BorderMode::Repeat, BorderMode::Repeat, MipMapMode::Linear, 0.f, std::numeric_limits<Float>::max(), 0.f, 16.f);
-}
-
-template<typename TDevice> requires
-    rtti::implements<TDevice, IGraphicsDevice>
-UInt64 initBuffers(SampleApp& app, TDevice& device, SharedPtr<IInputAssembler> inputAssembler)
+void SampleApp::initBuffers(IRenderBackend* backend)
 {
     // Get a command buffer
-    auto commandBuffer = device.defaultQueue(QueueType::Transfer).createCommandBuffer(true);
+    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 
     // Create the staging buffer.
     // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
     //       whole buffer.
-    auto stagedVertices = device.factory().createVertexBuffer(*inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
+    auto stagedVertices = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
     stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = device.factory().createVertexBuffer("Vertex Buffer", *inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
     commandBuffer->transfer(asShared(std::move(stagedVertices)), *vertexBuffer, 0, 0, vertices.size());
 
     // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
-    auto stagedIndices = device.factory().createIndexBuffer(*inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
-    stagedIndices->map(indices.data(), indices.size() * inputAssembler->indexBufferLayout()->elementSize(), 0);
+    auto stagedIndices = m_device->factory().createIndexBuffer(*m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
+    stagedIndices->map(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), 0);
 
     // Create the actual index buffer and transfer the staging buffer into it.
-    auto indexBuffer = device.factory().createIndexBuffer("Index Buffer", *inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
+    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
     commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
-    
+
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
-    auto& geometryPipeline = device.state().pipeline("Geometry");
-    auto& staticBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
-    auto cameraBuffer = device.factory().createBuffer("Camera", staticBindingLayout, 0, BufferUsage::Resource);
+    auto& geometryPipeline = m_device->state().pipeline("Geometry");
+    auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
+    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, BufferUsage::Resource);
+    auto cameraBindings = cameraBindingLayout.allocate({ { .resource = *cameraBuffer } });
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
-    app.updateCamera(*commandBuffer, *cameraBuffer);
-
-    // Load the texture.
-    UniquePtr<IImage> texture;
-    UniquePtr<ISampler> sampler;
-    ::loadTexture(device, texture, sampler);
-
-    // Allocate the descriptor sets.
-    auto staticBindings = staticBindingLayout.allocate({ { 0, *cameraBuffer }, { 1, *texture } });
-    auto samplerBindings = geometryPipeline.layout()->descriptorSet(DescriptorSets::Samplers).allocate({ { 0, *sampler } });
+    this->updateCamera(*commandBuffer, *cameraBuffer);
+    m_transferFence = commandBuffer->submit();
 
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    auto transformBuffer = device.factory().createBuffer("Transform", transformBindingLayout, 0, BufferUsage::Dynamic, 3);
+    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, BufferUsage::Dynamic, 3);
     auto transformBindings = transformBindingLayout.allocateMultiple(3, {
-        { { .binding = 0, .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
-        { { .binding = 0, .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
-        { { .binding = 0, .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
+        { { .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
+        { { .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
+        { { .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
     });
 
-    // End and submit the command buffer.
-    auto transferFence = commandBuffer->submit();
-
+    // Allocate bindings for the post-processing pass.
+    auto& renderPass = m_device->state().renderPass("Opaque");
+    auto& postPipeline = m_device->state().pipeline("Post");
+    auto& postInputLayout = postPipeline.layout()->descriptorSet(0);
+    auto postBindings = postInputLayout.allocateMultiple(3, {
+        { { .resource = renderPass.frameBuffer(0).image(0) } },
+        { { .resource = renderPass.frameBuffer(1).image(0) } },
+        { { .resource = renderPass.frameBuffer(2).image(0) } }
+    });
+    
     // Add everything to the state.
-    device.state().add(std::move(vertexBuffer));
-    device.state().add(std::move(indexBuffer));
-    device.state().add(std::move(cameraBuffer));
-    device.state().add(std::move(transformBuffer));
-    device.state().add(std::move(texture));
-    device.state().add(std::move(sampler));
-    device.state().add("Static Bindings", std::move(staticBindings));
-    device.state().add("Sampler Bindings", std::move(samplerBindings));
-    std::ranges::for_each(transformBindings, [&, i = 0](auto& binding) mutable { device.state().add(fmt::format("Transform Bindings {0}", i++), std::move(binding)); });
-
-    // Return the fence.
-    return transferFence;
+    m_device->state().add(std::move(vertexBuffer));
+    m_device->state().add(std::move(indexBuffer));
+    m_device->state().add(std::move(cameraBuffer));
+    m_device->state().add(std::move(transformBuffer));
+    m_device->state().add("Camera Bindings", std::move(cameraBindings));
+    std::ranges::for_each(postBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Post Bindings {0}", i++), std::move(binding)); });
+    std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Transform Bindings {0}", i++), std::move(binding)); });
 }
 
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
@@ -254,7 +202,7 @@ void SampleApp::onInit()
 
     ::glfwSetFramebufferSizeCallback(m_window.get(), [](GLFWwindow* window, int width, int height) {
         auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
-        app->resize(width, height);
+        app->resize(width, height); 
     });
 
     ::glfwSetKeyCallback(m_window.get(), [](GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -283,12 +231,11 @@ void SampleApp::onInit()
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.
-        auto device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3);
-        m_device = device;
+        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3);
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);
-        m_transferFence = ::initBuffers(*this, *device, m_inputAssembler);
+        this->initBuffers(backend);
 
         return true;
     };
@@ -322,11 +269,17 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     auto surfaceFormat = m_device->swapChain().surfaceFormat();
     auto renderArea = Size2d(e.width(), e.height());
     m_device->swapChain().reset(surfaceFormat, renderArea, 3);
-
+    
     // NOTE: Important to do this in order, since dependencies (i.e. input attachments) are re-created and might be mapped to images that do no longer exist when a dependency
     //       gets re-created. This is hard to detect, since some frame buffers can have a constant size, that does not change with the render area and do not need to be 
     //       re-created. We should either think of a clever implicit dependency management for this, or at least document this behavior!
     m_device->state().renderPass("Opaque").resizeFrameBuffers(renderArea);
+    
+    // Update the post-processing bindings that reference the "opaque" frame buffer.
+    auto opaqueFrameBuffers = m_device->state().renderPass("Opaque").frameBuffers();
+    
+    for (size_t i{ 0 }; auto& frameBuffer : opaqueFrameBuffers)
+        m_device->state().descriptorSet(fmt::format("Post Bindings {0}", i++)).update(0, frameBuffer->image(0));
 
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
@@ -437,42 +390,109 @@ void SampleApp::drawFrame()
 
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
     auto& renderPass = m_device->state().renderPass("Opaque");
+    auto& postPipeline = m_device->state().pipeline("Post");
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& transformBuffer = m_device->state().buffer("Transform");
-    auto& staticBindings = m_device->state().descriptorSet("Static Bindings");
-    auto& samplerBindings = m_device->state().descriptorSet("Sampler Bindings");
+    auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
+    auto& postBindings = m_device->state().descriptorSet(fmt::format("Post Bindings {0}", backBuffer));
     auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer));
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 
-    // Wait for all transfers to finish.
-    renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
+    // Draw geometry.
+    UInt64 geometryFence = 0;
 
-    // Begin rendering on the render pass and use the only pipeline we've created for it.
-    renderPass.begin(backBuffer);
-    auto commandBuffer = renderPass.activeFrameBuffer().commandBuffer(0);
-    commandBuffer->use(geometryPipeline);
-    commandBuffer->setViewports(m_viewport.get());
-    commandBuffer->setScissors(m_scissor.get());
+    {
+        // Wait for all transfers to finish.
+        renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
 
-    // Get the amount of time that has passed since the first frame.
-    auto now = std::chrono::high_resolution_clock::now();
-    auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+        // Begin rendering on the render pass and use the only pipeline we've created for it.
+        renderPass.begin(backBuffer);
+        auto commandBuffer = renderPass.activeFrameBuffer().commandBuffer(0);
+        commandBuffer->use(geometryPipeline);
+        commandBuffer->setViewports(m_viewport.get());
+        commandBuffer->setScissors(m_scissor.get());
 
-    // Compute world transform and update the transform buffer.
-    transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
+        // Get the amount of time that has passed since the first frame.
+        auto now = std::chrono::high_resolution_clock::now();
+        auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
-    // Bind both descriptor sets to the pipeline.
-    commandBuffer->bind(staticBindings, geometryPipeline);
-    commandBuffer->bind(samplerBindings, geometryPipeline);
-    commandBuffer->bind(transformBindings, geometryPipeline);
+        // Compute world transform and update the transform buffer.
+        transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
-    // Bind the vertex and index buffers.
-    commandBuffer->bind(vertexBuffer);
-    commandBuffer->bind(indexBuffer);
+        // Bind both descriptor sets to the pipeline.
+        commandBuffer->bind(cameraBindings);
+        commandBuffer->bind(transformBindings);
 
-    // Draw the object and present the frame by ending the render pass.
-    commandBuffer->drawIndexed(indexBuffer.elements());
-    renderPass.end();
+        // Bind the vertex and index buffers.
+        commandBuffer->bind(vertexBuffer);
+        commandBuffer->bind(indexBuffer);
+
+        // Draw the object and end the render pass.
+        commandBuffer->drawIndexed(indexBuffer.elements());
+        geometryFence = renderPass.end();
+    }
+
+    // Perform post processing on compute queue.
+    {
+        // Create a command buffer.
+        auto& computeQueue = m_device->defaultQueue(QueueType::Compute);
+        computeQueue.beginDebugRegion("Post-Processing");
+        auto commandBuffer = computeQueue.createCommandBuffer(true);
+        commandBuffer->use(postPipeline);
+
+        // Get the image from the back buffer of the geometry pass.
+        auto& frameBuffer = renderPass.frameBuffer(backBuffer);
+        auto& image = frameBuffer.image(0);
+
+        // Create a barrier that handles image transition.
+        // NOTE: Since we did not specify the `RenderTargetFlags::Attachment` flag for the render target during pipeline creation, the render target is in `Common` layout and only needs 
+        //       transitioning into a writeable state.
+        auto barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Compute);
+        barrier->transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::Common, ImageLayout::ReadWrite);
+        commandBuffer->barrier(*barrier);
+
+        // Bind the image to the texture descriptor.
+        commandBuffer->bind(postBindings);
+
+        // Dispatch the post-processing pass.
+        commandBuffer->dispatch({ static_cast<UInt32>(image.extent().x()), static_cast<UInt32>(image.extent().y()), 1 });
+
+        // After post-processing, transition the image back into a state where it can be copied from.
+        barrier = m_device->makeBarrier(PipelineStage::Compute, PipelineStage::None);
+        barrier->transition(image, ResourceAccess::ShaderReadWrite, ResourceAccess::None, ImageLayout::CopySource);
+        commandBuffer->barrier(*barrier);
+
+        // Submit the command buffer.
+        m_device->defaultQueue(QueueType::Compute).waitFor(renderPass.commandQueue(), geometryFence);
+        auto postProcessFence = computeQueue.submit(commandBuffer);
+        computeQueue.endDebugRegion();
+
+        // Copy the post-processed image into the render target.
+        auto& graphicsQueue = m_device->defaultQueue(QueueType::Graphics);
+        graphicsQueue.beginDebugRegion("Presentation");
+        commandBuffer = graphicsQueue.createCommandBuffer(true);
+
+        // Transition the image back into `CopyDestination` layout.
+        barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Transfer);
+        barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
+        commandBuffer->barrier(*barrier);
+
+        // Copy the image.
+        commandBuffer->transfer(renderPass.frameBuffer(backBuffer).image(0), *m_device->swapChain().image(backBuffer));
+
+        // Transition the image back into `Present` layout.
+        barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::Resolve);
+        barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::TransferWrite, ResourceAccess::Common, ImageLayout::CopyDestination, ImageLayout::Present);
+        commandBuffer->barrier(*barrier);
+
+        // Wait for the compute queue to finish before performing the transfer.
+        graphicsQueue.waitFor(m_device->defaultQueue(QueueType::Compute), postProcessFence);
+        auto fence = graphicsQueue.submit(commandBuffer);
+
+        // Present after the transfer is finished.
+        graphicsQueue.endDebugRegion();
+        m_device->swapChain().present(fence);
+    }
 }

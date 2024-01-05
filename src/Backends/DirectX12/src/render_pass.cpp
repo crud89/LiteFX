@@ -20,7 +20,7 @@ private:
     Array<DirectX12InputAttachmentMapping> m_inputAttachments;
     Array<UniquePtr<DirectX12FrameBuffer>> m_frameBuffers;
     Array<SharedPtr<DirectX12CommandBuffer>> m_beginCommandBuffers, m_endCommandBuffers;
-    const DirectX12FrameBuffer* m_activeFrameBuffer = nullptr;
+    DirectX12FrameBuffer* m_activeFrameBuffer = nullptr;
     UInt32 m_backBuffer{ 0 };
     const RenderTarget* m_presentTarget = nullptr;
     const RenderTarget* m_depthStencilTarget = nullptr;
@@ -60,6 +60,10 @@ public:
         else
             m_depthStencilTarget = nullptr;
 
+        // Check if there are render targets that are used as attachments and issue a warning.
+        if (auto match = std::ranges::find_if(m_renderTargets, [](const RenderTarget& renderTarget) { return renderTarget.attachment(); }); match != m_renderTargets.end()) [[unlikely]]
+            LITEFX_WARNING(DIRECTX12_LOG, "DirectX 12 does not support optimized layouts for render pass attachments. Render targets will be transitioned into general image layouts and need to be sampled accordingly.");
+
         // TODO: If there is a present target, we need to check if the provided queue can actually present on the surface. Currently, 
         //       we simply check if the queue is the same as the swap chain queue (which is the default graphics queue).
         if (m_presentTarget != nullptr && m_queue != std::addressof(m_device.defaultQueue(QueueType::Graphics))) [[unlikely]]
@@ -89,8 +93,8 @@ public:
                     D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_DISCARD, { } };
                 
                 D3D12_RENDER_PASS_ENDING_ACCESS endAccess = renderTarget.isVolatile() ?
-                        D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, {} } :
-                        D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, {} };
+                    D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, {} } :
+                    D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, {} };
 
                 D3D12_RENDER_PASS_RENDER_TARGET_DESC renderTargetDesc{ renderTargetView, beginAccess, endAccess };
                 renderTargetView = renderTargetView.Offset(frameBuffer->renderTargetDescriptorSize());
@@ -145,7 +149,7 @@ public:
             int renderTarget = 0;
 
             for (auto& image : images)
-                image->handle()->SetName(Widen(m_renderTargets[renderTarget++].name()).c_str());
+                std::as_const(*image).handle()->SetName(Widen(m_renderTargets[renderTarget++].name()).c_str());
 
             auto secondaryCommandBuffers = frameBuffer->commandBuffers();
             int commandBuffer = 0;
@@ -318,8 +322,10 @@ void DirectX12RenderPass::begin(UInt32 buffer)
 
         if (renderTarget.type() == RenderTargetType::DepthStencil)
             depthStencilBarrier.transition(image, ResourceAccess::DepthStencilRead, ResourceAccess::DepthStencilWrite, ImageLayout::DepthWrite);
-        else
-            renderTargetBarrier.transition(image, ResourceAccess::ShaderRead, ResourceAccess::RenderTarget, ImageLayout::RenderTarget);
+        else //if (!renderTarget.multiQueueAccess())
+            renderTargetBarrier.transition(image, ResourceAccess::None, ResourceAccess::RenderTarget, ImageLayout::Undefined, ImageLayout::RenderTarget);
+        //else  // Resources with simultaneous access enabled don't need to be transitioned.
+        //    renderTargetBarrier.transition(image, ResourceAccess::ShaderRead, ResourceAccess::RenderTarget, ImageLayout::Common);
     });
 
     beginCommandBuffer->barrier(renderTargetBarrier);
@@ -340,7 +346,7 @@ void DirectX12RenderPass::begin(UInt32 buffer)
     this->beginning(this, { buffer });
 }
 
-void DirectX12RenderPass::end() const
+UInt64 DirectX12RenderPass::end() const
 {
     // Check if we are running.
     if (m_impl->m_activeFrameBuffer == nullptr)
@@ -369,16 +375,25 @@ void DirectX12RenderPass::end() const
     DirectX12Barrier renderTargetBarrier(PipelineStage::RenderTarget, PipelineStage::Fragment), depthStencilBarrier(PipelineStage::DepthStencil, PipelineStage::DepthStencil),
         resolveBarrier(PipelineStage::RenderTarget, PipelineStage::Resolve), presentBarrier(PipelineStage::RenderTarget, PipelineStage::None);
     std::ranges::for_each(m_impl->m_renderTargets, [&](const RenderTarget& renderTarget) {
+        //if (renderTarget.multiQueueAccess())
+        //    return;  // Resources with simultaneous access enabled don't need to be transitioned.
+
         switch (renderTarget.type())
         {
         default:
-        case RenderTargetType::Color:           return renderTargetBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::ShaderRead, ImageLayout::ShaderResource);
-        case RenderTargetType::DepthStencil:    return depthStencilBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::DepthStencilWrite, ResourceAccess::DepthStencilRead, ImageLayout::DepthRead);
+        case RenderTargetType::Color:
+            renderTargetBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::ShaderRead, renderTarget.attachment() ? ImageLayout::ShaderResource : ImageLayout::Common);
+            break;
+        case RenderTargetType::DepthStencil:
+            depthStencilBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::DepthStencilWrite, ResourceAccess::DepthStencilRead, ImageLayout::DepthRead);
+            break;
         case RenderTargetType::Present:
             if (requiresResolve)
-                return resolveBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::ResolveRead, ImageLayout::ResolveSource);
+                resolveBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::ResolveRead, ImageLayout::ResolveSource);
             else
-                return presentBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::None, ImageLayout::Present);
+                presentBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::None, ImageLayout::Present);
+
+            break;
         }
     });
 
@@ -420,7 +435,7 @@ void DirectX12RenderPass::end() const
     commandBuffers.push_back(endCommandBuffer);
 
     // Submit and store the fence.
-    m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const DirectX12CommandBuffer>>>());
+    UInt64 fence = m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const DirectX12CommandBuffer>>>());
 
     if (!m_impl->m_name.empty())
         m_impl->m_queue->endDebugRegion();
@@ -433,6 +448,9 @@ void DirectX12RenderPass::end() const
 
     // Reset the frame buffer.
     m_impl->m_activeFrameBuffer = nullptr;
+
+    // Return the last fence of the frame buffer.
+    return fence;
 }
 
 void DirectX12RenderPass::resizeFrameBuffers(const Size2d& renderArea)

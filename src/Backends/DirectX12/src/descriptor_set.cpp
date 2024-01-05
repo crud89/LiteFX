@@ -319,15 +319,31 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
 
             break;
         case ImageDimensions::DIM_2:
-            if (texture.layers() == 1)
+            if (texture.samples() == MultiSamplingLevel::x1)
             {
-                textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-                textureView.Texture2D = { .MipSlice = firstLevel, .PlaneSlice = 0 };
+                if (texture.layers() == 1)
+                {
+                    textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+                    textureView.Texture2D = { .MipSlice = firstLevel, .PlaneSlice = 0 };
+                }
+                else
+                {
+                    textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+                    textureView.Texture2DArray = { .MipSlice = firstLevel, .FirstArraySlice = firstLayer, .ArraySize = numLayers, .PlaneSlice = 0 };
+                }
             }
             else
             {
-                textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
-                textureView.Texture2DArray = { .MipSlice = firstLevel, .FirstArraySlice = firstLayer, .ArraySize = numLayers, .PlaneSlice = 0 };
+                if (texture.layers() == 1)
+                {
+                    textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DMS;
+                    textureView.Texture2D = { .MipSlice = firstLevel, .PlaneSlice = 0 };
+                }
+                else
+                {
+                    textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DMSARRAY;
+                    textureView.Texture2DArray = { .MipSlice = firstLevel, .FirstArraySlice = firstLayer, .ArraySize = numLayers, .PlaneSlice = 0 };
+                }
             }
 
             break;

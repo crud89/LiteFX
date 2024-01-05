@@ -237,7 +237,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="message">The error message.</param>
 		explicit RuntimeException(std::string_view message) noexcept :
-			Exception(fmt::format("The operation could not be executed. {}", message), std::source_location::current(), std::stacktrace::current()) { }
+			Exception(fmt::format("The operation could not be executed: {}", message), std::source_location::current(), std::stacktrace::current()) { }
 
 		/// <summary>
 		/// Initializes a new exception.
@@ -246,7 +246,7 @@ namespace LiteFX {
 		/// <param name="args">The arguments passed to the error message format string.</param>
 		template <typename ...TArgs>
 		explicit RuntimeException(std::string_view format, TArgs&&... args) noexcept :
-			Exception(fmt::format("The operation could not be executed. {}", fmt::vformat(format, fmt::make_format_args(args...))), std::source_location::current(), std::stacktrace::current()) { }
+			Exception(fmt::format("The operation could not be executed: {}", fmt::vformat(format, fmt::make_format_args(args...))), std::source_location::current(), std::stacktrace::current()) { }
 
 		RuntimeException(const RuntimeException&) = delete;
 		RuntimeException(RuntimeException&&) = delete;

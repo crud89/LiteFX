@@ -342,7 +342,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="result">The error code returned by the operation.</param>
         /// <param name="message">The error message.</param>
         explicit VulkanPlatformException(VkResult result, StringView message) noexcept :
-            m_code(result), RuntimeException("{1} Operation returned {0}.", message, result) { }
+            m_code(result), RuntimeException("{1} Operation returned {0}.", result, message) { }
 
         /// <summary>
         /// Initializes a new exception.

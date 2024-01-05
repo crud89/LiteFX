@@ -567,37 +567,37 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The polygon draw mode.
             /// </summary>
-            PolygonMode polygonMode;
+            PolygonMode polygonMode{ PolygonMode::Solid };
 
             /// <summary>
             /// The polygon cull mode.
             /// </summary>
-            CullMode cullMode;
+            CullMode cullMode{ CullMode::BackFaces };
 
             /// <summary>
             /// The polygon cull order.
             /// </summary>
-            CullOrder cullOrder;
+            CullOrder cullOrder{ CullOrder::ClockWise };
 
             /// <summary>
             /// The line width, if line rasterization is supported.
             /// </summary>
-            Float lineWidth;
+            Float lineWidth{ 1.0f };
 
             /// <summary>
             /// The depth bias state.
             /// </summary>
-            DepthStencilState::DepthBias depthBias;
+            DepthStencilState::DepthBias depthBias{ };
 
             /// <summary>
             /// The depth state.
             /// </summary>
-            DepthStencilState::DepthState depthState;
+            DepthStencilState::DepthState depthState{ };
 
             /// <summary>
             /// The stencil state.
             /// </summary>
-            DepthStencilState::StencilState stencilState;
+            DepthStencilState::StencilState stencilState{ };
         } m_state;
 
     public:
@@ -1414,13 +1414,11 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="type">The type of the render target.</param>
         /// <param name="format">The color format of the render target.</param>
+        /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="clearValues">The fixed clear value for the render target.</param>
-        /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
-        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
-        /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
         template <typename TSelf>
-        constexpr inline auto renderTarget(this TSelf&& self, RenderTargetType type, Format format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) -> TSelf& {
-            self.renderTarget("", static_cast<UInt32>(self.m_state.renderTargets.size()), type, format, clearValues, clearColor, clearStencil, isVolatile);
+        constexpr inline auto renderTarget(this TSelf&& self, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf& {
+            self.renderTarget("", static_cast<UInt32>(self.m_state.renderTargets.size()), type, format, flags, clearValues);
             return self;
         }
 
@@ -1430,13 +1428,11 @@ namespace LiteFX::Rendering {
         /// <param name="name">The name of the render target.</param>
         /// <param name="type">The type of the render target.</param>
         /// <param name="format">The color format of the render target.</param>
+        /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="clearValues">The fixed clear value for the render target.</param>
-        /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
-        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
-        /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
         template <typename TSelf>
-        constexpr inline auto renderTarget(this TSelf&& self, const String& name, RenderTargetType type, Format format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) -> TSelf& {
-            self.renderTarget(name, static_cast<UInt32>(self.m_state.renderTargets.size()), type, format, clearValues, clearColor, clearStencil, isVolatile);
+        constexpr inline auto renderTarget(this TSelf&& self, const String& name, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf& {
+            self.renderTarget(name, static_cast<UInt32>(self.m_state.renderTargets.size()), type, format, flags, clearValues);
             return self;
         }
 
@@ -1446,13 +1442,11 @@ namespace LiteFX::Rendering {
         /// <param name="location">The location of the render target.</param>
         /// <param name="type">The type of the render target.</param>
         /// <param name="format">The color format of the render target.</param>
+        /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="clearValues">The fixed clear value for the render target.</param>
-        /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
-        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
-        /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
         template <typename TSelf>
-        constexpr inline auto renderTarget(this TSelf&& self, UInt32 location, RenderTargetType type, Format format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) -> TSelf& {
-            self.renderTarget("", location, type, format, clearValues, clearColor, clearStencil, isVolatile);
+        constexpr inline auto renderTarget(this TSelf&& self, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf& {
+            self.renderTarget("", location, type, format, flags, clearValues);
             return self;
         }
 
@@ -1462,14 +1456,12 @@ namespace LiteFX::Rendering {
         /// <param name="name">The name of the render target.</param>
         /// <param name="location">The location of the render target.</param>
         /// <param name="type">The type of the render target.</param>
+        /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="format">The color format of the render target.</param>
         /// <param name="clearValues">The fixed clear value for the render target.</param>
-        /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
-        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
-        /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
         template <typename TSelf>
-        constexpr inline auto renderTarget(this TSelf&& self, const String& name, UInt32 location, RenderTargetType type, Format format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) -> TSelf& {
-            self.m_state.renderTargets.push_back(RenderTarget(name, location, type, format, clearColor, clearValues, clearStencil, isVolatile));
+        constexpr inline auto renderTarget(this TSelf&& self, const String& name, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf& {
+            self.m_state.renderTargets.push_back(RenderTarget(name, location, type, format, flags, clearValues));
             return self;
         }
 
@@ -1479,13 +1471,11 @@ namespace LiteFX::Rendering {
         /// <param name="output">The input attachment mapping to map to.</param>
         /// <param name="type">The type of the render target.</param>
         /// <param name="format">The color format of the render target.</param>
+        /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="clearValues">The fixed clear value for the render target.</param>
-        /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
-        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
-        /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
         template <typename TSelf>
-        constexpr inline auto renderTarget(this TSelf&& self, input_attachment_mapping_type& output, RenderTargetType type, Format format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) -> TSelf& {
-            self.renderTarget("", output, static_cast<UInt32>(self.m_state.m_renderTargets.size()), type, format, clearValues, clearColor, clearStencil, isVolatile);
+        constexpr inline auto renderTarget(this TSelf&& self, input_attachment_mapping_type& output, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf& {
+            self.renderTarget("", output, static_cast<UInt32>(self.m_state.m_renderTargets.size()), type, format, flags, clearValues);
             return self;
         }
 
@@ -1496,13 +1486,11 @@ namespace LiteFX::Rendering {
         /// <param name="output">The input attachment mapping to map to.</param>
         /// <param name="type">The type of the render target.</param>
         /// <param name="format">The color format of the render target.</param>
+        /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="clearValues">The fixed clear value for the render target.</param>
-        /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
-        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
-        /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
         template <typename TSelf>
-        constexpr inline auto renderTarget(this TSelf&& self, const String& name, input_attachment_mapping_type& output, RenderTargetType type, Format format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) -> TSelf& {
-            self.renderTarget(name, output, static_cast<UInt32>(self.m_state.renderTargets.size()), type, format, clearValues, clearColor, clearStencil, isVolatile);
+        constexpr inline auto renderTarget(this TSelf&& self, const String& name, input_attachment_mapping_type& output, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf& {
+            self.renderTarget(name, output, static_cast<UInt32>(self.m_state.renderTargets.size()), type, format, flags, clearValues);
             return self;
         }
 
@@ -1513,13 +1501,11 @@ namespace LiteFX::Rendering {
         /// <param name="location">The location of the render target.</param>
         /// <param name="type">The type of the render target.</param>
         /// <param name="format">The color format of the render target.</param>
+        /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="clearValues">The fixed clear value for the render target.</param>
-        /// <param name="clearColor"><c>true</c>, if the render target color or depth should be cleared.</param>
-        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared.</param>
-        /// <param name="isVolatile"><c>true</c> to mark the render target as volatile, so is not required to be preserved after the render pass has ended.</param>
         template <typename TSelf>
-        constexpr inline auto renderTarget(this TSelf&& self, input_attachment_mapping_type& output, UInt32 location, RenderTargetType type, Format format, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }, bool clearColor = true, bool clearStencil = true, bool isVolatile = false) -> TSelf& {
-            self.renderTarget("", output, location, type, format, clearValues, clearColor, clearStencil, isVolatile);
+        constexpr inline auto renderTarget(this TSelf&& self, input_attachment_mapping_type& output, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf& {
+            self.renderTarget("", output, location, type, format, flags, clearValues);
             return self;
         }
 
