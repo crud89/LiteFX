@@ -1389,6 +1389,9 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void present(const VulkanFrameBuffer& frameBuffer) const override;
 
+        /// <inheritdoc />
+        void present(UInt64 fence) const override;
+
     public:
         /// <inheritdoc />
         Enumerable<Format> getSurfaceFormats() const noexcept override;

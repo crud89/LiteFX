@@ -192,8 +192,7 @@ public:
 	{
 		// Queue an image acquisition request, then wait for the fence and reset it for the next iteration. Note how this is similar to the DirectX behavior, where the swap call blocks until the 
 		// image is acquired and ready.
-		UInt32 nextImage;
-		raiseIfFailed(::vkAcquireNextImageKHR(m_device.handle(), m_handle, UINT64_MAX, VK_NULL_HANDLE, m_waitForImage, &nextImage), "Unable to swap front buffer. Make sure that all previously acquired images are actually presented before acquiring another image.");
+		raiseIfFailed(::vkAcquireNextImageKHR(m_device.handle(), m_handle, UINT64_MAX, VK_NULL_HANDLE, m_waitForImage, &m_currentImage), "Unable to swap front buffer. Make sure that all previously acquired images are actually presented before acquiring another image.");
 		raiseIfFailed(::vkWaitForFences(m_device.handle(), 1, &m_waitForImage, VK_TRUE, UINT64_MAX), "Unable to wait for image acquisition.");
 		raiseIfFailed(::vkResetFences(m_device.handle(), 1, &m_waitForImage), "Unable to reset image acquisition fence.");
 
@@ -202,7 +201,7 @@ public:
 		//       not find out why and when this happens, but maybe waiting explicitly on the last frame's fence (for the respective image) will fix the issue.
 		if (m_supportsTiming && !m_timingEvents.empty()) [[likely]]
 		{
-			m_currentQueryPool = m_timingQueryPools[nextImage];
+			m_currentQueryPool = m_timingQueryPools[m_currentImage];
 			auto result = ::vkGetQueryPoolResults(m_device.handle(), m_currentQueryPool, 0, m_timestamps.size(), m_timestamps.size() * sizeof(UInt64), m_timestamps.data(), sizeof(UInt64), VK_QUERY_RESULT_64_BIT);
 		
 			if (result != VK_NOT_READY)	// Initial frames do not yet contain query results.
@@ -212,14 +211,21 @@ public:
 			::vkResetQueryPool(m_device.handle(), m_currentQueryPool, 0, m_timestamps.size());
 		}
 
-		return nextImage;
+		return m_currentImage;
 	}
 
 	void present(const VulkanFrameBuffer& frameBuffer)
 	{
+		this->present(frameBuffer.lastFence());
+	}
+
+	void present(UInt64 fence) 
+	{
 		// Draw the frame, if the result of the render pass it should be presented to the swap chain.
 		std::array<VkSwapchainKHR, 1> swapChains = { m_handle };
-		const auto bufferIndex = frameBuffer.bufferIndex();
+		const auto bufferIndex = m_currentImage;
+		const auto& queue = m_device.defaultQueue(QueueType::Graphics);
+		queue.waitFor(fence);
 
 		VkPresentInfoKHR presentInfo = {
 			.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -229,7 +235,7 @@ public:
 			.pResults = nullptr
 		};
 
-		raiseIfFailed(::vkQueuePresentKHR(m_device.defaultQueue(QueueType::Graphics).handle(), &presentInfo), "Unable to present swap chain.");
+		raiseIfFailed(::vkQueuePresentKHR(queue.handle(), &presentInfo), "Unable to present swap chain.");
 	}
 
 	const VkQueryPool& currentTimestampQueryPool()
@@ -796,9 +802,14 @@ public:
 
 	void present(const VulkanFrameBuffer& frameBuffer)
 	{
+		this->present(frameBuffer.lastFence());
+	}
+
+	void present(UInt64 fence)
+	{
 		// Wait for all commands to finish on the default graphics queue. We assume that this is the last queue that receives (synchronized) workloads, as it is expected to
 		// handle presentation by convention.
-		m_presentQueue->Wait(m_workloadFence.Get(), m_presentFences[m_currentImage] = frameBuffer.lastFence());
+		m_presentQueue->Wait(m_workloadFence.Get(), m_presentFences[m_currentImage] = fence);
 
 		// Copy shared images to back buffers. See `createImages` for details on why we do this.
 		ComPtr<ID3D12Resource> resource;
@@ -1010,6 +1021,11 @@ Enumerable<IVulkanImage*> VulkanSwapChain::images() const noexcept
 void VulkanSwapChain::present(const VulkanFrameBuffer& frameBuffer) const
 {
 	m_impl->present(frameBuffer);
+}
+
+void VulkanSwapChain::present(UInt64 fence) const 
+{
+	m_impl->present(fence);
 }
 
 Enumerable<Format> VulkanSwapChain::getSurfaceFormats() const noexcept

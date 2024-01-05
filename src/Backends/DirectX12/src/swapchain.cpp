@@ -279,9 +279,14 @@ Enumerable<IDirectX12Image*> DirectX12SwapChain::images() const noexcept
 
 void DirectX12SwapChain::present(const DirectX12FrameBuffer& frameBuffer) const
 {
+	this->present(frameBuffer.lastFence());
+}
+
+void DirectX12SwapChain::present(UInt64 fence) const
+{
 	// Store the last fence here that marks the end of the rendering to this frame buffer. Presenting is queued after rendering anyway, but when swapping the back buffers buffers,
 	// we need to wait for all commands to finish before being able to re-use the command buffers associated with queued commands.
-	m_impl->m_presentFences[m_impl->m_currentImage] = frameBuffer.lastFence();
+	m_impl->m_presentFences[m_impl->m_currentImage] = fence;
 	raiseIfFailed(this->handle()->Present(0, this->supportsVariableRefreshRate() ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to present swap chain");
 }
 

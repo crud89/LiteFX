@@ -1408,6 +1408,9 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void present(const DirectX12FrameBuffer& frameBuffer) const override;
 
+        /// <inheritdoc />
+        void present(UInt64 fence) const override;
+
     public:
         /// <inheritdoc />
         Enumerable<Format> getSurfaceFormats() const noexcept override;

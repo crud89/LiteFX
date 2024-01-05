@@ -5024,6 +5024,18 @@ namespace LiteFX::Rendering {
         /// <param name="frameBuffer">The frame buffer for which the present should wait.</param>
         virtual void present(const IFrameBuffer& frameBuffer) const = 0;
 
+        /// <summary>
+        /// Queues a present that gets executed after <paramref name="fence" /> has been signalled on the default graphics queue.
+        /// </summary>
+        /// <remarks>
+        /// You can use this overload in situations where you do not have an <see cref="IRenderPass" /> or <see cref="IFrameBuffer" /> to render into before presenting. Instead, you typically
+        /// copy into the swap chain back buffer images directly (<see cref="image" />). This copy is done in a command buffer that must be submitted to the default graphics queue. The swap
+        /// chain can then wait for the copy to finish before presenting it. Example scenarios where this is useful are, where you want to write to the back buffer from a compute shader, that
+        /// does not have an equivalent to render passes.
+        /// </remarks>
+        /// <param name="fence">The fence to pass on the default graphics queue after which the present is executed.</param>
+        virtual void present(UInt64 fence) const = 0;
+
     public:
         /// <summary>
         /// Invoked, when the swap chain has swapped the back buffers.
