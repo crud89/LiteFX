@@ -438,6 +438,7 @@ void SampleApp::drawFrame()
     {
         // Create a command buffer.
         auto& computeQueue = m_device->defaultQueue(QueueType::Compute);
+        computeQueue.beginDebugRegion("Post-Processing");
         auto commandBuffer = computeQueue.createCommandBuffer(true);
         commandBuffer->use(postPipeline);
 
@@ -466,9 +467,11 @@ void SampleApp::drawFrame()
         // Submit the command buffer.
         m_device->defaultQueue(QueueType::Compute).waitFor(renderPass.commandQueue(), geometryFence);
         auto postProcessFence = computeQueue.submit(commandBuffer);
+        computeQueue.endDebugRegion();
 
         // Copy the post-processed image into the render target.
         auto& graphicsQueue = m_device->defaultQueue(QueueType::Graphics);
+        graphicsQueue.beginDebugRegion("Presentation");
         commandBuffer = graphicsQueue.createCommandBuffer(true);
 
         // Transition the image back into `CopyDestination` layout.
@@ -489,6 +492,7 @@ void SampleApp::drawFrame()
         auto fence = graphicsQueue.submit(commandBuffer);
 
         // Present after the transfer is finished.
+        graphicsQueue.endDebugRegion();
         m_device->swapChain().present(fence);
     }
 }
