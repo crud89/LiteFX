@@ -16,7 +16,6 @@ private:
     Array<IVulkanImage*> m_renderTargetViews;
 	Array<SharedPtr<VulkanCommandBuffer>> m_commandBuffers;
 	Size2d m_size;
-	VkSemaphore m_semaphore;
     UInt32 m_bufferIndex;
     UInt64 m_lastFence{ 0 };
 
@@ -26,19 +25,9 @@ public:
 	{
         const auto& device = m_renderPass.device();
 
-		// Initialize the semaphore.
-		VkSemaphoreCreateInfo semaphoreInfo{};
-		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-		raiseIfFailed(::vkCreateSemaphore(device.handle(), &semaphoreInfo, nullptr, &m_semaphore), "Unable to create swap semaphore on frame buffer.");
-
         // Retrieve a command buffer from the graphics queue.
         m_commandBuffers.resize(commandBuffers);
         std::ranges::generate(m_commandBuffers, [this]() { return m_renderPass.commandQueue().createCommandBuffer(false, true); });
-	}
-
-	~VulkanFrameBufferImpl()
-	{
-		::vkDestroySemaphore(m_renderPass.device().handle(), m_semaphore, nullptr);
 	}
 
 public:
@@ -130,11 +119,6 @@ VulkanFrameBuffer::VulkanFrameBuffer(const VulkanRenderPass& renderPass, UInt32 
 VulkanFrameBuffer::~VulkanFrameBuffer() noexcept
 {
     ::vkDestroyFramebuffer(m_impl->m_renderPass.device().handle(), this->handle(), nullptr);
-}
-
-const VkSemaphore& VulkanFrameBuffer::semaphore() const noexcept
-{
-    return m_impl->m_semaphore;
 }
 
 UInt64& VulkanFrameBuffer::lastFence() noexcept

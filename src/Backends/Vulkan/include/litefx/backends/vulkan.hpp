@@ -1098,12 +1098,6 @@ namespace LiteFX::Rendering::Backends {
 
         // Vulkan frame buffer interface.
     public:
-        /// <summary>
-        /// Returns a reference of the semaphore, that can be used to signal, that the frame buffer is finished.
-        /// </summary>
-        /// <returns>A reference of the semaphore, that can be used to signal, that the frame buffer is finished.</returns>
-        const VkSemaphore& semaphore() const noexcept;
-
         /// Returns a reference to the value of the fence that indicates the last submission drawing into the frame buffer.
         /// </summary>
         /// <remarks>
