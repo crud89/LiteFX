@@ -421,14 +421,14 @@ void VulkanCommandBuffer::dispatch(const Vector3u& threadCount) const noexcept
 	::vkCmdDispatch(this->handle(), threadCount.x(), threadCount.y(), threadCount.z());
 }
 
-void VulkanCommandBuffer::dispatchIndirect(const IVulkanIndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
+void VulkanCommandBuffer::dispatchIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
 {
-	::vkCmdDrawIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, sizeof(IndirectDispatchBatch));
+	::vkCmdDrawIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, batchBuffer.elementSize());
 }
 
-void VulkanCommandBuffer::dispatchIndirect(const IVulkanIndirectBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
+void VulkanCommandBuffer::dispatchIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
 {
-	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, std::numeric_limits<UInt32>().max(), sizeof(IndirectDispatchBatch));
+	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, batchBuffer.elements(), sizeof(IndirectDispatchBatch));
 }
 
 void VulkanCommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const noexcept
@@ -436,14 +436,14 @@ void VulkanCommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVe
 	::vkCmdDraw(this->handle(), vertices, instances, firstVertex, firstInstance);
 }
 
-void VulkanCommandBuffer::drawIndirect(const IVulkanIndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
+void VulkanCommandBuffer::drawIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
 {
-	::vkCmdDrawIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, sizeof(IndirectBatch));
+	::vkCmdDrawIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, batchBuffer.elementSize());
 }
 
-void VulkanCommandBuffer::drawIndirect(const IVulkanIndirectBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
+void VulkanCommandBuffer::drawIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
 {
-	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, std::numeric_limits<UInt32>().max(), sizeof(IndirectBatch));
+	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, batchBuffer.elements(), sizeof(IndirectBatch));
 }
 
 void VulkanCommandBuffer::drawIndexed(UInt32 indices, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const noexcept
@@ -451,14 +451,14 @@ void VulkanCommandBuffer::drawIndexed(UInt32 indices, UInt32 instances, UInt32 f
 	::vkCmdDrawIndexed(this->handle(), indices, instances, firstIndex, vertexOffset, firstInstance);
 }
 
-void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanIndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
+void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
 {
-	::vkCmdDrawIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, sizeof(IndirectIndexedBatch));
+	::vkCmdDrawIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, batchBuffer.elementSize());
 }
 
-void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanIndirectBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
+void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
 {
-	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, std::numeric_limits<UInt32>().max(), sizeof(IndirectIndexedBatch));
+	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, batchBuffer.elements(), sizeof(IndirectIndexedBatch));
 }
 
 void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept

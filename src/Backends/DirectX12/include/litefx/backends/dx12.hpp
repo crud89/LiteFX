@@ -121,15 +121,6 @@ namespace LiteFX::Rendering::Backends {
     };
 
     /// <summary>
-    /// Represents a DirectX 12 indirect buffer.
-    /// </summary>
-    /// <seealso cref="IDirectX12Buffer" />
-    class LITEFX_DIRECTX12_API IDirectX12IndirectBuffer : public IIndirectBuffer, public virtual IDirectX12Buffer {
-    public:
-        virtual ~IDirectX12IndirectBuffer() noexcept = default;
-    };
-
-    /// <summary>
     /// Represents a DirectX 12 sampled image or the base interface for a texture.
     /// </summary>
     /// <seealso cref="DirectX12DescriptorLayout" />
@@ -822,11 +813,11 @@ namespace LiteFX::Rendering::Backends {
     /// Records commands for a <see cref="DirectX12CommandQueue" />
     /// </summary>
     /// <seealso cref="DirectX12CommandQueue" />
-    class LITEFX_DIRECTX12_API DirectX12CommandBuffer final : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12IndirectBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>, public ComResource<ID3D12GraphicsCommandList7>, public std::enable_shared_from_this<DirectX12CommandBuffer> {
+    class LITEFX_DIRECTX12_API DirectX12CommandBuffer final : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>, public ComResource<ID3D12GraphicsCommandList7>, public std::enable_shared_from_this<DirectX12CommandBuffer> {
         LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
 
     public:
-        using base_type = CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12IndirectBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>;
+        using base_type = CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>;
         using base_type::dispatch;
         using base_type::dispatchIndirect;
         using base_type::draw;
@@ -946,28 +937,28 @@ namespace LiteFX::Rendering::Backends {
         void dispatch(const Vector3u& threadCount) const noexcept override;
 
         /// <inheritdoc />
-        void dispatchIndirect(const IDirectX12IndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+        void dispatchIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
 
         /// <inheritdoc />
-        void dispatchIndirect(const IDirectX12IndirectBuffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept override;
+        void dispatchIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept override;
 
         /// <inheritdoc />
         void draw(UInt32 vertices, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const noexcept override;
 
         /// <inheritdoc />
-        void drawIndirect(const IDirectX12IndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+        void drawIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
 
         /// <inheritdoc />
-        void drawIndirect(const IDirectX12IndirectBuffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept override;
+        void drawIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept override;
 
         /// <inheritdoc />
         void drawIndexed(UInt32 indices, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const noexcept override;
 
         /// <inheritdoc />
-        void drawIndexedIndirect(const IDirectX12IndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+        void drawIndexedIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
 
         /// <inheritdoc />
-        void drawIndexedIndirect(const IDirectX12IndirectBuffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept override;
+        void drawIndexedIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept override;
         
         /// <inheritdoc />
         void pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept override;

@@ -369,14 +369,14 @@ void DirectX12CommandBuffer::dispatch(const Vector3u& threadCount) const noexcep
 	this->handle()->Dispatch(threadCount.x(), threadCount.y(), threadCount.z());
 }
 
-void DirectX12CommandBuffer::dispatchIndirect(const IDirectX12IndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
+void DirectX12CommandBuffer::dispatchIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
 {
 	this->handle()->ExecuteIndirect(m_impl->m_dispatchSignature.Get(), batchCount, batchBuffer.handle().Get(), offset, nullptr, 0);
 }
 
-void DirectX12CommandBuffer::dispatchIndirect(const IDirectX12IndirectBuffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
+void DirectX12CommandBuffer::dispatchIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
 {
-	this->handle()->ExecuteIndirect(m_impl->m_dispatchSignature.Get(), std::numeric_limits<UInt32>::max(), batchBuffer.handle().Get(), offset, countBuffer.handle().Get(), countOffset);
+	this->handle()->ExecuteIndirect(m_impl->m_dispatchSignature.Get(), batchBuffer.elements(), batchBuffer.handle().Get(), offset, countBuffer.handle().Get(), countOffset);
 }
 
 void DirectX12CommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const noexcept
@@ -384,14 +384,14 @@ void DirectX12CommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firs
 	this->handle()->DrawInstanced(vertices, instances, firstVertex, firstInstance);
 }
 
-void DirectX12CommandBuffer::drawIndirect(const IDirectX12IndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
+void DirectX12CommandBuffer::drawIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
 {
 	this->handle()->ExecuteIndirect(m_impl->m_drawSignature.Get(), batchCount, batchBuffer.handle().Get(), offset, nullptr, 0);
 }
 
-void DirectX12CommandBuffer::drawIndirect(const IDirectX12IndirectBuffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
+void DirectX12CommandBuffer::drawIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
 {
-	this->handle()->ExecuteIndirect(m_impl->m_drawSignature.Get(), std::numeric_limits<UInt32>::max(), batchBuffer.handle().Get(), offset, countBuffer.handle().Get(), countOffset);
+	this->handle()->ExecuteIndirect(m_impl->m_drawSignature.Get(), batchBuffer.elements(), batchBuffer.handle().Get(), offset, countBuffer.handle().Get(), countOffset);
 }
 
 void DirectX12CommandBuffer::drawIndexed(UInt32 indices, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const noexcept
@@ -399,14 +399,14 @@ void DirectX12CommandBuffer::drawIndexed(UInt32 indices, UInt32 instances, UInt3
 	this->handle()->DrawIndexedInstanced(indices, instances, firstIndex, vertexOffset, firstInstance);
 }
 
-void DirectX12CommandBuffer::drawIndexedIndirect(const IDirectX12IndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
+void DirectX12CommandBuffer::drawIndexedIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
 {
 	this->handle()->ExecuteIndirect(m_impl->m_drawIndexedSignature.Get(), batchCount, batchBuffer.handle().Get(), offset, nullptr, 0);
 }
 
-void DirectX12CommandBuffer::drawIndexedIndirect(const IDirectX12IndirectBuffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
+void DirectX12CommandBuffer::drawIndexedIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
 {
-	this->handle()->ExecuteIndirect(m_impl->m_drawIndexedSignature.Get(), std::numeric_limits<UInt32>::max(), batchBuffer.handle().Get(), offset, countBuffer.handle().Get(), countOffset);
+	this->handle()->ExecuteIndirect(m_impl->m_drawIndexedSignature.Get(), batchBuffer.elements(), batchBuffer.handle().Get(), offset, countBuffer.handle().Get(), countOffset);
 }
 
 void DirectX12CommandBuffer::pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept

@@ -464,14 +464,12 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TBuffer">The generic buffer type. Must implement <see cref="IBuffer"/>.</typeparam>
     /// <typeparam name="TVertexBuffer">The vertex buffer type. Must implement <see cref="VertexBuffer"/>.</typeparam>
     /// <typeparam name="TIndexBuffer">The index buffer type. Must implement <see cref="IndexBuffer"/>.</typeparam>
-    /// <typeparam name="TIndirectBuffer">The indirect buffer type. Must be derived from <see cref="IIndirectBuffer"/>.</typeparam>
     /// <typeparam name="TImage">The generic image type. Must implement <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TBarrier">The barrier type. Must implement <see cref="Barrier"/>.</typeparam>
     /// <typeparam name="TPipeline">The common pipeline interface type. Must be derived from <see cref="Pipeline"/>.</typeparam>
-    template <typename TCommandBuffer, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TIndirectBuffer, typename TImage, typename TBarrier, typename TPipeline> requires
+    template <typename TCommandBuffer, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline> requires
         rtti::implements<TBarrier, Barrier<TBuffer, TImage>> &&
         //std::derived_from<TCommandBuffer, ICommandBuffer> &&
-        std::derived_from<TIndirectBuffer, IIndirectBuffer> &&
         std::derived_from<TPipeline, Pipeline<typename TPipeline::pipeline_layout_type, typename TPipeline::shader_program_type>>
     class CommandBuffer : public ICommandBuffer {
     public:
@@ -493,7 +491,6 @@ namespace LiteFX::Rendering {
         using buffer_type = TBuffer;
         using vertex_buffer_type = TVertexBuffer;
         using index_buffer_type = TIndexBuffer;
-        using indirect_buffer_type = TIndirectBuffer;
         using image_type = TImage;
         using barrier_type = TBarrier;
         using pipeline_type = TPipeline;
@@ -555,22 +552,22 @@ namespace LiteFX::Rendering {
         virtual void pushConstants(const push_constants_layout_type& layout, const void* const memory) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void dispatchIndirect(const indirect_buffer_type& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept = 0;
+        virtual void dispatchIndirect(const buffer_type& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void dispatchIndirect(const indirect_buffer_type& batchBuffer, const buffer_type& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept = 0;
+        virtual void dispatchIndirect(const buffer_type& batchBuffer, const buffer_type& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void drawIndirect(const indirect_buffer_type& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept = 0;
+        virtual void drawIndirect(const buffer_type& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void drawIndirect(const indirect_buffer_type& batchBuffer, const buffer_type& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept = 0;
+        virtual void drawIndirect(const buffer_type& batchBuffer, const buffer_type& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void drawIndexedIndirect(const indirect_buffer_type& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept = 0;
+        virtual void drawIndexedIndirect(const buffer_type& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void drawIndexedIndirect(const indirect_buffer_type& batchBuffer, const buffer_type& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept = 0;
+        virtual void drawIndexedIndirect(const buffer_type& batchBuffer, const buffer_type& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept = 0;
 
         /// <inheritdoc />
         inline virtual void draw(const vertex_buffer_type& vertexBuffer, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const {
@@ -662,24 +659,24 @@ namespace LiteFX::Rendering {
             this->pushConstants(dynamic_cast<const push_constants_layout_type&>(layout), memory);
         }
 
-        inline void cmdDispatchIndirect(const IIndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept override {
-            this->dispatchIndirect(dynamic_cast<const indirect_buffer_type&>(batchBuffer), batchCount, offset);
+        inline void cmdDispatchIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept override {
+            this->dispatchIndirect(dynamic_cast<const buffer_type&>(batchBuffer), batchCount, offset);
         }
 
-        inline void cmdDispatchIndirect(const IIndirectBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept override {
-            this->dispatchIndirect(dynamic_cast<const indirect_buffer_type&>(batchBuffer), dynamic_cast<const buffer_type&>(countBuffer), offset, countOffset);
+        inline void cmdDispatchIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept override {
+            this->dispatchIndirect(dynamic_cast<const buffer_type&>(batchBuffer), dynamic_cast<const buffer_type&>(countBuffer), offset, countOffset);
         }
         
         inline void cmdDraw(const IVertexBuffer& vertexBuffer, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const override {
             this->draw(dynamic_cast<const vertex_buffer_type&>(vertexBuffer), instances, firstVertex, firstInstance);
         }
 
-        inline void cmdDrawIndirect(const IIndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept override {
-            this->drawIndirect(dynamic_cast<const indirect_buffer_type&>(batchBuffer), batchCount, offset);
+        inline void cmdDrawIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept override {
+            this->drawIndirect(dynamic_cast<const buffer_type&>(batchBuffer), batchCount, offset);
         }
 
-        inline void cmdDrawIndirect(const IIndirectBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept override {
-            this->drawIndirect(dynamic_cast<const indirect_buffer_type&>(batchBuffer), dynamic_cast<const buffer_type&>(countBuffer), offset, countOffset);
+        inline void cmdDrawIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept override {
+            this->drawIndirect(dynamic_cast<const buffer_type&>(batchBuffer), dynamic_cast<const buffer_type&>(countBuffer), offset, countOffset);
         }
         
         inline void cmdDrawIndexed(const IIndexBuffer& indexBuffer, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const override {
@@ -690,12 +687,12 @@ namespace LiteFX::Rendering {
             this->drawIndexed(dynamic_cast<const vertex_buffer_type&>(vertexBuffer), dynamic_cast<const index_buffer_type&>(indexBuffer), instances, firstIndex, vertexOffset, firstInstance);
         }
 
-        inline void cmdDrawIndexedIndirect(const IIndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept override {
-            this->drawIndexedIndirect(dynamic_cast<const indirect_buffer_type&>(batchBuffer), batchCount, offset);
+        inline void cmdDrawIndexedIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept override {
+            this->drawIndexedIndirect(dynamic_cast<const buffer_type&>(batchBuffer), batchCount, offset);
         }
 
-        inline void cmdDrawIndexedIndirect(const IIndirectBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept override {
-            this->drawIndexedIndirect(dynamic_cast<const indirect_buffer_type&>(batchBuffer), dynamic_cast<const buffer_type&>(countBuffer), offset, countOffset);
+        inline void cmdDrawIndexedIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept override {
+            this->drawIndexedIndirect(dynamic_cast<const buffer_type&>(batchBuffer), dynamic_cast<const buffer_type&>(countBuffer), offset, countOffset);
         }
 
         inline void cmdExecute(SharedPtr<const ICommandBuffer> commandBuffer) const override {
@@ -761,7 +758,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
     /// <seealso cref="RenderTarget" />
     template <typename TCommandBuffer> requires
-        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::indirect_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type>>
+        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type>>
     class FrameBuffer : public IFrameBuffer {
     public:
         using command_buffer_type = TCommandBuffer;
@@ -961,7 +958,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TCommandBuffer">The type of the command buffer for this queue. Must implement <see cref="CommandBuffer"/>.</typeparam>
     template <typename TCommandBuffer> requires
-        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::indirect_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type>>
+        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type>>
     class CommandQueue : public ICommandQueue {
     public:
         using ICommandQueue::submit;
