@@ -115,6 +115,15 @@ namespace LiteFX::Rendering::Backends {
     };
 
     /// <summary>
+    /// Represents a Vulkan indirect buffer.
+    /// </summary>
+    /// <seealso cref="IVulkanBuffer" />
+    class LITEFX_VULKAN_API IVulkanIndirectBuffer : public IIndirectBuffer, public virtual IVulkanBuffer {
+    public:
+        virtual ~IVulkanIndirectBuffer() noexcept = default;
+    };
+
+    /// <summary>
     /// Represents a Vulkan sampled image or the base interface for a texture.
     /// </summary>
     /// <seealso cref="VulkanDescriptorLayout" />
@@ -818,14 +827,17 @@ namespace LiteFX::Rendering::Backends {
     /// Records commands for a <see cref="VulkanCommandQueue" />
     /// </summary>
     /// <seealso cref="VulkanQueue" />
-    class LITEFX_VULKAN_API VulkanCommandBuffer final : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>, public Resource<VkCommandBuffer>, public std::enable_shared_from_this<VulkanCommandBuffer> {
+    class LITEFX_VULKAN_API VulkanCommandBuffer final : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanIndirectBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>, public Resource<VkCommandBuffer>, public std::enable_shared_from_this<VulkanCommandBuffer> {
         LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
 
     public:
-        using base_type = CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>;
+        using base_type = CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanIndirectBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>;
         using base_type::dispatch;
+        using base_type::dispatchIndirect;
         using base_type::draw;
+        using base_type::drawIndirect;
         using base_type::drawIndexed;
+        using base_type::drawIndexedIndirect;
         using base_type::barrier;
         using base_type::transfer;
         using base_type::generateMipMaps;
@@ -948,10 +960,28 @@ namespace LiteFX::Rendering::Backends {
         void dispatch(const Vector3u& threadCount) const noexcept override;
 
         /// <inheritdoc />
+        void dispatchIndirect(const IVulkanIndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void dispatchIndirect(const IVulkanIndirectBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept override;
+
+        /// <inheritdoc />
         void draw(UInt32 vertices, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const noexcept override;
 
         /// <inheritdoc />
+        void drawIndirect(const IVulkanIndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void drawIndirect(const IVulkanIndirectBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept override;
+
+        /// <inheritdoc />
         void drawIndexed(UInt32 indices, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void drawIndexedIndirect(const IVulkanIndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void drawIndexedIndirect(const IVulkanIndirectBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept override;
 
         /// <inheritdoc />
         void pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept override;

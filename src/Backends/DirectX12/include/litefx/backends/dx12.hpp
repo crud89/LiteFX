@@ -121,6 +121,15 @@ namespace LiteFX::Rendering::Backends {
     };
 
     /// <summary>
+    /// Represents a DirectX 12 indirect buffer.
+    /// </summary>
+    /// <seealso cref="IDirectX12Buffer" />
+    class LITEFX_DIRECTX12_API IDirectX12IndirectBuffer : public IIndirectBuffer, public virtual IDirectX12Buffer {
+    public:
+        virtual ~IDirectX12IndirectBuffer() noexcept = default;
+    };
+
+    /// <summary>
     /// Represents a DirectX 12 sampled image or the base interface for a texture.
     /// </summary>
     /// <seealso cref="DirectX12DescriptorLayout" />
@@ -813,14 +822,17 @@ namespace LiteFX::Rendering::Backends {
     /// Records commands for a <see cref="DirectX12CommandQueue" />
     /// </summary>
     /// <seealso cref="DirectX12CommandQueue" />
-    class LITEFX_DIRECTX12_API DirectX12CommandBuffer final : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>, public ComResource<ID3D12GraphicsCommandList7>, public std::enable_shared_from_this<DirectX12CommandBuffer> {
+    class LITEFX_DIRECTX12_API DirectX12CommandBuffer final : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12IndirectBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>, public ComResource<ID3D12GraphicsCommandList7>, public std::enable_shared_from_this<DirectX12CommandBuffer> {
         LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
 
     public:
-        using base_type = CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>;
+        using base_type = CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12IndirectBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>;
         using base_type::dispatch;
+        using base_type::dispatchIndirect;
         using base_type::draw;
+        using base_type::drawIndirect;
         using base_type::drawIndexed;
+        using base_type::drawIndexedIndirect;
         using base_type::barrier;
         using base_type::transfer;
         using base_type::generateMipMaps;
@@ -934,10 +946,28 @@ namespace LiteFX::Rendering::Backends {
         void dispatch(const Vector3u& threadCount) const noexcept override;
 
         /// <inheritdoc />
+        void dispatchIndirect(const IDirectX12IndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void dispatchIndirect(const IDirectX12IndirectBuffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept override;
+
+        /// <inheritdoc />
         void draw(UInt32 vertices, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const noexcept override;
 
         /// <inheritdoc />
+        void drawIndirect(const IDirectX12IndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void drawIndirect(const IDirectX12IndirectBuffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept override;
+
+        /// <inheritdoc />
         void drawIndexed(UInt32 indices, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void drawIndexedIndirect(const IDirectX12IndirectBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void drawIndexedIndirect(const IDirectX12IndirectBuffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept override;
         
         /// <inheritdoc />
         void pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept override;
@@ -1701,6 +1731,14 @@ namespace LiteFX::Rendering::Backends {
         /// <returns>The compute pipeline that can be invoked to blit an image resource.</returns>
         /// <seealso cref="DirectX12Texture::generateMipMaps" />
         virtual DirectX12ComputePipeline& blitPipeline() const noexcept;
+
+        /// <summary>
+        /// Returns the command signatures for indirect dispatch and draw calls.
+        /// </summary>
+        /// <param name="dispatchSignature">The command signature used to execute indirect dispatches.</param>
+        /// <param name="drawSignature">The command signature used to execute indirect non-indexed draw calls.</param>
+        /// <param name="drawIndexedSignature">The command signature used to execute indirect indexed draw calls.</param>
+        virtual void indirectDrawSignatures(ComPtr<ID3D12CommandSignature>& dispatchSignature, ComPtr<ID3D12CommandSignature>& drawSignature, ComPtr<ID3D12CommandSignature>& drawIndexedSignature) const noexcept;
 
         // GraphicsDevice interface.
     public:
