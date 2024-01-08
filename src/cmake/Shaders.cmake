@@ -131,7 +131,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
 
     ADD_CUSTOM_COMMAND(TARGET ${target_name} 
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND ${BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=c -DSPIRV -x hlsl -fshader_stage=${SHADER_STAGE} ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
+      COMMAND ${BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=c -fshader-stage=${SHADER_STAGE} -DSPIRV -x hlsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
       DEPENDS ${SHADER_SOURCES}
     )
 
@@ -289,7 +289,7 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
 
     ADD_CUSTOM_COMMAND(TARGET ${target_name} 
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND ${BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=c -DSPIRV -x glsl -fshader_stage=${SHADER_STAGE} ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
+      COMMAND ${BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=c -fshader-stage=${SHADER_STAGE} -DSPIRV -x glsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
       DEPENDS ${SHADER_SOURCES}
     )
     
