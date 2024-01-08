@@ -761,15 +761,7 @@ namespace LiteFX::Rendering {
             /// The space of the descriptor set.
             /// </summary>
             UInt32 space;
-
-            /// <summary>
-            /// The pool size (if supported), of the descriptor pool that allocates the descriptors in the descriptor set.
-            /// </summary>
-            /// <remarks>
-            /// Descriptor pools are only supported in Vulkan. For DirectX 12, this setting is ignored.
-            /// </remarks>
-            UInt32 poolSize;
-
+            
             /// <summary>
             /// The shader stages, the descriptor set is accessible from.
             /// </summary>
@@ -950,16 +942,6 @@ namespace LiteFX::Rendering {
         template <typename TSelf>
         constexpr inline auto shaderStages(this TSelf&& self, ShaderStage stages) noexcept -> TSelf& {
             self.m_state.stages = stages;
-            return self;
-        }
-
-        /// <summary>
-        /// Sets the size of the descriptor pools used for descriptor set allocations. Ignored for DirectX 12, but required for interface compatibility.
-        /// </summary>
-        /// <param name="poolSize">The size of the descriptor pools used for descriptor set allocations.</param>
-        template <typename TSelf>
-        constexpr inline auto poolSize(this TSelf&& self, UInt32 poolSize) noexcept -> TSelf& {
-            self.m_state.poolSize = poolSize;
             return self;
         }
 

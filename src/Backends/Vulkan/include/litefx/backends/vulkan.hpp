@@ -455,8 +455,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="descriptorLayouts">The descriptor layouts of the descriptors within the descriptor set.</param>
         /// <param name="space">The space or set id of the descriptor set.</param>
         /// <param name="stages">The shader stages, the descriptor sets are bound to.</param>
-        /// <param name="poolSize">The size of a descriptor pool.</param>
-        explicit VulkanDescriptorSetLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages, UInt32 poolSize = 1024);
+        explicit VulkanDescriptorSetLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages);
         VulkanDescriptorSetLayout(VulkanDescriptorSetLayout&&) = delete;
         VulkanDescriptorSetLayout(const VulkanDescriptorSetLayout&) = delete;
         virtual ~VulkanDescriptorSetLayout() noexcept;
@@ -533,32 +532,11 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <summary>
-        /// The size of each descriptor pool.
-        /// </summary>
-        /// <remarks>
-        /// Descriptors are allocated from descriptor pools in Vulkan. Each descriptor pool has a number of descriptor sets it can hand out. Before allocating a new descriptor set
-        /// the layout tries to find an unused descriptor set, that it can hand out. If there are no free descriptor sets, the layout tries to allocate a new one. This is only possible
-        /// if the descriptor pool is not yet full, in which case a new pool needs to be created. All created pools are cached and destroyed, if the layout itself gets destroyed, 
-        /// causing all descriptor sets allocated from the layout to be invalidated. 
-        /// 
-        /// In general, if the number of required descriptor sets can be pre-calculated, it should be used as a pool size. Otherwise there is a trade-off to be made, based on the 
-        /// frequency of which new descriptor sets are required. A small pool size is more memory efficient, but can have a significant runtime cost, as long as new allocations happen
-        /// and no descriptor sets can be reused. A large pool size on the other hand is faster, whilst it may leave a large chunk of descriptor sets unallocated. Keep in mind, that the 
-        /// layout might not be the only active layout, hence a large portion of descriptor sets might end up not being used.
-        /// </remarks>
-        /// <returns>The size of one descriptor pool.</returns>
-        /// <seealso cref="allocate" />
-        /// <seealso cref="free" />
-        /// <seealso cref="pools" />
-        virtual UInt32 poolSize() const noexcept;
-
-        /// <summary>
         /// Returns the number of active descriptor pools.
         /// </summary>
         /// <returns>The number of active descriptor pools.</returns>
         /// <seealso cref="allocate" />
         /// <seealso cref="free" />
-        /// <seealso cref="poolSize" />
         virtual size_t pools() const noexcept;
     };
 

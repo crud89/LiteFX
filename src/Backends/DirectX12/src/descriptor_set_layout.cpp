@@ -302,12 +302,10 @@ void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptor
 // Descriptor set layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 space, ShaderStage stages, UInt32 poolSize) :
+constexpr DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 space, ShaderStage stages) :
     DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(parent.device())))
 {
-    m_state.poolSize = poolSize;
 }
-
 constexpr DirectX12DescriptorSetLayoutBuilder::~DirectX12DescriptorSetLayoutBuilder() noexcept = default;
 
 void DirectX12DescriptorSetLayoutBuilder::build()

@@ -158,8 +158,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="parent">The parent pipeline layout builder.</param>
 		/// <param name="space">The space the descriptor set is bound to.</param>
 		/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
-		/// <param name="poolSize">Ignored for DirectX 12, but required for compatibility.</param>
-		constexpr inline explicit DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 space = 0, ShaderStage stages = ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex, UInt32 poolSize = 0);
+		constexpr inline explicit DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 space = 0, ShaderStage stages = ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex);
 		DirectX12DescriptorSetLayoutBuilder(const DirectX12DescriptorSetLayoutBuilder&) = delete;
 		DirectX12DescriptorSetLayoutBuilder(DirectX12DescriptorSetLayoutBuilder&&) = delete;
 		constexpr inline virtual ~DirectX12DescriptorSetLayoutBuilder() noexcept;
@@ -236,8 +235,7 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="space">The space, the descriptor set is bound to.</param>
 		/// <param name="stages">The stages, the descriptor set will be accessible from.</param>
-		/// <param name="poolSize">Unused for this backend.</param>
-		constexpr inline DirectX12DescriptorSetLayoutBuilder descriptorSet(UInt32 space = 0, ShaderStage stages = ShaderStage::Compute | ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex, UInt32 poolSize = 0);
+		constexpr inline DirectX12DescriptorSetLayoutBuilder descriptorSet(UInt32 space = 0, ShaderStage stages = ShaderStage::Compute | ShaderStage::Fragment | ShaderStage::Geometry | ShaderStage::TessellationControl | ShaderStage::TessellationEvaluation | ShaderStage::Vertex);
 
 		/// <summary>
 		/// Builds a new push constants layout for the pipeline layout.
