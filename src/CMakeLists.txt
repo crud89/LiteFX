@@ -56,6 +56,7 @@ IF(BUILD_EXAMPLES)
     ADD_SUBDIRECTORY(Samples/Multithreading)
     ADD_SUBDIRECTORY(Samples/Bindless)
     ADD_SUBDIRECTORY(Samples/Compute)
+    ADD_SUBDIRECTORY(Samples/MeshShader)
 ENDIF(BUILD_EXAMPLES)
 
 # Include tests.
