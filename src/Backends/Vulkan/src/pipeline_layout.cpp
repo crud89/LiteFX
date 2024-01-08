@@ -55,7 +55,7 @@ public:
         if (!emptySets.empty())
         {
             for (auto s : emptySets)
-                m_descriptorSetLayouts.push_back(UniquePtr<VulkanDescriptorSetLayout>{ new VulkanDescriptorSetLayout(m_device, { }, s, ShaderStage::Vertex | ShaderStage::Fragment, 0) }); // No descriptor can ever be allocated from an empty descriptor set.
+                m_descriptorSetLayouts.push_back(UniquePtr<VulkanDescriptorSetLayout>{ new VulkanDescriptorSetLayout(m_device, { }, s, ShaderStage::Any, 0) }); // No descriptor can ever be allocated from an empty descriptor set.
 
             // Re-order them.
             std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<VulkanDescriptorSetLayout>& a, const UniquePtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });

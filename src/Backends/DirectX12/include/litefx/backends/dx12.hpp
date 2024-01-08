@@ -819,6 +819,7 @@ namespace LiteFX::Rendering::Backends {
     public:
         using base_type = CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>;
         using base_type::dispatch;
+        using base_type::dispatchMesh;
         using base_type::draw;
         using base_type::drawIndexed;
         using base_type::barrier;
@@ -932,6 +933,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void dispatch(const Vector3u& threadCount) const noexcept override;
+
+        /// <inheritdoc />
+        void dispatchMesh (const Vector3u& threadCount) const noexcept override;
 
         /// <inheritdoc />
         void draw(UInt32 vertices, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const noexcept override;

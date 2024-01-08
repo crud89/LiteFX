@@ -6,6 +6,8 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
+static PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks;
+
 class VulkanCommandBuffer::VulkanCommandBufferImpl : public Implement<VulkanCommandBuffer> {
 public:
 	friend class VulkanCommandBuffer;
@@ -21,6 +23,8 @@ public:
 	VulkanCommandBufferImpl(VulkanCommandBuffer* parent, const VulkanQueue& queue, bool primary) :
 		base(parent), m_queue(queue), m_secondary(!primary)
 	{
+		if (vkCmdDrawMeshTasks == nullptr)
+			vkCmdDrawMeshTasks = reinterpret_cast<PFN_vkCmdDrawMeshTasksEXT>(::vkGetDeviceProcAddr(queue.device().handle(), "vkCmdDrawMeshTasksEXT"));
 	}
 
 	~VulkanCommandBufferImpl() 
@@ -419,6 +423,11 @@ void VulkanCommandBuffer::bind(const IVulkanIndexBuffer& buffer) const noexcept
 void VulkanCommandBuffer::dispatch(const Vector3u& threadCount) const noexcept
 {
 	::vkCmdDispatch(this->handle(), threadCount.x(), threadCount.y(), threadCount.z());
+}
+
+void VulkanCommandBuffer::dispatchMesh(const Vector3u& threadCount) const noexcept
+{
+	::vkCmdDrawMeshTasks(this->handle(), threadCount.x(), threadCount.y(), threadCount.z());
 }
 
 void VulkanCommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const noexcept

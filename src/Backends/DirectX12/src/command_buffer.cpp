@@ -365,6 +365,11 @@ void DirectX12CommandBuffer::dispatch(const Vector3u& threadCount) const noexcep
 	this->handle()->Dispatch(threadCount.x(), threadCount.y(), threadCount.z());
 }
 
+void DirectX12CommandBuffer::dispatchMesh(const Vector3u& threadCount) const noexcept
+{
+	this->handle()->DispatchMesh(threadCount.x(), threadCount.y(), threadCount.z());
+}
+
 void DirectX12CommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const noexcept
 {
 	this->handle()->DrawInstanced(vertices, instances, firstVertex, firstInstance);

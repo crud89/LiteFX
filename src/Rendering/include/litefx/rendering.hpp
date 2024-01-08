@@ -474,6 +474,7 @@ namespace LiteFX::Rendering {
     class CommandBuffer : public ICommandBuffer {
     public:
         using ICommandBuffer::dispatch;
+        using ICommandBuffer::dispatchMesh;
         using ICommandBuffer::draw;
         using ICommandBuffer::drawIndexed;
         using ICommandBuffer::barrier;

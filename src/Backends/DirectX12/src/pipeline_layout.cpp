@@ -93,6 +93,8 @@ public:
                 case ShaderStage::Fragment: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_PIXEL); break;
                 case ShaderStage::TessellationEvaluation: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_DOMAIN); break;
                 case ShaderStage::TessellationControl: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_HULL); break;
+                case ShaderStage::Task: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_AMPLIFICATION); break;
+                case ShaderStage::Mesh: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_MESH); break;
                 default: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_ALL); break;
                 }
 
@@ -118,6 +120,10 @@ public:
                 shaderStages = D3D12_SHADER_VISIBILITY_DOMAIN;
             if (stages == ShaderStage::TessellationControl)
                 shaderStages = D3D12_SHADER_VISIBILITY_HULL;
+            if (stages == ShaderStage::Task)
+                shaderStages = D3D12_SHADER_VISIBILITY_AMPLIFICATION;
+            if (stages == ShaderStage::Mesh)
+                shaderStages = D3D12_SHADER_VISIBILITY_MESH;
 
             // Define the root parameter ranges.
             auto layouts = layout->descriptors();
