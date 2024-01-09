@@ -1742,7 +1742,7 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void wait() const override;
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:
         /// <inheritdoc />
         [[nodiscard]] DirectX12RenderPassBuilder buildRenderPass(MultiSamplingLevel samples = MultiSamplingLevel::x1, UInt32 commandBuffers = 1) const override;
@@ -1773,7 +1773,7 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         [[nodiscard]] DirectX12BarrierBuilder buildBarrier() const override;
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
     };
     
     /// <summary>

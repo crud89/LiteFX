@@ -48,7 +48,7 @@ Vector1f::operator Enumerable<Float>() noexcept {
     return m_elements;
 }
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 Vector1f::Vector1f(const glm::f32vec1& v) noexcept {
     std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
 }
@@ -62,7 +62,7 @@ Vector1f::operator glm::f32vec1() const noexcept {
 }
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector1f::Vector1f(const DirectX::XMVECTOR& v) noexcept {
     DirectX::XMStoreFloat(m_elements.data(), v);
 }
@@ -125,7 +125,7 @@ Vector1u::operator Enumerable<UInt32>() noexcept {
     return m_elements;
 }
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 Vector1u::Vector1u(const glm::u32vec1& v) noexcept {
     std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
 }
@@ -139,7 +139,7 @@ Vector1u::operator glm::u32vec1() const noexcept {
 }
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector1u::Vector1u(const DirectX::XMVECTOR& v) noexcept {
     DirectX::XMStoreInt(m_elements.data(), v);
 }
@@ -204,7 +204,7 @@ Vector2f::operator Enumerable<Float>() noexcept {
     return m_elements;
 }
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 Vector2f::Vector2f(const glm::f32vec2& v) noexcept {
     std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
 }
@@ -218,7 +218,7 @@ Vector2f::operator glm::f32vec2() const noexcept {
 }
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector2f::Vector2f(const DirectX::XMVECTOR& v) noexcept {
     DirectX::XMFLOAT2 e;
     DirectX::XMStoreFloat2(&e, v);
@@ -306,7 +306,7 @@ Vector2u::operator Enumerable<UInt32>() noexcept {
     return m_elements;
 }
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 Vector2u::Vector2u(const glm::u32vec2& v) noexcept {
     std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
 }
@@ -320,7 +320,7 @@ Vector2u::operator glm::u32vec2() const noexcept {
 }
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector2u::Vector2u(const DirectX::XMVECTOR& v) noexcept {
     DirectX::XMUINT2 e;
     DirectX::XMStoreUInt2(&e, v);
@@ -408,7 +408,7 @@ Vector2i::operator Enumerable<Int32>() noexcept {
     return m_elements;
 }
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 Vector2i::Vector2i(const glm::i32vec2& v) noexcept {
     std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
 }
@@ -422,7 +422,7 @@ Vector2i::operator glm::i32vec2() const noexcept {
 }
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector2i::Vector2i(const DirectX::XMVECTOR& v) noexcept {
     DirectX::XMINT2 e;
     DirectX::XMStoreSInt2(&e, v);
@@ -511,7 +511,7 @@ Vector3f::operator Enumerable<Float>() noexcept {
     return m_elements;
 }
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 Vector3f::Vector3f(const glm::f32vec3& v) noexcept {
     std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
 }
@@ -525,7 +525,7 @@ Vector3f::operator glm::f32vec3() const noexcept {
 }
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector3f::Vector3f(const DirectX::XMVECTOR& v) noexcept {
     DirectX::XMFLOAT3 e;
     DirectX::XMStoreFloat3(&e, v);
@@ -618,7 +618,7 @@ Vector3u::operator Enumerable<UInt32>() noexcept {
     return m_elements;
 }
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 Vector3u::Vector3u(const glm::u32vec3& v) noexcept {
     std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
 }
@@ -632,7 +632,7 @@ Vector3u::operator glm::u32vec3() const noexcept {
 }
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector3u::Vector3u(const DirectX::XMVECTOR& v) noexcept {
     DirectX::XMUINT3 e;
     DirectX::XMStoreUInt3(&e, v);
@@ -725,7 +725,7 @@ Vector3i::operator Enumerable<Int32>() noexcept {
     return m_elements;
 }
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 Vector3i::Vector3i(const glm::i32vec3& v) noexcept {
     std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
 }
@@ -739,7 +739,7 @@ Vector3i::operator glm::i32vec3() const noexcept {
 }
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector3i::Vector3i(const DirectX::XMVECTOR& v) noexcept {
     DirectX::XMINT3 e;
     DirectX::XMStoreSInt3(&e, v);
@@ -833,7 +833,7 @@ Vector4f::operator Enumerable<Float>() noexcept {
     return m_elements;
 }
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 Vector4f::Vector4f(const glm::f32vec4& v) noexcept {
     std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
 }
@@ -847,7 +847,7 @@ Vector4f::operator glm::f32vec4() const noexcept {
 }
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector4f::Vector4f(const DirectX::XMVECTOR& v) noexcept {
     DirectX::XMFLOAT4 e;
     DirectX::XMStoreFloat4(&e, v);
@@ -945,7 +945,7 @@ Vector4u::operator Enumerable<UInt32>() noexcept {
     return m_elements;
 }
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 Vector4u::Vector4u(const glm::u32vec4& v) noexcept {
     std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
 }
@@ -959,7 +959,7 @@ Vector4u::operator glm::u32vec4() const noexcept {
 }
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector4u::Vector4u(const DirectX::XMVECTOR& v) noexcept {
     DirectX::XMUINT4 e;
     DirectX::XMStoreUInt4(&e, v);
@@ -1057,7 +1057,7 @@ Vector4i::operator Enumerable<Int32>() noexcept {
     return m_elements;
 }
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 Vector4i::Vector4i(const glm::i32vec4& v) noexcept {
     std::generate(std::begin(m_elements), std::end(m_elements), [&, i = 0]() mutable { return v[i++]; });
 }
@@ -1071,7 +1071,7 @@ Vector4i::operator glm::i32vec4() const noexcept {
 }
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector4i::Vector4i(const DirectX::XMVECTOR& v) noexcept {
     DirectX::XMINT4 e;
     DirectX::XMStoreSInt4(&e, v);

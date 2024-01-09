@@ -56,7 +56,7 @@ Enumerable<const BufferAttribute*> DirectX12VertexBufferLayout::attributes() con
     return m_impl->m_attributes | std::views::transform([](const UniquePtr<BufferAttribute>& attribute) { return attribute.get(); });
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
@@ -65,4 +65,4 @@ void DirectX12VertexBufferLayoutBuilder::build()
 {
     this->instance()->m_impl->m_attributes = std::move(m_state.attributes);
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
