@@ -80,7 +80,7 @@ PrimitiveTopology DirectX12InputAssembler::topology() const noexcept
     return m_impl->m_primitiveTopology;
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -122,4 +122,4 @@ constexpr DirectX12VertexBufferLayoutBuilder DirectX12InputAssemblerBuilder::ver
 {
     return DirectX12VertexBufferLayoutBuilder(*this, makeUnique<DirectX12VertexBufferLayout>(elementSize, binding));
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

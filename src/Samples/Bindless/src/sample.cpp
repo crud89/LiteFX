@@ -42,12 +42,12 @@ struct FileExtensions {
     static const String SHADER;
 };
 
-#ifdef BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
 const String FileExtensions<VulkanBackend>::SHADER = "spv";
-#endif // BUILD_VULKAN_BACKEND
-#ifdef BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
 const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
-#endif // BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 static void initInstanceData()
 {
@@ -274,20 +274,20 @@ void SampleApp::onInit()
         backend->releaseDevice("Default");
     };
 
-#ifdef BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
     // Register the Vulkan backend de-/initializer.
     this->onBackendStart<VulkanBackend>(startCallback);
     this->onBackendStop<VulkanBackend>(stopCallback);
-#endif // BUILD_VULKAN_BACKEND
+#endif // LITEFX_BUILD_VULKAN_BACKEND
 
-#ifdef BUILD_DIRECTX_12_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
     // We do not need to provide a root signature for shader reflection (refer to the project wiki for more information: https://github.com/crud89/LiteFX/wiki/Shader-Development).
     DirectX12ShaderProgram::suppressMissingRootSignatureWarning();
 
     // Register the DirectX 12 backend de-/initializer.
     this->onBackendStart<DirectX12Backend>(startCallback);
     this->onBackendStop<DirectX12Backend>(stopCallback);
-#endif // BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 }
 
 void SampleApp::onResize(const void* sender, ResizeEventArgs e)
@@ -318,15 +318,15 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
 
 void SampleApp::keyDown(int key, int scancode, int action, int mods)
 {
-#ifdef BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
     if (key == GLFW_KEY_F9 && action == GLFW_PRESS)
         this->startBackend<VulkanBackend>();
-#endif // BUILD_VULKAN_BACKEND
+#endif // LITEFX_BUILD_VULKAN_BACKEND
 
-#ifdef BUILD_DIRECTX_12_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
     if (key == GLFW_KEY_F10 && action == GLFW_PRESS)
         this->startBackend<DirectX12Backend>();
-#endif // BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
     if (key == GLFW_KEY_F8 && action == GLFW_PRESS)
     {

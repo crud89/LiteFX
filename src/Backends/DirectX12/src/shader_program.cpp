@@ -390,7 +390,7 @@ SharedPtr<DirectX12PipelineLayout> DirectX12ShaderProgram::reflectPipelineLayout
     return m_impl->reflectPipelineLayout();
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Shader program builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -434,4 +434,4 @@ constexpr UniquePtr<DirectX12ShaderModule> DirectX12ShaderProgramBuilder::makeSh
 {
     return makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, stream, name, entryPoint);
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

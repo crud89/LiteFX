@@ -302,7 +302,7 @@ SharedPtr<VulkanPipelineLayout> VulkanShaderProgram::reflectPipelineLayout() con
     return m_impl->reflectPipelineLayout();
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Shader program builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -346,4 +346,4 @@ constexpr UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderMo
 {
     return makeUnique<VulkanShaderModule>(m_impl->m_device, type, stream, name, entryPoint);
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

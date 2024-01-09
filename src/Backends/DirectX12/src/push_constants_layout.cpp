@@ -88,7 +88,7 @@ Enumerable<DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() 
     return m_impl->m_rangePointers | std::views::transform([](UniquePtr<DirectX12PushConstantsRange>& range) { return range.get(); });
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Push constants layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
@@ -109,4 +109,4 @@ constexpr UniquePtr<DirectX12PushConstantsRange> DirectX12PushConstantsLayoutBui
 {
     return makeUnique<DirectX12PushConstantsRange>(shaderStages, offset, size, space, binding);
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

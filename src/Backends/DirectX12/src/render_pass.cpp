@@ -486,7 +486,7 @@ void DirectX12RenderPass::updateAttachments(const DirectX12DescriptorSet& descri
     });
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
@@ -532,4 +532,4 @@ DirectX12InputAttachmentMapping DirectX12RenderPassBuilder::makeInputAttachment(
 {
     return DirectX12InputAttachmentMapping(renderPass, renderTarget, inputLocation);
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

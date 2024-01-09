@@ -135,7 +135,7 @@ const VulkanPushConstantsLayout* VulkanPipelineLayout::pushConstants() const noe
     return m_impl->m_pushConstantsLayout.get();
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Pipeline layout builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -188,4 +188,4 @@ constexpr const VulkanDevice& VulkanPipelineLayoutBuilder::device() const noexce
 {
     return m_impl->m_device;
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
