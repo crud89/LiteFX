@@ -270,7 +270,8 @@ public:
         VkPhysicalDeviceVulkan13Features deviceFeatures13 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
             .pNext = &deviceFeatures,
-            .synchronization2 = true
+            .synchronization2 = true,
+            .maintenance4 = true
         };
 
         // Enable various descriptor related features, as well as timelime semaphores and other little QoL improvements.
