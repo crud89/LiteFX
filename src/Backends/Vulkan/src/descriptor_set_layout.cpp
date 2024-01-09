@@ -496,7 +496,7 @@ size_t VulkanDescriptorSetLayout::pools() const noexcept
     return m_impl->m_descriptorPools.size();
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Descriptor set layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
@@ -527,4 +527,4 @@ constexpr UniquePtr<VulkanDescriptorLayout> VulkanDescriptorSetLayoutBuilder::ma
 {
     return makeUnique<VulkanDescriptorLayout>(makeUnique<VulkanSampler>(this->parent().device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding);
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

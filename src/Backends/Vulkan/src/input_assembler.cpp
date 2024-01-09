@@ -78,7 +78,7 @@ PrimitiveTopology VulkanInputAssembler::topology() const noexcept
     return m_impl->m_primitiveTopology;
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -120,4 +120,4 @@ constexpr VulkanVertexBufferLayoutBuilder VulkanInputAssemblerBuilder::vertexBuf
 {
     return VulkanVertexBufferLayoutBuilder(*this, makeUnique<VulkanVertexBufferLayout>(elementSize, binding));
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

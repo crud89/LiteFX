@@ -181,7 +181,7 @@ public:
 
                     // If we have a multi-sampled present attachment, we also need to attach a resolve attachment for it.
                     if (m_samples == MultiSamplingLevel::x1)
-#ifdef BUILD_DIRECTX_12_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
                         attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 #else
                         attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
@@ -198,7 +198,7 @@ public:
                         presentResolveAttachment->stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
                         presentResolveAttachment->stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
                         presentResolveAttachment->initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-#ifdef BUILD_DIRECTX_12_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
                         presentResolveAttachment->finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 #else
                         presentResolveAttachment->finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
@@ -523,7 +523,7 @@ void VulkanRenderPass::updateAttachments(const VulkanDescriptorSet& descriptorSe
     });
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
@@ -570,4 +570,4 @@ VulkanInputAttachmentMapping VulkanRenderPassBuilder::makeInputAttachment(UInt32
 {
     return VulkanInputAttachmentMapping(renderPass, renderTarget, inputLocation);
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

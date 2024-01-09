@@ -12,7 +12,7 @@
 #include <filesystem>
 #include <shlobj.h>
 
-#ifdef BUILD_EXAMPLES_DX12_PIX_LOADER
+#ifdef LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER
 bool loadPixCapturer()
 {
 	// Check if Pix has already been loaded.
@@ -42,9 +42,9 @@ bool loadPixCapturer()
 
 	return true;
 }
-#endif // BUILD_EXAMPLES_DX12_PIX_LOADER
+#endif // LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER
 
-#ifdef BUILD_EXAMPLES_RENDERDOC_LOADER
+#ifdef LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER
 RENDERDOC_API_1_5_0* renderDoc = nullptr;
 
 bool loadRenderDocApi()
@@ -61,7 +61,7 @@ bool loadRenderDocApi()
 
 	return false;
 }
-#endif // BUILD_EXAMPLES_RENDERDOC_LOADER
+#endif // LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER
 
 int main(const int argc, const char** argv)
 {
@@ -85,15 +85,15 @@ int main(const int argc, const char** argv)
 	app.add_option("-a,--adapter", adapterId)->take_first();
 	auto validationLayers = app.add_option("-l,--vk-validation-layers")->take_all();
 
-#ifdef BUILD_EXAMPLES_DX12_PIX_LOADER
+#ifdef LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER
 	bool loadPix{ false };
 	app.add_option("--dx-load-pix", loadPix)->take_first();
-#endif // BUILD_EXAMPLES_DX12_PIX_LOADER
+#endif // LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER
 
-#ifdef BUILD_EXAMPLES_RENDERDOC_LOADER
+#ifdef LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER
 	bool loadRenderDoc{ false };
 	app.add_option("--load-render-doc", loadRenderDoc)->take_first();
-#endif // BUILD_EXAMPLES_RENDERDOC_LOADER
+#endif // LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER
 
 	try
 	{
@@ -104,15 +104,15 @@ int main(const int argc, const char** argv)
 		return app.exit(ex);
 	}
 
-#ifdef BUILD_EXAMPLES_DX12_PIX_LOADER
+#ifdef LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER
 	if (loadPix && !loadPixCapturer())
 		std::cout << "No PIX distribution found. Make sure you have installed PIX for Windows." << std::endl;
-#endif // BUILD_EXAMPLES_DX12_PIX_LOADER
+#endif // LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER
 
-#ifdef BUILD_EXAMPLES_RENDERDOC_LOADER
+#ifdef LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER
 	if (loadRenderDoc && !loadRenderDocApi())
 		std::cout << "RenderDoc API could not be loaded. Make sure you have version 1.5 or higher installed on your system." << std::endl;
-#endif // BUILD_EXAMPLES_RENDERDOC_LOADER
+#endif // LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER
 
 	// Turn the validation layers into a list.
 	Array<String> enabledLayers;
@@ -144,12 +144,12 @@ int main(const int argc, const char** argv)
 		UniquePtr<App> app = App::build<SampleApp>(std::move(window), adapterId)
 			.logTo<ConsoleSink>(LogLevel::Trace)
 			.logTo<RollingFileSink>("sample.log", LogLevel::Debug)
-#ifdef BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
 			.useBackend<VulkanBackend>(requiredExtensions, enabledLayers)
-#endif // BUILD_VULKAN_BACKEND
-#ifdef BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
 			.useBackend<DirectX12Backend>()
-#endif // BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 			;
 
 		app->run();

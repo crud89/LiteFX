@@ -4,7 +4,7 @@
 
 using namespace LiteFX::Rendering::Backends;
 
-#if !defined(BUILD_DIRECTX_12_BACKEND)
+#if !defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
 // ------------------------------------------------------------------------------------------------
 // Default implementation.
 // ------------------------------------------------------------------------------------------------
@@ -930,7 +930,7 @@ private:
 		::CloseHandle(eventHandle);
 	}
 };
-#endif // defined(BUILD_DIRECTX_12_BACKEND)
+#endif // defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.

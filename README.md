@@ -130,18 +130,18 @@ You can customize the engine build, according to your specific needs. The most s
 }
 ```
 
-Within the cache variables, you can override the build options, LiteFX exports. All customizable options have the `BUILD_` prefix and are described in detail below:
+Within the cache variables, you can override the build options, LiteFX exports. All customizable options have the `LITEFX_BUILD_` prefix and are described in detail below:
 
-- `BUILD_VULKAN_BACKEND` (default: `ON`): builds the Vulkan 🌋 backend (requires [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later to be installed on your system).
-- `BUILD_DX12_BACKEND` (default: `ON`): builds the DirectX 12 ❎ backend.
-- `BUILD_DEFINE_BUILDERS` (default: `ON`): enables the [builder architecture](https://github.com/crud89/LiteFX/wiki/Builders) for backends.
-- `BUILD_WITH_GLM` (default: `ON`): adds [glm](https://glm.g-truc.net/0.9.9/index.html) converters to math types. †
-- `BUILD_WITH_DIRECTX_MATH` (default: `ON`): adds [DirectX Math](https://github.com/microsoft/DirectXMath) converters to math types. †
-- `BUILD_HLSL_SHADER_MODEL` (default: `6_5`): specifies the default HLSL shader model.
-- `BUILD_EXAMPLES` (default: `ON`): builds the examples. Depending on which backends are built, some may be omitted.
-- `BUILD_EXAMPLES_DX12_PIX_LOADER` (default: `ON`): enables code that attempts to load the latest version of the [PIX GPU capturer](https://devblogs.microsoft.com/pix/) in the DirectX 12 samples, if available (and if the command line argument `--load-pix=true` is specified).
-- `BUILD_EXAMPLES_RENDERDOC_LOADER` (default: `OFF`): enables code in the samples, that loads the [RenderDoc](https://renderdoc.org/) runtime API, if the application is launched from within RenderDoc (and if the command line argument `--load-render-doc=true` is specified).
-- `BUILD_TESTS` (default: `OFF`): builds tests for the project.
+- `LITEFX_BUILD_VULKAN_BACKEND` (default: `ON`): builds the Vulkan 🌋 backend (requires [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later to be installed on your system).
+- `LITEFX_BUILD_DX12_BACKEND` (default: `ON`): builds the DirectX 12 ❎ backend.
+- `LITEFX_BUILD_DEFINE_BUILDERS` (default: `ON`): enables the [builder architecture](https://github.com/crud89/LiteFX/wiki/Builders) for backends.
+- `LITEFX_BUILD_WITH_GLM` (default: `ON`): adds [glm](https://glm.g-truc.net/0.9.9/index.html) converters to math types. †
+- `LITEFX_BUILD_WITH_DIRECTX_MATH` (default: `ON`): adds [DirectX Math](https://github.com/microsoft/DirectXMath) converters to math types. †
+- `LITEFX_BUILD_HLSL_SHADER_MODEL` (default: `6_5`): specifies the default HLSL shader model.
+- `LITEFX_BUILD_EXAMPLES` (default: `ON`): builds the examples. Depending on which backends are built, some may be omitted.
+- `LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER` (default: `ON`): enables code that attempts to load the latest version of the [PIX GPU capturer](https://devblogs.microsoft.com/pix/) in the DirectX 12 samples, if available (and if the command line argument `--load-pix=true` is specified).
+- `LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER` (default: `OFF`): enables code in the samples, that loads the [RenderDoc](https://renderdoc.org/) runtime API, if the application is launched from within RenderDoc (and if the command line argument `--load-render-doc=true` is specified).
+- `LITEFX_BUILD_TESTS` (default: `OFF`): builds tests for the project.
 
 For example, if you only want to build the Vulkan backend and samples and don't want to use DirectX Math, a preset would look like this:
 
@@ -158,8 +158,8 @@ For example, if you only want to build the Vulkan backend and samples and don't 
       "name": "win-x64-vulkan-only",
       "inherits": "windows-x64-release",
       "cacheVariables": {
-        "BUILD_DX12_BACKEND": "OFF",
-        "BUILD_WITH_DIRECTX_MATH": "OFF"
+        "LITEFX_BUILD_DX12_BACKEND": "OFF",
+        "LITEFX_BUILD_WITH_DIRECTX_MATH": "OFF"
       }
     }
   ]

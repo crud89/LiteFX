@@ -131,7 +131,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
 
     ADD_CUSTOM_COMMAND(TARGET ${target_name} 
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND ${BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=bin -fshader-stage=${SHADER_STAGE} -DSPIRV -x hlsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
+      COMMAND ${LITEFX_BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=bin -fshader-stage=${SHADER_STAGE} -DSPIRV -x hlsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
       DEPENDS ${SHADER_SOURCES}
     )
 
@@ -190,7 +190,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
 
       ADD_CUSTOM_COMMAND(TARGET ${target_name} 
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMAND ${BUILD_DXC_COMPILER} -spirv -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> ${compiler_options} -fspv-target-env=vulkan1.3 ${shader_source} 
+        COMMAND ${LITEFX_BUILD_DXC_COMPILER} -spirv -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> ${compiler_options} -fspv-target-env=vulkan1.3 ${shader_source} 
         DEPENDS ${SHADER_SOURCES}
       )
     
@@ -211,7 +211,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       
       ADD_CUSTOM_COMMAND(TARGET ${target_name} 
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMAND ${BUILD_DXC_COMPILER} -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${DXIL_DEFAULT_SUFFIX}" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> $<IF:$<CONFIG:Debug,RelWithDebInfo>,-Qembed_debug,-Qstrip_debug> ${compiler_options} ${shader_source}
+        COMMAND ${LITEFX_BUILD_DXC_COMPILER} -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${DXIL_DEFAULT_SUFFIX}" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> $<IF:$<CONFIG:Debug,RelWithDebInfo>,-Qembed_debug,-Qstrip_debug> ${compiler_options} ${shader_source}
         DEPENDS ${SHADER_SOURCES}
       )
     
@@ -289,7 +289,7 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
 
     ADD_CUSTOM_COMMAND(TARGET ${target_name} 
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND ${BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=bin -fshader-stage=${SHADER_STAGE} -DSPIRV -x glsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
+      COMMAND ${LITEFX_BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=bin -fshader-stage=${SHADER_STAGE} -DSPIRV -x glsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
       DEPENDS ${SHADER_SOURCES}
     )
     

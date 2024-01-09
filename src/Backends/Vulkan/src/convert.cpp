@@ -1071,7 +1071,7 @@ constexpr VkImageLayout LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getIm
 	case ImageLayout::RenderTarget: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	case ImageLayout::DepthRead: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 	case ImageLayout::DepthWrite: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-#ifdef BUILD_DIRECTX_12_BACKEND // Images from interop swap chain must not be transitioned into present state.
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND // Images from interop swap chain must not be transitioned into present state.
 	case ImageLayout::Present: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 #else
 	case ImageLayout::Present: return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;

@@ -4,7 +4,7 @@
 #include "dx12_api.hpp"
 #include "dx12.hpp"
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Math;
 	using namespace LiteFX::Rendering;
@@ -350,4 +350,4 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

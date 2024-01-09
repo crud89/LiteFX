@@ -98,7 +98,7 @@ Enumerable<const VulkanPushConstantsRange*> VulkanPushConstantsLayout::ranges() 
     return m_impl->m_rangePointers | std::views::transform([](const UniquePtr<VulkanPushConstantsRange>& range) { return range.get(); });
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Push constants layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
@@ -119,4 +119,4 @@ UniquePtr<VulkanPushConstantsRange> VulkanPushConstantsLayoutBuilder::makeRange(
 {
     return makeUnique<VulkanPushConstantsRange>(shaderStages, offset, size, space, binding);
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

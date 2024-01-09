@@ -451,7 +451,7 @@ DirectX12ComputePipeline& DirectX12Device::blitPipeline() const noexcept
 	return *m_impl->m_blitPipeline;
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(MultiSamplingLevel samples, UInt32 commandBuffers) const
 {
 	return DirectX12RenderPassBuilder(*this, commandBuffers, samples);
@@ -496,7 +496,7 @@ DirectX12BarrierBuilder DirectX12Device::buildBarrier() const
 {
 	return DirectX12BarrierBuilder();
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
 
 DirectX12SwapChain& DirectX12Device::swapChain() noexcept
 {

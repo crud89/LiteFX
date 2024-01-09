@@ -3,7 +3,7 @@
 #include "rendering_api.hpp"
 #include "rendering.hpp"
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 namespace LiteFX::Rendering {
 
     /// <summary>
@@ -1569,4 +1569,4 @@ namespace LiteFX::Rendering {
     };
 
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
