@@ -779,6 +779,10 @@ constexpr ShaderStage LiteFX::Rendering::Backends::Vk::getShaderStage(const VkSh
 		return ShaderStage::Fragment;
 	case VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT:
 		return ShaderStage::Compute;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_TASK_BIT_EXT:
+		return ShaderStage::Task;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_MESH_BIT_EXT:
+		return ShaderStage::Mesh;
 	default:
 		return ShaderStage::Other;
 	}
@@ -800,6 +804,10 @@ constexpr VkShaderStageFlagBits LiteFX::Rendering::Backends::Vk::getShaderStage(
 		return VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT;
 	case ShaderStage::Compute:
 		return VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT;
+	case ShaderStage::Task:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_TASK_BIT_EXT;
+	case ShaderStage::Mesh:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_MESH_BIT_EXT;
 	case ShaderStage::Other:
 	default:
 		throw std::invalid_argument("Unsupported shader type.");

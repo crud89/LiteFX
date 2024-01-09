@@ -157,6 +157,11 @@ private:
         // Required to query image and buffer requirements.
         m_extensions.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
 
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+        // Required for mesh shading.
+        m_extensions.push_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
+#endif
+
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
         // Interop swap chain requires external memory access.
         m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
@@ -245,9 +250,21 @@ public:
                 };
             }) | std::ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
+        // Enable task and mesh shaders.
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+        VkPhysicalDeviceMeshShaderFeaturesEXT meshShaderFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT,
+            .taskShader = true,
+            .meshShader = true
+        };
+#endif
+
         // Allow geometry and tessellation shader stages.
         VkPhysicalDeviceFeatures2 deviceFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+            .pNext = &meshShaderFeatures,
+#endif
             .features = {
                 .geometryShader = true,
                 .tessellationShader = true,
@@ -259,7 +276,8 @@ public:
         VkPhysicalDeviceVulkan13Features deviceFeatures13 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
             .pNext = &deviceFeatures,
-            .synchronization2 = true
+            .synchronization2 = true,
+            .maintenance4 = true
         };
 
         // Enable various descriptor related features, as well as timelime semaphores and other little QoL improvements.

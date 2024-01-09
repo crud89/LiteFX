@@ -442,6 +442,48 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
+        /// Adds a task shader module to the program.
+        /// </summary>
+        /// <param name="fileName">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        template<typename TSelf>
+        constexpr inline [[nodiscard]] auto withTaskShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
+            return self.withShaderModule(ShaderStage::Task, fileName, entryPoint);
+        }
+
+        /// <summary>
+        /// Adds a task shader module to the program.
+        /// </summary>
+        /// <param name="stream">The file stream of the module.</param>
+        /// <param name="name">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        template<typename TSelf>
+        constexpr inline [[nodiscard]] auto withTaskShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
+            return self.withShaderModule(ShaderStage::Task, stream, name, entryPoint);
+        }
+
+        /// <summary>
+        /// Adds a mesh shader module to the program.
+        /// </summary>
+        /// <param name="fileName">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        template<typename TSelf>
+        constexpr inline [[nodiscard]] auto withMeshShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
+            return self.withShaderModule(ShaderStage::Mesh, fileName, entryPoint);
+        }
+
+        /// <summary>
+        /// Adds a mesh shader module to the program.
+        /// </summary>
+        /// <param name="stream">The file stream of the module.</param>
+        /// <param name="name">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        template<typename TSelf>
+        constexpr inline [[nodiscard]] auto withMeshShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
+            return self.withShaderModule(ShaderStage::Mesh, stream, name, entryPoint);
+        }
+
+        /// <summary>
         /// Adds a tessellation control shader module to the program.
         /// </summary>
         /// <param name="fileName">The file name of the module.</param>

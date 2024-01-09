@@ -316,6 +316,10 @@ struct LITEFX_RENDERING_API fmt::formatter<ShaderStage> : formatter<string_view>
 				names.push_back("Fragment");
 			if ((t & ShaderStage::Compute) == ShaderStage::Compute)
 				names.push_back("Compute");
+			if ((t & ShaderStage::Mesh) == ShaderStage::Mesh)
+				names.push_back("Mesh");
+			if ((t & ShaderStage::Task) == ShaderStage::Task)
+				names.push_back("Task");
 		}
 
 		String name = Join(names, " | ");

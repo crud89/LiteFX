@@ -76,6 +76,10 @@ public:
             shaderStages |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
         if ((m_stages & ShaderStage::Compute) == ShaderStage::Compute)
             shaderStages |= VK_SHADER_STAGE_COMPUTE_BIT;
+        if ((m_stages & ShaderStage::Task) == ShaderStage::Task)
+            shaderStages |= VK_SHADER_STAGE_TASK_BIT_EXT;
+        if ((m_stages & ShaderStage::Mesh) == ShaderStage::Mesh)
+            shaderStages |= VK_SHADER_STAGE_MESH_BIT_EXT;
 
         // Parse descriptor set layouts.
         Array<VkDescriptorSetLayoutBinding> bindings;

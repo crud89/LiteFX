@@ -69,7 +69,7 @@ public:
 
 		Array<VkVertexInputBindingDescription> vertexInputBindings;
 		Array<VkVertexInputAttributeDescription> vertexInputAttributes;
-
+		
 		LITEFX_TRACE(VULKAN_LOG, "Input assembler state: {{ PrimitiveTopology: {0} }}", m_inputAssembler->topology());
 
 		// Set primitive topology.
