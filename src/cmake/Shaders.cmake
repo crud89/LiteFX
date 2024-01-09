@@ -131,7 +131,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
 
     ADD_CUSTOM_COMMAND(TARGET ${target_name} 
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND ${BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=c -fshader-stage=${SHADER_STAGE} -DSPIRV -x hlsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
+      COMMAND ${BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=bin -fshader-stage=${SHADER_STAGE} -DSPIRV -x hlsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
       DEPENDS ${SHADER_SOURCES}
     )
 
@@ -289,7 +289,7 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
 
     ADD_CUSTOM_COMMAND(TARGET ${target_name} 
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-      COMMAND ${BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=c -fshader-stage=${SHADER_STAGE} -DSPIRV -x glsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
+      COMMAND ${BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=bin -fshader-stage=${SHADER_STAGE} -DSPIRV -x glsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
       DEPENDS ${SHADER_SOURCES}
     )
     
@@ -314,7 +314,7 @@ FUNCTION(ADD_SHADER_MODULE module_name)
   #       see: https://microsoft.github.io/DirectX-Specs/d3d/HLSL_ShaderModel6_5.html
 
   IF(${SHADER_LANGUAGE} STREQUAL "GLSL")
-    TARGET_GLSL_SHADER(${module_name} ${SHADER_SOURCE} ${SHADER_COMPILE_AS} ${SHADER_COMPILER} ${SHADER_TYPE} ${SHADER_COMPILE_OPTIONS} ${SHADER_INCLUDES})
+    TARGET_GLSL_SHADERS(${module_name} ${SHADER_SOURCE} ${SHADER_COMPILE_AS} ${SHADER_COMPILER} ${SHADER_TYPE} ${SHADER_COMPILE_OPTIONS} ${SHADER_INCLUDES})
   ELSEIF(${SHADER_LANGUAGE} STREQUAL "HLSL")
     TARGET_HLSL_SHADERS(${module_name} ${SHADER_SOURCE} ${SHADER_SHADER_MODEL} ${SHADER_COMPILE_AS} ${SHADER_COMPILER} ${SHADER_TYPE} ${SHADER_COMPILE_OPTIONS} ${SHADER_INCLUDES})
   ELSE()
