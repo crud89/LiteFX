@@ -97,7 +97,9 @@ private:
 		raiseIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &options12, sizeof(options12)), "Unable to query device extensions.");
 		
 		return 
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
 			options7.MeshShaderTier >= D3D12_MESH_SHADER_TIER_1 &&
+#endif
 			options12.EnhancedBarriersSupported;
 	}
 

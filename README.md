@@ -134,6 +134,7 @@ Within the cache variables, you can override the build options, LiteFX exports. 
 
 - `LITEFX_BUILD_VULKAN_BACKEND` (default: `ON`): builds the Vulkan 🌋 backend (requires [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later to be installed on your system).
 - `LITEFX_BUILD_DX12_BACKEND` (default: `ON`): builds the DirectX 12 ❎ backend.
+- `LITEFX_BUILD_MESH_SHADER_SUPPORT` (default: `OFF`) builds support for mesh shaders and adds the mesh shader example.
 - `LITEFX_BUILD_DEFINE_BUILDERS` (default: `ON`): enables the [builder architecture](https://github.com/crud89/LiteFX/wiki/Builders) for backends.
 - `LITEFX_BUILD_WITH_GLM` (default: `ON`): adds [glm](https://glm.g-truc.net/0.9.9/index.html) converters to math types. †
 - `LITEFX_BUILD_WITH_DIRECTX_MATH` (default: `ON`): adds [DirectX Math](https://github.com/microsoft/DirectXMath) converters to math types. †

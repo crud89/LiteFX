@@ -4381,7 +4381,8 @@ namespace LiteFX::Rendering {
         inline void dispatch(UInt32 x, UInt32 y, UInt32 z) const noexcept {
             this->dispatch({ x,y, z });
         }
-
+        
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         /// <summary>
         /// Executes a mesh shader pipeline.
         /// </summary>
@@ -4397,6 +4398,7 @@ namespace LiteFX::Rendering {
         inline void dispatchMesh(UInt32 x, UInt32 y, UInt32 z) const noexcept {
             this->dispatchMesh({ x, y, z });
         }
+#endif
 
         /// <summary>
         /// Draws a number of vertices from the currently bound vertex buffer.
