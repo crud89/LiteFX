@@ -1,5 +1,6 @@
 #pragma pack_matrix(row_major)
 
+// NOTE: Due to a bug, you can currently only put one variable into the payload when compiling with DXC (see: https://github.com/microsoft/DirectXShaderCompiler/issues/5981).
 struct MeshData
 {
     uint FaceIndex;
