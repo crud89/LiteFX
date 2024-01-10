@@ -83,7 +83,7 @@ void VulkanBuffer::map(const void* const data, size_t size, UInt32 element)
 		throw ArgumentOutOfRangeException("element", 0u, m_impl->m_elements, element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
 
 	size_t alignedSize = size;
-	size_t alignment = this->elementAlignment();
+	size_t alignment = this->alignedElementSize();
 
 	if (alignment > 0)
 		alignedSize = (size + alignment - 1) & ~(alignment - 1);
@@ -109,7 +109,7 @@ void VulkanBuffer::map(void* data, size_t size, UInt32 element, bool write)
 		throw ArgumentOutOfRangeException("element", 0u, m_impl->m_elements, element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
 
 	size_t alignedSize = size;
-	size_t alignment = this->elementAlignment();
+	size_t alignment = this->alignedElementSize();
 
 	if (alignment > 0)
 		alignedSize = (size + alignment - 1) & ~(alignment - 1);
