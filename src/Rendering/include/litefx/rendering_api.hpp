@@ -1612,7 +1612,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <seealso cref="IndirectDispatchBatch" />
     /// <seealso cref="IndirectIndexedBatch" />
-    struct LITEFX_RENDERING_API IndirectBatch {
+    struct LITEFX_RENDERING_API alignas(16) IndirectBatch {
         /// <summary>
         /// The number of vertices of the mesh.
         /// </summary>
@@ -1643,7 +1643,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <seealso cref="IndirectDispatchBatch" />
     /// <seealso cref="IndirectBatch" />
-    struct LITEFX_RENDERING_API IndirectIndexedBatch {
+    struct LITEFX_RENDERING_API alignas(16) IndirectIndexedBatch {
         /// <summary>
         /// The number of indices in the mesh index buffer.
         /// </summary>
@@ -1679,7 +1679,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <seealso cref="IndirectIndexedBatch" />
     /// <seealso cref="IndirectBatch" />
-    struct LITEFX_RENDERING_API IndirectDispatchBatch {
+    struct LITEFX_RENDERING_API alignas(16) IndirectDispatchBatch {
         /// <summary>
         /// The number of threads into x-direction.
         /// </summary>
