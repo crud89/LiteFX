@@ -8,34 +8,44 @@ struct VertexData
 
 struct VertexInput
 {
-    //[[vk::location(0)]] 
     float3 Position : POSITION;
-    
-    //[[vk::location(1)]]
-    float4 Color : COLOR;
 };
 
-struct CameraData
+struct Camera
 {
     float4x4 ViewProjection;
+    float4x4 Projection;
+    float4 Position;
+    float4 Forward;
+    float4 Up;
+    float4 Right;
+    float NearPlane;
+    float FarPlane;
+    float Frustum[4];
 };
 
-struct TransformData
+struct Object
 {
-    float4x4 Model;
+    float4x4 Transform;
+    float4 Color;
+    float BoundingRadius;
+    uint IndexCount;
+    uint FirstIndex;
+    int VertexOffset;
 };
 
-ConstantBuffer<CameraData>    camera    : register(b0, space0);
-ConstantBuffer<TransformData> transform : register(b0, space1);
+ConstantBuffer<Camera>   camera  : register(b0, space0);
+StructuredBuffer<Object> objects : register(t0, space1);
 
-VertexData main(in VertexInput input)
+VertexData main(in VertexInput input, in uint modelId : SV_InstanceID)
 {
     VertexData vertex;
+    Object object = objects.Load(modelId);
     
-    float4 position = mul(float4(input.Position, 1.0), transform.Model);
+    float4 position = mul(float4(input.Position, 1.0), object.Transform);
+    
     vertex.Position = mul(position, camera.ViewProjection);
-    
-    vertex.Color = input.Color;
+    vertex.Color = object.Color;
  
     return vertex;
 }

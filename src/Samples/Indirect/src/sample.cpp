@@ -1,10 +1,13 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
 
+constexpr UInt32 NUM_INSTANCES = 163840u;  // 10 * 128 * 128
+
 enum DescriptorSets : UInt32
 {
-    Constant = 0,                                       // All buffers that are immutable.
-    PerFrame = 1,                                       // All buffers that are updated each frame.
+    PerFrame = 0,
+    Constant = 1,
+    Indirect = 2
 };
 
 const Array<Vertex> vertices =
@@ -17,13 +20,26 @@ const Array<Vertex> vertices =
 
 const Array<UInt16> indices = { 0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3 };
 
-struct CameraBuffer {
+struct alignas(16) CameraBuffer {
     glm::mat4 ViewProjection;
+    glm::mat4 Projection;
+    glm::vec4 Position;
+    glm::vec4 Forward;
+    glm::vec4 Up;
+    glm::vec4 Right;
+    float NearPlane;
+    float FarPlane;
+    float Frustum[4];
 } camera;
 
-struct TransformBuffer {
-    glm::mat4 World;
-} transform;
+struct alignas(16) ObjectBuffer {
+    glm::mat4 Transform;
+    glm::vec4 Color;
+    float BoundingRadius;
+    UInt32 IndexCount;
+    UInt32 FirstIndex;
+    int VertexOffset;
+} objects[NUM_INSTANCES];
 
 template<typename TRenderBackend> requires
     rtti::implements<TRenderBackend, IRenderBackend>
@@ -31,12 +47,35 @@ struct FileExtensions {
     static const String SHADER;
 };
 
-#ifdef BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
 const String FileExtensions<VulkanBackend>::SHADER = "spv";
-#endif // BUILD_VULKAN_BACKEND
-#ifdef BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
 const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
-#endif // BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
+
+static constexpr inline glm::vec4 normalizePlane(const glm::vec4& plane) {
+    return plane / glm::length(glm::vec3(plane));
+}
+
+static inline void initializeObjects() {
+    std::srand(std::time(nullptr));
+
+    for (UInt32 i{ 0 }; i < NUM_INSTANCES; ++i)
+    {
+        int x = i % 128;
+        int y = (i / 128) % 128;
+        int z = i / 16384;
+
+        auto& instance = objects[i];
+        instance.Transform = glm::translate(glm::identity<glm::mat4>(), glm::vec3(x - 50, y - 50, z - 5) * 2.0f);
+        instance.Color = glm::vec4(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, 1.0f);
+        instance.BoundingRadius = glm::length(glm::vec3(0.5f, 0.5f, 0.5f));
+        instance.FirstIndex = 0;
+        instance.VertexOffset = 0;
+        instance.IndexCount = 12;
+    }
+}
 
 template<typename TRenderBackend> requires
     rtti::implements<TRenderBackend, IRenderBackend>
@@ -44,6 +83,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 {
     using RenderPass = TRenderBackend::render_pass_type;
     using RenderPipeline = TRenderBackend::render_pipeline_type;
+    using ComputePipeline = TRenderBackend::compute_pipeline_type;
     using PipelineLayout = TRenderBackend::pipeline_layout_type;
     using ShaderProgram = TRenderBackend::shader_program_type;
     using InputAssembler = TRenderBackend::input_assembler_type;
@@ -80,13 +120,23 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
             .polygonMode(PolygonMode::Solid)
             .cullMode(CullMode::BackFaces)
             .cullOrder(CullOrder::ClockWise)
-            .lineWidth(1.f))
+            .lineWidth(1.f)
+            .depthState(DepthStencilState::DepthState{ .Operation = CompareOperation::LessEqual }))
         .layout(shaderProgram->reflectPipelineLayout())
         .shaderProgram(shaderProgram);
+
+    // Create culling pre-pass pipeline.
+    SharedPtr<ShaderProgram> cullProgram = device->buildShaderProgram()
+        .withComputeShaderModule("shaders/indirect_cull_cs." + FileExtensions<TRenderBackend>::SHADER);
+
+    UniquePtr<ComputePipeline> cullPipeline = device->buildComputePipeline("Cull")
+        .layout(cullProgram->reflectPipelineLayout())
+        .shaderProgram(cullProgram);
 
     // Add the resources to the device state.
     device->state().add(std::move(renderPass));
     device->state().add(std::move(renderPipeline));
+    device->state().add(std::move(cullPipeline));
 }
 
 void SampleApp::initBuffers(IRenderBackend* backend)
@@ -112,26 +162,46 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
     commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
 
-    // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
-    // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
+    // Initialize the camera buffer.
+    // NOTE: Since we bind the same resource to pipelines of different type (compute and graphics), we need two descriptor sets targeting the same buffers.
+    auto& cullPipeline = m_device->state().pipeline("Cull");
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
-    auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
-    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, BufferUsage::Resource);
-    auto cameraBindings = cameraBindingLayout.allocate({ { .resource = *cameraBuffer } });
-
-    // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
-    this->updateCamera(*commandBuffer, *cameraBuffer);
-
-    // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
-    // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
-    auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, BufferUsage::Dynamic, 3);
-    auto transformBindings = transformBindingLayout.allocateMultiple(3, {
-        { { .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
-        { { .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
-        { { .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
+    auto& cameraCullBindingLayout = cullPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
+    auto& cameraGeometryBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
+    auto cameraBuffer = m_device->factory().createBuffer("Camera Buffer", cameraGeometryBindingLayout, 0, BufferUsage::Dynamic, 3);
+    auto cameraCullBindings = cameraCullBindingLayout.allocateMultiple(3, {
+        { { .resource = *cameraBuffer, .firstElement = 0, .elements = 1 } },
+        { { .resource = *cameraBuffer, .firstElement = 1, .elements = 1 } },
+        { { .resource = *cameraBuffer, .firstElement = 2, .elements = 1 } }
     });
-    
+    auto cameraGeometryBindings = cameraGeometryBindingLayout.allocateMultiple(3, {
+        { { .resource = *cameraBuffer, .firstElement = 0, .elements = 1 } },
+        { { .resource = *cameraBuffer, .firstElement = 1, .elements = 1 } },
+        { { .resource = *cameraBuffer, .firstElement = 2, .elements = 1 } }
+    });
+
+    // Next, we create the objects buffer.
+    auto& objectsCullBindingLayout = cullPipeline.layout()->descriptorSet(DescriptorSets::Constant);
+    auto& objectsGeometryBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
+    auto objectsStagingBuffer = m_device->factory().createBuffer(objectsGeometryBindingLayout, 0, BufferUsage::Staging, sizeof(ObjectBuffer) * NUM_INSTANCES, 1, false);
+    auto objectsBuffer = m_device->factory().createBuffer("Objects Buffer", objectsGeometryBindingLayout, 0, BufferUsage::Resource, sizeof(ObjectBuffer) * NUM_INSTANCES, 1);
+    auto objectsCullBinding = objectsCullBindingLayout.allocate({ { .resource = *objectsBuffer } });
+    auto objectsGeometryBinding = objectsGeometryBindingLayout.allocate({ { .resource = *objectsBuffer } });
+
+    objectsStagingBuffer->map(objects, sizeof(ObjectBuffer) * NUM_INSTANCES);
+    commandBuffer->transfer(asShared(std::move(objectsStagingBuffer)), *objectsBuffer);
+
+    // Create a buffer for recording the indirect draw calls.
+    // NOTE: Reflection cannot determine, that the buffer records indirect commands, so we need to explicitly state the usage.
+    auto& indirectBindingLayout = cullPipeline.layout()->descriptorSet(DescriptorSets::Indirect);
+    auto indirectCounterBuffer = m_device->factory().createBuffer("Indirect Counter", BufferType::Indirect, BufferUsage::Dynamic, sizeof(UInt32), 3, true);
+    auto indirectCommandsBuffer = m_device->factory().createBuffer("Indirect Commands", BufferType::Indirect, BufferUsage::Resource, sizeof(IndirectIndexedBatch) * NUM_INSTANCES, 3, true);
+    auto indirectBindings = indirectBindingLayout.allocateMultiple(3, {
+        { { .resource = *indirectCounterBuffer, .firstElement = 0, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 0, .elements = 1 } },
+        { { .resource = *indirectCounterBuffer, .firstElement = 1, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 1, .elements = 1 } },
+        { { .resource = *indirectCounterBuffer, .firstElement = 2, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 2, .elements = 1 } }
+    });
+
     // End and submit the command buffer.
     m_transferFence = commandBuffer->submit();
     
@@ -139,23 +209,59 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_device->state().add(std::move(vertexBuffer));
     m_device->state().add(std::move(indexBuffer));
     m_device->state().add(std::move(cameraBuffer));
-    m_device->state().add(std::move(transformBuffer));
-    m_device->state().add("Camera Bindings", std::move(cameraBindings));
-    std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Transform Bindings {0}", i++), std::move(binding)); });
+    m_device->state().add(std::move(objectsBuffer));
+    m_device->state().add(std::move(indirectCounterBuffer));
+    m_device->state().add(std::move(indirectCommandsBuffer));
+    m_device->state().add("Objects Cull Bindings", std::move(objectsCullBinding));
+    m_device->state().add("Objects Geometry Bindings", std::move(objectsGeometryBinding));
+    std::ranges::for_each(cameraCullBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Camera Cull Bindings {0}", i++), std::move(binding)); });
+    std::ranges::for_each(cameraGeometryBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Camera Geometry Bindings {0}", i++), std::move(binding)); });
+    std::ranges::for_each(indirectBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Indirect Bindings {0}", i++), std::move(binding)); });
 }
 
-void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
+void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer, UInt32 backBuffer) const
 {
+    //// Store the initial time this method has been called first.
+    //static auto start = std::chrono::high_resolution_clock::now();
+    //auto now = std::chrono::high_resolution_clock::now();
+    //auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+
+    // TODO: Animate.
+    //throw;
+
+    //glm::vec3 position = { -155.f, -145.f, 42.0f };
+    glm::vec3 position = { 1.5f, 1.5f, 1.5f };
+    glm::vec3 target   = { 0.0f, 0.0f, 0.0f };
+    glm::vec3 forward  = glm::normalize(target - position);
+    glm::vec3 right    = glm::normalize(glm::cross({ 0.0f, 0.0f, 1.0f }, forward));
+    glm::vec3 up       = glm::normalize(glm::cross(forward, right));
+    const float nearPlane = 0.0001f, farPlane = 1000.0f;
+
     // Calculate the camera view/projection matrix.
     auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
-    glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
+    glm::mat4 view = glm::lookAt(position, target, up);
+    glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, nearPlane, farPlane);
     camera.ViewProjection = projection * view;
+    camera.Projection = projection;
+    camera.Position = glm::vec4(position, 1.0f);
+    camera.Forward = glm::vec4(forward, 1.0f);
+    camera.Up = glm::vec4(up, 1.0f);
+    camera.Right = glm::vec4(right, 1.0f);
+    camera.NearPlane = nearPlane;
+    camera.FarPlane = farPlane;
+    
+    // Compute frustum side planes.
+    auto projectionTransposed = glm::transpose(projection);
+    glm::vec4 frustumX = ::normalizePlane(projectionTransposed[3] + projectionTransposed[0]);
+    glm::vec4 frustumY = ::normalizePlane(projectionTransposed[3] + projectionTransposed[1]);
+
+    camera.Frustum[0] = frustumX.x;
+    camera.Frustum[1] = frustumX.z;
+    camera.Frustum[2] = frustumY.y;
+    camera.Frustum[3] = frustumY.z;
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
-    auto cameraStagingBuffer = m_device->factory().createBuffer(m_device->state().pipeline("Geometry"), DescriptorSets::Constant, 0, BufferUsage::Staging);
-    cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    commandBuffer.transfer(asShared(std::move(cameraStagingBuffer)), buffer);
+    buffer.map(reinterpret_cast<const void*>(&camera), sizeof(camera), backBuffer);
 }
 
 void SampleApp::onStartup()
@@ -189,6 +295,9 @@ void SampleApp::onInit()
         auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
         app->keyDown(key, scancode, action, mods);
     });
+
+    // Initialize objects.
+    ::initializeObjects();
 
     // Create a callback for backend startup and shutdown.
     auto startCallback = [this]<typename TBackend>(TBackend * backend) {
@@ -224,20 +333,20 @@ void SampleApp::onInit()
         backend->releaseDevice("Default");
     };
 
-#ifdef BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
     // Register the Vulkan backend de-/initializer.
     this->onBackendStart<VulkanBackend>(startCallback);
     this->onBackendStop<VulkanBackend>(stopCallback);
-#endif // BUILD_VULKAN_BACKEND
+#endif // LITEFX_BUILD_VULKAN_BACKEND
 
-#ifdef BUILD_DIRECTX_12_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
     // We do not need to provide a root signature for shader reflection (refer to the project wiki for more information: https://github.com/crud89/LiteFX/wiki/Shader-Development).
     DirectX12ShaderProgram::suppressMissingRootSignatureWarning();
 
     // Register the DirectX 12 backend de-/initializer.
     this->onBackendStart<DirectX12Backend>(startCallback);
     this->onBackendStop<DirectX12Backend>(stopCallback);
-#endif // BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 }
 
 void SampleApp::onResize(const void* sender, ResizeEventArgs e)
@@ -258,25 +367,19 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
     m_scissor->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
-
-    // Also update the camera.
-    auto& cameraBuffer = m_device->state().buffer("Camera");
-    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
-    this->updateCamera(*commandBuffer, cameraBuffer);
-    m_transferFence = commandBuffer->submit();
 }
 
 void SampleApp::keyDown(int key, int scancode, int action, int mods)
 {
-#ifdef BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
     if (key == GLFW_KEY_F9 && action == GLFW_PRESS)
         this->startBackend<VulkanBackend>();
-#endif // BUILD_VULKAN_BACKEND
+#endif // LITEFX_BUILD_VULKAN_BACKEND
 
-#ifdef BUILD_DIRECTX_12_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
     if (key == GLFW_KEY_F10 && action == GLFW_PRESS)
         this->startBackend<DirectX12Backend>();
-#endif // BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
     if (key == GLFW_KEY_F8 && action == GLFW_PRESS)
     {
@@ -356,23 +459,50 @@ void SampleApp::handleEvents()
 
 void SampleApp::drawFrame()
 {
-    // Store the initial time this method has been called first.
-    static auto start = std::chrono::high_resolution_clock::now();
-
     // Swap the back buffers for the next frame.
     auto backBuffer = m_device->swapChain().swapBackBuffer();
 
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
     auto& renderPass = m_device->state().renderPass("Opaque");
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
-    auto& transformBuffer = m_device->state().buffer("Transform");
-    auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
-    auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer));
+    auto& cullPipeline = m_device->state().pipeline("Cull");
+    auto& cameraBuffer = m_device->state().buffer("Camera Buffer");
+    auto& cameraGeometryBindings = m_device->state().descriptorSet(fmt::format("Camera Geometry Bindings {0}", backBuffer));
+    auto& cameraCullBindings = m_device->state().descriptorSet(fmt::format("Camera Cull Bindings {0}", backBuffer));
+    auto& indirectCounterBuffer = m_device->state().buffer("Indirect Counter");
+    auto& indirectCommandsBuffer = m_device->state().buffer("Indirect Commands");
+    auto& indirectBindings = m_device->state().descriptorSet(fmt::format("Indirect Bindings {0}", backBuffer));
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
+    auto& objectsGeometryBindings = m_device->state().descriptorSet("Objects Geometry Bindings");
+    auto& objectsCullBindings = m_device->state().descriptorSet("Objects Cull Bindings");
 
     // Wait for all transfers to finish.
-    renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
+    auto& queue = renderPass.commandQueue();
+    queue.waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
+
+    // Create a command buffer to execute the cull pass on.
+    auto cullCommands = queue.createCommandBuffer(true);
+
+    // Start by updating the camera.
+    this->updateCamera(*cullCommands, cameraBuffer, backBuffer);
+
+    // Clear the counter.
+    static const UInt32 zero = 0u;
+    indirectCounterBuffer.map(&zero, sizeof(UInt32), backBuffer);
+
+    // Bind cull pipeline and all descriptor sets.
+    cullCommands->use(cullPipeline);
+    cullCommands->bind(cameraCullBindings);
+    cullCommands->bind(objectsCullBindings);
+    cullCommands->bind(indirectBindings);
+
+    // Dispatch cull pass.
+    cullCommands->dispatch({ NUM_INSTANCES / 128, 1, 1 });
+    //cullCommands->dispatch({ 1, 1, 1 });
+
+    // Submit the cull pass commands.
+    queue.submit(cullCommands);
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     renderPass.begin(backBuffer);
@@ -381,23 +511,15 @@ void SampleApp::drawFrame()
     commandBuffer->setViewports(m_viewport.get());
     commandBuffer->setScissors(m_scissor.get());
 
-    // Get the amount of time that has passed since the first frame.
-    auto now = std::chrono::high_resolution_clock::now();
-    auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
-
-    // Compute world transform and update the transform buffer.
-    transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
-
     // Bind both descriptor sets to the pipeline.
-    commandBuffer->bind(cameraBindings);
-    commandBuffer->bind(transformBindings);
+    commandBuffer->bind(cameraGeometryBindings);
+    commandBuffer->bind(objectsGeometryBindings);
 
     // Bind the vertex and index buffers.
     commandBuffer->bind(vertexBuffer);
     commandBuffer->bind(indexBuffer);
 
     // Draw the object and present the frame by ending the render pass.
-    commandBuffer->drawIndexed(indexBuffer.elements());
+    commandBuffer->drawIndexedIndirect(indirectCommandsBuffer, indirectCounterBuffer, backBuffer * indirectCommandsBuffer.alignedElementSize(), backBuffer * indirectCounterBuffer.alignedElementSize());
     renderPass.end();
 }

@@ -15,7 +15,7 @@
 
 #include "config.h"
 
-#ifdef BUILD_EXAMPLES_RENDERDOC_LOADER
+#ifdef LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER
 #include <renderdoc_app.h>
 
 extern RENDERDOC_API_1_5_0* renderDoc;
@@ -97,7 +97,7 @@ private:
 	/// <summary>
 	/// Updates the camera buffer. This needs to be done whenever the frame buffer changes, since we need to pass changes in the aspect ratio to the view/projection matrix.
 	/// </summary>
-	void updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const;
+	void updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer, UInt32 backBuffer) const;
 
 private:
 	void onInit();
