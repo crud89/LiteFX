@@ -3023,6 +3023,12 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns><c>true</c>, if the resource can be bound to a read/write descriptor.</returns>
         virtual bool writable() const noexcept = 0;
+
+        /// <summary>
+        /// Gets
+        /// </summary>
+        /// <returns></returns>
+        virtual UInt64 virtualAddress() const noexcept = 0;
     };
 
     /// <summary>

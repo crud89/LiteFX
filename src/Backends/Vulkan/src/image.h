@@ -40,6 +40,9 @@ namespace LiteFX::Rendering::Backends {
 		bool writable() const noexcept override;
 
 		/// <inheritdoc />
+		UInt64 virtualAddress() const noexcept override;
+
+		/// <inheritdoc />
 		ImageLayout layout(UInt32 subresource = 0) const override;
 
 		/// <inheritdoc />

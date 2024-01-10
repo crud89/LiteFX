@@ -25,6 +25,8 @@ public:
 		allocatorInfo.physicalDevice = device.adapter().handle();
 		allocatorInfo.instance = device.surface().instance();
 		allocatorInfo.device = device.handle();
+		allocatorInfo.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_3;
 
 		raiseIfFailed(::vmaCreateAllocator(&allocatorInfo, &m_allocator), "Unable to create Vulkan memory allocator.");
 	}
@@ -55,7 +57,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(BufferType type, Bu
 UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-	VkBufferUsageFlags usageFlags = {};
+	VkBufferUsageFlags usageFlags = { VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT };
 
 	size_t alignedSize = static_cast<size_t>(elementSize);
 	size_t alignment = 0;
@@ -118,7 +120,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
-	buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, allowWrite, m_impl->m_allocator, bufferInfo, allocInfo);
+	buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, allowWrite, m_impl->m_device, m_impl->m_allocator, bufferInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())
@@ -138,7 +140,7 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = layout.elementSize() * elements;
 
-	VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
 
 	switch (usage)
 	{
@@ -167,7 +169,7 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
-	buffer = VulkanVertexBuffer::allocate(name, layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	buffer = VulkanVertexBuffer::allocate(name, layout, elements, m_impl->m_device, m_impl->m_allocator, bufferInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())
@@ -187,7 +189,7 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = layout.elementSize() * elements;
 
-	VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+	VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
 
 	switch (usage)
 	{
@@ -219,7 +221,7 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
-	buffer = VulkanIndexBuffer::allocate(name, layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	buffer = VulkanIndexBuffer::allocate(name, layout, elements, m_impl->m_device, m_impl->m_allocator, bufferInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())

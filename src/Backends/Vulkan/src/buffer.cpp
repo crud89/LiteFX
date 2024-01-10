@@ -17,10 +17,11 @@ private:
 	VmaAllocator m_allocator;
 	VmaAllocation m_allocation;
 	bool m_writable;
+	const VulkanDevice& m_device;
 
 public:
-	VulkanBufferImpl(VulkanBuffer* parent, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, bool writable, const VmaAllocator& allocator, const VmaAllocation& allocation) :
-		base(parent), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_writable(writable), m_allocator(allocator), m_allocation(allocation)
+	VulkanBufferImpl(VulkanBuffer* parent, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, bool writable, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation) :
+		base(parent), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_writable(writable), m_allocator(allocator), m_allocation(allocation), m_device(device)
 	{
 	}
 };
@@ -29,8 +30,8 @@ public:
 // Buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, bool writable, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
-	m_impl(makePimpl<VulkanBufferImpl>(this, type, elements, elementSize, alignment, writable, allocator, allocation)), Resource<VkBuffer>(buffer)
+VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, bool writable, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
+	m_impl(makePimpl<VulkanBufferImpl>(this, type, elements, elementSize, alignment, writable, device, allocator, allocation)), Resource<VkBuffer>(buffer)
 {
 	if (!name.empty())
 		this->name() = name;
@@ -75,6 +76,16 @@ size_t VulkanBuffer::alignedElementSize() const noexcept
 bool VulkanBuffer::writable() const noexcept
 {
 	return m_impl->m_writable;
+}
+
+UInt64 VulkanBuffer::virtualAddress() const noexcept
+{
+	VkBufferDeviceAddressInfo info = {
+		.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+		.buffer = this->handle()
+	};
+
+	return static_cast<UInt64>(::vkGetBufferDeviceAddress(m_impl->m_device.handle(), &info));
 }
 
 void VulkanBuffer::map(const void* const data, size_t size, UInt32 element)
@@ -131,12 +142,12 @@ void VulkanBuffer::map(Span<void*> data, size_t elementSize, UInt32 firstElement
 	std::ranges::for_each(data, [this, &elementSize, &write, i = firstElement](void* mem) mutable { this->map(mem, elementSize, i++, write); });
 }
 
-UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, bool writable, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, bool writable, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
-	return VulkanBuffer::allocate("", type, elements, elementSize, alignment, writable, allocator, createInfo, allocationInfo, allocationResult);
+	return VulkanBuffer::allocate("", type, elements, elementSize, alignment, writable, device, allocator, createInfo, allocationInfo, allocationResult);
 }
 
-UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, bool writable, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, bool writable, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkBuffer buffer;
 	VmaAllocation allocation;
@@ -144,7 +155,7 @@ UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, BufferType t
 	raiseIfFailed(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate buffer.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Writable: {5} }}", name.empty() ? fmt::to_string(fmt::ptr(reinterpret_cast<void*>(buffer))) : name, type, elements, elementSize, elements * elementSize, writable);
 
-	return makeUnique<VulkanBuffer>(buffer, type, elements, elementSize, alignment, writable, allocator, allocation, name);
+	return makeUnique<VulkanBuffer>(buffer, type, elements, elementSize, alignment, writable, device, allocator, allocation, name);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -169,8 +180,8 @@ public:
 // Vertex buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanVertexBuffer::VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, UInt32 elements, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
-	m_impl(makePimpl<VulkanVertexBufferImpl>(this, layout)), VulkanBuffer(buffer, BufferType::Vertex, elements, layout.elementSize(), 0, false, allocator, allocation, name)
+VulkanVertexBuffer::VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, UInt32 elements, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
+	m_impl(makePimpl<VulkanVertexBufferImpl>(this, layout)), VulkanBuffer(buffer, BufferType::Vertex, elements, layout.elementSize(), 0, false, device, allocator, allocation, name)
 {
 }
 
@@ -181,12 +192,12 @@ const VulkanVertexBufferLayout& VulkanVertexBuffer::layout() const noexcept
 	return m_impl->m_layout;
 }
 
-UniquePtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const VulkanVertexBufferLayout& layout, UInt32 elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const VulkanVertexBufferLayout& layout, UInt32 elements, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
-	return VulkanVertexBuffer::allocate("", layout, elements, allocator, createInfo, allocationInfo, allocationResult);
+	return VulkanVertexBuffer::allocate("", layout, elements, device, allocator, createInfo, allocationInfo, allocationResult);
 }
 
-UniquePtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const String& name, const VulkanVertexBufferLayout& layout, UInt32 elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const String& name, const VulkanVertexBufferLayout& layout, UInt32 elements, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkBuffer buffer;
 	VmaAllocation allocation;
@@ -194,7 +205,7 @@ UniquePtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const String& name, 
 	raiseIfFailed(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate vertex buffer.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", name.empty() ? fmt::to_string(fmt::ptr(reinterpret_cast<void*>(buffer))) : name, BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements);
 
-	return makeUnique<VulkanVertexBuffer>(buffer, layout, elements, allocator, allocation, name);
+	return makeUnique<VulkanVertexBuffer>(buffer, layout, elements, device, allocator, allocation, name);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -219,8 +230,8 @@ public:
 // Index buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanIndexBuffer::VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, UInt32 elements, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
-	m_impl(makePimpl<VulkanIndexBufferImpl>(this, layout)), VulkanBuffer(buffer, BufferType::Index, elements, layout.elementSize(), 0, false, allocator, allocation, name)
+VulkanIndexBuffer::VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, UInt32 elements, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
+	m_impl(makePimpl<VulkanIndexBufferImpl>(this, layout)), VulkanBuffer(buffer, BufferType::Index, elements, layout.elementSize(), 0, false, device, allocator, allocation, name)
 {
 }
 
@@ -231,12 +242,12 @@ const VulkanIndexBufferLayout& VulkanIndexBuffer::layout() const noexcept
 	return m_impl->m_layout;
 }
 
-UniquePtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const VulkanIndexBufferLayout& layout, UInt32 elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const VulkanIndexBufferLayout& layout, UInt32 elements, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
-	return VulkanIndexBuffer::allocate("", layout, elements, allocator, createInfo, allocationInfo, allocationResult);
+	return VulkanIndexBuffer::allocate("", layout, elements, device, allocator, createInfo, allocationInfo, allocationResult);
 }
 
-UniquePtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const String& name, const VulkanIndexBufferLayout& layout, UInt32 elements, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const String& name, const VulkanIndexBufferLayout& layout, UInt32 elements, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkBuffer buffer;
 	VmaAllocation allocation;
@@ -244,5 +255,5 @@ UniquePtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const String& name, co
 	raiseIfFailed(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate index buffer.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", name.empty() ? fmt::to_string(fmt::ptr(reinterpret_cast<void*>(buffer))) : name, BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements);
 
-	return makeUnique<VulkanIndexBuffer>(buffer, layout, elements, allocator, allocation, name);
+	return makeUnique<VulkanIndexBuffer>(buffer, layout, elements, device, allocator, allocation, name);
 }

@@ -99,6 +99,11 @@ bool DirectX12Image::writable() const noexcept
 	return m_impl->m_writable;
 }
 
+UInt64 DirectX12Image::virtualAddress() const noexcept
+{
+	return static_cast<UInt64>(this->handle()->GetGPUVirtualAddress());
+}
+
 ImageLayout DirectX12Image::layout(UInt32 subresource) const
 {
 	if (subresource >= m_impl->m_layouts.size()) [[unlikely]]

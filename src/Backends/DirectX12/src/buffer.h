@@ -53,6 +53,9 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		bool writable() const noexcept override;
 
+		/// <inheritdoc />
+		UInt64 virtualAddress() const noexcept override;
+
 		// IMappable interface.
 	public:
 		/// <inheritdoc />

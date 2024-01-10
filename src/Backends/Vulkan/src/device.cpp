@@ -307,7 +307,8 @@ public:
             .runtimeDescriptorArray = true,
             .separateDepthStencilLayouts = true,
             .hostQueryReset = true,
-            .timelineSemaphore = true
+            .timelineSemaphore = true,
+            .bufferDeviceAddress = true
         };
 
         // Enable extended dynamic state.

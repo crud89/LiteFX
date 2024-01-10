@@ -81,6 +81,11 @@ bool DirectX12Buffer::writable() const noexcept
 	return m_impl->m_writable;
 }
 
+UInt64 DirectX12Buffer::virtualAddress() const noexcept
+{
+	return this->handle()->GetGPUVirtualAddress();
+}
+
 void DirectX12Buffer::map(const void* const data, size_t size, UInt32 element)
 {
 	if (element >= m_impl->m_elements) [[unlikely]]

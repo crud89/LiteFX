@@ -158,6 +158,14 @@ bool VulkanImage::writable() const noexcept
 	return m_impl->m_writable;
 }
 
+UInt64 VulkanImage::virtualAddress() const noexcept
+{
+	// NOTE: There is a vendor-specific extension to support this but for the time being, we simply warn (https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/vkGetImageViewAddressNVX.html).
+	LITEFX_WARNING(VULKAN_LOG, "Vulkan does not allow to query virtual addresses of images.");
+
+	return 0ul;
+}
+
 ImageLayout VulkanImage::layout(UInt32 subresource) const
 {
 	if (subresource >= m_impl->m_layouts.size()) [[unlikely]]
