@@ -434,7 +434,7 @@ void VulkanCommandBuffer::dispatchIndirect(const IVulkanBuffer& batchBuffer, UIn
 
 void VulkanCommandBuffer::dispatchIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
 {
-	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, batchBuffer.elements(), sizeof(IndirectDispatchBatch));
+	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, batchBuffer.alignedElementSize() / sizeof(IndirectDispatchBatch), sizeof(IndirectDispatchBatch));
 }
 
 #ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
@@ -456,7 +456,7 @@ void VulkanCommandBuffer::drawIndirect(const IVulkanBuffer& batchBuffer, UInt32 
 
 void VulkanCommandBuffer::drawIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
 {
-	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, batchBuffer.elements(), sizeof(IndirectBatch));
+	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, batchBuffer.alignedElementSize() / sizeof(IndirectBatch), sizeof(IndirectBatch));
 }
 
 void VulkanCommandBuffer::drawIndexed(UInt32 indices, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const noexcept
@@ -471,7 +471,7 @@ void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer& batchBuffer, 
 
 void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
 {
-	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, batchBuffer.elements(), sizeof(IndirectIndexedBatch));
+	::vkCmdDrawIndexedIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, batchBuffer.alignedElementSize() / sizeof(IndirectIndexedBatch), sizeof(IndirectIndexedBatch));
 }
 
 void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept
