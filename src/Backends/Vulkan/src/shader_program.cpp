@@ -152,6 +152,7 @@ public:
 
                     switch (descriptor->descriptor_type)
                     {
+                    default:                                                    throw RuntimeException("Unknown or unsupported descriptor type detected in shader.");
                     case SPV_REFLECT_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:    throw RuntimeException("The shader exposes a combined image samplers, which is currently not supported.");
                     case SPV_REFLECT_TYPE_FLAG_EXTERNAL_ACCELERATION_STRUCTURE: throw RuntimeException("The shader exposes an acceleration structure, which is currently not supported.");
                     case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
@@ -167,29 +168,17 @@ public:
                     {
                         // NOTE: Storage buffers need special care here. For more information see: 
                         //       https://github.com/microsoft/DirectXShaderCompiler/blob/main/docs/SPIR-V.rst#constant-texture-structured-byte-buffers.
+                        //       Structured buffers and byte address buffers all translate into storage buffers, which in Vulkan terms only differ in how they are bound. We still try to approximate 
+                        //       which buffer type was used for compilation, but at least for how Vulkan is concerned it does not matter anyway.
                         // TODO: There's also  `TextureBuffer`/`tbuffer`, that lands here. But how does it relate to texel buffers?
-                        // TODO: `AppendStructuredBuffer`/`ConsumeStructuredBuffer` implicitly define an additional counter variable, where this gets invoked twice. Counted resources are currently 
-                        //       unsupported, so two separate descriptors are exposed in this case, Both of them are of the same type `StructuredBuffer`/`RWStructuredBuffer`. The second one should
-                        //       only contain a 4 byte counter integer. Counter variable association requires an extension. More info: 
-                        //       https://github.com/microsoft/DirectXShaderCompiler/blob/main/docs/SPIR-V.rst#counter-buffers-for-rw-append-consume-structuredbuffer.
                         
                         // All buffers should have at least one member that stores the type info about the contained type. Descriptor arrays are of type `SpvOpTypeRuntimeArray`. To differentiate
                         // between `ByteAddressBuffer` and `StructuredBuffer`, we check the type flags of the first member. If it identifies an array of DWORDs, we treat the descriptor as 
                         // `ByteAddressBuffer`, though it could be a flavor of `StructuredBuffer<int>`. This is conceptually identical, so it ultimately makes no difference.
-                        if (descriptor->type_description->op != SpvOp::SpvOpTypeRuntimeArray)
-                        {
-                            if ((descriptor->type_description->members[0].type_flags & (SPV_REFLECT_TYPE_FLAG_ARRAY | SPV_REFLECT_TYPE_FLAG_INT)) != 0)
-                                type = descriptor->resource_type == SPV_REFLECT_RESOURCE_FLAG_SRV ? DescriptorType::ByteAddressBuffer : DescriptorType::RWByteAddressBuffer;
-                            else
-                                type = descriptor->resource_type == SPV_REFLECT_RESOURCE_FLAG_SRV ? DescriptorType::StructuredBuffer : DescriptorType::RWStructuredBuffer;
-                        }
+                        if ((descriptor->type_description->members[0].type_flags & SPV_REFLECT_TYPE_FLAG_STRUCT) == SPV_REFLECT_TYPE_FLAG_STRUCT)
+                            type = (descriptor->resource_type & SPV_REFLECT_RESOURCE_FLAG_SRV) == SPV_REFLECT_RESOURCE_FLAG_SRV ? DescriptorType::StructuredBuffer : DescriptorType::RWStructuredBuffer;
                         else
-                        {
-                            if ((descriptor->type_description->members[0].type_flags & (SPV_REFLECT_TYPE_FLAG_ARRAY | SPV_REFLECT_TYPE_FLAG_INT)) != 0)
-                                type = descriptor->resource_type == SPV_REFLECT_RESOURCE_FLAG_SRV ? DescriptorType::ByteAddressBuffer : DescriptorType::RWByteAddressBuffer;
-                            else // Assume SPV_REFLECT_RESOURCE_FLAG_SRV resource type, since UAV arrays are not allowed.
-                                type = DescriptorType::StructuredBuffer;
-                        }
+                            type = (descriptor->resource_type & SPV_REFLECT_RESOURCE_FLAG_SRV) == SPV_REFLECT_RESOURCE_FLAG_SRV ? DescriptorType::ByteAddressBuffer : DescriptorType::RWByteAddressBuffer;
 
                         break;
                     }
@@ -197,7 +186,7 @@ public:
 
                     // Count the array elements.
                     // NOTE: Actually there is a difference between declaring a descriptor an array (e.g. `StructuredBuffer<T> buffers[10]`) and declaring an array of descriptors 
-                    //       (e.g. `StructuredBuffer<T> buffers[10]`). The first variant only takes up a single descriptor, to which a buffer array can be bound. The second variant describes an 
+                    //       (e.g. `StructuredBuffer<T> buffers[]`). The first variant only takes up a single descriptor, to which a buffer array can be bound. The second variant describes an 
                     //       variable-sized array of descriptors (aka runtime array). In the engine we treat both identically. A runtime array is defined as a descriptor with 0xFFFFFFFF elements.
                     //       Theoretically, we could bind a buffer array to an descriptor within a descriptor array, which is currently an unsupported use case. In the future, we might want to have
                     //       a separate descriptor flag for descriptor arrays and array descriptors and also provide methods to bind them both.
