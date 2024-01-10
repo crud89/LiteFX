@@ -62,13 +62,13 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 
 	switch (type)
 	{
-	case BufferType::Vertex:  
+	case BufferType::Vertex:
 		usageFlags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;  
 		break;
-	case BufferType::Index:   
+	case BufferType::Index:
 		usageFlags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;   
 		break;
-	case BufferType::Uniform: 
+	case BufferType::Uniform:
 		usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 		alignment = m_impl->m_device.adapter().limits().minUniformBufferOffsetAlignment;
 		break;
@@ -83,6 +83,10 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 			usageFlags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
 
 		alignment = m_impl->m_device.adapter().limits().minTexelBufferOffsetAlignment;
+		break;
+	case BufferType::Indirect:
+		usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+		alignment = m_impl->m_device.adapter().limits().minStorageBufferOffsetAlignment;
 		break;
 	}
 
