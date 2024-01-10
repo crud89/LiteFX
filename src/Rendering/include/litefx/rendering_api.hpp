@@ -3233,6 +3233,291 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// The interface for a vertex buffer.
+    /// </summary>
+    class LITEFX_RENDERING_API IVertexBuffer : public virtual IBuffer {
+    public:
+        virtual ~IVertexBuffer() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Gets the layout of the vertex buffer.
+        /// </summary>
+        /// <returns>The layout of the vertex buffer.</returns>
+        virtual const IVertexBufferLayout& layout() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// The interface for an index buffer.
+    /// </summary>
+    class LITEFX_RENDERING_API IIndexBuffer : public virtual IBuffer {
+    public:
+        virtual ~IIndexBuffer() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Gets the layout of the index buffer.
+        /// </summary>
+        /// <returns>The layout of the index buffer.</returns>
+        virtual const IIndexBufferLayout& layout() const noexcept = 0;
+    };
+
+#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
+
+    class LITEFX_RENDERING_API IAccelerationStructure {
+    public:
+        virtual ~IAccelerationStructure() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Computes the sizes required for the acceleration structure buffers.
+        /// </summary>
+        /// <remarks>
+        /// Acceleration structures are built on the GPU, which requires additional memory called *scratch memory*. When creating an acceleration structure (AS), you have to 
+        /// provide a temporary buffer containing the scratch memory, alongside the actual buffer that stores the AS itself. This method can be used to precompute the buffer
+        /// sizes for both buffers.
+        /// </remarks>
+        /// <param name="bufferSize">The size of the acceleration structure buffer.</param>
+        /// <param name="scatchSize">The size of the scratch memory buffer.</param>
+        virtual void computeBufferSizes(UInt64& bufferSize, UInt64& scatchSize) const = 0;
+    };
+
+    /// <summary>
+    /// A structure that holds a singular entity of geometry for hardware ray-tracing.
+    /// </summary>
+    /// <remarks>
+    /// Bottom-level acceleration structures descripe actual pieces of geometry (sets oftriangular meshes and/or axis-aligned bounding boxes for procedural geometry). They
+    /// can best be thought of entities in terms of a scene graph, whilst <see cref="ITopLevelAccelerationStructure" />s represent their respective *instances*. For example,
+    /// a top-level acceleration structure (TLAS) would store the world transform of the object itself, which can be placed multiple times in the scene with different 
+    /// transforms each time. Each TLAS points to a bottom-level acceleration structure (BLAS), that contains the actual geometry, consiting of multiple meshes that are all
+    /// transformed relative to the TLAS transform.
+    /// </remarks>
+    /// <seealso cref="TriangleMesh" />
+    /// <seealso cref="AxisAlignedBoundingBox" />
+    /// <seealso cref="ITopLevelAccelerationStructure" />
+    class LITEFX_RENDERING_API IBottomLevelAccelerationStructure : public IAccelerationStructure {
+    public:
+        /// <summary>
+        /// Represents a triangle mesh.
+        /// </summary>
+        struct TriangleMesh final {
+        public:
+            /// <summary>
+            /// Initializes a new triangle mesh.
+            /// </summary>
+            /// <param name="vertexBuffer">The vertex buffer that stores the mesh vertices.</param>
+            /// <param name="indexBuffer">The index buffer that stores the mesh indices.</param>
+            /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
+            TriangleMesh(SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr) :
+                VertexBuffer(vertexBuffer), IndexBuffer(indexBuffer), TransformBuffer(transformBuffer) { 
+                if (vertexBuffer == nullptr) [[unlikely]]
+                    throw ArgumentNotInitializedException("vertexBuffer", "The vertex buffer must be initialized.");
+            }
+
+            /// <summary>
+            /// Initializes a new triangle mesh by copying another one.
+            /// </summary>
+            /// <param name="other">The triangle mesh to copy.</param>
+            TriangleMesh(const TriangleMesh& other) noexcept :
+                VertexBuffer(other.VertexBuffer), IndexBuffer(other.IndexBuffer), TransformBuffer(other.TransformBuffer) { }
+
+            /// <summary>
+            /// Initializes a new triangle mesh by taking over another one.
+            /// </summary>
+            /// <param name="other">The triangle mesh to take over.</param>
+            TriangleMesh(TriangleMesh&& other) noexcept :
+                VertexBuffer(std::move(other.VertexBuffer)), IndexBuffer(std::move(other.IndexBuffer)), TransformBuffer(std::move(other.TransformBuffer)) { }
+
+            /// <summary>
+            /// Releases the triangle mesh.
+            /// </summary>
+            ~TriangleMesh() noexcept = default;
+
+            /// <summary>
+            /// Copies another triangle mesh.
+            /// </summary>
+            /// <param name="other">The triangle mesh to copy.</param>
+            /// <returns>A reference to the current triangle mesh instance.</returns>
+            TriangleMesh& operator=(const TriangleMesh& other) {
+                this->VertexBuffer = other.VertexBuffer;
+                this->IndexBuffer = other.IndexBuffer;
+                this->TransformBuffer = other.TransformBuffer;
+                return *this;
+            }
+
+            /// <summary>
+            /// Takes over another triangle mesh.
+            /// </summary>
+            /// <param name="other">The triangle mesh to take over.</param>
+            /// <returns>A reference to the current triangle mesh instance.</returns>
+            TriangleMesh& operator=(TriangleMesh&& other) {
+                this->VertexBuffer = std::move(other.VertexBuffer);
+                this->IndexBuffer = std::move(other.IndexBuffer);
+                this->TransformBuffer = std::move(other.TransformBuffer);
+                return *this;
+            }
+
+        public:
+            /// <summary>
+            /// The vertex buffer that stores the mesh vertices.
+            /// </summary>
+            SharedPtr<const IVertexBuffer> VertexBuffer;
+
+            /// <summary>
+            /// The index buffer that stores the mesh indices.
+            /// </summary>
+            SharedPtr<const IIndexBuffer> IndexBuffer;
+
+            /// <summary>
+            /// A buffer that stores a row-major 3x4 transformation matrix applied to the vertex buffer when building the BLAS.
+            /// </summary>
+            /// <remarks>
+            /// If the transform is not set, the vertices are not further transformed, which can improve building performance.
+            /// </remarks>
+            SharedPtr<const IBuffer> TransformBuffer;
+        };
+
+        /// <summary>
+        /// Represents an axis-aligned bounding box.
+        /// </summary>
+        struct BoundingBox final {
+            /// <summary>
+            /// The lower edge of the AABB.
+            /// </summary>
+            Vector3f Minimum;
+
+            /// <summary>
+            /// The upper edge of the AABB.
+            /// </summary>
+            Vector3f Maximum;
+        };
+
+    public:
+        virtual ~IBottomLevelAccelerationStructure() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns an array of triangle meshes contained by the BLAS.
+        /// </summary>
+        /// <returns>The array of triangle meshes contained by the BLAS.</returns>
+        virtual const Array<TriangleMesh>& triangleMeshes() const noexcept = 0;
+
+        /// <summary>
+        /// Adds a triangle mesh to the BLAS.
+        /// </summary>
+        /// <param name="mesh">The triangle mesh to add to the BLAS.</param>
+        virtual void addTriangleMesh(const TriangleMesh& mesh) = 0;
+
+        /// <summary>
+        /// Returns an array of axis-aligned bounding boxes contained by the BLAS.
+        /// </summary>
+        /// <returns>The array of axis-aligned bounding boxes contained by the BLAS.</returns>
+        virtual const Array<BoundingBox>& boundingBoxes() const noexcept = 0;
+
+        /// <summary>
+        /// Adds an axis-aligned bounding box to the BLAS.
+        /// </summary>
+        /// <param name="aabb">The bounding box to add to the BLAS.</param>
+        virtual void addBoundingBox(const BoundingBox& aabb) = 0;
+
+        /// <summary>
+        /// Removes all meshes and/or bounding boxes from the BLAS.
+        /// </summary>
+        /// <param name="meshes">If set to `true`, all meshes will be removed from the BLAS.</param>
+        /// <param name="boundingBoxes">If set to `true`, all bounding boxes will be removed from the BLAS.</param>
+        virtual void clear(bool meshes = true, bool boundingBoxes = true) = 0;
+
+    public:
+        /// <summary>
+        /// Adds a triangle mesh to the BLAS.
+        /// </summary>
+        /// <param name="mesh">The triangle mesh to add to the BLAS.</param>
+        /// <returns>A reference to the current BLAS.</returns>
+        template <typename TSelf>
+        inline auto withTriangleMesh(this TSelf&& self, const TriangleMesh& mesh) -> TSelf& {
+            self.addTriangleMesh(mesh);
+            return self;
+        }
+
+        /// <summary>
+        /// Adds an axis-aligned bounding box to the BLAS.
+        /// </summary>
+        /// <param name="aabb">The bounding box to add to the BLAS.</param>
+        /// <returns>A reference to the current BLAS.</returns>
+        template <typename TSelf>
+        inline auto withBoundingBox(this TSelf&& self, const BoundingBox& aabb) -> TSelf& {
+            self.addBoundingBox(aabb);
+            return self;
+        }
+    };
+
+    /// <summary>
+    /// A structure that stores the instance data for a <see cref="IBottomLevelAccelerationStructure" />.
+    /// </summary>
+    /// <seealso cref="IBottomLevelAccelerationStructure" />
+    class LITEFX_RENDERING_API ITopLevelAccelerationStructure : public IAccelerationStructure {
+    public:
+        /// <summary>
+        /// Represents an instance of an <see cref="IBottomLevelAccelerationStructure" />.
+        /// </summary>
+        struct Instance final {
+            /// <summary>
+            /// The BLAS that to be instantiated.
+            /// </summary>
+            SharedPtr<IBottomLevelAccelerationStructure> BottomLevelAccelerationStructure;
+
+            /// <summary>
+            /// The transformation matrix for the instance.
+            /// </summary>
+            //Matrix4f Transform;
+
+            /// <summary>
+            /// The instance ID used in shaders to identify the instance.
+            /// </summary>
+            UInt32 InstanceId;
+
+            /// <summary>
+            /// The index of the hit group shader in the shader binding table.
+            /// </summary>
+            UInt32 HitGroup;
+        };
+    public:
+        virtual ~ITopLevelAccelerationStructure() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns an array of instances in the TLAS.
+        /// </summary>
+        /// <returns>The array of instances in the TLAS.</returns>
+        virtual const Array<Instance>& instances() const noexcept = 0;
+
+        /// <summary>
+        /// Adds an instance to the TLAS.
+        /// </summary>
+        /// <param name="instance">The instance to add to the TLAS.</param>
+        virtual void addInstance(const Instance& instance) = 0;
+
+        /// <summary>
+        /// Removes all instances from the TLAS.
+        /// </summary>
+        virtual void clear() = 0;
+
+    public:
+        /// <summary>
+        /// Adds an instance to the current TLAS.
+        /// </summary>
+        /// <param name="instance">The instance to add to the TLAS.</param>
+        /// <returns>A reference to the current TLAS.</returns>
+        template<typename TSelf>
+        inline auto withInstance(this TSelf&& self, const Instance& instance) -> TSelf& {
+            self.addInstance(instance);
+            return self;
+        }
+    };
+
+#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
+
+    /// <summary>
     /// The interface for a barrier.
     /// </summary>
     /// <remarks>
@@ -3898,36 +4183,6 @@ namespace LiteFX::Rendering {
 
     private:
         virtual Enumerable<const IDescriptorSetLayout*> getDescriptorSets() const noexcept = 0;
-    };
-
-    /// <summary>
-    /// The interface for a vertex buffer.
-    /// </summary>
-    class LITEFX_RENDERING_API IVertexBuffer : public virtual IBuffer {
-    public:
-        virtual ~IVertexBuffer() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Gets the layout of the vertex buffer.
-        /// </summary>
-        /// <returns>The layout of the vertex buffer.</returns>
-        virtual const IVertexBufferLayout& layout() const noexcept = 0;
-    };
-
-    /// <summary>
-    /// The interface for an index buffer.
-    /// </summary>
-    class LITEFX_RENDERING_API IIndexBuffer : public virtual IBuffer {
-    public:
-        virtual ~IIndexBuffer() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Gets the layout of the index buffer.
-        /// </summary>
-        /// <returns>The layout of the index buffer.</returns>
-        virtual const IIndexBufferLayout& layout() const noexcept = 0;
     };
 
     /// <summary>

@@ -220,6 +220,79 @@ namespace LiteFX::Rendering::Backends {
         inline void execute(const DirectX12CommandBuffer& commandBuffer) const noexcept;
     };
 
+#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
+
+    /// <summary>
+    /// Implements a DirectX 12 bottom-level acceleration structure (BLAS).
+    /// </summary>
+    /// <seealso cref="DirectX12TopLevelAccelerationStructure" />
+    class LITEFX_DIRECTX12_API DirectX12BottomLevelAccelerationStructure final : public IBottomLevelAccelerationStructure {
+        LITEFX_IMPLEMENTATION(DirectX12BottomLevelAccelerationStructureImpl);
+
+    public:
+        /// <summary>
+        /// Initializes a new DirectX 12 bottom-level acceleration structure (BLAS).
+        /// </summary>
+        explicit DirectX12BottomLevelAccelerationStructure() noexcept;
+        DirectX12BottomLevelAccelerationStructure(const DirectX12BottomLevelAccelerationStructure&) = delete;
+        DirectX12BottomLevelAccelerationStructure(DirectX12BottomLevelAccelerationStructure&&) = delete;
+        virtual ~DirectX12BottomLevelAccelerationStructure() noexcept;
+
+        // IAccelerationStructure interface.
+    public:
+        /// <inheritdoc />
+        void computeBufferSizes(UInt64& bufferSize, UInt64& scatchSize) const override;
+
+        // IBottomLevelAccelerationStructure interface.
+    public:
+        /// <inheritdoc />
+        const Array<TriangleMesh>& triangleMeshes() const noexcept override;
+
+        /// <inheritdoc />
+        void addTriangleMesh(const TriangleMesh& mesh) override;
+
+        /// <inheritdoc />
+        const Array<BoundingBox>& boundingBoxes() const noexcept override;
+
+        /// <inheritdoc />
+        void addBoundingBox(const BoundingBox& aabb) override;
+
+        /// <inheritdoc />
+        void clear(bool meshes = true, bool boundingBoxes = true) override;
+    };
+
+    /// <summary>
+    /// Implements a DirectX 12 top-level acceleration structure (TLAS).
+    /// </summary>
+    /// <seealso cref="DirectX12BottomLevelAccelerationStructure" />
+    class LITEFX_DIRECTX12_API DirectX12TopLevelAccelerationStructure final : public ITopLevelAccelerationStructure {
+        LITEFX_IMPLEMENTATION(DirectX12TopLevelAccelerationStructureImpl);
+
+    public:
+        explicit DirectX12TopLevelAccelerationStructure() noexcept;
+        DirectX12TopLevelAccelerationStructure(const DirectX12TopLevelAccelerationStructure&) = delete;
+        DirectX12TopLevelAccelerationStructure(DirectX12TopLevelAccelerationStructure&&) = delete;
+        virtual ~DirectX12TopLevelAccelerationStructure() noexcept;
+
+        // IAccelerationStructure interface.
+    public:
+        /// <inheritdoc />
+        void computeBufferSizes(UInt64& bufferSize, UInt64& scatchSize) const override;
+
+        // ITopLevelAccelerationStructure interface.
+    public:
+        /// <inheritdoc />
+        const Array<Instance>& instances() const noexcept override;
+
+        /// <inheritdoc />
+        void addInstance(const Instance& instance) override;
+
+        /// <inheritdoc />
+        void clear() override;
+    };
+
+#endif
+
     /// <summary>
     /// Implements a DirectX 12 <see cref="IShaderModule" />.
     /// </summary>

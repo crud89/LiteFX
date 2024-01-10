@@ -67,6 +67,8 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/descriptor_set_layout.cpp"
     "src/push_constants_range.cpp"
     "src/push_constants_layout.cpp"
+    "src/blas.cpp"
+    "src/tlas.cpp"
 )
 
 # Add shared library project.
