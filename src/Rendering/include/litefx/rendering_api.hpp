@@ -4480,16 +4480,16 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Executes a compute shader.
         /// </summary>
-        /// <param name="threadCount">The number of threads per dimension.</param>
+        /// <param name="threadCount">The number of thread groups per dimension.</param>
         /// <seealso cref="dispatchIndirect" />
-        virtual void dispatch(const Vector3u& threadCount) const noexcept = 0;
+        virtual void dispatch(const Vector3u& threadGroupCount) const noexcept = 0;
 
         /// <summary>
         /// Executes a compute shader.
         /// </summary>
-        /// <param name="x">The number of threads along the x dimension.</param>
-        /// <param name="y">The number of threads along the y dimension.</param>
-        /// <param name="z">The number of threads along the z dimension.</param>
+        /// <param name="x">The number of thread groups along the x dimension.</param>
+        /// <param name="y">The number of thread groups along the y dimension.</param>
+        /// <param name="z">The number of thread groups along the z dimension.</param>
         inline void dispatch(UInt32 x, UInt32 y, UInt32 z) const noexcept {
             this->dispatch({ x, y, z });
         }
@@ -4521,15 +4521,15 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Executes a mesh shader pipeline.
         /// </summary>
-        /// <param name="threadCount">The number of threads per dimension.</param>
-        virtual void dispatchMesh(const Vector3u& threadCount) const noexcept = 0;
+        /// <param name="threadCount">The number of thread groups per dimension.</param>
+        virtual void dispatchMesh(const Vector3u& threadGroupCount) const noexcept = 0;
 
         /// <summary>
         /// Executes a mesh shader pipeline.
         /// </summary>
-        /// <param name="x">The number of threads along the x dimension.</param>
-        /// <param name="y">The number of threads along the y dimension.</param>
-        /// <param name="z">The number of threads along the z dimension.</param>
+        /// <param name="x">The number of thread groups along the x dimension.</param>
+        /// <param name="y">The number of thread groups along the y dimension.</param>
+        /// <param name="z">The number of thread groups along the z dimension.</param>
         inline void dispatchMesh(UInt32 x, UInt32 y, UInt32 z) const noexcept {
             this->dispatchMesh({ x, y, z });
         }
