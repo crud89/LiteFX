@@ -4491,9 +4491,32 @@ namespace LiteFX::Rendering {
         /// <param name="y">The number of threads along the y dimension.</param>
         /// <param name="z">The number of threads along the z dimension.</param>
         inline void dispatch(UInt32 x, UInt32 y, UInt32 z) const noexcept {
-            this->dispatch({ x,y, z });
+            this->dispatch({ x, y, z });
         }
-        
+
+        /// <summary>
+        /// Executes a set of indirect dispatches.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="batchCount">The number of batches in the buffer to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <seealso cref="dispatch" />
+        inline void dispatchIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept {
+            this->cmdDispatchIndirect(batchBuffer, batchCount, offset);
+        }
+
+        /// <summary>
+        /// Executes a set of indirect dispatches.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="countBuffer">The buffer that contains the number of batches to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <param name="countOffset">The offset (in bytes) to the number of batches in the <paramref name="countBuffer" />.</param>
+        /// <seealso cref="dispatch" />
+        inline void dispatchIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept {
+            this->cmdDispatchIndirect(batchBuffer, countBuffer, offset, countOffset);
+        }
+
 #ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         /// <summary>
         /// Executes a mesh shader pipeline.

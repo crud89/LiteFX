@@ -939,16 +939,16 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void dispatch(const Vector3u& threadCount) const noexcept override;
 
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
-        /// <inheritdoc />
-        void dispatchMesh (const Vector3u& threadCount) const noexcept override;
-#endif
-
         /// <inheritdoc />
         void dispatchIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
 
         /// <inheritdoc />
         void dispatchIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept override;
+
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+        /// <inheritdoc />
+        void dispatchMesh (const Vector3u& threadCount) const noexcept override;
+#endif
 
         /// <inheritdoc />
         void draw(UInt32 vertices, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const noexcept override;
