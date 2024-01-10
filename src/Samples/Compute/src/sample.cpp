@@ -457,7 +457,7 @@ void SampleApp::drawFrame()
         commandBuffer->bind(postBindings);
 
         // Dispatch the post-processing pass.
-        commandBuffer->dispatch({ static_cast<UInt32>(image.extent().x()), static_cast<UInt32>(image.extent().y()), 1 });
+        commandBuffer->dispatch({ static_cast<UInt32>(image.extent().x()) / 8, static_cast<UInt32>(image.extent().y()) / 8, 1 });
 
         // After post-processing, transition the image back into a state where it can be copied from.
         barrier = m_device->makeBarrier(PipelineStage::Compute, PipelineStage::None);
