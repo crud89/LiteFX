@@ -76,7 +76,7 @@ namespace LiteFX::Rendering::Backends {
     class IDirectX12Image;
     class IDirectX12Sampler;
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     // Builder declarations.
     class DirectX12VertexBufferLayoutBuilder;
     class DirectX12DescriptorSetLayoutBuilder;
@@ -89,7 +89,7 @@ namespace LiteFX::Rendering::Backends {
     class DirectX12ComputePipelineBuilder;
     class DirectX12RenderPassBuilder;
     class DirectX12BarrierBuilder;
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
 
     /// <summary>
     /// A resource that is hold by a <c>ComPtr</c>.

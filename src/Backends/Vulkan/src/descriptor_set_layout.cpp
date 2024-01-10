@@ -76,6 +76,10 @@ public:
             shaderStages |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
         if ((m_stages & ShaderStage::Compute) == ShaderStage::Compute)
             shaderStages |= VK_SHADER_STAGE_COMPUTE_BIT;
+        if ((m_stages & ShaderStage::Task) == ShaderStage::Task)
+            shaderStages |= VK_SHADER_STAGE_TASK_BIT_EXT;
+        if ((m_stages & ShaderStage::Mesh) == ShaderStage::Mesh)
+            shaderStages |= VK_SHADER_STAGE_MESH_BIT_EXT;
 
         // Parse descriptor set layouts.
         Array<VkDescriptorSetLayoutBinding> bindings;
@@ -550,7 +554,7 @@ size_t VulkanDescriptorSetLayout::pools() const noexcept
     return m_impl->m_descriptorPools.size();
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Descriptor set layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
@@ -580,4 +584,4 @@ constexpr UniquePtr<VulkanDescriptorLayout> VulkanDescriptorSetLayoutBuilder::ma
 {
     return makeUnique<VulkanDescriptorLayout>(makeUnique<VulkanSampler>(this->parent().device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding);
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

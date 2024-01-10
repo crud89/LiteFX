@@ -683,7 +683,7 @@ namespace LiteFX::Rendering {
         TessellationEvaluation = 0x00000004,
 
         /// <summary>
-        /// Represents the  geometry shader stage.
+        /// Represents the geometry shader stage.
         /// </summary>
         /// <remarks>
         /// Note that geometry shaders come with a performance penalty and might not be supported on all platforms. If you can, avoid using them.
@@ -691,7 +691,7 @@ namespace LiteFX::Rendering {
         Geometry = 0x00000008,
 
         /// <summary>
-        /// Represents the fragment or vertex shader stage.
+        /// Represents the fragment or pixel shader stage.
         /// </summary>
         Fragment = 0x00000010,
 
@@ -699,6 +699,21 @@ namespace LiteFX::Rendering {
         /// Represents the compute shader stage.
         /// </summary>
         Compute = 0x00000020,
+
+        /// <summary>
+        /// Represents the task or amplification shader stage.
+        /// </summary>
+        Task = 0x00000040,
+
+        /// <summary>
+        /// Represents the mesh shader stage.
+        /// </summary>
+        Mesh = 0x00000080,
+
+        /// <summary>
+        /// Enables all supported shader stages.
+        /// </summary>
+        Any = Vertex | TessellationControl | TessellationEvaluation | Geometry | Fragment | Compute | Task | Mesh,
 
         /// <summary>
         /// Represents an unknown shader stage.
@@ -4465,32 +4480,37 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Executes a compute shader.
         /// </summary>
-        /// <param name="threadCount">The number of thread groups per axis.</param>
+        /// <param name="threadCount">The number of threads per dimension.</param>
         /// <seealso cref="dispatchIndirect" />
         virtual void dispatch(const Vector3u& threadCount) const noexcept = 0;
 
         /// <summary>
-        /// Executes a set of indirect dispatches.
+        /// Executes a compute shader.
         /// </summary>
-        /// <param name="batchBuffer">The buffer that contains the batches.</param>
-        /// <param name="batchCount">The number of batches in the buffer to execute.</param>
-        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
-        /// <seealso cref="dispatch" />
-        inline void dispatchIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept {
-            this->cmdDispatchIndirect(batchBuffer, batchCount, offset);
+        /// <param name="x">The number of threads along the x dimension.</param>
+        /// <param name="y">The number of threads along the y dimension.</param>
+        /// <param name="z">The number of threads along the z dimension.</param>
+        inline void dispatch(UInt32 x, UInt32 y, UInt32 z) const noexcept {
+            this->dispatch({ x,y, z });
         }
+        
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+        /// <summary>
+        /// Executes a mesh shader pipeline.
+        /// </summary>
+        /// <param name="threadCount">The number of threads per dimension.</param>
+        virtual void dispatchMesh(const Vector3u& threadCount) const noexcept = 0;
 
         /// <summary>
-        /// Executes a set of indirect dispatches.
+        /// Executes a mesh shader pipeline.
         /// </summary>
-        /// <param name="batchBuffer">The buffer that contains the batches.</param>
-        /// <param name="countBuffer">The buffer that contains the number of batches to execute.</param>
-        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
-        /// <param name="countOffset">The offset (in bytes) to the number of batches in the <paramref name="countBuffer" />.</param>
-        /// <seealso cref="dispatch" />
-        inline void dispatchIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept {
-            this->cmdDispatchIndirect(batchBuffer, countBuffer, offset, countOffset);
+        /// <param name="x">The number of threads along the x dimension.</param>
+        /// <param name="y">The number of threads along the y dimension.</param>
+        /// <param name="z">The number of threads along the z dimension.</param>
+        inline void dispatchMesh(UInt32 x, UInt32 y, UInt32 z) const noexcept {
+            this->dispatchMesh({ x, y, z });
         }
+#endif
 
         /// <summary>
         /// Draws a number of vertices from the currently bound vertex buffer.

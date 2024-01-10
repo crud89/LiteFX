@@ -475,6 +475,9 @@ namespace LiteFX::Rendering {
     public:
         using ICommandBuffer::dispatch;
         using ICommandBuffer::dispatchIndirect;
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+        using ICommandBuffer::dispatchMesh;
+#endif
         using ICommandBuffer::draw;
         using ICommandBuffer::drawIndirect;
         using ICommandBuffer::drawIndexed;
@@ -1233,7 +1236,7 @@ namespace LiteFX::Rendering {
             return this->createQueue(type, priority);
         }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:
         using render_pass_builder_type = render_pass_type::builder_type;
         using render_pipeline_builder_type = render_pipeline_type::builder_type;
@@ -1312,7 +1315,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>An instance of a builder that is used to create a new barrier.</returns>
         [[nodiscard]] virtual barrier_builder_Type buildBarrier() const = 0;
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
     };
 
     /// <summary>

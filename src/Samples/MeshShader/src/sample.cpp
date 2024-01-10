@@ -1,65 +1,19 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-#define LIGHT_SOURCES 8
-
 enum DescriptorSets : UInt32
 {
     Constant = 0,                                       // All buffers that are immutable.
     PerFrame = 1,                                       // All buffers that are updated each frame.
 };
 
-const Array<Vertex> vertices =
-{
-    { { -0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
-    { {  0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
-    { { -0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
-    { {  0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
-    { { -0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f } },
-    { {  0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f } },
-    { { -0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f } },
-    { {  0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f } },
-    { {  0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, {  1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-    { {  0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, {  1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-    { {  0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, {  1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-    { {  0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, {  1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-    { { -0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-    { { -0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-    { { -0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-    { { -0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-    { { -0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f } },
-    { {  0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f } },
-    { { -0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f } },
-    { {  0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f } },
-    { { -0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f,  1.0f }, { 0.0f, 0.0f } },
-    { {  0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f,  1.0f }, { 0.0f, 0.0f } },
-    { { -0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f,  1.0f }, { 0.0f, 0.0f } },
-    { {  0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f,  1.0f }, { 0.0f, 0.0f } }
-};
-
-const Array<UInt16> indices = {
-    0, 1, 2, 1, 3, 2,       // Front
-    4, 6, 5, 5, 6, 7,       // Back
-    8, 9, 10, 9, 11, 10,    // Right
-    12, 14, 13, 13, 14, 15, // Left
-    16, 17, 18, 17, 19, 18, // Bottom
-    20, 22, 21, 21, 22, 23  // Top
-};
-
 struct CameraBuffer {
     glm::mat4 ViewProjection;
-    glm::vec4 Position;
 } camera;
 
 struct TransformBuffer {
     glm::mat4 World;
 } transform;
-
-struct LightBuffer {
-    glm::vec4 Position;
-    glm::vec4 Color;
-    glm::vec4 Properties;   // x: radius, y: intensity, w: enabled (if > 0.f)
-} lights[LIGHT_SOURCES];
 
 template<typename TRenderBackend> requires
     rtti::implements<TRenderBackend, IRenderBackend>
@@ -76,7 +30,7 @@ const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
 
 template<typename TRenderBackend> requires
     rtti::implements<TRenderBackend, IRenderBackend>
-void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState)
+void initRenderGraph(TRenderBackend* backend)
 {
     using RenderPass = TRenderBackend::render_pass_type;
     using RenderPipeline = TRenderBackend::render_pipeline_type;
@@ -90,25 +44,18 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     // Create input assembler state.
     SharedPtr<InputAssembler> inputAssembler = device->buildInputAssembler()
-        .topology(PrimitiveTopology::TriangleList)
-        .indexType(IndexType::UInt16)
-        .vertexBuffer(sizeof(Vertex), 0)
-            .withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
-            .withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
-            .withAttribute(BufferFormat::XYZ32F, offsetof(Vertex, Normal), AttributeSemantic::Normal)
-            .add();
-
-    inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
+        .topology(PrimitiveTopology::TriangleList);
 
     // Create a geometry render pass.
     UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
         .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
         .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
-    // Create a shader program.
+    // Create the shader program.
     SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
-        .withVertexShaderModule("shaders/ubo_array_vs." + FileExtensions<TRenderBackend>::SHADER)
-        .withFragmentShaderModule("shaders/ubo_array_fs." + FileExtensions<TRenderBackend>::SHADER);
+        .withTaskShaderModule("shaders/mesh_shader_ts." + FileExtensions<TRenderBackend>::SHADER)
+        .withMeshShaderModule("shaders/mesh_shader_ms." + FileExtensions<TRenderBackend>::SHADER)
+        .withFragmentShaderModule("shaders/mesh_shader_fs." + FileExtensions<TRenderBackend>::SHADER);
 
     // Create a render pipeline.
     UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
@@ -131,85 +78,41 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Get a command buffer
     auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 
-    // Create the staging buffer.
-    // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
-    //       whole buffer.
-    auto stagedVertices = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
-    stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
-    
-    // Create the actual vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
-    commandBuffer->transfer(asShared(std::move(stagedVertices)), *vertexBuffer, 0, 0, vertices.size());
-
-    // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
-    auto stagedIndices = m_device->factory().createIndexBuffer(*m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
-    stagedIndices->map(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), 0);
-
-    // Create the actual index buffer and transfer the staging buffer into it.
-    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
-    commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
-
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
-    auto& staticBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
-    auto cameraBuffer = m_device->factory().createBuffer("Camera", staticBindingLayout, 0, BufferUsage::Resource, 1);
+    auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
+    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, BufferUsage::Resource);
+    auto cameraBindings = cameraBindingLayout.allocate({ { .resource = *cameraBuffer } });
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraBuffer);
-
-    // Allocate the lights buffer and the lights staging buffer.
-    this->initLights();
-    auto lightsStagingBuffer = m_device->factory().createBuffer("Lights Staging", staticBindingLayout, 1, BufferUsage::Staging, LIGHT_SOURCES);
-    auto lightsBuffer = m_device->factory().createBuffer("Lights", staticBindingLayout, 1, BufferUsage::Resource, LIGHT_SOURCES);
-    auto lightsData = lights | std::views::transform([](const LightBuffer& light) { return reinterpret_cast<const void*>(&light); }) | std::ranges::to<Array<const void*>>();
-    lightsStagingBuffer->map(lightsData, sizeof(LightBuffer));
-    commandBuffer->transfer(asShared(std::move(lightsStagingBuffer)), *lightsBuffer, 0, 0, LIGHT_SOURCES);
-
-    // Allocate the static bindings.
-    auto staticBindings = staticBindingLayout.allocate({ { 0, *cameraBuffer }, { 1, *lightsBuffer } });
 
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
     auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, BufferUsage::Dynamic, 3);
     auto transformBindings = transformBindingLayout.allocateMultiple(3, {
-        { {.binding = 0, .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
-        { {.binding = 0, .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
-        { {.binding = 0, .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
+        { { .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
+        { { .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
+        { { .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
     });
-
+    
     // End and submit the command buffer.
     m_transferFence = commandBuffer->submit();
-
+    
     // Add everything to the state.
-    m_device->state().add(std::move(vertexBuffer));
-    m_device->state().add(std::move(indexBuffer));
     m_device->state().add(std::move(cameraBuffer));
-    m_device->state().add(std::move(lightsBuffer));
     m_device->state().add(std::move(transformBuffer));
-    m_device->state().add("Static Bindings", std::move(staticBindings));
+    m_device->state().add("Camera Bindings", std::move(cameraBindings));
     std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Transform Bindings {0}", i++), std::move(binding)); });
-}
-
-void SampleApp::initLights()
-{
-    lights[0] = LightBuffer{ .Position = { -1.f, -1.f, -1.f, 1.f }, .Color = { 0.f, 0.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
-    lights[1] = LightBuffer{ .Position = {  1.f, -1.f, -1.f, 1.f }, .Color = { 1.f, 1.f, 0.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
-    lights[2] = LightBuffer{ .Position = { -1.f,  1.f, -1.f, 1.f }, .Color = { 0.f, 1.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
-    lights[3] = LightBuffer{ .Position = {  1.f,  1.f, -1.f, 1.f }, .Color = { 1.f, 1.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
-    lights[4] = LightBuffer{ .Position = { -1.f, -1.f,  1.f, 1.f }, .Color = { 0.f, 1.f, 0.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
-    lights[5] = LightBuffer{ .Position = {  1.f, -1.f,  1.f, 1.f }, .Color = { 1.f, 0.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
-    lights[6] = LightBuffer{ .Position = { -1.f,  1.f,  1.f, 1.f }, .Color = { 1.f, 0.f, 0.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
-    lights[7] = LightBuffer{ .Position = {  1.f,  1.f,  1.f, 1.f }, .Color = { 0.f, 0.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
 }
 
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
 {
     // Calculate the camera view/projection matrix.
     auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
-    camera.Position = glm::vec4(3.0f, 0.0f, 1.5f, 1.f);
-    glm::mat4 view = glm::lookAt(glm::vec3(camera.Position), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;
 
@@ -219,7 +122,7 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffe
     commandBuffer.transfer(asShared(std::move(cameraStagingBuffer)), buffer);
 }
 
-void SampleApp::onStartup() 
+void SampleApp::onStartup()
 {
     // Run application loop until the window is closed.
     while (!::glfwWindowShouldClose(m_window.get()))
@@ -241,7 +144,7 @@ void SampleApp::onInit()
 {
     ::glfwSetWindowUserPointer(m_window.get(), this);
 
-    ::glfwSetFramebufferSizeCallback(m_window.get(), [](GLFWwindow* window, int width, int height) { 
+    ::glfwSetFramebufferSizeCallback(m_window.get(), [](GLFWwindow* window, int width, int height) {
         auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
         app->resize(width, height); 
     });
@@ -275,7 +178,7 @@ void SampleApp::onInit()
         m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3);
 
         // Initialize resources.
-        ::initRenderGraph(backend, m_inputAssembler);
+        ::initRenderGraph(backend);
         this->initBuffers(backend);
 
         return true;
@@ -427,10 +330,8 @@ void SampleApp::drawFrame()
     auto& renderPass = m_device->state().renderPass("Opaque");
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& transformBuffer = m_device->state().buffer("Transform");
-    auto& staticBindings = m_device->state().descriptorSet("Static Bindings");
+    auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
     auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer));
-    auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
-    auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 
     // Wait for all transfers to finish.
     renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
@@ -451,14 +352,10 @@ void SampleApp::drawFrame()
     transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
     // Bind both descriptor sets to the pipeline.
-    commandBuffer->bind(staticBindings, geometryPipeline);
-    commandBuffer->bind(transformBindings, geometryPipeline);
-
-    // Bind the vertex and index buffers.
-    commandBuffer->bind(vertexBuffer);
-    commandBuffer->bind(indexBuffer);
+    commandBuffer->bind(cameraBindings);
+    commandBuffer->bind(transformBindings);
 
     // Draw the object and present the frame by ending the render pass.
-    commandBuffer->drawIndexed(indexBuffer.elements());
+    commandBuffer->dispatchMesh(4, 1, 1); // This will create 4 faces.
     renderPass.end();
 }

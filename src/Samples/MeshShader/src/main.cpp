@@ -79,7 +79,7 @@ int main(const int argc, const char** argv)
 	// Parse the command line parameters.
 	const String appName = SampleApp::Name();
 
-	CLI::App app{ "Demonstrates multi-threaded command buffer recording.", appName };
+	CLI::App app{ "Demonstrates mesh shader drawing techniques.", appName };
 	
 	Optional<UInt32> adapterId;
 	app.add_option("-a,--adapter", adapterId)->take_first();

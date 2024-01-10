@@ -6,6 +6,8 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
+static PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks;
+
 class VulkanCommandBuffer::VulkanCommandBufferImpl : public Implement<VulkanCommandBuffer> {
 public:
 	friend class VulkanCommandBuffer;
@@ -21,6 +23,10 @@ public:
 	VulkanCommandBufferImpl(VulkanCommandBuffer* parent, const VulkanQueue& queue, bool primary) :
 		base(parent), m_queue(queue), m_secondary(!primary)
 	{
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+		if (vkCmdDrawMeshTasks == nullptr)
+			vkCmdDrawMeshTasks = reinterpret_cast<PFN_vkCmdDrawMeshTasksEXT>(::vkGetDeviceProcAddr(queue.device().handle(), "vkCmdDrawMeshTasksEXT"));
+#endif
 	}
 
 	~VulkanCommandBufferImpl() 
@@ -430,6 +436,13 @@ void VulkanCommandBuffer::dispatchIndirect(const IVulkanBuffer& batchBuffer, con
 {
 	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, batchBuffer.elements(), sizeof(IndirectDispatchBatch));
 }
+
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+void VulkanCommandBuffer::dispatchMesh(const Vector3u& threadCount) const noexcept
+{
+	::vkCmdDrawMeshTasks(this->handle(), threadCount.x(), threadCount.y(), threadCount.z());
+}
+#endif
 
 void VulkanCommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const noexcept
 {

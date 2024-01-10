@@ -820,6 +820,9 @@ namespace LiteFX::Rendering::Backends {
         using base_type = CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState>;
         using base_type::dispatch;
         using base_type::dispatchIndirect;
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+        using base_type::dispatchMesh;
+#endif
         using base_type::draw;
         using base_type::drawIndirect;
         using base_type::drawIndexed;
@@ -935,6 +938,11 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void dispatch(const Vector3u& threadCount) const noexcept override;
+
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+        /// <inheritdoc />
+        void dispatchMesh (const Vector3u& threadCount) const noexcept override;
+#endif
 
         /// <inheritdoc />
         void dispatchIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
@@ -1771,7 +1779,7 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void wait() const override;
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:
         /// <inheritdoc />
         [[nodiscard]] DirectX12RenderPassBuilder buildRenderPass(MultiSamplingLevel samples = MultiSamplingLevel::x1, UInt32 commandBuffers = 1) const override;
@@ -1802,7 +1810,7 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         [[nodiscard]] DirectX12BarrierBuilder buildBarrier() const override;
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
     };
     
     /// <summary>

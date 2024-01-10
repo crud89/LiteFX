@@ -93,6 +93,8 @@ public:
                 case ShaderStage::Fragment: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_PIXEL); break;
                 case ShaderStage::TessellationEvaluation: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_DOMAIN); break;
                 case ShaderStage::TessellationControl: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_HULL); break;
+                case ShaderStage::Task: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_AMPLIFICATION); break;
+                case ShaderStage::Mesh: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_MESH); break;
                 default: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_ALL); break;
                 }
 
@@ -118,6 +120,10 @@ public:
                 shaderStages = D3D12_SHADER_VISIBILITY_DOMAIN;
             if (stages == ShaderStage::TessellationControl)
                 shaderStages = D3D12_SHADER_VISIBILITY_HULL;
+            if (stages == ShaderStage::Task)
+                shaderStages = D3D12_SHADER_VISIBILITY_AMPLIFICATION;
+            if (stages == ShaderStage::Mesh)
+                shaderStages = D3D12_SHADER_VISIBILITY_MESH;
 
             // Define the root parameter ranges.
             auto layouts = layout->descriptors();
@@ -254,7 +260,7 @@ const DirectX12PushConstantsLayout* DirectX12PipelineLayout::pushConstants() con
     return m_impl->m_pushConstantsLayout.get();
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Pipeline layout builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -307,4 +313,4 @@ constexpr const DirectX12Device& DirectX12PipelineLayoutBuilder::device() const 
 {
     return m_impl->m_device;
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

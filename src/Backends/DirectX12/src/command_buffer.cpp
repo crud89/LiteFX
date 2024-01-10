@@ -379,6 +379,13 @@ void DirectX12CommandBuffer::dispatchIndirect(const IDirectX12Buffer& batchBuffe
 	this->handle()->ExecuteIndirect(m_impl->m_dispatchSignature.Get(), batchBuffer.elements(), batchBuffer.handle().Get(), offset, countBuffer.handle().Get(), countOffset);
 }
 
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+void DirectX12CommandBuffer::dispatchMesh(const Vector3u& threadCount) const noexcept
+{
+	this->handle()->DispatchMesh(threadCount.x(), threadCount.y(), threadCount.z());
+}
+#endif
+
 void DirectX12CommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const noexcept
 {
 	this->handle()->DrawInstanced(vertices, instances, firstVertex, firstInstance);

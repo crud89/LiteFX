@@ -157,7 +157,12 @@ private:
         // Required to query image and buffer requirements.
         m_extensions.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
 
-#ifdef BUILD_DIRECTX_12_BACKEND
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+        // Required for mesh shading.
+        m_extensions.push_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
+#endif
+
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
         // Interop swap chain requires external memory access.
         m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
         m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
@@ -168,7 +173,7 @@ private:
         //m_extensions.push_back(VK_KHR_EXTERNAL_FENCE_WIN32_EXTENSION_NAME);
 #else
         m_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-#endif // BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 #ifndef NDEBUG
         auto availableExtensions = m_adapter.getAvailableDeviceExtensions();
@@ -245,9 +250,21 @@ public:
                 };
             }) | std::ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
+        // Enable task and mesh shaders.
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+        VkPhysicalDeviceMeshShaderFeaturesEXT meshShaderFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT,
+            .taskShader = true,
+            .meshShader = true
+        };
+#endif
+
         // Allow geometry and tessellation shader stages.
         VkPhysicalDeviceFeatures2 deviceFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+            .pNext = &meshShaderFeatures,
+#endif
             .features = {
                 .geometryShader = true,
                 .tessellationShader = true,
@@ -259,7 +276,8 @@ public:
         VkPhysicalDeviceVulkan13Features deviceFeatures13 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
             .pNext = &deviceFeatures,
-            .synchronization2 = true
+            .synchronization2 = true,
+            .maintenance4 = true
         };
 
         // Enable various descriptor related features, as well as timelime semaphores and other little QoL improvements.
@@ -457,7 +475,7 @@ VulkanSwapChain& VulkanDevice::swapChain() noexcept
     return *m_impl->m_swapChain;
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 VulkanRenderPassBuilder VulkanDevice::buildRenderPass(MultiSamplingLevel samples, UInt32 commandBuffers) const
 {
     return VulkanRenderPassBuilder(*this, commandBuffers, samples);
@@ -502,7 +520,7 @@ VulkanBarrierBuilder VulkanDevice::buildBarrier() const
 {
     return VulkanBarrierBuilder();
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
 
 DeviceState& VulkanDevice::state() const noexcept
 {

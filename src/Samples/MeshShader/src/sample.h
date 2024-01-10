@@ -6,7 +6,7 @@
 #if (defined _WIN32 || defined WINCE)
 #  define GLFW_EXPOSE_NATIVE_WIN32
 #else 
-#  pragma message ("Multisampling Sample: No supported surface platform detected.")
+#  pragma message ("Mesh Shader Sample: No supported surface platform detected.")
 #endif
 
 #include <GLFW/glfw3.h>
@@ -35,7 +35,7 @@ typedef UniquePtr<GLFWwindow, GlfwWindowDeleter> GlfwWindowPtr;
 
 class SampleApp : public LiteFX::App {
 public:
-	static String Name() noexcept { return "LiteFX Sample: Multisampling"; }
+	static String Name() noexcept { return "LiteFX Sample: Mesh Shader"; }
 	String name() const noexcept override { return Name(); }
 
 	static AppVersion Version() noexcept { return AppVersion(1, 0, 0, 0); }
@@ -51,11 +51,6 @@ private:
 	/// Stores the preferred adapter ID (<c>std::nullopt</c>, if the default adapter is used).
 	/// </summary>
 	Optional<UInt32> m_adapterId;
-
-	/// <summary>
-	/// Stores a reference of the input assembler state.
-	/// </summary>
-	SharedPtr<IInputAssembler> m_inputAssembler;
 
 	/// <summary>
 	/// Stores the viewport.

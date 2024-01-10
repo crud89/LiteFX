@@ -148,9 +148,9 @@ public:
                     case D3D12_SHADER_VISIBILITY_DOMAIN:        stage = ShaderStage::TessellationEvaluation; break;
                     case D3D12_SHADER_VISIBILITY_GEOMETRY:      stage = ShaderStage::Geometry; break;
                     case D3D12_SHADER_VISIBILITY_PIXEL:         stage = ShaderStage::Fragment; break;
-                    case D3D12_SHADER_VISIBILITY_ALL:
-                    case D3D12_SHADER_VISIBILITY_AMPLIFICATION:
-                    case D3D12_SHADER_VISIBILITY_MESH:
+                    case D3D12_SHADER_VISIBILITY_AMPLIFICATION: stage = ShaderStage::Task; break;
+                    case D3D12_SHADER_VISIBILITY_MESH:          stage = ShaderStage::Mesh; break;
+                    case D3D12_SHADER_VISIBILITY_ALL:           stage = ShaderStage::Any; break; // TODO: Might not work as intended.
                     default: throw InvalidArgumentException("pushConstantRanges", "The push constants for a shader are defined for invalid or unsupported shader stages. Note that a push constant must only be defined for a single shader stage.");
                     }
 
@@ -390,7 +390,7 @@ SharedPtr<DirectX12PipelineLayout> DirectX12ShaderProgram::reflectPipelineLayout
     return m_impl->reflectPipelineLayout();
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Shader program builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -434,4 +434,4 @@ constexpr UniquePtr<DirectX12ShaderModule> DirectX12ShaderProgramBuilder::makeSh
 {
     return makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, stream, name, entryPoint);
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

@@ -92,12 +92,16 @@ private:
 private:
 	bool checkRequiredExtensions(ID3D12Device10* device)
 	{
-		D3D12_FEATURE_DATA_D3D12_OPTIONS12 options {};
-		raiseIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &options, sizeof(options)), "Unable to query device extensions.");
+		D3D12_FEATURE_DATA_D3D12_OPTIONS7  options7  {};
+		D3D12_FEATURE_DATA_D3D12_OPTIONS12 options12 {};
+		raiseIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS7,  &options7,  sizeof(options7)),  "Unable to query device extensions.");
+		raiseIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &options12, sizeof(options12)), "Unable to query device extensions.");
 		
-		bool result = options.EnhancedBarriersSupported; // && ...
-
-		return result;
+		return 
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+			options7.MeshShaderTier >= D3D12_MESH_SHADER_TIER_1 &&
+#endif
+			options12.EnhancedBarriersSupported;
 	}
 
 public:
@@ -468,7 +472,7 @@ void DirectX12Device::indirectDrawSignatures(ComPtr<ID3D12CommandSignature>& dis
 	drawIndexedSignature = m_impl->m_drawIndexedSignature;
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(MultiSamplingLevel samples, UInt32 commandBuffers) const
 {
 	return DirectX12RenderPassBuilder(*this, commandBuffers, samples);
@@ -513,7 +517,7 @@ DirectX12BarrierBuilder DirectX12Device::buildBarrier() const
 {
 	return DirectX12BarrierBuilder();
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
 
 DirectX12SwapChain& DirectX12Device::swapChain() noexcept
 {

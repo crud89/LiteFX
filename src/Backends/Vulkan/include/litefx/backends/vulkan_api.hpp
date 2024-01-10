@@ -63,7 +63,7 @@ namespace LiteFX::Rendering::Backends {
     class IVulkanImage;
     class IVulkanSampler;
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     // Builder declarations.
     class VulkanVertexBufferLayoutBuilder;
     class VulkanDescriptorSetLayoutBuilder;
@@ -76,7 +76,7 @@ namespace LiteFX::Rendering::Backends {
     class VulkanComputePipelineBuilder;
     class VulkanRenderPassBuilder;
     class VulkanBarrierBuilder;
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
 
     /// <summary>
     /// Contains conversion helpers for Vulkan.

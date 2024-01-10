@@ -154,7 +154,7 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) cons
 		commandBuffer.handle()->Barrier(barrierGroups.size(), barrierGroups.data());
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
@@ -188,4 +188,4 @@ constexpr void DirectX12BarrierBuilder::setupImageBarrier(IImage& image, Resourc
 	auto numLayers = layers > 0 ? layers : image.layers() - layer;
 	this->instance()->transition(image, level, numLevels, layer, numLayers, plane, before, after, layout);
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
