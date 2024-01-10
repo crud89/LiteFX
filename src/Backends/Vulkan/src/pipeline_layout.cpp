@@ -46,7 +46,7 @@ public:
                 throw InvalidArgumentException("descriptorSetLayouts", "Two layouts defined for the same descriptor set {}. Each descriptor set must use it's own space.", a);
             
             while (i != a)
-                emptySets.push_back(i);
+                emptySets.push_back(i++);
 
             ++i;
         }
