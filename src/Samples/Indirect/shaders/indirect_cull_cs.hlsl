@@ -57,20 +57,15 @@ void main(uint3 id : SV_DispatchThreadID)
     visible = visible && center.z * camera.Frustum[3] - abs(center.y) * camera.Frustum[2] > -radius;
     visible = visible && center.z + radius > camera.NearPlane && center.z - radius < camera.FarPlane;
     
-    //if (visible)
-    //{
-    IndirectDrawCommand command;
-    command.IndexCount = object.IndexCount;
-    command.InstanceCount = 1;
-    command.FirstIndex = object.FirstIndex;
-    command.VertexOffset = object.VertexOffset;
-    command.FirstInstance = instanceId;
-    
-    if (!visible)
-        command.Padding.x = 0;
-    else
-        command.Padding.x = 1;
-    
-    drawCommands.Append(command);
-    //}
+    if (visible)
+    {
+        IndirectDrawCommand command;
+        command.IndexCount = object.IndexCount;
+        command.InstanceCount = 1;
+        command.FirstIndex = object.FirstIndex;
+        command.VertexOffset = object.VertexOffset;
+        command.FirstInstance = instanceId;
+        //command.Padding.x = 0;
+        drawCommands.Append(command);
+    }
 }

@@ -221,17 +221,14 @@ void SampleApp::initBuffers(IRenderBackend* backend)
 
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer, UInt32 backBuffer) const
 {
-    //// Store the initial time this method has been called first.
-    //static auto start = std::chrono::high_resolution_clock::now();
-    //auto now = std::chrono::high_resolution_clock::now();
-    //auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+    // Store the initial time this method has been called first.
+    static auto start = std::chrono::high_resolution_clock::now();
+    auto now = std::chrono::high_resolution_clock::now();
+    auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+    const float speed = 0.3f;
 
-    // TODO: Animate.
-    //throw;
-
-    //glm::vec3 position = { -155.f, -145.f, 42.0f };
-    glm::vec3 position = { 1.5f, 1.5f, 1.5f };
-    glm::vec3 target   = { 0.0f, 0.0f, 0.0f };
+    glm::vec3 position = { 0.0f, 0.0f, 0.35f };
+    glm::vec3 target   = { std::sinf(time * speed), std::cosf(time * speed), 0.0f };
     glm::vec3 forward  = glm::normalize(target - position);
     glm::vec3 right    = glm::normalize(glm::cross({ 0.0f, 0.0f, 1.0f }, forward));
     glm::vec3 up       = glm::normalize(glm::cross(forward, right));
