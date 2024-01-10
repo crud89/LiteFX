@@ -9,7 +9,8 @@ OPTION(LITEFX_BUILD_DIRECTX_12_BACKEND "Builds the DirectX 12 backend." ON)
 
 OPTION(LITEFX_BUILD_DEFINE_BUILDERS "Defines builder types to allow to use builder syntax in applications." ON)
 
-OPTION(LITEFX_BUILD_MESH_SHADER_SUPPORT "When set to ON, support for mesh shades is enabled." ON)
+OPTION(LITEFX_BUILD_MESH_SHADER_SUPPORT "When set to ON, support for mesh shades is enabled." OFF)
+OPTION(LITEFX_BUILD_RAY_TRACING_SUPPORT "When set to ON, support for hardware ray tracing is enabled." OFF)
 
 OPTION(LITEFX_BUILD_EXAMPLES "When set to OFF, no samples will be built, regardless of their individual option." ON)
 OPTION(LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER "Add code to samples to load PIX GPU capture library when starting with --dx-load-pix=1 command line argument." ON)
