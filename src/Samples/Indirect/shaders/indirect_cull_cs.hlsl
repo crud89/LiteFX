@@ -20,7 +20,7 @@ struct Camera
     float4 Right;
     float NearPlane;
     float FarPlane;
-    float Frustum[4];
+    float4 Frustum[6];
 };
 
 struct IndirectDrawCommand
@@ -48,16 +48,17 @@ void main(uint3 id : SV_DispatchThreadID)
     uint instanceId = NonUniformResourceIndex(id.x);
     Object object = objects.Load(instanceId);
     
-    // Implementation following niagara approach, but without occlusion culling and level of detail: https://github.com/zeux/niagara/blob/master/src/shaders/math.h.
-    float4 center = mul(float4(0.0, 0.0, 0.0, 1.0), object.Transform);
+    float3 center = transpose(object.Transform)[3].xyz; // Get the object translation.
     float radius = object.BoundingRadius; // Scale is ignored here at the moment...
-
-    bool visible = true;
-    visible = visible && center.z * camera.Frustum[1] - abs(center.x) * camera.Frustum[0] > -radius;
-    visible = visible && center.z * camera.Frustum[3] - abs(center.y) * camera.Frustum[2] > -radius;
-    visible = visible && center.z + radius > camera.NearPlane && center.z - radius < camera.FarPlane;
     
-    if (visible)
+    bool culled = false;
+    
+    // Cull against every frustum plane, except the far plane (which is the last one).
+    [unroll(5)]
+    for (int i = 0; i < 5; i++)
+        culled = culled || dot(center, camera.Frustum[i].xyz) + radius < 0;
+    
+    if (!culled)
     {
         IndirectDrawCommand command;
         command.IndexCount = object.IndexCount;
@@ -65,7 +66,7 @@ void main(uint3 id : SV_DispatchThreadID)
         command.FirstIndex = object.FirstIndex;
         command.VertexOffset = object.VertexOffset;
         command.FirstInstance = instanceId;
-        //command.Padding.x = 0;
+        command.Padding.x = 0;        
         drawCommands.Append(command);
     }
 }

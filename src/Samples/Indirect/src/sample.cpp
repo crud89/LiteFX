@@ -30,7 +30,7 @@ struct alignas(16) CameraBuffer {
     glm::vec4 Right;
     float NearPlane;
     float FarPlane;
-    float Frustum[4];
+    glm::vec4 Frustum[6];
 } camera;
 
 struct alignas(16) ObjectBuffer {
@@ -68,8 +68,14 @@ static inline void initializeObjects() {
         int y = (i / 128) % 128;
         int z = i / 16384;
 
+        // Move the center instance slightly down, so that it does not stick into the camera view.
+        auto position = glm::vec3(x - 64, y - 64, z - 5) * 2.0f;
+        
+        if (x == 64 && y == 64 && z == 5)
+            position.z -= 0.35f;
+
         auto& instance = objects[i];
-        instance.Transform = glm::translate(glm::identity<glm::mat4>(), glm::vec3(x - 50, y - 50, z - 5) * 2.0f) * glm::eulerAngleXYZ(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX);
+        instance.Transform = glm::translate(glm::identity<glm::mat4>(), position) * glm::eulerAngleXYZ(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX);
         instance.Color = glm::vec4(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, 1.0f);
         instance.BoundingRadius = glm::length(glm::vec3(0.5f, 0.5f, 0.5f));
         instance.FirstIndex = 0;
@@ -249,14 +255,13 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffe
     camera.FarPlane = farPlane;
     
     // Compute frustum side planes.
-    auto projectionTransposed = glm::transpose(projection);
-    glm::vec4 frustumX = ::normalizePlane(projectionTransposed[3] + projectionTransposed[0]);
-    glm::vec4 frustumY = ::normalizePlane(projectionTransposed[3] + projectionTransposed[1]);
-
-    camera.Frustum[0] = frustumX.x;
-    camera.Frustum[1] = frustumX.z;
-    camera.Frustum[2] = frustumY.y;
-    camera.Frustum[3] = frustumY.z;
+    auto projectionTransposed = glm::transpose(camera.ViewProjection); // GLM uses column-major matrices, transpose lets us index rows.
+    camera.Frustum[0] = ::normalizePlane(projectionTransposed[3] + projectionTransposed[0]);  // Left
+    camera.Frustum[1] = ::normalizePlane(projectionTransposed[3] - projectionTransposed[0]);  // Right
+    camera.Frustum[2] = ::normalizePlane(projectionTransposed[3] + projectionTransposed[1]);  // Bottom
+    camera.Frustum[3] = ::normalizePlane(projectionTransposed[3] - projectionTransposed[1]);  // Top
+    camera.Frustum[4] = ::normalizePlane(projectionTransposed[3] + projectionTransposed[2]);  // Near
+    camera.Frustum[5] = ::normalizePlane(projectionTransposed[3] - projectionTransposed[2]);  // Far
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
     buffer.map(reinterpret_cast<const void*>(&camera), sizeof(camera), backBuffer);

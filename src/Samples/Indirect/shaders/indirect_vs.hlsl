@@ -21,7 +21,7 @@ struct Camera
     float4 Right;
     float NearPlane;
     float FarPlane;
-    float Frustum[4];
+    float4 Frustum[6];
 };
 
 struct Object
