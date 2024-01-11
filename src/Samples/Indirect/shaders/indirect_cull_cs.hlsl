@@ -66,7 +66,7 @@ void main(uint3 id : SV_DispatchThreadID)
         command.FirstIndex = object.FirstIndex;
         command.VertexOffset = object.VertexOffset;
         command.FirstInstance = instanceId;
-        command.Padding.x = 0;        
+        command.Padding.xyz = uint3(0, 0, 0);
         drawCommands.Append(command);
     }
 }
