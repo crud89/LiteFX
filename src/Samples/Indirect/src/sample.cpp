@@ -200,8 +200,9 @@ void SampleApp::initBuffers(IRenderBackend* backend)
 
     // Create a buffer for recording the indirect draw calls.
     // NOTE: Reflection cannot determine, that the buffer records indirect commands, so we need to explicitly state the usage.
+    // NOTE: We allocate a fourth element in the counter variable, which will always be zeroed out and acts as a copy source for resetting the counter.
     auto& indirectBindingLayout = cullPipeline.layout()->descriptorSet(DescriptorSets::Indirect);
-    auto indirectCounterBuffer = m_device->factory().createBuffer("Indirect Counter", BufferType::Indirect, BufferUsage::Dynamic, sizeof(UInt32), 3, true);
+    auto indirectCounterBuffer = m_device->factory().createBuffer("Indirect Counter", BufferType::Indirect, BufferUsage::Resource, sizeof(UInt32), 4, true);
     auto indirectCommandsBuffer = m_device->factory().createBuffer("Indirect Commands", BufferType::Indirect, BufferUsage::Resource, sizeof(IndirectIndexedBatch) * NUM_INSTANCES, 3, true);
     auto indirectBindings = indirectBindingLayout.allocateMultiple(3, {
         { { .resource = *indirectCounterBuffer, .firstElement = 0, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 0, .elements = 1 } },
@@ -491,8 +492,7 @@ void SampleApp::drawFrame()
     this->updateCamera(*cullCommands, cameraBuffer, backBuffer);
 
     // Clear the counter.
-    static const UInt32 zero = 0u;
-    indirectCounterBuffer.map(&zero, sizeof(UInt32), backBuffer);
+    cullCommands->transfer(indirectCounterBuffer, indirectCounterBuffer, 3, backBuffer);
 
     // Bind cull pipeline and all descriptor sets.
     cullCommands->use(cullPipeline);
@@ -502,7 +502,6 @@ void SampleApp::drawFrame()
 
     // Dispatch cull pass.
     cullCommands->dispatch({ NUM_INSTANCES / 128, 1, 1 });
-    //cullCommands->dispatch({ 1, 1, 1 });
 
     // Submit the cull pass commands.
     queue.submit(cullCommands);
