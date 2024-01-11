@@ -97,8 +97,10 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 
 	switch (usage)
 	{
-	case BufferUsage::Staging: usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  break;
-	case BufferUsage::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
+	case BufferUsage::Staging:  usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT; break;
+	case BufferUsage::Readback: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
+	case BufferUsage::Dynamic:
+	case BufferUsage::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT; break;
 	}
 
 	bufferInfo.usage = usageFlags;
@@ -146,8 +148,10 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 
 	switch (usage)
 	{
-	case BufferUsage::Staging: usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  break;
-	case BufferUsage::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
+	case BufferUsage::Staging:  usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT; break;
+	case BufferUsage::Readback: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
+	case BufferUsage::Dynamic:
+	case BufferUsage::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT; break;
 	}
 
 	bufferInfo.usage = usageFlags;
@@ -195,8 +199,10 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 
 	switch (usage)
 	{
-	case BufferUsage::Staging: usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  break;
-	case BufferUsage::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
+	case BufferUsage::Staging:  usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT; break;
+	case BufferUsage::Readback: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
+	case BufferUsage::Dynamic:
+	case BufferUsage::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT; break;
 	}
 
 	bufferInfo.usage = usageFlags;
