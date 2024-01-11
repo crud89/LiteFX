@@ -1,5 +1,6 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 constexpr UInt32 NUM_INSTANCES = 163840u;  // 10 * 128 * 128
 
@@ -68,7 +69,7 @@ static inline void initializeObjects() {
         int z = i / 16384;
 
         auto& instance = objects[i];
-        instance.Transform = glm::translate(glm::identity<glm::mat4>(), glm::vec3(x - 50, y - 50, z - 5) * 2.0f);
+        instance.Transform = glm::translate(glm::identity<glm::mat4>(), glm::vec3(x - 50, y - 50, z - 5) * 2.0f) * glm::eulerAngleXYZ(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX);
         instance.Color = glm::vec4(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, 1.0f);
         instance.BoundingRadius = glm::length(glm::vec3(0.5f, 0.5f, 0.5f));
         instance.FirstIndex = 0;
