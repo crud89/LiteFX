@@ -452,6 +452,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <remarks>
         /// In GLSL, use the <c>buffer</c> keyword to access storage buffers. In HLSL, use the <c>RWStructuredBuffer</c> keyword.
+        /// 
+        /// When using shader reflection on `AppendStructuredBuffer`/`ConsumeStructuredBuffer`, this descriptor type will be deduced, but support for those constructs is not
+        /// implemented. Instead, use a separate <see cref="RWByteAddressBuffer" /> descriptor and call `InterlockedAdd` on it.
         /// </remarks>
         RWStructuredBuffer = 0x00000012,
 
@@ -3522,10 +3525,10 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
-        /// Updates a constant buffer within the current descriptor set.
+        /// Updates one or more buffer descriptors within the current descriptor set.
         /// </summary>
         /// <param name="binding">The buffer binding point.</param>
-        /// <param name="buffer">The constant buffer to write to the descriptor set.</param>
+        /// <param name="buffer">The buffer to write to the descriptor set.</param>
         /// <param name="bufferElement">The index of the first element in the buffer to bind to the descriptor set.</param>
         /// <param name="elements">The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at <paramref name="bufferElement" />.</param>
         /// <param name="firstDescriptor">The index of the first descriptor in the descriptor array to update.</param>
@@ -3534,7 +3537,7 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Updates a texture within the current descriptor set.
+        /// Updates one or more texture descriptors within the current descriptor set.
         /// </summary>
         /// <remarks>
         /// The exact representation of the level and layer parameters depends on the dimension of the provided texture, as well as the type of the descriptor identified by the 
@@ -3559,7 +3562,7 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Updates a sampler within the current descriptor set.
+        /// Updates one or more sampler descriptors within the current descriptor set.
         /// </summary>
         /// <param name="binding">The sampler binding point.</param>
         /// <param name="sampler">The sampler to write to the descriptor set.</param>

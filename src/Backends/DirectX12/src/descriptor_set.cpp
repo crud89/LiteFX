@@ -131,7 +131,6 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
     }
     case DescriptorType::RWStructuredBuffer:
     {
-        // TODO: Support counter in AppendStructuredBuffer.
         for (UInt32 i(0); i < elementCount; ++i)
         {
             D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {

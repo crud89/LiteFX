@@ -199,7 +199,9 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     commandBuffer->transfer(asShared(std::move(objectsStagingBuffer)), *objectsBuffer);
 
     // Create a buffer for recording the indirect draw calls.
+    // 
     // NOTE: Reflection cannot determine, that the buffer records indirect commands, so we need to explicitly state the usage.
+    // TODO: We could add writable and indirect to `BufferFlags`... maybe even `TransferSource` and `TransferDest` (ignored in D3D though).
     // NOTE: We allocate a fourth element in the counter variable, which will always be zeroed out and acts as a copy source for resetting the counter.
     auto& indirectBindingLayout = cullPipeline.layout()->descriptorSet(DescriptorSets::Indirect);
     auto indirectCounterBuffer = m_device->factory().createBuffer("Indirect Counter", BufferType::Indirect, BufferUsage::Resource, sizeof(UInt32), 4, true);
