@@ -43,7 +43,7 @@ StructuredBuffer<Object>                    objects      : register(t0, space1);
 globallycoherent RWByteAddressBuffer        drawCounter  : register(u0, space2);
 RWStructuredBuffer<IndirectDrawCommand>     drawCommands : register(u1, space2);
 
-[numthreads(100, 1, 1)]
+[numthreads(128, 1, 1)]
 void main(uint3 id : SV_DispatchThreadID)
 {
     uint instanceId = NonUniformResourceIndex(id.x);
