@@ -37,7 +37,7 @@ struct Object
 ConstantBuffer<Camera>   camera  : register(b0, space0);
 StructuredBuffer<Object> objects : register(t0, space1);
 
-VertexData main(in VertexInput input, in uint modelId : SV_InstanceID)
+VertexData main(in VertexInput input, in uint modelId : SV_StartInstanceLocation)
 {
     VertexData vertex;
     Object object = objects.Load(modelId);
