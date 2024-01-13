@@ -52,10 +52,10 @@ UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(BufferType ty
 
 UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const
 {
-	// Constant buffers are aligned to 256 byte chunks. All other buffers can be aligned to a multiple of 4 bytes (`sizeof(DWORD)`). The actual amount of memory allocated 
+	// Constant buffers are aligned to 256 byte chunks. All other buffers can be aligned to a multiple of 16 bytes. The actual amount of memory allocated 
 	// is then defined as the smallest multiple of 64kb, that's greater or equal to `resourceDesc.Width` below. For more info, see:
 	// https://docs.microsoft.com/en-us/windows/win32/api/d3d12/nf-d3d12-id3d12device-getresourceallocationinfo#remarks.
-	size_t elementAlignment = type == BufferType::Uniform ? D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT : sizeof(DWORD);
+	size_t elementAlignment = type == BufferType::Uniform ? D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT : D3D12_RAW_UAV_SRV_BYTE_ALIGNMENT;
 
 	D3D12_RESOURCE_DESC1 resourceDesc { };
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
