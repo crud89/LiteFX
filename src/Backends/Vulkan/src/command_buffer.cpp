@@ -429,12 +429,7 @@ void VulkanCommandBuffer::dispatch(const Vector3u& threadCount) const noexcept
 
 void VulkanCommandBuffer::dispatchIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
 {
-	::vkCmdDrawIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, batchBuffer.elementSize());
-}
-
-void VulkanCommandBuffer::dispatchIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept
-{
-	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectDispatchBatch))), sizeof(IndirectDispatchBatch));
+	::vkCmdDispatchIndirect(this->handle(), batchBuffer.handle(), offset);
 }
 
 #ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT

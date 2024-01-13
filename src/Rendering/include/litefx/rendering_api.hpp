@@ -4508,19 +4508,6 @@ namespace LiteFX::Rendering {
             this->cmdDispatchIndirect(batchBuffer, batchCount, offset);
         }
 
-        /// <summary>
-        /// Executes a set of indirect dispatches.
-        /// </summary>
-        /// <param name="batchBuffer">The buffer that contains the batches.</param>
-        /// <param name="countBuffer">The buffer that contains the number of batches to execute.</param>
-        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
-        /// <param name="countOffset">The offset (in bytes) to the number of batches in the <paramref name="countBuffer" />.</param>
-        /// <param name="maxBatches">The maximum number of batches executed, even if there are more batches in <paramref name="countBuffer"/>.</param>
-        /// <seealso cref="dispatch" />
-        inline void dispatchIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept {
-            this->cmdDispatchIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
-        }
-
 #ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         /// <summary>
         /// Executes a mesh shader pipeline.
@@ -4748,7 +4735,6 @@ namespace LiteFX::Rendering {
         virtual void cmdBind(const IIndexBuffer& buffer) const noexcept = 0;
         virtual void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept = 0;
         virtual void cmdDispatchIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
-        virtual void cmdDispatchIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept = 0;
         virtual void cmdDraw(const IVertexBuffer& vertexBuffer, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const = 0;
         virtual void cmdDrawIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
         virtual void cmdDrawIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept = 0;
