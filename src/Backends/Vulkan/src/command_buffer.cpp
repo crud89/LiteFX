@@ -432,9 +432,9 @@ void VulkanCommandBuffer::dispatchIndirect(const IVulkanBuffer& batchBuffer, UIn
 	::vkCmdDrawIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, batchBuffer.elementSize());
 }
 
-void VulkanCommandBuffer::dispatchIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
+void VulkanCommandBuffer::dispatchIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept
 {
-	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, batchBuffer.alignedElementSize() / sizeof(IndirectDispatchBatch), sizeof(IndirectDispatchBatch));
+	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectDispatchBatch))), sizeof(IndirectDispatchBatch));
 }
 
 #ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
@@ -454,9 +454,9 @@ void VulkanCommandBuffer::drawIndirect(const IVulkanBuffer& batchBuffer, UInt32 
 	::vkCmdDrawIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, batchBuffer.elementSize());
 }
 
-void VulkanCommandBuffer::drawIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
+void VulkanCommandBuffer::drawIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept
 {
-	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, batchBuffer.alignedElementSize() / sizeof(IndirectBatch), sizeof(IndirectBatch));
+	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectBatch))), sizeof(IndirectBatch));
 }
 
 void VulkanCommandBuffer::drawIndexed(UInt32 indices, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const noexcept
@@ -469,9 +469,9 @@ void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer& batchBuffer, 
 	::vkCmdDrawIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, batchBuffer.elementSize());
 }
 
-void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept
+void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept
 {
-	::vkCmdDrawIndexedIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, batchBuffer.alignedElementSize() / sizeof(IndirectIndexedBatch), sizeof(IndirectIndexedBatch));
+	::vkCmdDrawIndexedIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectIndexedBatch))), sizeof(IndirectIndexedBatch));
 }
 
 void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept

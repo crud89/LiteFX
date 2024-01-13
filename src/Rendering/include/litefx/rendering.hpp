@@ -558,19 +558,19 @@ namespace LiteFX::Rendering {
         virtual void dispatchIndirect(const buffer_type& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void dispatchIndirect(const buffer_type& batchBuffer, const buffer_type& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept = 0;
+        virtual void dispatchIndirect(const buffer_type& batchBuffer, const buffer_type& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept = 0;
 
         /// <inheritdoc />
         virtual void drawIndirect(const buffer_type& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void drawIndirect(const buffer_type& batchBuffer, const buffer_type& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept = 0;
+        virtual void drawIndirect(const buffer_type& batchBuffer, const buffer_type& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept = 0;
 
         /// <inheritdoc />
         virtual void drawIndexedIndirect(const buffer_type& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void drawIndexedIndirect(const buffer_type& batchBuffer, const buffer_type& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept = 0;
+        virtual void drawIndexedIndirect(const buffer_type& batchBuffer, const buffer_type& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept = 0;
 
         /// <inheritdoc />
         inline virtual void draw(const vertex_buffer_type& vertexBuffer, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const {
@@ -666,8 +666,8 @@ namespace LiteFX::Rendering {
             this->dispatchIndirect(dynamic_cast<const buffer_type&>(batchBuffer), batchCount, offset);
         }
 
-        inline void cmdDispatchIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept override {
-            this->dispatchIndirect(dynamic_cast<const buffer_type&>(batchBuffer), dynamic_cast<const buffer_type&>(countBuffer), offset, countOffset);
+        inline void cmdDispatchIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept override {
+            this->dispatchIndirect(dynamic_cast<const buffer_type&>(batchBuffer), dynamic_cast<const buffer_type&>(countBuffer), offset, countOffset, maxBatches);
         }
         
         inline void cmdDraw(const IVertexBuffer& vertexBuffer, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const override {
@@ -678,8 +678,8 @@ namespace LiteFX::Rendering {
             this->drawIndirect(dynamic_cast<const buffer_type&>(batchBuffer), batchCount, offset);
         }
 
-        inline void cmdDrawIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept override {
-            this->drawIndirect(dynamic_cast<const buffer_type&>(batchBuffer), dynamic_cast<const buffer_type&>(countBuffer), offset, countOffset);
+        inline void cmdDrawIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept override {
+            this->drawIndirect(dynamic_cast<const buffer_type&>(batchBuffer), dynamic_cast<const buffer_type&>(countBuffer), offset, countOffset, maxBatches);
         }
         
         inline void cmdDrawIndexed(const IIndexBuffer& indexBuffer, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const override {
@@ -694,8 +694,8 @@ namespace LiteFX::Rendering {
             this->drawIndexedIndirect(dynamic_cast<const buffer_type&>(batchBuffer), batchCount, offset);
         }
 
-        inline void cmdDrawIndexedIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept override {
-            this->drawIndexedIndirect(dynamic_cast<const buffer_type&>(batchBuffer), dynamic_cast<const buffer_type&>(countBuffer), offset, countOffset);
+        inline void cmdDrawIndexedIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept override {
+            this->drawIndexedIndirect(dynamic_cast<const buffer_type&>(batchBuffer), dynamic_cast<const buffer_type&>(countBuffer), offset, countOffset, maxBatches);
         }
 
         inline void cmdExecute(SharedPtr<const ICommandBuffer> commandBuffer) const override {

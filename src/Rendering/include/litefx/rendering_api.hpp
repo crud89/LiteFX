@@ -4515,9 +4515,10 @@ namespace LiteFX::Rendering {
         /// <param name="countBuffer">The buffer that contains the number of batches to execute.</param>
         /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
         /// <param name="countOffset">The offset (in bytes) to the number of batches in the <paramref name="countBuffer" />.</param>
+        /// <param name="maxBatches">The maximum number of batches executed, even if there are more batches in <paramref name="countBuffer"/>.</param>
         /// <seealso cref="dispatch" />
-        inline void dispatchIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept {
-            this->cmdDispatchIndirect(batchBuffer, countBuffer, offset, countOffset);
+        inline void dispatchIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept {
+            this->cmdDispatchIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
         }
 
 #ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
@@ -4580,9 +4581,10 @@ namespace LiteFX::Rendering {
         /// <param name="countBuffer">The buffer that contains the number of batches to execute.</param>
         /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
         /// <param name="countOffset">The offset (in bytes) to the number of batches in the <paramref name="countBuffer" />.</param>
+        /// <param name="maxBatches">The maximum number of batches executed, even if there are more batches in <paramref name="countBuffer"/>.</param>
         /// <seealso cref="draw" />
-        inline void drawIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept {
-            this->cmdDrawIndirect(batchBuffer, countBuffer, offset, countOffset);
+        inline void drawIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept {
+            this->cmdDrawIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
         }
 
         /// <summary>
@@ -4645,9 +4647,10 @@ namespace LiteFX::Rendering {
         /// <param name="countBuffer">The buffer that contains the number of batches to execute.</param>
         /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
         /// <param name="countOffset">The offset (in bytes) to the number of batches in the <paramref name="countBuffer" />.</param>
+        /// <param name="maxBatches">The maximum number of batches executed, even if there are more batches in <paramref name="countBuffer"/>.</param>
         /// <seealso cref="drawIndexed" />
-        inline void drawIndexedIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept {
-            this->cmdDrawIndexedIndirect(batchBuffer, countBuffer, offset, countOffset);
+        inline void drawIndexedIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept {
+            this->cmdDrawIndexedIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
         }
 
         /// <summary>
@@ -4745,14 +4748,14 @@ namespace LiteFX::Rendering {
         virtual void cmdBind(const IIndexBuffer& buffer) const noexcept = 0;
         virtual void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept = 0;
         virtual void cmdDispatchIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
-        virtual void cmdDispatchIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept = 0;
+        virtual void cmdDispatchIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept = 0;
         virtual void cmdDraw(const IVertexBuffer& vertexBuffer, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const = 0;
         virtual void cmdDrawIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
-        virtual void cmdDrawIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept = 0;
+        virtual void cmdDrawIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept = 0;
         virtual void cmdDrawIndexed(const IIndexBuffer& indexBuffer, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const = 0;
         virtual void cmdDrawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const = 0;
         virtual void cmdDrawIndexedIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
-        virtual void cmdDrawIndexedIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset) const noexcept = 0;
+        virtual void cmdDrawIndexedIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept = 0;
         virtual void cmdExecute(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
         virtual void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffer) const = 0;
 

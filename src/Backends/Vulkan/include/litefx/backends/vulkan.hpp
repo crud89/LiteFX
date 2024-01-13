@@ -929,7 +929,7 @@ namespace LiteFX::Rendering::Backends {
         void dispatchIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
 
         /// <inheritdoc />
-        void dispatchIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept override;
+        void dispatchIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept override;
 
 #ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         /// <inheritdoc />
@@ -943,7 +943,7 @@ namespace LiteFX::Rendering::Backends {
         void drawIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
 
         /// <inheritdoc />
-        void drawIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept override;
+        void drawIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept override;
 
         /// <inheritdoc />
         void drawIndexed(UInt32 indices, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const noexcept override;
@@ -952,7 +952,7 @@ namespace LiteFX::Rendering::Backends {
         void drawIndexedIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
 
         /// <inheritdoc />
-        void drawIndexedIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0) const noexcept override;
+        void drawIndexedIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept override;
 
         /// <inheritdoc />
         void pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept override;
