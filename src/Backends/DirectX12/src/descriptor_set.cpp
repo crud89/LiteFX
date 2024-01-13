@@ -149,11 +149,12 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
     {
         for (UInt32 i(0); i < elementCount; ++i)
         {
+            // NOTE: One takes 4 byte size (sizeof(DWORD)) in DXGI_FORMAT_R32_TYPELESS format, which is required for raw buffers.
             D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
                 .Format = DXGI_FORMAT_R32_TYPELESS,
                 .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
                 .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-                .Buffer = { .FirstElement = ((bufferElement + i) * buffer.alignedElementSize()) / 4, .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / 4), .StructureByteStride = 0, .Flags = D3D12_BUFFER_SRV_FLAG_RAW }
+                .Buffer = { .FirstElement = ((bufferElement + i) * buffer.alignedElementSize()) / buffer.elementAlignment(), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / buffer.elementAlignment()), .StructureByteStride = 0, .Flags = D3D12_BUFFER_SRV_FLAG_RAW }
             };
 
             m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
@@ -166,10 +167,11 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
     {
         for (UInt32 i(0); i < elementCount; ++i)
         {
+            // NOTE: One takes 4 byte size (sizeof(DWORD)) in DXGI_FORMAT_R32_TYPELESS format, which is required for raw buffers.
             D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
                 .Format = DXGI_FORMAT_R32_TYPELESS,
                 .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
-                .Buffer = { .FirstElement = ((bufferElement + i) * buffer.alignedElementSize()) / 4, .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / 4), .StructureByteStride = 0, .CounterOffsetInBytes = 0, .Flags = D3D12_BUFFER_UAV_FLAG_RAW }
+                .Buffer = { .FirstElement = ((bufferElement + i) * buffer.alignedElementSize()) / sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0, .CounterOffsetInBytes = 0, .Flags = D3D12_BUFFER_UAV_FLAG_RAW }
             };
 
             m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
