@@ -4524,7 +4524,31 @@ namespace LiteFX::Rendering {
         inline void dispatchMesh(UInt32 x, UInt32 y, UInt32 z) const noexcept {
             this->dispatchMesh({ x, y, z });
         }
-#endif
+
+        /// <summary>
+        /// Executes a set of indirect mesh shader dispatches.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="batchCount">The number of batches in the buffer to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <seealso cref="dispatchMesh" />
+        inline void dispatchMeshIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept {
+            this->cmdDispatchMeshIndirect(batchBuffer, batchCount, offset);
+        }
+
+        /// <summary>
+        /// Executes a set of indirect mesh shader dispatches.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="countBuffer">The buffer that contains the number of batches to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <param name="countOffset">The offset (in bytes) to the number of batches in the <paramref name="countBuffer" />.</param>
+        /// <param name="maxBatches">The maximum number of batches executed, even if there are more batches in <paramref name="countBuffer"/>.</param>
+        /// <seealso cref="dispatch" />
+        inline void dispatchMeshIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept {
+            this->cmdDispatchMeshIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
+        }
+#endif // LITEFX_BUILD_MESH_SHADER_SUPPORT
 
         /// <summary>
         /// Draws a number of vertices from the currently bound vertex buffer.
@@ -4735,6 +4759,10 @@ namespace LiteFX::Rendering {
         virtual void cmdBind(const IIndexBuffer& buffer) const noexcept = 0;
         virtual void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept = 0;
         virtual void cmdDispatchIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+        virtual void cmdDispatchMeshIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
+        virtual void cmdDispatchMeshIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept = 0;
+#endif // LITEFX_BUILD_MESH_SHADER_SUPPORT
         virtual void cmdDraw(const IVertexBuffer& vertexBuffer, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const = 0;
         virtual void cmdDrawIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
         virtual void cmdDrawIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept = 0;

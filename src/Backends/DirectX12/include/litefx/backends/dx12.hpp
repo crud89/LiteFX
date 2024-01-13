@@ -947,7 +947,13 @@ namespace LiteFX::Rendering::Backends {
 
 #ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         /// <inheritdoc />
-        void dispatchMesh (const Vector3u& threadCount) const noexcept override;
+        void dispatchMesh(const Vector3u& threadCount) const noexcept override;
+
+        /// <inheritdoc />
+        void dispatchMeshIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void dispatchMeshIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept override;
 #endif
 
         /// <inheritdoc />
@@ -1735,9 +1741,10 @@ namespace LiteFX::Rendering::Backends {
         /// Returns the command signatures for indirect dispatch and draw calls.
         /// </summary>
         /// <param name="dispatchSignature">The command signature used to execute indirect dispatches.</param>
+        /// <param name="dispatchMeshSignature">The command signature used to execute indirect mesh shader dispatches.</param>
         /// <param name="drawSignature">The command signature used to execute indirect non-indexed draw calls.</param>
         /// <param name="drawIndexedSignature">The command signature used to execute indirect indexed draw calls.</param>
-        virtual void indirectDrawSignatures(ComPtr<ID3D12CommandSignature>& dispatchSignature, ComPtr<ID3D12CommandSignature>& drawSignature, ComPtr<ID3D12CommandSignature>& drawIndexedSignature) const noexcept;
+        virtual void indirectDrawSignatures(ComPtr<ID3D12CommandSignature>& dispatchSignature, ComPtr<ID3D12CommandSignature>& dispatchMeshSignature, ComPtr<ID3D12CommandSignature>& drawSignature, ComPtr<ID3D12CommandSignature>& drawIndexedSignature) const noexcept;
 
         // GraphicsDevice interface.
     public:

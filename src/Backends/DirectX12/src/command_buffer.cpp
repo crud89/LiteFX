@@ -16,7 +16,7 @@ private:
 	const DirectX12Queue& m_queue;
 	Array<SharedPtr<const IStateResource>> m_sharedResources;
 	const DirectX12PipelineState* m_lastPipeline = nullptr;
-	ComPtr<ID3D12CommandSignature> m_dispatchSignature, m_drawSignature, m_drawIndexedSignature;
+	ComPtr<ID3D12CommandSignature> m_dispatchSignature, m_drawSignature, m_drawIndexedSignature, m_dispatchMeshSignature;
 
 public:
 	DirectX12CommandBufferImpl(DirectX12CommandBuffer* parent, const DirectX12Queue& queue) :
@@ -28,7 +28,7 @@ public:
 	ComPtr<ID3D12GraphicsCommandList7> initialize(bool begin, bool primary)
 	{
 		// Store the command signatures for indirect drawing.
-		m_queue.device().indirectDrawSignatures(m_dispatchSignature, m_drawSignature, m_drawIndexedSignature);
+		m_queue.device().indirectDrawSignatures(m_dispatchSignature, m_dispatchMeshSignature, m_drawSignature, m_drawIndexedSignature);
 
 		// Create a command allocator.
 		D3D12_COMMAND_LIST_TYPE type;
@@ -383,6 +383,16 @@ void DirectX12CommandBuffer::dispatchIndirect(const IDirectX12Buffer& batchBuffe
 void DirectX12CommandBuffer::dispatchMesh(const Vector3u& threadCount) const noexcept
 {
 	this->handle()->DispatchMesh(threadCount.x(), threadCount.y(), threadCount.z());
+}
+
+void DirectX12CommandBuffer::dispatchMeshIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
+{
+	this->handle()->ExecuteIndirect(m_impl->m_dispatchMeshSignature.Get(), batchCount, batchBuffer.handle().Get(), offset, nullptr, 0);
+}
+
+void DirectX12CommandBuffer::dispatchMeshIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept
+{
+	this->handle()->ExecuteIndirect(m_impl->m_dispatchMeshSignature.Get(), std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectDispatchBatch))), batchBuffer.handle().Get(), offset, countBuffer.handle().Get(), countOffset);
 }
 #endif
 

@@ -557,6 +557,14 @@ namespace LiteFX::Rendering {
         /// <inheritdoc />
         virtual void dispatchIndirect(const buffer_type& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept = 0;
 
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+        /// <inheritdoc />
+        virtual void dispatchMeshIndirect(const buffer_type& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual void dispatchMeshIndirect(const buffer_type& batchBuffer, const buffer_type& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept = 0;
+#endif // LITEFX_BUILD_MESH_SHADER_SUPPORT
+
         /// <inheritdoc />
         virtual void drawIndirect(const buffer_type& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept = 0;
 
@@ -663,6 +671,16 @@ namespace LiteFX::Rendering {
             this->dispatchIndirect(dynamic_cast<const buffer_type&>(batchBuffer), batchCount, offset);
         }
 
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+        inline void cmdDispatchMeshIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept override {
+            this->dispatchMeshIndirect(dynamic_cast<const buffer_type&>(batchBuffer), batchCount, offset);
+        }
+
+        inline void cmdDispatchMeshIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept override {
+            this->dispatchMeshIndirect(dynamic_cast<const buffer_type&>(batchBuffer), dynamic_cast<const buffer_type&>(countBuffer), offset, countOffset, maxBatches);
+        }
+#endif // LITEFX_BUILD_MESH_SHADER_SUPPORT
+        
         inline void cmdDraw(const IVertexBuffer& vertexBuffer, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const override {
             this->draw(dynamic_cast<const vertex_buffer_type&>(vertexBuffer), instances, firstVertex, firstInstance);
         }
