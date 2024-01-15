@@ -24,7 +24,7 @@ void VulkanRasterizer::updateLineWidth(Float lineWidth) noexcept
     this->lineWidth() = lineWidth;
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
@@ -46,4 +46,4 @@ void VulkanRasterizerBuilder::build()
     this->instance()->depthStencilState().depthState() = m_state.depthState;
     this->instance()->depthStencilState().stencilState() = m_state.stencilState;
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

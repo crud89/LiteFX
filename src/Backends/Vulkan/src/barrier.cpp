@@ -169,7 +169,7 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
             globalBarriers.size(), globalBarriers.data(), bufferBarriers.size(), bufferBarriers.data(), imageBarriers.size(), imageBarriers.data());
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
@@ -203,4 +203,4 @@ constexpr void VulkanBarrierBuilder::setupImageBarrier(IImage& image, ResourceAc
     auto numLayers = layers > 0 ? layers : image.layers() - layer;
     this->instance()->transition(image, level, numLevels, layer, numLayers, plane, before, after, layout);
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

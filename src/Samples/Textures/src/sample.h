@@ -15,7 +15,7 @@
 
 #include "config.h"
 
-#ifdef BUILD_EXAMPLES_RENDERDOC_LOADER
+#ifdef LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER
 #include <renderdoc_app.h>
 
 extern RENDERDOC_API_1_5_0* renderDoc;

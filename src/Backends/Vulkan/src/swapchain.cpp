@@ -4,7 +4,7 @@
 
 using namespace LiteFX::Rendering::Backends;
 
-#if !defined(BUILD_DIRECTX_12_BACKEND)
+#if !defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
 // ------------------------------------------------------------------------------------------------
 // Default implementation.
 // ------------------------------------------------------------------------------------------------
@@ -17,11 +17,11 @@ private:
 	Size2d m_renderArea { };
 	Format m_format { Format::None };
 	UInt32 m_buffers { };
-	Array<VkSemaphore> m_swapSemaphores { };
 	UInt32 m_currentImage { };
 	Array<UniquePtr<IVulkanImage>> m_presentImages { };
 	const VulkanDevice& m_device;
 	VkSwapchainKHR m_handle = VK_NULL_HANDLE;
+	VkFence m_waitForImage = VK_NULL_HANDLE;
 
 	Array<SharedPtr<TimingEvent>> m_timingEvents;
 	Array<UInt64> m_timestamps;
@@ -52,8 +52,8 @@ public:
 public:
 	void initialize(Format format, const Size2d& renderArea, UInt32 buffers)
 	{
-		if (format == Format::Other || format == Format::None)
-			throw InvalidArgumentException("The provided surface format it not a valid value.");
+		if (format == Format::Other || format == Format::None) [[unlikely]]
+			throw InvalidArgumentException("format", "The provided surface format it not a valid value.");
 
 		auto adapter = m_device.adapter().handle();
 		auto surface = m_device.surface().handle();
@@ -64,8 +64,8 @@ public:
 		
 		if (auto match = std::ranges::find_if(surfaceFormats, [format](Format surfaceFormat) { return surfaceFormat == format; }); match != surfaceFormats.end()) [[likely]]
 			selectedFormat = *match;
-		else
-			throw InvalidArgumentException("The requested format is not supported by this device.");
+		else [[unlikely]]
+			throw InvalidArgumentException("format", "The requested format is not supported by this device.");
 
 		// Get the number of images in the swap chain.
 		VkSurfaceCapabilitiesKHR deviceCaps;
@@ -78,7 +78,7 @@ public:
 		createInfo.surface = surface;
 		createInfo.minImageCount = images;
 		createInfo.imageArrayLayers = 1;
-		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		createInfo.imageFormat = Vk::getFormat(selectedFormat);
 		createInfo.imageColorSpace = this->findColorSpace(adapter, surface, selectedFormat);
@@ -108,19 +108,11 @@ public:
 
 		// Create the swap chain instance.
 		VkSwapchainKHR swapChain;
-		raiseIfFailed<RuntimeException>(::vkCreateSwapchainKHR(m_device.handle(), &createInfo, nullptr, &swapChain), "Swap chain could not be created.");
+		raiseIfFailed(::vkCreateSwapchainKHR(m_device.handle(), &createInfo, nullptr, &swapChain), "Swap chain could not be created.");
 
-		// Create a semaphore for swapping images.
-		VkSemaphoreCreateInfo semaphoreInfo{};
-		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-		m_swapSemaphores.resize(images);
-		std::ranges::generate(m_swapSemaphores, [&]() mutable {
-			VkSemaphore semaphore;
-			raiseIfFailed<RuntimeException>(::vkCreateSemaphore(m_device.handle(), &semaphoreInfo, nullptr, &semaphore), "Unable to create swap semaphore.");
-			
-			return semaphore;
-		});
+		// Initialize the fence used to wait for image access.
+		VkFenceCreateInfo fenceInfo { .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+		raiseIfFailed(::vkCreateFence(m_device.handle(), &fenceInfo, nullptr, &m_waitForImage), "Unable to create image acquisition fence.");
 
 		// Create the swap chain images.
 		auto actualRenderArea = Size2d(static_cast<size_t>(createInfo.imageExtent.width), static_cast<size_t>(createInfo.imageExtent.height));
@@ -128,7 +120,7 @@ public:
 		::vkGetSwapchainImagesKHR(m_device.handle(), swapChain, &images, imageChain.data());
 
 		m_presentImages = imageChain |
-			std::views::transform([this, &actualRenderArea, &selectedFormat](const VkImage& image) { return makeUnique<VulkanImage>(m_device, image, Size3d{ actualRenderArea.width(), actualRenderArea.height(), 1 }, selectedFormat, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ResourceState::Undefined); }) |
+			std::views::transform([this, &actualRenderArea, &selectedFormat](const VkImage& image) { return makeUnique<VulkanImage>(m_device, image, Size3d{ actualRenderArea.width(), actualRenderArea.height(), 1 }, selectedFormat, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ImageLayout::Present); }) |
 			std::ranges::to<Array<UniquePtr<IVulkanImage>>>();
 
 		// Store state variables.
@@ -163,7 +155,7 @@ public:
 			};
 
 			VkQueryPool pool;
-			raiseIfFailed<RuntimeException>(::vkCreateQueryPool(m_device.handle(), &poolInfo, nullptr, &pool), "Unable to allocate timestamp query pool.");
+			raiseIfFailed(::vkCreateQueryPool(m_device.handle(), &poolInfo, nullptr, &pool), "Unable to allocate timestamp query pool.");
 			::vkResetQueryPool(m_device.handle(), pool, 0, timingEvents.size());
 
 			return pool;
@@ -186,11 +178,10 @@ public:
 		// Destroy the swap chain itself.
 		::vkDestroySwapchainKHR(m_device.handle(), m_handle, nullptr);
 
-		// Destroy the image swap semaphores.
-		std::ranges::for_each(m_swapSemaphores, [&](const auto& semaphore) { ::vkDestroySemaphore(m_device.handle(), semaphore, nullptr); });
+		// Destroy the fence used to wait for image acquisition.
+		::vkDestroyFence(m_device.handle(), m_waitForImage, nullptr);
 
 		// Destroy state.
-		m_swapSemaphores.clear();
 		m_buffers = 0;
 		m_renderArea = {};
 		m_format = Format::None;
@@ -199,53 +190,52 @@ public:
 
 	UInt32 swapBackBuffer()
 	{
-		// NOTE: m_currentImage may overflow, but this is okay. If we use nextImage to index semaphores, however, this may result in errors, since the image order is not necessarily preserved.
-		UInt32 nextImage;
-		m_currentImage++;
-		raiseIfFailed<RuntimeException>(::vkAcquireNextImageKHR(m_device.handle(), m_handle, UINT64_MAX, this->currentSemaphore(), VK_NULL_HANDLE, &nextImage), "Unable to swap front buffer.");
+		// Queue an image acquisition request, then wait for the fence and reset it for the next iteration. Note how this is similar to the DirectX behavior, where the swap call blocks until the 
+		// image is acquired and ready.
+		raiseIfFailed(::vkAcquireNextImageKHR(m_device.handle(), m_handle, UINT64_MAX, VK_NULL_HANDLE, m_waitForImage, &m_currentImage), "Unable to swap front buffer. Make sure that all previously acquired images are actually presented before acquiring another image.");
+		raiseIfFailed(::vkWaitForFences(m_device.handle(), 1, &m_waitForImage, VK_TRUE, UINT64_MAX), "Unable to wait for image acquisition.");
+		raiseIfFailed(::vkResetFences(m_device.handle(), 1, &m_waitForImage), "Unable to reset image acquisition fence.");
 
 		// Query the timing events.
 		// TODO: In rare situations, and only when using this swap chain implementation, the validation layers will complain about query pools not being reseted, when writing time stamps. I could
-		//       not find out why and when this happens, but I maybe waiting explicitly on the last frame's fence (for the respective image) will fix the issue.
+		//       not find out why and when this happens, but maybe waiting explicitly on the last frame's fence (for the respective image) will fix the issue.
 		if (m_supportsTiming && !m_timingEvents.empty()) [[likely]]
 		{
-			m_currentQueryPool = m_timingQueryPools[nextImage];
+			m_currentQueryPool = m_timingQueryPools[m_currentImage];
 			auto result = ::vkGetQueryPoolResults(m_device.handle(), m_currentQueryPool, 0, m_timestamps.size(), m_timestamps.size() * sizeof(UInt64), m_timestamps.data(), sizeof(UInt64), VK_QUERY_RESULT_64_BIT);
 		
 			if (result != VK_NOT_READY)	// Initial frames do not yet contain query results.
-				raiseIfFailed<RuntimeException>(result, "Unable to query timing events.");
+				raiseIfFailed(result, "Unable to query timing events.");
 
 			// Reset the query pool.
 			::vkResetQueryPool(m_device.handle(), m_currentQueryPool, 0, m_timestamps.size());
 		}
 
-		return nextImage;
+		return m_currentImage;
 	}
 
 	void present(const VulkanFrameBuffer& frameBuffer)
 	{
+		this->present(frameBuffer.lastFence());
+	}
+
+	void present(UInt64 fence) 
+	{
 		// Draw the frame, if the result of the render pass it should be presented to the swap chain.
 		std::array<VkSwapchainKHR, 1> swapChains = { m_handle };
-		std::array<VkSemaphore, 1> signalSemaphores = { frameBuffer.semaphore() };
-		const auto bufferIndex = frameBuffer.bufferIndex();
+		const auto bufferIndex = m_currentImage;
+		const auto& queue = m_device.defaultQueue(QueueType::Graphics);
+		queue.waitFor(fence);
 
-		VkPresentInfoKHR presentInfo {
+		VkPresentInfoKHR presentInfo = {
 			.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-			.pNext = nullptr,
-			.waitSemaphoreCount = static_cast<UInt32>(signalSemaphores.size()),
-			.pWaitSemaphores = signalSemaphores.data(),
 			.swapchainCount = static_cast<UInt32>(swapChains.size()),
 			.pSwapchains = swapChains.data(),
 			.pImageIndices = &bufferIndex,
 			.pResults = nullptr
 		};
 
-		raiseIfFailed<RuntimeException>(::vkQueuePresentKHR(m_device.graphicsQueue().handle(), &presentInfo), "Unable to present swap chain.");
-	}
-
-	const VkSemaphore& currentSemaphore()
-	{
-		return m_swapSemaphores[m_currentImage % m_buffers];
+		raiseIfFailed(::vkQueuePresentKHR(queue.handle(), &presentInfo), "Unable to present swap chain.");
 	}
 
 	const VkQueryPool& currentTimestampQueryPool()
@@ -282,20 +272,32 @@ public:
 #else
 #include <litefx/backends/dx12_api.hpp>
 
+#if VK_HEADER_VERSION < 268
+// Warn about this bug: https://github.com/KhronosGroup/Vulkan-ValidationLayers/issues/5295.
+#if __cplusplus >= 202302L
+#   warning "Vulkan SDK version is below 1.3.268.0, which will cause false validation errors about invalid command buffer resets. This bug has been fixed in later versions."
+#else
+#   pragma message("Note: Vulkan SDK version is below 1.3.268.0, which will cause false validation errors about invalid command buffer resets. This bug has been fixed in later versions.")
+#endif
+#endif
+
 namespace D3D 
 {
-	template <typename TException, typename ...TArgs>
-	inline void raiseIfFailed(HRESULT hr, StringView message, TArgs&&... args)
-	{
+	/// <summary>
+	/// Raises a <see cref="DirectX12PlatformException" />, if <paramref name="hr" /> does not equal `S_OK`.
+	/// </summary>
+	/// <param name="hr">The error code returned by the operation.</param>
+	/// <param name="message">The format string for the error message.</param>
+	/// <param name="args">The arguments passed to the error message format string.</param>
+	template <typename ...TArgs>
+	static inline void raiseIfFailed(HRESULT hr, StringView message, TArgs&&... args) {
 		if (SUCCEEDED(hr)) [[likely]]
 			return;
 
-		_com_error error(hr);
-
 		if (message.empty())
-			throw TException(VulkanPlatformException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(hr), error.ErrorMessage()));
+			throw DX12PlatformException(hr, message);
 		else
-			throw TException(VulkanPlatformException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(hr), error.ErrorMessage()), fmt::format(fmt::runtime(message), std::forward<TArgs>(args)...));
+			throw DX12PlatformException(hr, message, std::forward<TArgs>(args)...);
 	}
 }
 
@@ -314,7 +316,7 @@ private:
 		{
 			image.Reset();
 			::vkFreeMemory(device, memory, nullptr);
-			D3D::raiseIfFailed<RuntimeException>(::CloseHandle(handle), "Unable to close back buffer resource handle.");
+			D3D::raiseIfFailed(::CloseHandle(handle), "Unable to close back buffer resource handle.");
 		}
 
 	public:
@@ -328,20 +330,27 @@ private:
 	Size2d m_renderArea{ };
 	Format m_format{ Format::None };
 	UInt32 m_buffers{ };
-	Array<VkSemaphore> m_swapSemaphores{ };
 	UInt32 m_currentImage{ };
 	Array<UniquePtr<IVulkanImage>> m_presentImages{ };
 	Array<ImageResource> m_imageResources;
+	Array<UInt64> m_presentFences;
 	const VulkanDevice& m_device;
-	ComPtr<ID3D12Device> m_d3dDevice;
+	ComPtr<ID3D12Device4> m_d3dDevice;
 	ComPtr<IDXGISwapChain4> m_swapChain;
 	ComPtr<ID3D12CommandQueue> m_presentQueue;
+	ComPtr<ID3D12Fence> m_workloadFence = nullptr, m_presentationFence = nullptr;
+	Array<ComPtr<ID3D12CommandAllocator>> m_presentCommandAllocators;
+	Array<ComPtr<ID3D12GraphicsCommandList7>> m_presentCommandLists;
+	
 	bool m_supportsTearing = false;
+	HANDLE m_fenceHandle;
 
 	Array<SharedPtr<TimingEvent>> m_timingEvents;
 	Array<UInt64> m_timestamps;
 	Array<VkQueryPool> m_timingQueryPools;
 	bool m_supportsTiming = false;
+
+	PFN_vkImportSemaphoreWin32HandleKHR importSemaphoreWin32HandleKHR = nullptr;
 
 public:
 	VulkanSwapChainImpl(VulkanSwapChain* parent, const VulkanDevice& device) :
@@ -351,6 +360,11 @@ public:
 
 		if (!m_supportsTiming)
 			LITEFX_WARNING(VULKAN_LOG, "Timestamp queries are not supported and will be disabled. Reading timestamps will always return 0.");
+
+		importSemaphoreWin32HandleKHR = reinterpret_cast<PFN_vkImportSemaphoreWin32HandleKHR>(::vkGetDeviceProcAddr(device.handle(), "vkImportSemaphoreWin32HandleKHR"));
+
+		if (importSemaphoreWin32HandleKHR == nullptr) [[unlikely]]
+			throw RuntimeException("Semaphore importing is not available. Check if all required extensions are available.");
 	}
 
 	~VulkanSwapChainImpl()
@@ -365,8 +379,8 @@ public:
 public:
 	void initialize(Format format, const Size2d& renderArea, UInt32 buffers)
 	{
-		if (format == Format::Other || format == Format::None)
-			throw InvalidArgumentException("The provided surface format it not a valid value.");
+		if (format == Format::Other || format == Format::None) [[unlikely]]
+			throw InvalidArgumentException("format", "The provided surface format it not a valid value.");
 
 		// Query the swap chain surface format.
 		auto surfaceFormats = this->getSurfaceFormats(m_device.adapter().handle(), m_device.surface().handle());
@@ -374,8 +388,8 @@ public:
 
 		if (auto match = std::ranges::find_if(surfaceFormats, [format](Format surfaceFormat) { return surfaceFormat == format; }); match != surfaceFormats.end()) [[likely]]
 			selectedFormat = *match;
-		else
-			throw InvalidArgumentException("The requested format is not supported by this device.");
+		else [[unlikely]]
+			throw InvalidArgumentException("format", "The requested format is not supported by this device.");
 
 		[[unlikely]] if (selectedFormat != format)
 			LITEFX_INFO(VULKAN_LOG, "The format {0} has been changed to the compatible format {1}.", format, selectedFormat);
@@ -403,9 +417,9 @@ public:
 		ComPtr<IDXGIFactory7> factory;
 		UInt32 tearingSupport = 0;
 #ifndef NDEBUG
-		D3D::raiseIfFailed<RuntimeException>(::CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory)), "Unable to crate D3D12 factory for interop.");
+		D3D::raiseIfFailed(::CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory)), "Unable to crate D3D12 factory for interop.");
 #else
-		D3D::raiseIfFailed<RuntimeException>(::CreateDXGIFactory2(0, IID_PPV_ARGS(&factory)), "Unable to crate D3D12 factory for interop.");
+		D3D::raiseIfFailed(::CreateDXGIFactory2(0, IID_PPV_ARGS(&factory)), "Unable to crate D3D12 factory for interop.");
 #endif // NDEBUG
 		
 		if (FAILED(factory->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &tearingSupport, sizeof(tearingSupport)))) [[unlikely]]
@@ -414,10 +428,10 @@ public:
 		// Query the DXGI adapter.
 		ComPtr<IDXGIAdapter1> adapter;
 		auto adapterId = m_device.adapter().uniqueId();
-		D3D::raiseIfFailed<RuntimeException>(factory->EnumAdapterByLuid(*reinterpret_cast<LUID*>(&adapterId), IID_PPV_ARGS(&adapter)), "Unable to query adapter \"{0:#x}\".", adapterId);
+		D3D::raiseIfFailed(factory->EnumAdapterByLuid(*reinterpret_cast<LUID*>(&adapterId), IID_PPV_ARGS(&adapter)), "Unable to query adapter \"{0:#x}\".", adapterId);
 
 		// Create a D3D device.
-		D3D::raiseIfFailed<RuntimeException>(::D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_1, IID_PPV_ARGS(&m_d3dDevice)), "Unable to create D3D device.");
+		D3D::raiseIfFailed(::D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_1, IID_PPV_ARGS(&m_d3dDevice)), "Unable to create D3D device.");
 
 #ifndef NDEBUG
 		// Try to query an info queue to forward log messages.
@@ -429,8 +443,8 @@ public:
 		{
 			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
 			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
-			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, TRUE);
-			//infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_INFO, TRUE);
+			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, FALSE);
+			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_INFO, FALSE);
 
 			// Suppress individual messages by their ID
 			D3D12_MESSAGE_ID suppressIds[] = { D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE, D3D12_MESSAGE_ID_CLEARDEPTHSTENCILVIEW_MISMATCHINGCLEARVALUE };
@@ -442,18 +456,18 @@ public:
 			infoQueueFilter.DenyList.NumSeverities = _countof(severities);
 			infoQueueFilter.DenyList.pSeverityList = severities;
 
-			D3D::raiseIfFailed<RuntimeException>(infoQueue->PushStorageFilter(&infoQueueFilter), "Unable to push message filter to info queue of D3D interop device.");
+			D3D::raiseIfFailed(infoQueue->PushStorageFilter(&infoQueueFilter), "Unable to push message filter to info queue of D3D interop device.");
 		}
 #endif // NDEBUG
 
 		// Create a command queue.
 		D3D12_COMMAND_QUEUE_DESC presentQueueDesc {
 			.Type = D3D12_COMMAND_LIST_TYPE_DIRECT,
-			.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL,
+			.Priority = D3D12_COMMAND_QUEUE_PRIORITY_HIGH,
 			.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE,
 			//.NodeMask = m_d3dDevice->GetNodeCount() <= 1 ? 0 : pdidProps.deviceNodeMask
 		};
-		D3D::raiseIfFailed<RuntimeException>(m_d3dDevice->CreateCommandQueue(&presentQueueDesc, IID_PPV_ARGS(&m_presentQueue)), "Unable to create present queue.");
+		D3D::raiseIfFailed(m_d3dDevice->CreateCommandQueue(&presentQueueDesc, IID_PPV_ARGS(&m_presentQueue)), "Unable to create present queue.");
 
 		// Create the swap chain instance.
 		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4} }}...", fmt::ptr(&m_device), images, extent.width(), extent.height(), selectedFormat);
@@ -464,18 +478,18 @@ public:
 			.Format = DX12::getFormat(selectedFormat),
 			.Stereo = FALSE,
 			.SampleDesc = { 1, 0 },
-			.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
+			.BufferUsage = DXGI_USAGE_BACK_BUFFER, // DXGI_USAGE_RENDER_TARGET_OUTPUT
 			.BufferCount = images,
 			.Scaling = DXGI_SCALING_STRETCH,
 			.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD,
 			.AlphaMode = DXGI_ALPHA_MODE_UNSPECIFIED,
-			.Flags = (m_supportsTearing = static_cast<bool>(tearingSupport)) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UInt32)0,
+			.Flags = (m_supportsTearing = static_cast<bool>(tearingSupport)) ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : (UInt32)0
 		};
 
 		ComPtr<IDXGISwapChain1> swapChain;
 		auto hwnd = m_device.surface().windowHandle();
-		D3D::raiseIfFailed<RuntimeException>(factory->CreateSwapChainForHwnd(m_presentQueue.Get(), hwnd, &swapChainDesc, nullptr, nullptr, &swapChain), "Unable to create interop swap chain.");
-		D3D::raiseIfFailed<RuntimeException>(swapChain.As(&m_swapChain), "The interop swap chain does not implement the IDXGISwapChain4 interface.");
+		D3D::raiseIfFailed(factory->CreateSwapChainForHwnd(m_presentQueue.Get(), hwnd, &swapChainDesc, nullptr, nullptr, &swapChain), "Unable to create interop swap chain.");
+		D3D::raiseIfFailed(swapChain.As(&m_swapChain), "The interop swap chain does not implement the IDXGISwapChain4 interface.");
 
 		// Initialize swap chain images.
 		this->createImages(selectedFormat, extent, images);
@@ -483,6 +497,36 @@ public:
 		// Disable Alt+Enter shortcut for fullscreen-toggle.
 		if (FAILED(factory->MakeWindowAssociation(hwnd, DXGI_MWA_NO_ALT_ENTER))) [[unlikely]]
 			LITEFX_WARNING(VULKAN_LOG, "Unable disable keyboard control sequence for full-screen switching.");
+
+		// Initialize the present fences array.
+		m_presentFences.resize(images, 0ul);
+
+		// Create fences for synchronization.
+		D3D::raiseIfFailed(m_d3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_presentationFence)), "Unable to create presentation synchronization fence for swap chain.");
+		D3D::raiseIfFailed(m_d3dDevice->CreateFence(0, D3D12_FENCE_FLAG_SHARED, IID_PPV_ARGS(&m_workloadFence)), "Unable to create interop synchronization fence for swap chain.");
+		D3D::raiseIfFailed(m_d3dDevice->CreateSharedHandle(m_workloadFence.Get(), nullptr, GENERIC_ALL, L"", &m_fenceHandle), "Unable to create shared handle for swap chain interop synchronization fence.");
+
+		// Import the fence handle to signal it from Vulkan workloads.
+		VkImportSemaphoreWin32HandleInfoKHR fenceImportInfo = {
+			.sType = VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_WIN32_HANDLE_INFO_KHR,
+			.semaphore = m_device.defaultQueue(QueueType::Graphics).timelineSemaphore(),
+			.handleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_D3D12_FENCE_BIT,
+			.handle = m_fenceHandle
+		};
+		
+		raiseIfFailed(importSemaphoreWin32HandleKHR(m_device.handle(), &fenceImportInfo), "Unable to import interop synchronization fence for swap chain.");
+
+		// Allocate command lists.
+		m_presentCommandAllocators.clear();
+		m_presentCommandLists.clear();
+		m_presentCommandAllocators.resize(images);
+		m_presentCommandLists.resize(images);
+
+		for (UInt32 i{ 0 }; i < images; ++i)
+		{
+			D3D::raiseIfFailed(m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_presentCommandAllocators[i])), "Unable to create command allocator for present queue commands.");
+			D3D::raiseIfFailed(m_d3dDevice->CreateCommandList1(0, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&m_presentCommandLists[i])), "Unable to create command list for present queue commands.");
+		}
 	}
 
 	void reset(Format format, const Size2d& renderArea, UInt32 buffers)
@@ -496,8 +540,8 @@ public:
 
 		if (auto match = std::ranges::find_if(surfaceFormats, [format](Format surfaceFormat) { return surfaceFormat == format; }); match != surfaceFormats.end()) [[likely]]
 			selectedFormat = *match;
-		else
-			throw InvalidArgumentException("The requested format is not supported by this device.");
+		else [[unlikely]]
+			throw InvalidArgumentException("format", "The requested format is not supported by this device.");
 
 		[[unlikely]] if (selectedFormat != format)
 			LITEFX_INFO(VULKAN_LOG, "The format {0} has been changed to the compatible format {1}.", format, selectedFormat);
@@ -520,11 +564,11 @@ public:
 		LITEFX_TRACE(VULKAN_LOG, "Resetting swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4} }}...", fmt::ptr(&m_device), images, extent.width(), extent.height(), selectedFormat);
 
 		// Wait for both devices to be idle.
-		//m_device.graphicsQueue().waitFor(m_lastFence);
+		//m_device.defaultQueue(QueueType::Graphics).waitFor(m_lastFence);
 		this->waitForInteropDevice();
 		m_presentImages.clear();
 		m_imageResources.clear();
-		D3D::raiseIfFailed<RuntimeException>(m_swapChain->ResizeBuffers(buffers, static_cast<UInt32>(extent.width()), static_cast<UInt32>(extent.height()), DX12::getFormat(format), m_supportsTearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize interop swap chain back buffers.");
+		D3D::raiseIfFailed(m_swapChain->ResizeBuffers(buffers, static_cast<UInt32>(extent.width()), static_cast<UInt32>(extent.height()), DX12::getFormat(format), m_supportsTearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize interop swap chain back buffers.");
 
 		// Initialize swap chain images.
 		this->createImages(selectedFormat, extent, images);
@@ -532,10 +576,30 @@ public:
 		// Initialize the query pools.
 		if (m_timingQueryPools.size() != images)
 			this->resetQueryPools(m_timingEvents);
+
+		// Reset the present fences array.
+		m_presentFences.resize(images, 0ul);
+
+		// Resize and re-allocate command lists.
+		m_presentCommandAllocators.clear();
+		m_presentCommandLists.clear();
+		m_presentCommandAllocators.resize(images);
+		m_presentCommandLists.resize(images);
+
+		for (UInt32 i{ 0 }; i < images; ++i)
+		{
+			D3D::raiseIfFailed(m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_presentCommandAllocators[i])), "Unable to create command allocator for present queue commands.");
+			D3D::raiseIfFailed(m_d3dDevice->CreateCommandList1(0, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&m_presentCommandLists[i])), "Unable to create command list for present queue commands.");
+		}
 	}
 
 	void createImages(Format format, const Size2d& renderArea, UInt32 buffers)
-	{	
+	{
+		// NOTE: We maintain two sets of images: the swap chain back buffers and separate image resources that are shared and written to by the Vulkan renderer. During present
+		//       the `m_workloadFence` is waited upon before copying the shared images into the swap chain back buffers. While it is possible to share and write the back buffers
+		//       directly, they are not synchronized (even waiting for the workload fence before presenting is not enough). This causes back buffers to be written whilst they
+		//       presented, resulting in artifacts or flickering.
+
 		// Acquire the swap chain images.
 		m_presentImages.resize(buffers);
 		m_imageResources.resize(buffers);
@@ -544,8 +608,25 @@ public:
 			ComPtr<ID3D12Resource> resource;
 			HANDLE resourceHandle = nullptr;
 			const int image = i++;
-			D3D::raiseIfFailed<RuntimeException>(m_swapChain->GetBuffer(image, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", image);
-			D3D::raiseIfFailed<RuntimeException>(m_d3dDevice->CreateSharedHandle(resource.Get(), nullptr, GENERIC_ALL, nullptr, &resourceHandle), "Unable to create shared handle for interop back buffer.");
+			//D3D::raiseIfFailed(m_swapChain->GetBuffer(image, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", image);
+			
+			// Create a image resource.
+			D3D12_RESOURCE_DESC imageDesc = {
+				.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
+				.Width = renderArea.width(),
+				.Height = static_cast<UInt32>(renderArea.height()),
+				.DepthOrArraySize = 1,
+				.MipLevels = 1,
+				.Format = DX12::getFormat(format),
+				.SampleDesc = { 1, 0 },
+				.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
+				.Flags = D3D12_RESOURCE_FLAG_NONE
+			};
+
+			auto heapInfo = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+			
+			D3D::raiseIfFailed(m_d3dDevice->CreateCommittedResource(&heapInfo, D3D12_HEAP_FLAG_SHARED, &imageDesc, D3D12_RESOURCE_STATE_COMMON, nullptr, IID_PPV_ARGS(&resource)), "Unable to create image resource to interop back buffer.");
+			D3D::raiseIfFailed(m_d3dDevice->CreateSharedHandle(resource.Get(), nullptr, GENERIC_ALL, nullptr, &resourceHandle), "Unable to create shared handle for interop back buffer.");
 
 			// Wrap the back buffer images in an vulkan image.
 			const VkExternalMemoryImageCreateInfo wrapperInfo {
@@ -563,13 +644,13 @@ public:
 				.arrayLayers = 1,
 				.samples = VK_SAMPLE_COUNT_1_BIT,
 				.tiling = VK_IMAGE_TILING_OPTIMAL,
-				.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+				.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT,
 				.sharingMode = VK_SHARING_MODE_EXCLUSIVE
 			};
 
 			// Create the image.
 			VkImage backBuffer;
-			raiseIfFailed<RuntimeException>(::vkCreateImage(m_device.handle(), &imageInfo, nullptr, &backBuffer), "Unable to create swap-chain image.");
+			raiseIfFailed(::vkCreateImage(m_device.handle(), &imageInfo, nullptr, &backBuffer), "Unable to create swap-chain image.");
 
 			// Get the memory requirements.
 			VkMemoryRequirements memoryRequirements;
@@ -610,8 +691,8 @@ public:
 			};
 
 			VkDeviceMemory imageMemory;
-			raiseIfFailed<RuntimeException>(::vkAllocateMemory(m_device.handle(), &allocationInfo, nullptr, &imageMemory), "Unable to allocate memory for imported interop swap chain buffer.");
-			raiseIfFailed<RuntimeException>(::vkBindImageMemory(m_device.handle(), backBuffer, imageMemory, 0), "Unable to bind back-buffer.");
+			raiseIfFailed(::vkAllocateMemory(m_device.handle(), &allocationInfo, nullptr, &imageMemory), "Unable to allocate memory for imported interop swap chain buffer.");
+			raiseIfFailed(::vkBindImageMemory(m_device.handle(), backBuffer, imageMemory, 0), "Unable to bind back-buffer.");
 
 			// Return the image instance.
 			m_imageResources[image].device = m_device.handle();
@@ -620,21 +701,6 @@ public:
 			m_imageResources[image].image = std::move(resource);
 
 			return makeUnique<VulkanImage>(m_device, backBuffer, Size3d { imageInfo.extent.width, imageInfo.extent.height, imageInfo.extent.depth }, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ImageLayout::Present);
-		});
-
-		// Destroy the image swap semaphores.
-		std::ranges::for_each(m_swapSemaphores, [&](const auto& semaphore) { ::vkDestroySemaphore(m_device.handle(), semaphore, nullptr); });
-
-		// Create a semaphore for swapping images.
-		VkSemaphoreCreateInfo semaphoreInfo{};
-		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-		m_swapSemaphores.resize(buffers);
-		std::ranges::generate(m_swapSemaphores, [&]() mutable {
-			VkSemaphore semaphore;
-			raiseIfFailed<RuntimeException>(::vkCreateSemaphore(m_device.handle(), &semaphoreInfo, nullptr, &semaphore), "Unable to create swap semaphore.");
-
-			return semaphore;
 		});
 
 		// Store state variables.
@@ -664,7 +730,7 @@ public:
 			};
 
 			VkQueryPool pool;
-			raiseIfFailed<RuntimeException>(::vkCreateQueryPool(m_device.handle(), &poolInfo, nullptr, &pool), "Unable to allocate timestamp query pool.");
+			raiseIfFailed(::vkCreateQueryPool(m_device.handle(), &poolInfo, nullptr, &pool), "Unable to allocate timestamp query pool.");
 			::vkResetQueryPool(m_device.handle(), pool, 0, timingEvents.size());
 
 			return pool;
@@ -688,11 +754,9 @@ public:
 		m_swapChain.Reset();
 		m_d3dDevice.Reset();
 
-		// Destroy the image swap semaphores.
-		std::ranges::for_each(m_swapSemaphores, [&](const auto& semaphore) { ::vkDestroySemaphore(m_device.handle(), semaphore, nullptr); });
-
 		// Destroy state.
-		m_swapSemaphores.clear();
+		::CloseHandle(m_fenceHandle);
+		m_presentFences.clear();
 		m_buffers = 0;
 		m_renderArea = {};
 		m_format = Format::None;
@@ -704,14 +768,21 @@ public:
 		// Get the current back buffer index.
 		m_currentImage = m_swapChain->GetCurrentBackBufferIndex();
 
-		// We need to manually signal the current semaphore on the graphics queue, to inform it that the swap chain image is ready to be written.
-		VkSubmitInfo submitInfo = {
-			.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-			.signalSemaphoreCount = 1,
-			.pSignalSemaphores = &this->currentSemaphore()
-		};
+		// Wait for all workloads on this image to finish in order to be able to re-use the associated command buffers.
+		m_device.defaultQueue(QueueType::Graphics).waitFor(m_presentFences[m_currentImage]);
 
-		raiseIfFailed<RuntimeException>(::vkQueueSubmit(m_device.graphicsQueue().handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit the present queue signal.");
+		// Wait for the last presentation on the current image to finish, so that we can re-use the command buffers associated with it.
+		if (m_presentationFence->GetCompletedValue() < m_presentFences[m_currentImage])
+		{
+			HANDLE eventHandle = ::CreateEvent(nullptr, false, false, nullptr);
+			HRESULT hr = m_presentationFence->SetEventOnCompletion(m_presentFences[m_currentImage], eventHandle);
+
+			if (SUCCEEDED(hr))
+				::WaitForSingleObject(eventHandle, INFINITE);
+
+			::CloseHandle(eventHandle);
+			raiseIfFailed(hr, "Unable to register presentation fence completion event.");
+		}
 
 		// Query the timing events.
 		if (m_supportsTiming && !m_timingEvents.empty()) [[likely]]
@@ -719,7 +790,7 @@ public:
 			auto result = ::vkGetQueryPoolResults(m_device.handle(), m_timingQueryPools[m_currentImage], 0, m_timestamps.size(), m_timestamps.size() * sizeof(UInt64), m_timestamps.data(), sizeof(UInt64), VK_QUERY_RESULT_64_BIT);
 
 			if (result != VK_NOT_READY)	// Initial frames do not yet contain query results.
-				raiseIfFailed<RuntimeException>(result, "Unable to query timing events.");
+				raiseIfFailed(result, "Unable to query timing events.");
 
 			// Reset the query pool.
 			::vkResetQueryPool(m_device.handle(), m_timingQueryPools[m_currentImage], 0, m_timestamps.size());
@@ -731,29 +802,70 @@ public:
 
 	void present(const VulkanFrameBuffer& frameBuffer)
 	{
-		// We need to manually signal the current semaphore on the graphics queue, to inform it, that the swap chain is ready.
-		Array<VkPipelineStageFlags> waitForStages = { VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT };
+		this->present(frameBuffer.lastFence());
+	}
 
-		VkSubmitInfo submitInfo = {
-			.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-			.waitSemaphoreCount = 1,
-			.pWaitSemaphores = &frameBuffer.semaphore(),
-			.pWaitDstStageMask = waitForStages.data()
+	void present(UInt64 fence)
+	{
+		// Wait for all commands to finish on the default graphics queue. We assume that this is the last queue that receives (synchronized) workloads, as it is expected to
+		// handle presentation by convention.
+		m_presentQueue->Wait(m_workloadFence.Get(), m_presentFences[m_currentImage] = fence);
+
+		// Copy shared images to back buffers. See `createImages` for details on why we do this.
+		ComPtr<ID3D12Resource> resource;
+		D3D::raiseIfFailed(m_swapChain->GetBuffer(m_currentImage, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", m_currentImage);
+		
+		auto& allocator = m_presentCommandAllocators[m_currentImage];
+		auto& commandList = m_presentCommandLists[m_currentImage];
+		D3D::raiseIfFailed(allocator->Reset(), "Unable to reset command allocator before presentation.");
+		D3D::raiseIfFailed(commandList->Reset(allocator.Get(), nullptr), "Unable to reset command list before presentation.");
+
+		// Transition into copy destination state and copy the resource.
+		D3D12_TEXTURE_BARRIER barrier = {
+			.SyncBefore = D3D12_BARRIER_SYNC_NONE,
+			.SyncAfter = D3D12_BARRIER_SYNC_COPY,
+			.AccessBefore = D3D12_BARRIER_ACCESS_NO_ACCESS,
+			.AccessAfter = D3D12_BARRIER_ACCESS_COPY_DEST,
+			.LayoutBefore = D3D12_BARRIER_LAYOUT_UNDEFINED,
+			.LayoutAfter = D3D12_BARRIER_LAYOUT_COPY_DEST,
+			.pResource = resource.Get(),
+			.Subresources = {.NumMipLevels = 1, .NumArraySlices = 1, .NumPlanes = 1 }
 		};
 
-		// Wait for the frame buffer semaphore, as well as for the rendering fence to complete.
-		raiseIfFailed<RuntimeException>(::vkQueueSubmit(m_device.graphicsQueue().handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit the present queue signal.");
+		D3D12_BARRIER_GROUP barrierGroup = {
+			.Type = D3D12_BARRIER_TYPE_TEXTURE,
+			.NumBarriers = 1,
+			.pTextureBarriers = &barrier
+		};
 
-		// Present needs to happen on UI thread, so we cannot do this asynchronously.
-		m_device.graphicsQueue().waitFor(frameBuffer.lastFence());
-		D3D::raiseIfFailed<RuntimeException>(m_swapChain->Present(0, m_supportsTearing ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to queue present event on swap chain.");
+		commandList->Barrier(1, &barrierGroup);
+		commandList->CopyResource(resource.Get(), m_imageResources[m_currentImage].image.Get());
+
+		// Transition into present state and close the command list.
+		barrier = {
+			.SyncBefore = D3D12_BARRIER_SYNC_COPY,
+			.SyncAfter = D3D12_BARRIER_SYNC_NONE,
+			.AccessBefore = D3D12_BARRIER_ACCESS_COPY_DEST,
+			.AccessAfter = D3D12_BARRIER_ACCESS_NO_ACCESS,
+			.LayoutBefore = D3D12_BARRIER_LAYOUT_COPY_DEST,
+			.LayoutAfter = D3D12_BARRIER_LAYOUT_PRESENT,
+			.pResource = resource.Get(),
+			.Subresources = { .NumMipLevels = 1, .NumArraySlices = 1, .NumPlanes = 1 }
+		};
+
+		commandList->Barrier(1, &barrierGroup);
+
+		D3D::raiseIfFailed(commandList->Close(), "Unable to close command list for presentation.");
+		
+		// Submit the command buffer.
+		std::array<ID3D12CommandList*, 1> commandBuffers = { commandList.Get() };
+		m_presentQueue->ExecuteCommandLists(commandBuffers.size(), commandBuffers.data());
+
+		// Do the presentation.
+		D3D::raiseIfFailed(m_swapChain->Present(0, m_supportsTearing ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to queue present event on swap chain.");
+		D3D::raiseIfFailed(m_presentQueue->Signal(m_presentationFence.Get(), m_presentFences[m_currentImage]), "Unable to signal presentation fence.");
 	}
-
-	const VkSemaphore& currentSemaphore()
-	{
-		return m_swapSemaphores[m_currentImage];
-	}
-
+	
 	const VkQueryPool& currentTimestampQueryPool()
 	{
 		return m_timingQueryPools[m_currentImage];
@@ -790,7 +902,7 @@ private:
 	{
 		// Wait for the interop device to finish.
 		ComPtr<ID3D12Fence> fence;
-		D3D::raiseIfFailed<RuntimeException>(m_d3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)), "Unable to create queue synchronization fence on interop device.");
+		D3D::raiseIfFailed(m_d3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence)), "Unable to create queue synchronization fence on interop device.");
 
 		// Create a signal event.
 		HANDLE eventHandle = ::CreateEvent(nullptr, false, false, nullptr);
@@ -799,7 +911,7 @@ private:
 		if (FAILED(hr))
 		{
 			::CloseHandle(eventHandle);
-			D3D::raiseIfFailed<RuntimeException>(hr, "Unable to register queue synchronization fence completion event.");
+			D3D::raiseIfFailed(hr, "Unable to register queue synchronization fence completion event.");
 		}
 
 		// Signal the event value on the graphics queue.
@@ -808,7 +920,7 @@ private:
 		if (FAILED(hr))
 		{
 			::CloseHandle(eventHandle);
-			raiseIfFailed<RuntimeException>(hr, "Unable to wait for queue synchronization fence.");
+			raiseIfFailed(hr, "Unable to wait for queue synchronization fence.");
 		}
 
 		// Wait for the fence signal.
@@ -818,7 +930,7 @@ private:
 		::CloseHandle(eventHandle);
 	}
 };
-#endif // defined(BUILD_DIRECTX_12_BACKEND)
+#endif // defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.
@@ -831,11 +943,6 @@ VulkanSwapChain::VulkanSwapChain(const VulkanDevice& device, Format surfaceForma
 }
 
 VulkanSwapChain::~VulkanSwapChain() noexcept = default;
-
-const VkSemaphore& VulkanSwapChain::semaphore() const noexcept
-{
-	return m_impl->currentSemaphore();
-}
 
 const VkQueryPool& VulkanSwapChain::timestampQueryPool() const noexcept
 {
@@ -850,7 +957,7 @@ Enumerable<SharedPtr<TimingEvent>> VulkanSwapChain::timingEvents() const noexcep
 SharedPtr<TimingEvent> VulkanSwapChain::timingEvent(UInt32 queryId) const
 {
 	if (queryId >= m_impl->m_timingEvents.size())
-		throw ArgumentOutOfRangeException("No timing event has been registered for query ID {0}.", queryId);
+		throw ArgumentOutOfRangeException("queryId", 0u, static_cast<UInt32>(m_impl->m_timingEvents.size()), queryId, "No timing event has been registered for query ID {0}.", queryId);
 
 	return m_impl->m_timingEvents[queryId];
 }
@@ -861,12 +968,12 @@ UInt64 VulkanSwapChain::readTimingEvent(SharedPtr<const TimingEvent> timingEvent
 		return 0;
 
 	if (timingEvent == nullptr) [[unlikely]]
-		throw ArgumentNotInitializedException("The timing event must be initialized.");
+		throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");
 
 	if (auto match = std::find(m_impl->m_timingEvents.begin(), m_impl->m_timingEvents.end(), timingEvent); match != m_impl->m_timingEvents.end()) [[likely]]
 		return m_impl->m_timestamps[std::distance(m_impl->m_timingEvents.begin(), match)];
 
-	throw InvalidArgumentException("The timing event is not registered on the swap chain.");
+	throw InvalidArgumentException("timingEvent", "The timing event is not registered on the swap chain.");
 }
 
 UInt32 VulkanSwapChain::resolveQueryId(SharedPtr<const TimingEvent> timingEvent) const
@@ -875,12 +982,12 @@ UInt32 VulkanSwapChain::resolveQueryId(SharedPtr<const TimingEvent> timingEvent)
 		return 0;
 
 	if (timingEvent == nullptr) [[unlikely]]
-		throw ArgumentNotInitializedException("The timing event must be initialized.");
+		throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");
 
 	if (auto match = std::find(m_impl->m_timingEvents.begin(), m_impl->m_timingEvents.end(), timingEvent); match != m_impl->m_timingEvents.end()) [[likely]]
 		return static_cast<UInt32>(std::distance(m_impl->m_timingEvents.begin(), match));
 
-	throw InvalidArgumentException("The timing event is not registered on the swap chain.");
+	throw InvalidArgumentException("timingEvent", "The timing event is not registered on the swap chain.");
 }
 
 Format VulkanSwapChain::surfaceFormat() const noexcept
@@ -898,22 +1005,27 @@ const Size2d& VulkanSwapChain::renderArea() const noexcept
 	return m_impl->m_renderArea;
 }
 
-const IVulkanImage* VulkanSwapChain::image(UInt32 backBuffer) const
+IVulkanImage* VulkanSwapChain::image(UInt32 backBuffer) const
 {
 	if (backBuffer >= m_impl->m_presentImages.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("The back buffer must be a valid index.");
+		throw ArgumentOutOfRangeException("backBuffer", 0u, static_cast<UInt32>(m_impl->m_presentImages.size()), backBuffer, "The back buffer must be a valid index.");
 
 	return m_impl->m_presentImages[backBuffer].get();
 }
 
-Enumerable<const IVulkanImage*> VulkanSwapChain::images() const noexcept
+Enumerable<IVulkanImage*> VulkanSwapChain::images() const noexcept
 {
-	return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IVulkanImage>& image) { return image.get(); });
+	return m_impl->m_presentImages | std::views::transform([](UniquePtr<IVulkanImage>& image) { return image.get(); });
 }
 
 void VulkanSwapChain::present(const VulkanFrameBuffer& frameBuffer) const
 {
 	m_impl->present(frameBuffer);
+}
+
+void VulkanSwapChain::present(UInt64 fence) const 
+{
+	m_impl->present(fence);
 }
 
 Enumerable<Format> VulkanSwapChain::getSurfaceFormats() const noexcept
@@ -924,7 +1036,7 @@ Enumerable<Format> VulkanSwapChain::getSurfaceFormats() const noexcept
 void VulkanSwapChain::addTimingEvent(SharedPtr<TimingEvent> timingEvent)
 {
 	if (timingEvent == nullptr) [[unlikely]]
-		throw ArgumentNotInitializedException("The timing event must be initialized.");
+		throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");
 
 	if (!m_impl->m_supportsTiming)
 		return;

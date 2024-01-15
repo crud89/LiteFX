@@ -26,22 +26,15 @@ public:
     void initialize(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology)
     {
         m_primitiveTopology = primitiveTopology;
-
-        if (indexBufferLayout == nullptr)
-            throw ArgumentNotInitializedException("The index buffer layout must be initialized.");
-
         m_indexBufferLayout = std::move(indexBufferLayout);
 
         for (auto& vertexBufferLayout : vertexBufferLayouts)
-        {
-            if (vertexBufferLayout == nullptr)
-                throw ArgumentNotInitializedException("One of the provided vertex buffer layouts is not initialized.");
-
-            if (m_vertexBufferLayouts.contains(vertexBufferLayout->binding()))
-                throw InvalidArgumentException("Multiple vertex buffer layouts use the binding point {0}, but only one layout per binding point is allowed.", vertexBufferLayout->binding());
-
-            m_vertexBufferLayouts.emplace(vertexBufferLayout->binding(), std::move(vertexBufferLayout));
-        }
+            if (vertexBufferLayout == nullptr) [[unlikely]]
+                throw ArgumentNotInitializedException("vertexBufferLayouts", "One of the provided vertex buffer layouts is not initialized.");
+            else if (m_vertexBufferLayouts.contains(vertexBufferLayout->binding())) [[unlikely]]
+                throw InvalidArgumentException("vertexBufferLayouts", "Multiple vertex buffer layouts use the binding point {0}, but only one layout per binding point is allowed.", vertexBufferLayout->binding());
+            else
+                m_vertexBufferLayouts.emplace(vertexBufferLayout->binding(), std::move(vertexBufferLayout));
     }
 };
 
@@ -67,17 +60,17 @@ Enumerable<const VulkanVertexBufferLayout*> VulkanInputAssembler::vertexBufferLa
     return m_impl->m_vertexBufferLayouts | std::views::transform([](const auto& pair) { return pair.second.get(); });
 }
 
-const VulkanVertexBufferLayout& VulkanInputAssembler::vertexBufferLayout(UInt32 binding) const
+const VulkanVertexBufferLayout* VulkanInputAssembler::vertexBufferLayout(UInt32 binding) const
 {
-    [[likely]] if (m_impl->m_vertexBufferLayouts.contains(binding))
-        return *m_impl->m_vertexBufferLayouts[binding];
+    if (m_impl->m_vertexBufferLayouts.contains(binding)) [[likely]]
+        return m_impl->m_vertexBufferLayouts[binding].get();
 
-    throw ArgumentOutOfRangeException("No vertex buffer layout is bound to binding point {0}.", binding);
+    throw InvalidArgumentException("binding", "No vertex buffer layout is bound to binding point {0}.", binding);
 }
 
-const VulkanIndexBufferLayout& VulkanInputAssembler::indexBufferLayout() const
+const VulkanIndexBufferLayout* VulkanInputAssembler::indexBufferLayout() const noexcept
 {
-    return *m_impl->m_indexBufferLayout;
+    return m_impl->m_indexBufferLayout.get();
 }
 
 PrimitiveTopology VulkanInputAssembler::topology() const noexcept
@@ -85,7 +78,7 @@ PrimitiveTopology VulkanInputAssembler::topology() const noexcept
     return m_impl->m_primitiveTopology;
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -127,4 +120,4 @@ constexpr VulkanVertexBufferLayoutBuilder VulkanInputAssemblerBuilder::vertexBuf
 {
     return VulkanVertexBufferLayoutBuilder(*this, makeUnique<VulkanVertexBufferLayout>(elementSize, binding));
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

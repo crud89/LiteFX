@@ -19,7 +19,8 @@ SharedPtr<InputAssembler> inputAssembler = device->buildInputAssembler()
 UniquePtr<RenderPass> renderPass = device->
     buildRenderPass("Render Pass")
     .renderTarget(RenderTargetType::Present, 
-        Format::B8G8R8A8_UNORM, { 0.0f, 0.0f, 0.0f, 1.f })
+        Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, 
+        { 0.0f, 0.0f, 0.0f, 1.f })
 
 UniquePtr<RenderPipeline> renderPipeline = 
     device->buildRenderPipeline(*renderPass, "Render Pipeline")

@@ -79,8 +79,8 @@ bool VulkanBuffer::writable() const noexcept
 
 void VulkanBuffer::map(const void* const data, size_t size, UInt32 element)
 {
-	if (element >= m_impl->m_elements)
-		throw ArgumentOutOfRangeException("The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
+	if (element >= m_impl->m_elements) [[unlikely]]
+		throw ArgumentOutOfRangeException("element", 0u, m_impl->m_elements, element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
 
 	size_t alignedSize = size;
 	size_t alignment = this->elementAlignment();
@@ -89,12 +89,12 @@ void VulkanBuffer::map(const void* const data, size_t size, UInt32 element)
 		alignedSize = (size + alignment - 1) & ~(alignment - 1);
 
 	char* buffer;		// A pointer to the whole (aligned) buffer memory.
-	raiseIfFailed<RuntimeException>(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
+	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
 	auto result = ::memcpy_s(reinterpret_cast<void*>(buffer + (element * alignedSize)), alignedSize, data, size);
 
 	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
 
-	if (result != 0)
+	if (result != 0) [[unlikely]]
 		throw RuntimeException("Error mapping buffer to device memory: {#X}.", result);
 }
 
@@ -105,8 +105,8 @@ void VulkanBuffer::map(Span<const void* const> data, size_t elementSize, UInt32 
 
 void VulkanBuffer::map(void* data, size_t size, UInt32 element, bool write)
 {
-	if (element >= m_impl->m_elements)
-		throw ArgumentOutOfRangeException("The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
+	if (element >= m_impl->m_elements) [[unlikely]]
+		throw ArgumentOutOfRangeException("element", 0u, m_impl->m_elements, element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
 
 	size_t alignedSize = size;
 	size_t alignment = this->elementAlignment();
@@ -115,14 +115,14 @@ void VulkanBuffer::map(void* data, size_t size, UInt32 element, bool write)
 		alignedSize = (size + alignment - 1) & ~(alignment - 1);
 
 	char* buffer;		// A pointer to the whole (aligned) buffer memory.
-	raiseIfFailed<RuntimeException>(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
+	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
 	auto result = write ?
 		::memcpy_s(reinterpret_cast<void*>(buffer + (element * alignedSize)), alignedSize, data, size) :
 		::memcpy_s(data, size, reinterpret_cast<void*>(buffer + (element * alignedSize)), alignedSize);
 
 	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
 
-	if (result != 0)
+	if (result != 0) [[unlikely]]
 		throw RuntimeException("Error mapping buffer to device memory: {#X}.", result);
 }
 
@@ -141,7 +141,7 @@ UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, BufferType t
 	VkBuffer buffer;
 	VmaAllocation allocation;
 
-	raiseIfFailed<RuntimeException>(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate buffer.");
+	raiseIfFailed(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate buffer.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Writable: {5} }}", name.empty() ? fmt::to_string(fmt::ptr(reinterpret_cast<void*>(buffer))) : name, type, elements, elementSize, elements * elementSize, writable);
 
 	return makeUnique<VulkanBuffer>(buffer, type, elements, elementSize, alignment, writable, allocator, allocation, name);
@@ -191,7 +191,7 @@ UniquePtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const String& name, 
 	VkBuffer buffer;
 	VmaAllocation allocation;
 
-	raiseIfFailed<RuntimeException>(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate vertex buffer.");
+	raiseIfFailed(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate vertex buffer.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", name.empty() ? fmt::to_string(fmt::ptr(reinterpret_cast<void*>(buffer))) : name, BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements);
 
 	return makeUnique<VulkanVertexBuffer>(buffer, layout, elements, allocator, allocation, name);
@@ -241,7 +241,7 @@ UniquePtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const String& name, co
 	VkBuffer buffer;
 	VmaAllocation allocation;
 
-	raiseIfFailed<RuntimeException>(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate index buffer.");
+	raiseIfFailed(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate index buffer.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3} }}", name.empty() ? fmt::to_string(fmt::ptr(reinterpret_cast<void*>(buffer))) : name, BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements);
 
 	return makeUnique<VulkanIndexBuffer>(buffer, layout, elements, allocator, allocation, name);

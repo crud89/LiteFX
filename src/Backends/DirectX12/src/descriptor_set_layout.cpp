@@ -50,7 +50,7 @@ public:
             if (layout->descriptors() == -1)
             {
                 if (m_layouts.size() != 1) [[unlikely]]
-                    throw InvalidArgumentException("If an unbounded runtime array descriptor is used, it must be the only descriptor in the descriptor set, however the current descriptor set specifies {0} descriptors", m_layouts.size());
+                    throw InvalidArgumentException("descriptorLayouts", "If an unbounded runtime array descriptor is used, it must be the only descriptor in the descriptor set, however the current descriptor set specifies {0} descriptors", m_layouts.size());
                 else
                     m_isRuntimeArray = true;
             }
@@ -94,7 +94,7 @@ public:
                     .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE
                 };
 
-                raiseIfFailed<RuntimeException>(m_device.handle()->CreateDescriptorHeap(&bufferHeapDesc, IID_PPV_ARGS(&bufferHeap)), "Unable create constant CPU descriptor heap for constant buffers and images.");
+                raiseIfFailed(m_device.handle()->CreateDescriptorHeap(&bufferHeapDesc, IID_PPV_ARGS(&bufferHeap)), "Unable create constant CPU descriptor heap for constant buffers and images.");
             }
         }
 
@@ -117,7 +117,7 @@ public:
                     .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE
                 };
 
-                raiseIfFailed<RuntimeException>(m_device.handle()->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&samplerHeap)), "Unable create constant CPU descriptor heap for samplers.");
+                raiseIfFailed(m_device.handle()->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&samplerHeap)), "Unable create constant CPU descriptor heap for samplers.");
             }
         }
     }
@@ -148,7 +148,7 @@ UInt32 DirectX12DescriptorSetLayout::rootParameterIndex() const noexcept
 UInt32 DirectX12DescriptorSetLayout::descriptorOffsetForBinding(UInt32 binding) const
 {
     if (!m_impl->m_bindingToDescriptor.contains(binding)) [[unlikely]]
-        throw ArgumentOutOfRangeException("The descriptor set does not contain a descriptor at binding {0}.", binding);
+        throw InvalidArgumentException("binding", "The descriptor set does not contain a descriptor at binding {0}.", binding);
 
     return m_impl->m_bindingToDescriptor[binding];
 }
@@ -175,10 +175,10 @@ Enumerable<const DirectX12DescriptorLayout*> DirectX12DescriptorSetLayout::descr
 
 const DirectX12DescriptorLayout& DirectX12DescriptorSetLayout::descriptor(UInt32 binding) const
 {
-    if (auto match = std::ranges::find_if(m_impl->m_layouts, [&binding](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->binding() == binding; }); match != m_impl->m_layouts.end())
+    if (auto match = std::ranges::find_if(m_impl->m_layouts, [&binding](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->binding() == binding; }); match != m_impl->m_layouts.end()) [[likely]]
         return *match->get();
 
-    throw ArgumentOutOfRangeException("No layout has been provided for the binding {0}.", binding);
+    throw InvalidArgumentException("binding", "No layout has been provided for the binding {0}.", binding);
 }
 
 UInt32 DirectX12DescriptorSetLayout::space() const noexcept
@@ -240,12 +240,17 @@ UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(UInt32 
     auto descriptorSet = makeUnique<DirectX12DescriptorSet>(*this, std::move(bufferHeap), std::move(samplerHeap));
 
     // Apply the default bindings.
-    for (auto& binding : bindings)
+    for (UInt32 i{ 0 }; auto & binding : bindings)
+    {
         std::visit(type_switch{
-            [&descriptorSet, &binding](const ISampler& sampler) { descriptorSet->update(binding.binding, sampler, binding.firstDescriptor); },
-            [&descriptorSet, &binding](const IBuffer& buffer) { descriptorSet->update(binding.binding, buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
-            [&descriptorSet, &binding](const IImage& image) { descriptorSet->update(binding.binding, image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
+            [](const std::monostate&) { }, // Default: don't bind anything.
+            [&descriptorSet, &binding, i](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
+            [&descriptorSet, &binding, i](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
+            [&descriptorSet, &binding, i](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
         }, binding.resource);
+
+        ++i;
+    }
 
     // Return the descriptor set.
     return descriptorSet;
@@ -292,18 +297,16 @@ void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptor
     }
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Descriptor set layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 space, ShaderStage stages, UInt32 poolSize, UInt32 maxUnboundedArraySize) :
+constexpr DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 space, ShaderStage stages, UInt32 maxUnboundedArraySize) :
     DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(parent.device())))
 {
-    m_state.poolSize = poolSize;
     m_state.maxUnboundedArraySize = maxUnboundedArraySize;
 }
-
 constexpr DirectX12DescriptorSetLayoutBuilder::~DirectX12DescriptorSetLayoutBuilder() noexcept = default;
 
 void DirectX12DescriptorSetLayoutBuilder::build()
@@ -324,4 +327,4 @@ constexpr UniquePtr<DirectX12DescriptorLayout> DirectX12DescriptorSetLayoutBuild
 {
     return makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(this->parent().device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding);
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

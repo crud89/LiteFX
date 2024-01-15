@@ -44,12 +44,12 @@ struct FileExtensions {
     static const String SHADER;
 };
 
-#ifdef BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
 const String FileExtensions<VulkanBackend>::SHADER = "spv";
-#endif // BUILD_VULKAN_BACKEND
-#ifdef BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
 const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
-#endif // BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 template<typename TRenderBackend> requires
     rtti::implements<TRenderBackend, IRenderBackend>
@@ -78,8 +78,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     // Create a geometry render pass.
     UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque", MultiSamplingLevel::x1, NUM_WORKERS)
-        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.1f, 0.1f, 0.1f, 1.f }, true, false, false)
-        .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, {1.f, 0.f, 0.f, 0.f}, true, false, false);
+        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
+        .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
     // Create a shader program.
     SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
@@ -106,24 +106,24 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 void SampleApp::initBuffers(IRenderBackend* backend)
 {
     // Get a command buffer
-    auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 
     // Create the staging buffer.
     // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
     //       whole buffer.
-    auto stagedVertices = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
+    auto stagedVertices = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
     stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
     
     // Create the actual vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
     commandBuffer->transfer(asShared(std::move(stagedVertices)), *vertexBuffer, 0, 0, vertices.size());
 
     // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
-    auto stagedIndices = m_device->factory().createIndexBuffer(m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
-    stagedIndices->map(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout().elementSize(), 0);
+    auto stagedIndices = m_device->factory().createIndexBuffer(*m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
+    stagedIndices->map(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), 0);
 
     // Create the actual index buffer and transfer the staging buffer into it.
-    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
+    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
     commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
@@ -148,7 +148,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     });
     
     // End and submit the command buffer.
-    m_transferFence = m_device->bufferQueue().submit(commandBuffer);
+    m_transferFence = commandBuffer->submit();
 
     // Add everything to the state.
     m_device->state().add(std::move(vertexBuffer));
@@ -239,20 +239,20 @@ void SampleApp::onInit()
         backend->releaseDevice("Default");
     };
 
-#ifdef BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
     // Register the Vulkan backend de-/initializer.
     this->onBackendStart<VulkanBackend>(startCallback);
     this->onBackendStop<VulkanBackend>(stopCallback);
-#endif // BUILD_VULKAN_BACKEND
+#endif // LITEFX_BUILD_VULKAN_BACKEND
 
-#ifdef BUILD_DIRECTX_12_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
     // We do not need to provide a root signature for shader reflection (refer to the project wiki for more information: https://github.com/crud89/LiteFX/wiki/Shader-Development).
     DirectX12ShaderProgram::suppressMissingRootSignatureWarning();
 
     // Register the DirectX 12 backend de-/initializer.
     this->onBackendStart<DirectX12Backend>(startCallback);
     this->onBackendStop<DirectX12Backend>(stopCallback);
-#endif // BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 }
 
 void SampleApp::onResize(const void* sender, ResizeEventArgs e)
@@ -276,22 +276,22 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
 
     // Also update the camera.
     auto& cameraBuffer = m_device->state().buffer("Camera");
-    auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
     this->updateCamera(*commandBuffer, cameraBuffer);
-    m_transferFence = m_device->bufferQueue().submit(commandBuffer);
+    m_transferFence = commandBuffer->submit();
 }
 
 void SampleApp::keyDown(int key, int scancode, int action, int mods)
 {
-#ifdef BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
     if (key == GLFW_KEY_F9 && action == GLFW_PRESS)
         this->startBackend<VulkanBackend>();
-#endif // BUILD_VULKAN_BACKEND
+#endif // LITEFX_BUILD_VULKAN_BACKEND
 
-#ifdef BUILD_DIRECTX_12_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
     if (key == GLFW_KEY_F10 && action == GLFW_PRESS)
         this->startBackend<DirectX12Backend>();
-#endif // BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
     if (key == GLFW_KEY_F8 && action == GLFW_PRESS)
     {
@@ -408,14 +408,14 @@ void SampleApp::drawFrame()
     // Store the initial time this method has been called first.
     static auto start = std::chrono::high_resolution_clock::now();
 
+    // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
+    auto& renderPass = m_device->state().renderPass("Opaque");
+
     // Wait for all transfers to finish.
-    m_device->bufferQueue().waitFor(m_transferFence);
+    renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
 
     // Swap the back buffers for the next frame.
     auto backBuffer = m_device->swapChain().swapBackBuffer();
-
-    // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
-    auto& renderPass = m_device->state().renderPass("Opaque");
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     renderPass.begin(backBuffer);

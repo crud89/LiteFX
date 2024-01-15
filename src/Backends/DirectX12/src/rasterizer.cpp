@@ -19,7 +19,7 @@ DirectX12Rasterizer::DirectX12Rasterizer() noexcept :
 
 DirectX12Rasterizer::~DirectX12Rasterizer() noexcept = default;
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
@@ -41,4 +41,4 @@ void DirectX12RasterizerBuilder::build()
     this->instance()->depthStencilState().depthState() = m_state.depthState;
     this->instance()->depthStencilState().stencilState() = m_state.stencilState;
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

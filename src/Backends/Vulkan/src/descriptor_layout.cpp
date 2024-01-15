@@ -46,7 +46,7 @@ public:
         VulkanDescriptorLayoutImpl(parent, DescriptorType::Sampler, binding, 0, 1)
     {
         if (staticSampler == nullptr)
-            throw ArgumentNotInitializedException("The static sampler must be initialized.");
+            throw ArgumentNotInitializedException("staticSampler", "The static sampler must be initialized.");
 
         m_staticSampler = std::move(staticSampler);
     }

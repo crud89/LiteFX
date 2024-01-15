@@ -243,7 +243,7 @@ namespace LiteFX {
 			if (auto match = std::find_if(m_subscribers.begin(), m_subscribers.end(), [&token](const auto& d) { return d.token() == token; }); match != m_subscribers.end()) [[likely]]
 				return *match;
 				
-			throw InvalidArgumentException("The event does not contain the provided token.");
+			throw InvalidArgumentException("token", "The event does not contain the provided token.");
 		}
 
 	public:
@@ -514,7 +514,7 @@ namespace LiteFX {
 				auto backend = this->findBackend<TBackend>();
 
 				if (backend == nullptr)
-					throw InvalidArgumentException("No backend of type {0} has been registered.", typeid(TBackend).name());
+					throw InvalidArgumentException("callback", "No backend of type {0} has been registered.", typeid(TBackend).name());
 
 				if (backend->state() == BackendState::Active)
 					return true;
@@ -541,7 +541,7 @@ namespace LiteFX {
 				auto backend = this->findBackend<TBackend>();
 
 				if (backend == nullptr)
-					throw InvalidArgumentException("No backend of type {0} has been registered.", typeid(TBackend).name());
+					throw InvalidArgumentException("callback", "No backend of type {0} has been registered.", typeid(TBackend).name());
 
 				if (backend->state() != BackendState::Inactive)
 					callback(backend);

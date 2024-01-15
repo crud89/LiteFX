@@ -6,6 +6,8 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
+static PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks;
+
 class VulkanCommandBuffer::VulkanCommandBufferImpl : public Implement<VulkanCommandBuffer> {
 public:
 	friend class VulkanCommandBuffer;
@@ -13,42 +15,57 @@ public:
 private:
 	const VulkanQueue& m_queue;
 	bool m_recording{ false }, m_secondary{ false };
-	Optional<VkCommandPool> m_commandPool;
+	VkCommandPool m_commandPool;
 	Array<SharedPtr<const IStateResource>> m_sharedResources;
+	const VulkanPipelineState* m_lastPipeline = nullptr;
 
 public:
-	VulkanCommandBufferImpl(VulkanCommandBuffer* parent, const VulkanQueue& queue) :
-		base(parent), m_queue(queue)
+	VulkanCommandBufferImpl(VulkanCommandBuffer* parent, const VulkanQueue& queue, bool primary) :
+		base(parent), m_queue(queue), m_secondary(!primary)
 	{
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+		if (vkCmdDrawMeshTasks == nullptr)
+			vkCmdDrawMeshTasks = reinterpret_cast<PFN_vkCmdDrawMeshTasksEXT>(::vkGetDeviceProcAddr(queue.device().handle(), "vkCmdDrawMeshTasksEXT"));
+#endif
+	}
+
+	~VulkanCommandBufferImpl() 
+	{
+		this->release();
 	}
 
 public:
-	VkCommandBuffer initialize(bool primary)
+	void release() 
 	{
-		// Secondary command buffers have their own command pool.
-		if (!primary)
-		{
-			VkCommandPoolCreateInfo poolInfo = {
-				.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
-				.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-				.queueFamilyIndex = m_queue.queueId()
-			};
+		::vkFreeCommandBuffers(m_queue.device().handle(), m_commandPool, 1, &m_parent->handle());
+		::vkDestroyCommandPool(m_queue.device().handle(), m_commandPool, nullptr);
+	}
 
-			VkCommandPool commandPool;
-			raiseIfFailed<RuntimeException>(::vkCreateCommandPool(m_queue.device().handle(), &poolInfo, nullptr, &commandPool), "Unable to create command pool.");
-			m_commandPool = commandPool;
-			m_secondary = true;
-		}
+	VkCommandBuffer initialize()
+	{
+		// Create command pool.
+		VkCommandPoolCreateInfo poolInfo = {
+			.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+			.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
+			.queueFamilyIndex = m_queue.familyId(),
+		};
+
+		// Primary command buffers are frequently reset and re-allocated, whilst secondary command buffers must be recorded once and never reset.
+		if (!m_secondary)
+			poolInfo.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+
+		raiseIfFailed(::vkCreateCommandPool(m_queue.device().handle(), &poolInfo, nullptr, &m_commandPool), "Unable to create command pool.");
 
 		// Create the command buffer.
-		VkCommandBufferAllocateInfo bufferInfo{};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		bufferInfo.level = primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY : VK_COMMAND_BUFFER_LEVEL_SECONDARY;
-		bufferInfo.commandPool = primary ? m_queue.commandPool() : m_commandPool.value();
-		bufferInfo.commandBufferCount = 1;
+		VkCommandBufferAllocateInfo bufferInfo = {
+			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+			.commandPool = m_commandPool,
+			.level = m_secondary ? VK_COMMAND_BUFFER_LEVEL_SECONDARY : VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+			.commandBufferCount = 1
+		};
 
 		VkCommandBuffer buffer;
-		raiseIfFailed<RuntimeException>(::vkAllocateCommandBuffers(m_queue.device().handle(), &bufferInfo, &buffer), "Unable to allocate command buffer.");
+		raiseIfFailed(::vkAllocateCommandBuffers(m_queue.device().handle(), &bufferInfo, &buffer), "Unable to allocate command buffer.");
 
 		return buffer;
 	}
@@ -59,27 +76,15 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, bool begin, bool primary) :
-	m_impl(makePimpl<VulkanCommandBufferImpl>(this, queue)), Resource<VkCommandBuffer>(nullptr)
+	m_impl(makePimpl<VulkanCommandBufferImpl>(this, queue, primary)), Resource<VkCommandBuffer>(nullptr)
 {
-	if (!queue.isBound())
-		throw InvalidArgumentException("You must bind the queue before creating a command buffer from it.");
-
-	this->handle() = m_impl->initialize(primary);
+	this->handle() = m_impl->initialize();
 
 	if (begin)
 		this->begin();
 }
 
-VulkanCommandBuffer::~VulkanCommandBuffer() noexcept
-{
-	if (!m_impl->m_commandPool.has_value())
-		::vkFreeCommandBuffers(m_impl->m_queue.device().handle(), m_impl->m_queue.commandPool(), 1, &this->handle());
-	else
-	{
-		::vkFreeCommandBuffers(m_impl->m_queue.device().handle(), m_impl->m_commandPool.value(), 1, &this->handle());
-		::vkDestroyCommandPool(m_impl->m_queue.device().handle(), m_impl->m_commandPool.value(), nullptr);
-	}
-}
+VulkanCommandBuffer::~VulkanCommandBuffer() noexcept = default;
 
 void VulkanCommandBuffer::begin() const
 {
@@ -90,7 +95,7 @@ void VulkanCommandBuffer::begin() const
 		.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT
 	};
 
-	raiseIfFailed<RuntimeException>(::vkBeginCommandBuffer(this->handle(), &beginInfo), "Unable to begin command recording.");
+	raiseIfFailed(::vkBeginCommandBuffer(this->handle(), &beginInfo), "Unable to begin command recording.");
 	
 	m_impl->m_recording = true;
 }
@@ -115,7 +120,7 @@ void VulkanCommandBuffer::begin(const VulkanRenderPass& renderPass) const noexce
 		.pInheritanceInfo = &inheritanceInfo
 	};
 
-	raiseIfFailed<RuntimeException>(::vkBeginCommandBuffer(this->handle(), &beginInfo), "Unable to begin command recording.");
+	raiseIfFailed(::vkBeginCommandBuffer(this->handle(), &beginInfo), "Unable to begin command recording.");
 
 	m_impl->m_recording = true;
 }
@@ -124,7 +129,7 @@ void VulkanCommandBuffer::end() const
 {
 	// End recording.
 	if (m_impl->m_recording)
-		raiseIfFailed<RuntimeException>(::vkEndCommandBuffer(this->handle()), "Unable to stop command recording.");
+		raiseIfFailed(::vkEndCommandBuffer(this->handle()), "Unable to stop command recording.");
 
 	m_impl->m_recording = false;
 }
@@ -172,6 +177,14 @@ void VulkanCommandBuffer::setBlendFactors(const Vector4f& blendFactors) const no
 void VulkanCommandBuffer::setStencilRef(UInt32 stencilRef) const noexcept
 {
 	::vkCmdSetStencilReference(this->handle(), VK_STENCIL_FACE_FRONT_AND_BACK, stencilRef);
+}
+
+UInt64 VulkanCommandBuffer::submit() const 
+{
+	if (this->isSecondary())
+		throw RuntimeException("A secondary command buffer cannot be directly submitted to a command queue and must be executed on a primary command buffer instead.");
+
+	return m_impl->m_queue.submit(this->shared_from_this());
 }
 
 void VulkanCommandBuffer::generateMipMaps(IVulkanImage& image) noexcept
@@ -240,10 +253,10 @@ void VulkanCommandBuffer::barrier(const VulkanBarrier& barrier) const noexcept
 void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
+		throw ArgumentOutOfRangeException("sourceElement", "The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
 	if (target.elements() < targetElement + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, targetElement);
+		throw ArgumentOutOfRangeException("targetElement", "The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, targetElement);
 
 	VkBufferCopy copyInfo {
 		.srcOffset = sourceElement * source.alignedElementSize(),
@@ -257,21 +270,15 @@ void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanBuffer& target,
 void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
+		throw ArgumentOutOfRangeException("sourceElement", "The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
 	if (target.elements() < firstSubresource + elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("The target image has only {0} sub-resources, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, firstSubresource);
-
-	// Create a copy command and add it to the command buffer.
-	VulkanBarrier barrier(PipelineStage::None, PipelineStage::Transfer);
+		throw ArgumentOutOfRangeException("targetElement", "The target image has only {0} sub-resources, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, firstSubresource);
 
 	Array<VkBufferImageCopy> copyInfos(elements);
 	std::ranges::generate(copyInfos, [&, this, i = firstSubresource]() mutable {
 		UInt32 subresource = i++, layer = 0, level = 0, plane = 0;
 		target.resolveSubresource(subresource, plane, layer, level);
-
-		if (static_cast<const IImage&>(target).layout(subresource) != ImageLayout::CopyDestination)
-			barrier.transition(target, level, 1, layer, 1, plane, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::CopyDestination);
 
 		return VkBufferImageCopy {
 			.bufferOffset = source.alignedElementSize() * sourceElement,
@@ -288,20 +295,16 @@ void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanImage& target, 
 		};
 	});
 
-	this->barrier(barrier);
 	::vkCmdCopyBufferToImage(this->handle(), std::as_const(source).handle(), std::as_const(target).handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
 
 void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
 	if (source.elements() < sourceSubresource + subresources) [[unlikely]]
-		throw ArgumentOutOfRangeException("The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, sourceSubresource);
+		throw ArgumentOutOfRangeException("sourceElement", "The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, sourceSubresource);
 
 	if (target.elements() < targetSubresource + subresources) [[unlikely]]
-		throw ArgumentOutOfRangeException("The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resources {2} has been requested.", target.elements(), subresources, targetSubresource);
-
-	// Create a copy command and add it to the command buffer.
-	VulkanBarrier barrier(PipelineStage::None, PipelineStage::Transfer);
+		throw ArgumentOutOfRangeException("targetElement", "The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resources {2} has been requested.", target.elements(), subresources, targetSubresource);
 
 	Array<VkImageCopy> copyInfos(subresources);
 	std::ranges::generate(copyInfos, [&, this, i = 0]() mutable {
@@ -310,12 +313,6 @@ void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanImage& target, U
 		source.resolveSubresource(sourceRsc, sourceLayer, sourceLevel, sourcePlane);
 		target.resolveSubresource(targetRsc, targetLayer, targetLevel, targetPlane);
 		i++;
-
-		//if (static_cast<const IImage&>(source).layout(sourceSubresource) != ImageLayout::CopySource)
-		//	barrier.transition(source, sourceLayer, 1, sourceLevel, 1, sourcePlane, ResourceAccess::None, ResourceAccess::TransferRead, ImageLayout::CopySource);
-
-		if (static_cast<const IImage&>(target).layout(targetSubresource) != ImageLayout::CopyDestination)
-			barrier.transition(target, targetLayer, 1, targetLevel, 1, targetPlane, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::CopyDestination);
 
 		return VkImageCopy {
 			.srcSubresource = VkImageSubresourceLayers {
@@ -336,17 +333,16 @@ void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanImage& target, U
 		};
 	});
 
-	this->barrier(barrier);
 	::vkCmdCopyImage(this->handle(), std::as_const(source).handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, std::as_const(target).handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
 
 void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
 	if (source.elements() < firstSubresource + subresources) [[unlikely]]
-		throw ArgumentOutOfRangeException("The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
+		throw ArgumentOutOfRangeException("sourceElement", "The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
 
 	if (target.elements() <= targetElement + subresources) [[unlikely]]
-		throw ArgumentOutOfRangeException("The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), subresources, targetElement);
+		throw ArgumentOutOfRangeException("targetElement", "The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), subresources, targetElement);
 	
 	// Create a copy command and add it to the command buffer.
 	Array<VkBufferImageCopy> copyInfos(subresources);
@@ -398,7 +394,16 @@ void VulkanCommandBuffer::transfer(SharedPtr<IVulkanImage> source, IVulkanBuffer
 
 void VulkanCommandBuffer::use(const VulkanPipelineState& pipeline) const noexcept
 {
+	m_impl->m_lastPipeline = &pipeline;
 	pipeline.use(*this);
+}
+
+void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet) const
+{
+	if (m_impl->m_lastPipeline) [[likely]]
+		m_impl->m_lastPipeline->bind(*this, descriptorSet);
+	else
+		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
 }
 
 void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept
@@ -422,6 +427,13 @@ void VulkanCommandBuffer::dispatch(const Vector3u& threadCount) const noexcept
 	::vkCmdDispatch(this->handle(), threadCount.x(), threadCount.y(), threadCount.z());
 }
 
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+void VulkanCommandBuffer::dispatchMesh(const Vector3u& threadCount) const noexcept
+{
+	::vkCmdDrawMeshTasks(this->handle(), threadCount.x(), threadCount.y(), threadCount.z());
+}
+#endif
+
 void VulkanCommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const noexcept
 {
 	::vkCmdDraw(this->handle(), vertices, instances, firstVertex, firstInstance);
@@ -440,7 +452,7 @@ void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout,
 void VulkanCommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const
 {
 	if (timingEvent == nullptr) [[unlikely]]
-		throw ArgumentNotInitializedException("The timing event must be initialized.");
+		throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");
 
 	::vkCmdWriteTimestamp(this->handle(), VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, m_impl->m_queue.device().swapChain().timestampQueryPool(), timingEvent->queryId());
 }

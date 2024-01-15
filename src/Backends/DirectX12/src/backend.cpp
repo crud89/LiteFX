@@ -29,12 +29,12 @@ public:
         ComPtr<IDXGIFactory7> factory;
 
 #ifndef NDEBUG
-        raiseIfFailed<RuntimeException>(::CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory)), "Unable to create DirectX 12 factory instance.");
+        raiseIfFailed(::CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory)), "Unable to create DirectX 12 factory instance.");
         
         if (SUCCEEDED(::D3D12GetDebugInterface(IID_PPV_ARGS(&m_debugInterface))))
             m_debugInterface->EnableDebugLayer();
 #else
-        raiseIfFailed<RuntimeException>(::CreateDXGIFactory2(0, IID_PPV_ARGS(&factory)), "Unable to create DirectX 12 factory instance.");
+        raiseIfFailed(::CreateDXGIFactory2(0, IID_PPV_ARGS(&factory)), "Unable to create DirectX 12 factory instance.");
 #endif
 
         return factory;
@@ -50,8 +50,8 @@ public:
 
         if (enableWarp)
         {
-            raiseIfFailed<RuntimeException>(m_parent->handle()->EnumWarpAdapter(IID_PPV_ARGS(&adapterInterface)), "Unable to iterate advanced software rasterizer adapters.");
-            raiseIfFailed<RuntimeException>(adapterInterface.As(&adapterInstance), "The advanced software rasterizer adapter is not a valid IDXGIAdapter4 instance.");
+            raiseIfFailed(m_parent->handle()->EnumWarpAdapter(IID_PPV_ARGS(&adapterInterface)), "Unable to iterate advanced software rasterizer adapters.");
+            raiseIfFailed(adapterInterface.As(&adapterInstance), "The advanced software rasterizer adapter is not a valid IDXGIAdapter4 instance.");
             m_adapters.push_back(makeUnique<DirectX12GraphicsAdapter>(adapterInstance));
         }
         else
@@ -65,7 +65,7 @@ public:
                 if (adapterDecriptor.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
                     continue;
 
-                raiseIfFailed<RuntimeException>(adapterInterface.As(&adapterInstance), "The hardware adapter is not a valid IDXGIAdapter4 instance.");
+                raiseIfFailed(adapterInterface.As(&adapterInstance), "The hardware adapter is not a valid IDXGIAdapter4 instance.");
                 m_adapters.push_back(makeUnique<DirectX12GraphicsAdapter>(adapterInstance));
             }
         }
@@ -121,7 +121,7 @@ const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UIn
 void DirectX12Backend::registerDevice(String name, UniquePtr<DirectX12Device>&& device)
 {
     if (m_impl->m_devices.contains(name)) [[unlikely]]
-        throw InvalidArgumentException("The backend already contains a device with the name \"{0}\".", name);
+        throw InvalidArgumentException("name", "The backend already contains a device with the name \"{0}\".", name);
 
 #ifndef NDEBUG
     std::as_const(*device).handle()->SetName(Widen(name).c_str());

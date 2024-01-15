@@ -26,11 +26,11 @@ public:
 	{
 		// TODO: We share the library handle over the whole api by moving them to the device level at least.
 		ComPtr<IDxcLibrary> library;
-		raiseIfFailed<RuntimeException>(::DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&library)), "Unable to access DirectX shader compiler library.");
+		raiseIfFailed(::DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&library)), "Unable to access DirectX shader compiler library.");
 
 		// Read the blob.
 		ComPtr<IDxcBlobEncoding> blob;
-		raiseIfFailed<RuntimeException>(library->CreateBlobFromFile(::Widen(m_fileName).c_str(), CP_ACP, &blob), "Unable to load shader: {0}.", m_fileName.c_str());
+		raiseIfFailed(library->CreateBlobFromFile(::Widen(m_fileName).c_str(), CP_ACP, &blob), "Unable to load shader: {0}.", m_fileName.c_str());
 
 		return blob;
 	}
@@ -39,12 +39,12 @@ public:
 	{
 		// TODO: We share the library handle over the whole api by moving them to the device level at least.
 		ComPtr<IDxcLibrary> library;
-		raiseIfFailed<RuntimeException>(::DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&library)), "Unable to access DirectX shader compiler library.");
+		raiseIfFailed(::DxcCreateInstance(CLSID_DxcLibrary, IID_PPV_ARGS(&library)), "Unable to access DirectX shader compiler library.");
 
 		// Create a blob by copying the buffer.
 		ComPtr<IDxcBlobEncoding> blob;
 		String buffer(std::istreambuf_iterator<char>(stream), {});
-		raiseIfFailed<RuntimeException>(library->CreateBlobWithEncodingOnHeapCopy(buffer.data(), buffer.size(), CP_ACP, &blob), "Unable to load shader from stream: {0}.", m_fileName.c_str());
+		raiseIfFailed(library->CreateBlobWithEncodingOnHeapCopy(buffer.data(), buffer.size(), CP_ACP, &blob), "Unable to load shader from stream: {0}.", m_fileName.c_str());
 
 		return blob;
 	}

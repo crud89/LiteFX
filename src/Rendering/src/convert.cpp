@@ -166,7 +166,7 @@ constexpr size_t LiteFX::Rendering::getSize(Format format)
 	case R64G64B64A64_SFLOAT:
 		return 32;
 	default:
-		throw InvalidArgumentException("Unsupported format: {0}.", format);
+		throw InvalidArgumentException("format", "Unsupported format: {0}.", format);
 	}
 }
 

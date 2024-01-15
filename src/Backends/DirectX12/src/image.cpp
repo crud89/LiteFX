@@ -102,7 +102,7 @@ bool DirectX12Image::writable() const noexcept
 ImageLayout DirectX12Image::layout(UInt32 subresource) const
 {
 	if (subresource >= m_impl->m_layouts.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("The sub-resource with the provided index {0} does not exist.", subresource);
+		throw ArgumentOutOfRangeException("subresource", 0u, static_cast<UInt32>(m_impl->m_layouts.size()), subresource, "The sub-resource with the provided index {0} does not exist.", subresource);
 
 	return m_impl->m_layouts[subresource];
 }
@@ -110,7 +110,7 @@ ImageLayout DirectX12Image::layout(UInt32 subresource) const
 ImageLayout& DirectX12Image::layout(UInt32 subresource)
 {
 	if (subresource >= m_impl->m_layouts.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("The sub-resource with the provided index {0} does not exist.", subresource);
+		throw ArgumentOutOfRangeException("subresource", 0u, static_cast<UInt32>(m_impl->m_layouts.size()), subresource, "The sub-resource with the provided index {0} does not exist.", subresource);
 
 	return m_impl->m_layouts[subresource];
 }
@@ -197,11 +197,11 @@ UniquePtr<DirectX12Image> DirectX12Image::allocate(const DirectX12Device& device
 UniquePtr<DirectX12Image> DirectX12Image::allocate(const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool writable, ImageLayout initialLayout, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
 {
 	if (allocator == nullptr) [[unlikely]]
-		throw ArgumentNotInitializedException("The allocator must be initialized.");
+		throw ArgumentNotInitializedException("allocator", "The allocator must be initialized.");
 
 	ComPtr<ID3D12Resource> resource;
 	D3D12MA::Allocation* allocation;
-	raiseIfFailed<RuntimeException>(allocator->CreateResource3(&allocationDesc, &resourceDesc, DX12::getImageLayout(initialLayout), nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to create image resource.");
+	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, DX12::getImageLayout(initialLayout), nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to create image resource.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Writable: {7} }}", name.empty() ? fmt::to_string(fmt::ptr(resource.Get())) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, writable, samples);
 	
 	return makeUnique<DirectX12Image>(device, std::move(resource), extent, format, dimension, levels, layers, samples, writable, initialLayout, allocator, AllocationPtr(allocation), name);

@@ -35,12 +35,12 @@ struct FileExtensions {
     static const String SHADER;
 };
 
-#ifdef BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
 const String FileExtensions<VulkanBackend>::SHADER = "spv";
-#endif // BUILD_VULKAN_BACKEND
-#ifdef BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
 const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
-#endif // BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 template<typename TRenderBackend> requires
     rtti::implements<TRenderBackend, IRenderBackend>
@@ -61,17 +61,17 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .topology(PrimitiveTopology::TriangleList)
         .indexType(IndexType::UInt16)
         .vertexBuffer(sizeof(Vertex), 0)
-        .withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
-        .withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
-        .withAttribute(2, BufferFormat::XY32F, offsetof(Vertex, TextureCoordinate0), AttributeSemantic::TextureCoordinate, 0)
+            .withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
+            .withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
+            .withAttribute(2, BufferFormat::XY32F, offsetof(Vertex, TextureCoordinate0), AttributeSemantic::TextureCoordinate, 0)
         .add();
 
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
 
     // Create a geometry render pass.
     UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
-        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, { 0.1f, 0.1f, 0.1f, 1.f }, true, false, false)
-        .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, { 1.f, 0.f, 0.f, 0.f }, true, false, false);
+        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
+        .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
     // Create a shader program.
     SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
@@ -96,7 +96,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
 template<typename TDevice> requires
     rtti::implements<TDevice, IGraphicsDevice>
-UInt64 loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampler>& sampler)
+void loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampler>& sampler)
 {
     using TBarrier = typename TDevice::barrier_type;
 
@@ -118,15 +118,20 @@ UInt64 loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampl
     auto stagedTexture = device.factory().createBuffer(BufferType::Other, BufferUsage::Staging, texture->size(0));
     stagedTexture->map(imageData.get(), texture->size(0), 0);
 
-    // Transfer the texture using the compute queue (since we want to be able to generate mip maps, which is done on the compute queue).
-    auto commandBuffer = device.graphicsQueue().createCommandBuffer(true);
+    // Transfer the texture using the graphics queue (since we want to be able to generate mip maps, which is done on the graphics queue in Vulkan and a compute-capable queue in D3D12).
+    auto commandBuffer = device.defaultQueue(QueueType::Graphics).createCommandBuffer(true);
+    UniquePtr<TBarrier> barrier = device.buildBarrier()
+        .waitFor(PipelineStage::None).toContinueWith(PipelineStage::Transfer)
+        .blockAccessTo(*texture, ResourceAccess::TransferWrite).transitionLayout(ImageLayout::CopyDestination).whenFinishedWith(ResourceAccess::None);
+
+    commandBuffer->barrier(*barrier);
     commandBuffer->transfer(asShared(std::move(stagedTexture)), *texture);
 
     // Generate the rest of the mip maps.
     commandBuffer->generateMipMaps(*texture);
 
     // Create a barrier to ensure the texture is readable.
-    UniquePtr<TBarrier> barrier = device.buildBarrier()
+    barrier = device.buildBarrier()
         .waitFor(PipelineStage::None).toContinueWith(PipelineStage::Fragment)
         .blockAccessTo(*texture, ResourceAccess::ShaderRead).transitionLayout(ImageLayout::ShaderResource).whenFinishedWith(ResourceAccess::None);
 
@@ -134,12 +139,10 @@ UInt64 loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampl
 
     // Submit the command buffer and wait for it to execute. Note that it is possible to do the waiting later when we actually use the texture during rendering. This
     // would not block earlier draw calls, if the texture would be streamed in at run-time.
-    auto transferFence = device.graphicsQueue().submit(commandBuffer);
+    auto transferFence = commandBuffer->submit();
 
     // Create a sampler state for the texture.
     sampler = device.factory().createSampler("Sampler", FilterMode::Linear, FilterMode::Linear, BorderMode::Repeat, BorderMode::Repeat, BorderMode::Repeat, MipMapMode::Linear, 0.f, std::numeric_limits<Float>::max(), 0.f, 16.f);
-
-    return transferFence;
 }
 
 template<typename TDevice> requires
@@ -147,24 +150,24 @@ template<typename TDevice> requires
 UInt64 initBuffers(SampleApp& app, TDevice& device, SharedPtr<IInputAssembler> inputAssembler)
 {
     // Get a command buffer
-    auto commandBuffer = device.bufferQueue().createCommandBuffer(true);
+    auto commandBuffer = device.defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 
     // Create the staging buffer.
     // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
     //       whole buffer.
-    auto stagedVertices = device.factory().createVertexBuffer(inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
+    auto stagedVertices = device.factory().createVertexBuffer(*inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
     stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = device.factory().createVertexBuffer("Vertex Buffer", inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
+    auto vertexBuffer = device.factory().createVertexBuffer("Vertex Buffer", *inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
     commandBuffer->transfer(asShared(std::move(stagedVertices)), *vertexBuffer, 0, 0, vertices.size());
 
     // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
-    auto stagedIndices = device.factory().createIndexBuffer(inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
-    stagedIndices->map(indices.data(), indices.size() * inputAssembler->indexBufferLayout().elementSize(), 0);
+    auto stagedIndices = device.factory().createIndexBuffer(*inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
+    stagedIndices->map(indices.data(), indices.size() * inputAssembler->indexBufferLayout()->elementSize(), 0);
 
     // Create the actual index buffer and transfer the staging buffer into it.
-    auto indexBuffer = device.factory().createIndexBuffer("Index Buffer", inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
+    auto indexBuffer = device.factory().createIndexBuffer("Index Buffer", *inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
     commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
     
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
@@ -190,13 +193,13 @@ UInt64 initBuffers(SampleApp& app, TDevice& device, SharedPtr<IInputAssembler> i
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
     auto transformBuffer = device.factory().createBuffer("Transform", transformBindingLayout, 0, BufferUsage::Dynamic, 3);
     auto transformBindings = transformBindingLayout.allocateMultiple(3, {
-        { {.binding = 0, .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
-        { {.binding = 0, .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
-        { {.binding = 0, .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
+        { { .binding = 0, .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
+        { { .binding = 0, .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
+        { { .binding = 0, .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
     });
 
     // End and submit the command buffer.
-    auto transferFence = device.bufferQueue().submit(commandBuffer);
+    auto transferFence = commandBuffer->submit();
 
     // Add everything to the state.
     device.state().add(std::move(vertexBuffer));
@@ -294,20 +297,20 @@ void SampleApp::onInit()
         backend->releaseDevice("Default");
     };
 
-#ifdef BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
     // Register the Vulkan backend de-/initializer.
     this->onBackendStart<VulkanBackend>(startCallback);
     this->onBackendStop<VulkanBackend>(stopCallback);
-#endif // BUILD_VULKAN_BACKEND
+#endif // LITEFX_BUILD_VULKAN_BACKEND
 
-#ifdef BUILD_DIRECTX_12_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
     // We do not need to provide a root signature for shader reflection (refer to the project wiki for more information: https://github.com/crud89/LiteFX/wiki/Shader-Development).
     DirectX12ShaderProgram::suppressMissingRootSignatureWarning();
 
     // Register the DirectX 12 backend de-/initializer.
     this->onBackendStart<DirectX12Backend>(startCallback);
     this->onBackendStop<DirectX12Backend>(stopCallback);
-#endif // BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 }
 
 void SampleApp::onResize(const void* sender, ResizeEventArgs e)
@@ -331,22 +334,22 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
 
     // Also update the camera.
     auto& cameraBuffer = m_device->state().buffer("Camera");
-    auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
     this->updateCamera(*commandBuffer, cameraBuffer);
-    m_transferFence = m_device->bufferQueue().submit(commandBuffer);
+    m_transferFence = commandBuffer->submit();
 }
 
 void SampleApp::keyDown(int key, int scancode, int action, int mods)
 {
-#ifdef BUILD_VULKAN_BACKEND
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
     if (key == GLFW_KEY_F9 && action == GLFW_PRESS)
         this->startBackend<VulkanBackend>();
-#endif // BUILD_VULKAN_BACKEND
+#endif // LITEFX_BUILD_VULKAN_BACKEND
 
-#ifdef BUILD_DIRECTX_12_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
     if (key == GLFW_KEY_F10 && action == GLFW_PRESS)
         this->startBackend<DirectX12Backend>();
-#endif // BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
     if (key == GLFW_KEY_F8 && action == GLFW_PRESS)
     {
@@ -429,9 +432,6 @@ void SampleApp::drawFrame()
     // Store the initial time this method has been called first.
     static auto start = std::chrono::high_resolution_clock::now();
 
-    // Wait for all transfers to finish.
-    m_device->bufferQueue().waitFor(m_transferFence);
-
     // Swap the back buffers for the next frame.
     auto backBuffer = m_device->swapChain().swapBackBuffer();
 
@@ -444,6 +444,9 @@ void SampleApp::drawFrame()
     auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer));
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
+
+    // Wait for all transfers to finish.
+    renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     renderPass.begin(backBuffer);
