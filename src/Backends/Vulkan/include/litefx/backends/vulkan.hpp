@@ -25,7 +25,11 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="vertexSize">The size of a single vertex.</param>
         /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
-        explicit VulkanVertexBufferLayout(size_t vertexSize, UInt32 binding = 0);
+        /// <param name="attributes">The attributes to initialize the layout with.</param>
+        explicit VulkanVertexBufferLayout(size_t vertexSize, UInt32 binding = 0, std::initializer_list<BufferAttribute> attributes);
+
+        /// <inheritdoc cref="VulkanVertexBufferLayout(size_t, UInt32, const std::initializer_list{{BufferAttribute}})" />
+        explicit VulkanVertexBufferLayout(size_t vertexSize, UInt32 binding = 0, Span<BufferAttribute> attributes = { });
         VulkanVertexBufferLayout(VulkanVertexBufferLayout&&) = delete;
         VulkanVertexBufferLayout(const VulkanVertexBufferLayout&) = delete;
         virtual ~VulkanVertexBufferLayout() noexcept;
@@ -33,7 +37,7 @@ namespace LiteFX::Rendering::Backends {
         // IVertexBufferLayout interface.
     public:
         /// <inheritdoc />
-        Enumerable<const BufferAttribute*> attributes() const noexcept override;
+        const Array<BufferAttribute>& attributes() const noexcept override;
 
         // IBufferLayout interface.
     public:

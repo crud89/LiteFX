@@ -2832,7 +2832,7 @@ namespace LiteFX::Rendering {
         /// Returns the vertex buffer attributes.
         /// </summary>
         /// <returns>The vertex buffer attributes.</returns>
-        virtual Enumerable<const BufferAttribute*> attributes() const noexcept = 0;
+        virtual const Array<BufferAttribute>& attributes() const noexcept = 0;
     };
 
     /// <summary>

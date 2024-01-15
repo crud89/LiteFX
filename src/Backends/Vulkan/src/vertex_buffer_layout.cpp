@@ -13,15 +13,21 @@ public:
     friend class VulkanVertexBufferLayout;
 
 private:
-    Array<UniquePtr<BufferAttribute>> m_attributes;
+    Array<BufferAttribute> m_attributes;
     size_t m_vertexSize;
     UInt32 m_binding;
     BufferType m_bufferType{ BufferType::Vertex };
 
 public:
-    VulkanVertexBufferLayoutImpl(VulkanVertexBufferLayout* parent, size_t vertexSize, UInt32 binding) : 
-        base(parent), m_vertexSize(vertexSize), m_binding(binding) 
+    VulkanVertexBufferLayoutImpl(VulkanVertexBufferLayout* parent, size_t vertexSize, UInt32 binding, std::initializer_list<BufferAttribute> attributes) :
+        base(parent), m_vertexSize(vertexSize), m_binding(binding), m_attributes(attributes)
     {
+    }
+
+    VulkanVertexBufferLayoutImpl(VulkanVertexBufferLayout* parent, size_t vertexSize, UInt32 binding, Span<BufferAttribute> attributes) :
+        base(parent), m_vertexSize(vertexSize), m_binding(binding)
+    {
+        m_attributes.assign_range(attributes);
     }
 };
 
@@ -29,8 +35,13 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanVertexBufferLayout::VulkanVertexBufferLayout(size_t vertexSize, UInt32 binding) :
-    m_impl(makePimpl<VulkanVertexBufferLayoutImpl>(this, vertexSize, binding))
+VulkanVertexBufferLayout::VulkanVertexBufferLayout(size_t vertexSize, UInt32 binding, std::initializer_list<BufferAttribute> attributes) :
+    m_impl(makePimpl<VulkanVertexBufferLayoutImpl>(this, vertexSize, binding, attributes))
+{
+}
+
+VulkanVertexBufferLayout::VulkanVertexBufferLayout(size_t vertexSize, UInt32 binding, Span<BufferAttribute> attributes) :
+    m_impl(makePimpl<VulkanVertexBufferLayoutImpl>(this, vertexSize, binding, attributes))
 {
 }
 
@@ -51,9 +62,9 @@ BufferType VulkanVertexBufferLayout::type() const noexcept
     return m_impl->m_bufferType;
 }
 
-Enumerable<const BufferAttribute*> VulkanVertexBufferLayout::attributes() const noexcept
+const Array<BufferAttribute>& VulkanVertexBufferLayout::attributes() const noexcept
 {
-    return m_impl->m_attributes | std::views::transform([](const UniquePtr<BufferAttribute>& attribute) { return attribute.get(); });
+    return m_impl->m_attributes;
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

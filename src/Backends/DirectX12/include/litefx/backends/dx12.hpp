@@ -25,7 +25,12 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="vertexSize">The size of a single vertex.</param>
         /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
-        explicit DirectX12VertexBufferLayout(size_t vertexSize, UInt32 binding = 0);
+        /// <param name="attributes">The attributes to initialize the layout with.</param>
+        explicit DirectX12VertexBufferLayout(size_t vertexSize, UInt32 binding = 0, std::initializer_list<BufferAttribute> attributes);
+
+        /// <inheritdoc cref="DirectX12VertexBufferLayout(size_t, UInt32, const std::initializer_list{{BufferAttribute}})" />
+        explicit DirectX12VertexBufferLayout(size_t vertexSize, UInt32 binding = 0, Span<BufferAttribute> attributes = { });
+
         DirectX12VertexBufferLayout(DirectX12VertexBufferLayout&&) = delete;
         DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&) = delete;
         virtual ~DirectX12VertexBufferLayout() noexcept;
@@ -33,7 +38,7 @@ namespace LiteFX::Rendering::Backends {
         // IVertexBufferLayout interface.
     public:
         /// <inheritdoc />
-        Enumerable<const BufferAttribute*> attributes() const noexcept override;
+        const Array<BufferAttribute>& attributes() const noexcept override;
 
         // IBufferLayout interface.
     public:

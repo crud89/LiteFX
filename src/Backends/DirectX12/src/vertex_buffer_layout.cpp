@@ -13,15 +13,21 @@ public:
     friend class DirectX12VertexBufferLayout;
 
 private:
-    Array<UniquePtr<BufferAttribute>> m_attributes;
+    Array<BufferAttribute> m_attributes;
     size_t m_vertexSize;
     UInt32 m_binding;
     BufferType m_bufferType{ BufferType::Vertex };
 
 public:
-    DirectX12VertexBufferLayoutImpl(DirectX12VertexBufferLayout* parent, size_t vertexSize, UInt32 binding) :
+    DirectX12VertexBufferLayoutImpl(DirectX12VertexBufferLayout* parent, size_t vertexSize, UInt32 binding, std::initializer_list<BufferAttribute> attributes) :
+        base(parent), m_vertexSize(vertexSize), m_binding(binding), m_attributes(attributes)
+    {
+    }
+
+    DirectX12VertexBufferLayoutImpl(DirectX12VertexBufferLayout* parent, size_t vertexSize, UInt32 binding, Span<BufferAttribute> attributes) :
         base(parent), m_vertexSize(vertexSize), m_binding(binding)
     {
+        m_attributes.assign_range(attributes);
     }
 };
 
@@ -29,8 +35,13 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(size_t vertexSize, UInt32 binding) :
-    m_impl(makePimpl<DirectX12VertexBufferLayoutImpl>(this, vertexSize, binding))
+DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(size_t vertexSize, UInt32 binding, std::initializer_list<BufferAttribute> attributes) :
+    m_impl(makePimpl<DirectX12VertexBufferLayoutImpl>(this, vertexSize, binding, attributes))
+{
+}
+
+DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(size_t vertexSize, UInt32 binding, Span<BufferAttribute> attributes) :
+    m_impl(makePimpl<DirectX12VertexBufferLayoutImpl>(this, vertexSize, binding, attributes))
 {
 }
 
@@ -51,9 +62,9 @@ BufferType DirectX12VertexBufferLayout::type() const noexcept
     return m_impl->m_bufferType;
 }
 
-Enumerable<const BufferAttribute*> DirectX12VertexBufferLayout::attributes() const noexcept
+const Array<BufferAttribute>& DirectX12VertexBufferLayout::attributes() const noexcept
 {
-    return m_impl->m_attributes | std::views::transform([](const UniquePtr<BufferAttribute>& attribute) { return attribute.get(); });
+    return m_impl->m_attributes;
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

@@ -734,7 +734,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The vertex buffer attributes of the layout.
             /// </summary>
-            Array<UniquePtr<BufferAttribute>> attributes;
+            Array<BufferAttribute> attributes;
         } m_state;
 
     public:
@@ -743,8 +743,8 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="attribute">The attribute to add to the layout.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto withAttribute(this TSelf&& self, UniquePtr<BufferAttribute>&& attribute) -> TSelf& {
-            self.m_state.attributes.push_back(std::move(attribute));
+        constexpr inline [[nodiscard]] auto withAttribute(this TSelf&& self, const BufferAttribute& attribute) -> TSelf& {
+            self.m_state.attributes.push_back(attribute);
             return self;
         }
 
@@ -760,7 +760,7 @@ namespace LiteFX::Rendering {
         /// <param name="semanticIndex">The semantic index of the attribute.</param>
         template <typename TSelf>
         constexpr inline [[nodiscard]] auto withAttribute(this TSelf&& self, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf& {
-            self.withAttribute(std::move(makeUnique<BufferAttribute>(static_cast<UInt32>(self.m_state.attributes.size()), offset, format, semantic, semanticIndex)));
+            self.withAttribute(BufferAttribute(static_cast<UInt32>(self.m_state.attributes.size()), offset, format, semantic, semanticIndex));
             return self;
         }
 
@@ -774,7 +774,7 @@ namespace LiteFX::Rendering {
         /// <param name="semanticIndex">The semantic index of the attribute.</param>
         template <typename TSelf>
         constexpr inline [[nodiscard]] auto withAttribute(this TSelf&& self, UInt32 location, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf& {
-            self.withAttribute(std::move(makeUnique<BufferAttribute>(location, offset, format, semantic, semanticIndex)));
+            self.withAttribute(BufferAttribute(location, offset, format, semantic, semanticIndex));
             return self;
         }
     };
