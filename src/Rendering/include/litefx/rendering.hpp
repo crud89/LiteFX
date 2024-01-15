@@ -214,19 +214,61 @@ namespace LiteFX::Rendering {
         virtual const descriptor_layout_type& descriptor(UInt32 binding) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<descriptor_set_type> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const = 0;
+        inline UniquePtr<descriptor_set_type> allocate(std::initializer_list<DescriptorBinding> bindings = { }) const {
+            return this->allocate(Array<DescriptorBinding> { bindings });
+        }
 
         /// <inheritdoc />
-        virtual UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const = 0;
+        inline UniquePtr<descriptor_set_type> allocate(Array<DescriptorBinding> bindings = { }) const {
+            return this->allocate(Span<DescriptorBinding> { bindings });
+        }
 
         /// <inheritdoc />
-        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const = 0;
+        inline UniquePtr<descriptor_set_type> allocate(Span<DescriptorBinding> bindings = { }) const {
+            return this->allocate(0, bindings);
+        }
+
+        /// <inheritdoc />
+        inline UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings = { }) const {
+            return this->allocate(descriptors, Array<DescriptorBinding> { bindings });
+        }
+
+        /// <inheritdoc />
+        inline UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, Array<DescriptorBinding> bindings = { }) const {
+            return this->allocate(descriptors, Span<DescriptorBinding> { bindings });
+        }
+
+        /// <inheritdoc />
+        virtual UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, Span<DescriptorBinding> bindings = { }) const = 0;
+
+        /// <inheritdoc />
+        inline Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
+            return this->allocateMultiple(descriptorSets, bindings | std::views::transform([](auto list) { return list | std::ranges::to<Array<DescriptorBinding>>(); }) | std::ranges::to<Array<Array<DescriptorBinding>>>());
+        }
+
+        /// <inheritdoc />
+        inline Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, Array<Array<DescriptorBinding>> bindings = { }) const {
+            return this->allocateMultiple(descriptorSets, bindings | std::views::transform([](auto vec) { return Span<DescriptorBinding>{ vec }; }) | std::ranges::to<Array<Span<DescriptorBinding>>>());
+        }
+
+        /// <inheritdoc />
+        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, Array<Span<DescriptorBinding>> bindings = { }) const = 0;
 
         /// <inheritdoc />
         virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const = 0;
+        inline Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
+            return this->allocateMultiple(descriptorSets, descriptors, bindings | std::views::transform([](auto list) { return list | std::ranges::to<Array<DescriptorBinding>>(); }) | std::ranges::to<Array<Array<DescriptorBinding>>>());
+        }
+
+        /// <inheritdoc />
+        inline Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, Array<Array<DescriptorBinding>> bindings = { }) const {
+            return this->allocateMultiple(descriptorSets, descriptors, bindings | std::views::transform([](auto vec) { return Span<DescriptorBinding>{ vec }; }) | std::ranges::to<Array<Span<DescriptorBinding>>>());
+        }
+
+        /// <inheritdoc />
+        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, Array<Span<DescriptorBinding>> bindings = { }) const = 0;
 
         /// <inheritdoc />
         virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
@@ -239,16 +281,16 @@ namespace LiteFX::Rendering {
             return this->descriptors();
         }
 
-        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const override {
+        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Span<DescriptorBinding> bindings = { }) const override {
             return this->allocate(descriptors, bindings);
         }
 
-        inline Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override {
-            return this->allocateMultiple(descriptorSets, descriptors, bindings) | std::views::as_rvalue;
+        inline Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, Array<Span<DescriptorBinding>> bindings = { }) const override {
+            return this->allocateMultiple(descriptorSets, descriptors, bindings);
         }
 
         inline Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override {
-            return this->allocateMultiple(descriptorSets, descriptors, bindingFactory) | std::views::as_rvalue;
+            return this->allocateMultiple(descriptorSets, descriptors, bindingFactory);
         }
 
         inline void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept override {

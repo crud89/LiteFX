@@ -3656,7 +3656,17 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The instance of the descriptor set.</returns>
         /// <seealso cref="IDescriptorLayout" />
-        inline UniquePtr<IDescriptorSet> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const {
+        inline UniquePtr<IDescriptorSet> allocate(std::initializer_list<DescriptorBinding> bindings = { }) const {
+            return this->allocate(Array<DescriptorBinding>{ bindings });
+        }
+
+        /// <inheritdoc cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        inline UniquePtr<IDescriptorSet> allocate(Array<DescriptorBinding> bindings = { }) const {
+            return this->allocate(Span<DescriptorBinding>{ bindings });
+        }
+
+        /// <inheritdoc cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        inline UniquePtr<IDescriptorSet> allocate(Span<DescriptorBinding> bindings = { }) const {
             return this->allocate(0, bindings);
         }
 
@@ -3667,7 +3677,17 @@ namespace LiteFX::Rendering {
         /// <param name="bindings">Optional default bindings for descriptors in the descriptor set.</param>
         /// <returns>The instance of the descriptor set.</returns>
         /// <seealso cref="IDescriptorLayout" />
-        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const {
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings = { }) const {
+            return this->allocate(descriptors, Array<DescriptorBinding> { bindings });
+        }
+
+        /// <inheritdoc cref="allocate(UInt32, std::initializer_list{{DescriptorBinding}})" />
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, Array<DescriptorBinding> bindings = { }) const {
+            return this->allocate(descriptors, Span<DescriptorBinding> { bindings });
+        }
+
+        /// <inheritdoc cref="allocate(UInt32, std::initializer_list{{DescriptorBinding}})" />
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, Span<DescriptorBinding> bindings = { }) const {
             return this->getDescriptorSet(descriptors, bindings);
         }
 
@@ -3678,7 +3698,17 @@ namespace LiteFX::Rendering {
         /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
-        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const {
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
+            return this->allocateMultiple(descriptorSets, bindings | std::views::transform([](auto list) { return list | std::ranges::to<Array<DescriptorBinding>>(); }) | std::ranges::to<Array<Array<DescriptorBinding>>>());
+        }
+
+        /// <inheritdoc cref="allocate(UInt32, std::initializer_list{{std::initializer_list{{DescriptorBinding}}}})" />
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, Array<Array<DescriptorBinding>> bindings = { }) const {
+            return this->allocateMultiple(descriptorSets, bindings | std::views::transform([](auto vec) { return Span<DescriptorBinding>{ vec }; }) | std::ranges::to<Array<Span<DescriptorBinding>>>());
+        }
+
+        /// <inheritdoc cref="allocate(UInt32, std::initializer_list{{std::initializer_list{{DescriptorBinding}}}})" />
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, Array<Span<DescriptorBinding>> bindings = { }) const {
             return this->allocateMultiple(descriptorSets, 0, bindings);
         }
 
@@ -3701,7 +3731,17 @@ namespace LiteFX::Rendering {
         /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
-        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const {
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
+            return this->allocateMultiple(descriptorSets, descriptors, bindings | std::views::transform([](auto list) { return list | std::ranges::to<Array<DescriptorBinding>>(); }) | std::ranges::to<Array<Array<DescriptorBinding>>>());
+        }
+
+        /// <inheritdoc cref="allocate(UInt32, UInt32, std::initializer_list{{std::initializer_list{{DescriptorBinding}}}})" />
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, Array<Array<DescriptorBinding>> bindings = { }) const {
+            return this->allocateMultiple(descriptorSets, descriptors, bindings | std::views::transform([](auto vec) { return Span<DescriptorBinding>{ vec }; }) | std::ranges::to<Array<Span<DescriptorBinding>>>());
+        }
+
+        /// <inheritdoc cref="allocate(UInt32, UInt32, std::initializer_list{{std::initializer_list{{DescriptorBinding}}}})" />
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, Array<Span<DescriptorBinding>> bindings = { }) const {
             return this->getDescriptorSets(descriptorSets, descriptors, bindings);
         }
 
@@ -3727,8 +3767,8 @@ namespace LiteFX::Rendering {
 
     private:
         virtual Enumerable<const IDescriptorLayout*> getDescriptors() const noexcept = 0;
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const = 0;
-        virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Span<DescriptorBinding> bindings = { }) const = 0;
+        virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, Array<Span<DescriptorBinding>> bindings = { }) const = 0;
         virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
         virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept = 0;
     };

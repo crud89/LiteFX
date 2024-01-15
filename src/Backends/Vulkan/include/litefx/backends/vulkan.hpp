@@ -516,19 +516,16 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        UniquePtr<VulkanDescriptorSet> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const override;
+        UniquePtr<VulkanDescriptorSet> allocate(UInt32 descriptors, Span<DescriptorBinding> bindings = { }) const override;
 
         /// <inheritdoc />
-        UniquePtr<VulkanDescriptorSet> allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const override;
-
-        /// <inheritdoc />
-        Enumerable<UniquePtr<VulkanDescriptorSet>> allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override;
+        Enumerable<UniquePtr<VulkanDescriptorSet>> allocateMultiple(UInt32 descriptorSets, Array<Span<DescriptorBinding>> bindings = { }) const override;
 
         /// <inheritdoc />
         Enumerable<UniquePtr<VulkanDescriptorSet>> allocateMultiple(UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override;
 
         /// <inheritdoc />
-        Enumerable<UniquePtr<VulkanDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override;
+        Enumerable<UniquePtr<VulkanDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, Array<Span<DescriptorBinding>> bindings = { }) const override;
 
         /// <inheritdoc />
         Enumerable<UniquePtr<VulkanDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override;

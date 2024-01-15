@@ -170,7 +170,7 @@ const DirectX12Device& DirectX12DescriptorSetLayout::device() const noexcept
 
 Enumerable<const DirectX12DescriptorLayout*> DirectX12DescriptorSetLayout::descriptors() const noexcept
 {
-    return m_impl->m_layouts | std::views::transform([](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout.get(); });
+    co_yield std::ranges::elements_of(m_impl->m_layouts | std::views::transform([](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout.get(); }));
 }
 
 const DirectX12DescriptorLayout& DirectX12DescriptorSetLayout::descriptor(UInt32 binding) const
@@ -226,12 +226,7 @@ UInt32 DirectX12DescriptorSetLayout::inputAttachments() const noexcept
     return std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::InputAttachment; });
 }
 
-UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(const Enumerable<DescriptorBinding>& bindings) const
-{
-    return this->allocate(0, bindings);
-}
-
-UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings) const
+UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(UInt32 descriptors, Span<DescriptorBinding> bindings) const
 {
     // Allocate the descriptor set.
     std::lock_guard<std::mutex> lock(m_impl->m_mutex);
@@ -240,7 +235,7 @@ UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(UInt32 
     auto descriptorSet = makeUnique<DirectX12DescriptorSet>(*this, std::move(bufferHeap), std::move(samplerHeap));
 
     // Apply the default bindings.
-    for (UInt32 i{ 0 }; auto & binding : bindings)
+    for (UInt32 i{ 0 }; auto& binding : bindings)
     {
         std::visit(type_switch{
             [](const std::monostate&) { }, // Default: don't bind anything.
@@ -256,7 +251,7 @@ UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(UInt32 
     return descriptorSet;
 }
 
-Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings) const
+Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocateMultiple(UInt32 descriptorSets, Array<Span<DescriptorBinding>> bindings) const
 {
     return this->allocateMultiple(descriptorSets, 0, bindings);
 }
@@ -266,7 +261,7 @@ Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allo
     return this->allocateMultiple(descriptorSets, 0, bindingFactory);
 }
 
-Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocateMultiple(UInt32 count, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings) const
+Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocateMultiple(UInt32 count, UInt32 descriptors, Array<Span<DescriptorBinding>> bindings) const
 {
     return [this, descriptors, &bindings, &count]() mutable -> std::generator<UniquePtr<DirectX12DescriptorSet>> {
         for (auto& binding : bindings)
@@ -281,7 +276,10 @@ Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allo
 {
     return [this, descriptors, &bindingFactory, &count]() -> std::generator<UniquePtr<DirectX12DescriptorSet>> {
         for (int i = 0; i < count; ++i)
-            co_yield this->allocate(descriptors, bindingFactory(i));
+        {
+            auto bindings = bindingFactory(i) | std::ranges::to<Array<DescriptorBinding>>();
+            co_yield this->allocate(descriptors, bindings);
+        }
     }() | std::views::as_rvalue;
 }
 
