@@ -416,8 +416,13 @@ VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphic
     LITEFX_DEBUG(VULKAN_LOG, "API Version: {0:#0x}", adapter.apiVersion());
     LITEFX_DEBUG(VULKAN_LOG, "Dedicated Memory: {0} Bytes", adapter.dedicatedMemory());
     LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
-    LITEFX_DEBUG(VULKAN_LOG, "Available extensions: {0}", Join(adapter.getAvailableDeviceExtensions(), ", "));
-    LITEFX_DEBUG(VULKAN_LOG, "Validation layers: {0}", Join(adapter.deviceValidationLayers(), ", "));
+
+    Array<String> deviceExtensions, deviceValidationLayers;
+    deviceExtensions.assign_range(adapter.getAvailableDeviceExtensions());
+    deviceValidationLayers.assign_range(adapter.deviceValidationLayers());
+
+    LITEFX_DEBUG(VULKAN_LOG, "Available extensions: {0}", Join(deviceExtensions, ", "));
+    LITEFX_DEBUG(VULKAN_LOG, "Validation layers: {0}", Join(deviceValidationLayers, ", "));
     LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
 
     if (extensions.size() > 0)
@@ -463,10 +468,9 @@ void VulkanDevice::setDebugName(UInt64 handle, VkDebugReportObjectTypeEXT type, 
 
 Enumerable<UInt32> VulkanDevice::queueFamilyIndices(QueueType type) const noexcept
 {
-    return m_impl->m_families | 
+    co_yield std::ranges::elements_of(m_impl->m_families | 
         std::views::filter([type](const auto& family) { return type == QueueType::None || LITEFX_FLAG_IS_SET(family.type(), type); }) |
-        std::views::transform([](const auto& family) { return family.id(); }) | 
-        std::ranges::to<Enumerable<UInt32>>();
+        std::views::transform([](const auto& family) { return family.id(); }));
 }
 
 VulkanSwapChain& VulkanDevice::swapChain() noexcept

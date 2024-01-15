@@ -11,8 +11,9 @@ public:
     friend class DirectX12InputAssembler;
 
 private:
-    Dictionary<UInt32, UniquePtr<DirectX12VertexBufferLayout>> m_vertexBufferLayouts;
-    UniquePtr<DirectX12IndexBufferLayout> m_indexBufferLayout;
+    Array<UniquePtr<const DirectX12VertexBufferLayout>> m_vertexBufferLayouts;
+    Dictionary<UInt32, const DirectX12VertexBufferLayout*> m_vertexBufferLayoutBindings;
+    UniquePtr<const DirectX12IndexBufferLayout> m_indexBufferLayout;
     PrimitiveTopology m_primitiveTopology;
 
 public:
@@ -22,20 +23,21 @@ public:
     }
 
 public:
-    void initialize(Enumerable<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology)
+    void initialize(Array<UniquePtr<const DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<const DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology)
     {
         m_primitiveTopology = primitiveTopology;
         m_indexBufferLayout = std::move(indexBufferLayout);
+        m_vertexBufferLayouts = std::move(vertexBufferLayouts);
 
-        for (auto& vertexBufferLayout : vertexBufferLayouts)
+        for (auto& vertexBufferLayout : m_vertexBufferLayouts)
         {
             if (vertexBufferLayout == nullptr)
                 throw ArgumentNotInitializedException("vertexBufferLayouts", "One of the provided vertex buffer layouts is not initialized.");
 
-            if (m_vertexBufferLayouts.contains(vertexBufferLayout->binding()))
+            if (m_vertexBufferLayoutBindings.contains(vertexBufferLayout->binding()))
                 throw InvalidArgumentException("vertexBufferLayouts", "Multiple vertex buffer layouts use the binding point {0}, but only one layout per binding point is allowed.", vertexBufferLayout->binding());
 
-            m_vertexBufferLayouts.emplace(vertexBufferLayout->binding(), std::move(vertexBufferLayout));
+            m_vertexBufferLayoutBindings.emplace(vertexBufferLayout->binding(), vertexBufferLayout.get());
         }
     }
 };
@@ -47,7 +49,10 @@ public:
 DirectX12InputAssembler::DirectX12InputAssembler(Enumerable<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology) :
     m_impl(makePimpl<DirectX12InputAssemblerImpl>(this))
 {
-    m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
+    Array<UniquePtr<const DirectX12VertexBufferLayout>> layouts;
+    layouts.assign_range(vertexBufferLayouts);
+
+    m_impl->initialize(std::move(layouts), std::move(indexBufferLayout), primitiveTopology);
 }
 
 DirectX12InputAssembler::DirectX12InputAssembler() noexcept :
@@ -57,15 +62,15 @@ DirectX12InputAssembler::DirectX12InputAssembler() noexcept :
 
 DirectX12InputAssembler::~DirectX12InputAssembler() noexcept = default;
 
-Enumerable<const DirectX12VertexBufferLayout*> DirectX12InputAssembler::vertexBufferLayouts() const noexcept
+const Array<UniquePtr<const DirectX12VertexBufferLayout>>& DirectX12InputAssembler::vertexBufferLayouts() const noexcept
 {
-    return m_impl->m_vertexBufferLayouts | std::views::transform([](const auto& pair) { return pair.second.get(); });
+    return m_impl->m_vertexBufferLayouts;
 }
 
-const DirectX12VertexBufferLayout* DirectX12InputAssembler::vertexBufferLayout(UInt32 binding) const
+const DirectX12VertexBufferLayout& DirectX12InputAssembler::vertexBufferLayout(UInt32 binding) const
 {
-    [[likely]] if (m_impl->m_vertexBufferLayouts.contains(binding))
-        return m_impl->m_vertexBufferLayouts[binding].get();
+    [[likely]] if (m_impl->m_vertexBufferLayoutBindings.contains(binding))
+        return *m_impl->m_vertexBufferLayoutBindings[binding];
 
     throw InvalidArgumentException("binding", "No vertex buffer layout is bound to binding point {0}.", binding);
 }
@@ -115,7 +120,7 @@ constexpr DirectX12InputAssemblerBuilder::~DirectX12InputAssemblerBuilder() noex
 
 void DirectX12InputAssemblerBuilder::build()
 {
-    this->instance()->m_impl->initialize(m_state.vertexBufferLayouts | std::views::as_rvalue, std::move(m_state.indexBufferLayout), m_state.topology);
+    this->instance()->m_impl->initialize(std::move(m_state.vertexBufferLayouts), std::move(m_state.indexBufferLayout), m_state.topology);
 }
 
 constexpr DirectX12VertexBufferLayoutBuilder DirectX12InputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)

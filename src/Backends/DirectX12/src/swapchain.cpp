@@ -21,7 +21,7 @@ private:
 	bool m_supportsVariableRefreshRates{ false };
 	const DirectX12Device& m_device;
 
-	Array<SharedPtr<TimingEvent>> m_timingEvents;
+	Array<SharedPtr<const TimingEvent>> m_timingEvents;
 	Array<UInt64> m_timestamps;
 	Array<ComPtr<ID3D12QueryHeap>> m_timingQueryHeaps;
 	Array<UniquePtr<IDirectX12Buffer>> m_timingQueryReadbackBuffers;
@@ -133,7 +133,7 @@ public:
 			this->resetQueryHeaps(m_timingEvents);
 	}
 
-	void resetQueryHeaps(const Array<SharedPtr<TimingEvent>>& timingEvents)
+	void resetQueryHeaps(const Array<SharedPtr<const TimingEvent>>& timingEvents)
 	{
 		// No events - no pools.
 		if (timingEvents.empty())
@@ -214,12 +214,12 @@ ID3D12QueryHeap* DirectX12SwapChain::timestampQueryHeap() const noexcept
 	return m_impl->m_timingQueryHeaps[m_impl->m_currentImage].Get();
 }
 
-Enumerable<SharedPtr<TimingEvent>> DirectX12SwapChain::timingEvents() const noexcept
+const Array<SharedPtr<const TimingEvent>>& DirectX12SwapChain::timingEvents() const noexcept
 {
 	return m_impl->m_timingEvents;
 }
 
-SharedPtr<TimingEvent> DirectX12SwapChain::timingEvent(UInt32 queryId) const
+SharedPtr<const TimingEvent> DirectX12SwapChain::timingEvent(UInt32 queryId) const
 {
 	if (queryId >= m_impl->m_timingEvents.size())
 		throw ArgumentOutOfRangeException("queryId", 0u, static_cast<UInt32>(m_impl->m_timingEvents.size()), queryId, "No timing event has been registered for query ID {0}.", queryId);
@@ -264,17 +264,17 @@ const Size2d& DirectX12SwapChain::renderArea() const noexcept
 	return m_impl->m_renderArea;
 }
 
-IDirectX12Image* DirectX12SwapChain::image(UInt32 backBuffer) const
+IDirectX12Image& DirectX12SwapChain::image(UInt32 backBuffer) const
 {
 	if (backBuffer >= m_impl->m_presentImages.size()) [[unlikely]]
 		throw ArgumentOutOfRangeException("backBuffer", 0u, static_cast<UInt32>(m_impl->m_presentImages.size()), backBuffer, "The back buffer must be a valid index.");
 
-	return m_impl->m_presentImages[backBuffer].get();
+	return *m_impl->m_presentImages[backBuffer];
 }
 
-Enumerable<IDirectX12Image*> DirectX12SwapChain::images() const noexcept
+const Array<UniquePtr<IDirectX12Image>>& DirectX12SwapChain::images() const noexcept
 {
-	return m_impl->m_presentImages | std::views::transform([](UniquePtr<IDirectX12Image>& image) { return image.get(); });
+	return m_impl->m_presentImages;
 }
 
 void DirectX12SwapChain::present(const DirectX12FrameBuffer& frameBuffer) const
@@ -290,12 +290,12 @@ void DirectX12SwapChain::present(UInt64 fence) const
 	raiseIfFailed(this->handle()->Present(0, this->supportsVariableRefreshRate() ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to present swap chain");
 }
 
-Enumerable<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept
+Array<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept
 {
 	// NOTE: Those formats are actually the only ones that are supported for flip-model swap chains, which is currently the only 
 	//       supported swap effect. If other swap effects are used, this function may require redesign. For more information see: 
 	//       https://docs.microsoft.com/en-us/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_desc1#remarks.
-	return Enumerable<Format> {
+	return {
 		DX12::getFormat(DXGI_FORMAT_R16G16B16A16_FLOAT),
 		DX12::getFormat(DXGI_FORMAT_R10G10B10A2_UNORM),
 		DX12::getFormat(DXGI_FORMAT_B8G8R8A8_UNORM),
@@ -303,7 +303,7 @@ Enumerable<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept
 	};
 }
 
-void DirectX12SwapChain::addTimingEvent(SharedPtr<TimingEvent> timingEvent)
+void DirectX12SwapChain::addTimingEvent(SharedPtr<const TimingEvent> timingEvent)
 {
 	if (timingEvent == nullptr) [[unlikely]]
 		throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");

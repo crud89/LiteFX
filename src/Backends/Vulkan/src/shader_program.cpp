@@ -56,7 +56,7 @@ public:
     friend class VulkanShaderProgram;
 
 private:
-    Array<UniquePtr<VulkanShaderModule>> m_modules;
+    Array<UniquePtr<const VulkanShaderModule>> m_modules;
     const VulkanDevice& m_device;
 
 private:
@@ -95,7 +95,7 @@ public:
     VulkanShaderProgramImpl(VulkanShaderProgram* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules) :
         base(parent), m_device(device)
     {
-        m_modules = modules | std::views::as_rvalue | std::ranges::to<std::vector>();
+        m_modules.assign_range(modules);
     }
 
     VulkanShaderProgramImpl(VulkanShaderProgram* parent, const VulkanDevice& device) :
@@ -111,7 +111,7 @@ public:
         Array<PushConstantRangeInfo> pushConstantRanges;
 
         // Extract reflection data from all shader modules.
-        std::ranges::for_each(m_modules, [this, &descriptorSetLayouts, &pushConstantRanges](UniquePtr<VulkanShaderModule>& shaderModule) {
+        std::ranges::for_each(m_modules, [this, &descriptorSetLayouts, &pushConstantRanges](auto& shaderModule) {
             // Read the file and initialize a reflection module.
             auto bytecode = shaderModule->bytecode();
             spv_reflect::ShaderModule reflection(bytecode.size(), bytecode.c_str());
@@ -292,9 +292,9 @@ VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device) noexcept :
 
 VulkanShaderProgram::~VulkanShaderProgram() noexcept = default;
 
-Enumerable<const VulkanShaderModule*> VulkanShaderProgram::modules() const noexcept
+const Array<UniquePtr<const VulkanShaderModule>>& VulkanShaderProgram::modules() const noexcept
 {
-    return m_impl->m_modules | std::views::transform([](const UniquePtr<VulkanShaderModule>& shader) { return shader.get(); });
+    return m_impl->m_modules;
 }
 
 SharedPtr<VulkanPipelineLayout> VulkanShaderProgram::reflectPipelineLayout() const

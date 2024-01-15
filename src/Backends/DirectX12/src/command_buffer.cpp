@@ -384,7 +384,7 @@ void DirectX12CommandBuffer::drawIndexed(UInt32 indices, UInt32 instances, UInt3
 
 void DirectX12CommandBuffer::pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept
 {
-	std::ranges::for_each(layout.ranges(), [this, &layout, &memory](const DirectX12PushConstantsRange* range) { this->handle()->SetGraphicsRoot32BitConstants(range->rootParameterIndex(), range->size() / 4, reinterpret_cast<const char* const>(memory) + range->offset(), 0); });
+	std::ranges::for_each(layout.ranges(), [this, &layout, &memory](auto& range) { this->handle()->SetGraphicsRoot32BitConstants(range->rootParameterIndex(), range->size() / 4, reinterpret_cast<const char* const>(memory) + range->offset(), 0); });
 }
 
 void DirectX12CommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const
@@ -400,7 +400,7 @@ void DirectX12CommandBuffer::execute(SharedPtr<const DirectX12CommandBuffer> com
 	this->handle()->ExecuteBundle(commandBuffer->handle().Get());
 }
 
-void DirectX12CommandBuffer::execute(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const
+void DirectX12CommandBuffer::execute(Span<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const
 {
 	std::ranges::for_each(commandBuffers, [this](auto& bundle) { this->handle()->ExecuteBundle(bundle->handle().Get()); });
 }

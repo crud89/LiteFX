@@ -79,7 +79,7 @@ public:
 		// Parse vertex input descriptors.
 		auto vertexLayouts = m_inputAssembler->vertexBufferLayouts();
 
-		std::ranges::for_each(vertexLayouts, [&, l = 0](const IVertexBufferLayout* layout) mutable {
+		std::ranges::for_each(vertexLayouts, [&, l = 0](auto& layout) mutable {
 			auto bufferAttributes = layout->attributes() | std::ranges::to<std::vector>();
 			auto bindingPoint = layout->binding();
 
@@ -91,14 +91,14 @@ public:
 			binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 			Array<VkVertexInputAttributeDescription> currentAttributes = bufferAttributes |
-				std::views::transform([&bufferAttributes, &bindingPoint, i = 0](const BufferAttribute* attribute) mutable {
-					LITEFX_TRACE(VULKAN_LOG, "\tAttribute {0}/{1}: {{ Location: {2}, Offset: {3}, Format: {4} }}", ++i, bufferAttributes.size(), attribute->location(), attribute->offset(), attribute->format());
+				std::views::transform([&bufferAttributes, &bindingPoint, i = 0](auto& attribute) mutable {
+					LITEFX_TRACE(VULKAN_LOG, "\tAttribute {0}/{1}: {{ Location: {2}, Offset: {3}, Format: {4} }}", ++i, bufferAttributes.size(), attribute.location(), attribute.offset(), attribute.format());
 
 					VkVertexInputAttributeDescription descriptor{};
 					descriptor.binding = bindingPoint;
-					descriptor.location = attribute->location();
-					descriptor.offset = attribute->offset();
-					descriptor.format = Vk::getFormat(attribute->format());
+					descriptor.location = attribute.location();
+					descriptor.offset = attribute.offset();
+					descriptor.format = Vk::getFormat(attribute.format());
 
 					return descriptor;
 				}) | std::ranges::to<Array<VkVertexInputAttributeDescription>>();
@@ -192,7 +192,7 @@ public:
 		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(reinterpret_cast<const void*>(m_program.get())), modules.size());
 
 		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
-			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
+			std::views::transform([](auto& shaderModule) { return shaderModule->shaderStageDefinition(); }) |
 			std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
 
 		// Setup pipeline state.

@@ -161,7 +161,7 @@ Enumerable<String> VulkanGraphicsAdapter::getAvailableDeviceExtensions() const n
     Array<VkExtensionProperties> availableExtensions(extensions);
     ::vkEnumerateDeviceExtensionProperties(this->handle(), nullptr, &extensions, availableExtensions.data());
 
-    return availableExtensions | std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); });
+    co_yield std::ranges::elements_of(availableExtensions | std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); }));
 }
 
 bool VulkanGraphicsAdapter::validateDeviceLayers(Span<const String> layers) const noexcept
@@ -190,5 +190,5 @@ Enumerable<String> VulkanGraphicsAdapter::deviceValidationLayers() const noexcep
     Array<VkLayerProperties> availableLayers(layers);
     ::vkEnumerateDeviceLayerProperties(this->handle(), &layers, availableLayers.data());
 
-    return availableLayers | std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); });
+    co_yield std::ranges::elements_of(availableLayers | std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); }));
 }

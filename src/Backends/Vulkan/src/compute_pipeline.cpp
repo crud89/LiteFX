@@ -41,7 +41,7 @@ public:
 			throw RuntimeException("Only one shader module must be bound to a compute pipeline.");
 
 		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
-			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
+			std::views::transform([](auto& shaderModule) { return shaderModule->shaderStageDefinition(); }) |
 			std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
 
 		// Setup pipeline state.

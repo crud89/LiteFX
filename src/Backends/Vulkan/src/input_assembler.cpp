@@ -12,8 +12,9 @@ public:
     friend class VulkanInputAssembler;
 
 private:
-    Dictionary<UInt32, UniquePtr<VulkanVertexBufferLayout>> m_vertexBufferLayouts;
-    UniquePtr<VulkanIndexBufferLayout> m_indexBufferLayout;
+    Array<UniquePtr<const VulkanVertexBufferLayout>> m_vertexBufferLayouts;
+    Dictionary<UInt32, const VulkanVertexBufferLayout*> m_vertexBufferLayoutBindings;
+    UniquePtr<const VulkanIndexBufferLayout> m_indexBufferLayout;
     PrimitiveTopology m_primitiveTopology;
 
 public:
@@ -23,18 +24,21 @@ public:
     }
 
 public:
-    void initialize(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology)
+    void initialize(Array<UniquePtr<const VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<const VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology)
     {
         m_primitiveTopology = primitiveTopology;
         m_indexBufferLayout = std::move(indexBufferLayout);
+        m_vertexBufferLayouts = std::move(vertexBufferLayouts);
 
-        for (auto& vertexBufferLayout : vertexBufferLayouts)
+        for (auto& vertexBufferLayout : m_vertexBufferLayouts)
+        {
             if (vertexBufferLayout == nullptr) [[unlikely]]
                 throw ArgumentNotInitializedException("vertexBufferLayouts", "One of the provided vertex buffer layouts is not initialized.");
-            else if (m_vertexBufferLayouts.contains(vertexBufferLayout->binding())) [[unlikely]]
+            else if (m_vertexBufferLayoutBindings.contains(vertexBufferLayout->binding())) [[unlikely]]
                 throw InvalidArgumentException("vertexBufferLayouts", "Multiple vertex buffer layouts use the binding point {0}, but only one layout per binding point is allowed.", vertexBufferLayout->binding());
             else
-                m_vertexBufferLayouts.emplace(vertexBufferLayout->binding(), std::move(vertexBufferLayout));
+                m_vertexBufferLayoutBindings.emplace(vertexBufferLayout->binding(), vertexBufferLayout.get());
+        }
     }
 };
 
@@ -45,7 +49,10 @@ public:
 VulkanInputAssembler::VulkanInputAssembler(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology) :
     m_impl(makePimpl<VulkanInputAssemblerImpl>(this))
 {
-    m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
+    Array<UniquePtr<const VulkanVertexBufferLayout>> layouts;
+    layouts.assign_range(vertexBufferLayouts);
+
+    m_impl->initialize(std::move(layouts), std::move(indexBufferLayout), primitiveTopology);
 }
 
 VulkanInputAssembler::VulkanInputAssembler() noexcept :
@@ -55,15 +62,15 @@ VulkanInputAssembler::VulkanInputAssembler() noexcept :
 
 VulkanInputAssembler::~VulkanInputAssembler() noexcept = default;
 
-Enumerable<const VulkanVertexBufferLayout*> VulkanInputAssembler::vertexBufferLayouts() const noexcept
+const Array<UniquePtr<const VulkanVertexBufferLayout>>& VulkanInputAssembler::vertexBufferLayouts() const noexcept
 {
-    return m_impl->m_vertexBufferLayouts | std::views::transform([](const auto& pair) { return pair.second.get(); });
+    return m_impl->m_vertexBufferLayouts;
 }
 
-const VulkanVertexBufferLayout* VulkanInputAssembler::vertexBufferLayout(UInt32 binding) const
+const VulkanVertexBufferLayout& VulkanInputAssembler::vertexBufferLayout(UInt32 binding) const
 {
-    if (m_impl->m_vertexBufferLayouts.contains(binding)) [[likely]]
-        return m_impl->m_vertexBufferLayouts[binding].get();
+    if (m_impl->m_vertexBufferLayoutBindings.contains(binding)) [[likely]]
+        return *m_impl->m_vertexBufferLayouts[binding];
 
     throw InvalidArgumentException("binding", "No vertex buffer layout is bound to binding point {0}.", binding);
 }
@@ -113,7 +120,7 @@ constexpr VulkanInputAssemblerBuilder::~VulkanInputAssemblerBuilder() noexcept =
 
 void VulkanInputAssemblerBuilder::build()
 {
-    this->instance()->m_impl->initialize(m_state.vertexBufferLayouts | std::views::as_rvalue, std::move(m_state.indexBufferLayout), m_state.topology);
+    this->instance()->m_impl->initialize(std::move(m_state.vertexBufferLayouts), std::move(m_state.indexBufferLayout), m_state.topology);
 }
 
 constexpr VulkanVertexBufferLayoutBuilder VulkanInputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)

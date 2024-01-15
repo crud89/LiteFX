@@ -11,7 +11,7 @@ public:
     friend class DirectX12Backend;
 
 private:
-    Array<UniquePtr<DirectX12GraphicsAdapter>> m_adapters{ };
+    Array<UniquePtr<const DirectX12GraphicsAdapter>> m_adapters{ };
     Dictionary<String, UniquePtr<DirectX12Device>> m_devices;
     ComPtr<ID3D12Debug> m_debugInterface;
     const App& m_app;
@@ -105,9 +105,9 @@ void DirectX12Backend::deactivate()
     this->state() = BackendState::Inactive;
 }
 
-Enumerable<const DirectX12GraphicsAdapter*> DirectX12Backend::listAdapters() const
+const Array<UniquePtr<const DirectX12GraphicsAdapter>>& DirectX12Backend::adapters() const
 {
-    return m_impl->m_adapters | std::views::transform([](const UniquePtr<DirectX12GraphicsAdapter>& adapter) { return adapter.get(); });
+    return m_impl->m_adapters;
 }
 
 const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UInt64>& adapterId) const

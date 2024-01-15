@@ -202,7 +202,7 @@ namespace LiteFX {
 	/// <param name="rng">The range to yield from.</param>
 	/// <returns>An intermediate container for the elements yielded from the range.</returns>
 	template <typename T, std::ranges::input_range TRng>
-	constexpr inline Enumerable<T> yield(TRng&& rng) noexcept requires
+	inline Enumerable<T> yield(TRng&& rng) noexcept requires
 		std::convertible_to<std::ranges::range_value_t<TRng>, T>
 	{
 		co_yield std::ranges::elements_of(rng);
@@ -213,7 +213,7 @@ namespace LiteFX {
 	/// </summary>
 	/// <param name="rng">The range to yield from.</param>
 	/// <returns>An intermediate container for the elements yielded from the range.</returns>
-	constexpr inline auto yield(std::ranges::input_range auto&& rng) noexcept
+	inline auto yield(std::ranges::input_range auto&& rng) noexcept
 	{
 		return yield<std::ranges::range_value_t<decltype(rng)>>(rng);
 	}

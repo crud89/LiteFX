@@ -36,7 +36,7 @@ public:
     friend class DirectX12ShaderProgram;
 
 private:
-    Array<UniquePtr<DirectX12ShaderModule>> m_modules;
+    Array<UniquePtr<const DirectX12ShaderModule>> m_modules;
     const DirectX12Device& m_device;
 
 private:
@@ -78,7 +78,7 @@ public:
     DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent, const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) :
         base(parent), m_device(device)
     {
-        m_modules = modules | std::views::as_rvalue | std::ranges::to<std::vector>();
+        m_modules.assign_range(modules);
     }
 
     DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent, const DirectX12Device& device) :
@@ -189,7 +189,7 @@ public:
         Array<PushConstantRangeInfo> pushConstantRanges;
 
         // Extract reflection data from all shader modules.
-        std::ranges::for_each(m_modules, [this, &descriptorSetLayouts](UniquePtr<DirectX12ShaderModule>& shaderModule) {
+        std::ranges::for_each(m_modules, [this, &descriptorSetLayouts](auto& shaderModule) {
             // Load the shader reflection.
             ComPtr<IDxcContainerReflection> reflection;
             raiseIfFailed(::DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(&reflection)), "Unable to access DirectX shader reflection.");
@@ -380,9 +380,9 @@ DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device) no
 
 DirectX12ShaderProgram::~DirectX12ShaderProgram() noexcept = default;
 
-Enumerable<const DirectX12ShaderModule*> DirectX12ShaderProgram::modules() const noexcept
+const Array<UniquePtr<const DirectX12ShaderModule>>& DirectX12ShaderProgram::modules() const noexcept
 {
-    return m_impl->m_modules | std::views::transform([](const UniquePtr<DirectX12ShaderModule>& shader) { return shader.get(); });
+    return m_impl->m_modules;
 }
 
 SharedPtr<DirectX12PipelineLayout> DirectX12ShaderProgram::reflectPipelineLayout() const

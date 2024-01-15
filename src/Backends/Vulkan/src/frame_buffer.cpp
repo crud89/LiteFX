@@ -14,7 +14,7 @@ private:
     const VulkanRenderPass& m_renderPass;
     Array<UniquePtr<IVulkanImage>> m_outputAttachments;
     Array<IVulkanImage*> m_renderTargetViews;
-	Array<SharedPtr<VulkanCommandBuffer>> m_commandBuffers;
+	Array<SharedPtr<const VulkanCommandBuffer>> m_commandBuffers;
 	Size2d m_size;
     UInt32 m_bufferIndex;
     UInt64 m_lastFence{ 0 };
@@ -67,9 +67,9 @@ public:
             if (renderTarget.type() == RenderTargetType::Present && samples == MultiSamplingLevel::x1)
             {
                 // If the render target is a present target, acquire an image view from the swap chain.
-                auto image = m_renderPass.device().swapChain().image(m_bufferIndex);
-                m_renderTargetViews.push_back(image);
-                attachmentViews.push_back(image->imageView());
+                auto& image = m_renderPass.device().swapChain().image(m_bufferIndex);
+                m_renderTargetViews.push_back(&image);
+                attachmentViews.push_back(image.imageView());
             }
             else
             {
@@ -84,9 +84,9 @@ public:
         // If we have a present target and multi sampling is enabled, make sure to add a view for the resolve attachment.
         if (samples > MultiSamplingLevel::x1 && std::ranges::any_of(m_renderPass.renderTargets(), [](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::Present; }))
         {
-            auto image = m_renderPass.device().swapChain().image(m_bufferIndex);
-            m_renderTargetViews.push_back(image);
-            attachmentViews.push_back(image->imageView());
+            auto& image = m_renderPass.device().swapChain().image(m_bufferIndex);
+            m_renderTargetViews.push_back(&image);
+            attachmentViews.push_back(image.imageView());
         }
 
         // Allocate the frame buffer.
@@ -159,12 +159,12 @@ SharedPtr<const VulkanCommandBuffer> VulkanFrameBuffer::commandBuffer(UInt32 ind
 	return m_impl->m_commandBuffers[index];
 }
 
-Enumerable<SharedPtr<const VulkanCommandBuffer>> VulkanFrameBuffer::commandBuffers() const noexcept
+const Array<SharedPtr<const VulkanCommandBuffer>>& VulkanFrameBuffer::commandBuffers() const noexcept
 {
     return m_impl->m_commandBuffers;
 }
 
-Enumerable<IVulkanImage*> VulkanFrameBuffer::images() const noexcept
+const Array<IVulkanImage*>& VulkanFrameBuffer::images() const noexcept
 {
     return m_impl->m_renderTargetViews;
 }

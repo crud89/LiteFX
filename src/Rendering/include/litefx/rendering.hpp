@@ -208,19 +208,15 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const descriptor_layout_type*> descriptors() const noexcept = 0;
+        virtual const Array<UniquePtr<const descriptor_layout_type>>& descriptors() const noexcept = 0;
 
         /// <inheritdoc />
         virtual const descriptor_layout_type& descriptor(UInt32 binding) const = 0;
 
         /// <inheritdoc />
-        inline UniquePtr<descriptor_set_type> allocate(std::initializer_list<DescriptorBinding> bindings = { }) const {
-            return this->allocate(Array<DescriptorBinding> { bindings });
-        }
-
-        /// <inheritdoc />
-        inline UniquePtr<descriptor_set_type> allocate(Array<DescriptorBinding> bindings = { }) const {
-            return this->allocate(Span<DescriptorBinding> { bindings });
+        inline UniquePtr<descriptor_set_type> allocate(std::initializer_list<DescriptorBinding> bindings) const {
+            Array<DescriptorBinding> vec { bindings };
+            return this->allocate(vec);
         }
 
         /// <inheritdoc />
@@ -229,46 +225,34 @@ namespace LiteFX::Rendering {
         }
 
         /// <inheritdoc />
-        inline UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings = { }) const {
-            return this->allocate(descriptors, Array<DescriptorBinding> { bindings });
-        }
-
-        /// <inheritdoc />
-        inline UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, Array<DescriptorBinding> bindings = { }) const {
-            return this->allocate(descriptors, Span<DescriptorBinding> { bindings });
+        inline UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const {
+            Array<DescriptorBinding> vec { bindings };
+            return this->allocate(descriptors, vec);
         }
 
         /// <inheritdoc />
         virtual UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, Span<DescriptorBinding> bindings = { }) const = 0;
 
         /// <inheritdoc />
-        inline Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
-            return this->allocateMultiple(descriptorSets, bindings | std::views::transform([](auto list) { return list | std::ranges::to<Array<DescriptorBinding>>(); }) | std::ranges::to<Array<Array<DescriptorBinding>>>());
+        inline Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings) const {
+            Array<Array<DescriptorBinding>> mdvec = bindings | std::views::transform([](auto list) { return list | std::ranges::to<Array<DescriptorBinding>>(); }) | std::ranges::to<Array<Array<DescriptorBinding>>>();
+            return this->allocateMultiple(descriptorSets, mdvec | std::views::transform([](auto& vec) -> Span<DescriptorBinding> { return vec; }) | std::ranges::to<Array<Span<DescriptorBinding>>>());
         }
 
         /// <inheritdoc />
-        inline Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, Array<Array<DescriptorBinding>> bindings = { }) const {
-            return this->allocateMultiple(descriptorSets, bindings | std::views::transform([](auto vec) { return Span<DescriptorBinding>{ vec }; }) | std::ranges::to<Array<Span<DescriptorBinding>>>());
-        }
-
-        /// <inheritdoc />
-        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, Array<Span<DescriptorBinding>> bindings = { }) const = 0;
+        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, const Array<Span<DescriptorBinding>>& bindings = { }) const = 0;
 
         /// <inheritdoc />
         virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
 
         /// <inheritdoc />
-        inline Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
-            return this->allocateMultiple(descriptorSets, descriptors, bindings | std::views::transform([](auto list) { return list | std::ranges::to<Array<DescriptorBinding>>(); }) | std::ranges::to<Array<Array<DescriptorBinding>>>());
+        inline Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings) const {
+            Array<Array<DescriptorBinding>> mdvec = bindings | std::views::transform([](auto list) { return list | std::ranges::to<Array<DescriptorBinding>>(); }) | std::ranges::to<Array<Array<DescriptorBinding>>>();
+            return this->allocateMultiple(descriptorSets, descriptors, mdvec | std::views::transform([](auto& vec) -> Span<DescriptorBinding> { return vec; }) | std::ranges::to<Array<Span<DescriptorBinding>>>());
         }
 
         /// <inheritdoc />
-        inline Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, Array<Array<DescriptorBinding>> bindings = { }) const {
-            return this->allocateMultiple(descriptorSets, descriptors, bindings | std::views::transform([](auto vec) { return Span<DescriptorBinding>{ vec }; }) | std::ranges::to<Array<Span<DescriptorBinding>>>());
-        }
-
-        /// <inheritdoc />
-        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, Array<Span<DescriptorBinding>> bindings = { }) const = 0;
+        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Array<Span<DescriptorBinding>>& bindings = { }) const = 0;
 
         /// <inheritdoc />
         virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
@@ -278,19 +262,19 @@ namespace LiteFX::Rendering {
 
     private:
         inline Enumerable<const IDescriptorLayout*> getDescriptors() const noexcept override {
-            return this->descriptors();
+            co_yield std::ranges::elements_of(this->descriptors() | std::views::transform([](auto& layout) { return layout.get(); }));
         }
 
         inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Span<DescriptorBinding> bindings = { }) const override {
             return this->allocate(descriptors, bindings);
         }
 
-        inline Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, Array<Span<DescriptorBinding>> bindings = { }) const override {
-            return this->allocateMultiple(descriptorSets, descriptors, bindings);
+        inline Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, const Array<Span<DescriptorBinding>>& bindings = { }) const override {
+            co_yield std::ranges::elements_of(this->allocateMultiple(descriptorSets, descriptors, bindings));
         }
 
         inline Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override {
-            return this->allocateMultiple(descriptorSets, descriptors, bindingFactory);
+            co_yield std::ranges::elements_of(this->allocateMultiple(descriptorSets, descriptors, bindingFactory));
         }
 
         inline void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept override {
@@ -332,11 +316,11 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const push_constants_range_type*> ranges() const noexcept = 0;
+        virtual const Array<UniquePtr<const push_constants_range_type>>& ranges() const noexcept = 0;
 
     private:
         inline Enumerable<const IPushConstantsRange*> getRanges() const noexcept override {
-            return this->ranges();
+            co_yield std::ranges::elements_of(this->ranges() | std::views::transform([](auto& range) { return range.get(); }));
         }
     };
 
@@ -356,11 +340,11 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const shader_module_type*> modules() const noexcept = 0;
+        virtual const Array<UniquePtr<const shader_module_type>>& modules() const noexcept = 0;
 
     private:
         inline virtual Enumerable<const IShaderModule*> getModules() const noexcept {
-            return this->modules();
+            co_yield std::ranges::elements_of(this->modules() | std::views::transform([](auto& module) { return module.get(); }));
         }
     };
     
@@ -385,14 +369,14 @@ namespace LiteFX::Rendering {
         virtual const descriptor_set_layout_type& descriptorSet(UInt32 space) const = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<const descriptor_set_layout_type*> descriptorSets() const noexcept = 0;
+        virtual const Array<UniquePtr<const descriptor_set_layout_type>>& descriptorSets() const noexcept = 0;
 
         /// <inheritdoc />
         virtual const push_constants_layout_type* pushConstants() const noexcept = 0;
 
     private:
         inline Enumerable<const IDescriptorSetLayout*> getDescriptorSets() const noexcept override {
-            return this->descriptorSets();
+            co_yield std::ranges::elements_of(this->descriptorSets() | std::views::transform([](auto& layout) { return layout.get(); }));
         }
     };
 
@@ -450,17 +434,17 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const vertex_buffer_layout_type*> vertexBufferLayouts() const noexcept = 0;
+        virtual const Array<UniquePtr<const vertex_buffer_layout_type>>& vertexBufferLayouts() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const vertex_buffer_layout_type* vertexBufferLayout(UInt32 binding) const = 0;
+        virtual const vertex_buffer_layout_type& vertexBufferLayout(UInt32 binding) const = 0;
 
         /// <inheritdoc />
         virtual const index_buffer_layout_type* indexBufferLayout() const noexcept = 0;
 
     private:
         inline Enumerable<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept override {
-            return this->vertexBufferLayouts();
+            co_yield std::ranges::elements_of(this->vertexBufferLayouts() | std::views::transform([](auto& layout) { return layout.get(); }));
         }
     };
 
@@ -616,7 +600,15 @@ namespace LiteFX::Rendering {
         virtual void execute(SharedPtr<const command_buffer_type> commandBuffer) const = 0;
 
         /// <inheritdoc />
-        virtual void execute(Enumerable<SharedPtr<const command_buffer_type>> commandBuffers) const = 0;
+        inline void execute(Enumerable<SharedPtr<const command_buffer_type>> commandBuffers) const {
+            Array<SharedPtr<const command_buffer_type>> cmds;
+            cmds.assign_range(commandBuffers);
+
+            this->execute(cmds);
+        }
+
+        /// <inheritdoc />
+        virtual void execute(Span<SharedPtr<const command_buffer_type>> commandBuffers) const = 0;
 
     private:
         inline void cmdBarrier(const IBarrier& barrier) const noexcept override {
@@ -700,7 +692,10 @@ namespace LiteFX::Rendering {
         }
         
         inline void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const override {
-            return this->execute(commandBuffers | std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }));
+            Array<SharedPtr<const command_buffer_type>> buffers;
+            std::ranges::transform(commandBuffers, std::back_inserter(buffers), [](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); });
+
+            return this->execute(buffers);
         }
     };
 
@@ -769,13 +764,13 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<SharedPtr<const command_buffer_type>> commandBuffers() const noexcept = 0;
+        virtual const Array<SharedPtr<const command_buffer_type>>& commandBuffers() const noexcept = 0;
 
         /// <inheritdoc />
         virtual SharedPtr<const command_buffer_type> commandBuffer(UInt32 index) const = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<image_type*> images() const noexcept = 0;
+        virtual const Array<image_type*>& images() const noexcept = 0;
 
         /// <inheritdoc />
         virtual image_type& image(UInt32 location) const = 0;
@@ -786,11 +781,11 @@ namespace LiteFX::Rendering {
         }
 
         inline Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept override {
-            return this->commandBuffers();
+            co_yield std::ranges::elements_of(this->commandBuffers());
         }
 
         inline Enumerable<IImage*> getImages() const noexcept override {
-            return this->images();
+            co_yield std::ranges::elements_of(this->images());
         }
     };
 
@@ -888,10 +883,10 @@ namespace LiteFX::Rendering {
         virtual const command_queue_type& commandQueue() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<const frame_buffer_type*> frameBuffers() const noexcept = 0;
+        virtual const Array<UniquePtr<const frame_buffer_type>>& frameBuffers() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<const render_pipeline_type*> pipelines() const noexcept = 0;
+        virtual const Array<UniquePtr<const render_pipeline_type>>& pipelines() const noexcept = 0;
 
         /// <inheritdoc />
         virtual Span<const input_attachment_mapping_type> inputAttachments() const noexcept = 0;
@@ -901,11 +896,11 @@ namespace LiteFX::Rendering {
 
     private:
         inline Enumerable<const IFrameBuffer*> getFrameBuffers() const noexcept override {
-            return this->frameBuffers();
+            co_yield std::ranges::elements_of(this->frameBuffers() | std::views::transform([](auto& frameBuffer) { return frameBuffer.get(); }));
         }
 
         inline Enumerable<const IRenderPipeline*> getPipelines() const noexcept override {
-            return this->pipelines();
+            co_yield std::ranges::elements_of(this->pipelines() | std::views::transform([](auto& pipeline) { return pipeline.get(); }));
         }
 
         inline void setAttachments(const IDescriptorSet& descriptorSet) const override {
@@ -934,7 +929,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<image_interface_type*> images() const noexcept = 0;
+        virtual const Array<UniquePtr<image_interface_type>>& images() const noexcept = 0;
 
         /// <summary>
         /// Queues a present that gets executed after <paramref name="frameBuffer" /> signals its readiness.
@@ -949,7 +944,7 @@ namespace LiteFX::Rendering {
 
     private:
         inline Enumerable<IImage*> getImages() const noexcept override {
-            return this->images();
+            co_yield std::ranges::elements_of(this->images() | std::views::transform([](auto& image) { return image.get(); }));
         }
     };
 
@@ -973,20 +968,18 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<command_buffer_type> createCommandBuffer(bool beginRecording = false, bool secondary = false) const = 0;
 
         /// <inheritdoc />
-        inline virtual UInt64 submit(SharedPtr<command_buffer_type> commandBuffer) const {
-            return this->submit(std::static_pointer_cast<const command_buffer_type>(commandBuffer));
-        }
-
-        /// <inheritdoc />
         virtual UInt64 submit(SharedPtr<const command_buffer_type> commandBuffer) const = 0;
 
         /// <inheritdoc />
-        inline virtual UInt64 submit(const Enumerable<SharedPtr<command_buffer_type>>& commandBuffers) const {
-            return this->submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const command_buffer_type>>>());
+        inline UInt64 submit(Enumerable<SharedPtr<const command_buffer_type>> commandBuffers) const {
+            Array<SharedPtr<const command_buffer_type>> buffers;
+            buffers.assign_range(commandBuffers);
+
+            return this->submit(buffers);
         }
 
         /// <inheritdoc />
-        virtual UInt64 submit(const Enumerable<SharedPtr<const command_buffer_type>>& commandBuffers) const = 0;
+        virtual UInt64 submit(Span<SharedPtr<const command_buffer_type>> commandBuffers) const = 0;
 
     private:
         inline SharedPtr<ICommandBuffer> getCommandBuffer(bool beginRecording, bool secondary) const override {
@@ -997,8 +990,8 @@ namespace LiteFX::Rendering {
             return this->submit(std::dynamic_pointer_cast<const command_buffer_type>(commandBuffer));
         }
 
-        inline UInt64 submitCommandBuffers(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const override {
-            return this->submit(commandBuffers | std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) | std::ranges::to<Enumerable<SharedPtr<const command_buffer_type>>>());
+        inline UInt64 submitCommandBuffers(Span<SharedPtr<const ICommandBuffer>> commandBuffers) const override {
+            return this->submit(yield(commandBuffers | std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); })));
         }
     };
 
@@ -1126,7 +1119,7 @@ namespace LiteFX::Rendering {
         }
 
         inline Enumerable<UniquePtr<IImage>> getTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, bool allowWrite) const override {
-            return this->getTextures(elements, format, size, dimension, layers, levels, samples, allowWrite) | std::views::as_rvalue;
+            co_yield std::ranges::elements_of(this->getTextures(elements, format, size, dimension, layers, levels, samples, allowWrite));
         }
         
         inline UniquePtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {
@@ -1138,7 +1131,7 @@ namespace LiteFX::Rendering {
         }
         
         inline Enumerable<UniquePtr<ISampler>> getSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {
-            return this->createSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy) | std::views::as_rvalue;
+            co_yield std::ranges::elements_of(this->createSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy));
         }
     };
 
@@ -1351,7 +1344,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const adapter_type*> listAdapters() const = 0;
+        virtual const Array<UniquePtr<const adapter_type>>& adapters() const = 0;
 
         /// <inheritdoc />
         virtual const adapter_type* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const = 0;
@@ -1397,7 +1390,7 @@ namespace LiteFX::Rendering {
         // IRenderBackend interface
     private:
         inline Enumerable<const IGraphicsAdapter*> getAdapters() const override {
-            return this->listAdapters();
+            co_yield std::ranges::elements_of(this->adapters() | std::views::transform([](auto& adapter) { return adapter.get(); }));
         }
     };
 }
