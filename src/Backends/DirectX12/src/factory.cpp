@@ -276,3 +276,15 @@ Enumerable<UniquePtr<IDirectX12Sampler>> DirectX12GraphicsFactory::createSampler
 			co_yield this->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
 	}() | std::views::as_rvalue;
 }
+
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+UniquePtr<DirectX12BottomLevelAccelerationStructure> DirectX12GraphicsFactory::createBottomLevelAccelerationStructure() const
+{
+	return makeUnique<DirectX12BottomLevelAccelerationStructure>();
+}
+
+UniquePtr<DirectX12TopLevelAccelerationStructure> DirectX12GraphicsFactory::createTopLevelAccelerationStructure() const
+{
+	return makeUnique<DirectX12TopLevelAccelerationStructure>();
+}
+#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)

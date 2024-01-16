@@ -73,22 +73,6 @@ DirectX12BottomLevelAccelerationStructure::DirectX12BottomLevelAccelerationStruc
 
 DirectX12BottomLevelAccelerationStructure::~DirectX12BottomLevelAccelerationStructure() noexcept = default;
 
-void DirectX12BottomLevelAccelerationStructure::computeBufferSizes(UInt64& bufferSize, UInt64& scatchSize) const
-{
-    auto descriptions = m_impl->build();
-
-    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {
-        .Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL,
-        .Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE, // TODO: Allow update
-        .NumDescs = static_cast<UInt32>(descriptions.size()),
-        .DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY,
-        .pGeometryDescs = descriptions.data()
-    };
-
-    // TODO: ...
-    throw;
-}
-
 const Array<TriangleMesh>& DirectX12BottomLevelAccelerationStructure::triangleMeshes() const noexcept
 {
     return m_impl->m_triangleMeshes;
@@ -118,4 +102,8 @@ void DirectX12BottomLevelAccelerationStructure::clear(bool meshes, bool bounding
         m_impl->m_boundingBoxes.clear();
 }
 
+Array<D3D12_RAYTRACING_GEOMETRY_DESC> DirectX12BottomLevelAccelerationStructure::buildInfo() const
+{
+    return m_impl->build();
+}
 #endif // LITEFX_BUILD_RAY_TRACING_SUPPORT

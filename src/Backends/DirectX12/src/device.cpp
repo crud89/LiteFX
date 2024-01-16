@@ -626,3 +626,42 @@ void DirectX12Device::wait() const
 	::CloseHandle(eventHandle);
 	});
 }
+
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+inline void DirectX12Device::computeAccelerationStructureSizes(const DirectX12BottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scatchSize) const 
+{
+	auto descriptions = blas.buildInfo();
+
+	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO prebuildInfo;
+    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {
+        .Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL,
+        .Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE, // TODO: Allow update
+        .NumDescs = static_cast<UInt32>(descriptions.size()),
+        .DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY,
+        .pGeometryDescs = descriptions.data()
+    };
+
+	// Get the prebuild info and align the buffer sizes.
+	this->handle()->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &prebuildInfo);
+	bufferSize = (prebuildInfo.ResultDataMaxSizeInBytes + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
+	scatchSize = (prebuildInfo.ScratchDataSizeInBytes   + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
+}
+
+inline void DirectX12Device::computeAccelerationStructureSizes(const DirectX12TopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scatchSize) const 
+{
+	auto& instances = tlas.instances();
+
+	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO prebuildInfo;
+    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {
+        .Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL,
+        .Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE, // TODO: Allow update
+        .NumDescs = static_cast<UInt32>(instances.size()),
+        .DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY
+    };
+
+	// Get the prebuild info and align the buffer sizes.
+	this->handle()->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &prebuildInfo);
+	bufferSize = (prebuildInfo.ResultDataMaxSizeInBytes + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
+	scatchSize = (prebuildInfo.ScratchDataSizeInBytes   + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
+}
+#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)

@@ -34,12 +34,6 @@ DirectX12TopLevelAccelerationStructure::DirectX12TopLevelAccelerationStructure()
 
 DirectX12TopLevelAccelerationStructure::~DirectX12TopLevelAccelerationStructure() noexcept = default;
 
-void DirectX12TopLevelAccelerationStructure::computeBufferSizes(UInt64& bufferSize, UInt64& scatchSize) const
-{
-    // TODO: ...
-    throw;
-}
-
 const Array<Instance>& DirectX12TopLevelAccelerationStructure::instances() const noexcept
 {
     return m_impl->m_instances;

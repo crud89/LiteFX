@@ -38,6 +38,8 @@ namespace LiteFX::Rendering {
     class IBuffer;
     class IImage;
     class ISampler;
+    class IBottomLevelAccelerationStructure;
+    class ITopLevelAccelerationStructure;
     class IBarrier;
     class IDescriptorSet;
     class IDescriptorSetLayout;
@@ -3262,24 +3264,14 @@ namespace LiteFX::Rendering {
         virtual const IIndexBufferLayout& layout() const noexcept = 0;
     };
 
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
-
+    /// <summary>
+    /// Base interface for a ray tracing acceleration structure.
+    /// </summary>
+    /// <seealso cref="IBottomLevelAccelerationStructure" />
+    /// <seealso cref="ITopLevelAccelerationStructure" />
     class LITEFX_RENDERING_API IAccelerationStructure {
     public:
         virtual ~IAccelerationStructure() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Computes the sizes required for the acceleration structure buffers.
-        /// </summary>
-        /// <remarks>
-        /// Acceleration structures are built on the GPU, which requires additional memory called *scratch memory*. When creating an acceleration structure (AS), you have to 
-        /// provide a temporary buffer containing the scratch memory, alongside the actual buffer that stores the AS itself. This method can be used to precompute the buffer
-        /// sizes for both buffers.
-        /// </remarks>
-        /// <param name="bufferSize">The size of the acceleration structure buffer.</param>
-        /// <param name="scatchSize">The size of the scratch memory buffer.</param>
-        virtual void computeBufferSizes(UInt64& bufferSize, UInt64& scatchSize) const = 0;
     };
 
     /// <summary>
@@ -3382,12 +3374,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         struct BoundingBox final {
             /// <summary>
-            /// The lower edge of the AABB.
+            /// The lower corner of the AABB.
             /// </summary>
             Vector3f Minimum;
 
             /// <summary>
-            /// The upper edge of the AABB.
+            /// The upper corner of the AABB.
             /// </summary>
             Vector3f Maximum;
         };
@@ -3409,6 +3401,16 @@ namespace LiteFX::Rendering {
         virtual void addTriangleMesh(const TriangleMesh& mesh) = 0;
 
         /// <summary>
+        /// Adds a triangle mesh to the BLAS.
+        /// </summary>
+        /// <param name="vertexBuffer">The vertex buffer that stores the mesh vertices.</param>
+        /// <param name="indexBuffer">The index buffer that stores the mesh indices.</param>
+        /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
+        inline void addTriangleMesh(SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr) {
+            this->addTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer));
+        }
+
+        /// <summary>
         /// Returns an array of axis-aligned bounding boxes contained by the BLAS.
         /// </summary>
         /// <returns>The array of axis-aligned bounding boxes contained by the BLAS.</returns>
@@ -3419,6 +3421,15 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="aabb">The bounding box to add to the BLAS.</param>
         virtual void addBoundingBox(const BoundingBox& aabb) = 0;
+
+        /// <summary>
+        /// Adds an axis-aligned bounding box to the BLAS.
+        /// </summary>
+        /// <param name="minimum">The lower corner of the AABB.</param>
+        /// <param name="maximum">The upper corner of the AABB.</param>
+        inline void addBoundingBox(const Vector3f& minimum, const Vector3f& maximum) {
+            this->addBoundingBox(BoundingBox { .Minimum = minimum, .Maximum = maximum });
+        }
 
         /// <summary>
         /// Removes all meshes and/or bounding boxes from the BLAS.
@@ -3440,6 +3451,18 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
+        /// Adds a triangle mesh to the BLAS.
+        /// </summary>
+        /// <param name="vertexBuffer">The vertex buffer that stores the mesh vertices.</param>
+        /// <param name="indexBuffer">The index buffer that stores the mesh indices.</param>
+        /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
+        /// <returns>A reference to the current BLAS.</returns>
+        template <typename TSelf>
+        inline auto withTriangleMesh(this TSelf&& self, SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr) -> TSelf& {
+            return self.withTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer));
+        }
+
+        /// <summary>
         /// Adds an axis-aligned bounding box to the BLAS.
         /// </summary>
         /// <param name="aabb">The bounding box to add to the BLAS.</param>
@@ -3448,6 +3471,17 @@ namespace LiteFX::Rendering {
         inline auto withBoundingBox(this TSelf&& self, const BoundingBox& aabb) -> TSelf& {
             self.addBoundingBox(aabb);
             return self;
+        }
+
+        /// <summary>
+        /// Adds an axis-aligned bounding box to the BLAS.
+        /// </summary>
+        /// <param name="minimum">The lower corner of the AABB.</param>
+        /// <param name="maximum">The upper corner of the AABB.</param>
+        /// <returns>A reference to the current BLAS.</returns>
+        template <typename TSelf>
+        inline auto withBoundingBox(this TSelf&& self, const Vector3f& minimum, const Vector3f& maximum) -> TSelf& {
+            return self.withBoundingBox(BoundingBox{ .Minimum = minimum, .Maximum = maximum });
         }
     };
 
@@ -3464,7 +3498,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The BLAS that to be instantiated.
             /// </summary>
-            SharedPtr<IBottomLevelAccelerationStructure> BottomLevelAccelerationStructure;
+            SharedPtr<const IBottomLevelAccelerationStructure> BottomLevelAccelerationStructure;
 
             /// <summary>
             /// The transformation matrix for the instance.
@@ -3498,6 +3532,16 @@ namespace LiteFX::Rendering {
         virtual void addInstance(const Instance& instance) = 0;
 
         /// <summary>
+        /// Adds an instance to the TLAS.
+        /// </summary>
+        /// <param name="blas">The BLAS that to be instantiated.</param>
+        /// <param name="instanceId">The instance ID used in shaders to identify the instance.</param>
+        /// <param name="hitGroup">The index of the hit group shader in the shader binding table.</param>
+        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 instanceId, UInt32 hitGroup) {
+            this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .InstanceId = instanceId, .HitGroup = hitGroup });
+        }
+
+        /// <summary>
         /// Removes all instances from the TLAS.
         /// </summary>
         virtual void clear() = 0;
@@ -3513,9 +3557,19 @@ namespace LiteFX::Rendering {
             self.addInstance(instance);
             return self;
         }
-    };
 
-#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
+        /// <summary>
+        /// Adds an instance to the current TLAS.
+        /// </summary>
+        /// <param name="blas">The BLAS that to be instantiated.</param>
+        /// <param name="instanceId">The instance ID used in shaders to identify the instance.</param>
+        /// <param name="hitGroup">The index of the hit group shader in the shader binding table.</param>
+        /// <returns>A reference to the current TLAS.</returns>
+        template<typename TSelf>
+        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 instanceId, UInt32 hitGroup) -> TSelf& {
+            return self.withInstance(Instance { .BottomLevelAccelerationStructure = blas, .InstanceId = instanceId, .HitGroup = hitGroup });
+        }
+    };
 
     /// <summary>
     /// The interface for a barrier.
@@ -5987,6 +6041,26 @@ namespace LiteFX::Rendering {
             return this->getSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+        /// <summary>
+        /// Creates a bottom-level acceleration structure.
+        /// </summary>
+        /// <returns>The bottom-level acceleration structure instance.</returns>
+        /// <seealso cref="IBottomLevelAccelerationStructure" />
+        inline UniquePtr<IBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure() const {
+            return this->getBlas();
+        }
+
+        /// <summary>
+        /// Creates a top-level acceleration structure.
+        /// </summary>
+        /// <returns>The top-level acceleration structure instance.</returns>
+        /// <seealso cref="ITopLevelAccelerationStructure" />
+        inline UniquePtr<ITopLevelAccelerationStructure> createTopLevelAccelerationStructure() const {
+            return this->getTlas();
+        }
+#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+
     private:
         virtual UniquePtr<IBuffer> getBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const = 0;
         virtual UniquePtr<IBuffer> getBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const = 0;
@@ -6002,6 +6076,11 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
         virtual UniquePtr<ISampler> getSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
         virtual Enumerable<UniquePtr<ISampler>> getSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
+        
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+        virtual UniquePtr<IBottomLevelAccelerationStructure> getBlas() const = 0;
+        virtual UniquePtr<ITopLevelAccelerationStructure> getTlas() const = 0;
+#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     };
 
     /// <summary>
@@ -6114,6 +6193,43 @@ namespace LiteFX::Rendering {
         /// <returns>The number of GPU ticks per milliseconds.</returns>
         /// <seealso cref="TimingEvent" />
         virtual double ticksPerMillisecond() const noexcept = 0;
+
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+    public:
+        /// <summary>
+        /// Computes the required amount of device memory for an <see cref="IBottomLevelAccelerationStructure" />.
+        /// </summary>
+        /// <remarks>
+        /// Acceleration structures are built on the GPU, which requires additional memory called *scratch memory*. When creating an acceleration structure (AS), you have to 
+        /// provide a temporary buffer containing the scratch memory, alongside the actual buffer that stores the AS itself. This method can be used to precompute the buffer
+        /// sizes for both buffers.
+        /// </remarks>
+        /// <param name="blas">The bottom-level acceleration structure to compute the memory requirements for.</param>
+        /// <param name="bufferSize">The size of the acceleration structure buffer.</param>
+        /// <param name="scratchSize">The size of the scratch memory buffer.</param>
+        inline void computeAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize) const {
+            this->getAccelerationStructureSizes(blas, bufferSize, scratchSize);
+        }
+
+        /// <summary>
+        /// Computes the required amount of device memory for an <see cref="ITopLevelAccelerationStructure" />.
+        /// </summary>
+        /// <remarks>
+        /// Acceleration structures are built on the GPU, which requires additional memory called *scratch memory*. When creating an acceleration structure (AS), you have to 
+        /// provide a temporary buffer containing the scratch memory, alongside the actual buffer that stores the AS itself. This method can be used to precompute the buffer
+        /// sizes for both buffers.
+        /// </remarks>
+        /// <param name="tlas">The top-level acceleration structure to compute the memory requirements for.</param>
+        /// <param name="bufferSize">The size of the acceleration structure buffer.</param>
+        /// <param name="scratchSize">The size of the scratch memory buffer.</param>
+        inline void computeAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize) const {
+            this->getAccelerationStructureSizes(tlas, bufferSize, scratchSize);
+        }
+
+    private:
+        virtual void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize) const = 0;
+        virtual void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize) const = 0;
+#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
     public:
         /// <summary>

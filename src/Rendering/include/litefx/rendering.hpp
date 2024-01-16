@@ -969,13 +969,17 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TImage">The type of the image. Must inherit from <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TBuffer">The type of the buffer. Must inherit from <see cref="IBuffer"/>.</typeparam>
     /// <typeparam name="TSampler">The type of the sampler. Must inherit from <see cref="ISampler"/>.</typeparam>
-    template <typename TDescriptorLayout, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TSampler> requires
+    /// <typeparam name="TBLAS">The type of the bottom-level acceleration structure. Must implement <see cref="IBottomLevelAccelerationStructure" />.</typeparam>
+    /// <typeparam name="TTLAS">The type of the top-level acceleration structure. Must implement <see cref="ITopLevelAccelerationStructure" />.</typeparam>
+    template <typename TDescriptorLayout, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TSampler, typename TBLAS, typename TTLAS> requires
         rtti::implements<TDescriptorLayout, IDescriptorLayout> &&
         std::derived_from<TVertexBuffer, VertexBuffer<typename TVertexBuffer::vertex_buffer_layout_type>> &&
         std::derived_from<TIndexBuffer, IndexBuffer<typename TIndexBuffer::index_buffer_layout_type>> &&
         std::derived_from<TImage, IImage> &&
         std::derived_from<TBuffer, IBuffer> &&
-        std::derived_from<TSampler, ISampler>
+        std::derived_from<TSampler, ISampler> &&
+        std::derived_from<TBLAS, IBottomLevelAccelerationStructure> &&
+        std::derived_from<TTLAS, ITopLevelAccelerationStructure>
     class GraphicsFactory : public IGraphicsFactory {
     public:
         using IGraphicsFactory::createBuffer;
@@ -995,6 +999,8 @@ namespace LiteFX::Rendering {
         using buffer_type = TBuffer;
         using image_type = TImage;
         using sampler_type = TSampler;
+        using bottom_level_acceleration_structure_type = TBLAS;
+        using top_level_acceleration_structure_type = TTLAS;
 
     public:
         virtual ~GraphicsFactory() noexcept = default;
@@ -1041,6 +1047,14 @@ namespace LiteFX::Rendering {
 
         /// <inheritdoc />
         virtual Enumerable<UniquePtr<TSampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const = 0;
+
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+        /// <inheritdoc />
+        virtual UniquePtr<TBLAS> createBottomLevelAccelerationStructure() const = 0;
+
+        /// <inheritdoc />
+        virtual UniquePtr<TTLAS> createTopLevelAccelerationStructure() const = 0;
+#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
     private:
         inline UniquePtr<IBuffer> getBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const override {
@@ -1098,6 +1112,16 @@ namespace LiteFX::Rendering {
         inline Enumerable<UniquePtr<ISampler>> getSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {
             return this->createSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy) | std::views::as_rvalue;
         }
+
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+        inline UniquePtr<IBottomLevelAccelerationStructure> getBlas() const override {
+            return this->createBottomLevelAccelerationStructure();
+        }
+
+        inline UniquePtr<ITopLevelAccelerationStructure> getTlas() const override {
+            return this->createTopLevelAccelerationStructure();
+        }
+#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     };
 
     /// <summary>
@@ -1121,7 +1145,7 @@ namespace LiteFX::Rendering {
         rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
         rtti::implements<TSwapChain, SwapChain<typename TFactory::image_type, typename TRenderPass::frame_buffer_type>> &&
         rtti::implements<TCommandQueue, CommandQueue<typename TCommandQueue::command_buffer_type>> &&
-        rtti::implements<TFactory, GraphicsFactory<typename TFactory::descriptor_layout_type, typename TFactory::buffer_type, typename TFactory::vertex_buffer_type, typename TFactory::index_buffer_type, typename TFactory::image_type, typename TFactory::sampler_type>> &&
+        rtti::implements<TFactory, GraphicsFactory<typename TFactory::descriptor_layout_type, typename TFactory::buffer_type, typename TFactory::vertex_buffer_type, typename TFactory::index_buffer_type, typename TFactory::image_type, typename TFactory::sampler_type, typename TFactory::bottom_level_acceleration_structure_type, typename TFactory::top_level_acceleration_structure_type>> &&
         rtti::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, TCommandQueue, typename TRenderPass::frame_buffer_type, typename TRenderPass::input_attachment_mapping_type>> &&
         rtti::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>> &&
         rtti::implements<TBarrier, Barrier<typename TFactory::buffer_type, typename TFactory::image_type>>
@@ -1140,6 +1164,8 @@ namespace LiteFX::Rendering {
         using buffer_type = factory_type::buffer_type;
         using image_type = factory_type::image_type;
         using sampler_type = factory_type::sampler_type;
+        using bottom_level_acceleration_structure_type = factory_type::bottom_level_acceleration_structure_type;
+        using top_level_acceleration_structure_type = factory_type::top_level_acceleration_structure_type;
         using render_pass_type = TRenderPass;
         using frame_buffer_type = render_pass_type::frame_buffer_type;
         using render_pipeline_type = render_pass_type::render_pipeline_type;
@@ -1190,6 +1216,24 @@ namespace LiteFX::Rendering {
         inline const ICommandQueue* getNewQueue(QueueType type, QueuePriority priority) noexcept {
             return this->createQueue(type, priority);
         }
+
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+    public:
+        /// <inheritdoc />
+        virtual void computeAccelerationStructureSizes(const bottom_level_acceleration_structure_type& blas, UInt64& bufferSize, UInt64& scatchSize) const = 0;
+
+        /// <inheritdoc />
+        virtual void computeAccelerationStructureSizes(const top_level_acceleration_structure_type& tlas, UInt64 & bufferSize, UInt64 & scatchSize) const = 0;
+
+    private:
+        inline void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scatchSize) const {
+            this->computeAccelerationStructureSizes(dynamic_cast<const bottom_level_acceleration_structure_type&>(blas), bufferSize, scatchSize);
+        }
+
+        inline void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scatchSize) const {
+            this->computeAccelerationStructureSizes(dynamic_cast<const top_level_acceleration_structure_type&>(tlas), bufferSize, scatchSize);
+        }
+#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:

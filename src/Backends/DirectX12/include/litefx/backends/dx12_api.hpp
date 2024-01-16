@@ -75,6 +75,8 @@ namespace LiteFX::Rendering::Backends {
     class IDirectX12IndexBuffer;
     class IDirectX12Image;
     class IDirectX12Sampler;
+    class DirectX12BottomLevelAccelerationStructure;
+    class DirectX12TopLevelAccelerationStructure;
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     // Builder declarations.

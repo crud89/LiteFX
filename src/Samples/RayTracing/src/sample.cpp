@@ -112,6 +112,20 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
     commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
 
+    // Prebuild acceleration structures. We start with 1 bottom-level acceleration structure (BLAS) for our simple geometry and a few top-level acceleration strucutres (TLAS) for the instances.
+    auto blas = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure()));
+    auto tlas = m_device->factory().createTopLevelAccelerationStructure();
+    blas->withTriangleMesh({ asShared(std::move(vertexBuffer)), asShared(std::move(indexBuffer)) });
+    tlas->withInstance(blas, 0, 0)
+        .withInstance(blas, 1, 0)
+        .withInstance(blas, 2, 0)
+        .withInstance(blas, 3, 0)
+        .withInstance(blas, 4, 0)
+        .withInstance(blas, 5, 0)
+        .withInstance(blas, 6, 0)
+        .withInstance(blas, 7, 0)
+        .withInstance(blas, 8, 0);
+
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
@@ -136,8 +150,6 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_transferFence = commandBuffer->submit();
     
     // Add everything to the state.
-    m_device->state().add(std::move(vertexBuffer));
-    m_device->state().add(std::move(indexBuffer));
     m_device->state().add(std::move(cameraBuffer));
     m_device->state().add(std::move(transformBuffer));
     m_device->state().add("Camera Bindings", std::move(cameraBindings));
