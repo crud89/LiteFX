@@ -151,7 +151,6 @@ namespace LiteFX::Rendering::Backends {
         virtual ~IDirectX12Sampler() noexcept = default;
     };
 
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
     /// <summary>
     /// Implements a DirectX 12 bottom-level acceleration structure (BLAS).
     /// </summary>
@@ -178,10 +177,10 @@ namespace LiteFX::Rendering::Backends {
         void addTriangleMesh(const TriangleMesh& mesh) override;
 
         /// <inheritdoc />
-        const Array<BoundingBox>& boundingBoxes() const noexcept override;
+        const Array<BoundingBoxes>& boundingBoxes() const noexcept override;
 
         /// <inheritdoc />
-        void addBoundingBox(const BoundingBox& aabb) override;
+        void addBoundingBox(const BoundingBoxes& aabb) override;
 
         /// <inheritdoc />
         void clear(bool meshes = true, bool boundingBoxes = true) override;
@@ -215,7 +214,6 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void clear() override;
     };
-#endif
 
     /// <summary>
     /// Implements a DirectX 12 resource barrier.
@@ -1826,10 +1824,10 @@ namespace LiteFX::Rendering::Backends {
 #if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     public:
         /// <inheritdoc />
-        void computeAccelerationStructureSizes(const DirectX12BottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scatchSize) const override;
+        void computeAccelerationStructureSizes(const DirectX12BottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize) const override;
 
         /// <inheritdoc />
-        void computeAccelerationStructureSizes(const DirectX12TopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scatchSize) const override;
+        void computeAccelerationStructureSizes(const DirectX12TopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize) const override;
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

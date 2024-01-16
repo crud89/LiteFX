@@ -1,10 +1,8 @@
 #include <litefx/backends/dx12.hpp>
 
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
-
 using namespace LiteFX::Rendering::Backends;
-using TriangleMesh = IBottomLevelAccelerationStructure::TriangleMesh;
-using BoundingBox  = IBottomLevelAccelerationStructure::BoundingBox;
+using TriangleMesh  = IBottomLevelAccelerationStructure::TriangleMesh;
+using BoundingBoxes = IBottomLevelAccelerationStructure::BoundingBoxes;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -15,8 +13,8 @@ public:
     friend class DirectX12BottomLevelAccelerationStructure;
 
 private:
-    Array<TriangleMesh> m_triangleMeshes { };
-    Array<BoundingBox> m_boundingBoxes { };
+    Array<TriangleMesh>  m_triangleMeshes { };
+    Array<BoundingBoxes> m_boundingBoxes  { };
 
 public:
     DirectX12BottomLevelAccelerationStructureImpl(DirectX12BottomLevelAccelerationStructure* parent) noexcept :
@@ -43,7 +41,7 @@ public:
 
                 co_yield D3D12_RAYTRACING_GEOMETRY_DESC {
                     .Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES,
-                    .Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_NONE, // TODO: Support more.
+                    .Flags = std::bit_cast<D3D12_RAYTRACING_GEOMETRY_FLAGS>(mesh.Flags),
                     .Triangles = D3D12_RAYTRACING_GEOMETRY_TRIANGLES_DESC {
                         .Transform3x4 = mesh.TransformBuffer == nullptr ? 0 : mesh.TransformBuffer->virtualAddress(),
                         .IndexFormat = mesh.IndexBuffer == nullptr ? DXGI_FORMAT_UNKNOWN : (mesh.IndexBuffer->layout().indexType() == IndexType::UInt16 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT),
@@ -55,6 +53,22 @@ public:
                             mesh.VertexBuffer->virtualAddress(),
                             mesh.VertexBuffer->alignedElementSize()
                         }
+                    }
+                };
+            }
+
+            // Build up AABB descriptions.
+            for (UInt32 i{ 0 }; auto& bb : m_boundingBoxes)
+            {
+                if (bb.Buffer == nullptr) [[unlikely]]
+                    throw RuntimeException("Cannot build bottom-level acceleration structure from uninitialized bounding boxes.");
+
+                co_yield D3D12_RAYTRACING_GEOMETRY_DESC {
+                    .Type = D3D12_RAYTRACING_GEOMETRY_TYPE_PROCEDURAL_PRIMITIVE_AABBS,
+                    .Flags = std::bit_cast<D3D12_RAYTRACING_GEOMETRY_FLAGS>(bb.Flags),
+                    .AABBs = D3D12_RAYTRACING_GEOMETRY_AABBS_DESC {
+                        .AABBCount = bb.Buffer->elements(),
+                        .AABBs = { bb.Buffer->virtualAddress(), bb.Buffer->alignedElementSize() }
                     }
                 };
             }
@@ -83,12 +97,12 @@ void DirectX12BottomLevelAccelerationStructure::addTriangleMesh(const TriangleMe
     m_impl->m_triangleMeshes.push_back(mesh);
 }
 
-const Array<BoundingBox>& DirectX12BottomLevelAccelerationStructure::boundingBoxes() const noexcept
+const Array<BoundingBoxes>& DirectX12BottomLevelAccelerationStructure::boundingBoxes() const noexcept
 {
     return m_impl->m_boundingBoxes;
 }
 
-void DirectX12BottomLevelAccelerationStructure::addBoundingBox(const BoundingBox& aabb)
+void DirectX12BottomLevelAccelerationStructure::addBoundingBox(const BoundingBoxes& aabb)
 {
     m_impl->m_boundingBoxes.push_back(aabb);
 }
@@ -106,4 +120,3 @@ Array<D3D12_RAYTRACING_GEOMETRY_DESC> DirectX12BottomLevelAccelerationStructure:
 {
     return m_impl->build();
 }
-#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT

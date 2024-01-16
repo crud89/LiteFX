@@ -1220,18 +1220,18 @@ namespace LiteFX::Rendering {
 #if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     public:
         /// <inheritdoc />
-        virtual void computeAccelerationStructureSizes(const bottom_level_acceleration_structure_type& blas, UInt64& bufferSize, UInt64& scatchSize) const = 0;
+        virtual void computeAccelerationStructureSizes(const bottom_level_acceleration_structure_type& blas, UInt64& bufferSize, UInt64& scratchSize) const = 0;
 
         /// <inheritdoc />
-        virtual void computeAccelerationStructureSizes(const top_level_acceleration_structure_type& tlas, UInt64 & bufferSize, UInt64 & scatchSize) const = 0;
+        virtual void computeAccelerationStructureSizes(const top_level_acceleration_structure_type& tlas, UInt64 & bufferSize, UInt64 & scratchSize) const = 0;
 
     private:
-        inline void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scatchSize) const {
-            this->computeAccelerationStructureSizes(dynamic_cast<const bottom_level_acceleration_structure_type&>(blas), bufferSize, scatchSize);
+        inline void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize) const {
+            this->computeAccelerationStructureSizes(dynamic_cast<const bottom_level_acceleration_structure_type&>(blas), bufferSize, scratchSize);
         }
 
-        inline void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scatchSize) const {
-            this->computeAccelerationStructureSizes(dynamic_cast<const top_level_acceleration_structure_type&>(tlas), bufferSize, scatchSize);
+        inline void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize) const {
+            this->computeAccelerationStructureSizes(dynamic_cast<const top_level_acceleration_structure_type&>(tlas), bufferSize, scratchSize);
         }
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 

@@ -1,7 +1,5 @@
 #include <litefx/backends/dx12.hpp>
 
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
-
 using namespace LiteFX::Rendering::Backends;
 using Instance = ITopLevelAccelerationStructure::Instance;
 
@@ -48,5 +46,3 @@ void DirectX12TopLevelAccelerationStructure::clear()
 {
     m_impl->m_instances.clear();
 }
-
-#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
