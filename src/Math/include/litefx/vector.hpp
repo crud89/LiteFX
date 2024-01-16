@@ -107,7 +107,7 @@ namespace LiteFX::Math {
         /// Initializes the vector from an arbitrary input range.
         /// </summary>
         /// <param name="input">The range to initialize the vector with.</param>
-        constexpr inline Vector(std::ranges::input_range auto&& input) noexcept requires
+        constexpr inline explicit Vector(std::ranges::input_range auto&& input) noexcept requires
             std::is_nothrow_convertible_v<std::ranges::range_value_t<decltype(input)>, T>
         {
             std::ranges::copy(input, std::begin(m_elements));
