@@ -384,3 +384,15 @@ Enumerable<UniquePtr<IVulkanSampler>> VulkanGraphicsFactory::createSamplers(UInt
 			co_yield this->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
 	}() | std::views::as_rvalue;
 }
+
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+UniquePtr<VulkanBottomLevelAccelerationStructure> VulkanGraphicsFactory::createBottomLevelAccelerationStructure() const
+{
+	return makeUnique<VulkanBottomLevelAccelerationStructure>();
+}
+
+UniquePtr<VulkanTopLevelAccelerationStructure> VulkanGraphicsFactory::createTopLevelAccelerationStructure() const
+{
+	return makeUnique<VulkanTopLevelAccelerationStructure>();
+}
+#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)

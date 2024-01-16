@@ -52,6 +52,8 @@ SET(VULKAN_BACKEND_SOURCES
     "src/image.cpp"
     "src/push_constants_range.cpp"
     "src/push_constants_layout.cpp"
+    "src/blas.cpp"
+    "src/tlas.cpp"
 )
 
 # Add shared library project.

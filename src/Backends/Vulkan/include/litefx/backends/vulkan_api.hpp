@@ -62,6 +62,8 @@ namespace LiteFX::Rendering::Backends {
     class IVulkanIndexBuffer;
     class IVulkanImage;
     class IVulkanSampler;
+    class VulkanBottomLevelAccelerationStructure;
+    class VulkanTopLevelAccelerationStructure;
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     // Builder declarations.

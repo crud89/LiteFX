@@ -4,6 +4,8 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+static PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizes { nullptr };
+
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
@@ -162,6 +164,11 @@ private:
         m_extensions.push_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
 #endif
 
+#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
+        m_extensions.push_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
+        m_extensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
+#endif
+
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
         // Interop swap chain requires external memory access.
         m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
@@ -250,10 +257,22 @@ public:
                 };
             }) | std::ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
+        // Enable raytracing features.
+#if   defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+        VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR,
+            .accelerationStructure = true,
+            .descriptorBindingAccelerationStructureUpdateAfterBind = true
+        };
+#endif
+
         // Enable task and mesh shaders.
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+#if   defined(LITEFX_BUILD_MESH_SHADER_SUPPORT)
         VkPhysicalDeviceMeshShaderFeaturesEXT meshShaderFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT,
+#if   defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+            .pNext = &accelerationStructureFeatures,
+#endif
             .taskShader = true,
             .meshShader = true
         };
@@ -262,8 +281,10 @@ public:
         // Allow geometry and tessellation shader stages.
         VkPhysicalDeviceFeatures2 deviceFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+#if   defined(LITEFX_BUILD_MESH_SHADER_SUPPORT)
             .pNext = &meshShaderFeatures,
+#elif defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+            .pNext = &accelerationStructureFeatures,
 #endif
             .features = {
                 .geometryShader = true,
@@ -334,8 +355,14 @@ public:
         VkDevice device;
         raiseIfFailed(::vkCreateDevice(m_adapter.handle(), &createInfo, nullptr, &device), "Unable to create Vulkan device.");
 
+        // Load extension methods.
 #ifndef NDEBUG
         debugMarkerSetObjectName = reinterpret_cast<PFN_vkDebugMarkerSetObjectNameEXT>(::vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectNameEXT"));
+#endif
+
+#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
+        if (vkGetAccelerationStructureBuildSizes == nullptr)
+            vkGetAccelerationStructureBuildSizes = reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(::vkGetDeviceProcAddr(device, "vkGetAccelerationStructureBuildSizesKHR"));
 #endif
 
         return device;
@@ -607,3 +634,51 @@ void VulkanDevice::wait() const
 {
     raiseIfFailed(::vkDeviceWaitIdle(this->handle()), "Unable to wait for the device.");
 }
+
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+void VulkanDevice::computeAccelerationStructureSizes(const VulkanBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize) const
+{
+    auto buildInfo = blas.buildInfo();
+    auto descriptions = buildInfo | std::views::values | std::ranges::to<Array<VkAccelerationStructureGeometryKHR>>();
+    auto sizes = buildInfo | std::views::keys | std::ranges::to<Array<UInt32>>();
+
+    VkAccelerationStructureBuildSizesInfoKHR prebuildInfo { .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR };
+    VkAccelerationStructureBuildGeometryInfoKHR inputs = {
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
+        .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
+        .flags = 0, // TODO: Allow update/prefer fast trace/etc
+        .mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
+        .geometryCount = static_cast<UInt32>(descriptions.size()),
+        .pGeometries = descriptions.data()
+    };
+
+    // Get the prebuild info and align the buffer sizes.
+    const auto alignment = this->adapter().limits().minUniformBufferOffsetAlignment;
+    ::vkGetAccelerationStructureBuildSizes(this->handle(), VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR, &inputs, sizes.data(), &prebuildInfo);
+    bufferSize = (prebuildInfo.accelerationStructureSize + alignment - 1) & ~(alignment - 1);
+    scratchSize = (prebuildInfo.buildScratchSize + alignment - 1) & ~(alignment - 1);
+}
+
+void VulkanDevice::computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize) const
+{
+    // TODO: In Vulkan, we need to create the BLAS to create the TLAS first.
+    throw;
+
+    //auto& instances = tlas.instances();
+
+    //VkAccelerationStructureBuildSizesInfoKHR prebuildInfo{ .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR };
+    //VkAccelerationStructureBuildGeometryInfoKHR inputs = {
+    //    .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
+    //    .type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR,
+    //    .flags = 0, // TODO: Allow update/prefer fast trace/etc
+    //    .mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
+    //    .geometryCount = static_cast<UInt32>(instances.size())
+    //};
+
+    //// Get the prebuild info and align the buffer sizes.
+    //const auto alignment = this->adapter().limits().minUniformBufferOffsetAlignment;
+    //::vkGetAccelerationStructureBuildSizes(this->handle(), VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR, &inputs, sizes.data(), &prebuildInfo);
+    //bufferSize = (prebuildInfo.accelerationStructureSize + alignment - 1) & ~(alignment - 1);
+    //scratchSize = (prebuildInfo.buildScratchSize + alignment - 1) & ~(alignment - 1);
+}
+#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)

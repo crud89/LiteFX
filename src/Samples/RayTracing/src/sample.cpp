@@ -113,6 +113,8 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
 
     // Prebuild acceleration structures. We start with 1 bottom-level acceleration structure (BLAS) for our simple geometry and a few top-level acceleration strucutres (TLAS) for the instances.
+    // TODO: Builder for BLAS and TLAS structures, then use factory to actually create them (factory could also call `computeAccelerationStructureSizes` to create the buffers... we may need a structure that 
+    //       stores all resources though - or use the already existing ones, which implies that they can't be re-used).
     auto blas = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure()));
     auto tlas = m_device->factory().createTopLevelAccelerationStructure();
     blas->withTriangleMesh({ asShared(std::move(vertexBuffer)), asShared(std::move(indexBuffer)) });
@@ -125,6 +127,13 @@ void SampleApp::initBuffers(IRenderBackend* backend)
         .withInstance(blas, 6, 0)
         .withInstance(blas, 7, 0)
         .withInstance(blas, 8, 0);
+
+    // Compute required buffer sizes for both structures.
+    UInt64 blasScratchSize, blasBufferSize;
+    m_device->computeAccelerationStructureSizes(*blas, blasBufferSize, blasScratchSize);
+    //m_device->computeAccelerationStructureSizes(*tlas, tlasBufferSize, tlasScratchSize);
+
+    // TODO: Allocate BLAS and TLAS buffers.
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
