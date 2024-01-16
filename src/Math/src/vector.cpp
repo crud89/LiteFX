@@ -23,7 +23,7 @@ Vector1f& Vector1f::operator=(Vector<Float, 1>&& _other) noexcept {
     return *this;
 }
 
-Vector1f& Vector1f::operator=(const Enumerable<Float>& _other) noexcept {
+Vector1f& Vector1f::operator=(Enumerable<Float> _other) noexcept {
     std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
@@ -45,7 +45,7 @@ Float& Vector1f::operator[](UInt32 i) noexcept {
 }
 
 Vector1f::operator Enumerable<Float>() noexcept {
-    return m_elements;
+    co_yield std::ranges::elements_of(m_elements);
 }
 
 #if defined(LITEFX_BUILD_WITH_GLM)
@@ -100,7 +100,7 @@ Vector1u& Vector1u::operator=(Vector<UInt32, 1>&& _other) noexcept {
     return *this;
 }
 
-Vector1u& Vector1u::operator=(const Enumerable<UInt32>& _other) noexcept {
+Vector1u& Vector1u::operator=(Enumerable<UInt32> _other) noexcept {
     std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
@@ -122,7 +122,7 @@ UInt32& Vector1u::operator[](UInt32 i) noexcept {
 }
 
 Vector1u::operator Enumerable<UInt32>() noexcept {
-    return m_elements;
+    co_yield std::ranges::elements_of(m_elements);
 }
 
 #if defined(LITEFX_BUILD_WITH_GLM)
@@ -179,7 +179,7 @@ Vector2f& Vector2f::operator=(Vector<Float, 2>&& _other) noexcept {
     return *this;
 }
 
-Vector2f& Vector2f::operator=(const Enumerable<Float>& _other) noexcept {
+Vector2f& Vector2f::operator=(Enumerable<Float> _other) noexcept {
     std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
@@ -201,7 +201,7 @@ Float& Vector2f::operator[](UInt32 i) noexcept {
 }
 
 Vector2f::operator Enumerable<Float>() noexcept {
-    return m_elements;
+    co_yield std::ranges::elements_of(m_elements);
 }
 
 #if defined(LITEFX_BUILD_WITH_GLM)
@@ -281,7 +281,7 @@ Vector2u& Vector2u::operator=(Vector<UInt32, 2>&& _other) noexcept {
     return *this;
 }
 
-Vector2u& Vector2u::operator=(const Enumerable<UInt32>& _other) noexcept {
+Vector2u& Vector2u::operator=(Enumerable<UInt32> _other) noexcept {
     std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
@@ -303,7 +303,7 @@ UInt32& Vector2u::operator[](UInt32 i) noexcept {
 }
 
 Vector2u::operator Enumerable<UInt32>() noexcept {
-    return m_elements;
+    co_yield std::ranges::elements_of(m_elements);
 }
 
 #if defined(LITEFX_BUILD_WITH_GLM)
@@ -383,7 +383,7 @@ Vector2i& Vector2i::operator=(Vector<Int32, 2>&& _other) noexcept {
     return *this;
 }
 
-Vector2i& Vector2i::operator=(const Enumerable<Int32>& _other) noexcept {
+Vector2i& Vector2i::operator=(Enumerable<Int32> _other) noexcept {
     std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
@@ -405,7 +405,7 @@ Int32& Vector2i::operator[](UInt32 i) noexcept {
 }
 
 Vector2i::operator Enumerable<Int32>() noexcept {
-    return m_elements;
+    co_yield std::ranges::elements_of(m_elements);
 }
 
 #if defined(LITEFX_BUILD_WITH_GLM)
@@ -486,7 +486,7 @@ Vector3f& Vector3f::operator=(Vector<Float, 3>&& _other) noexcept {
     return *this;
 }
 
-Vector3f& Vector3f::operator=(const Enumerable<Float>& _other) noexcept {
+Vector3f& Vector3f::operator=(Enumerable<Float> _other) noexcept {
     std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
@@ -508,7 +508,7 @@ Float& Vector3f::operator[](UInt32 i) noexcept {
 }
 
 Vector3f::operator Enumerable<Float>() noexcept {
-    return m_elements;
+    co_yield std::ranges::elements_of(m_elements);
 }
 
 #if defined(LITEFX_BUILD_WITH_GLM)
@@ -593,7 +593,7 @@ Vector3u& Vector3u::operator=(Vector<UInt32, 3>&& _other) noexcept {
     return *this;
 }
 
-Vector3u& Vector3u::operator=(const Enumerable<UInt32>& _other) noexcept {
+Vector3u& Vector3u::operator=(Enumerable<UInt32> _other) noexcept {
     std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
@@ -615,7 +615,7 @@ UInt32& Vector3u::operator[](UInt32 i) noexcept {
 }
 
 Vector3u::operator Enumerable<UInt32>() noexcept {
-    return m_elements;
+    co_yield std::ranges::elements_of(m_elements);
 }
 
 #if defined(LITEFX_BUILD_WITH_GLM)
@@ -700,7 +700,7 @@ Vector3i& Vector3i::operator=(Vector<Int32, 3>&& _other) noexcept {
     return *this;
 }
 
-Vector3i& Vector3i::operator=(const Enumerable<Int32>& _other) noexcept {
+Vector3i& Vector3i::operator=(Enumerable<Int32> _other) noexcept {
     std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
@@ -722,7 +722,7 @@ Int32& Vector3i::operator[](UInt32 i) noexcept {
 }
 
 Vector3i::operator Enumerable<Int32>() noexcept {
-    return m_elements;
+    co_yield std::ranges::elements_of(m_elements);
 }
 
 #if defined(LITEFX_BUILD_WITH_GLM)
@@ -808,7 +808,7 @@ Vector4f& Vector4f::operator=(Vector<Float, 4>&& _other) noexcept {
     return *this;
 }
 
-Vector4f& Vector4f::operator=(const Enumerable<Float>& _other) noexcept {
+Vector4f& Vector4f::operator=(Enumerable<Float> _other) noexcept {
     std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
@@ -830,7 +830,7 @@ Float& Vector4f::operator[](UInt32 i) noexcept {
 }
 
 Vector4f::operator Enumerable<Float>() noexcept {
-    return m_elements;
+    co_yield std::ranges::elements_of(m_elements);
 }
 
 #if defined(LITEFX_BUILD_WITH_GLM)
@@ -920,7 +920,7 @@ Vector4u& Vector4u::operator=(Vector<UInt32, 4>&& _other) noexcept {
     return *this;
 }
 
-Vector4u& Vector4u::operator=(const Enumerable<UInt32>& _other) noexcept {
+Vector4u& Vector4u::operator=(Enumerable<UInt32> _other) noexcept {
     std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
@@ -942,7 +942,7 @@ UInt32& Vector4u::operator[](UInt32 i) noexcept {
 }
 
 Vector4u::operator Enumerable<UInt32>() noexcept {
-    return m_elements;
+    co_yield std::ranges::elements_of(m_elements);
 }
 
 #if defined(LITEFX_BUILD_WITH_GLM)
@@ -1032,7 +1032,7 @@ Vector4i& Vector4i::operator=(Vector<Int32, 4>&& _other) noexcept {
     return *this;
 }
 
-Vector4i& Vector4i::operator=(const Enumerable<Int32>& _other) noexcept {
+Vector4i& Vector4i::operator=(Enumerable<Int32> _other) noexcept {
     std::ranges::copy(_other, std::begin(m_elements));
     return *this;
 }
@@ -1054,7 +1054,7 @@ Int32& Vector4i::operator[](UInt32 i) noexcept {
 }
 
 Vector4i::operator Enumerable<Int32>() noexcept {
-    return m_elements;
+    co_yield std::ranges::elements_of(m_elements);
 }
 
 #if defined(LITEFX_BUILD_WITH_GLM)

@@ -23,7 +23,7 @@ private:
 	VkSwapchainKHR m_handle = VK_NULL_HANDLE;
 	VkFence m_waitForImage = VK_NULL_HANDLE;
 
-	Array<SharedPtr<TimingEvent>> m_timingEvents;
+	Array<SharedPtr<const TimingEvent>> m_timingEvents;
 	Array<UInt64> m_timestamps;
 	Array<VkQueryPool> m_timingQueryPools;
 	VkQueryPool m_currentQueryPool;
@@ -135,7 +135,7 @@ public:
 			this->resetQueryPools(m_timingEvents);
 	}
 
-	void resetQueryPools(const Array<SharedPtr<TimingEvent>>& timingEvents)
+	void resetQueryPools(const Array<SharedPtr<const TimingEvent>>& timingEvents)
 	{
 		// No events - no pools.
 		if (timingEvents.empty())
@@ -345,7 +345,7 @@ private:
 	bool m_supportsTearing = false;
 	HANDLE m_fenceHandle;
 
-	Array<SharedPtr<TimingEvent>> m_timingEvents;
+	Array<SharedPtr<const TimingEvent>> m_timingEvents;
 	Array<UInt64> m_timestamps;
 	Array<VkQueryPool> m_timingQueryPools;
 	bool m_supportsTiming = false;
@@ -710,7 +710,7 @@ public:
 		m_currentImage = 0;
 	}
 
-	void resetQueryPools(const Array<SharedPtr<TimingEvent>>& timingEvents)
+	void resetQueryPools(const Array<SharedPtr<const TimingEvent>>& timingEvents)
 	{
 		// No events - no pools.
 		if (timingEvents.empty())
@@ -872,7 +872,7 @@ public:
 	}
 
 public:
-	Enumerable<Format> getSurfaceFormats(const VkPhysicalDevice adapter, const VkSurfaceKHR surface) const noexcept
+	Array<Format> getSurfaceFormats(const VkPhysicalDevice adapter, const VkSurfaceKHR surface) const noexcept
 	{
 		uint32_t formats;
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, nullptr);
@@ -880,7 +880,7 @@ public:
 		Array<VkSurfaceFormatKHR> availableFormats(formats);
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, availableFormats.data());
 
-		return availableFormats | std::views::transform([](const VkSurfaceFormatKHR& format) { return Vk::getFormat(format.format); });
+		return availableFormats | std::views::transform([](const VkSurfaceFormatKHR& format) { return Vk::getFormat(format.format); }) | std::ranges::to<Array<Format>>();
 	}
 
 	VkColorSpaceKHR findColorSpace(const VkPhysicalDevice adapter, const VkSurfaceKHR surface, Format format) const noexcept
@@ -949,12 +949,12 @@ const VkQueryPool& VulkanSwapChain::timestampQueryPool() const noexcept
 	return m_impl->currentTimestampQueryPool();
 }
 
-Enumerable<SharedPtr<TimingEvent>> VulkanSwapChain::timingEvents() const noexcept
+const Array<SharedPtr<const TimingEvent>>& VulkanSwapChain::timingEvents() const noexcept
 {
 	return m_impl->m_timingEvents;
 }
 
-SharedPtr<TimingEvent> VulkanSwapChain::timingEvent(UInt32 queryId) const
+SharedPtr<const TimingEvent> VulkanSwapChain::timingEvent(UInt32 queryId) const
 {
 	if (queryId >= m_impl->m_timingEvents.size())
 		throw ArgumentOutOfRangeException("queryId", 0u, static_cast<UInt32>(m_impl->m_timingEvents.size()), queryId, "No timing event has been registered for query ID {0}.", queryId);
@@ -1005,17 +1005,17 @@ const Size2d& VulkanSwapChain::renderArea() const noexcept
 	return m_impl->m_renderArea;
 }
 
-IVulkanImage* VulkanSwapChain::image(UInt32 backBuffer) const
+IVulkanImage& VulkanSwapChain::image(UInt32 backBuffer) const
 {
 	if (backBuffer >= m_impl->m_presentImages.size()) [[unlikely]]
 		throw ArgumentOutOfRangeException("backBuffer", 0u, static_cast<UInt32>(m_impl->m_presentImages.size()), backBuffer, "The back buffer must be a valid index.");
 
-	return m_impl->m_presentImages[backBuffer].get();
+	return *m_impl->m_presentImages[backBuffer];
 }
 
-Enumerable<IVulkanImage*> VulkanSwapChain::images() const noexcept
+const Array<UniquePtr<IVulkanImage>>& VulkanSwapChain::images() const noexcept
 {
-	return m_impl->m_presentImages | std::views::transform([](UniquePtr<IVulkanImage>& image) { return image.get(); });
+	return m_impl->m_presentImages;
 }
 
 void VulkanSwapChain::present(const VulkanFrameBuffer& frameBuffer) const
@@ -1028,12 +1028,12 @@ void VulkanSwapChain::present(UInt64 fence) const
 	m_impl->present(fence);
 }
 
-Enumerable<Format> VulkanSwapChain::getSurfaceFormats() const noexcept
+Array<Format> VulkanSwapChain::getSurfaceFormats() const noexcept
 {
 	return m_impl->getSurfaceFormats(m_impl->m_device.adapter().handle(), m_impl->m_device.surface().handle());
 }
 
-void VulkanSwapChain::addTimingEvent(SharedPtr<TimingEvent> timingEvent)
+void VulkanSwapChain::addTimingEvent(SharedPtr<const TimingEvent> timingEvent)
 {
 	if (timingEvent == nullptr) [[unlikely]]
 		throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");

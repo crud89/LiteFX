@@ -2680,7 +2680,7 @@ namespace LiteFX::Rendering {
         /// Returns a pointer with shared ownership to the current instance.
         /// </summary>
         /// <returns>A pointer with shared ownership to the current instance.</returns>
-        inline std::shared_ptr<TimingEvent> getptr() {
+        inline SharedPtr<TimingEvent> getptr() {
             return shared_from_this();
         }
 
@@ -2832,7 +2832,7 @@ namespace LiteFX::Rendering {
         /// Returns the vertex buffer attributes.
         /// </summary>
         /// <returns>The vertex buffer attributes.</returns>
-        virtual Enumerable<const BufferAttribute*> attributes() const noexcept = 0;
+        virtual const Array<BufferAttribute>& attributes() const noexcept = 0;
     };
 
     /// <summary>
@@ -3656,7 +3656,13 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The instance of the descriptor set.</returns>
         /// <seealso cref="IDescriptorLayout" />
-        inline UniquePtr<IDescriptorSet> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const {
+        inline UniquePtr<IDescriptorSet> allocate(std::initializer_list<DescriptorBinding> bindings) const {
+            Array<DescriptorBinding> vec { bindings };
+            return this->allocate(vec);
+        }
+
+        /// <inheritdoc cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        inline UniquePtr<IDescriptorSet> allocate(Span<DescriptorBinding> bindings = { }) const {
             return this->allocate(0, bindings);
         }
 
@@ -3667,7 +3673,13 @@ namespace LiteFX::Rendering {
         /// <param name="bindings">Optional default bindings for descriptors in the descriptor set.</param>
         /// <returns>The instance of the descriptor set.</returns>
         /// <seealso cref="IDescriptorLayout" />
-        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const {
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const {
+            Array<DescriptorBinding> vec { bindings };
+            return this->allocate(descriptors, vec);
+        }
+
+        /// <inheritdoc cref="allocate(UInt32, std::initializer_list{{DescriptorBinding}})" />
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, Span<DescriptorBinding> bindings = { }) const {
             return this->getDescriptorSet(descriptors, bindings);
         }
 
@@ -3678,7 +3690,14 @@ namespace LiteFX::Rendering {
         /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
-        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const {
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings) const {
+            // TODO: Improve as soon as mdspan is available.
+            Array<Array<DescriptorBinding>> mdvec = bindings | std::views::transform([](auto list) { return list | std::ranges::to<Array<DescriptorBinding>>(); }) | std::ranges::to<Array<Array<DescriptorBinding>>>();
+            return this->allocateMultiple(descriptorSets, mdvec | std::views::transform([](auto& vec) -> Span<DescriptorBinding> { return vec; }) | std::ranges::to<Array<Span<DescriptorBinding>>>());
+        }
+
+        /// <inheritdoc cref="allocate(UInt32, std::initializer_list{{std::initializer_list{{DescriptorBinding}}}})" />
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, const Array<Span<DescriptorBinding>>& bindings = { }) const {
             return this->allocateMultiple(descriptorSets, 0, bindings);
         }
 
@@ -3701,7 +3720,13 @@ namespace LiteFX::Rendering {
         /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
-        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const {
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings) const {
+            Array<Array<DescriptorBinding>> mdvec = bindings | std::views::transform([](auto list) { return list | std::ranges::to<Array<DescriptorBinding>>(); }) | std::ranges::to<Array<Array<DescriptorBinding>>>();
+            return this->allocateMultiple(descriptorSets, descriptors, mdvec | std::views::transform([](auto& vec) -> Span<DescriptorBinding> { return vec; }) | std::ranges::to<Array<Span<DescriptorBinding>>>());
+        }
+
+        /// <inheritdoc cref="allocate(UInt32, UInt32, std::initializer_list{{std::initializer_list{{DescriptorBinding}}}})" />
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Array<Span<DescriptorBinding>>& bindings = { }) const {
             return this->getDescriptorSets(descriptorSets, descriptors, bindings);
         }
 
@@ -3727,8 +3752,8 @@ namespace LiteFX::Rendering {
 
     private:
         virtual Enumerable<const IDescriptorLayout*> getDescriptors() const noexcept = 0;
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const = 0;
-        virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Span<DescriptorBinding> bindings = { }) const = 0;
+        virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, const Array<Span<DescriptorBinding>>& bindings = { }) const = 0;
         virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
         virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept = 0;
     };
@@ -3941,12 +3966,12 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Returns a pointer the vertex buffer layout for binding provided with <paramref name="binding" />.
+        /// Returns a reference to the vertex buffer layout for binding provided with <paramref name="binding" />.
         /// </summary>
         /// <param name="binding">The binding point of the vertex buffer layout.</param>
         /// <returns>The vertex buffer layout for binding provided with <paramref name="binding" />.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if no vertex buffer layout is bound to <paramref name="binding" />.</exception>
-        virtual const IVertexBufferLayout* vertexBufferLayout(UInt32 binding) const = 0;
+        virtual const IVertexBufferLayout& vertexBufferLayout(UInt32 binding) const = 0;
 
         /// <summary>
         /// Returns a pointer to the index buffer layout, or `nullptr` if the input assembler does not handle indices.
@@ -4538,7 +4563,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="commandBuffers">The command buffers to execute.</param>
         inline void execute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const {
-            this->cmdExecute(commandBuffers);
+            this->cmdExecute(std::move(commandBuffers));
+        }
+
+        /// <inheritdoc cref="execute(Enumerable{{SharedPtr{{const ICommandBuffer}}}}" />
+        inline void execute(Span<SharedPtr<const ICommandBuffer>> commandBuffers) const {
+            this->execute(yield(commandBuffers));
         }
 
     private:
@@ -4988,9 +5018,10 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="name">The name of the timing event.</param>
         /// <returns>A pointer with shared ownership to the newly created timing event instance.</returns>
-        [[nodiscard]] inline std::shared_ptr<TimingEvent> registerTimingEvent(StringView name = "") noexcept {
+        [[nodiscard]] inline SharedPtr<const TimingEvent> registerTimingEvent(StringView name = "") noexcept {
             auto timingEvent = SharedPtr<TimingEvent>(new TimingEvent(*this, name));
             this->addTimingEvent(timingEvent);
+
             return timingEvent;
         }
 
@@ -4998,14 +5029,14 @@ namespace LiteFX::Rendering {
         /// Returns all registered timing events.
         /// </summary>
         /// <returns>An array, containing all registered timing events.</returns>
-        virtual Enumerable<SharedPtr<TimingEvent>> timingEvents() const noexcept = 0;
+        virtual const Array<SharedPtr<const TimingEvent>>& timingEvents() const noexcept = 0;
 
         /// <summary>
         /// Returns the timing event registered for <paramref name="queryId" />.
         /// </summary>
         /// <param name="queryId">The query ID of the timing event.</param>
         /// <returns>The timing event registered for <paramref name="queryId" />.</returns>
-        virtual SharedPtr<TimingEvent> timingEvent(UInt32 queryId) const = 0;
+        virtual SharedPtr<const TimingEvent> timingEvent(UInt32 queryId) const = 0;
 
         /// <summary>
         /// Reads the current time stamp value (in ticks) of a timing event.
@@ -5051,7 +5082,8 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="backBuffer">The index of the back buffer for which to return the swap chain present image.</param>
         /// <returns>A pointer to the back buffers swap chain present image.</returns>
-        virtual IImage* image(UInt32 backBuffer) const = 0;
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="backBuffer" /> does not address a valid back buffer image.</exception>
+        virtual IImage& image(UInt32 backBuffer) const = 0;
 
         /// <summary>
         /// Returns an array of the swap chain present images.
@@ -5098,7 +5130,7 @@ namespace LiteFX::Rendering {
         /// <returns>An array of supported formats, that can be drawn to the surface.</returns>
         /// <see cref="surface" />
         /// <seealso cref="ISurface" />
-        virtual Enumerable<Format> getSurfaceFormats() const noexcept = 0;
+        virtual Array<Format> getSurfaceFormats() const noexcept = 0;
 
         /// <summary>
         /// Causes the swap chain to be re-created. All frame and command buffers will be invalidated and rebuilt.
@@ -5124,7 +5156,7 @@ namespace LiteFX::Rendering {
 
     private:
         virtual Enumerable<IImage*> getImages() const noexcept = 0;
-        virtual void addTimingEvent(SharedPtr<TimingEvent> timingEvent) = 0;
+        virtual void addTimingEvent(SharedPtr<const TimingEvent> timingEvent) = 0;
     };
 
     /// <summary>
@@ -5137,10 +5169,10 @@ namespace LiteFX::Rendering {
         /// </summary>
         struct QueueSubmittingEventArgs : public EventArgs {
         private:
-            const Enumerable<SharedPtr<const ICommandBuffer>> m_commandBuffers;
+            const Array<SharedPtr<const ICommandBuffer>>& m_commandBuffers;
 
         public:
-            QueueSubmittingEventArgs(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) :
+            QueueSubmittingEventArgs(const Array<SharedPtr<const ICommandBuffer>>& commandBuffers) :
                 EventArgs(), m_commandBuffers(commandBuffers) { }
             QueueSubmittingEventArgs(const QueueSubmittingEventArgs&) = default;
             QueueSubmittingEventArgs(QueueSubmittingEventArgs&&) = default;
@@ -5155,7 +5187,7 @@ namespace LiteFX::Rendering {
             /// Gets the command buffers that are about to be submitted to the queue.
             /// </summary>
             /// <returns>An array containing the command buffers that are about to be submitted to the queue.</returns>
-            inline const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers() const noexcept {
+            inline const Array<SharedPtr<const ICommandBuffer>>& commandBuffers() const noexcept {
                 return m_commandBuffers;
             }
         };
@@ -5305,24 +5337,15 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffers.</returns>
         /// <seealso cref="waitFor" />
-        inline UInt64 submit(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const {
-            return this->submitCommandBuffers(commandBuffers);
+        inline UInt64 submit(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const {
+            Array<SharedPtr<const ICommandBuffer>> buffers;
+            buffers.assign_range(commandBuffers);
+
+            return this->submit(buffers);
         }
 
-        /// <summary>
-        /// Submits a set of command buffers with shared ownership and inserts a fence to wait for them.
-        /// </summary>
-        /// <remarks>
-        /// By calling this method, the queue takes shared ownership over the <paramref name="commandBuffers" /> until the fence is passed. The reference will be released
-        /// during a <see cref="waitFor" />, if the awaited fence is inserted after the associated one.
-        /// 
-        /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
-        /// </remarks>
-        /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
-        /// <returns>The value of the fence, inserted after the command buffers.</returns>
-        /// <seealso cref="waitFor" />
-        inline UInt64 submit(const Enumerable<SharedPtr<ICommandBuffer>>& commandBuffers) const {
-            return this->submitCommandBuffers(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const ICommandBuffer>>>());
+        inline UInt64 submit(Span<SharedPtr<const ICommandBuffer>> commandBuffers) const {
+            return this->submitCommandBuffers(commandBuffers);
         }
 
         /// <summary>
@@ -5358,7 +5381,7 @@ namespace LiteFX::Rendering {
     private:
         virtual SharedPtr<ICommandBuffer> getCommandBuffer(bool beginRecording, bool secondary) const = 0;
         virtual UInt64 submitCommandBuffer(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
-        virtual UInt64 submitCommandBuffers(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const = 0;
+        virtual UInt64 submitCommandBuffers(Span<SharedPtr<const ICommandBuffer>> commandBuffers) const = 0;
         virtual void waitForQueue(const ICommandQueue& queue, UInt64 fence) const = 0;
         
     protected:
@@ -5882,7 +5905,7 @@ namespace LiteFX::Rendering {
         /// Lists all available graphics adapters.
         /// </summary>
         /// <returns>An array of pointers to all available graphics adapters.</returns>
-        inline Enumerable<const IGraphicsAdapter*> listAdapters() const {
+        inline Enumerable<const IGraphicsAdapter*> adapters() const {
             return this->getAdapters();
         }
 

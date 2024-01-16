@@ -13,10 +13,11 @@ public:
     friend class VulkanRenderPass;
 
 private:
-    Array<UniquePtr<VulkanRenderPipeline>> m_pipelines;
+    Array<UniquePtr<const VulkanRenderPipeline>> m_pipelines;
     Array<RenderTarget> m_renderTargets;
     Array<VulkanInputAttachmentMapping> m_inputAttachments;
-    Array<UniquePtr<VulkanFrameBuffer>> m_frameBuffers;
+    Array<UniquePtr<const VulkanFrameBuffer>> m_frameBuffers;
+    Array<VulkanFrameBuffer*> m_frameBufferPointers;
     Array<SharedPtr<VulkanCommandBuffer>> m_primaryCommandBuffers;
     VulkanFrameBuffer* m_activeFrameBuffer = nullptr;
     SharedPtr<const VulkanCommandBuffer> m_activeCommandBuffer;
@@ -273,8 +274,12 @@ public:
     {
         // Initialize the frame buffers.
         this->m_frameBuffers.resize(this->m_device.swapChain().buffers());
+        this->m_frameBufferPointers.resize(this->m_device.swapChain().buffers());
         std::ranges::generate(this->m_frameBuffers, [this, &commandBuffers, i = 0]() mutable { 
             auto frameBuffer = makeUnique<VulkanFrameBuffer>(*m_parent, i++, this->m_device.swapChain().renderArea(), commandBuffers);
+
+            // Store frame buffer pointer.
+            this->m_frameBufferPointers[i - 1] = frameBuffer.get();
 
 #ifndef NDEBUG
             m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*frameBuffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT, fmt::format("Framebuffer {0}-{1}", m_parent->name(), i));
@@ -379,14 +384,14 @@ const VulkanQueue& VulkanRenderPass::commandQueue() const noexcept
     return *m_impl->m_queue;
 }
 
-Enumerable<const VulkanFrameBuffer*> VulkanRenderPass::frameBuffers() const noexcept
+const Array<UniquePtr<const VulkanFrameBuffer>>& VulkanRenderPass::frameBuffers() const noexcept
 {
-    return m_impl->m_frameBuffers | std::views::transform([](const UniquePtr<VulkanFrameBuffer>& frameBuffer) { return frameBuffer.get(); });
+    return m_impl->m_frameBuffers;
 }
 
-Enumerable<const VulkanRenderPipeline*> VulkanRenderPass::pipelines() const noexcept
+const Array<UniquePtr<const VulkanRenderPipeline>>& VulkanRenderPass::pipelines() const noexcept
 {
-    return m_impl->m_pipelines | std::views::transform([](const UniquePtr<VulkanRenderPipeline>& pipeline) { return pipeline.get(); });
+    return m_impl->m_pipelines;
 }
 
 const RenderTarget& VulkanRenderPass::renderTarget(UInt32 location) const
@@ -427,7 +432,7 @@ void VulkanRenderPass::begin(UInt32 buffer)
     if (buffer >= m_impl->m_frameBuffers.size()) [[unlikely]]
         throw ArgumentOutOfRangeException("buffer", 0u, static_cast<UInt32>(m_impl->m_frameBuffers.size()), buffer, "The frame buffer {0} is out of range. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
 
-    auto frameBuffer = m_impl->m_activeFrameBuffer = m_impl->m_frameBuffers[buffer].get();
+    auto frameBuffer = m_impl->m_activeFrameBuffer = m_impl->m_frameBufferPointers[buffer];
     auto commandBuffer = m_impl->m_activeCommandBuffer = m_impl->m_primaryCommandBuffers[buffer];
     m_impl->m_backBuffer = buffer;
 
@@ -496,7 +501,7 @@ void VulkanRenderPass::resizeFrameBuffers(const Size2d& renderArea)
     if (m_impl->m_activeFrameBuffer != nullptr) [[unlikely]]
         throw RuntimeException("Unable to reset the frame buffers while the render pass is running. End the render pass first.");
 
-    std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<VulkanFrameBuffer>& frameBuffer) { frameBuffer->resize(renderArea); });
+    std::ranges::for_each(m_impl->m_frameBufferPointers, [&](auto frameBuffer) { frameBuffer->resize(renderArea); });
 }
 
 void VulkanRenderPass::changeMultiSamplingLevel(MultiSamplingLevel samples)
@@ -506,7 +511,7 @@ void VulkanRenderPass::changeMultiSamplingLevel(MultiSamplingLevel samples)
         throw RuntimeException("Unable to reset the frame buffers while the render pass is running. End the render pass first.");
 
     m_impl->m_samples = samples;
-    std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<VulkanFrameBuffer>& frameBuffer) { frameBuffer->resize(frameBuffer->size()); });
+    std::ranges::for_each(m_impl->m_frameBufferPointers, [&](auto frameBuffer) { frameBuffer->resize(frameBuffer->size()); });
 }
 
 void VulkanRenderPass::updateAttachments(const VulkanDescriptorSet& descriptorSet) const

@@ -173,7 +173,8 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) c
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
 	// Begin event.
-	this->submitting(this, { { std::static_pointer_cast<const ICommandBuffer>(commandBuffer) } });
+	Array<SharedPtr<const ICommandBuffer>> buffers{ std::static_pointer_cast<const ICommandBuffer>(commandBuffer) };
+	this->submitting(this, buffers);
 
 	// Remove all previously submitted command buffers, that have already finished.
 	UInt64 completedValue = 0;
@@ -217,7 +218,7 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) c
 	return fence;
 }
 
-UInt64 VulkanQueue::submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const
+UInt64 VulkanQueue::submit(Span<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const
 {
 	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return buffer != nullptr; })) [[unlikely]]
 		throw InvalidArgumentException("commandBuffers", "At least one command buffer is not initialized.");
@@ -228,7 +229,9 @@ UInt64 VulkanQueue::submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
 	// Begin event.
-	auto buffers = commandBuffers | std::views::transform([](auto& buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); });
+	auto buffers = commandBuffers |
+		std::views::transform([](auto& buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); }) |
+		std::ranges::to<Array<SharedPtr<const ICommandBuffer>>>();
 	this->submitting(this, { buffers });
 
 	// Remove all previously submitted command buffers, that have already finished.

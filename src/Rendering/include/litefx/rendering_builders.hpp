@@ -372,7 +372,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The shader modules of the program.
             /// </summary>
-            Array<UniquePtr<shader_module_type>> modules;
+            Array<UniquePtr<const shader_module_type>> modules;
         } m_state;
 
         /// <summary>
@@ -734,7 +734,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The vertex buffer attributes of the layout.
             /// </summary>
-            Array<UniquePtr<BufferAttribute>> attributes;
+            Array<BufferAttribute> attributes;
         } m_state;
 
     public:
@@ -743,8 +743,8 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="attribute">The attribute to add to the layout.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto withAttribute(this TSelf&& self, UniquePtr<BufferAttribute>&& attribute) -> TSelf& {
-            self.m_state.attributes.push_back(std::move(attribute));
+        constexpr inline [[nodiscard]] auto withAttribute(this TSelf&& self, const BufferAttribute& attribute) -> TSelf& {
+            self.m_state.attributes.push_back(attribute);
             return self;
         }
 
@@ -760,7 +760,7 @@ namespace LiteFX::Rendering {
         /// <param name="semanticIndex">The semantic index of the attribute.</param>
         template <typename TSelf>
         constexpr inline [[nodiscard]] auto withAttribute(this TSelf&& self, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf& {
-            self.withAttribute(std::move(makeUnique<BufferAttribute>(static_cast<UInt32>(self.m_state.attributes.size()), offset, format, semantic, semanticIndex)));
+            self.withAttribute(BufferAttribute(static_cast<UInt32>(self.m_state.attributes.size()), offset, format, semantic, semanticIndex));
             return self;
         }
 
@@ -774,7 +774,7 @@ namespace LiteFX::Rendering {
         /// <param name="semanticIndex">The semantic index of the attribute.</param>
         template <typename TSelf>
         constexpr inline [[nodiscard]] auto withAttribute(this TSelf&& self, UInt32 location, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf& {
-            self.withAttribute(std::move(makeUnique<BufferAttribute>(location, offset, format, semantic, semanticIndex)));
+            self.withAttribute(BufferAttribute(location, offset, format, semantic, semanticIndex));
             return self;
         }
     };
@@ -820,7 +820,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The layouts of the descriptors within the descriptor set.
             /// </summary>
-            Array<UniquePtr<descriptor_layout_type>> descriptorLayouts;
+            Array<UniquePtr<const descriptor_layout_type>> descriptorLayouts;
         } m_state;
 
         /// <summary>
@@ -1029,7 +1029,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The push constant ranges of the layout.
             /// </summary>
-            Array<UniquePtr<push_constants_range_type>> ranges;
+            Array<UniquePtr<const push_constants_range_type>> ranges;
         } m_state;
 
         /// <summary>
@@ -1081,12 +1081,12 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The descriptor set layouts of the pipeline state.
             /// </summary>
-            Array<UniquePtr<descriptor_set_layout_type>> descriptorSetLayouts;
+            Array<UniquePtr<const descriptor_set_layout_type>> descriptorSetLayouts;
 
             /// <summary>
             /// The push constant layout of the pipeline state.
             /// </summary>
-            UniquePtr<push_constants_layout_type> pushConstantsLayout;
+            UniquePtr<const push_constants_layout_type> pushConstantsLayout;
         } m_state;
 
     public:
@@ -1140,12 +1140,12 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The vertex buffer layouts.
             /// </summary>
-            Array<UniquePtr<vertex_buffer_layout_type>> vertexBufferLayouts;
+            Array<UniquePtr<const vertex_buffer_layout_type>> vertexBufferLayouts;
             
             /// <summary>
             /// The index buffer layout.
             /// </summary>
-            UniquePtr<index_buffer_layout_type> indexBufferLayout;
+            UniquePtr<const index_buffer_layout_type> indexBufferLayout;
         } m_state;
 
     public:

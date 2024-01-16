@@ -15,10 +15,11 @@ public:
     using RenderPassContext = Tuple<Array<D3D12_RENDER_PASS_RENDER_TARGET_DESC>, Optional<D3D12_RENDER_PASS_DEPTH_STENCIL_DESC>>;
 
 private:
-    Array<UniquePtr<DirectX12RenderPipeline>> m_pipelines;
+    Array<UniquePtr<const DirectX12RenderPipeline>> m_pipelines;
     Array<RenderTarget> m_renderTargets;
     Array<DirectX12InputAttachmentMapping> m_inputAttachments;
-    Array<UniquePtr<DirectX12FrameBuffer>> m_frameBuffers;
+    Array<UniquePtr<const DirectX12FrameBuffer>> m_frameBuffers;
+    Array<DirectX12FrameBuffer*> m_frameBufferPointers;
     Array<SharedPtr<DirectX12CommandBuffer>> m_beginCommandBuffers, m_endCommandBuffers;
     DirectX12FrameBuffer* m_activeFrameBuffer = nullptr;
     UInt32 m_backBuffer{ 0 };
@@ -140,9 +141,13 @@ public:
     {
         // Initialize the frame buffers.
         this->m_frameBuffers.resize(m_device.swapChain().buffers());
+        this->m_frameBufferPointers.resize(m_device.swapChain().buffers());
         this->m_contexts.resize(m_device.swapChain().buffers());
         std::ranges::generate(this->m_frameBuffers, [&, i = 0]() mutable {
             auto frameBuffer = makeUnique<DirectX12FrameBuffer>(*m_parent, i++, m_device.swapChain().renderArea(), commandBuffers);
+
+            // Store frame buffer poiner.
+            this->m_frameBufferPointers[i - 1] = frameBuffer.get();
 
 #ifndef NDEBUG
             auto images = frameBuffer->images();
@@ -160,6 +165,7 @@ public:
 
             return frameBuffer;
         });
+
 
         // Initialize the primary command buffers used to begin and end the render pass.
         this->m_beginCommandBuffers.resize(m_device.swapChain().buffers());
@@ -254,14 +260,14 @@ const DirectX12Queue& DirectX12RenderPass::commandQueue() const noexcept
     return *m_impl->m_queue;
 }
 
-Enumerable<const DirectX12FrameBuffer*> DirectX12RenderPass::frameBuffers() const noexcept
+const Array<UniquePtr<const DirectX12FrameBuffer>>& DirectX12RenderPass::frameBuffers() const noexcept
 {
-    return m_impl->m_frameBuffers | std::views::transform([](const UniquePtr<DirectX12FrameBuffer>& frameBuffer) { return frameBuffer.get(); });
+    return m_impl->m_frameBuffers;
 }
 
-Enumerable<const DirectX12RenderPipeline*> DirectX12RenderPass::pipelines() const noexcept
+const Array<UniquePtr<const DirectX12RenderPipeline>>& DirectX12RenderPass::pipelines() const noexcept
 {
-    return m_impl->m_pipelines | std::views::transform([](const UniquePtr<DirectX12RenderPipeline>& pipeline) { return pipeline.get(); }) | std::ranges::to<Array<const DirectX12RenderPipeline*>>();
+    return m_impl->m_pipelines;
 }
 
 const RenderTarget& DirectX12RenderPass::renderTarget(UInt32 location) const
@@ -302,7 +308,7 @@ void DirectX12RenderPass::begin(UInt32 buffer)
     if (buffer >= m_impl->m_frameBuffers.size())
         throw ArgumentOutOfRangeException("buffer", 0u, static_cast<UInt32>(m_impl->m_frameBuffers.size()), buffer, "The frame buffer {0} is out of range. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
 
-    auto frameBuffer = m_impl->m_activeFrameBuffer = m_impl->m_frameBuffers[buffer].get();
+    auto frameBuffer = m_impl->m_activeFrameBuffer = m_impl->m_frameBufferPointers[buffer];
     m_impl->m_backBuffer = buffer;
 
     // Initialize the render pass context.
@@ -435,7 +441,7 @@ UInt64 DirectX12RenderPass::end() const
     commandBuffers.push_back(endCommandBuffer);
 
     // Submit and store the fence.
-    UInt64 fence = m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const DirectX12CommandBuffer>>>());
+    UInt64 fence = m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffers);
 
     if (!m_impl->m_name.empty())
         m_impl->m_queue->endDebugRegion();
@@ -459,7 +465,7 @@ void DirectX12RenderPass::resizeFrameBuffers(const Size2d& renderArea)
     if (m_impl->m_activeFrameBuffer != nullptr)
         throw RuntimeException("Unable to reset the frame buffers while the render pass is running. End the render pass first.");
 
-    std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<DirectX12FrameBuffer>& frameBuffer) { frameBuffer->resize(renderArea); });
+    std::ranges::for_each(m_impl->m_frameBufferPointers, [&](auto frameBuffer) { frameBuffer->resize(renderArea); });
 }
 
 void DirectX12RenderPass::changeMultiSamplingLevel(MultiSamplingLevel samples)
@@ -469,7 +475,7 @@ void DirectX12RenderPass::changeMultiSamplingLevel(MultiSamplingLevel samples)
         throw RuntimeException("Unable to reset the frame buffers while the render pass is running. End the render pass first.");
 
     m_impl->m_multiSamplingLevel = samples;
-    std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<DirectX12FrameBuffer>& frameBuffer) { frameBuffer->resize(frameBuffer->size()); });
+    std::ranges::for_each(m_impl->m_frameBufferPointers, [&](auto frameBuffer) { frameBuffer->resize(frameBuffer->size()); });
 }
 
 void DirectX12RenderPass::updateAttachments(const DirectX12DescriptorSet& descriptorSet) const

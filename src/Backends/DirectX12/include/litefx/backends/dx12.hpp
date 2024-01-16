@@ -25,7 +25,12 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="vertexSize">The size of a single vertex.</param>
         /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
-        explicit DirectX12VertexBufferLayout(size_t vertexSize, UInt32 binding = 0);
+        /// <param name="attributes">The attributes to initialize the layout with.</param>
+        explicit DirectX12VertexBufferLayout(size_t vertexSize, UInt32 binding, std::initializer_list<BufferAttribute> attributes);
+
+        /// <inheritdoc cref="DirectX12VertexBufferLayout(size_t, UInt32, const std::initializer_list{{BufferAttribute}})" />
+        explicit DirectX12VertexBufferLayout(size_t vertexSize, UInt32 binding = 0, Span<BufferAttribute> attributes = { });
+
         DirectX12VertexBufferLayout(DirectX12VertexBufferLayout&&) = delete;
         DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&) = delete;
         virtual ~DirectX12VertexBufferLayout() noexcept;
@@ -33,7 +38,7 @@ namespace LiteFX::Rendering::Backends {
         // IVertexBufferLayout interface.
     public:
         /// <inheritdoc />
-        Enumerable<const BufferAttribute*> attributes() const noexcept override;
+        const Array<BufferAttribute>& attributes() const noexcept override;
 
         // IBufferLayout interface.
     public:
@@ -292,7 +297,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        Enumerable<const DirectX12ShaderModule*> modules() const noexcept override;
+        const Array<UniquePtr<const DirectX12ShaderModule>>& modules() const noexcept override;
 
         /// <inheritdoc />
         virtual SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout() const;
@@ -452,6 +457,8 @@ namespace LiteFX::Rendering::Backends {
         LITEFX_IMPLEMENTATION(DirectX12DescriptorSetLayoutImpl);
         LITEFX_BUILDER(DirectX12DescriptorSetLayoutBuilder);
         friend class DirectX12PipelineLayout;
+        friend class DirectX12Device;
+        friend class DirectX12CommandBuffer;
 
     public:
         using base_type = DescriptorSetLayout<DirectX12DescriptorLayout, DirectX12DescriptorSet>;
@@ -477,12 +484,12 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="device">The device, the descriptor set layout is created on.</param>
         explicit DirectX12DescriptorSetLayout(const DirectX12Device& device) noexcept;
 
-    public:
+    protected:
         /// <summary>
         /// Returns the index of the descriptor set root parameter.
         /// </summary>
         /// <returns>The index of the descriptor set root parameter.</returns>
-        virtual UInt32 rootParameterIndex() const noexcept;
+        virtual UInt32& rootParameterIndex() const noexcept;
 
         /// <summary>
         /// Returns the index of the first descriptor for a certain binding. The offset is relative to the heap for the descriptor (i.e. sampler for sampler descriptors and
@@ -499,13 +506,6 @@ namespace LiteFX::Rendering::Backends {
         /// <returns>A reference of the parent device.</returns>
         virtual const DirectX12Device& device() const noexcept;
 
-    protected:
-        /// <summary>
-        /// Returns a reference of the index of the descriptor set root parameter.
-        /// </summary>
-        /// <returns>A reference of the index of the descriptor set root parameter.</returns>
-        virtual UInt32& rootParameterIndex() noexcept;
-
         /// <summary>
         /// Returns <c>true</c>, if the descriptor set contains an (unbounded) runtime array.
         /// </summary>
@@ -517,7 +517,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        Enumerable<const DirectX12DescriptorLayout*> descriptors() const noexcept override;
+        const Array<UniquePtr<const DirectX12DescriptorLayout>>& descriptors() const noexcept override;
 
         /// <inheritdoc />
         const DirectX12DescriptorLayout& descriptor(UInt32 binding) const override;
@@ -551,19 +551,16 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        UniquePtr<DirectX12DescriptorSet> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const override;
+        UniquePtr<DirectX12DescriptorSet> allocate(UInt32 descriptors, Span<DescriptorBinding> bindings = { }) const override;
 
         /// <inheritdoc />
-        UniquePtr<DirectX12DescriptorSet> allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const override;
-
-        /// <inheritdoc />
-        Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override;
+        Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, const Array<Span<DescriptorBinding>>& bindings = { }) const override;
 
         /// <inheritdoc />
         Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override;
 
         /// <inheritdoc />
-        Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override;
+        Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Array<Span<DescriptorBinding>>& bindings = { }) const override;
 
         /// <inheritdoc />
         Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override;
@@ -579,6 +576,8 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12PushConstantsRange final : public IPushConstantsRange {
         LITEFX_IMPLEMENTATION(DirectX12PushConstantsRangeImpl);
         friend class DirectX12PipelineLayout;
+        friend class DirectX12Device;
+        friend class DirectX12CommandBuffer;
 
     public:
         /// <summary>
@@ -610,19 +609,12 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         ShaderStage stage() const noexcept override;
 
-    public:
+    protected:
         /// <summary>
         /// Returns the index of the root parameter, the range is bound to.
         /// </summary>
         /// <returns>The index of the root parameter, the range is bound to.</returns>
-        virtual UInt32 rootParameterIndex() const noexcept;
-
-    protected:
-        /// <summary>
-        /// Returns a reference of the index of the root parameter, the range is bound to.
-        /// </summary>
-        /// <returns>A reference of the index of the root parameter, the range is bound to.</returns>
-        virtual UInt32& rootParameterIndex() noexcept;
+        UInt32& rootParameterIndex() const noexcept;
     };
 
     /// <summary>
@@ -667,14 +659,7 @@ namespace LiteFX::Rendering::Backends {
         const DirectX12PushConstantsRange& range(ShaderStage stage) const override;
 
         /// <inheritdoc />
-        Enumerable<const DirectX12PushConstantsRange*> ranges() const noexcept override;
-
-    protected:
-        /// <summary>
-        /// Returns an array of pointers to the push constant ranges of the layout.
-        /// </summary>
-        /// <returns>An array of pointers to the push constant ranges of the layout.</returns>
-        virtual Enumerable<DirectX12PushConstantsRange*> ranges() noexcept;
+        const Array<UniquePtr<const DirectX12PushConstantsRange>>& ranges() const noexcept override;
     };
 
     /// <summary>
@@ -717,7 +702,7 @@ namespace LiteFX::Rendering::Backends {
         const DirectX12DescriptorSetLayout& descriptorSet(UInt32 space) const override;
 
         /// <inheritdoc />
-        Enumerable<const DirectX12DescriptorSetLayout*> descriptorSets() const noexcept override;
+        const Array<UniquePtr<const DirectX12DescriptorSetLayout>>& descriptorSets() const noexcept override;
 
         /// <inheritdoc />
         const DirectX12PushConstantsLayout* pushConstants() const noexcept override;
@@ -751,10 +736,10 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        Enumerable<const DirectX12VertexBufferLayout*> vertexBufferLayouts() const noexcept override;
+        const Array<UniquePtr<const DirectX12VertexBufferLayout>>& vertexBufferLayouts() const noexcept override;
 
 		/// <inheritdoc />
-		const DirectX12VertexBufferLayout* vertexBufferLayout(UInt32 binding) const override;
+		const DirectX12VertexBufferLayout& vertexBufferLayout(UInt32 binding) const override;
 
 		/// <inheritdoc />
 		const DirectX12IndexBufferLayout* indexBufferLayout() const noexcept override;
@@ -957,7 +942,7 @@ namespace LiteFX::Rendering::Backends {
         void execute(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const override;
 
         /// <inheritdoc />
-        void execute(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const override;
+        void execute(Span<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const override;
 
     private:
         void releaseSharedState() const override;
@@ -1069,6 +1054,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12RenderPass" />
     class LITEFX_DIRECTX12_API DirectX12FrameBuffer final : public FrameBuffer<DirectX12CommandBuffer> {
         LITEFX_IMPLEMENTATION(DirectX12FrameBufferImpl);
+        friend class DirectX12RenderPass;
 
     public:
         /// <summary>
@@ -1118,6 +1104,8 @@ namespace LiteFX::Rendering::Backends {
         /// <seealso cref="depthStencilTargetHeap" />
         UInt32 depthStencilTargetDescriptorSize() const noexcept;
 
+    protected:
+        /// <summary>
         /// Returns a reference to the value of the fence that indicates the last submission drawing into the frame buffer.
         /// </summary>
         /// <remarks>
@@ -1144,13 +1132,13 @@ namespace LiteFX::Rendering::Backends {
         size_t getHeight() const noexcept override;
 
         /// <inheritdoc />
-        Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers() const noexcept override;
+        const Array<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers() const noexcept override;
 
         /// <inheritdoc />
         SharedPtr<const DirectX12CommandBuffer> commandBuffer(UInt32 index) const override;
 
         /// <inheritdoc />
-        Enumerable<IDirectX12Image*> images() const noexcept override;
+        const Array<IDirectX12Image*>& images() const noexcept override;
 
         /// <inheritdoc />
         IDirectX12Image& image(UInt32 location) const override;
@@ -1253,10 +1241,10 @@ namespace LiteFX::Rendering::Backends {
         const DirectX12Queue& commandQueue() const noexcept override;
 
         /// <inheritdoc />
-        Enumerable<const DirectX12FrameBuffer*> frameBuffers() const noexcept override;
+        const Array<UniquePtr<const DirectX12FrameBuffer>>& frameBuffers() const noexcept override;
 
         /// <inheritdoc />
-        Enumerable<const DirectX12RenderPipeline*> pipelines() const noexcept override;
+        const Array<UniquePtr<const DirectX12RenderPipeline>>& pipelines() const noexcept override;
 
         /// <inheritdoc />
         const RenderTarget& renderTarget(UInt32 location) const override;
@@ -1387,10 +1375,10 @@ namespace LiteFX::Rendering::Backends {
         // SwapChain interface.
     public:
         /// <inheritdoc />
-        Enumerable<SharedPtr<TimingEvent>> timingEvents() const noexcept override;
+        const Array<SharedPtr<const TimingEvent>>& timingEvents() const noexcept override;
 
         /// <inheritdoc />
-        SharedPtr<TimingEvent> timingEvent(UInt32 queryId) const override;
+        SharedPtr<const TimingEvent> timingEvent(UInt32 queryId) const override;
 
         /// <inheritdoc />
         UInt64 readTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
@@ -1408,10 +1396,10 @@ namespace LiteFX::Rendering::Backends {
         const Size2d& renderArea() const noexcept override;
 
         /// <inheritdoc />
-        IDirectX12Image* image(UInt32 backBuffer) const override;
+        IDirectX12Image& image(UInt32 backBuffer) const override;
 
         /// <inheritdoc />
-        Enumerable<IDirectX12Image*> images() const noexcept override;
+        const Array<UniquePtr<IDirectX12Image>>& images() const noexcept override;
 
         /// <inheritdoc />
         void present(const DirectX12FrameBuffer& frameBuffer) const override;
@@ -1421,10 +1409,10 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        Enumerable<Format> getSurfaceFormats() const noexcept override;
+        Array<Format> getSurfaceFormats() const noexcept override;
 
         /// <inheritdoc />
-        void addTimingEvent(SharedPtr<TimingEvent> timingEvent) override;
+        void addTimingEvent(SharedPtr<const TimingEvent> timingEvent) override;
 
         /// <inheritdoc />
         void reset(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers) override;
@@ -1495,7 +1483,7 @@ namespace LiteFX::Rendering::Backends {
         UInt64 submit(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const override;
 
         /// <inheritdoc />
-        UInt64 submit(const Enumerable<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers) const override;
+        UInt64 submit(Span<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const override;
 
         /// <inheritdoc />
         void waitFor(UInt64 fence) const noexcept override;
@@ -1814,7 +1802,7 @@ namespace LiteFX::Rendering::Backends {
         // RenderBackend interface.
     public:
         /// <inheritdoc />
-        Enumerable<const DirectX12GraphicsAdapter*> listAdapters() const override;
+        const Array<UniquePtr<const DirectX12GraphicsAdapter>>& adapters() const override;
 
         /// <inheritdoc />
         const DirectX12GraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override;

@@ -13,7 +13,7 @@ public:
 private:
     Array<UniquePtr<IDirectX12Image>> m_outputAttachments;
     Array<IDirectX12Image*> m_renderTargetViews;
-    Array<SharedPtr<DirectX12CommandBuffer>> m_commandBuffers;
+    Array<SharedPtr<const DirectX12CommandBuffer>> m_commandBuffers;
     ComPtr<ID3D12DescriptorHeap> m_renderTargetHeap, m_depthStencilHeap;
     UInt32 m_renderTargetDescriptorSize, m_depthStencilDescriptorSize;
     Size2d m_size;
@@ -187,12 +187,12 @@ SharedPtr<const DirectX12CommandBuffer> DirectX12FrameBuffer::commandBuffer(UInt
     return m_impl->m_commandBuffers[index];
 }
 
-Enumerable<SharedPtr<const DirectX12CommandBuffer>> DirectX12FrameBuffer::commandBuffers() const noexcept
+const Array<SharedPtr<const DirectX12CommandBuffer>>& DirectX12FrameBuffer::commandBuffers() const noexcept
 {
     return m_impl->m_commandBuffers;
 }
 
-Enumerable<IDirectX12Image*> DirectX12FrameBuffer::images() const noexcept
+const Array<IDirectX12Image*>& DirectX12FrameBuffer::images() const noexcept
 {
     return m_impl->m_renderTargetViews;
 }

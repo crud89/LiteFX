@@ -149,7 +149,8 @@ UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuf
 	std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
 	// Begin event.
-	this->submitting(this, { { std::static_pointer_cast<const ICommandBuffer>(commandBuffer) } });
+	Array<SharedPtr<const ICommandBuffer>> buffers { std::static_pointer_cast<const ICommandBuffer>(commandBuffer) };
+	this->submitting(this, buffers);
 
 	// Remove all previously submitted command buffers, that have already finished.
 	auto completedValue = m_impl->m_fence->GetCompletedValue();
@@ -174,7 +175,7 @@ UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuf
 	return fence;
 }
 
-UInt64 DirectX12Queue::submit(const Enumerable<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers) const
+UInt64 DirectX12Queue::submit(Span<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const
 {
 	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return buffer != nullptr; }))
 		throw InvalidArgumentException("commandBuffers", "At least one command buffer is not initialized.");

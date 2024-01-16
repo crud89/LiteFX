@@ -18,7 +18,7 @@ public:
     friend class VulkanBackend;
 
 private:
-    Array<UniquePtr<VulkanGraphicsAdapter>> m_adapters{ };
+    Array<UniquePtr<const VulkanGraphicsAdapter>> m_adapters{ };
     Dictionary<String, UniquePtr<VulkanDevice>> m_devices;
     Array<String> m_extensions;
     Array<String> m_layers;
@@ -175,8 +175,8 @@ public:
         ::vkEnumeratePhysicalDevices(m_parent->handle(), &adapters, handles.data());
 
         m_adapters = handles | 
-            std::views::transform([this](const auto& handle) { return makeUnique<VulkanGraphicsAdapter>(handle); }) |
-            std::ranges::to<Array<UniquePtr<VulkanGraphicsAdapter>>>();
+            std::views::transform([this](auto handle) { return makeUnique<VulkanGraphicsAdapter>(handle); }) |
+            std::ranges::to<Array<UniquePtr<const VulkanGraphicsAdapter>>>();
     }
 };
 
@@ -190,9 +190,13 @@ VulkanBackend::VulkanBackend(const App& app, Span<String> extensions, Span<Strin
     this->handle() = m_impl->initialize();
     m_impl->loadAdapters();
 
+    Array<String> instanceExtensions, instanceValidationLayers;
+    instanceExtensions.assign_range(this->getAvailableInstanceExtensions());
+    instanceValidationLayers.assign_range(this->getInstanceValidationLayers());
+
     LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
-    LITEFX_DEBUG(VULKAN_LOG, "Available extensions: {0}", Join(this->getAvailableInstanceExtensions(), ", "));
-    LITEFX_DEBUG(VULKAN_LOG, "Validation layers: {0}", Join(this->getInstanceValidationLayers(), ", "));
+    LITEFX_DEBUG(VULKAN_LOG, "Available extensions: {0}", Join(instanceExtensions, ", "));
+    LITEFX_DEBUG(VULKAN_LOG, "Validation layers: {0}", Join(instanceValidationLayers, ", "));
     LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
 
     if (this->getEnabledValidationLayers().size() > 0)
@@ -225,9 +229,9 @@ void VulkanBackend::deactivate()
     this->state() = BackendState::Inactive;
 }
 
-Enumerable<const VulkanGraphicsAdapter*> VulkanBackend::listAdapters() const
+const Array<UniquePtr<const VulkanGraphicsAdapter>>& VulkanBackend::adapters() const
 {
-    return m_impl->m_adapters | std::views::transform([](const UniquePtr<VulkanGraphicsAdapter>& adapter) { return adapter.get(); });
+    return m_impl->m_adapters;
 }
 
 const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& adapterId) const
@@ -277,7 +281,7 @@ const VulkanDevice* VulkanBackend::device(const String& name) const noexcept
     return m_impl->m_devices[name].get();
 }
 
-Span<const String> VulkanBackend::getEnabledValidationLayers() const noexcept
+const Array<String>& VulkanBackend::getEnabledValidationLayers() const noexcept
 {
     return m_impl->m_layers;
 }
@@ -342,7 +346,7 @@ Enumerable<String> VulkanBackend::getAvailableInstanceExtensions() noexcept
     Array<VkExtensionProperties> availableExtensions(extensions);
     ::vkEnumerateInstanceExtensionProperties(nullptr, &extensions, availableExtensions.data());
 
-    return availableExtensions | std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); });
+    co_yield std::ranges::elements_of(availableExtensions | std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); }));
 }
 
 bool VulkanBackend::validateInstanceLayers(Span<const String> layers) noexcept
@@ -371,5 +375,5 @@ Enumerable<String> VulkanBackend::getInstanceValidationLayers() noexcept
     Array<VkLayerProperties> availableLayers(layers);
     ::vkEnumerateInstanceLayerProperties(&layers, availableLayers.data());
 
-    return availableLayers | std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); });
+    co_yield std::ranges::elements_of(availableLayers | std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); }));
 }

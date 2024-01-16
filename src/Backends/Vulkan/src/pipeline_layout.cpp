@@ -13,15 +13,15 @@ public:
     friend class VulkanPipelineLayout;
 
 private:
-    UniquePtr<VulkanPushConstantsLayout> m_pushConstantsLayout;
-    Array<UniquePtr<VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
+    UniquePtr<const VulkanPushConstantsLayout> m_pushConstantsLayout;
+    Array<UniquePtr<const VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
     const VulkanDevice& m_device;
 
 public:
     VulkanPipelineLayoutImpl(VulkanPipelineLayout* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
         base(parent), m_device(device), m_pushConstantsLayout(std::move(pushConstantsLayout))
     {
-        m_descriptorSetLayouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
+        m_descriptorSetLayouts.assign_range(descriptorLayouts);
     }
 
     VulkanPipelineLayoutImpl(VulkanPipelineLayout* parent, const VulkanDevice& device) :
@@ -33,12 +33,12 @@ public:
     VkPipelineLayout initialize()
     {
         // Since Vulkan does not know spaces, descriptor sets are mapped to their indices based on the order they are defined. Hence we need to sort the descriptor set layouts accordingly.
-        std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<VulkanDescriptorSetLayout>& a, const UniquePtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
+        std::ranges::sort(m_descriptorSetLayouts, [](auto& a, auto& b) { return a->space() < b->space(); });
 
         // Find unused and duplicate descriptor sets.
         Array<UInt32> emptySets;
 
-        for (UInt32 i{ 0 }; Tuple spaces : m_descriptorSetLayouts | std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout->space(); }) | std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
+        for (UInt32 i{ 0 }; Tuple spaces : m_descriptorSetLayouts | std::views::transform([](auto& layout) { return layout->space(); }) | std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
         {
             auto [a, b] = spaces;
 
@@ -58,7 +58,7 @@ public:
                 m_descriptorSetLayouts.push_back(UniquePtr<VulkanDescriptorSetLayout>{ new VulkanDescriptorSetLayout(m_device, { }, s, ShaderStage::Any, 0) }); // No descriptor can ever be allocated from an empty descriptor set.
 
             // Re-order them.
-            std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<VulkanDescriptorSetLayout>& a, const UniquePtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
+            std::ranges::sort(m_descriptorSetLayouts, [](auto& a, auto& b) { return a->space() < b->space(); });
         }
 
         // Store the pipeline layout on the push constants.
@@ -67,13 +67,13 @@ public:
 
         // Query for the descriptor set layout handles.
         auto descriptorSetLayouts = m_descriptorSetLayouts |
-            std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return std::as_const(*layout.get()).handle(); }) |
+            std::views::transform([](auto& layout) { return std::as_const(*layout.get()).handle(); }) |
             std::ranges::to<Array<VkDescriptorSetLayout>>();
 
         // Query for push constant ranges.
-        auto ranges = m_pushConstantsLayout == nullptr ? Enumerable<const VulkanPushConstantsRange*>{} : m_pushConstantsLayout->ranges();
+        auto ranges = m_pushConstantsLayout == nullptr ? Array<UniquePtr<const VulkanPushConstantsRange>>{ } : m_pushConstantsLayout->ranges();
         auto rangeHandles = ranges |
-            std::views::transform([](const VulkanPushConstantsRange* range) { return VkPushConstantRange{ .stageFlags = static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), .offset = range->offset(), .size = range->size() }; }) |
+            std::views::transform([](auto& range) { return VkPushConstantRange{ .stageFlags = static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), .offset = range->offset(), .size = range->size() }; }) |
             std::ranges::to<Array<VkPushConstantRange>>();
 
         // Create the pipeline layout.
@@ -119,15 +119,15 @@ const VulkanDevice& VulkanPipelineLayout::device() const noexcept
 
 const VulkanDescriptorSetLayout& VulkanPipelineLayout::descriptorSet(UInt32 space) const
 {
-    if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
+    if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](auto& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
         return *match->get();
 
     throw InvalidArgumentException("space", "No descriptor set layout uses the provided space {0}.", space);
 }
 
-Enumerable<const VulkanDescriptorSetLayout*> VulkanPipelineLayout::descriptorSets() const noexcept
+const Array<UniquePtr<const VulkanDescriptorSetLayout>>& VulkanPipelineLayout::descriptorSets() const noexcept
 {
-    return m_impl->m_descriptorSetLayouts | std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout.get(); });
+    return m_impl->m_descriptorSetLayouts;
 }
 
 const VulkanPushConstantsLayout* VulkanPipelineLayout::pushConstants() const noexcept

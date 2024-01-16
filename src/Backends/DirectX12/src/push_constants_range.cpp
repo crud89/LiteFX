@@ -65,12 +65,7 @@ ShaderStage DirectX12PushConstantsRange::stage() const noexcept
     return m_impl->m_stage;
 }
 
-UInt32 DirectX12PushConstantsRange::rootParameterIndex() const noexcept
-{
-    return m_impl->m_rootParameterIndex;
-}
-
-UInt32& DirectX12PushConstantsRange::rootParameterIndex() noexcept
+UInt32& DirectX12PushConstantsRange::rootParameterIndex() const noexcept
 {
     return m_impl->m_rootParameterIndex;
 }

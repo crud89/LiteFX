@@ -462,7 +462,7 @@ void VulkanCommandBuffer::execute(SharedPtr<const VulkanCommandBuffer> commandBu
 	::vkCmdExecuteCommands(this->handle(), 1, &commandBuffer->handle());
 }
 
-void VulkanCommandBuffer::execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const
+void VulkanCommandBuffer::execute(Span<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const
 {
 	auto secondaryHandles = commandBuffers | 
 		std::views::transform([](auto commandBuffer) { return commandBuffer->handle(); }) | 
