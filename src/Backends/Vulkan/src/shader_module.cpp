@@ -23,7 +23,8 @@ public:
 	}
 
 private:
-	String readFileContents(const String& fileName) {
+	String readFileContents(const String& fileName) 
+	{
 		std::ifstream file(fileName, std::ios::in | std::ios::binary);
 		
 		if (!file.is_open())

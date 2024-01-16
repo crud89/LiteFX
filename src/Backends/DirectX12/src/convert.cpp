@@ -289,8 +289,8 @@ constexpr DXGI_FORMAT LiteFX::Rendering::Backends::DX12::getFormat(Format format
 		return DXGI_FORMAT_BC7_UNORM_SRGB;
 	case Format::B4G4R4A4_UNORM:
 		return DXGI_FORMAT_B4G4R4A4_UNORM;
-	default:
-		throw InvalidArgumentException("Unsupported format: {0}", format);
+	default: [[unlikely]]
+		throw InvalidArgumentException("format", "Unsupported format: {0}", format);
 	}
 }
 
@@ -340,8 +340,8 @@ constexpr DXGI_FORMAT LiteFX::Rendering::Backends::DX12::getFormat(BufferFormat 
 		return DXGI_FORMAT_R16G16B16A16_SINT;
 	case BufferFormat::XYZW16U:
 		return DXGI_FORMAT_R16G16B16A16_UINT;
-	default:
-		throw InvalidArgumentException("Unsupported format: {0}.", format);
+	default: [[unlikely]]
+		throw InvalidArgumentException("format", "Unsupported format: {0}.", format);
 	}
 }
 
@@ -513,8 +513,8 @@ constexpr LPCTSTR LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getSem
 		return "TANGENT";
 	case LiteFX::Rendering::AttributeSemantic::TextureCoordinate: 
 		return "TEXCOORD";
-	default:
-		throw InvalidArgumentException("Unsupported semantic {0}.", std::to_underlying(semantic));
+	default: [[unlikely]]
+		throw InvalidArgumentException("semantic", "Unsupported semantic {0}.", std::to_underlying(semantic));
 	}
 }
 
@@ -549,7 +549,7 @@ constexpr D3D12_COMPARISON_FUNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends
 	case CompareOperation::GreaterEqual: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_GREATER_EQUAL;
 	case CompareOperation::NotEqual: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NOT_EQUAL;
 	case CompareOperation::Always: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_ALWAYS;
-	default: throw InvalidArgumentException("Unsupported compare operation.");
+	default: [[unlikely]] throw InvalidArgumentException("compareOp", "Unsupported compare operation.");
 	}
 }
 
@@ -564,7 +564,7 @@ constexpr D3D12_STENCIL_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX1
 	case StencilOperation::IncrementWrap: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_INCR;
 	case StencilOperation::DecrementClamp: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_DECR_SAT;
 	case StencilOperation::DecrementWrap: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_DECR;
-	default: throw InvalidArgumentException("Unsupported stencil operation.");
+	default: [[unlikely]] throw InvalidArgumentException("stencilOp", "Unsupported stencil operation.");
 	}
 }
 
@@ -590,7 +590,7 @@ constexpr D3D12_BLEND LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::ge
 	case BlendFactor::OneMinusSource1Color: return D3D12_BLEND_INV_SRC1_COLOR;
 	case BlendFactor::Source1Alpha: return D3D12_BLEND_SRC1_ALPHA;
 	case BlendFactor::OneMinusSource1Alpha: return D3D12_BLEND_INV_SRC1_ALPHA;
-	default: throw InvalidArgumentException("Unsupported blend factor.");
+	default: [[unlikely]] throw InvalidArgumentException("blendFactor", "Unsupported blend factor.");
 	}
 }
 
@@ -602,7 +602,7 @@ constexpr D3D12_BLEND_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12:
 	case BlendOperation::ReverseSubtract: return D3D12_BLEND_OP_REV_SUBTRACT;
 	case BlendOperation::Minimum: return D3D12_BLEND_OP_MIN;
 	case BlendOperation::Maximum: return D3D12_BLEND_OP_MAX;
-	default: throw InvalidArgumentException("Unsupported blend operation.");
+	default: [[unlikely]] throw InvalidArgumentException("blendOperation", "Unsupported blend operation.");
 	}
 }
 
@@ -620,7 +620,7 @@ constexpr D3D12_BARRIER_SYNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::D
 	D3D12_BARRIER_SYNC sync { };
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::InputAssembly))
-		sync |= D3D12_BARRIER_SYNC_INPUT_ASSEMBLER;
+		sync |= D3D12_BARRIER_SYNC_INDEX_INPUT;	// D3D12_BARRIER_SYNC_INPUT_ASSEMBLER appears to be deprecated but I could not find any info about the deprecation.
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Vertex) || 
 		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::TessellationControl) ||
@@ -716,6 +716,6 @@ constexpr D3D12_BARRIER_LAYOUT LITEFX_DIRECTX12_API LiteFX::Rendering::Backends:
 	case ImageLayout::ResolveSource: return D3D12_BARRIER_LAYOUT_RESOLVE_SOURCE;
 	case ImageLayout::ResolveDestination: return D3D12_BARRIER_LAYOUT_RESOLVE_DEST;
 	case ImageLayout::Undefined: return D3D12_BARRIER_LAYOUT_UNDEFINED;
-	default: throw InvalidArgumentException("Unsupported image layout.");
+	default: [[unlikely]] throw InvalidArgumentException("imageLayout", "Unsupported image layout.");
 	}
 }

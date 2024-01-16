@@ -188,7 +188,7 @@ void SimpleApp::onInit()
     // For Vulkan:
     auto surface = backend->createSurface([this](const VkInstance& instance) {
         VkSurfaceKHR surface;
-        raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, m_window, nullptr, &surface), "Unable to create GLFW window surface.");
+        raiseIfFailed(::glfwCreateWindowSurface(instance, m_window, nullptr, &surface), "Unable to create GLFW window surface.");
 
         return surface;
     });
@@ -237,13 +237,11 @@ The other values that are provided to a render target are:
 
 - The render target format, which in our example is dictated by the swap chain format we've chosen earlier.
 - A clear value vector, which contains the values that the render target will be cleared with when starting the render pass. For our *BGRA* image, we want to clear it with black and an alpha value of `0.0`.
-- A boolean switch to enable or disable clearing the values, which we set to true, since we want to clear our image with the clear values specified earlier.
-- A boolean switch to enable clearing for stencil buffers. This switch is only used, if the render target is a `DepthStencil` target and the format supports stencil values. It can be used to disable clearing stencil values and only clear depth values for depth/stencil targets.
-- A boolean switch that states, if we want to preserve the contents of the image after the render pass has finished. Since we do not want to use our render target as input attachment for another render pass, we also set this value to `false`.
+- A flag set that in our example enables clearing the render target when starting the render pass.
 
 ```cxx
 m_renderPass = m_device->buildRenderPass()
-    .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, { 0.f, 0.f, 0.f, 0.f }, true, false, false);
+    .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, RenderTargetFlags::Clear, { 0.f, 0.f, 0.f, 0.f });
 ```
 
 #### Creating a Render Pipeline
@@ -435,7 +433,7 @@ Next, let's transfer the buffers to the GPU. We start of by storing the input as
 
 ```cxx
 auto inputAssembler = m_pipeline->inputAssembler();
-auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 ```
 
 We then create a CPU visible vertex buffer and copy the vertex data into it:
@@ -525,7 +523,7 @@ m_cameraBindings->update(cameraBufferLayout.binding(), *m_cameraBuffer, 0);
 Here we first allocate a descriptor set that holds our descriptor for the camera buffer. We then update the descriptor bound to register *0* to point to the GPU-visible camera buffer. Finally, with all the transfer commands being recorded to the command buffer, we can submit the buffer and wait for it to be executed:
 
 ```cxx
-auto fence = m_device->bufferQueue().submit(commandBuffer);
+auto fence = commandBuffer->submit();
 m_device->bufferQueue().waitFor(fence);
 commandBuffer = nullptr;
 stagedVertices = nullptr;
@@ -684,7 +682,7 @@ glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001
 projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
 camera.ViewProjection = projection * view;
 
-auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
 commandBuffer->transfer(*m_cameraStagingBuffer, *m_cameraBuffer);
 commandBuffer->end(true, true);

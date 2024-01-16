@@ -12,7 +12,7 @@ public:
 
 private:
     Array<UniquePtr<IDirectX12Image>> m_outputAttachments;
-    Array<const IDirectX12Image*> m_renderTargetViews;
+    Array<IDirectX12Image*> m_renderTargetViews;
     Array<SharedPtr<DirectX12CommandBuffer>> m_commandBuffers;
     ComPtr<ID3D12DescriptorHeap> m_renderTargetHeap, m_depthStencilHeap;
     UInt32 m_renderTargetDescriptorSize, m_depthStencilDescriptorSize;
@@ -27,7 +27,7 @@ public:
     {
         // Initialize the command buffers from the graphics queue.
         m_commandBuffers.resize(commandBuffers);
-        std::ranges::generate(m_commandBuffers, [this]() { return m_renderPass.device().graphicsQueue().createCommandBuffer(false); });
+        std::ranges::generate(m_commandBuffers, [this]() { return m_renderPass.commandQueue().createCommandBuffer(false); });
     }
 
 public:
@@ -54,9 +54,9 @@ public:
         depthStencilHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
         m_depthStencilDescriptorSize = m_renderPass.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
-        raiseIfFailed<RuntimeException>(m_renderPass.device().handle()->CreateDescriptorHeap(&renderTargetHeapDesc, IID_PPV_ARGS(&m_renderTargetHeap)), "Unable to create render target descriptor heap.");
+        raiseIfFailed(m_renderPass.device().handle()->CreateDescriptorHeap(&renderTargetHeapDesc, IID_PPV_ARGS(&m_renderTargetHeap)), "Unable to create render target descriptor heap.");
         CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetViewDescriptor(m_renderTargetHeap->GetCPUDescriptorHandleForHeapStart());
-        raiseIfFailed<RuntimeException>(m_renderPass.device().handle()->CreateDescriptorHeap(&depthStencilHeapDesc, IID_PPV_ARGS(&m_depthStencilHeap)), "Unable to create depth/stencil descriptor heap.");
+        raiseIfFailed(m_renderPass.device().handle()->CreateDescriptorHeap(&depthStencilHeapDesc, IID_PPV_ARGS(&m_depthStencilHeap)), "Unable to create depth/stencil descriptor heap.");
         CD3DX12_CPU_DESCRIPTOR_HANDLE depthStencilViewDescriptor(m_depthStencilHeap->GetCPUDescriptorHandleForHeapStart());
 
         // Initialize the output attachments from render targets of the parent render pass.
@@ -69,9 +69,9 @@ public:
             auto samples = m_renderPass.multiSamplingLevel();
 
             if (m_renderPass.device().maximumMultiSamplingLevel(renderTarget.format()) < samples)
-                throw InvalidArgumentException("Render target {0} with format {1} does not support {2} samples.", i, renderTarget.format(), std::to_underlying(samples));
+                throw InvalidArgumentException("renderPass", "Render target {0} with format {1} does not support {2} samples.", i, renderTarget.format(), std::to_underlying(samples));
 
-            const IDirectX12Image* renderTargetView;
+            IDirectX12Image* renderTargetView;
 
             if (renderTarget.type() == RenderTargetType::Present && samples == MultiSamplingLevel::x1)
             {
@@ -84,7 +84,7 @@ public:
                 // Create an image view for the render target.
                 // TODO: Pass the optimized clear value from the render target to the attachment. (May need to refactor `CreateAttachment` to accept the render target and a size). Then
                 //       remove the warning from the info queue.
-                auto image = m_renderPass.device().factory().createAttachment(renderTarget.format(), m_size, m_renderPass.multiSamplingLevel());
+                auto image = m_renderPass.device().factory().createAttachment(renderTarget, m_size, m_renderPass.multiSamplingLevel());
                 renderTargetView = image.get();
                 m_outputAttachments.push_back(std::move(image));
             }
@@ -97,7 +97,7 @@ public:
                 depthStencilViewDesc.Texture2D = { .MipSlice = 0 };
                 depthStencilViewDesc.ViewDimension = samples == MultiSamplingLevel::x1 ? D3D12_DSV_DIMENSION_TEXTURE2D : D3D12_DSV_DIMENSION_TEXTURE2DMS;
 
-                m_renderPass.device().handle()->CreateDepthStencilView(renderTargetView->handle().Get(), &depthStencilViewDesc, depthStencilViewDescriptor);
+                m_renderPass.device().handle()->CreateDepthStencilView(std::as_const(*renderTargetView).handle().Get(), &depthStencilViewDesc, depthStencilViewDescriptor);
                 depthStencilViewDescriptor = depthStencilViewDescriptor.Offset(m_depthStencilDescriptorSize);
             }
             else
@@ -108,7 +108,7 @@ public:
                 renderTargetViewDesc.Texture2D = { .MipSlice = 0, .PlaneSlice = 0 };
                 renderTargetViewDesc.Buffer = { .FirstElement = 0, .NumElements = 1 };
 
-                m_renderPass.device().handle()->CreateRenderTargetView(renderTargetView->handle().Get(), &renderTargetViewDesc, renderTargetViewDescriptor);
+                m_renderPass.device().handle()->CreateRenderTargetView(std::as_const(*renderTargetView).handle().Get(), &renderTargetViewDesc, renderTargetViewDescriptor);
                 renderTargetViewDescriptor = renderTargetViewDescriptor.Offset(m_renderTargetDescriptorSize);
             }
 
@@ -149,7 +149,12 @@ UInt32 DirectX12FrameBuffer::depthStencilTargetDescriptorSize() const noexcept
     return m_impl->m_depthStencilDescriptorSize;
 }
 
-UInt64& DirectX12FrameBuffer::lastFence() const noexcept
+UInt64& DirectX12FrameBuffer::lastFence() noexcept
+{
+    return m_impl->m_lastFence;
+}
+
+UInt64 DirectX12FrameBuffer::lastFence() const noexcept
 {
     return m_impl->m_lastFence;
 }
@@ -177,7 +182,7 @@ size_t DirectX12FrameBuffer::getHeight() const noexcept
 SharedPtr<const DirectX12CommandBuffer> DirectX12FrameBuffer::commandBuffer(UInt32 index) const
 {
     if (index >= static_cast<UInt32>(m_impl->m_commandBuffers.size())) [[unlikely]]
-        throw ArgumentOutOfRangeException("No command buffer with index {1} is stored in the frame buffer. The frame buffer only contains {0} command buffers.", m_impl->m_commandBuffers.size(), index);
+        throw ArgumentOutOfRangeException("index", 0u, static_cast<UInt32>(m_impl->m_commandBuffers.size()), index, "No command buffer with index {1} is stored in the frame buffer. The frame buffer only contains {0} command buffers.", m_impl->m_commandBuffers.size(), index);
 
     return m_impl->m_commandBuffers[index];
 }
@@ -187,15 +192,15 @@ Enumerable<SharedPtr<const DirectX12CommandBuffer>> DirectX12FrameBuffer::comman
     return m_impl->m_commandBuffers;
 }
 
-Enumerable<const IDirectX12Image*> DirectX12FrameBuffer::images() const noexcept
+Enumerable<IDirectX12Image*> DirectX12FrameBuffer::images() const noexcept
 {
     return m_impl->m_renderTargetViews;
 }
 
-const IDirectX12Image& DirectX12FrameBuffer::image(UInt32 location) const
+IDirectX12Image& DirectX12FrameBuffer::image(UInt32 location) const
 {
     if (location >= m_impl->m_renderTargetViews.size())
-        throw ArgumentOutOfRangeException("No render target is mapped to location {0}.", location);
+        throw ArgumentOutOfRangeException("location", 0u, static_cast<UInt32>(m_impl->m_renderTargetViews.size()), location, "No render target is mapped to location {0}.", location);
 
     return *m_impl->m_renderTargetViews[location];
 }

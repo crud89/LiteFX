@@ -16,11 +16,11 @@
 #  define LITEFX_MATH_API
 #endif
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 #include <glm/glm.hpp>
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 #include <DirectXMath.h>
 #endif
 
@@ -164,7 +164,7 @@ namespace LiteFX::Math {
 	public:
 		using Vector::Vector;
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 	public:
 		/// <summary>
 		/// Converts a vector of type `glm::f32vec1`.
@@ -184,7 +184,7 @@ namespace LiteFX::Math {
 		inline operator glm::f32vec1() const noexcept;
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 	public:
 		/// <summary>
 		/// Converts a vector of type `DirectX::XMVECTOR`.
@@ -214,7 +214,7 @@ namespace LiteFX::Math {
 	public:
 		using Vector::Vector;
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 	public:
 		/// <summary>
 		/// Converts a vector of type `glm::u32vec1`.
@@ -234,7 +234,7 @@ namespace LiteFX::Math {
 		inline operator glm::u32vec1() const noexcept;
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 	public:
 		/// <summary>
 		/// Converts a vector of type `DirectX::XMVECTOR`.
@@ -262,7 +262,7 @@ namespace LiteFX::Math {
 	public:
 		using Vector::Vector;
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 	public:
 		/// <summary>
 		/// Converts a vector of type `glm::f32vec2`.
@@ -282,7 +282,7 @@ namespace LiteFX::Math {
 		inline operator glm::f32vec2() const noexcept;
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 	public:
 		/// <summary>
 		/// Converts a vector of type `DirectX::XMVECTOR`.
@@ -327,7 +327,7 @@ namespace LiteFX::Math {
 	public:
 		using Vector::Vector;
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 	public:
 		/// <summary>
 		/// Converts a vector of type `glm::u32vec2`.
@@ -347,7 +347,7 @@ namespace LiteFX::Math {
 		inline operator glm::u32vec2() const noexcept;
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 	public:
 		/// <summary>
 		/// Converts a vector of type `DirectX::XMVECTOR`.
@@ -392,7 +392,7 @@ namespace LiteFX::Math {
 	public:
 		using Vector::Vector;
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 	public:
 		/// <summary>
 		/// Converts a vector of type `glm::i32vec2`.
@@ -412,7 +412,7 @@ namespace LiteFX::Math {
 		inline operator glm::i32vec2() const noexcept;
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 	public:
 		/// <summary>
 		/// Converts a vector of type `DirectX::XMVECTOR`.
@@ -457,14 +457,14 @@ namespace LiteFX::Math {
 	public:
 		using Vector::Vector;
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 	public:
 		Vector3f(const glm::f32vec3& v) noexcept;
 		Vector3f(glm::f32vec3&& v) noexcept;
 		inline operator glm::f32vec3() const noexcept;
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector3f(const DirectX::XMVECTOR& v) noexcept;
 		Vector3f(DirectX::XMVECTOR&& v) noexcept;
@@ -479,14 +479,14 @@ namespace LiteFX::Math {
 	public:
 		using Vector::Vector;
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 	public:
 		Vector3u(const glm::u32vec3& v) noexcept;
 		Vector3u(glm::u32vec3&& v) noexcept;
 		inline operator glm::u32vec3() const noexcept;
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector3u(const DirectX::XMVECTOR& v) noexcept;
 		Vector3u(DirectX::XMVECTOR&& v) noexcept;
@@ -501,14 +501,14 @@ namespace LiteFX::Math {
 	public:
 		using Vector::Vector;
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 	public:
 		Vector3i(const glm::i32vec3& v) noexcept;
 		Vector3i(glm::i32vec3&& v) noexcept;
 		inline operator glm::i32vec3() const noexcept;
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector3i(const DirectX::XMVECTOR& v) noexcept;
 		Vector3i(DirectX::XMVECTOR&& v) noexcept;
@@ -523,14 +523,14 @@ namespace LiteFX::Math {
 	public:
 		using Vector::Vector;
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 	public:
 		Vector4f(const glm::f32vec4& v) noexcept;
 		Vector4f(glm::f32vec4&& v) noexcept;
 		inline operator glm::f32vec4() const noexcept;
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector4f(const DirectX::XMVECTOR& v) noexcept;
 		Vector4f(DirectX::XMVECTOR&& v) noexcept;
@@ -545,14 +545,14 @@ namespace LiteFX::Math {
 	public:
 		using Vector::Vector;
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 	public:
 		Vector4u(const glm::u32vec4& v) noexcept;
 		Vector4u(glm::u32vec4&& v) noexcept;
 		inline operator glm::u32vec4() const noexcept;
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector4u(const DirectX::XMVECTOR& v) noexcept;
 		Vector4u(DirectX::XMVECTOR&& v) noexcept;
@@ -567,14 +567,14 @@ namespace LiteFX::Math {
 	public:
 		using Vector::Vector;
 
-#if defined(BUILD_WITH_GLM)
+#if defined(LITEFX_BUILD_WITH_GLM)
 	public:
 		Vector4i(const glm::i32vec4& v) noexcept;
 		Vector4i(glm::i32vec4&& v) noexcept;
 		inline operator glm::i32vec4() const noexcept;
 #endif
 
-#if defined(BUILD_WITH_DIRECTX_MATH)
+#if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 	public:
 		Vector4i(const DirectX::XMVECTOR& v) noexcept;
 		Vector4i(DirectX::XMVECTOR&& v) noexcept;

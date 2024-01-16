@@ -49,11 +49,11 @@ public:
 	ComPtr<IDXGISwapChain4> initialize(Format format, const Size2d& frameBufferSize, UInt32 frameBuffers)
 	{
 		if (!std::ranges::any_of(m_parent->getSurfaceFormats(), [&format](Format surfaceFormat) { return surfaceFormat == format; }))
-			throw InvalidArgumentException("The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats());
+			throw InvalidArgumentException("format", "The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats());
 
 		auto adapter = m_device.adapter().handle();
 		auto surface = m_device.surface().handle();
-		auto graphicsQueue = m_device.graphicsQueue().handle();
+		auto graphicsQueue = m_device.defaultQueue(QueueType::Graphics).handle();
 		const auto& backend = m_device.backend();
 
 		// Create the swap chain.
@@ -75,15 +75,15 @@ public:
 
 		ComPtr<IDXGISwapChain1> swapChainBase;
 		ComPtr<IDXGISwapChain4> swapChain;
-		raiseIfFailed<RuntimeException>(backend.handle()->CreateSwapChainForHwnd(graphicsQueue.Get(), surface, &swapChainDesc, nullptr, nullptr, &swapChainBase), "Unable to create swap chain for device.");
-		raiseIfFailed<RuntimeException>(swapChainBase.As(&swapChain), "The swap chain does not implement the IDXGISwapChain4 interface.");
+		raiseIfFailed(backend.handle()->CreateSwapChainForHwnd(graphicsQueue.Get(), surface, &swapChainDesc, nullptr, nullptr, &swapChainBase), "Unable to create swap chain for device.");
+		raiseIfFailed(swapChainBase.As(&swapChain), "The swap chain does not implement the IDXGISwapChain4 interface.");
 
 		// Acquire the swap chain images.
 		m_presentImages.resize(swapChainDesc.BufferCount);
 		m_presentFences.resize(swapChainDesc.BufferCount);
 		std::ranges::generate(m_presentImages, [this, &size, &format, &swapChain, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
-			raiseIfFailed<RuntimeException>(swapChain->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
+			raiseIfFailed(swapChain->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
 			return makeUnique<DirectX12Image>(m_device, std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ImageLayout::Present);
 		});
 
@@ -100,7 +100,7 @@ public:
 	void reset(Format format, const Size2d& frameBufferSize, UInt32 frameBuffers)
 	{
 		if (!std::ranges::any_of(m_parent->getSurfaceFormats(), [&format](Format surfaceFormat) { return surfaceFormat == format; }))
-			throw InvalidArgumentException("The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats());
+			throw InvalidArgumentException("format", "The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats());
 
 		// Release all back buffers.
 		m_presentImages.clear();
@@ -112,14 +112,14 @@ public:
 		// Resize the buffers.
 		UInt32 buffers = std::max<UInt32>(2, frameBuffers);
 		auto size = Size2d{ std::max<UInt32>(1, frameBufferSize.width()), std::max<UInt32>(1, frameBufferSize.height()) };
-		raiseIfFailed<RuntimeException>(m_parent->handle()->ResizeBuffers(buffers, static_cast<UInt32>(size.width()), static_cast<UInt32>(size.height()), DX12::getFormat(format), m_supportsVariableRefreshRates ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
+		raiseIfFailed(m_parent->handle()->ResizeBuffers(buffers, static_cast<UInt32>(size.width()), static_cast<UInt32>(size.height()), DX12::getFormat(format), m_supportsVariableRefreshRates ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
 
 		// Acquire the swap chain images.
 		m_presentImages.resize(buffers);
 		m_presentFences.resize(buffers);
 		std::ranges::generate(m_presentImages, [this, &size, &format, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
-			raiseIfFailed<RuntimeException>(m_parent->handle()->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
+			raiseIfFailed(m_parent->handle()->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
 			return makeUnique<DirectX12Image>(m_device, std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ImageLayout::Present);
 		});
 
@@ -153,7 +153,7 @@ public:
 			};
 
 			ComPtr<ID3D12QueryHeap> heap;
-			raiseIfFailed<RuntimeException>(m_device.handle()->CreateQueryHeap(&heapInfo, IID_PPV_ARGS(&heap)), "Unable to create timestamp query heap.");
+			raiseIfFailed(m_device.handle()->CreateQueryHeap(&heapInfo, IID_PPV_ARGS(&heap)), "Unable to create timestamp query heap.");
 			return heap;
 		});
 
@@ -168,8 +168,11 @@ public:
 
 	UInt32 swapBackBuffer()
 	{
+		// Get the next image index.
 		m_currentImage = m_parent->handle()->GetCurrentBackBufferIndex();
-		m_device.graphicsQueue().waitFor(m_presentFences[m_currentImage]);
+
+		// Wait for all rendering commands to finish on the image index (otherwise we would not be able to re-use the command buffers).
+		m_device.defaultQueue(QueueType::Graphics).waitFor(m_presentFences[m_currentImage]);
 
 		// Read back the timestamps.
 		if (!m_timestamps.empty())
@@ -219,7 +222,7 @@ Enumerable<SharedPtr<TimingEvent>> DirectX12SwapChain::timingEvents() const noex
 SharedPtr<TimingEvent> DirectX12SwapChain::timingEvent(UInt32 queryId) const
 {
 	if (queryId >= m_impl->m_timingEvents.size())
-		throw ArgumentOutOfRangeException("No timing event has been registered for query ID {0}.", queryId);
+		throw ArgumentOutOfRangeException("queryId", 0u, static_cast<UInt32>(m_impl->m_timingEvents.size()), queryId, "No timing event has been registered for query ID {0}.", queryId);
 
 	return m_impl->m_timingEvents[queryId];
 }
@@ -227,23 +230,23 @@ SharedPtr<TimingEvent> DirectX12SwapChain::timingEvent(UInt32 queryId) const
 UInt64 DirectX12SwapChain::readTimingEvent(SharedPtr<const TimingEvent> timingEvent) const
 {
 	if (timingEvent == nullptr) [[unlikely]]
-		throw ArgumentNotInitializedException("The timing event must be initialized.");
+		throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");
 
 	if (auto match = std::find(m_impl->m_timingEvents.begin(), m_impl->m_timingEvents.end(), timingEvent); match != m_impl->m_timingEvents.end()) [[likely]]
 		return m_impl->m_timestamps[std::distance(m_impl->m_timingEvents.begin(), match)];
 
-	throw InvalidArgumentException("The timing event is not registered on the swap chain.");
+	throw InvalidArgumentException("timingEvent", "The timing event is not registered on the swap chain.");
 }
 
 UInt32 DirectX12SwapChain::resolveQueryId(SharedPtr<const TimingEvent> timingEvent) const
 {
 	if (timingEvent == nullptr) [[unlikely]]
-		throw ArgumentNotInitializedException("The timing event must be initialized.");
+		throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");
 
 	if (auto match = std::find(m_impl->m_timingEvents.begin(), m_impl->m_timingEvents.end(), timingEvent); match != m_impl->m_timingEvents.end()) [[likely]]
 		return static_cast<UInt32>(std::distance(m_impl->m_timingEvents.begin(), match));
 
-	throw InvalidArgumentException("The timing event is not registered on the swap chain.");
+	throw InvalidArgumentException("timingEvent", "The timing event is not registered on the swap chain.");
 }
 
 Format DirectX12SwapChain::surfaceFormat() const noexcept
@@ -261,26 +264,30 @@ const Size2d& DirectX12SwapChain::renderArea() const noexcept
 	return m_impl->m_renderArea;
 }
 
-const IDirectX12Image* DirectX12SwapChain::image(UInt32 backBuffer) const
+IDirectX12Image* DirectX12SwapChain::image(UInt32 backBuffer) const
 {
 	if (backBuffer >= m_impl->m_presentImages.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("The back buffer must be a valid index.");
+		throw ArgumentOutOfRangeException("backBuffer", 0u, static_cast<UInt32>(m_impl->m_presentImages.size()), backBuffer, "The back buffer must be a valid index.");
 
 	return m_impl->m_presentImages[backBuffer].get();
 }
 
-Enumerable<const IDirectX12Image*> DirectX12SwapChain::images() const noexcept
+Enumerable<IDirectX12Image*> DirectX12SwapChain::images() const noexcept
 {
-	return m_impl->m_presentImages | std::views::transform([](const UniquePtr<IDirectX12Image>& image) { return image.get(); });
+	return m_impl->m_presentImages | std::views::transform([](UniquePtr<IDirectX12Image>& image) { return image.get(); });
 }
 
 void DirectX12SwapChain::present(const DirectX12FrameBuffer& frameBuffer) const
 {
-	// NOTE: Present is similar to issuing a command on the graphics queue, so there is no need to wait for the fence here. However,
-	//       we must wait for the fence before handing out the back-buffer to a new frame again, so we queue up the fence to be able
-	//       to wait for it later.
-	m_impl->m_presentFences[m_impl->m_currentImage] = frameBuffer.lastFence();
-	raiseIfFailed<RuntimeException>(this->handle()->Present(0, this->supportsVariableRefreshRate() ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to present swap chain");
+	this->present(frameBuffer.lastFence());
+}
+
+void DirectX12SwapChain::present(UInt64 fence) const
+{
+	// Store the last fence here that marks the end of the rendering to this frame buffer. Presenting is queued after rendering anyway, but when swapping the back buffers buffers,
+	// we need to wait for all commands to finish before being able to re-use the command buffers associated with queued commands.
+	m_impl->m_presentFences[m_impl->m_currentImage] = fence;
+	raiseIfFailed(this->handle()->Present(0, this->supportsVariableRefreshRate() ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to present swap chain");
 }
 
 Enumerable<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept
@@ -299,7 +306,7 @@ Enumerable<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept
 void DirectX12SwapChain::addTimingEvent(SharedPtr<TimingEvent> timingEvent)
 {
 	if (timingEvent == nullptr) [[unlikely]]
-		throw ArgumentNotInitializedException("The timing event must be initialized.");
+		throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");
 
 	LITEFX_DEBUG(DIRECTX12_LOG, "Registering timing event: \"{0}\".", timingEvent->name());
 

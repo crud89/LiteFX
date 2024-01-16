@@ -18,23 +18,24 @@ private:
     Array<VulkanInputAttachmentMapping> m_inputAttachments;
     Array<UniquePtr<VulkanFrameBuffer>> m_frameBuffers;
     Array<SharedPtr<VulkanCommandBuffer>> m_primaryCommandBuffers;
-    const VulkanFrameBuffer* m_activeFrameBuffer = nullptr;
+    VulkanFrameBuffer* m_activeFrameBuffer = nullptr;
     SharedPtr<const VulkanCommandBuffer> m_activeCommandBuffer;
     Array<VkClearValue> m_clearValues;
     UInt32 m_backBuffer{ 0 };
     MultiSamplingLevel m_samples;
     const VulkanDevice& m_device;
+    const VulkanQueue* m_queue;
 
 public:
-    VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanDevice& device, Span<RenderTarget> renderTargets, MultiSamplingLevel samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
-        base(parent), m_samples(samples), m_device(device)
+    VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, MultiSamplingLevel samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
+        base(parent), m_samples(samples), m_device(device), m_queue(&queue)
     {
         this->mapRenderTargets(renderTargets);
         this->mapInputAttachments(inputAttachments);
     }
 
     VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanDevice& device) :
-        base(parent), m_device(device)
+        base(parent), m_device(device), m_queue(&device.defaultQueue(QueueType::Graphics))
     {
     }
 
@@ -44,6 +45,12 @@ public:
         m_renderTargets.assign(std::begin(renderTargets), std::end(renderTargets));
         //std::ranges::sort(m_renderTargets, [this](const RenderTarget& a, const RenderTarget& b) { return a.location() < b.location(); });
         std::sort(std::begin(m_renderTargets), std::end(m_renderTargets), [](const RenderTarget& a, const RenderTarget& b) { return a.location() < b.location(); });
+
+        // TODO: If there is a present target, we need to check if the provided queue can actually present on the surface. Currently, 
+        //       we simply check if the queue is the same as the swap chain queue (which is the default graphics queue).
+        if (std::ranges::any_of(m_renderTargets, [](const auto& renderTarget) { return renderTarget.type() == RenderTargetType::Present; }) &&
+            m_queue != std::addressof(m_device.defaultQueue(QueueType::Graphics))) [[unlikely]]
+            throw InvalidArgumentException("renderTargets", "A render pass with a present target must be executed on the default graphics queue.");
     }
 
     void mapInputAttachments(Span<VulkanInputAttachmentMapping> inputAttachments)
@@ -67,8 +74,8 @@ public:
         std::ranges::for_each(m_inputAttachments, [&, i = 0](const VulkanInputAttachmentMapping& inputAttachment) mutable {
             UInt32 currentIndex = i++;
 
-            if (inputAttachment.location() != currentIndex)
-                throw InvalidArgumentException("No input attachment is mapped to location {0}. The locations must be within a contiguous domain.", currentIndex);
+            if (inputAttachment.location() != currentIndex) [[unlikely]]
+                throw InvalidArgumentException("inputAttachments", "No input attachment is mapped to location {0}. The locations must be within a contiguous domain.", currentIndex);
 
             VkAttachmentDescription attachment{};
             attachment.format = Vk::getFormat(inputAttachment.renderTarget().format());
@@ -84,19 +91,29 @@ public:
             switch (inputAttachment.renderTarget().type()) 
             {
             case RenderTargetType::Present: [[unlikely]]
-                throw InvalidArgumentException("The render pass input attachment at location {0} maps to a present render target, which can not be used as input attachment.", currentIndex);
+                throw InvalidArgumentException("inputAttachments", "The render pass input attachment at location {0} maps to a present render target, which can not be used as input attachment.", currentIndex);
             case RenderTargetType::Color:
-                attachment.initialLayout = attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                attachment.initialLayout = inputAttachment.renderTarget().attachment() ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL;
+                attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
                 inputAttachments.push_back({ static_cast<UInt32>(currentIndex), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
                 attachments.push_back(attachment);
                 break;
             case RenderTargetType::DepthStencil:
                 if (::hasDepth(inputAttachment.renderTarget().format()) && ::hasStencil(inputAttachment.renderTarget().format())) [[likely]]
-                    attachment.initialLayout = attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                {
+                    attachment.initialLayout = inputAttachment.renderTarget().attachment() ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+                    attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                }
                 else if (::hasDepth(inputAttachment.renderTarget().format()))
-                    attachment.initialLayout = attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+                {
+                    attachment.initialLayout = inputAttachment.renderTarget().attachment() ? VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+                    attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+                }
                 else if (::hasStencil(inputAttachment.renderTarget().format()))
-                    attachment.initialLayout = attachment.finalLayout = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;
+                {
+                    attachment.initialLayout = inputAttachment.renderTarget().attachment() ? VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL;
+                    attachment.finalLayout = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;
+                }
                 else [[unlikely]]
                 {
                     LITEFX_WARNING(VULKAN_LOG, "The depth/stencil input attachment at location {0} does not have a valid depth/stencil format ({1}). Falling back to VK_IMAGE_LAYOUT_GENERAL.", currentIndex, inputAttachment.renderTarget().format());
@@ -113,13 +130,13 @@ public:
         std::ranges::for_each(m_renderTargets, [&, i = 0](const RenderTarget& renderTarget) mutable {
             UInt32 currentIndex = i++;
 
-            if (renderTarget.location() != currentIndex)
-                throw InvalidArgumentException("No render target is mapped to location {0}. The locations must be within a contiguous domain.", currentIndex);
+            if (renderTarget.location() != currentIndex) [[unlikely]]
+                throw InvalidArgumentException("renderTargets", "No render target is mapped to location {0}. The locations must be within a contiguous domain.", currentIndex);
 
             if ((renderTarget.type() == RenderTargetType::DepthStencil && depthTarget.has_value())) [[unlikely]]
-                throw InvalidArgumentException("The depth/stencil target at location {0} cannot be mapped. Another depth/stencil target is already bound to location {1} and only one is allowed.", renderTarget.location(), depthTarget->attachment);
+                throw InvalidArgumentException("renderTargets", "The depth/stencil target at location {0} cannot be mapped. Another depth/stencil target is already bound to location {1} and only one is allowed.", renderTarget.location(), depthTarget->attachment);
             else if (renderTarget.type() == RenderTargetType::Present && presentTarget.has_value()) [[unlikely]]
-                throw InvalidArgumentException("The present target at location {0} cannot be mapped. Another present target is already bound to location {1} and only one is allowed.", renderTarget.location(), presentTarget->attachment);
+                throw InvalidArgumentException("renderTargets", "The present target at location {0} cannot be mapped. Another present target is already bound to location {1} and only one is allowed.", renderTarget.location(), presentTarget->attachment);
             else [[likely]]
             {
                 VkAttachmentDescription attachment{};
@@ -140,16 +157,16 @@ public:
                 {
                 case RenderTargetType::Color:
                     attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                    attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                    attachment.finalLayout = renderTarget.attachment() ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL;
                     outputAttachments.push_back({ static_cast<UInt32>(currentIndex + inputAttachments.size()), attachment.finalLayout });
                     break;
                 case RenderTargetType::DepthStencil:
                     if (::hasDepth(renderTarget.format()) || ::hasStencil(renderTarget.format())) [[likely]]
-                        attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                        attachment.finalLayout = renderTarget.attachment() ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
                     else if (::hasDepth(renderTarget.format()))
-                        attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+                        attachment.finalLayout = renderTarget.attachment() ? VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
                     else if (::hasStencil(renderTarget.format()))
-                        attachment.finalLayout = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;
+                        attachment.finalLayout = renderTarget.attachment() ? VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL;
                     else [[unlikely]]
                     {
                         LITEFX_WARNING(VULKAN_LOG, "The depth/stencil render target at location {0} does not have a valid depth/stencil format ({1}). Falling back to VK_IMAGE_LAYOUT_GENERAL.", currentIndex, renderTarget.format());
@@ -164,7 +181,11 @@ public:
 
                     // If we have a multi-sampled present attachment, we also need to attach a resolve attachment for it.
                     if (m_samples == MultiSamplingLevel::x1)
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
+                        attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+#else
                         attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+#endif
                     else
                     {
                         attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -177,7 +198,11 @@ public:
                         presentResolveAttachment->stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
                         presentResolveAttachment->stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
                         presentResolveAttachment->initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
+                        presentResolveAttachment->finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+#else
                         presentResolveAttachment->finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+#endif
                     }
 
                     presentTarget = VkAttachmentReference { static_cast<UInt32>(currentIndex + inputAttachments.size()), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
@@ -235,7 +260,7 @@ public:
 
         // Create the render pass.
         VkRenderPass renderPass;
-        raiseIfFailed<RuntimeException>(::vkCreateRenderPass(m_device.handle(), &renderPassState, nullptr, &renderPass), "Unable to create render pass.");
+        raiseIfFailed(::vkCreateRenderPass(m_device.handle(), &renderPassState, nullptr, &renderPass), "Unable to create render pass.");
 
 #ifndef NDEBUG
         m_device.setDebugName(*reinterpret_cast<const UInt64*>(&renderPass), VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT, m_parent->name());
@@ -277,7 +302,7 @@ public:
         // Initialize the primary command buffers, that are used to record begin and end commands for the render pass on each frame buffer.
         m_primaryCommandBuffers.resize(this->m_device.swapChain().buffers());
         std::ranges::generate(m_primaryCommandBuffers, [&, i = 0]() mutable {
-            auto commandBuffer = this->m_device.graphicsQueue().createCommandBuffer(false);
+            auto commandBuffer = m_queue->createCommandBuffer(false);
 
 #ifndef NDEBUG
             m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*commandBuffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, fmt::format("{0} Primary Command Buffer {1}", m_parent->name(), i++));
@@ -293,14 +318,24 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
-    m_impl(makePimpl<VulkanRenderPassImpl>(this, device, renderTargets, samples, inputAttachments)), Resource<VkRenderPass>(VK_NULL_HANDLE)
+    VulkanRenderPass(device, device.defaultQueue(QueueType::Graphics), renderTargets, commandBuffers, samples, inputAttachments)
+{
+}
+
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
+    VulkanRenderPass(device, name, device.defaultQueue(QueueType::Graphics), renderTargets, commandBuffers, samples, inputAttachments)
+{
+}
+
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
+    m_impl(makePimpl<VulkanRenderPassImpl>(this, device, queue, renderTargets, samples, inputAttachments)), Resource<VkRenderPass>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
     m_impl->initializeFrameBuffers(commandBuffers);
 }
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
-    VulkanRenderPass(device, renderTargets, commandBuffers, samples, inputAttachments)
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
+    VulkanRenderPass(device, queue, renderTargets, commandBuffers, samples, inputAttachments)
 {
     if (!name.empty())
         this->name() = name;
@@ -321,7 +356,7 @@ VulkanRenderPass::~VulkanRenderPass() noexcept
 const VulkanFrameBuffer& VulkanRenderPass::frameBuffer(UInt32 buffer) const
 {
     if (buffer >= m_impl->m_frameBuffers.size()) [[unlikely]]
-        throw ArgumentOutOfRangeException("The buffer {0} does not exist in this render pass. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
+        throw ArgumentOutOfRangeException("buffer", 0u, static_cast<UInt32>(m_impl->m_frameBuffers.size()), buffer, "The buffer {0} does not exist in this render pass. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
 
     return *m_impl->m_frameBuffers[buffer].get();
 }
@@ -339,6 +374,11 @@ const VulkanFrameBuffer& VulkanRenderPass::activeFrameBuffer() const
     return *m_impl->m_activeFrameBuffer;
 }
 
+const VulkanQueue& VulkanRenderPass::commandQueue() const noexcept
+{
+    return *m_impl->m_queue;
+}
+
 Enumerable<const VulkanFrameBuffer*> VulkanRenderPass::frameBuffers() const noexcept
 {
     return m_impl->m_frameBuffers | std::views::transform([](const UniquePtr<VulkanFrameBuffer>& frameBuffer) { return frameBuffer.get(); });
@@ -351,10 +391,10 @@ Enumerable<const VulkanRenderPipeline*> VulkanRenderPass::pipelines() const noex
 
 const RenderTarget& VulkanRenderPass::renderTarget(UInt32 location) const
 {
-    if (auto match = std::ranges::find_if(m_impl->m_renderTargets, [&location](const RenderTarget& renderTarget) { return renderTarget.location() == location; }); match != m_impl->m_renderTargets.end())
+    if (auto match = std::ranges::find_if(m_impl->m_renderTargets, [&location](const RenderTarget& renderTarget) { return renderTarget.location() == location; }); match != m_impl->m_renderTargets.end()) [[likely]]
         return *match;
 
-    throw ArgumentOutOfRangeException("No render target is mapped to location {0} in this render pass.", location);
+    throw InvalidArgumentException("location", "No render target is mapped to location {0} in this render pass.", location);
 }
 
 Span<const RenderTarget> VulkanRenderPass::renderTargets() const noexcept
@@ -380,26 +420,26 @@ MultiSamplingLevel VulkanRenderPass::multiSamplingLevel() const noexcept
 void VulkanRenderPass::begin(UInt32 buffer)
 {
     // Only begin, if we are currently not running.
-    if (m_impl->m_activeFrameBuffer != nullptr)
+    if (m_impl->m_activeFrameBuffer != nullptr) [[unlikely]]
         throw RuntimeException("Unable to begin a render pass, that is already running. End the current pass first.");
 
     // Select the active frame buffer.
-    if (buffer >= m_impl->m_frameBuffers.size())
-        throw ArgumentOutOfRangeException("The frame buffer {0} is out of range. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
+    if (buffer >= m_impl->m_frameBuffers.size()) [[unlikely]]
+        throw ArgumentOutOfRangeException("buffer", 0u, static_cast<UInt32>(m_impl->m_frameBuffers.size()), buffer, "The frame buffer {0} is out of range. The render pass only contains {1} frame buffers.", buffer, m_impl->m_frameBuffers.size());
 
     auto frameBuffer = m_impl->m_activeFrameBuffer = m_impl->m_frameBuffers[buffer].get();
     auto commandBuffer = m_impl->m_activeCommandBuffer = m_impl->m_primaryCommandBuffers[buffer];
     m_impl->m_backBuffer = buffer;
 
     // Begin the command recording on the frame buffers command buffer. Before we can do that, we need to make sure it has not being executed anymore.
-    m_impl->m_device.graphicsQueue().waitFor(frameBuffer->lastFence());
+    m_impl->m_queue->waitFor(frameBuffer->lastFence());
     commandBuffer->begin();
 
     // Begin the render pass.
     VkRenderPassBeginInfo renderPassInfo{};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
     renderPassInfo.renderPass = this->handle();
-    renderPassInfo.framebuffer = frameBuffer->handle();
+    renderPassInfo.framebuffer = std::as_const(*frameBuffer).handle();
     renderPassInfo.renderArea.offset = { 0, 0 };
     renderPassInfo.renderArea.extent.width = static_cast<UInt32>(frameBuffer->getWidth());
     renderPassInfo.renderArea.extent.height = static_cast<UInt32>(frameBuffer->getHeight());
@@ -415,10 +455,10 @@ void VulkanRenderPass::begin(UInt32 buffer)
     this->beginning(this, { buffer });
 }
 
-void VulkanRenderPass::end() const
+UInt64 VulkanRenderPass::end() const
 {
     // Check if we are running.
-    if (m_impl->m_activeFrameBuffer == nullptr)
+    if (m_impl->m_activeFrameBuffer == nullptr) [[unlikely]]
         throw RuntimeException("Unable to end a render pass, that has not been begun. Start the render pass first.");
 
     // Publish ending event.
@@ -436,29 +476,24 @@ void VulkanRenderPass::end() const
     ::vkCmdEndRenderPass(std::as_const(*commandBuffer).handle());
 
     // Submit the command buffer.
-    if (!this->hasPresentTarget())
-        frameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(commandBuffer);
-    else
-    {
-        // Draw the frame, if the result of the render pass it should be presented to the swap chain.
-        std::array<VkSemaphore, 1> waitForSemaphores = { m_impl->m_device.swapChain().semaphore() };
-        std::array<VkPipelineStageFlags, 1> waitForStages = { VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT };
-        std::array<VkSemaphore, 1> signalSemaphores = { frameBuffer->semaphore() };
-        frameBuffer->lastFence() = m_impl->m_device.graphicsQueue().submit(commandBuffer, waitForSemaphores, waitForStages, signalSemaphores);
+    frameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffer);
 
-        // Present the swap chain.
+    // Present the swap chain.
+    if (this->hasPresentTarget())
         m_impl->m_device.swapChain().present(*frameBuffer);
-    }
 
     // Reset the frame buffer.
     m_impl->m_activeFrameBuffer = nullptr;
     m_impl->m_activeCommandBuffer = nullptr;
+
+    // Return the last fence.
+    return frameBuffer->lastFence();
 }
 
 void VulkanRenderPass::resizeFrameBuffers(const Size2d& renderArea)
 {
     // Check if we're currently running.
-    if (m_impl->m_activeFrameBuffer != nullptr)
+    if (m_impl->m_activeFrameBuffer != nullptr) [[unlikely]]
         throw RuntimeException("Unable to reset the frame buffers while the render pass is running. End the render pass first.");
 
     std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<VulkanFrameBuffer>& frameBuffer) { frameBuffer->resize(renderArea); });
@@ -467,7 +502,7 @@ void VulkanRenderPass::resizeFrameBuffers(const Size2d& renderArea)
 void VulkanRenderPass::changeMultiSamplingLevel(MultiSamplingLevel samples)
 {
     // Check if we're currently running.
-    if (m_impl->m_activeFrameBuffer != nullptr)
+    if (m_impl->m_activeFrameBuffer != nullptr) [[unlikely]]
         throw RuntimeException("Unable to reset the frame buffers while the render pass is running. End the render pass first.");
 
     m_impl->m_samples = samples;
@@ -480,7 +515,7 @@ void VulkanRenderPass::updateAttachments(const VulkanDescriptorSet& descriptorSe
 
     std::ranges::for_each(m_impl->m_inputAttachments, [&descriptorSet, &backBuffer](const VulkanInputAttachmentMapping& inputAttachment) {
 #ifndef NDEBUG
-        if (inputAttachment.inputAttachmentSource() == nullptr)
+        if (inputAttachment.inputAttachmentSource() == nullptr) [[unlikely]]
             throw RuntimeException("No source render pass has been specified for the input attachment mapped to location {0}.", inputAttachment.location());
 #endif
 
@@ -488,7 +523,7 @@ void VulkanRenderPass::updateAttachments(const VulkanDescriptorSet& descriptorSe
     });
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
@@ -520,6 +555,10 @@ constexpr VulkanRenderPassBuilder::~VulkanRenderPassBuilder() noexcept = default
 void VulkanRenderPassBuilder::build()
 {
     auto instance = this->instance();
+    
+    if (m_state.commandQueue != nullptr)
+        instance->m_impl->m_queue = m_state.commandQueue;
+    
     instance->m_impl->mapRenderTargets(m_state.renderTargets);
     instance->m_impl->mapInputAttachments(m_state.inputAttachments);
     instance->m_impl->m_samples = m_state.multiSamplingLevel;
@@ -531,4 +570,4 @@ VulkanInputAttachmentMapping VulkanRenderPassBuilder::makeInputAttachment(UInt32
 {
     return VulkanInputAttachmentMapping(renderPass, renderTarget, inputLocation);
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

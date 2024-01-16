@@ -9,7 +9,7 @@ MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
 # Resolve package dependencies.
 FIND_PACKAGE(Vulkan REQUIRED)
-FIND_PACKAGE(unofficial-vulkan-memory-allocator CONFIG REQUIRED)
+FIND_PACKAGE(VulkanMemoryAllocator CONFIG REQUIRED)
 FIND_PACKAGE(unofficial-spirv-reflect CONFIG REQUIRED)
 
 # Collect header & source files.
@@ -84,12 +84,12 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Vulkan::Vulkan 
-    PRIVATE unofficial::vulkan-memory-allocator::vulkan-memory-allocator unofficial::spirv-reflect::spirv-reflect
+    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Vulkan::Vulkan
+    PRIVATE GPUOpen::VulkanMemoryAllocator unofficial::spirv-reflect::spirv-reflect
 )
 
 # Link against D3D12 to enable flip-model swap chains.
-IF(BUILD_DIRECTX_12_BACKEND)
+IF(LITEFX_BUILD_DIRECTX_12_BACKEND)
     FIND_PACKAGE(directx-headers CONFIG REQUIRED)
     FIND_PACKAGE(directx-agility-sdk CONFIG REQUIRED)
 
@@ -97,13 +97,13 @@ IF(BUILD_DIRECTX_12_BACKEND)
         PUBLIC Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi d3dcompiler
         PRIVATE LiteFX.Backends.DirectX12 Microsoft::DirectXAgilitySDK
     )
-ENDIF(BUILD_DIRECTX_12_BACKEND)
+ENDIF(LITEFX_BUILD_DIRECTX_12_BACKEND)
 
 
 # Re-use pre-compiled core header.
-IF(BUILD_PRECOMPILED_HEADERS)
+IF(LITEFX_BUILD_PRECOMPILED_HEADERS)
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} REUSE_FROM LiteFX.Core)
-ENDIF(BUILD_PRECOMPILED_HEADERS)
+ENDIF(LITEFX_BUILD_PRECOMPILED_HEADERS)
 
 # Setup installer.
 INSTALL(TARGETS ${PROJECT_NAME} EXPORT EXPORT LiteFX

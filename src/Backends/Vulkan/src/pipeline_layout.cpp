@@ -35,6 +35,32 @@ public:
         // Since Vulkan does not know spaces, descriptor sets are mapped to their indices based on the order they are defined. Hence we need to sort the descriptor set layouts accordingly.
         std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<VulkanDescriptorSetLayout>& a, const UniquePtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
 
+        // Find unused and duplicate descriptor sets.
+        Array<UInt32> emptySets;
+
+        for (UInt32 i{ 0 }; Tuple spaces : m_descriptorSetLayouts | std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout->space(); }) | std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
+        {
+            auto [a, b] = spaces;
+
+            if (a == b) [[unlikely]]
+                throw InvalidArgumentException("descriptorSetLayouts", "Two layouts defined for the same descriptor set {}. Each descriptor set must use it's own space.", a);
+            
+            while (i != a)
+                emptySets.push_back(i);
+
+            ++i;
+        }
+
+        // Add empty sets.
+        if (!emptySets.empty())
+        {
+            for (auto s : emptySets)
+                m_descriptorSetLayouts.push_back(UniquePtr<VulkanDescriptorSetLayout>{ new VulkanDescriptorSetLayout(m_device, { }, s, ShaderStage::Any, 0) }); // No descriptor can ever be allocated from an empty descriptor set.
+
+            // Re-order them.
+            std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<VulkanDescriptorSetLayout>& a, const UniquePtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
+        }
+
         // Store the pipeline layout on the push constants.
         if (m_pushConstantsLayout != nullptr)
             m_pushConstantsLayout->pipelineLayout(*this->m_parent);
@@ -61,7 +87,7 @@ public:
         pipelineLayoutInfo.pPushConstantRanges = rangeHandles.data();
 
         VkPipelineLayout layout;
-        raiseIfFailed<RuntimeException>(::vkCreatePipelineLayout(m_device.handle(), &pipelineLayoutInfo, nullptr, &layout), "Unable to create pipeline layout.");
+        raiseIfFailed(::vkCreatePipelineLayout(m_device.handle(), &pipelineLayoutInfo, nullptr, &layout), "Unable to create pipeline layout.");
         return layout;
     }
 };
@@ -96,7 +122,7 @@ const VulkanDescriptorSetLayout& VulkanPipelineLayout::descriptorSet(UInt32 spac
     if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
         return *match->get();
 
-    throw ArgumentOutOfRangeException("No descriptor set layout uses the provided space {0}.", space);
+    throw InvalidArgumentException("space", "No descriptor set layout uses the provided space {0}.", space);
 }
 
 Enumerable<const VulkanDescriptorSetLayout*> VulkanPipelineLayout::descriptorSets() const noexcept
@@ -109,7 +135,7 @@ const VulkanPushConstantsLayout* VulkanPipelineLayout::pushConstants() const noe
     return m_impl->m_pushConstantsLayout.get();
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Pipeline layout builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -148,9 +174,9 @@ void VulkanPipelineLayoutBuilder::build()
     instance->handle() = instance->m_impl->initialize();
 }
 
-constexpr VulkanDescriptorSetLayoutBuilder VulkanPipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages, UInt32 poolSize, UInt32 maxUnboundedArraySize)
+constexpr VulkanDescriptorSetLayoutBuilder VulkanPipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages, UInt32 maxUnboundedArraySize)
 {
-    return VulkanDescriptorSetLayoutBuilder(*this, space, stages, poolSize, maxUnboundedArraySize);
+    return VulkanDescriptorSetLayoutBuilder(*this, space, stages, maxUnboundedArraySize);
 }
 
 constexpr VulkanPushConstantsLayoutBuilder VulkanPipelineLayoutBuilder::pushConstants(UInt32 size)
@@ -162,4 +188,4 @@ constexpr const VulkanDevice& VulkanPipelineLayoutBuilder::device() const noexce
 {
     return m_impl->m_device;
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

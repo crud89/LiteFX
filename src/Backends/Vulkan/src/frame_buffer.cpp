@@ -13,10 +13,9 @@ public:
 private:
     const VulkanRenderPass& m_renderPass;
     Array<UniquePtr<IVulkanImage>> m_outputAttachments;
-    Array<const IVulkanImage*> m_renderTargetViews;
+    Array<IVulkanImage*> m_renderTargetViews;
 	Array<SharedPtr<VulkanCommandBuffer>> m_commandBuffers;
 	Size2d m_size;
-	VkSemaphore m_semaphore;
     UInt32 m_bufferIndex;
     UInt64 m_lastFence{ 0 };
 
@@ -26,19 +25,9 @@ public:
 	{
         const auto& device = m_renderPass.device();
 
-		// Initialize the semaphore.
-		VkSemaphoreCreateInfo semaphoreInfo{};
-		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-		raiseIfFailed<RuntimeException>(::vkCreateSemaphore(device.handle(), &semaphoreInfo, nullptr, &m_semaphore), "Unable to create swap semaphore on frame buffer.");
-
         // Retrieve a command buffer from the graphics queue.
         m_commandBuffers.resize(commandBuffers);
-        std::ranges::generate(m_commandBuffers, [this, &device]() { return device.graphicsQueue().createCommandBuffer(false, true); });
-	}
-
-	~VulkanFrameBufferImpl()
-	{
-		::vkDestroySemaphore(m_renderPass.device().handle(), m_semaphore, nullptr);
+        std::ranges::generate(m_commandBuffers, [this]() { return m_renderPass.commandQueue().createCommandBuffer(false, true); });
 	}
 
 public:
@@ -58,10 +47,10 @@ public:
                 LITEFX_WARNING(VULKAN_LOG, "Remapped input attachment from location {0} to location {1}. Please make sure that the input attachments are sorted within the render pass and do not have any gaps in their location mappings.", inputAttachment.location(), i);
 
             if (inputAttachment.renderTarget().type() == RenderTargetType::Present)
-                throw InvalidArgumentException("The input attachment mapped to location {0} is a present target, which cannot be used as input attachment.", i);
+                throw InvalidArgumentException("renderPass", "The input attachment mapped to location {0} is a present target, which cannot be used as input attachment.", i);
 
             if (inputAttachment.inputAttachmentSource() == nullptr)
-                throw InvalidArgumentException("The input attachment mapped to location {0} has no initialized source.", i);
+                throw InvalidArgumentException("renderPass", "The input attachment mapped to location {0} has no initialized source.", i);
 
             // Store the image view from the source frame buffer.
             attachmentViews.push_back(inputAttachment.inputAttachmentSource()->frameBuffer(m_bufferIndex).image(i++).imageView());
@@ -85,7 +74,7 @@ public:
             else
             {
                 // Create an image view for the render target.
-                auto image = m_renderPass.device().factory().createAttachment(renderTarget.format(), m_size, samples);
+                auto image = m_renderPass.device().factory().createAttachment(renderTarget, m_size, samples);
                 attachmentViews.push_back(image->imageView());
                 m_renderTargetViews.push_back(image.get());
                 m_outputAttachments.push_back(std::move(image));
@@ -111,7 +100,7 @@ public:
         frameBufferInfo.layers = 1;
 
         VkFramebuffer frameBuffer;
-        raiseIfFailed<RuntimeException>(::vkCreateFramebuffer(m_renderPass.device().handle(), &frameBufferInfo, nullptr, &frameBuffer), "Unable to create frame buffer from swap chain frame.");
+        raiseIfFailed(::vkCreateFramebuffer(m_renderPass.device().handle(), &frameBufferInfo, nullptr, &frameBuffer), "Unable to create frame buffer from swap chain frame.");
 
         return frameBuffer;
 	}
@@ -132,12 +121,12 @@ VulkanFrameBuffer::~VulkanFrameBuffer() noexcept
     ::vkDestroyFramebuffer(m_impl->m_renderPass.device().handle(), this->handle(), nullptr);
 }
 
-const VkSemaphore& VulkanFrameBuffer::semaphore() const noexcept
+UInt64& VulkanFrameBuffer::lastFence() noexcept
 {
-    return m_impl->m_semaphore;
+    return m_impl->m_lastFence;
 }
 
-UInt64& VulkanFrameBuffer::lastFence() const noexcept
+UInt64 VulkanFrameBuffer::lastFence() const noexcept
 {
     return m_impl->m_lastFence;
 }
@@ -165,7 +154,7 @@ size_t VulkanFrameBuffer::getHeight() const noexcept
 SharedPtr<const VulkanCommandBuffer> VulkanFrameBuffer::commandBuffer(UInt32 index) const
 {
     if (index >= static_cast<UInt32>(m_impl->m_commandBuffers.size())) [[unlikely]]
-        throw ArgumentOutOfRangeException("No command buffer with index {1} is stored in the frame buffer. The frame buffer only contains {0} command buffers.", m_impl->m_commandBuffers.size(), index);
+        throw ArgumentOutOfRangeException("index", 0u, static_cast<UInt32>(m_impl->m_commandBuffers.size()), index, "No command buffer with index {1} is stored in the frame buffer. The frame buffer only contains {0} command buffers.", m_impl->m_commandBuffers.size(), index);
 
 	return m_impl->m_commandBuffers[index];
 }
@@ -175,15 +164,15 @@ Enumerable<SharedPtr<const VulkanCommandBuffer>> VulkanFrameBuffer::commandBuffe
     return m_impl->m_commandBuffers;
 }
 
-Enumerable<const IVulkanImage*> VulkanFrameBuffer::images() const noexcept
+Enumerable<IVulkanImage*> VulkanFrameBuffer::images() const noexcept
 {
     return m_impl->m_renderTargetViews;
 }
 
-const IVulkanImage& VulkanFrameBuffer::image(UInt32 location) const
+IVulkanImage& VulkanFrameBuffer::image(UInt32 location) const
 {
     if (location >= m_impl->m_renderTargetViews.size())
-        throw ArgumentOutOfRangeException("No render target is mapped to location {0}.", location);
+        throw ArgumentOutOfRangeException("location", 0u, static_cast<UInt32>(m_impl->m_renderTargetViews.size()), location, "No render target is mapped to location {0}.", location);
 
     return *m_impl->m_renderTargetViews[location];
 }

@@ -66,7 +66,7 @@ void App::startBackend(std::type_index type) const
 	auto backend = const_cast<IBackend*>(this->getBackend(type));
 
 	if (backend == nullptr)
-		throw InvalidArgumentException("No backend of type {0} has been registered.", type.name());
+		throw InvalidArgumentException("type", "No backend of type {0} has been registered.", type.name());
 
 	if (backend->state() == BackendState::Active)
 		return;
@@ -93,7 +93,7 @@ void App::stopBackend(std::type_index type) const
 	auto backend = const_cast<IBackend*>(this->getBackend(type));
 
 	if (backend == nullptr)
-		throw InvalidArgumentException("No backend of type {0} has been registered.", type.name());
+		throw InvalidArgumentException("type", "No backend of type {0} has been registered.", type.name());
 
 	if (backend->state() != BackendState::Inactive)
 	{
@@ -155,7 +155,7 @@ void App::use(UniquePtr<IBackend>&& backend)
 	auto type = backend->typeId();
 
 	if (m_impl->m_backends.contains(type))
-		throw InvalidArgumentException("Another backend of type {0} already has been registered. An application may only contain one backend of a certain type.", type.name());
+		throw InvalidArgumentException("backend", "Another backend of type {0} already has been registered. An application may only contain one backend of a certain type.", type.name());
 
 	m_impl->m_backends[type] = std::move(backend);
 

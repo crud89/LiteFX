@@ -42,7 +42,7 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "BUILD_TESTS": "ON"
+        "LITEFX_BUILD_TESTS": "ON"
       }
     },
     {
@@ -76,7 +76,7 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "BUILD_TESTS": "ON"
+        "LITEFX_BUILD_TESTS": "ON"
       }
     },
     {

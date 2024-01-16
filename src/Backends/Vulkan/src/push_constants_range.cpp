@@ -19,13 +19,13 @@ public:
         base(parent), m_stage(shaderStage), m_offset(offset), m_size(size), m_space(space), m_binding(binding)
     {
         if (offset % 4 != 0)
-            throw InvalidArgumentException("The push constants range offset must be a multiple of 4 bytes.");
+            throw InvalidArgumentException("offset", "The push constants range offset must be a multiple of 4 bytes.");
 
         if (size % 4 != 0)
-            throw InvalidArgumentException("The push constants range size must be a multiple of 4 bytes.");
+            throw InvalidArgumentException("size", "The push constants range size must be a multiple of 4 bytes.");
 
         if (!(std::to_underlying(shaderStage) && !(std::to_underlying(shaderStage) & (std::to_underlying(shaderStage) - 1))))
-            throw InvalidArgumentException("A push constant range is only allowed to be associated with one shader stage.");
+            throw InvalidArgumentException("shaderStage", "A push constant range is only allowed to be associated with one shader stage.");
     }
 };
 

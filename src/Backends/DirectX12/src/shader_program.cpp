@@ -148,10 +148,10 @@ public:
                     case D3D12_SHADER_VISIBILITY_DOMAIN:        stage = ShaderStage::TessellationEvaluation; break;
                     case D3D12_SHADER_VISIBILITY_GEOMETRY:      stage = ShaderStage::Geometry; break;
                     case D3D12_SHADER_VISIBILITY_PIXEL:         stage = ShaderStage::Fragment; break;
-                    case D3D12_SHADER_VISIBILITY_ALL:
-                    case D3D12_SHADER_VISIBILITY_AMPLIFICATION:
-                    case D3D12_SHADER_VISIBILITY_MESH:
-                    default: throw InvalidArgumentException("The push constants for a shader are defined for invalid or unsupported shader stages. Note that a push constant must only be defined for a single shader stage.");
+                    case D3D12_SHADER_VISIBILITY_AMPLIFICATION: stage = ShaderStage::Task; break;
+                    case D3D12_SHADER_VISIBILITY_MESH:          stage = ShaderStage::Mesh; break;
+                    case D3D12_SHADER_VISIBILITY_ALL:           stage = ShaderStage::Any; break; // TODO: Might not work as intended.
+                    default: throw InvalidArgumentException("pushConstantRanges", "The push constants for a shader are defined for invalid or unsupported shader stages. Note that a push constant must only be defined for a single shader stage.");
                     }
 
                     pushConstantRanges.push_back(PushConstantRangeInfo{ .stage = stage, .offset = pushConstantOffset, .size = rootParameter.Constants.Num32BitValues * 4, .location = rootParameter.Descriptor.ShaderRegister, .space = rootParameter.Descriptor.RegisterSpace });
@@ -175,9 +175,9 @@ public:
 
                 break;
             case D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE:
-                throw InvalidArgumentException("The shader modules root signature defines a descriptor table for parameter {0}, which is currently not supported. Convert each parameter of the table into a separate root parameter.", i);
+                throw InvalidArgumentException("modules", "The shader modules root signature defines a descriptor table for parameter {0}, which is currently not supported. Convert each parameter of the table into a separate root parameter.", i);
             default: 
-                throw InvalidArgumentException("The shader modules root signature exposes an unknown root parameter type {1} for parameter {0}.", i, rootParameter.ParameterType);
+                throw InvalidArgumentException("modules", "The shader modules root signature exposes an unknown root parameter type {1} for parameter {0}.", i, rootParameter.ParameterType);
             }
         }
     }
@@ -192,18 +192,18 @@ public:
         std::ranges::for_each(m_modules, [this, &descriptorSetLayouts](UniquePtr<DirectX12ShaderModule>& shaderModule) {
             // Load the shader reflection.
             ComPtr<IDxcContainerReflection> reflection;
-            raiseIfFailed<RuntimeException>(::DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(&reflection)), "Unable to access DirectX shader reflection.");
-            raiseIfFailed<RuntimeException>(reflection->Load(std::as_const(*shaderModule).handle().Get()), "Unable to load reflection from shader module.");
+            raiseIfFailed(::DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(&reflection)), "Unable to access DirectX shader reflection.");
+            raiseIfFailed(reflection->Load(std::as_const(*shaderModule).handle().Get()), "Unable to load reflection from shader module.");
 
             // Verify reflection and get the actual shader reflection interface.
             UINT32 shaderIdx;
             ComPtr<ID3D12ShaderReflection> shaderReflection;
-            raiseIfFailed<RuntimeException>(reflection->FindFirstPartKind(FOUR_CC('D', 'X', 'I', 'L'), &shaderIdx), "The shader module does not contain a valid DXIL shader.");
-            raiseIfFailed<RuntimeException>(reflection->GetPartReflection(shaderIdx, IID_PPV_ARGS(&shaderReflection)), "Unable to query shader reflection from DXIL module.");
+            raiseIfFailed(reflection->FindFirstPartKind(FOUR_CC('D', 'X', 'I', 'L'), &shaderIdx), "The shader module does not contain a valid DXIL shader.");
+            raiseIfFailed(reflection->GetPartReflection(shaderIdx, IID_PPV_ARGS(&shaderReflection)), "Unable to query shader reflection from DXIL module.");
 
             // Get the shader description from the reflection.
             D3D12_SHADER_DESC shaderInfo;
-            raiseIfFailed<RuntimeException>(shaderReflection->GetDesc(&shaderInfo), "Unable to acquire meta-data from shader module.");
+            raiseIfFailed(shaderReflection->GetDesc(&shaderInfo), "Unable to acquire meta-data from shader module.");
 
             // Iterate the bound resources to extract the descriptor sets.
             for (int i(0); i < shaderInfo.BoundResources; ++i)
@@ -222,7 +222,7 @@ public:
                 {
                     D3D12_SHADER_BUFFER_DESC bufferDesc;
                     auto constantBuffer = shaderReflection->GetConstantBufferByName(inputDesc.Name);
-                    raiseIfFailed<RuntimeException>(constantBuffer->GetDesc(&bufferDesc), "Unable to query constant buffer \"{0}\" from shader module {1}.", inputDesc.Name, shaderModule->type());
+                    raiseIfFailed(constantBuffer->GetDesc(&bufferDesc), "Unable to query constant buffer \"{0}\" from shader module {1}.", inputDesc.Name, shaderModule->type());
                     
                     elementSize = bufferDesc.Size;
                     type = DescriptorType::ConstantBuffer;
@@ -390,7 +390,7 @@ SharedPtr<DirectX12PipelineLayout> DirectX12ShaderProgram::reflectPipelineLayout
     return m_impl->reflectPipelineLayout();
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Shader program builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -434,4 +434,4 @@ constexpr UniquePtr<DirectX12ShaderModule> DirectX12ShaderProgramBuilder::makeSh
 {
     return makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, stream, name, entryPoint);
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

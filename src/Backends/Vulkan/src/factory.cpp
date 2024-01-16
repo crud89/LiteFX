@@ -26,7 +26,7 @@ public:
 		allocatorInfo.instance = device.surface().instance();
 		allocatorInfo.device = device.handle();
 
-		raiseIfFailed<RuntimeException>(::vmaCreateAllocator(&allocatorInfo, &m_allocator), "Unable to create Vulkan memory allocator.");
+		raiseIfFailed(::vmaCreateAllocator(&allocatorInfo, &m_allocator), "Unable to create Vulkan memory allocator.");
 	}
 
 	~VulkanGraphicsFactoryImpl()
@@ -112,27 +112,13 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
 	UniquePtr<IVulkanBuffer> buffer;
+	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
 
-	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
-	{
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		bufferInfo.queueFamilyIndexCount = 0;
+	bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
+	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
-		buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, allowWrite, m_impl->m_allocator, bufferInfo, allocInfo);
-	}
-	else
-	{
-		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
-
-		if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
-			queues.push_back(m_impl->m_device.transferQueue().familyId());
-
-		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
-		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
-		bufferInfo.pQueueFamilyIndices = queues.data();
-
-		buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, allowWrite, m_impl->m_allocator, bufferInfo, allocInfo);
-	}
+	buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, allowWrite, m_impl->m_allocator, bufferInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())
@@ -175,27 +161,13 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
 	UniquePtr<IVulkanVertexBuffer> buffer;
+	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
 
-	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
-	{
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		bufferInfo.queueFamilyIndexCount = 0;
+	bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
+	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
-		buffer = VulkanVertexBuffer::allocate(name, layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
-	}
-	else
-	{
-		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
-
-		if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
-			queues.push_back(m_impl->m_device.transferQueue().familyId());
-
-		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
-		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
-		bufferInfo.pQueueFamilyIndices = queues.data();
-
-		buffer = VulkanVertexBuffer::allocate(name, layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
-	}
+	buffer = VulkanVertexBuffer::allocate(name, layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())
@@ -236,29 +208,18 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
-	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
+	// NOTE: Resource sharing between queue families leaves room for optimization. Currently we simply allow concurrent access by all queue families, so that the driver
+	//       needs to ensure that resource state is valid. Ideally, we would set sharing mode to exclusive and detect queue family switches where we need to insert a 
+	//       barrier for queue family ownership transfer. This would allow to further optimize workloads between queues to minimize resource ownership transfers (i.e.,
+	//       prefer executing workloads that depend on one resource on the same queue, even if it could be run in parallel).
 	UniquePtr<IVulkanIndexBuffer> buffer;
+	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
 
-	if (usage != BufferUsage::Staging && usage != BufferUsage::Resource)
-	{
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		bufferInfo.queueFamilyIndexCount = 0;
+	bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
+	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
-		buffer = VulkanIndexBuffer::allocate(name, layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
-	}
-	else
-	{
-		Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
-
-		if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
-			queues.push_back(m_impl->m_device.transferQueue().familyId());
-
-		bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
-		bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
-		bufferInfo.pQueueFamilyIndices = queues.data();
-
-		buffer = VulkanIndexBuffer::allocate(name, layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
-	}
+	buffer = VulkanIndexBuffer::allocate(name, layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())
@@ -268,15 +229,16 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 	return buffer;
 }
 
-UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(Format format, const Size2d& size, MultiSamplingLevel samples) const
+UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const
 {
-	return this->createAttachment("", format, size, samples);
+	return this->createAttachment("", target, size, samples);
 }
 
-UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& name, Format format, const Size2d& size, MultiSamplingLevel samples) const
+UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const
 {
-	auto width = std::max<UInt32>(1, size.width());
-	auto height = std::max<UInt32>(1, size.height());
+	const auto format = target.format();
+	const auto width = std::max<UInt32>(1, size.width());
+	const auto height = std::max<UInt32>(1, size.height());
 
 	VkImageCreateInfo imageInfo{};
 	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -290,12 +252,30 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& na
 	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	imageInfo.samples = Vk::getSamples(samples);
-	imageInfo.usage = (::hasDepth(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+	imageInfo.usage = ::hasDepth(format) || ::hasStencil(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-	UInt32 queues[] = { m_impl->m_device.graphicsQueue().familyId() };
-	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	imageInfo.queueFamilyIndexCount = 1;
-	imageInfo.pQueueFamilyIndices = queues;
+	if (target.attachment())
+		imageInfo.usage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+	else
+		imageInfo.usage |= VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+
+	if (target.allowStorage())
+		imageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
+
+	// Present targets should also allow copying.
+	if (target.allowStorage())
+		imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+
+	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
+
+	if (!target.multiQueueAccess())
+		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	else
+	{
+		imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+		imageInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
+		imageInfo.pQueueFamilyIndices = queueFamilies.data();
+	}
 
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -323,10 +303,10 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(Format format, cons
 UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const
 {
 	if (dimension == ImageDimensions::CUBE && layers != 6) [[unlikely]]
-		throw ArgumentOutOfRangeException("A cube map must be defined with 6 layers, but only {0} are provided.", layers);
+		throw ArgumentOutOfRangeException("layers", 6u, 6u, layers, "A cube map must be defined with 6 layers, but {0} are provided.", layers);
 
 	if (dimension == ImageDimensions::DIM_3 && layers != 1) [[unlikely]]
-		throw ArgumentOutOfRangeException("A 3D texture can only have one layer, but {0} are provided.", layers);
+		throw ArgumentOutOfRangeException("layers", 1u, 1u, layers, "A 3D texture can only have one layer, but {0} are provided.", layers);
 
 	auto width = std::max<UInt32>(1, size.width());
 	auto height = std::max<UInt32>(1, size.height());
@@ -352,14 +332,10 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	if (::hasDepth(format) || ::hasStencil(format))
 		imageInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
-	Array<UInt32> queues{ m_impl->m_device.graphicsQueue().familyId() };
-
-	if (m_impl->m_device.transferQueue().familyId() != m_impl->m_device.graphicsQueue().familyId())
-		queues.push_back(m_impl->m_device.transferQueue().familyId());
-
-	imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	imageInfo.queueFamilyIndexCount = static_cast<UInt32>(queues.size());
-	imageInfo.pQueueFamilyIndices = queues.data();
+	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
+	imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	imageInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
+	imageInfo.pQueueFamilyIndices = queueFamilies.data();
 
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
