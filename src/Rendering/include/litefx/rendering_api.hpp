@@ -1529,6 +1529,27 @@ namespace LiteFX::Rendering {
         Undefined = 0x7FFFFFFF
     };
 
+    /// <summary>
+    /// Controls how a geometry that is part of a bottom-level acceleration structure (BLAS) behaves during ray-tracing.
+    /// </summary>
+    /// <seealso cref="IBottomLevelAccelerationStructure" />
+    enum class GeometryFlags {
+        /// <summary>
+        /// Implies no restrictions on the geometry.
+        /// </summary>
+        None = 0x00,
+
+        /// <summary>
+        /// If this flag is set, the any-hit shader for this geometry is never invoked, even if it is present within the hit group.
+        /// </summary>
+        Opaque = 0x01,
+
+        /// <summary>
+        /// If this flag is set, the any-hit shader for this geometry is only invoked once for each primitive of the geometry, even if it could be invoked multiple times during ray tracing.
+        /// </summary>
+        OneShotAnyHit = 0x02
+    };
+
 #pragma endregion
 
 #pragma region "Flags"
@@ -1540,6 +1561,7 @@ namespace LiteFX::Rendering {
     LITEFX_DEFINE_FLAGS(BufferFormat);
     LITEFX_DEFINE_FLAGS(WriteMask);
     LITEFX_DEFINE_FLAGS(RenderTargetFlags);
+    LITEFX_DEFINE_FLAGS(GeometryFlags);
 
 #pragma endregion
 
@@ -3300,8 +3322,9 @@ namespace LiteFX::Rendering {
             /// <param name="vertexBuffer">The vertex buffer that stores the mesh vertices.</param>
             /// <param name="indexBuffer">The index buffer that stores the mesh indices.</param>
             /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
-            TriangleMesh(SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr) :
-                VertexBuffer(vertexBuffer), IndexBuffer(indexBuffer), TransformBuffer(transformBuffer) { 
+            /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
+            TriangleMesh(SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) :
+                VertexBuffer(vertexBuffer), IndexBuffer(indexBuffer), TransformBuffer(transformBuffer), Flags(flags) { 
                 if (vertexBuffer == nullptr) [[unlikely]]
                     throw ArgumentNotInitializedException("vertexBuffer", "The vertex buffer must be initialized.");
             }
@@ -3311,14 +3334,14 @@ namespace LiteFX::Rendering {
             /// </summary>
             /// <param name="other">The triangle mesh to copy.</param>
             TriangleMesh(const TriangleMesh& other) noexcept :
-                VertexBuffer(other.VertexBuffer), IndexBuffer(other.IndexBuffer), TransformBuffer(other.TransformBuffer) { }
+                VertexBuffer(other.VertexBuffer), IndexBuffer(other.IndexBuffer), TransformBuffer(other.TransformBuffer), Flags(other.Flags) { }
 
             /// <summary>
             /// Initializes a new triangle mesh by taking over another one.
             /// </summary>
             /// <param name="other">The triangle mesh to take over.</param>
             TriangleMesh(TriangleMesh&& other) noexcept :
-                VertexBuffer(std::move(other.VertexBuffer)), IndexBuffer(std::move(other.IndexBuffer)), TransformBuffer(std::move(other.TransformBuffer)) { }
+                VertexBuffer(std::move(other.VertexBuffer)), IndexBuffer(std::move(other.IndexBuffer)), TransformBuffer(std::move(other.TransformBuffer)), Flags(std::move(other.Flags)) { }
 
             /// <summary>
             /// Releases the triangle mesh.
@@ -3334,6 +3357,7 @@ namespace LiteFX::Rendering {
                 this->VertexBuffer = other.VertexBuffer;
                 this->IndexBuffer = other.IndexBuffer;
                 this->TransformBuffer = other.TransformBuffer;
+                this->Flags = other.Flags;
                 return *this;
             }
 
@@ -3346,6 +3370,7 @@ namespace LiteFX::Rendering {
                 this->VertexBuffer = std::move(other.VertexBuffer);
                 this->IndexBuffer = std::move(other.IndexBuffer);
                 this->TransformBuffer = std::move(other.TransformBuffer);
+                this->Flags = std::move(other.Flags);
                 return *this;
             }
 
@@ -3367,21 +3392,42 @@ namespace LiteFX::Rendering {
             /// If the transform is not set, the vertices are not further transformed, which can improve building performance.
             /// </remarks>
             SharedPtr<const IBuffer> TransformBuffer;
+
+            /// <summary>
+            /// The flags that control how the primitives in the geometry behaves during ray-tracing.
+            /// </summary>
+            GeometryFlags Flags;
         };
 
         /// <summary>
-        /// Represents an axis-aligned bounding box.
+        /// Stores a buffer that contains axis-aligned bounding boxes.
         /// </summary>
-        struct BoundingBox final {
+        /// <remarks>
+        /// You may think of this structure as a set containing voxels for procedural geometry.
+        /// </remarks>
+        struct BoundingBoxes final {
             /// <summary>
-            /// The lower corner of the AABB.
+            /// A buffer containing the bounding box definitions.
             /// </summary>
-            Vector3f Minimum;
+            /// <remarks>
+            /// Each element of the buffer must contain a bounding box at the start of the buffer, where a bounding box takes up 6 single-precision floating point values, with the first triplet 
+            /// describing the lower corner of the bounding box and the second triplet describing the upper corner of the bounding box, as shown in the following definition:
+            /// 
+            /// <code>
+            /// struct alignas(16) AABB {
+            ///     Float minimum[3];
+            ///     Float maximum[3];
+            /// }
+            /// </code>
+            /// 
+            /// The rest of the bounding box elements memory can be filled with arbitrary data, that can be read by shaders.
+            /// </remarks>
+            SharedPtr<const IBuffer> Buffer;
 
             /// <summary>
-            /// The upper corner of the AABB.
+            /// The flags that control how the primitives in the geometry behaves during ray-tracing.
             /// </summary>
-            Vector3f Maximum;
+            GeometryFlags Flags;
         };
 
     public:
@@ -3406,29 +3452,30 @@ namespace LiteFX::Rendering {
         /// <param name="vertexBuffer">The vertex buffer that stores the mesh vertices.</param>
         /// <param name="indexBuffer">The index buffer that stores the mesh indices.</param>
         /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
-        inline void addTriangleMesh(SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr) {
-            this->addTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer));
+        /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
+        inline void addTriangleMesh(SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) {
+            this->addTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer, flags));
         }
 
         /// <summary>
-        /// Returns an array of axis-aligned bounding boxes contained by the BLAS.
+        /// Returns an array of buffers, each containing axis-aligned bounding boxes stoerd in the BLAS.
         /// </summary>
         /// <returns>The array of axis-aligned bounding boxes contained by the BLAS.</returns>
-        virtual const Array<BoundingBox>& boundingBoxes() const noexcept = 0;
+        virtual const Array<BoundingBoxes>& boundingBoxes() const noexcept = 0;
 
         /// <summary>
-        /// Adds an axis-aligned bounding box to the BLAS.
+        /// Adds a buffer containing axis-aligned bounding boxes to the BLAS.
         /// </summary>
-        /// <param name="aabb">The bounding box to add to the BLAS.</param>
-        virtual void addBoundingBox(const BoundingBox& aabb) = 0;
+        /// <param name="aabbs">The bounding boxes to add to the BLAS.</param>
+        virtual void addBoundingBox(const BoundingBoxes& aabbs) = 0;
 
         /// <summary>
-        /// Adds an axis-aligned bounding box to the BLAS.
+        /// Adds a buffer containing axis-aligned bounding boxes to the BLAS.
         /// </summary>
-        /// <param name="minimum">The lower corner of the AABB.</param>
-        /// <param name="maximum">The upper corner of the AABB.</param>
-        inline void addBoundingBox(const Vector3f& minimum, const Vector3f& maximum) {
-            this->addBoundingBox(BoundingBox { .Minimum = minimum, .Maximum = maximum });
+        /// <param name="buffer">A buffer containing the bounding box definitions.</param>
+        /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
+        inline void addBoundingBox(SharedPtr<const IBuffer> buffer, GeometryFlags flags = GeometryFlags::None) {
+            this->addBoundingBox(BoundingBoxes { .Buffer = buffer, .Flags = flags });
         }
 
         /// <summary>
@@ -3456,32 +3503,33 @@ namespace LiteFX::Rendering {
         /// <param name="vertexBuffer">The vertex buffer that stores the mesh vertices.</param>
         /// <param name="indexBuffer">The index buffer that stores the mesh indices.</param>
         /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
+        /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
         /// <returns>A reference to the current BLAS.</returns>
         template <typename TSelf>
-        inline auto withTriangleMesh(this TSelf&& self, SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr) -> TSelf& {
-            return self.withTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer));
+        inline auto withTriangleMesh(this TSelf&& self, SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) -> TSelf& {
+            return self.withTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer, flags));
         }
 
         /// <summary>
-        /// Adds an axis-aligned bounding box to the BLAS.
+        /// Adds a buffer containing axis-aligned bounding boxes to the BLAS.
         /// </summary>
-        /// <param name="aabb">The bounding box to add to the BLAS.</param>
+        /// <param name="aabb">The bounding box buffer to add to the BLAS.</param>
         /// <returns>A reference to the current BLAS.</returns>
         template <typename TSelf>
-        inline auto withBoundingBox(this TSelf&& self, const BoundingBox& aabb) -> TSelf& {
+        inline auto withBoundingBox(this TSelf&& self, const BoundingBoxes& aabb) -> TSelf& {
             self.addBoundingBox(aabb);
             return self;
         }
 
         /// <summary>
-        /// Adds an axis-aligned bounding box to the BLAS.
+        /// Adds a buffer containing axis-aligned bounding boxes to the BLAS.
         /// </summary>
-        /// <param name="minimum">The lower corner of the AABB.</param>
-        /// <param name="maximum">The upper corner of the AABB.</param>
+        /// <param name="buffer">A buffer containing the bounding box definitions.</param>
+        /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
         /// <returns>A reference to the current BLAS.</returns>
         template <typename TSelf>
-        inline auto withBoundingBox(this TSelf&& self, const Vector3f& minimum, const Vector3f& maximum) -> TSelf& {
-            return self.withBoundingBox(BoundingBox{ .Minimum = minimum, .Maximum = maximum });
+        inline auto withBoundingBox(this TSelf&& self, SharedPtr<const IBuffer> buffer, GeometryFlags flags = GeometryFlags::None) -> TSelf& {
+            return self.withBoundingBox(BoundingBoxes { .Buffer = buffer, .Flags = flags });
         }
     };
 
