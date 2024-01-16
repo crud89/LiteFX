@@ -19,12 +19,7 @@
 #include <variant>
 #include <ranges>
 #include <mutex>
-
-#if __has_include(<generator>)
-#inclue <generator>
-#else
-#include "generator.hpp"
-#endif
+#include <generator>
 
 #include "traits.hpp"
 #include "string.hpp"
