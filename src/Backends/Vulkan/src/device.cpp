@@ -4,7 +4,10 @@
 
 using namespace LiteFX::Rendering::Backends;
 
-static PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizes { nullptr };
+extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks { nullptr };
+extern PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizes { nullptr };
+extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure { nullptr };
+extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructures { nullptr };
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -360,9 +363,20 @@ public:
         debugMarkerSetObjectName = reinterpret_cast<PFN_vkDebugMarkerSetObjectNameEXT>(::vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectNameEXT"));
 #endif
 
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+        if (vkCmdDrawMeshTasks == nullptr)
+            vkCmdDrawMeshTasks = reinterpret_cast<PFN_vkCmdDrawMeshTasksEXT>(::vkGetDeviceProcAddr(queue.device().handle(), "vkCmdDrawMeshTasksEXT"));
+#endif
+
 #ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
         if (vkGetAccelerationStructureBuildSizes == nullptr)
             vkGetAccelerationStructureBuildSizes = reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(::vkGetDeviceProcAddr(device, "vkGetAccelerationStructureBuildSizesKHR"));
+
+        if (vkCreateAccelerationStructure == nullptr)
+            vkCreateAccelerationStructure = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCreateAccelerationStructureKHR"));
+
+        if (vkCmdBuildAccelerationStructures == nullptr)
+            vkCmdBuildAccelerationStructures = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(::vkGetDeviceProcAddr(device, "vkCmdBuildAccelerationStructuresKHR"));
 #endif
 
         return device;

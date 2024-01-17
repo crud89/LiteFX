@@ -2,11 +2,13 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructures;
+
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-static PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks;
+extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks;
 
 class VulkanCommandBuffer::VulkanCommandBufferImpl : public Implement<VulkanCommandBuffer> {
 public:
@@ -23,10 +25,6 @@ public:
 	VulkanCommandBufferImpl(VulkanCommandBuffer* parent, const VulkanQueue& queue, bool primary) :
 		base(parent), m_queue(queue), m_secondary(!primary)
 	{
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
-		if (vkCmdDrawMeshTasks == nullptr)
-			vkCmdDrawMeshTasks = reinterpret_cast<PFN_vkCmdDrawMeshTasksEXT>(::vkGetDeviceProcAddr(queue.device().handle(), "vkCmdDrawMeshTasksEXT"));
-#endif
 	}
 
 	~VulkanCommandBufferImpl() 
@@ -75,22 +73,23 @@ public:
 	{
 		auto buildInfo = blas.buildInfo();
 		auto descriptions = buildInfo | std::views::values | std::ranges::to<Array<VkAccelerationStructureGeometryKHR>>();
-		auto sizes = buildInfo | std::views::keys | std::ranges::to<Array<UInt32>>();
-
-		throw;
+		auto ranges = buildInfo | std::views::keys |
+			std::views::transform([](UInt32 primitives) { return VkAccelerationStructureBuildRangeInfoKHR { .primitiveCount = primitives }; }) | 
+			std::ranges::to<Array<VkAccelerationStructureBuildRangeInfoKHR>>();
+		auto rangePointer = ranges.data();
 
 		VkAccelerationStructureBuildGeometryInfoKHR inputs = {
 			.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
 			.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
 			.flags = std::bit_cast<VkBuildAccelerationStructureFlagsKHR>(blas.flags()),
 			.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
-			.dstAccelerationStructure = /* ... */ VK_NULL_HANDLE,
+			.dstAccelerationStructure = buffer.accelerationStructure(),
 			.geometryCount = static_cast<UInt32>(descriptions.size()),
 			.pGeometries = descriptions.data(),
 			.scratchData = scratchBuffer->virtualAddress()
 		};
 
-		//::vkCmdBuildAccelerationStructuresKHR(m_parent->handle(), 1, &inputs, )
+		::vkCmdBuildAccelerationStructures(m_parent->handle(), 1, &inputs, &rangePointer);
 
 		// Store the scratch buffer.
 		m_sharedResources.push_back(scratchBuffer);

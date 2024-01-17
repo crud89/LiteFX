@@ -92,6 +92,19 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API IVulkanBuffer : public virtual IBuffer, public virtual IResource<VkBuffer> {
     public:
         virtual ~IVulkanBuffer() noexcept = default;
+
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+    public:
+        friend class VulkanDevice;
+        friend class VulkanCommandBuffer;
+
+    private:
+        /// <summary>
+        /// If the buffer is of type <see cref="BufferType::AccelerationStructure" />, this returns the acceleration structure handle.
+        /// </summary>
+        /// <returns>The acceleration structure handle, or `VK_NULL_HANDLE`, if the buffer is not an acceleration structure.</returns>
+        virtual VkAccelerationStructureKHR accelerationStructure() const noexcept = 0;
+#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     };
 
     /// <summary>

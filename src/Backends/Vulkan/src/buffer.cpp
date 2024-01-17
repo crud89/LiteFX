@@ -2,6 +2,8 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure;
+
 // ------------------------------------------------------------------------------------------------
 // Buffer implementation.
 // ------------------------------------------------------------------------------------------------
@@ -18,6 +20,7 @@ private:
 	VmaAllocation m_allocation;
 	ResourceUsage m_usage;
 	const VulkanDevice& m_device;
+	VkAccelerationStructureKHR m_accelerationStructure;
 
 public:
 	VulkanBufferImpl(VulkanBuffer* parent, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation) :
@@ -35,6 +38,21 @@ VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, si
 {
 	if (!name.empty())
 		this->name() = name;
+
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+	// If the buffer is an acceleration structure, create an instance.
+	if (type == BufferType::AccelerationStructure)
+	{
+		VkAccelerationStructureCreateInfoKHR info = {
+			.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
+			.buffer = this->handle(),
+			.size = this->alignedElementSize(),
+			.type = VK_ACCELERATION_STRUCTURE_TYPE_GENERIC_KHR  // TODO: we might want to determine the type at this point already.
+		};
+
+		::vkCreateAccelerationStructure(device.handle(), &info, nullptr, &m_impl->m_accelerationStructure);
+	}
+#endif
 }
 
 VulkanBuffer::~VulkanBuffer() noexcept
@@ -141,6 +159,13 @@ void VulkanBuffer::map(Span<void*> data, size_t elementSize, UInt32 firstElement
 {
 	std::ranges::for_each(data, [this, &elementSize, &write, i = firstElement](void* mem) mutable { this->map(mem, elementSize, i++, write); });
 }
+
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+VkAccelerationStructureKHR VulkanBuffer::accelerationStructure() const noexcept
+{
+	return m_impl->m_accelerationStructure;
+}
+#endif
 
 UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
