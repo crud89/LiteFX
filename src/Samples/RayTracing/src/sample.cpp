@@ -116,18 +116,6 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto blas = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure()));
     blas->withTriangleMesh({ asShared(std::move(vertexBuffer)), asShared(std::move(indexBuffer)) });
 
-    // Compute required buffer sizes for BLAS buffers.
-    UInt64 blasScratchSize, blasBufferSize;
-    m_device->computeAccelerationStructureSizes(*blas, blasBufferSize, blasScratchSize);
-
-    // Build the BLAS.
-    // TODO: If we can determine the TLAS size before this point, we can re-use the scratch buffer.
-    auto blasBuffer = m_device->factory().createBuffer("BLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, blasBufferSize, 1, ResourceUsage::AllowWrite);
-    commandBuffer->buildAccelerationStructure(*blasBuffer, *blas);
-
-
-
-    // Create a TLAS.
     auto tlas = m_device->factory().createTopLevelAccelerationStructure();
     tlas->withInstance(blas, 0, 0)
         .withInstance(blas, 1, 0)
@@ -139,9 +127,23 @@ void SampleApp::initBuffers(IRenderBackend* backend)
         .withInstance(blas, 7, 0)
         .withInstance(blas, 8, 0);
 
-    //m_device->computeAccelerationStructureSizes(*tlas, tlasBufferSize, tlasScratchSize);
+    // Compute required buffer sizes for BLAS buffers.
+    UInt64 blasScratchSize, blasBufferSize, tlasScratchSize, tlasBufferSize;
+    m_device->computeAccelerationStructureSizes(*blas, blasBufferSize, blasScratchSize);
+    m_device->computeAccelerationStructureSizes(*tlas, tlasBufferSize, tlasScratchSize);
 
-    // TODO: Allocate BLAS and TLAS buffers.
+    // Create a scratch buffer.
+    auto scratchBufferSize = std::max(blasScratchSize, tlasScratchSize);
+    auto scratchBuffer = asShared(std::move(m_device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, scratchBufferSize, 1, ResourceUsage::AllowWrite)));
+
+    // Build the BLAS and the TLAS.
+    auto blasBuffer = m_device->factory().createBuffer("BLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, blasBufferSize, 1, ResourceUsage::AllowWrite);
+    auto tlasBuffer = m_device->factory().createBuffer("TLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, tlasBufferSize, 1, ResourceUsage::AllowWrite);
+    commandBuffer->buildAccelerationStructure(*blasBuffer, *blas, scratchBuffer);
+    // TODO: barrier in order to wait for building process to be finished?!
+    //commandBuffer->buildAccelerationStructure(*tlasBuffer, *tlas, scratchBuffer);
+
+
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
