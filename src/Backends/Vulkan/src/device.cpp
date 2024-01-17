@@ -656,7 +656,10 @@ void VulkanDevice::computeAccelerationStructureSizes(const VulkanBottomLevelAcce
     auto descriptions = buildInfo | std::views::values | std::ranges::to<Array<VkAccelerationStructureGeometryKHR>>();
     auto sizes = buildInfo | std::views::keys | std::ranges::to<Array<UInt32>>();
 
-    VkAccelerationStructureBuildSizesInfoKHR prebuildInfo { .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR };
+    VkAccelerationStructureBuildSizesInfoKHR prebuildInfo = { 
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR 
+    };
+
     VkAccelerationStructureBuildGeometryInfoKHR inputs = {
         .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
         .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
@@ -675,24 +678,44 @@ void VulkanDevice::computeAccelerationStructureSizes(const VulkanBottomLevelAcce
 
 void VulkanDevice::computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize) const
 {
-    // TODO: In Vulkan, we need to create the BLAS to create the TLAS first.
-    throw;
+    auto instances = tlas.instances() | 
+        std::views::transform([](auto& instance) { return VkAccelerationStructureInstanceKHR { /* Empty for now. */ }; }) | 
+        std::ranges::to<Array<VkAccelerationStructureInstanceKHR>>();
+    auto instanceCount = static_cast<UInt32>(instances.size());
 
-    //auto& instances = tlas.instances();
+    VkAccelerationStructureGeometryInstancesDataKHR instanceInfo = {
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR,
+        .arrayOfPointers = false,
+        .data = {
+            .hostAddress = instances.data()
+        }
+    };
 
-    //VkAccelerationStructureBuildSizesInfoKHR prebuildInfo{ .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR };
-    //VkAccelerationStructureBuildGeometryInfoKHR inputs = {
-    //    .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
-    //    .type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR,
-    //    .flags = 0, // TODO: Allow update/prefer fast trace/etc
-    //    .mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
-    //    .geometryCount = static_cast<UInt32>(instances.size())
-    //};
+    VkAccelerationStructureGeometryKHR geometryInfo = {
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
+        .geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR,
+        .geometry = {
+            .instances = instanceInfo
+        }
+    };
 
-    //// Get the prebuild info and align the buffer sizes.
-    //const auto alignment = this->adapter().limits().minUniformBufferOffsetAlignment;
-    //::vkGetAccelerationStructureBuildSizes(this->handle(), VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR, &inputs, sizes.data(), &prebuildInfo);
-    //bufferSize = (prebuildInfo.accelerationStructureSize + alignment - 1) & ~(alignment - 1);
-    //scratchSize = (prebuildInfo.buildScratchSize + alignment - 1) & ~(alignment - 1);
+    VkAccelerationStructureBuildSizesInfoKHR prebuildInfo = { 
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR 
+    };
+
+    VkAccelerationStructureBuildGeometryInfoKHR inputs = {
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
+        .type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR,
+        .flags = std::bit_cast<VkBuildAccelerationStructureFlagsKHR>(tlas.flags()),
+        .mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
+        .geometryCount = 1u,
+        .pGeometries = &geometryInfo
+    };
+
+    // Get the prebuild info and align the buffer sizes.
+    const auto alignment = this->adapter().limits().minUniformBufferOffsetAlignment;
+    ::vkGetAccelerationStructureBuildSizes(this->handle(), VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR, &inputs, &instanceCount, &prebuildInfo);
+    bufferSize = (prebuildInfo.accelerationStructureSize + alignment - 1) & ~(alignment - 1);
+    scratchSize = (prebuildInfo.buildScratchSize + alignment - 1) & ~(alignment - 1);
 }
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
