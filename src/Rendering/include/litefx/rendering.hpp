@@ -467,10 +467,14 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TImage">The generic image type. Must implement <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TBarrier">The barrier type. Must implement <see cref="Barrier"/>.</typeparam>
     /// <typeparam name="TPipeline">The common pipeline interface type. Must be derived from <see cref="Pipeline"/>.</typeparam>
-    template <typename TCommandBuffer, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline> requires
+    /// <typeparam name="TBLAS">The type of the bottom-level acceleration structure. Must implement <see cref="IBottomLevelAccelerationStructure" />.</typeparam>
+    /// <typeparam name="TTLAS">The type of the top-level acceleration structure. Must implement <see cref="ITopLevelAccelerationStructure" />.</typeparam>
+    template <typename TCommandBuffer, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline, typename TBLAS, typename TTLAS> requires
         rtti::implements<TBarrier, Barrier<TBuffer, TImage>> &&
         //std::derived_from<TCommandBuffer, ICommandBuffer> &&
-        std::derived_from<TPipeline, Pipeline<typename TPipeline::pipeline_layout_type, typename TPipeline::shader_program_type>>
+        std::derived_from<TPipeline, Pipeline<typename TPipeline::pipeline_layout_type, typename TPipeline::shader_program_type>> &&
+        std::derived_from<TBLAS, IBottomLevelAccelerationStructure> &&
+        std::derived_from<TTLAS, ITopLevelAccelerationStructure>
     class CommandBuffer : public ICommandBuffer {
     public:
         using ICommandBuffer::dispatch;
@@ -485,6 +489,19 @@ namespace LiteFX::Rendering {
         using ICommandBuffer::bind;
         using ICommandBuffer::use;
         using ICommandBuffer::pushConstants;
+#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
+        using ICommandBuffer::buildAccelerationStructure;
+#endif
+
+    public:
+        using command_buffer_type = TCommandBuffer;
+        using buffer_type = TBuffer;
+        using vertex_buffer_type = TVertexBuffer;
+        using index_buffer_type = TIndexBuffer;
+        using image_type = TImage;
+        using barrier_type = TBarrier;
+        using bottom_level_acceleration_structure_type = TBLAS;
+        using top_level_acceleration_structure_type = TTLAS;
 
     public:
         using command_buffer_type = TCommandBuffer;
@@ -576,6 +593,17 @@ namespace LiteFX::Rendering {
         /// <inheritdoc />
         virtual void execute(Enumerable<SharedPtr<const command_buffer_type>> commandBuffers) const = 0;
 
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+    public:
+        /// <inheritdoc />
+        virtual void buildAccelerationStructure(const buffer_type& buffer, const bottom_level_acceleration_structure_type& blas) const = 0;
+
+        /// <inheritdoc />
+        virtual void buildAccelerationStructure(const buffer_type& buffer, const bottom_level_acceleration_structure_type& blas, const SharedPtr<const buffer_type> scratchBuffer) const = 0;
+
+        // TODO: Add copy commands to support compaction and serialization.
+#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+
     private:
         inline void cmdBarrier(const IBarrier& barrier) const noexcept override {
             this->barrier(dynamic_cast<const barrier_type&>(barrier));
@@ -660,6 +688,16 @@ namespace LiteFX::Rendering {
         inline void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const override {
             return this->execute(commandBuffers | std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }));
         }
+
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+        void cmdBuildAccelerationStructure(const IBuffer& buffer, const IBottomLevelAccelerationStructure& blas) const override {
+            this->buildAccelerationStructure(dynamic_cast<const buffer_type&>(buffer), dynamic_cast<const bottom_level_acceleration_structure_type&>(blas));
+        }
+
+        void cmdBuildAccelerationStructure(const IBuffer& buffer, const IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer) const override {
+            this->buildAccelerationStructure(dynamic_cast<const buffer_type&>(buffer), dynamic_cast<const bottom_level_acceleration_structure_type&>(blas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer));
+        }
+#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     };
 
     /// <summary>
@@ -716,7 +754,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
     /// <seealso cref="RenderTarget" />
     template <typename TCommandBuffer> requires
-        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type>>
+        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type, typename TCommandBuffer::bottom_level_acceleration_structure_type, typename TCommandBuffer::top_level_acceleration_structure_type>>
     class FrameBuffer : public IFrameBuffer {
     public:
         using command_buffer_type = TCommandBuffer;
@@ -916,7 +954,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TCommandBuffer">The type of the command buffer for this queue. Must implement <see cref="CommandBuffer"/>.</typeparam>
     template <typename TCommandBuffer> requires
-        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type>>
+        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type, typename TCommandBuffer::bottom_level_acceleration_structure_type, typename TCommandBuffer::top_level_acceleration_structure_type>>
     class CommandQueue : public ICommandQueue {
     public:
         using ICommandQueue::submit;
@@ -1058,27 +1096,27 @@ namespace LiteFX::Rendering {
 
     private:
         inline UniquePtr<IBuffer> getBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const override {
-            return this->createBuffer(type, usage, elementSize, elements, usage);
+            return this->createBuffer(type, heap, elementSize, elements, usage);
         }
 
         inline UniquePtr<IBuffer> getBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const override {
-            return this->createBuffer(name, type, usage, elementSize, elements, usage);
+            return this->createBuffer(name, type, heap, elementSize, elements, usage);
         }
 
         inline UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const override {
-            return this->createVertexBuffer(dynamic_cast<const vertex_buffer_layout_type&>(layout), usage, elements, usage);
+            return this->createVertexBuffer(dynamic_cast<const vertex_buffer_layout_type&>(layout), heap, elements, usage);
         }
 
         inline UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const override {
-            return this->createVertexBuffer(name, dynamic_cast<const vertex_buffer_layout_type&>(layout), usage, elements, usage);
+            return this->createVertexBuffer(name, dynamic_cast<const vertex_buffer_layout_type&>(layout), heap, elements, usage);
         }
         
         inline UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const override {
-            return this->createIndexBuffer(dynamic_cast<const index_buffer_layout_type&>(layout), usage, elements, usage);
+            return this->createIndexBuffer(dynamic_cast<const index_buffer_layout_type&>(layout), heap, elements, usage);
         }
 
         inline UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const override {
-            return this->createIndexBuffer(name, dynamic_cast<const index_buffer_layout_type&>(layout), usage, elements, usage);
+            return this->createIndexBuffer(name, dynamic_cast<const index_buffer_layout_type&>(layout), heap, elements, usage);
         }
 
         inline UniquePtr<IImage> getAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const override {

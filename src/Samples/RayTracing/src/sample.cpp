@@ -91,25 +91,25 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
 void SampleApp::initBuffers(IRenderBackend* backend)
 {
-    // Get a command buffer
-    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
+    // Get a command buffer. Note that we use the graphics queue here, as it also supports transfers, but additionally allows us to build acceleration structures.
+    auto commandBuffer = m_device->defaultQueue(QueueType::Graphics).createCommandBuffer(true);
 
     // Create the staging buffer.
     // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
     //       whole buffer.
-    auto stagedVertices = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Staging, vertices.size());
+    auto stagedVertices = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
     stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, vertices.size());
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
     commandBuffer->transfer(asShared(std::move(stagedVertices)), *vertexBuffer, 0, 0, vertices.size());
 
     // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
-    auto stagedIndices = m_device->factory().createIndexBuffer(*m_inputAssembler->indexBufferLayout(), ResourceHeap::Staging, indices.size());
+    auto stagedIndices = m_device->factory().createIndexBuffer(*m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
     stagedIndices->map(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), 0);
 
     // Create the actual index buffer and transfer the staging buffer into it.
-    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, indices.size());
+    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
     commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
 
     // Prebuild acceleration structures. We start with 1 bottom-level acceleration structure (BLAS) for our simple geometry and a few top-level acceleration strucutres (TLAS) for the instances.
@@ -119,6 +119,12 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Compute required buffer sizes for BLAS buffers.
     UInt64 blasScratchSize, blasBufferSize;
     m_device->computeAccelerationStructureSizes(*blas, blasBufferSize, blasScratchSize);
+
+    // Build the BLAS.
+    // TODO: If we can determine the TLAS size before this point, we can re-use the scratch buffer.
+    auto blasBuffer = m_device->factory().createBuffer("BLAS", BufferType::AccelerationStructure, BufferUsage::Resource, blasBufferSize, 1, true);
+    commandBuffer->buildAccelerationStructure(*blasBuffer, *blas);
+
 
 
     // Create a TLAS.
@@ -141,7 +147,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
-    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, ResourceHeap::Resource);
+    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, BufferUsage::Resource);
     auto cameraBindings = cameraBindingLayout.allocate({ { .resource = *cameraBuffer } });
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
@@ -150,15 +156,16 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, ResourceHeap::Dynamic, 3);
+    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, BufferUsage::Dynamic, 3);
     auto transformBindings = transformBindingLayout.allocateMultiple(3, {
         { { .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
         { { .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
         { { .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
     });
     
-    // End and submit the command buffer.
-    m_transferFence = commandBuffer->submit();
+    // End and submit the command buffer and wait for it to finish.
+    auto fence = commandBuffer->submit();
+    m_device->defaultQueue(QueueType::Graphics).waitFor(fence);
     
     // Add everything to the state.
     m_device->state().add(std::move(cameraBuffer));
@@ -176,7 +183,7 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffe
     camera.ViewProjection = projection * view;
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
-    auto cameraStagingBuffer = m_device->factory().createBuffer(m_device->state().pipeline("Geometry"), DescriptorSets::Constant, 0, ResourceHeap::Staging);
+    auto cameraStagingBuffer = m_device->factory().createBuffer(m_device->state().pipeline("Geometry"), DescriptorSets::Constant, 0, BufferUsage::Staging);
     cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
     commandBuffer.transfer(asShared(std::move(cameraStagingBuffer)), buffer);
 }
@@ -391,8 +398,6 @@ void SampleApp::drawFrame()
     auto& transformBuffer = m_device->state().buffer("Transform");
     auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
     auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer));
-    auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
-    auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 
     // Wait for all transfers to finish.
     renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
@@ -416,11 +421,7 @@ void SampleApp::drawFrame()
     commandBuffer->bind(cameraBindings);
     commandBuffer->bind(transformBindings);
 
-    // Bind the vertex and index buffers.
-    commandBuffer->bind(vertexBuffer);
-    commandBuffer->bind(indexBuffer);
-
     // Draw the object and present the frame by ending the render pass.
-    commandBuffer->drawIndexed(indexBuffer.elements());
+    //commandBuffer->drawIndexed(indexBuffer.elements());
     renderPass.end();
 }

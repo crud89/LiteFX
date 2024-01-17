@@ -69,6 +69,33 @@ public:
 
 		return buffer;
 	}
+
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+	inline void buildAccelerationStructure(const IVulkanBuffer& buffer, const VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer)
+	{
+		auto buildInfo = blas.buildInfo();
+		auto descriptions = buildInfo | std::views::values | std::ranges::to<Array<VkAccelerationStructureGeometryKHR>>();
+		auto sizes = buildInfo | std::views::keys | std::ranges::to<Array<UInt32>>();
+
+		throw;
+
+		VkAccelerationStructureBuildGeometryInfoKHR inputs = {
+			.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
+			.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
+			.flags = std::bit_cast<VkBuildAccelerationStructureFlagsKHR>(blas.flags()),
+			.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
+			.dstAccelerationStructure = /* ... */ VK_NULL_HANDLE,
+			.geometryCount = static_cast<UInt32>(descriptions.size()),
+			.pGeometries = descriptions.data(),
+			.scratchData = scratchBuffer->virtualAddress()
+		};
+
+		//::vkCmdBuildAccelerationStructuresKHR(m_parent->handle(), 1, &inputs, )
+
+		// Store the scratch buffer.
+		m_sharedResources.push_back(scratchBuffer);
+	}
+#endif
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -96,8 +123,10 @@ void VulkanCommandBuffer::begin() const
 	};
 
 	raiseIfFailed(::vkBeginCommandBuffer(this->handle(), &beginInfo), "Unable to begin command recording.");
-	
 	m_impl->m_recording = true;
+
+	// If it was possible to reset the command buffer, we can also safely release shared resources from previous recordings.
+	m_impl->m_sharedResources.clear();
 }
 
 void VulkanCommandBuffer::begin(const VulkanRenderPass& renderPass) const noexcept
@@ -475,3 +504,60 @@ void VulkanCommandBuffer::releaseSharedState() const
 {
 	m_impl->m_sharedResources.clear();
 }
+
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+
+// TODO: Add overload that supports updates (updates set `SourceAccelerationStructureData`).
+
+void VulkanCommandBuffer::buildAccelerationStructure(const IVulkanBuffer& buffer, const VulkanBottomLevelAccelerationStructure& blas) const
+{
+	// Compute buffer sizes.
+	UInt64 bufferSize{ }, scratchBufferSize{ };
+	m_impl->m_queue.device().computeAccelerationStructureSizes(blas, bufferSize, scratchBufferSize);
+
+	// Validate the provided buffer.
+	if (!buffer.writable()) [[unlikely]]
+		throw InvalidArgumentException("buffer", "The buffer must be writable.");
+
+	if (buffer.type() != BufferType::AccelerationStructure) [[unlikely]]
+		throw InvalidArgumentException("buffer", "The buffer must be an acceleration structure.");
+
+	if (buffer.alignedElementSize() < bufferSize) [[unlikely]]
+		throw InvalidArgumentException("buffer", "The provided buffer is too small to build up the acceleration structure. At least {0} bytes are required, but only {1} are available.", bufferSize, buffer.alignedElementSize());
+
+	// Allocate scratch buffer.
+	auto scratchBuffer = m_impl->m_queue.device().factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, scratchBufferSize, 1, ResourceUsage::AllowWrite);
+
+	// Build the acceleration structure.
+	m_impl->buildAccelerationStructure(buffer, blas, asShared(std::move(scratchBuffer)));
+}
+
+void VulkanCommandBuffer::buildAccelerationStructure(const IVulkanBuffer& buffer, const VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer) const
+{
+	if (scratchBuffer == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("scratchBuffer", "The scratch buffer must be initialized.");
+
+	// Compute buffer sizes.
+	UInt64 bufferSize{ }, scratchBufferSize{ };
+	m_impl->m_queue.device().computeAccelerationStructureSizes(blas, bufferSize, scratchBufferSize);
+
+	// Validate the provided buffers.
+	if (!buffer.writable()) [[unlikely]]
+		throw InvalidArgumentException("buffer", "The buffer must be writable.");
+
+	if (buffer.type() != BufferType::AccelerationStructure) [[unlikely]]
+		throw InvalidArgumentException("buffer", "The buffer must be an acceleration structure.");
+
+	if (buffer.alignedElementSize() < bufferSize) [[unlikely]]
+		throw InvalidArgumentException("buffer", "The provided buffer is too small to build up the acceleration structure. At least {0} bytes are required, but only {1} are available.", bufferSize, buffer.alignedElementSize());
+
+	if (!scratchBuffer->writable()) [[unlikely]]
+		throw InvalidArgumentException("scratchBuffer", "The scratch buffer must be writable.");
+
+	if (scratchBuffer->alignedElementSize() < scratchBufferSize) [[unlikely]]
+		throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer is too small to build up the acceleration structure. At least {0} bytes are required, but only {1} are available.", scratchBufferSize, scratchBuffer->alignedElementSize());
+
+	// Create the acceleration structure.
+	m_impl->buildAccelerationStructure(buffer, blas, scratchBuffer);
+}
+#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)

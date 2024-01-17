@@ -112,7 +112,7 @@ void loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampler
     // Create the texture from the constant buffer descriptor set, since we only load the texture once and use it for all frames.
     // NOTE: For Vulkan, the texture does not need to be writable, however DX12 does not support mip-map generation out of the box. This functionality is emulated
     //       in the backend using a compute shader, that needs to write back to the texture.
-    texture = device.factory().createTexture("Texture", Format::R8G8B8A8_UNORM, Size2d(width, height), ImageDimensions::DIM_2, 6, 1, MultiSamplingLevel::x1, true);
+    texture = device.factory().createTexture("Texture", Format::R8G8B8A8_UNORM, Size2d(width, height), ImageDimensions::DIM_2, 6, 1, MultiSamplingLevel::x1, ResourceUsage::AllowWrite | ResourceUsage::TransferDestination | ResourceUsage::TransferSource);
 
     // Create a staging buffer for the first mip-map of the texture.
     auto stagedTexture = device.factory().createBuffer(BufferType::Other, ResourceHeap::Staging, texture->size(0));

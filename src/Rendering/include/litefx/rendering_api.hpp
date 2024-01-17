@@ -560,6 +560,14 @@ namespace LiteFX::Rendering {
         Texel = 0x00000005,
 
         /// <summary>
+        /// Describes an acceleration structure buffer.
+        /// </summary>
+        /// <seealso cref="ICommandBuffer::buildAccelerationStructure" />
+        /// <seealso cref="IBottomLevelAccelerationStructure" />
+        /// <seealso cref="ITopLevelAccelerationStructure" />
+        AccelerationStructure = 0x00000006,
+
+        /// <summary>
         /// Describes another type of buffer, such as samplers or images.
         /// </summary>
         /// <remarks>
@@ -646,7 +654,7 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// The resource is created without any special usage settings.
         /// </summary>
-        Default = 0x0000,
+        None = 0x0000,
 
         /// <summary>
         /// Allows the resource to be written to.
@@ -669,7 +677,7 @@ namespace LiteFX::Rendering {
         /// Allows the resource data to be copied from another resource.
         /// </summary>
         /// <remarks>
-        /// This flag is implicitly set for resources created with <see cref="ResourceHeap::Readback" /> and for render targets (attachments) of type <see cref="RenderTargetType::Present" />.
+        /// This flag is implicitly set for resources created with <see cref="ResourceHeap::Readback" /> and for render target images (attachments), that allow storage (<see cref="RenderTargetFlags::AllowStorage" />).
         /// </remarks>
         TransferDestination = 0x0020,
 
@@ -677,10 +685,15 @@ namespace LiteFX::Rendering {
         /// Allows the resource to be used to build acceleration structures.
         /// </summary>
         /// <remarks>
-        /// This flag is not allowed for acceleration structures (<see cref="BufferType::AccelerationStructure" />), as it is intended to be used for resources that *build* acceleration structures.
+        /// This flag is not allowed for images and other acceleration structures (<see cref="BufferType::AccelerationStructure" />).
         /// </remarks>
         /// <seealso cref="IAccelerationStructure" />
-        AccelerationStructureBuildInput = 0x0100
+        AccelerationStructureBuildInput = 0x0100,
+
+        /// <summary>
+        /// Shortcut for commonly used `TransferSource | TransferDestination` combination.
+        /// </summary>
+        Default = TransferSource | TransferDestination
     };
 
     /// <summary>
@@ -5019,6 +5032,35 @@ namespace LiteFX::Rendering {
             this->cmdExecute(commandBuffers);
         }
 
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+        /// <summary>
+        /// Builds a bottom-level acceleration structure and returns the buffer containing it.
+        /// </summary>
+        /// <remarks>
+        /// This overload creates a temporary scratch buffer for building up the acceleration structure. It might be more efficient to re-use scratch buffer memory, in which case another overload
+        /// of this method is available.
+        /// </remarks>
+        /// <param name="buffer">The buffer to write the acceleration structure into.</param>
+        /// <param name="blas">The bottom-level acceleration structure to build.</param>
+        inline void buildAccelerationStructure(const IBuffer& buffer, const IBottomLevelAccelerationStructure& blas) const {
+            this->cmdBuildAccelerationStructure(buffer, blas);
+        }
+
+        /// <summary>
+        /// Builds a bottom-level acceleration structure and returns the buffer containing it.
+        /// </summary>
+        /// <remarks>
+        /// This overload uses an existing scratch buffer to build up the acceleration structure. Note that it is required to manually synchronize write access to the scratch buffer. Two building
+        /// commands must not use the same scratch buffer at the same time.
+        /// </remarks>
+        /// <param name="buffer">The buffer to write the acceleration structure into.</param>
+        /// <param name="blas">The bottom-level acceleration structure to build.</param>
+        /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration strucuture.</param>
+        inline void buildAccelerationStructure(const IBuffer& buffer, const IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer) const {
+            this->cmdBuildAccelerationStructure(buffer, blas, scratchBuffer);
+        }
+#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+
     private:
         virtual void cmdBarrier(const IBarrier& barrier) const noexcept = 0;
         virtual void cmdGenerateMipMaps(IImage& image) noexcept = 0;
@@ -5041,6 +5083,11 @@ namespace LiteFX::Rendering {
         virtual void cmdDrawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const = 0;
         virtual void cmdExecute(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
         virtual void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffer) const = 0;
+
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+        virtual void cmdBuildAccelerationStructure(const IBuffer& buffer, const IBottomLevelAccelerationStructure& blas) const = 0;
+        virtual void cmdBuildAccelerationStructure(const IBuffer& buffer, const IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer) const = 0;
+#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
         /// <summary>
         /// Called by the parent command queue to signal that the command buffer should release it's shared state.

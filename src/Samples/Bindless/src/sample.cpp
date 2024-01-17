@@ -171,7 +171,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto& instanceBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::InstanceData);
 
     // Since we are using an unstructured storage buffer, we need to specify the element size manually.
-    auto instanceStagingBuffer = m_device->factory().createBuffer(instanceBindingLayout, 0, ResourceHeap::Staging, sizeof(InstanceBuffer), NUM_INSTANCES, false);
+    auto instanceStagingBuffer = m_device->factory().createBuffer(instanceBindingLayout, 0, ResourceHeap::Staging, sizeof(InstanceBuffer), NUM_INSTANCES);
     auto instanceBuffer = m_device->factory().createBuffer("Instance Buffer", instanceBindingLayout, 0, ResourceHeap::Resource, sizeof(InstanceBuffer), NUM_INSTANCES);
     auto instanceBinding = instanceBindingLayout.allocate(NUM_INSTANCES, { { 0, *instanceBuffer } });
     instanceStagingBuffer->map(reinterpret_cast<const void*>(&instanceData), sizeof(instanceData));

@@ -253,13 +253,41 @@ struct LITEFX_RENDERING_API fmt::formatter<BufferType> : formatter<string_view> 
 		string_view name = "Invalid";
 		switch (t) {
 		using enum BufferType;
-		case Index:      name = "Index";   break;
-		case Vertex:     name = "Vertex";  break;
-		case Uniform:    name = "Uniform"; break;
-		case Storage:    name = "Storage"; break;
-		case Texel:      name = "Texel";   break;
-		case Other:      name = "Other";   break;
+		case Index:                 name = "Index"; break;
+		case Vertex:                name = "Vertex"; break;
+		case Uniform:               name = "Uniform"; break;
+		case Storage:               name = "Storage"; break;
+		case Texel:                 name = "Texel"; break;
+		case AccelerationStructure: name = "Acceleration Structure"; break;
+		case Other:                 name = "Other"; break;
 		}
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<ResourceUsage> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(ResourceUsage t, FormatContext& ctx) {
+		Array<String> names;
+
+		if (t == ResourceUsage::None)
+			names.push_back("None");
+		else if (t == ResourceUsage::Default)
+			names.push_back("Default");
+		else
+		{
+			if ((t & ResourceUsage::AllowWrite) == ResourceUsage::AllowWrite)
+				names.push_back("AllowWrite");
+			if ((t & ResourceUsage::TransferSource) == ResourceUsage::TransferSource)
+				names.push_back("TransferSource");
+			if ((t & ResourceUsage::TransferDestination) == ResourceUsage::TransferDestination)
+				names.push_back("TransferDestination");
+			if ((t & ResourceUsage::AccelerationStructureBuildInput) == ResourceUsage::AccelerationStructureBuildInput)
+				names.push_back("AccelerationStructureBuildInput");
+		}
+
+		String name = Join(names, " | ");
 		return formatter<string_view>::format(name, ctx);
 	}
 };
@@ -558,6 +586,54 @@ struct LITEFX_RENDERING_API fmt::formatter<AttributeSemantic> : formatter<string
 		default: name = "Unknown"; break;
 		}
 
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<GeometryFlags> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(GeometryFlags t, FormatContext& ctx) {
+		Array<String> names;
+
+		if (t == GeometryFlags::None)
+			names.push_back("None");
+		else
+		{
+			if ((t & GeometryFlags::Opaque) == GeometryFlags::Opaque)
+				names.push_back("Opaque");
+			if ((t & GeometryFlags::OneShotAnyHit) == GeometryFlags::OneShotAnyHit)
+				names.push_back("OneShotAnyHit");
+		}
+
+		String name = Join(names, " | ");
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<AccelerationStructureFlags> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(AccelerationStructureFlags t, FormatContext& ctx) {
+		Array<String> names;
+
+		if (t == AccelerationStructureFlags::None)
+			names.push_back("None");
+		else
+		{
+			if ((t & AccelerationStructureFlags::AllowUpdate) == AccelerationStructureFlags::AllowUpdate)
+				names.push_back("AllowUpdate");
+			if ((t & AccelerationStructureFlags::AllowCompaction) == AccelerationStructureFlags::AllowCompaction)
+				names.push_back("AllowCompaction");
+			if ((t & AccelerationStructureFlags::PreferFastTrace) == AccelerationStructureFlags::AllowCompaction)
+				names.push_back("PreferFastTrace");
+			if ((t & AccelerationStructureFlags::PreferFastBuild) == AccelerationStructureFlags::PreferFastBuild)
+				names.push_back("PreferFastBuild");
+			if ((t & AccelerationStructureFlags::MinimizeMemory) == AccelerationStructureFlags::MinimizeMemory)
+				names.push_back("MinimizeMemory");
+		}
+
+		String name = Join(names, " | ");
 		return formatter<string_view>::format(name, ctx);
 	}
 };

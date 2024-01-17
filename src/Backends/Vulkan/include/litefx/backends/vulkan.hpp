@@ -174,6 +174,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanBottomLevelAccelerationStructure final : public IBottomLevelAccelerationStructure {
         LITEFX_IMPLEMENTATION(VulkanBottomLevelAccelerationStructureImpl);
         friend class VulkanDevice;
+        friend class VulkanCommandBuffer;
 
     public:
         /// <summary>
@@ -220,6 +221,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanTopLevelAccelerationStructure final : public ITopLevelAccelerationStructure {
         LITEFX_IMPLEMENTATION(VulkanTopLevelAccelerationStructureImpl);
         friend class VulkanDevice;
+        friend class VulkanCommandBuffer;
 
     public:
         /// <summary>
@@ -876,14 +878,14 @@ namespace LiteFX::Rendering::Backends {
     };
 
     /// <summary>
-    /// Records commands for a <see cref="VulkanCommandQueue" />
+    /// Records commands for a <see cref="VulkanQueue" />
     /// </summary>
     /// <seealso cref="VulkanQueue" />
-    class LITEFX_VULKAN_API VulkanCommandBuffer final : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>, public Resource<VkCommandBuffer>, public std::enable_shared_from_this<VulkanCommandBuffer> {
+    class LITEFX_VULKAN_API VulkanCommandBuffer final : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>, public Resource<VkCommandBuffer>, public std::enable_shared_from_this<VulkanCommandBuffer> {
         LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
 
     public:
-        using base_type = CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>;
+        using base_type = CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>;
         using base_type::dispatch;
 #ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         using base_type::dispatchMesh;
@@ -896,6 +898,9 @@ namespace LiteFX::Rendering::Backends {
         using base_type::bind;
         using base_type::use;
         using base_type::pushConstants;
+#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
+        using base_type::buildAccelerationStructure;
+#endif
 
     private:
         /// <summary>
@@ -1033,6 +1038,15 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const override;
+
+#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+    public:
+        /// <inheritdoc />
+        void buildAccelerationStructure(const IVulkanBuffer& buffer, const VulkanBottomLevelAccelerationStructure& blas) const override;
+
+        /// <inheritdoc />
+        void buildAccelerationStructure(const IVulkanBuffer& buffer, const VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer) const override;
+#endif
 
     private:
         void releaseSharedState() const override;
@@ -1608,22 +1622,22 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        UniquePtr<IVulkanBuffer> createBuffer(BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
+        UniquePtr<IVulkanBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanBuffer> createBuffer(const String& name, BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
+        UniquePtr<IVulkanBuffer> createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const VulkanVertexBufferLayout& layout, ResourceHeap usage, UInt32 elements = 1) const override;
+        UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, ResourceHeap usage, UInt32 elements = 1) const override;
+        UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const VulkanIndexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const override;
+        UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const override;
+        UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
         UniquePtr<IVulkanImage> createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
@@ -1632,13 +1646,13 @@ namespace LiteFX::Rendering::Backends {
         UniquePtr<IVulkanImage> createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;
+        UniquePtr<IVulkanImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;
+        UniquePtr<IVulkanImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        Enumerable<UniquePtr<IVulkanImage>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;
+        Enumerable<UniquePtr<IVulkanImage>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
         UniquePtr<IVulkanSampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
