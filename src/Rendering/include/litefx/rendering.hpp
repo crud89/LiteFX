@@ -1050,10 +1050,10 @@ namespace LiteFX::Rendering {
 
 #if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
         /// <inheritdoc />
-        virtual UniquePtr<TBLAS> createBottomLevelAccelerationStructure() const = 0;
+        virtual UniquePtr<TBLAS> createBottomLevelAccelerationStructure(AccelerationStructureFlags flags) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TTLAS> createTopLevelAccelerationStructure() const = 0;
+        virtual UniquePtr<TTLAS> createTopLevelAccelerationStructure(AccelerationStructureFlags flags) const = 0;
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
     private:
@@ -1114,12 +1114,12 @@ namespace LiteFX::Rendering {
         }
 
 #if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-        inline UniquePtr<IBottomLevelAccelerationStructure> getBlas() const override {
-            return this->createBottomLevelAccelerationStructure();
+        inline UniquePtr<IBottomLevelAccelerationStructure> getBlas(AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override {
+            return this->createBottomLevelAccelerationStructure(flags);
         }
 
-        inline UniquePtr<ITopLevelAccelerationStructure> getTlas() const override {
-            return this->createTopLevelAccelerationStructure();
+        inline UniquePtr<ITopLevelAccelerationStructure> getTlas(AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override {
+            return this->createTopLevelAccelerationStructure(flags);
         }
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     };

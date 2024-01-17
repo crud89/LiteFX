@@ -13,11 +13,14 @@ public:
 
 private:
     Array<Instance> m_instances { };
+    AccelerationStructureFlags m_flags;
 
 public:
-    DirectX12TopLevelAccelerationStructureImpl(DirectX12TopLevelAccelerationStructure* parent) noexcept :
-        base(parent)
+    DirectX12TopLevelAccelerationStructureImpl(DirectX12TopLevelAccelerationStructure* parent, AccelerationStructureFlags flags) :
+        base(parent), m_flags(flags)
     {
+        if (LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastBuild) && LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastTrace)) [[unlikely]]
+            throw InvalidArgumentException("flags", "Cannot combine acceleration structure flags `PreferFastBuild` and `PreferFastTrace`.");
     }
 };
 
@@ -25,12 +28,17 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12TopLevelAccelerationStructure::DirectX12TopLevelAccelerationStructure() noexcept :
-    m_impl(makePimpl<DirectX12TopLevelAccelerationStructureImpl>(this))
+DirectX12TopLevelAccelerationStructure::DirectX12TopLevelAccelerationStructure(AccelerationStructureFlags flags) :
+    m_impl(makePimpl<DirectX12TopLevelAccelerationStructureImpl>(this, flags))
 {
 }
 
 DirectX12TopLevelAccelerationStructure::~DirectX12TopLevelAccelerationStructure() noexcept = default;
+
+AccelerationStructureFlags DirectX12TopLevelAccelerationStructure::flags() const noexcept
+{
+    return m_impl->m_flags;
+}
 
 const Array<Instance>& DirectX12TopLevelAccelerationStructure::instances() const noexcept
 {

@@ -635,7 +635,7 @@ void DirectX12Device::computeAccelerationStructureSizes(const DirectX12BottomLev
 	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO prebuildInfo;
     D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {
         .Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL,
-        .Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE, // TODO: Allow update/prefer fast trace/etc
+        .Flags = std::bit_cast<D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS>(blas.flags()),
         .NumDescs = static_cast<UInt32>(descriptions.size()),
         .DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY,
         .pGeometryDescs = descriptions.data()
@@ -644,7 +644,7 @@ void DirectX12Device::computeAccelerationStructureSizes(const DirectX12BottomLev
 	// Get the prebuild info and align the buffer sizes.
 	this->handle()->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &prebuildInfo);
 	bufferSize = (prebuildInfo.ResultDataMaxSizeInBytes + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
-	scratchSize = (prebuildInfo.ScratchDataSizeInBytes   + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
+	scratchSize = (prebuildInfo.ScratchDataSizeInBytes  + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
 }
 
 void DirectX12Device::computeAccelerationStructureSizes(const DirectX12TopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize) const 
@@ -654,7 +654,7 @@ void DirectX12Device::computeAccelerationStructureSizes(const DirectX12TopLevelA
 	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO prebuildInfo;
     D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS inputs = {
         .Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL,
-        .Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_NONE, // TODO: Allow update/prefer fast trace/etc
+        .Flags = std::bit_cast<D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS>(tlas.flags()),
         .NumDescs = static_cast<UInt32>(instances.size()),
         .DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY
     };
@@ -662,6 +662,6 @@ void DirectX12Device::computeAccelerationStructureSizes(const DirectX12TopLevelA
 	// Get the prebuild info and align the buffer sizes.
 	this->handle()->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &prebuildInfo);
 	bufferSize = (prebuildInfo.ResultDataMaxSizeInBytes + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
-	scratchSize = (prebuildInfo.ScratchDataSizeInBytes   + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
+	scratchSize = (prebuildInfo.ScratchDataSizeInBytes  + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
 }
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)

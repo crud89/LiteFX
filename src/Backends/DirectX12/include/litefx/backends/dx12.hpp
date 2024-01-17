@@ -163,10 +163,18 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// Initializes a new DirectX 12 bottom-level acceleration structure (BLAS).
         /// </summary>
-        explicit DirectX12BottomLevelAccelerationStructure() noexcept;
+        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
+        /// <exception cref="InvalidArgumentException">Thrown if the provided <paramref name="flags" /> contain an unsupported combination of flags.</exception>
+        /// <seealso cref="AccelerationStructureFlags" />
+        explicit DirectX12BottomLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None);
         DirectX12BottomLevelAccelerationStructure(const DirectX12BottomLevelAccelerationStructure&) = delete;
         DirectX12BottomLevelAccelerationStructure(DirectX12BottomLevelAccelerationStructure&&) = delete;
         virtual ~DirectX12BottomLevelAccelerationStructure() noexcept;
+
+        // IAccelerationStructure interface.
+    public:
+        /// <inheritdoc />
+        AccelerationStructureFlags flags() const noexcept override;
 
         // IBottomLevelAccelerationStructure interface.
     public:
@@ -198,10 +206,21 @@ namespace LiteFX::Rendering::Backends {
         friend class DirectX12Device;
 
     public:
-        explicit DirectX12TopLevelAccelerationStructure() noexcept;
+        /// <summary>
+        /// Initializes a new DirectX 12 top-level acceleration structure (BLAS).
+        /// </summary>
+        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
+        /// <exception cref="InvalidArgumentException">Thrown if the provided <paramref name="flags" /> contain an unsupported combination of flags.</exception>
+        /// <seealso cref="AccelerationStructureFlags" />
+        explicit DirectX12TopLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None);
         DirectX12TopLevelAccelerationStructure(const DirectX12TopLevelAccelerationStructure&) = delete;
         DirectX12TopLevelAccelerationStructure(DirectX12TopLevelAccelerationStructure&&) = delete;
         virtual ~DirectX12TopLevelAccelerationStructure() noexcept;
+
+        // IAccelerationStructure interface.
+    public:
+        /// <inheritdoc />
+        AccelerationStructureFlags flags() const noexcept override;
 
         // ITopLevelAccelerationStructure interface.
     public:
@@ -1656,10 +1675,10 @@ namespace LiteFX::Rendering::Backends {
 
 #if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
         /// <inheritdoc />
-        virtual UniquePtr<DirectX12BottomLevelAccelerationStructure> createBottomLevelAccelerationStructure() const override;
+        virtual UniquePtr<DirectX12BottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
 
         /// <inheritdoc />
-        virtual UniquePtr<DirectX12TopLevelAccelerationStructure> createTopLevelAccelerationStructure() const override;
+        virtual UniquePtr<DirectX12TopLevelAccelerationStructure> createTopLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     };
 

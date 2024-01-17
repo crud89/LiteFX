@@ -13,11 +13,14 @@ public:
 
 private:
     Array<Instance> m_instances { };
+    AccelerationStructureFlags m_flags;
 
 public:
-    VulkanTopLevelAccelerationStructureImpl(VulkanTopLevelAccelerationStructure* parent) noexcept :
-        base(parent)
+    VulkanTopLevelAccelerationStructureImpl(VulkanTopLevelAccelerationStructure* parent, AccelerationStructureFlags flags) :
+        base(parent), m_flags(flags)
     {
+        if (LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastBuild) && LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastTrace)) [[unlikely]]
+            throw InvalidArgumentException("flags", "Cannot combine acceleration structure flags `PreferFastBuild` and `PreferFastTrace`.");
     }
 };
 
@@ -25,12 +28,17 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanTopLevelAccelerationStructure::VulkanTopLevelAccelerationStructure() noexcept :
-    m_impl(makePimpl<VulkanTopLevelAccelerationStructureImpl>(this))
+VulkanTopLevelAccelerationStructure::VulkanTopLevelAccelerationStructure(AccelerationStructureFlags flags) :
+    m_impl(makePimpl<VulkanTopLevelAccelerationStructureImpl>(this, flags))
 {
 }
 
 VulkanTopLevelAccelerationStructure::~VulkanTopLevelAccelerationStructure() noexcept = default;
+
+AccelerationStructureFlags VulkanTopLevelAccelerationStructure::flags() const noexcept
+{
+    return m_impl->m_flags;
+}
 
 const Array<Instance>& VulkanTopLevelAccelerationStructure::instances() const noexcept
 {

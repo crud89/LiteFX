@@ -15,11 +15,14 @@ public:
 private:
     Array<TriangleMesh>  m_triangleMeshes { };
     Array<BoundingBoxes> m_boundingBoxes  { };
+    AccelerationStructureFlags m_flags;
 
 public:
-    VulkanBottomLevelAccelerationStructureImpl(VulkanBottomLevelAccelerationStructure* parent) noexcept :
-        base(parent)
+    VulkanBottomLevelAccelerationStructureImpl(VulkanBottomLevelAccelerationStructure* parent, AccelerationStructureFlags flags) :
+        base(parent), m_flags(flags)
     {
+        if (LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastBuild) && LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastTrace)) [[unlikely]]
+            throw InvalidArgumentException("flags", "Cannot combine acceleration structure flags `PreferFastBuild` and `PreferFastTrace`.");
     }
 
 public:
@@ -89,12 +92,18 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBottomLevelAccelerationStructure::VulkanBottomLevelAccelerationStructure() noexcept :
-    m_impl(makePimpl<VulkanBottomLevelAccelerationStructureImpl>(this))
+VulkanBottomLevelAccelerationStructure::VulkanBottomLevelAccelerationStructure(AccelerationStructureFlags flags) :
+    m_impl(makePimpl<VulkanBottomLevelAccelerationStructureImpl>(this, flags))
 {
 }
 
 VulkanBottomLevelAccelerationStructure::~VulkanBottomLevelAccelerationStructure() noexcept = default;
+
+AccelerationStructureFlags VulkanBottomLevelAccelerationStructure::flags() const noexcept
+{
+    return m_impl->m_flags;
+}
+
 
 const Array<TriangleMesh>& VulkanBottomLevelAccelerationStructure::triangleMeshes() const noexcept
 {

@@ -15,11 +15,14 @@ public:
 private:
     Array<TriangleMesh>  m_triangleMeshes { };
     Array<BoundingBoxes> m_boundingBoxes  { };
+    AccelerationStructureFlags m_flags;
 
 public:
-    DirectX12BottomLevelAccelerationStructureImpl(DirectX12BottomLevelAccelerationStructure* parent) noexcept :
-        base(parent)
+    DirectX12BottomLevelAccelerationStructureImpl(DirectX12BottomLevelAccelerationStructure* parent, AccelerationStructureFlags flags) :
+        base(parent), m_flags(flags)
     {
+        if (LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastBuild) && LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastTrace)) [[unlikely]]
+            throw InvalidArgumentException("flags", "Cannot combine acceleration structure flags `PreferFastBuild` and `PreferFastTrace`.");
     }
 
 public:
@@ -80,12 +83,17 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12BottomLevelAccelerationStructure::DirectX12BottomLevelAccelerationStructure() noexcept :
-    m_impl(makePimpl<DirectX12BottomLevelAccelerationStructureImpl>(this))
+DirectX12BottomLevelAccelerationStructure::DirectX12BottomLevelAccelerationStructure(AccelerationStructureFlags flags) :
+    m_impl(makePimpl<DirectX12BottomLevelAccelerationStructureImpl>(this, flags))
 {
 }
 
 DirectX12BottomLevelAccelerationStructure::~DirectX12BottomLevelAccelerationStructure() noexcept = default;
+
+AccelerationStructureFlags DirectX12BottomLevelAccelerationStructure::flags() const noexcept 
+{
+    return m_impl->m_flags;
+}
 
 const Array<TriangleMesh>& DirectX12BottomLevelAccelerationStructure::triangleMeshes() const noexcept
 {

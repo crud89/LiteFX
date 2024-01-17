@@ -113,11 +113,16 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
 
     // Prebuild acceleration structures. We start with 1 bottom-level acceleration structure (BLAS) for our simple geometry and a few top-level acceleration strucutres (TLAS) for the instances.
-    // TODO: Builder for BLAS and TLAS structures, then use factory to actually create them (factory could also call `computeAccelerationStructureSizes` to create the buffers... we may need a structure that 
-    //       stores all resources though - or use the already existing ones, which implies that they can't be re-used).
     auto blas = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure()));
-    auto tlas = m_device->factory().createTopLevelAccelerationStructure();
     blas->withTriangleMesh({ asShared(std::move(vertexBuffer)), asShared(std::move(indexBuffer)) });
+
+    // Compute required buffer sizes for BLAS buffers.
+    UInt64 blasScratchSize, blasBufferSize;
+    m_device->computeAccelerationStructureSizes(*blas, blasBufferSize, blasScratchSize);
+
+
+    // Create a TLAS.
+    auto tlas = m_device->factory().createTopLevelAccelerationStructure();
     tlas->withInstance(blas, 0, 0)
         .withInstance(blas, 1, 0)
         .withInstance(blas, 2, 0)
@@ -128,9 +133,6 @@ void SampleApp::initBuffers(IRenderBackend* backend)
         .withInstance(blas, 7, 0)
         .withInstance(blas, 8, 0);
 
-    // Compute required buffer sizes for both structures.
-    UInt64 blasScratchSize, blasBufferSize;
-    m_device->computeAccelerationStructureSizes(*blas, blasBufferSize, blasScratchSize);
     //m_device->computeAccelerationStructureSizes(*tlas, tlasBufferSize, tlasScratchSize);
 
     // TODO: Allocate BLAS and TLAS buffers.

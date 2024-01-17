@@ -177,12 +177,20 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <summary>
-        /// Initializes a new DirectX 12 bottom-level acceleration structure (BLAS).
+        /// Initializes a new Vulkan bottom-level acceleration structure (BLAS).
         /// </summary>
-        explicit VulkanBottomLevelAccelerationStructure() noexcept;
+        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
+        /// <exception cref="InvalidArgumentException">Thrown if the provided <paramref name="flags" /> contain an unsupported combination of flags.</exception>
+        /// <seealso cref="AccelerationStructureFlags" />
+        explicit VulkanBottomLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None);
         VulkanBottomLevelAccelerationStructure(const VulkanBottomLevelAccelerationStructure&) = delete;
         VulkanBottomLevelAccelerationStructure(VulkanBottomLevelAccelerationStructure&&) = delete;
         virtual ~VulkanBottomLevelAccelerationStructure() noexcept;
+
+        // IAccelerationStructure interface.
+    public:
+        /// <inheritdoc />
+        AccelerationStructureFlags flags() const noexcept override;
 
         // IBottomLevelAccelerationStructure interface.
     public:
@@ -214,10 +222,21 @@ namespace LiteFX::Rendering::Backends {
         friend class VulkanDevice;
 
     public:
-        explicit VulkanTopLevelAccelerationStructure() noexcept;
+        /// <summary>
+        /// Initializes a new Vulkan top-level acceleration structure (BLAS).
+        /// </summary>
+        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
+        /// <exception cref="InvalidArgumentException">Thrown if the provided <paramref name="flags" /> contain an unsupported combination of flags.</exception>
+        /// <seealso cref="AccelerationStructureFlags" />
+        explicit VulkanTopLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None);
         VulkanTopLevelAccelerationStructure(const VulkanTopLevelAccelerationStructure&) = delete;
         VulkanTopLevelAccelerationStructure(VulkanTopLevelAccelerationStructure&&) = delete;
         virtual ~VulkanTopLevelAccelerationStructure() noexcept;
+
+        // IAccelerationStructure interface.
+    public:
+        /// <inheritdoc />
+        AccelerationStructureFlags flags() const noexcept override;
 
         // ITopLevelAccelerationStructure interface.
     public:
@@ -1632,10 +1651,10 @@ namespace LiteFX::Rendering::Backends {
 
 #if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
         /// <inheritdoc />
-        virtual UniquePtr<VulkanBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure() const override;
+        virtual UniquePtr<VulkanBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
 
         /// <inheritdoc />
-        virtual UniquePtr<VulkanTopLevelAccelerationStructure> createTopLevelAccelerationStructure() const override;
+        virtual UniquePtr<VulkanTopLevelAccelerationStructure> createTopLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     };
 

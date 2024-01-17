@@ -1550,6 +1550,49 @@ namespace LiteFX::Rendering {
         OneShotAnyHit = 0x02
     };
 
+    /// <summary>
+    /// Controls how an acceleration structure should be built.
+    /// </summary>
+    /// <seealso cref="IBottomLevelAccelerationStructure" />
+    /// <seealso cref="ITopLevelAccelerationStructure" />
+    enum class AccelerationStructureFlags {
+        /// <summary>
+        /// Use default options for building the acceleration structure.
+        /// </summary>
+        None = 0x0000,
+
+        /// <summary>
+        /// Allow the acceleration structure to be updated.
+        /// </summary>
+        AllowUpdate = 0x0001,
+
+        /// <summary>
+        /// Allow the acceleration structure to be compacted.
+        /// </summary>
+        AllowCompaction = 0x0002,
+
+        /// <summary>
+        /// Prefer building a better performing acceleration structure, that possibly takes longer to build.
+        /// </summary>
+        /// <remarks>
+        /// This flag cannot be combined with <see cref="PreferFastBuild" />.
+        /// </remarks>
+        PreferFastTrace = 0x0004,
+
+        /// <summary>
+        /// Prefer fast build times for the acceleration structure, but sacrifice raytracing performance.
+        /// </summary>
+        /// <remarks>
+        /// This flag cannot be combined with <see cref="PreferFastTrace" />.
+        /// </remarks>
+        PreferFastBuild = 0x0008,
+
+        /// <summary>
+        /// Prefer to minimize the memory footprint of the acceleration structure, but at the cost of raytracing performance and build times.
+        /// </summary>
+        MinimizeMemory = 0x0010
+    };
+
 #pragma endregion
 
 #pragma region "Flags"
@@ -1562,6 +1605,7 @@ namespace LiteFX::Rendering {
     LITEFX_DEFINE_FLAGS(WriteMask);
     LITEFX_DEFINE_FLAGS(RenderTargetFlags);
     LITEFX_DEFINE_FLAGS(GeometryFlags);
+    LITEFX_DEFINE_FLAGS(AccelerationStructureFlags);
 
 #pragma endregion
 
@@ -3294,6 +3338,13 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IAccelerationStructure {
     public:
         virtual ~IAccelerationStructure() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns the flags that control how the acceleration structure should be built.
+        /// </summary>
+        /// <returns>The flags that control how the acceleration structure should be built.</returns>
+        virtual AccelerationStructureFlags flags() const noexcept = 0;
     };
 
     /// <summary>
@@ -6093,19 +6144,21 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Creates a bottom-level acceleration structure.
         /// </summary>
+        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
         /// <returns>The bottom-level acceleration structure instance.</returns>
         /// <seealso cref="IBottomLevelAccelerationStructure" />
-        inline UniquePtr<IBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure() const {
-            return this->getBlas();
+        inline UniquePtr<IBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None) const {
+            return this->getBlas(flags);
         }
 
         /// <summary>
         /// Creates a top-level acceleration structure.
         /// </summary>
+        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
         /// <returns>The top-level acceleration structure instance.</returns>
         /// <seealso cref="ITopLevelAccelerationStructure" />
-        inline UniquePtr<ITopLevelAccelerationStructure> createTopLevelAccelerationStructure() const {
-            return this->getTlas();
+        inline UniquePtr<ITopLevelAccelerationStructure> createTopLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None) const {
+            return this->getTlas(flags);
         }
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
@@ -6126,8 +6179,8 @@ namespace LiteFX::Rendering {
         virtual Enumerable<UniquePtr<ISampler>> getSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
         
 #if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-        virtual UniquePtr<IBottomLevelAccelerationStructure> getBlas() const = 0;
-        virtual UniquePtr<ITopLevelAccelerationStructure> getTlas() const = 0;
+        virtual UniquePtr<IBottomLevelAccelerationStructure> getBlas(AccelerationStructureFlags flags) const = 0;
+        virtual UniquePtr<ITopLevelAccelerationStructure> getTlas(AccelerationStructureFlags flags) const = 0;
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     };
 

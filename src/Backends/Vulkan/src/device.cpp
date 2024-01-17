@@ -646,7 +646,7 @@ void VulkanDevice::computeAccelerationStructureSizes(const VulkanBottomLevelAcce
     VkAccelerationStructureBuildGeometryInfoKHR inputs = {
         .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
         .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
-        .flags = 0, // TODO: Allow update/prefer fast trace/etc
+        .flags = std::bit_cast<VkBuildAccelerationStructureFlagsKHR>(blas.flags()),
         .mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
         .geometryCount = static_cast<UInt32>(descriptions.size()),
         .pGeometries = descriptions.data()
