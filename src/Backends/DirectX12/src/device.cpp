@@ -91,10 +91,21 @@ private:
 private:
 	bool checkRequiredExtensions(ID3D12Device10* device)
 	{
+		D3D12_FEATURE_DATA_D3D12_OPTIONS5 options5 {};
+		D3D12_FEATURE_DATA_D3D12_OPTIONS7 options7 {};
 		D3D12_FEATURE_DATA_D3D12_OPTIONS12 options12 {};
+		raiseIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &options5, sizeof(options5)), "Unable to query device extensions.");
+		raiseIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS7, &options7, sizeof(options7)), "Unable to query device extensions.");
 		raiseIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &options12, sizeof(options12)), "Unable to query device extensions.");
 		
-		return options12.EnhancedBarriersSupported;
+		return
+#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
+			options5.RaytracingTier >= D3D12_RAYTRACING_TIER_1_0 &&
+#endif
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
+			options7.MeshShaderTier >= D3D12_MESH_SHADER_TIER_1 &&
+#endif
+			options12.EnhancedBarriersSupported;
 	}
 
 public:
@@ -104,12 +115,10 @@ public:
 		ComPtr<ID3D12Device10> device;
 		HRESULT hr;
 
-#if defined(LITEFX_BUILD_MESH_SHADER_SUPPORT) || defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-		// Feature level 12.2 requires support for mesh shader tier 1, ray tracing tier 1.1 and shader model 6.5 (see: https://microsoft.github.io/DirectX-Specs/d3d/D3D12_FeatureLevel12_2.html#capabilities).
-		raiseIfFailed(::D3D12CreateDevice(m_adapter.handle().Get(), D3D_FEATURE_LEVEL_12_2, IID_PPV_ARGS(&device)), "Unable to create DirectX 12 device.");
-#else
+		// NOTE: At some point we might require feature level 12.2, which implies support for mesh shader tier 1, ray tracing tier 1.1 and shader model 6.5 
+		//       (see: https://microsoft.github.io/DirectX-Specs/d3d/D3D12_FeatureLevel12_2.html#capabilities).
+		//raiseIfFailed(::D3D12CreateDevice(m_adapter.handle().Get(), D3D_FEATURE_LEVEL_12_2, IID_PPV_ARGS(&device)), "Unable to create DirectX 12 device.");
 		raiseIfFailed(::D3D12CreateDevice(m_adapter.handle().Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device)), "Unable to create DirectX 12 device.");
-#endif
 
 		if (!this->checkRequiredExtensions(device.Get()))
 			throw RuntimeException("Not all required extensions are supported by this device. A driver update may resolve this problem.");
