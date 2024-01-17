@@ -49,12 +49,12 @@ VulkanGraphicsFactory::VulkanGraphicsFactory(const VulkanDevice& device) :
 
 VulkanGraphicsFactory::~VulkanGraphicsFactory() noexcept = default;
 
-UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const
+UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements, bool allowWrite) const
 {
 	return this->createBuffer("", type, usage, elementSize, elements, allowWrite);
 }
 
-UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const
+UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name, BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements, bool allowWrite) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	VkBufferUsageFlags usageFlags = { VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT };
@@ -95,8 +95,8 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 
 	switch (usage)
 	{
-	case BufferUsage::Staging: usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  break;
-	case BufferUsage::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
+	case ResourceHeap::Staging: usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  break;
+	case ResourceHeap::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
 	}
 
 	bufferInfo.usage = usageFlags;
@@ -106,10 +106,10 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 
 	switch (usage)
 	{
-	case BufferUsage::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
-	case BufferUsage::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
-	case BufferUsage::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
-	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	case ResourceHeap::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
+	case ResourceHeap::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
+	case ResourceHeap::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
+	case ResourceHeap::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
@@ -130,12 +130,12 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 	return buffer;
 }
 
-UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const
+UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const
 {
 	return this->createVertexBuffer("", layout, usage, elements);
 }
 
-UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const
+UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = layout.elementSize() * elements;
@@ -144,8 +144,8 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 
 	switch (usage)
 	{
-	case BufferUsage::Staging: usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  break;
-	case BufferUsage::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
+	case ResourceHeap::Staging: usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  break;
+	case ResourceHeap::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
 	}
 
 	bufferInfo.usage = usageFlags;
@@ -155,10 +155,10 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 
 	switch (usage)
 	{
-	case BufferUsage::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
-	case BufferUsage::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
-	case BufferUsage::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
-	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	case ResourceHeap::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
+	case ResourceHeap::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
+	case ResourceHeap::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
+	case ResourceHeap::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
@@ -179,12 +179,12 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 	return buffer;
 }
 
-UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const
+UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanIndexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const
 {
 	return this->createIndexBuffer("", layout, usage, elements);
 }
 
-UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const
+UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const
 {
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = layout.elementSize() * elements;
@@ -193,8 +193,8 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 
 	switch (usage)
 	{
-	case BufferUsage::Staging: usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  break;
-	case BufferUsage::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
+	case ResourceHeap::Staging: usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  break;
+	case ResourceHeap::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
 	}
 
 	bufferInfo.usage = usageFlags;
@@ -204,10 +204,10 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 
 	switch (usage)
 	{
-	case BufferUsage::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
-	case BufferUsage::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
-	case BufferUsage::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
-	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	case ResourceHeap::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
+	case ResourceHeap::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
+	case ResourceHeap::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
+	case ResourceHeap::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
 	// NOTE: Resource sharing between queue families leaves room for optimization. Currently we simply allow concurrent access by all queue families, so that the driver

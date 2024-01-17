@@ -83,7 +83,7 @@ namespace LiteFX::Rendering {
     /// 
     /// From a CPU perspective, think of a descriptor set as an array of pointers to different buffers (i.e. descriptors) for the shader. A descriptor can be bound to a set by 
     /// calling <see cref="DescriptorSet::update" />. Note that this does not automatically ensure, that the buffer memory is visible for the GPU. Instead, a buffer may also 
-    /// require a transfer into GPU visible memory, depending on the <see cref="BufferUsage" />. However, as long as a descriptor within a set is mapped to a buffer, modifying 
+    /// require a transfer into GPU visible memory, depending on the <see cref="ResourceHeap" />. However, as long as a descriptor within a set is mapped to a buffer, modifying 
     /// this buffer also reflects the change to the shader, without requiring to update the descriptor, similarly to how modifying the object behind a pointer does not require 
     /// the pointer to change.
     /// 
@@ -1007,22 +1007,22 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual UniquePtr<TBuffer> createBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const = 0;
+        virtual UniquePtr<TBuffer> createBuffer(BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const = 0;
         
         /// <inheritdoc />
-        virtual UniquePtr<TBuffer> createBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const = 0;
+        virtual UniquePtr<TBuffer> createBuffer(const String& name, BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const vertex_buffer_layout_type& layout, BufferUsage usage, UInt32 elements = 1) const = 0;
+        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const vertex_buffer_layout_type& layout, ResourceHeap usage, UInt32 elements = 1) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const String& name, const vertex_buffer_layout_type& layout, BufferUsage usage, UInt32 elements = 1) const = 0;
+        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const String& name, const vertex_buffer_layout_type& layout, ResourceHeap usage, UInt32 elements = 1) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const index_buffer_layout_type& layout, BufferUsage usage, UInt32 elements) const = 0;
+        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const index_buffer_layout_type& layout, ResourceHeap usage, UInt32 elements) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const String& name, const index_buffer_layout_type& layout, BufferUsage usage, UInt32 elements) const = 0;
+        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const String& name, const index_buffer_layout_type& layout, ResourceHeap usage, UInt32 elements) const = 0;
 
         /// <inheritdoc />
         virtual UniquePtr<TImage> createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const = 0;
@@ -1057,27 +1057,27 @@ namespace LiteFX::Rendering {
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
     private:
-        inline UniquePtr<IBuffer> getBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const override {
+        inline UniquePtr<IBuffer> getBuffer(BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements, bool allowWrite) const override {
             return this->createBuffer(type, usage, elementSize, elements, allowWrite);
         }
 
-        inline UniquePtr<IBuffer> getBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const override {
+        inline UniquePtr<IBuffer> getBuffer(const String& name, BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements, bool allowWrite) const override {
             return this->createBuffer(name, type, usage, elementSize, elements, allowWrite);
         }
 
-        inline UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override {
+        inline UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const override {
             return this->createVertexBuffer(dynamic_cast<const vertex_buffer_layout_type&>(layout), usage, elements);
         }
 
-        inline UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override {
+        inline UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const override {
             return this->createVertexBuffer(name, dynamic_cast<const vertex_buffer_layout_type&>(layout), usage, elements);
         }
         
-        inline UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override {
+        inline UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const override {
             return this->createIndexBuffer(dynamic_cast<const index_buffer_layout_type&>(layout), usage, elements);
         }
 
-        inline UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override {
+        inline UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const override {
             return this->createIndexBuffer(name, dynamic_cast<const index_buffer_layout_type&>(layout), usage, elements);
         }
 

@@ -189,7 +189,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 	const auto& resourceBindingsLayout = pipeline.layout()->descriptorSet(0);
 	auto resourceBindings = resourceBindingsLayout.allocateMultiple(image.levels() * image.layers());
 	const auto& parametersLayout = resourceBindingsLayout.descriptor(0);
-	auto parameters = m_impl->m_queue.device().factory().createBuffer(parametersLayout.type(), BufferUsage::Dynamic, parametersLayout.elementSize(), image.levels());
+	auto parameters = m_impl->m_queue.device().factory().createBuffer(parametersLayout.type(), ResourceHeap::Dynamic, parametersLayout.elementSize(), image.levels());
 	parameters->map(parametersBlock, sizeof(Parameters));
 
 	// Create and bind the sampler.

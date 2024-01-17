@@ -159,7 +159,7 @@ public:
 
 		// Create a readback buffer for each heap.
 		m_timingQueryReadbackBuffers.resize(m_buffers);
-		std::ranges::generate(m_timingQueryReadbackBuffers, [this, &timingEvents]() { return m_device.factory().createBuffer(BufferType::Other, BufferUsage::Readback, sizeof(UInt64) * timingEvents.size()); });
+		std::ranges::generate(m_timingQueryReadbackBuffers, [this, &timingEvents]() { return m_device.factory().createBuffer(BufferType::Other, ResourceHeap::Readback, sizeof(UInt64) * timingEvents.size()); });
 
 		// Store the event and resize the time stamp collection.
 		m_timingEvents = timingEvents;

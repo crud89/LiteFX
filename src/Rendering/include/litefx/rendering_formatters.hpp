@@ -265,12 +265,12 @@ struct LITEFX_RENDERING_API fmt::formatter<BufferType> : formatter<string_view> 
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<BufferUsage> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<ResourceHeap> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(BufferUsage t, FormatContext& ctx) {
+	auto format(ResourceHeap t, FormatContext& ctx) {
 		string_view name = "Invalid";
 		switch (t) {
-		using enum BufferUsage;
+		using enum ResourceHeap;
 		case Staging:  name = "Staging";  break;
 		case Resource: name = "Resource"; break;
 		case Dynamic:  name = "Dynamic";  break;

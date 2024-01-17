@@ -115,7 +115,7 @@ void loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampler
     texture = device.factory().createTexture("Texture", Format::R8G8B8A8_UNORM, Size2d(width, height), ImageDimensions::DIM_2, 6, 1, MultiSamplingLevel::x1, true);
 
     // Create a staging buffer for the first mip-map of the texture.
-    auto stagedTexture = device.factory().createBuffer(BufferType::Other, BufferUsage::Staging, texture->size(0));
+    auto stagedTexture = device.factory().createBuffer(BufferType::Other, ResourceHeap::Staging, texture->size(0));
     stagedTexture->map(imageData.get(), texture->size(0), 0);
 
     // Transfer the texture using the graphics queue (since we want to be able to generate mip maps, which is done on the graphics queue in Vulkan and a compute-capable queue in D3D12).
@@ -155,26 +155,26 @@ UInt64 initBuffers(SampleApp& app, TDevice& device, SharedPtr<IInputAssembler> i
     // Create the staging buffer.
     // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
     //       whole buffer.
-    auto stagedVertices = device.factory().createVertexBuffer(*inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
+    auto stagedVertices = device.factory().createVertexBuffer(*inputAssembler->vertexBufferLayout(0), ResourceHeap::Staging, vertices.size());
     stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = device.factory().createVertexBuffer("Vertex Buffer", *inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
+    auto vertexBuffer = device.factory().createVertexBuffer("Vertex Buffer", *inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, vertices.size());
     commandBuffer->transfer(asShared(std::move(stagedVertices)), *vertexBuffer, 0, 0, vertices.size());
 
     // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
-    auto stagedIndices = device.factory().createIndexBuffer(*inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
+    auto stagedIndices = device.factory().createIndexBuffer(*inputAssembler->indexBufferLayout(), ResourceHeap::Staging, indices.size());
     stagedIndices->map(indices.data(), indices.size() * inputAssembler->indexBufferLayout()->elementSize(), 0);
 
     // Create the actual index buffer and transfer the staging buffer into it.
-    auto indexBuffer = device.factory().createIndexBuffer("Index Buffer", *inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
+    auto indexBuffer = device.factory().createIndexBuffer("Index Buffer", *inputAssembler->indexBufferLayout(), ResourceHeap::Resource, indices.size());
     commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
     
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& geometryPipeline = device.state().pipeline("Geometry");
     auto& staticBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
-    auto cameraBuffer = device.factory().createBuffer("Camera", staticBindingLayout, 0, BufferUsage::Resource);
+    auto cameraBuffer = device.factory().createBuffer("Camera", staticBindingLayout, 0, ResourceHeap::Resource);
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     app.updateCamera(*commandBuffer, *cameraBuffer);
@@ -191,7 +191,7 @@ UInt64 initBuffers(SampleApp& app, TDevice& device, SharedPtr<IInputAssembler> i
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    auto transformBuffer = device.factory().createBuffer("Transform", transformBindingLayout, 0, BufferUsage::Dynamic, 3);
+    auto transformBuffer = device.factory().createBuffer("Transform", transformBindingLayout, 0, ResourceHeap::Dynamic, 3);
     auto transformBindings = transformBindingLayout.allocateMultiple(3, {
         { { .binding = 0, .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
         { { .binding = 0, .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
@@ -225,7 +225,7 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffe
     camera.ViewProjection = projection * view;
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
-    auto cameraStagingBuffer = m_device->factory().createBuffer(m_device->state().pipeline("Geometry"), DescriptorSets::Constant, 0, BufferUsage::Staging);
+    auto cameraStagingBuffer = m_device->factory().createBuffer(m_device->state().pipeline("Geometry"), DescriptorSets::Constant, 0, ResourceHeap::Staging);
     cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
     commandBuffer.transfer(asShared(std::move(cameraStagingBuffer)), buffer);
 }

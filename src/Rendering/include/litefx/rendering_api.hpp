@@ -569,64 +569,64 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Defines how a buffer is used and describes how its memory is managed.
+    /// Defines where a resource (buffer or image) memory is located and from where it can be accessed.
     /// </summary>
     /// <remarks>
-    /// There are three common buffer usage scenarios that are supported by the library:
+    /// There are three common memory usage scenarios that are supported by the engine:
     ///
     /// <list type="number">
     /// <item>
     /// <description>
     /// <strong>Static resources</strong>: such as vertex/index/constant buffers, textures or other infrequently updated buffers. In this case, the most efficient 
-    /// approach is to create a buffer using <see cref="BufferUsage::Staging" /> and map it from the CPU. Create a second buffer using 
-    /// <see cref="BufferUsage::Resource" /> and transfer the staging buffer into it.
+    /// approach is to create a buffer using <see cref="ResourceHeap::Staging" /> and map it from the CPU. Create a second buffer using 
+    /// <see cref="ResourceHeap::Resource" /> and transfer the staging buffer into it.
     /// </description>
     /// </item>
     /// <item>
     /// <description>
     /// <strong>Dynamic resources</strong>: such as deformable meshes or buffers that need to be updated every frame. For such buffers use the
-    /// <see cref="BufferUsage::Dynamic" /> mode to prevent regular transfer overhead.
+    /// <see cref="ResourceHeap::Dynamic" /> mode to prevent regular transfer overhead.
     /// </description>
     /// </item>
     /// <item>
     /// <description>
-    /// <strong>Readbacks</strong>: or resources that are written on the GPU and read by the CPU. The usage mode <see cref="BufferUsage::Readback" /> is designed to 
+    /// <strong>Readbacks</strong>: or resources that are written on the GPU and read by the CPU. The usage mode <see cref="ResourceHeap::Readback" /> is designed to 
     /// provide the best performance for this special case.
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    enum class LITEFX_RENDERING_API BufferUsage {
+    enum class LITEFX_RENDERING_API ResourceHeap {
         /// <summary>
-        /// Creates a buffer that can optimally be mapped from the CPU in order to be transferred to the GPU later.
+        /// Creates a resource that can be mapped from the CPU in order to be transferred to the GPU later.
         /// </summary>
         /// <remarks>
-        /// The memory for the buffer will be allocated in the DRAM (CPU or host memory). It can be optimally accessed by the CPU in order to be written. However,
-        /// reading it from the GPU may be inefficient. This usage mode should be used to create a staging buffer, i.e. a buffer that is written infrequently and
-        /// then transferred to another buffer, that uses <see cref="BufferUsage::Resource" />.
+        /// The memory for the resource will be allocated in the DRAM (CPU or host memory). It can be optimally accessed by the CPU in order to be written. However,
+        /// reading it from the GPU is not supported. This usage mode should be used to create a staging buffer, i.e. a buffer that is written infrequently and
+        /// then transferred to another buffer, that uses <see cref="ResourceHeap::Resource" />.
         /// </remarks>
         Staging = 0x00000001,
 
         /// <summary>
-        /// Creates a buffer that can optimally be read by the GPU.
+        /// Creates a resource that can be read by the GPU.
         /// </summary>
         /// <remarks>
-        /// The memory for the buffer will be allocated on the VRAM (GPU or device memory). It can be optimally accessed by the GPU in order to be read frequently.
-        /// It can be written by a transfer call. Note that those come with an overhead and should only occur infrequently.
+        /// The memory for the resource will be allocated on the VRAM (GPU or device memory). It can be optimally accessed by the GPU in order to be read frequently.
+        /// It can be written by a transfer call, but is inaccessible from the CPU.
         /// </remarks>
         Resource = 0x00000002,
 
         /// <summary>
-        /// Creates a buffer that can be optimally mapped by the CPU and is preferred to be optimally read by the GPU.
+        /// Creates a resource that can be mapped from the CPU and read by the GPU.
         /// </summary>
         /// <remarks>
         /// Dynamic buffers are used when the content is expected to be changed every frame. They do not require transfer calls, but may not be read as efficiently
-        /// as <see cref="BufferUsage::Resource" /> buffers.
+        /// as <see cref="ResourceHeap::Resource" /> buffers.
         /// </remarks>
         Dynamic = 0x00000010,
 
         /// <summary>
-        /// Creates a buffer that can be written by the GPU and read by the CPU.
+        /// Creates a buffer that can be written on the GPU and read by the CPU.
         /// </summary>
         Readback = 0x00000100
     };
@@ -5798,7 +5798,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline UniquePtr<IBuffer> createBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const {
             return this->getBuffer(type, usage, elementSize, elements, allowWrite);
         };
 
@@ -5811,7 +5811,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, BufferUsage usage, UInt32 elements = 1, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap usage, UInt32 elements = 1, bool allowWrite = false) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->createBuffer(descriptor.type(), usage, descriptor.elementSize(), elements, allowWrite);
         };
@@ -5825,7 +5825,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, BufferUsage usage, UInt32 elementSize, UInt32 elements, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap usage, UInt32 elementSize, UInt32 elements, bool allowWrite = false) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->createBuffer(descriptor.type(), usage, elementSize, elements, allowWrite);
         };
@@ -5840,7 +5840,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, BufferUsage usage, UInt32 elementSize, UInt32 elements, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap usage, UInt32 elementSize, UInt32 elements, bool allowWrite = false) const {
             return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, usage, elementSize, elements, allowWrite);
         };
 
@@ -5854,7 +5854,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, BufferUsage usage, UInt32 elements = 1, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap usage, UInt32 elements = 1, bool allowWrite = false) const {
             return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, usage, elements, allowWrite);
         };
 
@@ -5868,7 +5868,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline UniquePtr<IBuffer> createBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const String& name, BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements, bool allowWrite = false) const {
             return this->getBuffer(name, type, usage, elementSize, elements, allowWrite);
         };
 
@@ -5882,7 +5882,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, BufferUsage usage, UInt32 elements = 1, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap usage, UInt32 elements = 1, bool allowWrite = false) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->createBuffer(name, descriptor.type(), usage, descriptor.elementSize(), elements, allowWrite);
         };
@@ -5898,7 +5898,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap usage, size_t elementSize, UInt32 elements, bool allowWrite = false) const {
             auto& descriptor = descriptorSet.descriptor(binding);
             return this->createBuffer(name, descriptor.type(), usage, elementSize, elements, allowWrite);
         };
@@ -5914,7 +5914,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, BufferUsage usage, UInt32 elements = 1, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap usage, UInt32 elements = 1, bool allowWrite = false) const {
             return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, usage, elements, allowWrite);
         };
 
@@ -5930,7 +5930,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const {
             return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, usage, elementSize, elements, allowWrite);
         };
 
@@ -5946,7 +5946,7 @@ namespace LiteFX::Rendering {
         /// <param name="usage">The buffer usage.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
         /// <returns>The instance of the vertex buffer.</returns>
-        inline UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const {
+        inline UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap usage, UInt32 elements = 1) const {
             return this->getVertexBuffer(layout, usage, elements);
         }
 
@@ -5963,7 +5963,7 @@ namespace LiteFX::Rendering {
         /// <param name="usage">The buffer usage.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
         /// <returns>The instance of the vertex buffer.</returns>
-        inline UniquePtr<IVertexBuffer> createVertexBuffer(const String& name, const IVertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const {
+        inline UniquePtr<IVertexBuffer> createVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap usage, UInt32 elements = 1) const {
             return this->getVertexBuffer(name, layout, usage, elements);
         }
 
@@ -5979,7 +5979,7 @@ namespace LiteFX::Rendering {
         /// <param name="usage">The buffer usage.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
         /// <returns>The instance of the index buffer.</returns>
-        inline UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const {
+        inline UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const {
             return this->getIndexBuffer(layout, usage, elements);
         }
 
@@ -5996,7 +5996,7 @@ namespace LiteFX::Rendering {
         /// <param name="usage">The buffer usage.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
         /// <returns>The instance of the index buffer.</returns>
-        inline UniquePtr<IIndexBuffer> createIndexBuffer(const String& name, const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const {
+        inline UniquePtr<IIndexBuffer> createIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const {
             return this->getIndexBuffer(name, layout, usage, elements);
         }
 
@@ -6163,12 +6163,12 @@ namespace LiteFX::Rendering {
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
     private:
-        virtual UniquePtr<IBuffer> getBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const = 0;
-        virtual UniquePtr<IBuffer> getBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const = 0;
-        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const = 0;
-        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const = 0;
-        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const = 0;
-        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const = 0;
+        virtual UniquePtr<IBuffer> getBuffer(BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements, bool allowWrite) const = 0;
+        virtual UniquePtr<IBuffer> getBuffer(const String& name, BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements, bool allowWrite) const = 0;
+        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const = 0;
+        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const = 0;
+        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const = 0;
+        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const = 0;
         virtual UniquePtr<IImage> getAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const = 0;
         virtual UniquePtr<IImage> getAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const = 0;
         virtual UniquePtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const = 0;

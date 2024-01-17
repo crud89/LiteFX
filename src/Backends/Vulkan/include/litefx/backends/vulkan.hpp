@@ -1608,22 +1608,22 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        UniquePtr<IVulkanBuffer> createBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
+        UniquePtr<IVulkanBuffer> createBuffer(BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanBuffer> createBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
+        UniquePtr<IVulkanBuffer> createBuffer(const String& name, BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const VulkanVertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const override;
+        UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const VulkanVertexBufferLayout& layout, ResourceHeap usage, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const override;
+        UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, ResourceHeap usage, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const VulkanIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override;
+        UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const VulkanIndexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override;
+        UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const override;
 
         /// <inheritdoc />
         UniquePtr<IVulkanImage> createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;

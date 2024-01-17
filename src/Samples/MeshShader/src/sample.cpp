@@ -82,7 +82,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
-    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, BufferUsage::Resource);
+    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, ResourceHeap::Resource);
     auto cameraBindings = cameraBindingLayout.allocate({ { .resource = *cameraBuffer } });
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
@@ -91,7 +91,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, BufferUsage::Dynamic, 3);
+    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, ResourceHeap::Dynamic, 3);
     auto transformBindings = transformBindingLayout.allocateMultiple(3, {
         { { .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
         { { .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
@@ -117,7 +117,7 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffe
     camera.ViewProjection = projection * view;
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
-    auto cameraStagingBuffer = m_device->factory().createBuffer(m_device->state().pipeline("Geometry"), DescriptorSets::Constant, 0, BufferUsage::Staging);
+    auto cameraStagingBuffer = m_device->factory().createBuffer(m_device->state().pipeline("Geometry"), DescriptorSets::Constant, 0, ResourceHeap::Staging);
     cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
     commandBuffer.transfer(asShared(std::move(cameraStagingBuffer)), buffer);
 }

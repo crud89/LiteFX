@@ -45,12 +45,12 @@ DirectX12GraphicsFactory::DirectX12GraphicsFactory(const DirectX12Device& device
 
 DirectX12GraphicsFactory::~DirectX12GraphicsFactory() noexcept = default;
 
-UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const
+UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements, bool allowWrite) const
 {
 	return this->createBuffer("", type, usage, elementSize, elements, allowWrite);
 }
 
-UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const
+UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String& name, BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements, bool allowWrite) const
 {
 	// Constant buffers are aligned to 256 byte chunks. All other buffers can be aligned to a multiple of 4 bytes (`sizeof(DWORD)`). The actual amount of memory allocated 
 	// is then defined as the smallest multiple of 64kb, that's greater or equal to `resourceDesc.Width` below. For more info, see:
@@ -75,14 +75,14 @@ UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String&
 
 	switch (usage)
 	{
-	case BufferUsage::Dynamic:
-	case BufferUsage::Staging:
+	case ResourceHeap::Dynamic:
+	case ResourceHeap::Staging:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
 		break;
-	case BufferUsage::Resource:
+	case ResourceHeap::Resource:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 		break;
-	case BufferUsage::Readback:
+	case ResourceHeap::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
 		break;
 	default:
@@ -92,12 +92,12 @@ UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String&
 	return DirectX12Buffer::allocate(name, m_impl->m_allocator, type, elements, elementSize, elementAlignment, allowWrite, resourceDesc, allocationDesc);
 }
 
-UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(const DirectX12VertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const
+UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(const DirectX12VertexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const
 {
 	return this->createVertexBuffer("", layout, usage, elements);
 }
 
-UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(const String& name, const DirectX12VertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const
+UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(const String& name, const DirectX12VertexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const
 {
 	D3D12_RESOURCE_DESC1 resourceDesc { };
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -116,14 +116,14 @@ UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(c
 
 	switch (usage)
 	{
-	case BufferUsage::Dynamic:
-	case BufferUsage::Staging:
+	case ResourceHeap::Dynamic:
+	case ResourceHeap::Staging:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
 		break;
-	case BufferUsage::Resource:
+	case ResourceHeap::Resource:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 		break;
-	case BufferUsage::Readback:
+	case ResourceHeap::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
 		break;
 	default:
@@ -133,12 +133,12 @@ UniquePtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(c
 	return DirectX12VertexBuffer::allocate(name, layout, m_impl->m_allocator, elements, resourceDesc, allocationDesc);
 }
 
-UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(const DirectX12IndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const
+UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(const DirectX12IndexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const
 {
 	return this->createIndexBuffer("", layout, usage, elements);
 }
 
-UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(const String& name, const DirectX12IndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const
+UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(const String& name, const DirectX12IndexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const
 {
 	D3D12_RESOURCE_DESC1 resourceDesc { };
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -157,14 +157,14 @@ UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(con
 
 	switch (usage)
 	{
-	case BufferUsage::Dynamic:
-	case BufferUsage::Staging:
+	case ResourceHeap::Dynamic:
+	case ResourceHeap::Staging:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_UPLOAD;
 		break;
-	case BufferUsage::Resource:
+	case ResourceHeap::Resource:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_DEFAULT;
 		break;
-	case BufferUsage::Readback:
+	case ResourceHeap::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
 		break;
 	default:

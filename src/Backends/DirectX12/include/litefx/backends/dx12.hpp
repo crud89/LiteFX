@@ -1632,22 +1632,22 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        UniquePtr<IDirectX12Buffer> createBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
+        UniquePtr<IDirectX12Buffer> createBuffer(BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12Buffer> createBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
+        UniquePtr<IDirectX12Buffer> createBuffer(const String& name, BufferType type, ResourceHeap usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12VertexBuffer> createVertexBuffer(const DirectX12VertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const override;
+        UniquePtr<IDirectX12VertexBuffer> createVertexBuffer(const DirectX12VertexBufferLayout& layout, ResourceHeap usage, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12VertexBuffer> createVertexBuffer(const String& name, const DirectX12VertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const override;
+        UniquePtr<IDirectX12VertexBuffer> createVertexBuffer(const String& name, const DirectX12VertexBufferLayout& layout, ResourceHeap usage, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12IndexBuffer> createIndexBuffer(const DirectX12IndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override;
+        UniquePtr<IDirectX12IndexBuffer> createIndexBuffer(const DirectX12IndexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12IndexBuffer> createIndexBuffer(const String& name, const DirectX12IndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override;
+        UniquePtr<IDirectX12IndexBuffer> createIndexBuffer(const String& name, const DirectX12IndexBufferLayout& layout, ResourceHeap usage, UInt32 elements) const override;
 
         /// <inheritdoc />
         UniquePtr<IDirectX12Image> createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
