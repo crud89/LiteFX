@@ -601,6 +601,12 @@ namespace LiteFX::Rendering {
         /// <inheritdoc />
         virtual void buildAccelerationStructure(const buffer_type& buffer, const bottom_level_acceleration_structure_type& blas, const SharedPtr<const buffer_type> scratchBuffer) const = 0;
 
+        /// <inheritdoc />
+        virtual void buildAccelerationStructure(const buffer_type& buffer, const top_level_acceleration_structure_type& tlas) const = 0;
+
+        /// <inheritdoc />
+        virtual void buildAccelerationStructure(const buffer_type& buffer, const top_level_acceleration_structure_type& tlas, const SharedPtr<const buffer_type> scratchBuffer) const = 0;
+
         // TODO: Add copy commands to support compaction and serialization.
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
@@ -696,6 +702,14 @@ namespace LiteFX::Rendering {
 
         void cmdBuildAccelerationStructure(const IBuffer& buffer, const IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer) const override {
             this->buildAccelerationStructure(dynamic_cast<const buffer_type&>(buffer), dynamic_cast<const bottom_level_acceleration_structure_type&>(blas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer));
+        }
+
+        void cmdBuildAccelerationStructure(const IBuffer& buffer, const ITopLevelAccelerationStructure& tlas) const override {
+            this->buildAccelerationStructure(dynamic_cast<const buffer_type&>(buffer), dynamic_cast<const top_level_acceleration_structure_type&>(tlas));
+        }
+
+        void cmdBuildAccelerationStructure(const IBuffer& buffer, const ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer) const override {
+            this->buildAccelerationStructure(dynamic_cast<const buffer_type&>(buffer), dynamic_cast<const top_level_acceleration_structure_type&>(tlas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer));
         }
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     };

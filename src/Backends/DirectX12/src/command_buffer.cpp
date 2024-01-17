@@ -94,6 +94,30 @@ public:
 		// Store the scratch buffer.
 		m_sharedResources.push_back(scratchBuffer);
 	}
+
+	inline void buildAccelerationStructure(const IDirectX12Buffer& buffer, const DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer)
+	{
+		//auto descriptions = blas.buildInfo();
+
+		//D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC blasDesc = {
+		//	.DestAccelerationStructureData = buffer.virtualAddress(),
+		//	.Inputs = {
+		//		.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL,
+		//		.Flags = std::bit_cast<D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS>(blas.flags()),
+		//		.NumDescs = static_cast<UInt32>(descriptions.size()),
+		//		.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY,
+		//		.pGeometryDescs = descriptions.data()
+		//	},
+		//	.ScratchAccelerationStructureData = scratchBuffer->virtualAddress()
+		//};
+
+		//// Build the acceleration structure.
+		//m_parent->handle()->BuildRaytracingAccelerationStructure(&blasDesc, 0, nullptr);
+		throw;
+
+		// Store the scratch buffer.
+		m_sharedResources.push_back(scratchBuffer);
+	}
 #endif
 };
 
@@ -492,5 +516,57 @@ void DirectX12CommandBuffer::buildAccelerationStructure(const IDirectX12Buffer& 
 
 	// Create the acceleration structure.
 	m_impl->buildAccelerationStructure(buffer, blas, scratchBuffer);
+}
+
+void DirectX12CommandBuffer::buildAccelerationStructure(const IDirectX12Buffer& buffer, const DirectX12TopLevelAccelerationStructure& tlas) const
+{
+	// Compute buffer sizes.
+	UInt64 bufferSize{ }, scratchBufferSize{ };
+	m_impl->m_queue.device().computeAccelerationStructureSizes(tlas, bufferSize, scratchBufferSize);
+
+	// Validate the provided buffer.
+	if (!buffer.writable()) [[unlikely]]
+		throw InvalidArgumentException("buffer", "The buffer must be writable.");
+
+	if (buffer.type() != BufferType::AccelerationStructure) [[unlikely]]
+		throw InvalidArgumentException("buffer", "The buffer must be an acceleration structure.");
+
+	if (buffer.alignedElementSize() < bufferSize) [[unlikely]]
+		throw InvalidArgumentException("buffer", "The provided buffer is too small to build up the acceleration structure. At least {0} bytes are required, but only {1} are available.", bufferSize, buffer.alignedElementSize());
+
+	// Allocate scratch buffer.
+	auto scratchBuffer = m_impl->m_queue.device().factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, scratchBufferSize, 1, ResourceUsage::AllowWrite);
+
+	// Build the acceleration structure.
+	m_impl->buildAccelerationStructure(buffer, tlas, asShared(std::move(scratchBuffer)));
+}
+
+void DirectX12CommandBuffer::buildAccelerationStructure(const IDirectX12Buffer& buffer, const DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer) const
+{
+	if (scratchBuffer == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("scratchBuffer", "The scratch buffer must be initialized.");
+
+	// Compute buffer sizes.
+	UInt64 bufferSize{ }, scratchBufferSize{ };
+	m_impl->m_queue.device().computeAccelerationStructureSizes(tlas, bufferSize, scratchBufferSize);
+
+	// Validate the provided buffers.
+	if (!buffer.writable()) [[unlikely]]
+		throw InvalidArgumentException("buffer", "The buffer must be writable.");
+
+	if (buffer.type() != BufferType::AccelerationStructure) [[unlikely]]
+		throw InvalidArgumentException("buffer", "The buffer must be an acceleration structure.");
+
+	if (buffer.alignedElementSize() < bufferSize) [[unlikely]]
+		throw InvalidArgumentException("buffer", "The provided buffer is too small to build up the acceleration structure. At least {0} bytes are required, but only {1} are available.", bufferSize, buffer.alignedElementSize());
+
+	if (!scratchBuffer->writable()) [[unlikely]]
+		throw InvalidArgumentException("scratchBuffer", "The scratch buffer must be writable.");
+
+	if (scratchBuffer->alignedElementSize() < scratchBufferSize) [[unlikely]]
+		throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer is too small to build up the acceleration structure. At least {0} bytes are required, but only {1} are available.", scratchBufferSize, scratchBuffer->alignedElementSize());
+
+	// Create the acceleration structure.
+	m_impl->buildAccelerationStructure(buffer, tlas, scratchBuffer);
 }
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)

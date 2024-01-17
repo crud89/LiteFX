@@ -1059,6 +1059,12 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void buildAccelerationStructure(const IVulkanBuffer& buffer, const VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer) const override;
+
+        /// <inheritdoc />
+        void buildAccelerationStructure(const IVulkanBuffer& buffer, const VulkanTopLevelAccelerationStructure& tlas) const override;
+
+        /// <inheritdoc />
+        void buildAccelerationStructure(const IVulkanBuffer& buffer, const VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer) const override;
 #endif
 
     private:

@@ -5034,7 +5034,7 @@ namespace LiteFX::Rendering {
 
 #if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
         /// <summary>
-        /// Builds a bottom-level acceleration structure and returns the buffer containing it.
+        /// Builds a bottom-level acceleration structure.
         /// </summary>
         /// <remarks>
         /// This overload creates a temporary scratch buffer for building up the acceleration structure. It might be more efficient to re-use scratch buffer memory, in which case another overload
@@ -5047,7 +5047,7 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Builds a bottom-level acceleration structure and returns the buffer containing it.
+        /// Builds a bottom-level acceleration structure.
         /// </summary>
         /// <remarks>
         /// This overload uses an existing scratch buffer to build up the acceleration structure. Note that it is required to manually synchronize write access to the scratch buffer. Two building
@@ -5058,6 +5058,33 @@ namespace LiteFX::Rendering {
         /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration strucuture.</param>
         inline void buildAccelerationStructure(const IBuffer& buffer, const IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer) const {
             this->cmdBuildAccelerationStructure(buffer, blas, scratchBuffer);
+        }
+
+        /// <summary>
+        /// Builds a top-level acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// This overload creates a temporary scratch buffer for building up the acceleration structure. It might be more efficient to re-use scratch buffer memory, in which case another overload
+        /// of this method is available.
+        /// </remarks>
+        /// <param name="buffer">The buffer to write the acceleration structure into.</param>
+        /// <param name="tlas">The top-level acceleration structure to build.</param>
+        inline void buildAccelerationStructure(const IBuffer& buffer, const ITopLevelAccelerationStructure& tlas) const {
+            this->cmdBuildAccelerationStructure(buffer, tlas);
+        }
+
+        /// <summary>
+        /// Builds a top-level acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// This overload uses an existing scratch buffer to build up the acceleration structure. Note that it is required to manually synchronize write access to the scratch buffer. Two building
+        /// commands must not use the same scratch buffer at the same time.
+        /// </remarks>
+        /// <param name="buffer">The buffer to write the acceleration structure into.</param>
+        /// <param name="tlas">The top-level acceleration structure to build.</param>
+        /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration strucuture.</param>
+        inline void buildAccelerationStructure(const IBuffer& buffer, const ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer) const {
+            this->cmdBuildAccelerationStructure(buffer, tlas, scratchBuffer);
         }
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
@@ -5087,6 +5114,8 @@ namespace LiteFX::Rendering {
 #if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
         virtual void cmdBuildAccelerationStructure(const IBuffer& buffer, const IBottomLevelAccelerationStructure& blas) const = 0;
         virtual void cmdBuildAccelerationStructure(const IBuffer& buffer, const IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer) const = 0;
+        virtual void cmdBuildAccelerationStructure(const IBuffer& buffer, const ITopLevelAccelerationStructure& tlas) const = 0;
+        virtual void cmdBuildAccelerationStructure(const IBuffer& buffer, const ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer) const = 0;
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
         /// <summary>

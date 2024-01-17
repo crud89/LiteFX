@@ -1054,6 +1054,12 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void buildAccelerationStructure(const IDirectX12Buffer& buffer, const DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer) const override;
+
+        /// <inheritdoc />
+        void buildAccelerationStructure(const IDirectX12Buffer& buffer, const DirectX12TopLevelAccelerationStructure& tlas) const override;
+
+        /// <inheritdoc />
+        void buildAccelerationStructure(const IDirectX12Buffer& buffer, const DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer) const override;
 #endif
 
     private:

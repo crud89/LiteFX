@@ -141,7 +141,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto tlasBuffer = m_device->factory().createBuffer("TLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, tlasBufferSize, 1, ResourceUsage::AllowWrite);
     commandBuffer->buildAccelerationStructure(*blasBuffer, *blas, scratchBuffer);
     // TODO: barrier in order to wait for building process to be finished?!
-    //commandBuffer->buildAccelerationStructure(*tlasBuffer, *tlas, scratchBuffer);
+    commandBuffer->buildAccelerationStructure(*tlasBuffer, *tlas, scratchBuffer);
 
 
 
