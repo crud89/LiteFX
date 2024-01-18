@@ -57,6 +57,19 @@
       }
     },
     {
+      "name": "windows-x64-publish",
+      "inherits": "windows",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "LITEFX_BUILD_MESH_SHADER_SUPPORT": "ON",
+        "LITEFX_BUILD_RAY_TRACING_SUPPORT": "ON"
+      }
+    },
+    {
       "name": "windows-x86-debug",
       "inherits": "windows",
       "architecture": {
@@ -89,6 +102,19 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+    {
+      "name": "windows-x86-publish",
+      "inherits": "windows",
+      "architecture": {
+        "value": "x86",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "LITEFX_BUILD_MESH_SHADER_SUPPORT": "ON",
+        "LITEFX_BUILD_RAY_TRACING_SUPPORT": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -107,6 +133,14 @@
     {
       "name": "windows-x86-debug",
       "configurePreset": "windows-x86-debug"
+    },
+    {
+      "name": "windows-x86-publish",
+      "configurePreset": "windows-x86-publish"
+    },
+    {
+      "name": "windows-x64-publish",
+      "configurePreset": "windows-x64-publish"
     }
   ],
   "testPresets": [
