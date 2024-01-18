@@ -365,7 +365,7 @@ public:
 
 #ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         if (vkCmdDrawMeshTasks == nullptr)
-            vkCmdDrawMeshTasks = reinterpret_cast<PFN_vkCmdDrawMeshTasksEXT>(::vkGetDeviceProcAddr(queue.device().handle(), "vkCmdDrawMeshTasksEXT"));
+            vkCmdDrawMeshTasks = reinterpret_cast<PFN_vkCmdDrawMeshTasksEXT>(::vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksEXT"));
 #endif
 
 #ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
