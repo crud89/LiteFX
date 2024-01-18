@@ -637,3 +637,28 @@ struct LITEFX_RENDERING_API fmt::formatter<AccelerationStructureFlags> : formatt
 		return formatter<string_view>::format(name, ctx);
 	}
 };
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<InstanceFlags> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(InstanceFlags t, FormatContext& ctx) {
+		Array<String> names;
+
+		if (t == InstanceFlags::None)
+			names.push_back("None");
+		else
+		{
+			if ((t & InstanceFlags::DisableCull) == InstanceFlags::DisableCull)
+				names.push_back("DisableCull");
+			if ((t & InstanceFlags::FlipWinding) == InstanceFlags::FlipWinding)
+				names.push_back("FlipWinding");
+			if ((t & InstanceFlags::ForceOpaque) == InstanceFlags::ForceOpaque)
+				names.push_back("ForceOpaque");
+			if ((t & InstanceFlags::ForceNonOpaque) == InstanceFlags::ForceNonOpaque)
+				names.push_back("ForceNonOpaque");
+		}
+
+		String name = Join(names, " | ");
+		return formatter<string_view>::format(name, ctx);
+	}
+};

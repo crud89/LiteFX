@@ -1658,6 +1658,41 @@ namespace LiteFX::Rendering {
         MinimizeMemory = 0x0010
     };
 
+    /// <summary>
+    /// 
+    /// </summary>
+    enum class InstanceFlags : Byte {
+        None = 0x00,
+
+        /// <summary>
+        /// If this flag is set front- and backface culling is disabled for the instance.
+        /// </summary>
+        DisableCull = 0x01,
+
+        /// <summary>
+        /// If this flag is set, front- and backfaces flip their default cull order.
+        /// </summary>
+        FlipWinding = 0x02,
+
+        /// <summary>
+        /// If this flag is set, no geometry of the instance invokes the any-hit shader. This overwrites per-geometry flags.
+        /// </summary>
+        /// <remarks>
+        /// This flag must not be set in combination with <see cref="ForceNonOpaque" />.
+        /// </remarks>
+        /// <seealso cref="GeometryFlags::Opaque" />
+        ForceOpaque = 0x04,
+
+        /// <summary>
+        /// If this flag is set, each geometry of the instance will ignore the <seealso cref="GeometryFlags::Opaque" /> setting.
+        /// </summary>
+        /// <remarks>
+        /// This flag must not be set in combination with <see cref="ForceOpaque" />.
+        /// </remarks>
+        /// <seealso cref="GeometryFlags::Opaque" />
+        ForceNonOpaque = 0x08
+    };
+
 #pragma endregion
 
 #pragma region "Flags"
@@ -1672,6 +1707,7 @@ namespace LiteFX::Rendering {
     LITEFX_DEFINE_FLAGS(GeometryFlags);
     LITEFX_DEFINE_FLAGS(ResourceUsage);
     LITEFX_DEFINE_FLAGS(AccelerationStructureFlags);
+    LITEFX_DEFINE_FLAGS(InstanceFlags);
 
 #pragma endregion
 
