@@ -415,7 +415,7 @@ namespace LiteFX {
 	/// <summary>
 	/// A smart pointer that manages an implementation instance for a public interface class.
 	/// </summary>
-	/// <typeparam name="pImpl">The type of the implementaion class.</typeparam>
+	/// <typeparam name="pImpl">The type of the implementation class.</typeparam>
 	template <class pImpl>
 	class PimplPtr final {
 	private:
