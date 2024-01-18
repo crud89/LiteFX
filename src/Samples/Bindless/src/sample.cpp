@@ -37,7 +37,7 @@ struct InstanceBuffer {
 } instanceData[NUM_INSTANCES];
 
 template<typename TRenderBackend> requires
-    rtti::implements<TRenderBackend, IRenderBackend>
+    meta::implements<TRenderBackend, IRenderBackend>
 struct FileExtensions {
     static const String SHADER;
 };
@@ -70,7 +70,7 @@ static void initInstanceData()
 }
 
 template<typename TRenderBackend> requires
-    rtti::implements<TRenderBackend, IRenderBackend>
+    meta::implements<TRenderBackend, IRenderBackend>
 void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState)
 {
     using RenderPass = TRenderBackend::render_pass_type;

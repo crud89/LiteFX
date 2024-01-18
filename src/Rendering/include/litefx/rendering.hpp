@@ -194,8 +194,8 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IDescriptorLayout" />
     /// <seealso cref="DescriptorSet" />
     template <typename TDescriptorLayout, typename TDescriptorSet> requires
-        rtti::implements<TDescriptorLayout, IDescriptorLayout> &&
-        rtti::implements<TDescriptorSet, DescriptorSet<typename TDescriptorSet::buffer_type, typename TDescriptorSet::image_type, typename TDescriptorSet::sampler_type>>
+        meta::implements<TDescriptorLayout, IDescriptorLayout> &&
+        meta::implements<TDescriptorSet, DescriptorSet<typename TDescriptorSet::buffer_type, typename TDescriptorSet::image_type, typename TDescriptorSet::sampler_type>>
     class DescriptorSetLayout : public IDescriptorSetLayout {
     public:
         using IDescriptorSetLayout::free;
@@ -280,7 +280,7 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IPushConstantsRange" />
     /// <seealso cref="DescriptorSetLayout" />
     template <typename TPushConstantsRange> requires
-        rtti::implements<TPushConstantsRange, IPushConstantsRange>
+        meta::implements<TPushConstantsRange, IPushConstantsRange>
     class PushConstantsLayout : public IPushConstantsLayout {
     public:
         using push_constants_range_type = TPushConstantsRange;
@@ -304,7 +304,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TShaderModule">The type of the shader module. Must implement <see cref="IShaderModule"/>.</typeparam>
     /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
     template <typename TShaderModule> requires
-        rtti::implements<TShaderModule, IShaderModule>
+        meta::implements<TShaderModule, IShaderModule>
     class ShaderProgram : public IShaderProgram {
     public:
         using shader_module_type = TShaderModule;
@@ -328,8 +328,8 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="DescriptorSetLayout"/>.</typeparam>
     /// <typeparam name="TPushConstantsLayout">The type of the push constants layout. Must implement <see cref="PushConstantsLayout"/>.</typeparam>
     template <typename TDescriptorSetLayout, typename TPushConstantsLayout> requires
-        rtti::implements<TDescriptorSetLayout, DescriptorSetLayout<typename TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSetLayout::descriptor_set_type>> &&
-        rtti::implements<TPushConstantsLayout, PushConstantsLayout<typename TPushConstantsLayout::push_constants_range_type>>
+        meta::implements<TDescriptorSetLayout, DescriptorSetLayout<typename TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSetLayout::descriptor_set_type>> &&
+        meta::implements<TPushConstantsLayout, PushConstantsLayout<typename TPushConstantsLayout::push_constants_range_type>>
     class PipelineLayout : public IPipelineLayout {
     public:
         using descriptor_set_layout_type = TDescriptorSetLayout;
@@ -359,7 +359,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
     template <typename TVertexBufferLayout> requires
-        rtti::implements<TVertexBufferLayout, IVertexBufferLayout>
+        meta::implements<TVertexBufferLayout, IVertexBufferLayout>
     class VertexBuffer : public virtual IVertexBuffer {
     public:
         using vertex_buffer_layout_type = TVertexBufferLayout;
@@ -377,7 +377,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
     template <typename TIndexBufferLayout> requires
-        rtti::implements<TIndexBufferLayout, IIndexBufferLayout>
+        meta::implements<TIndexBufferLayout, IIndexBufferLayout>
     class IndexBuffer : public virtual IIndexBuffer {
     public:
         using index_buffer_layout_type = TIndexBufferLayout;
@@ -396,8 +396,8 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout"/>.</typeparam>
     /// <typeparam name="TIndexBufferLayout">The type of the index buffer layout. Must implement <see cref="IIndexBufferLayout"/>.</typeparam>
     template <typename TVertexBufferLayout, typename TIndexBufferLayout> requires
-        rtti::implements<TVertexBufferLayout, IVertexBufferLayout> &&
-        rtti::implements<TIndexBufferLayout, IIndexBufferLayout>
+        meta::implements<TVertexBufferLayout, IVertexBufferLayout> &&
+        meta::implements<TIndexBufferLayout, IIndexBufferLayout>
     class InputAssembler : public IInputAssembler {
     public:
         using vertex_buffer_layout_type = TVertexBufferLayout;
@@ -430,8 +430,8 @@ namespace LiteFX::Rendering {
     /// <seealso cref="RenderPipeline" />
     /// <seealso cref="ComputePipeline" />
     template <typename TPipelineLayout, typename TShaderProgram> requires
-        rtti::implements<TPipelineLayout, PipelineLayout<typename TPipelineLayout::descriptor_set_layout_type, typename TPipelineLayout::push_constants_layout_type>> &&
-        rtti::implements<TShaderProgram, ShaderProgram<typename TShaderProgram::shader_module_type>>
+        meta::implements<TPipelineLayout, PipelineLayout<typename TPipelineLayout::descriptor_set_layout_type, typename TPipelineLayout::push_constants_layout_type>> &&
+        meta::implements<TShaderProgram, ShaderProgram<typename TShaderProgram::shader_module_type>>
     class Pipeline : public virtual IPipeline, public virtual StateResource {
     public:
         using shader_program_type = TShaderProgram;
@@ -470,7 +470,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TBLAS">The type of the bottom-level acceleration structure. Must implement <see cref="IBottomLevelAccelerationStructure" />.</typeparam>
     /// <typeparam name="TTLAS">The type of the top-level acceleration structure. Must implement <see cref="ITopLevelAccelerationStructure" />.</typeparam>
     template <typename TCommandBuffer, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline, typename TBLAS, typename TTLAS> requires
-        rtti::implements<TBarrier, Barrier<TBuffer, TImage>> &&
+        meta::implements<TBarrier, Barrier<TBuffer, TImage>> &&
         //std::derived_from<TCommandBuffer, ICommandBuffer> &&
         std::derived_from<TPipeline, Pipeline<typename TPipeline::pipeline_layout_type, typename TPipeline::shader_program_type>> &&
         std::derived_from<TBLAS, IBottomLevelAccelerationStructure> &&
@@ -723,8 +723,8 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TRasterizer">The type of the rasterizer state. Must implement <see cref="Rasterizer"/>.</typeparam>
     /// <seealso cref="RenderPipelineBuilder" />
     template <typename TPipelineLayout, typename TShaderProgram, typename TInputAssembler, typename TRasterizer> requires
-        rtti::implements<TInputAssembler, InputAssembler<typename TInputAssembler::vertex_buffer_layout_type, typename TInputAssembler::index_buffer_layout_type>> &&
-        rtti::implements<TRasterizer, Rasterizer>
+        meta::implements<TInputAssembler, InputAssembler<typename TInputAssembler::vertex_buffer_layout_type, typename TInputAssembler::index_buffer_layout_type>> &&
+        meta::implements<TRasterizer, Rasterizer>
     class RenderPipeline : public IRenderPipeline, public Pipeline<TPipelineLayout, TShaderProgram> {
     public:
         using input_assembler_type = TInputAssembler;
@@ -768,7 +768,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
     /// <seealso cref="RenderTarget" />
     template <typename TCommandBuffer> requires
-        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type, typename TCommandBuffer::bottom_level_acceleration_structure_type, typename TCommandBuffer::top_level_acceleration_structure_type>>
+        meta::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type, typename TCommandBuffer::bottom_level_acceleration_structure_type, typename TCommandBuffer::top_level_acceleration_structure_type>>
     class FrameBuffer : public IFrameBuffer {
     public:
         using command_buffer_type = TCommandBuffer;
@@ -809,7 +809,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
     template <typename TFrameBuffer> requires
-        rtti::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>>
+        meta::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>>
     class InputAttachmentMappingSource : public IInputAttachmentMappingSource {
     public:
         using frame_buffer_type = TFrameBuffer;
@@ -827,7 +827,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TInputAttachmentMappingSource">The type of the input attachment mapping source. Must implement <see cref="InputAttachmentMappingSource" />.</typeparam>
     template <typename TInputAttachmentMappingSource> requires
-        rtti::implements<TInputAttachmentMappingSource, InputAttachmentMappingSource<typename TInputAttachmentMappingSource::frame_buffer_type>>
+        meta::implements<TInputAttachmentMappingSource, InputAttachmentMappingSource<typename TInputAttachmentMappingSource::frame_buffer_type>>
     class IInputAttachmentMapping {
     public:
         using input_attachment_mapping_source_type = TInputAttachmentMappingSource;
@@ -871,10 +871,10 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
     /// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
     template <typename TRenderPipeline, typename TCommandQueue, typename TFrameBuffer, typename TInputAttachmentMapping> requires
-        rtti::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>> &&
-        /*rtti::implements<TCommandQueue, CommandQueue<typename TFrameBuffer::command_buffer_type>> &&*/
-        rtti::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>> /*&&
-        rtti::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
+        meta::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>> &&
+        /*meta::implements<TCommandQueue, CommandQueue<typename TFrameBuffer::command_buffer_type>> &&*/
+        meta::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>> /*&&
+        meta::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
     class RenderPass : public virtual StateResource, public IRenderPass, public InputAttachmentMappingSource<TFrameBuffer> {
     public:
         using IRenderPass::updateAttachments;
@@ -932,7 +932,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TImageInterface">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
     template <typename TImageInterface, typename TFrameBuffer> requires
-        rtti::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>> &&
+        meta::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>> &&
         std::derived_from<TImageInterface, IImage>
     class SwapChain : public ISwapChain {
     public:
@@ -968,7 +968,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TCommandBuffer">The type of the command buffer for this queue. Must implement <see cref="CommandBuffer"/>.</typeparam>
     template <typename TCommandBuffer> requires
-        rtti::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type, typename TCommandBuffer::bottom_level_acceleration_structure_type, typename TCommandBuffer::top_level_acceleration_structure_type>>
+        meta::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type, typename TCommandBuffer::bottom_level_acceleration_structure_type, typename TCommandBuffer::top_level_acceleration_structure_type>>
     class CommandQueue : public ICommandQueue {
     public:
         using ICommandQueue::submit;
@@ -1024,7 +1024,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TBLAS">The type of the bottom-level acceleration structure. Must implement <see cref="IBottomLevelAccelerationStructure" />.</typeparam>
     /// <typeparam name="TTLAS">The type of the top-level acceleration structure. Must implement <see cref="ITopLevelAccelerationStructure" />.</typeparam>
     template <typename TDescriptorLayout, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TSampler, typename TBLAS, typename TTLAS> requires
-        rtti::implements<TDescriptorLayout, IDescriptorLayout> &&
+        meta::implements<TDescriptorLayout, IDescriptorLayout> &&
         std::derived_from<TVertexBuffer, VertexBuffer<typename TVertexBuffer::vertex_buffer_layout_type>> &&
         std::derived_from<TIndexBuffer, IndexBuffer<typename TIndexBuffer::index_buffer_layout_type>> &&
         std::derived_from<TImage, IImage> &&
@@ -1193,14 +1193,14 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TComputePipeline">The type of the compute pipeline. Must implement <see cref="ComputePipeline" />.</typeparam>
     /// <typeparam name="TBarrier">The type of the memory barrier. Must implement <see cref="Barrier" />.</typeparam>
     template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TComputePipeline, typename TBarrier> requires
-        rtti::implements<TSurface, ISurface> &&
-        rtti::implements<TGraphicsAdapter, IGraphicsAdapter> &&
-        rtti::implements<TSwapChain, SwapChain<typename TFactory::image_type, typename TRenderPass::frame_buffer_type>> &&
-        rtti::implements<TCommandQueue, CommandQueue<typename TCommandQueue::command_buffer_type>> &&
-        rtti::implements<TFactory, GraphicsFactory<typename TFactory::descriptor_layout_type, typename TFactory::buffer_type, typename TFactory::vertex_buffer_type, typename TFactory::index_buffer_type, typename TFactory::image_type, typename TFactory::sampler_type, typename TFactory::bottom_level_acceleration_structure_type, typename TFactory::top_level_acceleration_structure_type>> &&
-        rtti::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, TCommandQueue, typename TRenderPass::frame_buffer_type, typename TRenderPass::input_attachment_mapping_type>> &&
-        rtti::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>> &&
-        rtti::implements<TBarrier, Barrier<typename TFactory::buffer_type, typename TFactory::image_type>>
+        meta::implements<TSurface, ISurface> &&
+        meta::implements<TGraphicsAdapter, IGraphicsAdapter> &&
+        meta::implements<TSwapChain, SwapChain<typename TFactory::image_type, typename TRenderPass::frame_buffer_type>> &&
+        meta::implements<TCommandQueue, CommandQueue<typename TCommandQueue::command_buffer_type>> &&
+        meta::implements<TFactory, GraphicsFactory<typename TFactory::descriptor_layout_type, typename TFactory::buffer_type, typename TFactory::vertex_buffer_type, typename TFactory::index_buffer_type, typename TFactory::image_type, typename TFactory::sampler_type, typename TFactory::bottom_level_acceleration_structure_type, typename TFactory::top_level_acceleration_structure_type>> &&
+        meta::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, TCommandQueue, typename TRenderPass::frame_buffer_type, typename TRenderPass::input_attachment_mapping_type>> &&
+        meta::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>> &&
+        meta::implements<TBarrier, Barrier<typename TFactory::buffer_type, typename TFactory::image_type>>
     class GraphicsDevice : public IGraphicsDevice {
     public:
         using surface_type = TSurface;
@@ -1374,7 +1374,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="GraphicsDevice" />.</typeparam>
     template <typename TGraphicsDevice> requires
-        rtti::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::compute_pipeline_type, typename TGraphicsDevice::barrier_type>>
+        meta::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::compute_pipeline_type, typename TGraphicsDevice::barrier_type>>
     class RenderBackend : public IRenderBackend {
     public:
         using device_type = TGraphicsDevice;

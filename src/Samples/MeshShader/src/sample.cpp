@@ -16,7 +16,7 @@ struct TransformBuffer {
 } transform;
 
 template<typename TRenderBackend> requires
-    rtti::implements<TRenderBackend, IRenderBackend>
+    meta::implements<TRenderBackend, IRenderBackend>
 struct FileExtensions {
     static const String SHADER;
 };
@@ -29,7 +29,7 @@ const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 template<typename TRenderBackend> requires
-    rtti::implements<TRenderBackend, IRenderBackend>
+    meta::implements<TRenderBackend, IRenderBackend>
 void initRenderGraph(TRenderBackend* backend)
 {
     using RenderPass = TRenderBackend::render_pass_type;
