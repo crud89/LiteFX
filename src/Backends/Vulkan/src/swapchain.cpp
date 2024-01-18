@@ -88,8 +88,8 @@ public:
 		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		createInfo.clipped = VK_TRUE;
 		createInfo.oldSwapchain = VK_NULL_HANDLE;
-		createInfo.imageExtent.height = std::max<UInt32>(1, std::clamp(static_cast<UInt32>(renderArea.height()), deviceCaps.minImageExtent.height, deviceCaps.maxImageExtent.height));
-		createInfo.imageExtent.width = std::max<UInt32>(1, std::clamp(static_cast<UInt32>(renderArea.width()), deviceCaps.minImageExtent.width, deviceCaps.maxImageExtent.width));
+		createInfo.imageExtent.height = std::max<UInt32>(1u, std::clamp(static_cast<UInt32>(renderArea.height()), deviceCaps.minImageExtent.height, deviceCaps.maxImageExtent.height));
+		createInfo.imageExtent.width = std::max<UInt32>(1u, std::clamp(static_cast<UInt32>(renderArea.width()), deviceCaps.minImageExtent.width, deviceCaps.maxImageExtent.width));
 
 		// Set the present mode to VK_PRESENT_MODE_MAILBOX_KHR, since it offers best performance without tearing. For VSync use VK_PRESENT_MODE_FIFO_KHR, which is also the only one guaranteed to be available.
 		createInfo.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
@@ -404,8 +404,8 @@ public:
 
 		// Fix the render area, if required.
 		Size2d extent(
-			std::clamp(static_cast<UInt32>(renderArea.width()), deviceCaps.minImageExtent.width, deviceCaps.maxImageExtent.width),
-			std::clamp(static_cast<UInt32>(renderArea.height()), deviceCaps.minImageExtent.height, deviceCaps.maxImageExtent.height));
+			std::max(1u, std::clamp(static_cast<UInt32>(renderArea.width()), deviceCaps.minImageExtent.width, deviceCaps.maxImageExtent.width)), 
+			std::max(1u, std::clamp(static_cast<UInt32>(renderArea.height()), deviceCaps.minImageExtent.height, deviceCaps.maxImageExtent.height)));
 
 		[[unlikely]] if (extent.height() != static_cast<UInt32>(renderArea.height()) || extent.width() != static_cast<UInt32>(renderArea.width()))
 			LITEFX_INFO(VULKAN_LOG, "The render area has been adjusted to {0}x{1} Px (was {2}x{3} Px).", extent.height(), extent.width(), static_cast<UInt32>(renderArea.height()), static_cast<UInt32>(renderArea.width()));
@@ -555,7 +555,9 @@ public:
 			LITEFX_INFO(VULKAN_LOG, "The number of buffers has been adjusted from {0} to {1}.", buffers, images);
 
 		// Fix the render area, if required.
-		Size2d extent(std::clamp(static_cast<UInt32>(renderArea.width()), deviceCaps.minImageExtent.width, deviceCaps.maxImageExtent.width), std::clamp(static_cast<UInt32>(renderArea.height()), deviceCaps.minImageExtent.height, deviceCaps.maxImageExtent.height));
+		Size2d extent(
+			std::max(1u, std::clamp(static_cast<UInt32>(renderArea.width()), deviceCaps.minImageExtent.width, deviceCaps.maxImageExtent.width)), 
+			std::max(1u, std::clamp(static_cast<UInt32>(renderArea.height()), deviceCaps.minImageExtent.height, deviceCaps.maxImageExtent.height)));
 
 		[[unlikely]] if (extent.height() != static_cast<UInt32>(renderArea.height()) || extent.width() != static_cast<UInt32>(renderArea.width()))
 			LITEFX_INFO(VULKAN_LOG, "The render area has been adjusted to {0}x{1} Px (was {2}x{3} Px).", extent.height(), extent.width(), static_cast<UInt32>(renderArea.height()), static_cast<UInt32>(renderArea.width()));
