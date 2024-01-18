@@ -160,6 +160,8 @@ namespace LiteFX::Rendering::Backends {
         friend class DirectX12Device;
         friend class DirectX12CommandBuffer;
 
+        using IAccelerationStructure::allocateBuffer;
+
     public:
         /// <summary>
         /// Initializes a new DirectX 12 bottom-level acceleration structure (BLAS).
@@ -177,6 +179,15 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         AccelerationStructureFlags flags() const noexcept override;
 
+        /// <inheritdoc />
+        UInt64 requiredScratchMemory() const noexcept override;
+
+        /// <inheritdoc />
+        const IDirectX12Buffer* buffer() const noexcept;
+
+        /// <inheritdoc />
+        void allocateBuffer(const DirectX12Device& device);
+
         // IBottomLevelAccelerationStructure interface.
     public:
         /// <inheritdoc />
@@ -191,11 +202,15 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void addBoundingBox(const BoundingBoxes& aabb) override;
 
-        /// <inheritdoc />
-        void clear(bool meshes = true, bool boundingBoxes = true) override;
-
     private:
         Array<D3D12_RAYTRACING_GEOMETRY_DESC> buildInfo() const;
+
+    private:
+        inline const IBuffer* getBuffer() const noexcept override {
+            return this->buffer();
+        }
+
+        inline void makeBuffer(const IGraphicsDevice& device) override;
     };
 
     /// <summary>
@@ -206,6 +221,8 @@ namespace LiteFX::Rendering::Backends {
         LITEFX_IMPLEMENTATION(DirectX12TopLevelAccelerationStructureImpl);
         friend class DirectX12Device;
         friend class DirectX12CommandBuffer;
+
+        using IAccelerationStructure::allocateBuffer;
 
     public:
         /// <summary>
@@ -224,6 +241,15 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         AccelerationStructureFlags flags() const noexcept override;
 
+        /// <inheritdoc />
+        UInt64 requiredScratchMemory() const noexcept override;
+
+        /// <inheritdoc />
+        const IDirectX12Buffer* buffer() const noexcept;
+
+        /// <inheritdoc />
+        void allocateBuffer(const DirectX12Device& device);
+
         // ITopLevelAccelerationStructure interface.
     public:
         /// <inheritdoc />
@@ -232,8 +258,15 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void addInstance(const Instance& instance) override;
 
-        /// <inheritdoc />
-        void clear() override;
+    private:
+        Array<D3D12_RAYTRACING_INSTANCE_DESC> buildInfo() const;
+
+    private:
+        inline const IBuffer* getBuffer() const noexcept override {
+            return this->buffer();
+        }
+
+        inline void makeBuffer(const IGraphicsDevice& device) override;
     };
 
     /// <summary>
@@ -1050,16 +1083,16 @@ namespace LiteFX::Rendering::Backends {
 #if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     public:
         /// <inheritdoc />
-        void buildAccelerationStructure(const IDirectX12Buffer& buffer, const DirectX12BottomLevelAccelerationStructure& blas) const override;
+        void buildAccelerationStructure(const DirectX12BottomLevelAccelerationStructure& blas) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(const IDirectX12Buffer& buffer, const DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer) const override;
+        void buildAccelerationStructure(const DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(const IDirectX12Buffer& buffer, const DirectX12TopLevelAccelerationStructure& tlas) const override;
+        void buildAccelerationStructure(const DirectX12TopLevelAccelerationStructure& tlas) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(const IDirectX12Buffer& buffer, const DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer) const override;
+        void buildAccelerationStructure(const DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer) const override;
 #endif
 
     private:

@@ -166,7 +166,7 @@ namespace LiteFX::Rendering {
         /// The highest possible queue priority. Submitting work to this queue might block other queues.
         /// </summary>
         /// <remarks>
-        /// Do not use this queue priority when creating queues, as it is reserved for the default (builtin) queues.
+        /// Do not use this queue priority when creating queues, as it is reserved for the default (built-in) queues.
         /// </remarks>
         Realtime = 100
     };
@@ -780,7 +780,7 @@ namespace LiteFX::Rendering {
         Solid = 0x00000001,
 
         /// <summary>
-        /// Polygons are only drawn as wireframes.
+        /// Polygons are only drawn as wire-frames.
         /// </summary>
         Wireframe = 0x00000002,
 
@@ -801,7 +801,7 @@ namespace LiteFX::Rendering {
         FrontFaces = 0x00000001,
 
         /// <summary>
-        /// The rasterizer wll discard back-facing polygons.
+        /// The rasterizer will discard back-facing polygons.
         /// </summary>
         BackFaces = 0x00000002,
 
@@ -961,7 +961,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     enum class LITEFX_RENDERING_API MultiSamplingLevel : UInt32 {
         /// <summary>
-        /// The default number of samples. Multi-sampling will be de-activated, if this sampling level is used.
+        /// The default number of samples. Multi-sampling will be deactivated, if this sampling level is used.
         /// </summary>
         x1 = 0x00000001,
 
@@ -1090,7 +1090,7 @@ namespace LiteFX::Rendering {
         LessEqual = 0x00000004,
 
         /// <summary>
-        /// The test succeeds, if the current value is greater or euql to the stencil ref or previous depth value.
+        /// The test succeeds, if the current value is greater or equal to the stencil ref or previous depth value.
         /// </summary>
         GreaterEqual = 0x00000005,
 
@@ -1645,7 +1645,7 @@ namespace LiteFX::Rendering {
         PreferFastTrace = 0x0004,
 
         /// <summary>
-        /// Prefer fast build times for the acceleration structure, but sacrifice raytracing performance.
+        /// Prefer fast build times for the acceleration structure, but sacrifice ray-tracing performance.
         /// </summary>
         /// <remarks>
         /// This flag cannot be combined with <see cref="PreferFastTrace" />.
@@ -1653,7 +1653,7 @@ namespace LiteFX::Rendering {
         PreferFastBuild = 0x0008,
 
         /// <summary>
-        /// Prefer to minimize the memory footprint of the acceleration structure, but at the cost of raytracing performance and build times.
+        /// Prefer to minimize the memory footprint of the acceleration structure, but at the cost of ray-tracing performance and build times.
         /// </summary>
         MinimizeMemory = 0x0010
     };
@@ -1661,7 +1661,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// 
     /// </summary>
-    enum class InstanceFlags : Byte {
+    enum class InstanceFlags {
         None = 0x00,
 
         /// <summary>
@@ -3458,16 +3458,43 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The flags that control how the acceleration structure should be built.</returns>
         virtual AccelerationStructureFlags flags() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the amount of memory required to build the acceleration structure.
+        /// </summary>
+        /// <returns>The amount of memory required to build the acceleration structure.</returns>
+        virtual UInt64 requiredScratchMemory() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the buffer that stores the acceleration structure after building.
+        /// </summary>
+        /// <returns>The buffer that stores the acceleration structure after building and `nullptr` before building.</returns>
+        inline const IBuffer* buffer() const noexcept {
+            return this->getBuffer();
+        }
+
+        /// <summary>
+        /// Allocates the buffer that is used to store the acceleration structure on the GPU.
+        /// </summary>
+        /// <param name="device">The device to create the acceleration structure with.</param>
+        /// <exception cref="RuntimeException">Thrown, if the buffer for this acceleration structure has already been allocated.</exception>
+        inline void allocateBuffer(const IGraphicsDevice& device) {
+            this->makeBuffer(device);
+        }
+
+    private:
+        virtual const IBuffer* getBuffer() const noexcept = 0;
+        virtual void makeBuffer(const IGraphicsDevice& device) = 0;
     };
 
     /// <summary>
     /// A structure that holds a singular entity of geometry for hardware ray-tracing.
     /// </summary>
     /// <remarks>
-    /// Bottom-level acceleration structures descripe actual pieces of geometry (sets oftriangular meshes and/or axis-aligned bounding boxes for procedural geometry). They
+    /// Bottom-level acceleration structures describe actual pieces of geometry (sets of triangular meshes and/or axis-aligned bounding boxes for procedural geometry). They
     /// can best be thought of entities in terms of a scene graph, whilst <see cref="ITopLevelAccelerationStructure" />s represent their respective *instances*. For example,
     /// a top-level acceleration structure (TLAS) would store the world transform of the object itself, which can be placed multiple times in the scene with different 
-    /// transforms each time. Each TLAS points to a bottom-level acceleration structure (BLAS), that contains the actual geometry, consiting of multiple meshes that are all
+    /// transforms each time. Each TLAS points to a bottom-level acceleration structure (BLAS), that contains the actual geometry, consisting of multiple meshes that are all
     /// transformed relative to the TLAS transform.
     /// </remarks>
     /// <seealso cref="TriangleMesh" />
@@ -3622,7 +3649,7 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Returns an array of buffers, each containing axis-aligned bounding boxes stoerd in the BLAS.
+        /// Returns an array of buffers, each containing axis-aligned bounding boxes stored in the BLAS.
         /// </summary>
         /// <returns>The array of axis-aligned bounding boxes contained by the BLAS.</returns>
         virtual const Array<BoundingBoxes>& boundingBoxes() const noexcept = 0;
@@ -3641,13 +3668,6 @@ namespace LiteFX::Rendering {
         inline void addBoundingBox(SharedPtr<const IBuffer> buffer, GeometryFlags flags = GeometryFlags::None) {
             this->addBoundingBox(BoundingBoxes { .Buffer = buffer, .Flags = flags });
         }
-
-        /// <summary>
-        /// Removes all meshes and/or bounding boxes from the BLAS.
-        /// </summary>
-        /// <param name="meshes">If set to `true`, all meshes will be removed from the BLAS.</param>
-        /// <param name="boundingBoxes">If set to `true`, all bounding boxes will be removed from the BLAS.</param>
-        virtual void clear(bool meshes = true, bool boundingBoxes = true) = 0;
 
     public:
         /// <summary>
@@ -3708,7 +3728,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         struct Instance final {
             /// <summary>
-            /// The BLAS that to be instantiated.
+            /// The bottom-level acceleration structure that contains the geometries of this instance.
             /// </summary>
             SharedPtr<const IBottomLevelAccelerationStructure> BottomLevelAccelerationStructure;
 
@@ -3720,12 +3740,22 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The instance ID used in shaders to identify the instance.
             /// </summary>
-            UInt32 InstanceId;
+            UInt32 Id : 24 = 0;
+
+            /// <summary>
+            /// A user-defined mask value that is matched with another mask value during ray-tracing to include or discard the instance.
+            /// </summary>
+            Byte Mask : 8 = 0xFF;
 
             /// <summary>
             /// The index of the hit group shader in the shader binding table.
             /// </summary>
-            UInt32 HitGroup;
+            UInt32 HitGroup : 24 = 0;
+
+            /// <summary>
+            /// The flags that control the behavior of this instance.
+            /// </summary>
+            InstanceFlags Flags : 8 = InstanceFlags::None;
         };
     public:
         virtual ~ITopLevelAccelerationStructure() noexcept = default;
@@ -3746,17 +3776,14 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds an instance to the TLAS.
         /// </summary>
-        /// <param name="blas">The BLAS that to be instantiated.</param>
-        /// <param name="instanceId">The instance ID used in shaders to identify the instance.</param>
+        /// <param name="blas">The bottom-level acceleration structure that contains the geometries of the instance.</param>
+        /// <param name="id">The instance ID used in shaders to identify the instance.</param>
         /// <param name="hitGroup">The index of the hit group shader in the shader binding table.</param>
-        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 instanceId, UInt32 hitGroup) {
-            this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .InstanceId = instanceId, .HitGroup = hitGroup });
+        /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
+        /// <param name="flags">The flags that control the behavior of the instance.</param>
+        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroup, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) {
+            this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroup = hitGroup, .Flags = flags });
         }
-
-        /// <summary>
-        /// Removes all instances from the TLAS.
-        /// </summary>
-        virtual void clear() = 0;
 
     public:
         /// <summary>
@@ -3773,13 +3800,16 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds an instance to the current TLAS.
         /// </summary>
-        /// <param name="blas">The BLAS that to be instantiated.</param>
-        /// <param name="instanceId">The instance ID used in shaders to identify the instance.</param>
+        /// <param name="blas">The bottom-level acceleration structure that contains the geometries of the instance.</param>
+        /// <param name="id">The instance ID used in shaders to identify the instance.</param>
         /// <param name="hitGroup">The index of the hit group shader in the shader binding table.</param>
+        /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
+        /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <returns>A reference to the current TLAS.</returns>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 instanceId, UInt32 hitGroup) -> TSelf& {
-            return self.withInstance(Instance { .BottomLevelAccelerationStructure = blas, .InstanceId = instanceId, .HitGroup = hitGroup });
+        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroup, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) -> TSelf& {
+            self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroup = hitGroup, .Flags = flags });
+            return self;
         }
     };
 
@@ -4062,7 +4092,7 @@ namespace LiteFX::Rendering {
         /// The index of the descriptor in a descriptor array at which binding the resource arrays starts.
         /// </summary>
         /// <remarks>
-        /// If the resource contains an array, the individual elements (*layers* for images) will be be bound, starting at this descriptor. The first element/layer to be
+        /// If the resource contains an array, the individual elements (*layers* for images) will be bound, starting at this descriptor. The first element/layer to be
         /// bound is identified by <see cref="firstElement" />. The number of elements/layers to be bound is stored in <see cref="elements" />.
         /// </remarks>
         /// <seealso cref="firstElement" />
@@ -5076,10 +5106,10 @@ namespace LiteFX::Rendering {
         /// This overload creates a temporary scratch buffer for building up the acceleration structure. It might be more efficient to re-use scratch buffer memory, in which case another overload
         /// of this method is available.
         /// </remarks>
-        /// <param name="buffer">The buffer to write the acceleration structure into.</param>
         /// <param name="blas">The bottom-level acceleration structure to build.</param>
-        inline void buildAccelerationStructure(const IBuffer& buffer, const IBottomLevelAccelerationStructure& blas) const {
-            this->cmdBuildAccelerationStructure(buffer, blas);
+        /// <exception cref="InvalidArgumentException">Thrown, if no buffer has been allocated for the provided acceleration structure has.</exception>
+        inline void buildAccelerationStructure(const IBottomLevelAccelerationStructure& blas) const {
+            this->cmdBuildAccelerationStructure(blas);
         }
 
         /// <summary>
@@ -5089,11 +5119,12 @@ namespace LiteFX::Rendering {
         /// This overload uses an existing scratch buffer to build up the acceleration structure. Note that it is required to manually synchronize write access to the scratch buffer. Two building
         /// commands must not use the same scratch buffer at the same time.
         /// </remarks>
-        /// <param name="buffer">The buffer to write the acceleration structure into.</param>
         /// <param name="blas">The bottom-level acceleration structure to build.</param>
-        /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration strucuture.</param>
-        inline void buildAccelerationStructure(const IBuffer& buffer, const IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer) const {
-            this->cmdBuildAccelerationStructure(buffer, blas, scratchBuffer);
+        /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration structure.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if no buffer has been allocated for the provided acceleration structure has.</exception>
+        /// <exception cref="InvalidArgumentException">Thrown, if the provided scratch buffer is not writable or does not contain enough memory.</exception>
+        inline void buildAccelerationStructure(const IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer) const {
+            this->cmdBuildAccelerationStructure(blas, scratchBuffer);
         }
 
         /// <summary>
@@ -5103,10 +5134,10 @@ namespace LiteFX::Rendering {
         /// This overload creates a temporary scratch buffer for building up the acceleration structure. It might be more efficient to re-use scratch buffer memory, in which case another overload
         /// of this method is available.
         /// </remarks>
-        /// <param name="buffer">The buffer to write the acceleration structure into.</param>
         /// <param name="tlas">The top-level acceleration structure to build.</param>
-        inline void buildAccelerationStructure(const IBuffer& buffer, const ITopLevelAccelerationStructure& tlas) const {
-            this->cmdBuildAccelerationStructure(buffer, tlas);
+        /// <exception cref="InvalidArgumentException">Thrown, if no buffer has been allocated for the provided acceleration structure has.</exception>
+        inline void buildAccelerationStructure(const ITopLevelAccelerationStructure& tlas) const {
+            this->cmdBuildAccelerationStructure(tlas);
         }
 
         /// <summary>
@@ -5116,11 +5147,12 @@ namespace LiteFX::Rendering {
         /// This overload uses an existing scratch buffer to build up the acceleration structure. Note that it is required to manually synchronize write access to the scratch buffer. Two building
         /// commands must not use the same scratch buffer at the same time.
         /// </remarks>
-        /// <param name="buffer">The buffer to write the acceleration structure into.</param>
         /// <param name="tlas">The top-level acceleration structure to build.</param>
-        /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration strucuture.</param>
-        inline void buildAccelerationStructure(const IBuffer& buffer, const ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer) const {
-            this->cmdBuildAccelerationStructure(buffer, tlas, scratchBuffer);
+        /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration structure.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if no buffer has been allocated for the provided acceleration structure has.</exception>
+        /// <exception cref="InvalidArgumentException">Thrown, if the provided scratch buffer is not writable or does not contain enough memory.</exception>
+        inline void buildAccelerationStructure(const ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer) const {
+            this->cmdBuildAccelerationStructure(tlas, scratchBuffer);
         }
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
@@ -5148,10 +5180,10 @@ namespace LiteFX::Rendering {
         virtual void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffer) const = 0;
 
 #if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-        virtual void cmdBuildAccelerationStructure(const IBuffer& buffer, const IBottomLevelAccelerationStructure& blas) const = 0;
-        virtual void cmdBuildAccelerationStructure(const IBuffer& buffer, const IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer) const = 0;
-        virtual void cmdBuildAccelerationStructure(const IBuffer& buffer, const ITopLevelAccelerationStructure& tlas) const = 0;
-        virtual void cmdBuildAccelerationStructure(const IBuffer& buffer, const ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer) const = 0;
+        virtual void cmdBuildAccelerationStructure(const IBottomLevelAccelerationStructure& blas) const = 0;
+        virtual void cmdBuildAccelerationStructure(const IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer) const = 0;
+        virtual void cmdBuildAccelerationStructure(const ITopLevelAccelerationStructure& tlas) const = 0;
+        virtual void cmdBuildAccelerationStructure(const ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer) const = 0;
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
         /// <summary>
@@ -5658,7 +5690,7 @@ namespace LiteFX::Rendering {
         virtual void present(const IFrameBuffer& frameBuffer) const = 0;
 
         /// <summary>
-        /// Queues a present that gets executed after <paramref name="fence" /> has been signalled on the default graphics queue.
+        /// Queues a present that gets executed after <paramref name="fence" /> has been signaled on the default graphics queue.
         /// </summary>
         /// <remarks>
         /// You can use this overload in situations where you do not have an <see cref="IRenderPass" /> or <see cref="IFrameBuffer" /> to render into before presenting. Instead, you typically
@@ -6484,7 +6516,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <remarks>
         /// Acceleration structures are built on the GPU, which requires additional memory called *scratch memory*. When creating an acceleration structure (AS), you have to 
-        /// provide a temporary buffer containing the scratch memory, alongside the actual buffer that stores the AS itself. This method can be used to precompute the buffer
+        /// provide a temporary buffer containing the scratch memory, alongside the actual buffer that stores the AS itself. This method can be used to pre-compute the buffer
         /// sizes for both buffers.
         /// </remarks>
         /// <param name="blas">The bottom-level acceleration structure to compute the memory requirements for.</param>
@@ -6499,7 +6531,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <remarks>
         /// Acceleration structures are built on the GPU, which requires additional memory called *scratch memory*. When creating an acceleration structure (AS), you have to 
-        /// provide a temporary buffer containing the scratch memory, alongside the actual buffer that stores the AS itself. This method can be used to precompute the buffer
+        /// provide a temporary buffer containing the scratch memory, alongside the actual buffer that stores the AS itself. This method can be used to pre-compute the buffer
         /// sizes for both buffers.
         /// </remarks>
         /// <param name="tlas">The top-level acceleration structure to compute the memory requirements for.</param>

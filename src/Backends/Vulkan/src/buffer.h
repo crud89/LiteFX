@@ -61,12 +61,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		void map(Span<void*> data, size_t elementSize, UInt32 firstElement = 0, bool write = true) override;
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-		// IVulkanBuffer interface.
-	private:
-		VkAccelerationStructureKHR accelerationStructure() const noexcept override;
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-
 		// VulkanBuffer.
 	public:
 		static UniquePtr<IVulkanBuffer> allocate(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);

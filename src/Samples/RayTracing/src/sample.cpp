@@ -115,6 +115,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Prebuild acceleration structures. We start with 1 bottom-level acceleration structure (BLAS) for our simple geometry and a few top-level acceleration strucutres (TLAS) for the instances.
     auto blas = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure()));
     blas->withTriangleMesh({ asShared(std::move(vertexBuffer)), asShared(std::move(indexBuffer)) });
+    blas->allocateBuffer(*m_device);
 
     auto tlas = m_device->factory().createTopLevelAccelerationStructure();
     tlas->withInstance(blas, 0, 0)
@@ -127,21 +128,16 @@ void SampleApp::initBuffers(IRenderBackend* backend)
         .withInstance(blas, 7, 0)
         .withInstance(blas, 8, 0);
 
-    // Compute required buffer sizes for BLAS buffers.
-    UInt64 blasScratchSize, blasBufferSize, tlasScratchSize, tlasBufferSize;
-    m_device->computeAccelerationStructureSizes(*blas, blasBufferSize, blasScratchSize);
-    m_device->computeAccelerationStructureSizes(*tlas, tlasBufferSize, tlasScratchSize);
+    tlas->allocateBuffer(*m_device);
 
     // Create a scratch buffer.
-    auto scratchBufferSize = std::max(blasScratchSize, tlasScratchSize);
+    auto scratchBufferSize = std::max(blas->requiredScratchMemory(), tlas->requiredScratchMemory());
     auto scratchBuffer = asShared(std::move(m_device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, scratchBufferSize, 1, ResourceUsage::AllowWrite)));
 
     // Build the BLAS and the TLAS.
-    auto blasBuffer = m_device->factory().createBuffer("BLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, blasBufferSize, 1, ResourceUsage::AllowWrite);
-    auto tlasBuffer = m_device->factory().createBuffer("TLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, tlasBufferSize, 1, ResourceUsage::AllowWrite);
-    commandBuffer->buildAccelerationStructure(*blasBuffer, *blas, scratchBuffer);
+    commandBuffer->buildAccelerationStructure(*blas, scratchBuffer);
     // TODO: barrier in order to wait for building process to be finished?!
-    commandBuffer->buildAccelerationStructure(*tlasBuffer, *tlas, scratchBuffer);
+    commandBuffer->buildAccelerationStructure(*tlas, scratchBuffer);
 
 
 

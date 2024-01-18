@@ -678,9 +678,7 @@ void VulkanDevice::computeAccelerationStructureSizes(const VulkanBottomLevelAcce
 
 void VulkanDevice::computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize) const
 {
-    auto instances = tlas.instances() | 
-        std::views::transform([](auto& instance) { return VkAccelerationStructureInstanceKHR { /* Empty for now. */ }; }) | 
-        std::ranges::to<Array<VkAccelerationStructureInstanceKHR>>();
+    auto instances = tlas.buildInfo();
     auto instanceCount = static_cast<UInt32>(instances.size());
 
     VkAccelerationStructureGeometryInstancesDataKHR instanceInfo = {

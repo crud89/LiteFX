@@ -14,6 +14,8 @@ public:
 private:
     Array<Instance> m_instances { };
     AccelerationStructureFlags m_flags;
+    UniquePtr<IDirectX12Buffer> m_buffer;
+    UInt64 m_scratchBufferSize { };
 
 public:
     DirectX12TopLevelAccelerationStructureImpl(DirectX12TopLevelAccelerationStructure* parent, AccelerationStructureFlags flags) :
@@ -21,6 +23,24 @@ public:
     {
         if (LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastBuild) && LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastTrace)) [[unlikely]]
             throw InvalidArgumentException("flags", "Cannot combine acceleration structure flags `PreferFastBuild` and `PreferFastTrace`.");
+    }
+
+public:
+    Array<D3D12_RAYTRACING_INSTANCE_DESC> buildInfo() const
+    {
+        return m_instances | std::views::transform([](const Instance& instance) {
+            if (instance.BottomLevelAccelerationStructure->buffer() == nullptr) [[unlikely]]
+                throw RuntimeException("The bottom-level acceleration structure for at least one instance has not yet been built.");
+
+            return D3D12_RAYTRACING_INSTANCE_DESC {
+                .Transform = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f },
+                .InstanceID = instance.Id,
+                .InstanceMask = instance.Mask,
+                .InstanceContributionToHitGroupIndex = instance.HitGroup,
+                .Flags = static_cast<UINT>(instance.Flags),
+                .AccelerationStructure = instance.BottomLevelAccelerationStructure->buffer()->virtualAddress()
+            };
+        }) | std::ranges::to<Array<D3D12_RAYTRACING_INSTANCE_DESC>>();
     }
 };
 
@@ -40,6 +60,29 @@ AccelerationStructureFlags DirectX12TopLevelAccelerationStructure::flags() const
     return m_impl->m_flags;
 }
 
+UInt64 DirectX12TopLevelAccelerationStructure::requiredScratchMemory() const noexcept
+{
+    return m_impl->m_scratchBufferSize;
+}
+
+const IDirectX12Buffer* DirectX12TopLevelAccelerationStructure::buffer() const noexcept
+{
+    return m_impl->m_buffer.get();
+}
+
+void DirectX12TopLevelAccelerationStructure::allocateBuffer(const DirectX12Device& device)
+{
+    if (m_impl->m_buffer != nullptr) [[unlikely]]
+        throw RuntimeException("The buffer for this acceleration structure has already been allocated.");
+
+    // Compute buffer sizes.
+    UInt64 bufferSize{ };
+    device.computeAccelerationStructureSizes(*this, bufferSize, m_impl->m_scratchBufferSize);
+
+    // Allocate the buffer.
+    m_impl->m_buffer = device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, bufferSize, 1, ResourceUsage::AllowWrite);
+}
+
 const Array<Instance>& DirectX12TopLevelAccelerationStructure::instances() const noexcept
 {
     return m_impl->m_instances;
@@ -50,7 +93,12 @@ void DirectX12TopLevelAccelerationStructure::addInstance(const Instance& instanc
     m_impl->m_instances.push_back(instance);
 }
 
-void DirectX12TopLevelAccelerationStructure::clear()
+Array<D3D12_RAYTRACING_INSTANCE_DESC> DirectX12TopLevelAccelerationStructure::buildInfo() const
 {
-    m_impl->m_instances.clear();
+    return m_impl->buildInfo();
+}
+
+void DirectX12TopLevelAccelerationStructure::makeBuffer(const IGraphicsDevice& device)
+{
+    this->allocateBuffer(dynamic_cast<const DirectX12Device&>(device));
 }

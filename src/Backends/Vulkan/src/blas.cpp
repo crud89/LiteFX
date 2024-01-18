@@ -4,6 +4,8 @@ using namespace LiteFX::Rendering::Backends;
 using TriangleMesh  = IBottomLevelAccelerationStructure::TriangleMesh;
 using BoundingBoxes = IBottomLevelAccelerationStructure::BoundingBoxes;
 
+extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure;
+
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
@@ -16,6 +18,8 @@ private:
     Array<TriangleMesh>  m_triangleMeshes { };
     Array<BoundingBoxes> m_boundingBoxes  { };
     AccelerationStructureFlags m_flags;
+    UniquePtr<IVulkanBuffer> m_buffer;
+    UInt64 m_scratchBufferSize { };
 
 public:
     VulkanBottomLevelAccelerationStructureImpl(VulkanBottomLevelAccelerationStructure* parent, AccelerationStructureFlags flags) :
@@ -93,7 +97,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanBottomLevelAccelerationStructure::VulkanBottomLevelAccelerationStructure(AccelerationStructureFlags flags) :
-    m_impl(makePimpl<VulkanBottomLevelAccelerationStructureImpl>(this, flags))
+    m_impl(makePimpl<VulkanBottomLevelAccelerationStructureImpl>(this, flags)), Resource(VK_NULL_HANDLE)
 {
 }
 
@@ -104,6 +108,38 @@ AccelerationStructureFlags VulkanBottomLevelAccelerationStructure::flags() const
     return m_impl->m_flags;
 }
 
+UInt64 VulkanBottomLevelAccelerationStructure::requiredScratchMemory() const noexcept
+{
+    return m_impl->m_scratchBufferSize;
+}
+
+const IVulkanBuffer* VulkanBottomLevelAccelerationStructure::buffer() const noexcept
+{
+    return m_impl->m_buffer.get();
+}
+
+void VulkanBottomLevelAccelerationStructure::allocateBuffer(const VulkanDevice& device)
+{
+    if (m_impl->m_buffer != nullptr) [[unlikely]]
+        throw RuntimeException("The buffer for this acceleration structure has already been allocated.");
+
+    // Compute buffer sizes.
+    UInt64 bufferSize{ };
+    device.computeAccelerationStructureSizes(*this, bufferSize, m_impl->m_scratchBufferSize);
+
+    // Allocate the buffer.
+    m_impl->m_buffer = device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, bufferSize, 1, ResourceUsage::AllowWrite);
+
+    // Create a handle for the acceleration structure.
+    VkAccelerationStructureCreateInfoKHR info = {
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
+        .buffer = std::as_const(*m_impl->m_buffer).handle(),
+        .size = m_impl->m_buffer->alignedElementSize(),
+        .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR
+    };
+
+    ::vkCreateAccelerationStructure(device.handle(), &info, nullptr, &this->handle());
+}
 
 const Array<TriangleMesh>& VulkanBottomLevelAccelerationStructure::triangleMeshes() const noexcept
 {
@@ -125,16 +161,12 @@ void VulkanBottomLevelAccelerationStructure::addBoundingBox(const BoundingBoxes&
     m_impl->m_boundingBoxes.push_back(aabb);
 }
 
-void VulkanBottomLevelAccelerationStructure::clear(bool meshes, bool boundingBoxes)
-{
-    if (meshes)
-        m_impl->m_triangleMeshes.clear();
-
-    if (boundingBoxes)
-        m_impl->m_boundingBoxes.clear();
-}
-
 Array<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> VulkanBottomLevelAccelerationStructure::buildInfo() const
 {
     return m_impl->build();
+}
+
+void VulkanBottomLevelAccelerationStructure::makeBuffer(const IGraphicsDevice& device)
+{
+    this->allocateBuffer(dynamic_cast<const VulkanDevice&>(device));
 }

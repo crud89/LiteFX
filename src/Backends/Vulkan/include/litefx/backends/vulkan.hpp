@@ -92,19 +92,6 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API IVulkanBuffer : public virtual IBuffer, public virtual IResource<VkBuffer> {
     public:
         virtual ~IVulkanBuffer() noexcept = default;
-
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-    public:
-        friend class VulkanDevice;
-        friend class VulkanCommandBuffer;
-
-    private:
-        /// <summary>
-        /// If the buffer is of type <see cref="BufferType::AccelerationStructure" />, this returns the acceleration structure handle.
-        /// </summary>
-        /// <returns>The acceleration structure handle, or `VK_NULL_HANDLE`, if the buffer is not an acceleration structure.</returns>
-        virtual VkAccelerationStructureKHR accelerationStructure() const noexcept = 0;
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     };
 
     /// <summary>
@@ -184,10 +171,12 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a Vulkan bottom-level acceleration structure (BLAS).
     /// </summary>
     /// <seealso cref="VulkanTopLevelAccelerationStructure" />
-    class LITEFX_VULKAN_API VulkanBottomLevelAccelerationStructure final : public IBottomLevelAccelerationStructure {
+    class LITEFX_VULKAN_API VulkanBottomLevelAccelerationStructure final : public IBottomLevelAccelerationStructure, public virtual Resource<VkAccelerationStructureKHR> {
         LITEFX_IMPLEMENTATION(VulkanBottomLevelAccelerationStructureImpl);
         friend class VulkanDevice;
         friend class VulkanCommandBuffer;
+
+        using IAccelerationStructure::allocateBuffer;
 
     public:
         /// <summary>
@@ -206,6 +195,15 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         AccelerationStructureFlags flags() const noexcept override;
 
+        /// <inheritdoc />
+        UInt64 requiredScratchMemory() const noexcept override;
+
+        /// <inheritdoc />
+        const IVulkanBuffer* buffer() const noexcept;
+
+        /// <inheritdoc />
+        void allocateBuffer(const VulkanDevice& device);
+
         // IBottomLevelAccelerationStructure interface.
     public:
         /// <inheritdoc />
@@ -220,21 +218,27 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void addBoundingBox(const BoundingBoxes& aabb) override;
 
-        /// <inheritdoc />
-        void clear(bool meshes = true, bool boundingBoxes = true) override;
-
     private:
         Array<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> buildInfo() const;
+
+    private:
+        inline const IBuffer* getBuffer() const noexcept override {
+            return this->buffer();
+        }
+
+        inline void makeBuffer(const IGraphicsDevice& device) override;
     };
 
     /// <summary>
     /// Implements a Vulkan top-level acceleration structure (TLAS).
     /// </summary>
     /// <seealso cref="VulkanBottomLevelAccelerationStructure" />
-    class LITEFX_VULKAN_API VulkanTopLevelAccelerationStructure final : public ITopLevelAccelerationStructure {
+    class LITEFX_VULKAN_API VulkanTopLevelAccelerationStructure final : public ITopLevelAccelerationStructure, public virtual Resource<VkAccelerationStructureKHR> {
         LITEFX_IMPLEMENTATION(VulkanTopLevelAccelerationStructureImpl);
         friend class VulkanDevice;
         friend class VulkanCommandBuffer;
+
+        using IAccelerationStructure::allocateBuffer;
 
     public:
         /// <summary>
@@ -253,6 +257,15 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         AccelerationStructureFlags flags() const noexcept override;
 
+        /// <inheritdoc />
+        UInt64 requiredScratchMemory() const noexcept override;
+
+        /// <inheritdoc />
+        const IVulkanBuffer* buffer() const noexcept;
+
+        /// <inheritdoc />
+        void allocateBuffer(const VulkanDevice& device);
+
         // ITopLevelAccelerationStructure interface.
     public:
         /// <inheritdoc />
@@ -261,8 +274,15 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void addInstance(const Instance& instance) override;
 
-        /// <inheritdoc />
-        void clear() override;
+    private:
+        Array<VkAccelerationStructureInstanceKHR> buildInfo() const noexcept;
+
+    private:
+        inline const IBuffer* getBuffer() const noexcept override {
+            return this->buffer();
+        }
+
+        inline void makeBuffer(const IGraphicsDevice& device) override;
     };
 
     /// <summary>
@@ -1055,16 +1075,16 @@ namespace LiteFX::Rendering::Backends {
 #if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     public:
         /// <inheritdoc />
-        void buildAccelerationStructure(const IVulkanBuffer& buffer, const VulkanBottomLevelAccelerationStructure& blas) const override;
+        void buildAccelerationStructure(const VulkanBottomLevelAccelerationStructure& blas) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(const IVulkanBuffer& buffer, const VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer) const override;
+        void buildAccelerationStructure(const VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(const IVulkanBuffer& buffer, const VulkanTopLevelAccelerationStructure& tlas) const override;
+        void buildAccelerationStructure(const VulkanTopLevelAccelerationStructure& tlas) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(const IVulkanBuffer& buffer, const VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer) const override;
+        void buildAccelerationStructure(const VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer) const override;
 #endif
 
     private:

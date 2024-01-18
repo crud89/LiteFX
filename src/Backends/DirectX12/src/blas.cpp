@@ -16,6 +16,8 @@ private:
     Array<TriangleMesh>  m_triangleMeshes { };
     Array<BoundingBoxes> m_boundingBoxes  { };
     AccelerationStructureFlags m_flags;
+    UniquePtr<IDirectX12Buffer> m_buffer;
+    UInt64 m_scratchBufferSize { };
 
 public:
     DirectX12BottomLevelAccelerationStructureImpl(DirectX12BottomLevelAccelerationStructure* parent, AccelerationStructureFlags flags) :
@@ -95,6 +97,29 @@ AccelerationStructureFlags DirectX12BottomLevelAccelerationStructure::flags() co
     return m_impl->m_flags;
 }
 
+UInt64 DirectX12BottomLevelAccelerationStructure::requiredScratchMemory() const noexcept
+{
+    return m_impl->m_scratchBufferSize;
+}
+
+const IDirectX12Buffer* DirectX12BottomLevelAccelerationStructure::buffer() const noexcept
+{
+    return m_impl->m_buffer.get();
+}
+
+void DirectX12BottomLevelAccelerationStructure::allocateBuffer(const DirectX12Device& device)
+{
+    if (m_impl->m_buffer != nullptr) [[unlikely]]
+        throw RuntimeException("The buffer for this acceleration structure has already been allocated.");
+
+    // Compute buffer sizes.
+    UInt64 bufferSize{ };
+    device.computeAccelerationStructureSizes(*this, bufferSize, m_impl->m_scratchBufferSize);
+
+    // Allocate the buffer.
+    m_impl->m_buffer = device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, bufferSize, 1, ResourceUsage::AllowWrite);
+}
+
 const Array<TriangleMesh>& DirectX12BottomLevelAccelerationStructure::triangleMeshes() const noexcept
 {
     return m_impl->m_triangleMeshes;
@@ -115,16 +140,12 @@ void DirectX12BottomLevelAccelerationStructure::addBoundingBox(const BoundingBox
     m_impl->m_boundingBoxes.push_back(aabb);
 }
 
-void DirectX12BottomLevelAccelerationStructure::clear(bool meshes, bool boundingBoxes)
-{
-    if (meshes)
-        m_impl->m_triangleMeshes.clear();
-
-    if (boundingBoxes)
-        m_impl->m_boundingBoxes.clear();
-}
-
 Array<D3D12_RAYTRACING_GEOMETRY_DESC> DirectX12BottomLevelAccelerationStructure::buildInfo() const
 {
     return m_impl->build();
+}
+
+void DirectX12BottomLevelAccelerationStructure::makeBuffer(const IGraphicsDevice& device)
+{
+    this->allocateBuffer(dynamic_cast<const DirectX12Device&>(device));
 }
