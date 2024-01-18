@@ -416,7 +416,7 @@ namespace LiteFX {
 		/// <typeparam name="TBackend">The type, the type index is derived from.</typeparam>
 		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
 		template <typename TBackend> requires
-			rtti::implements<TBackend, IBackend>
+			meta::implements<TBackend, IBackend>
 		TBackend* findBackend() {
 			return dynamic_cast<TBackend*>(this->getBackend(typeid(TBackend)));
 		}
@@ -508,7 +508,7 @@ namespace LiteFX {
 		/// <seealso cref="onBackendStop" />
 		/// <seealso cref="backendStarted" />
 		template <typename TBackend> requires
-			rtti::implements<TBackend, IBackend>
+			meta::implements<TBackend, IBackend>
 		void onBackendStart(const std::function<bool(TBackend*)>& callback) {
 			this->registerStartCallback(typeid(TBackend), [this, callback]() {
 				auto backend = this->findBackend<TBackend>();
@@ -535,7 +535,7 @@ namespace LiteFX {
 		/// <seealso cref="onBackendStart" />
 		/// <seealso cref="backendStopped" />
 		template <typename TBackend> requires
-			rtti::implements<TBackend, IBackend>
+			meta::implements<TBackend, IBackend>
 		void onBackendStop(const std::function<void(TBackend*)>& callback) {
 			this->registerStopCallback(typeid(TBackend), [this, callback]() {
 				auto backend = this->findBackend<TBackend>();
@@ -555,7 +555,7 @@ namespace LiteFX {
 		/// <typeparam name="TBackend">The type, the type index is derived from.</typeparam>
 		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
 		template <typename TBackend> requires
-			rtti::implements<TBackend, IBackend>
+			meta::implements<TBackend, IBackend>
 		const TBackend* findBackend() const {
 			return dynamic_cast<const TBackend*>(this->getBackend(typeid(TBackend)));
 		}
@@ -566,7 +566,7 @@ namespace LiteFX {
 		/// <typeparam name="TBackend">The type of the backend to start.</typeparam>
 		/// <exception cref="InvalidArgumentException">Thrown, if no backend of type <typeparamref name="TBackend" /> is registered.</exception>
 		template <typename TBackend> requires
-			rtti::implements<TBackend, IBackend>
+			meta::implements<TBackend, IBackend>
 		void startBackend() {
 			this->startBackend(typeid(TBackend));
 		}
@@ -577,7 +577,7 @@ namespace LiteFX {
 		/// <typeparam name="TBackend">The type of the backend to stop.</typeparam>
 		/// <exception cref="InvalidArgumentException">Thrown, if no backend of type <typeparamref name="TBackend" /> is registered.</exception>
 		template <typename TBackend> requires
-			rtti::implements<TBackend, IBackend>
+			meta::implements<TBackend, IBackend>
 		void stopBackend() {
 			this->stopBackend(typeid(TBackend));
 		}
@@ -659,7 +659,7 @@ namespace LiteFX {
 		/// Registers a new backend.
 		/// </summary>
 		template <typename TBackend, typename ...TArgs> requires
-			rtti::implements<TBackend, IBackend>
+			meta::implements<TBackend, IBackend>
 			constexpr inline AppBuilder& useBackend(TArgs&&... args) {
 			this->use(makeUnique<TBackend>(*this->instance(), std::forward<TArgs>(args)...));
 			return *this;

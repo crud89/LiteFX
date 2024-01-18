@@ -248,7 +248,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <typeparam name="...TArgs">The types of the arguments.</typeparam>
 		/// <param name="...args">The arguments.</param>
-		template <typename... TArgs> requires rtti::are_same<T, TArgs...>
+		template <typename... TArgs> requires meta::are_same<T, TArgs...>
 		constexpr explicit inline Enumerable(TArgs&&... args) noexcept
 		{
 			auto input = std::to_array({ std::forward<TArgs>(args)... });

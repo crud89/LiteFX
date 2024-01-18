@@ -13,11 +13,11 @@ namespace LiteFX::Rendering {
     /// <seealso cref="Barrier" />
     /// <seealso cref="IBarrier" />
     template <typename TBarrier> requires
-        rtti::implements<TBarrier, Barrier<typename TBarrier::buffer_type, typename TBarrier::image_type>>
+        meta::implements<TBarrier, Barrier<typename TBarrier::buffer_type, typename TBarrier::image_type>>
     class BarrierBuilder : public Builder<TBarrier> {
     public:
         template <typename TParent> requires
-            rtti::implements<TParent, BarrierBuilder<TBarrier>>
+            meta::implements<TParent, BarrierBuilder<TBarrier>>
         struct [[nodiscard]] ImageBarrierBuilder;
 
         /// <summary>
@@ -25,7 +25,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <typeparam name="TParent">The type of the parent barrier builder.</typeparam>
         template <typename TParent> requires
-            rtti::implements<TParent, BarrierBuilder<TBarrier>>
+            meta::implements<TParent, BarrierBuilder<TBarrier>>
         struct [[nodiscard]] SecondStageBuilder {
         private:
             PipelineStage m_from;
@@ -58,7 +58,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <typeparam name="TParent">The type of the parent barrier builder.</typeparam>
         template <typename TParent> requires
-            rtti::implements<TParent, BarrierBuilder<TBarrier>>
+            meta::implements<TParent, BarrierBuilder<TBarrier>>
         struct [[nodiscard]] GlobalBarrierBuilder {
         private:
             ResourceAccess m_access;
@@ -90,7 +90,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <typeparam name="TParent">The type of the parent barrier builder.</typeparam>
         template <typename TParent> requires
-            rtti::implements<TParent, BarrierBuilder<TBarrier>>
+            meta::implements<TParent, BarrierBuilder<TBarrier>>
         struct [[nodiscard]] BufferBarrierBuilder {
         private:
             ResourceAccess m_access;
@@ -124,7 +124,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <typeparam name="TParent">The type of the parent barrier builder.</typeparam>
         template <typename TParent> requires
-            rtti::implements<TParent, BarrierBuilder<TBarrier>>
+            meta::implements<TParent, BarrierBuilder<TBarrier>>
         struct [[nodiscard]] ImageLayoutBarrierBuilder {
         private:
             ResourceAccess m_access;
@@ -167,7 +167,7 @@ namespace LiteFX::Rendering {
         /// </summary> 
         /// <typeparam name="TParent">The type of the parent barrier builder.</typeparam>
         template <typename TParent> requires
-            rtti::implements<TParent, BarrierBuilder<TBarrier>>
+            meta::implements<TParent, BarrierBuilder<TBarrier>>
         struct [[nodiscard]] ImageBarrierBuilder {
         private:
             ResourceAccess m_access;
@@ -357,7 +357,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram" />.</typeparam>
     /// <seealso cref="ShaderProgram" />
     template <typename TShaderProgram> requires
-        rtti::implements<TShaderProgram, ShaderProgram<typename TShaderProgram::shader_module_type>>
+        meta::implements<TShaderProgram, ShaderProgram<typename TShaderProgram::shader_module_type>>
     class ShaderProgramBuilder : public Builder<TShaderProgram, std::nullptr_t, SharedPtr<TShaderProgram>> {
     public:
         using Builder<TShaderProgram, std::nullptr_t, SharedPtr<TShaderProgram>>::Builder;
@@ -595,7 +595,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TRasterizer">The type of the rasterizer. Must implement <see cref="IRasterizer" />.</typeparam>
     /// <seealso cref="IRasterizer" />
     template <typename TRasterizer> requires
-        rtti::implements<TRasterizer, IRasterizer>
+        meta::implements<TRasterizer, IRasterizer>
     class RasterizerBuilder : public Builder<TRasterizer, std::nullptr_t, SharedPtr<TRasterizer>> {
     public:
         using Builder<TRasterizer, std::nullptr_t, SharedPtr<TRasterizer>>::Builder;
@@ -720,7 +720,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TVertexBufferLayout">The type of the vertex buffer layout. Must implement <see cref="IVertexBufferLayout" />.</typeparam>
     /// <seealso cref="IVertexBufferLayout" />
     template <typename TVertexBufferLayout, typename TParent> requires
-        rtti::implements<TVertexBufferLayout, IVertexBufferLayout>
+        meta::implements<TVertexBufferLayout, IVertexBufferLayout>
     class VertexBufferLayoutBuilder : public Builder<TVertexBufferLayout, TParent> {
     public:
         using Builder<TVertexBufferLayout, TParent>::Builder;
@@ -786,7 +786,7 @@ namespace LiteFX::Rendering {
     /// <seealso cref="DescriptorSetLayout" />
     /// <seealso cref="PipelineLayout" />
     template <typename TDescriptorSetLayout, typename TParent> requires
-        rtti::implements<TDescriptorSetLayout, DescriptorSetLayout<typename TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSetLayout::descriptor_set_type>>
+        meta::implements<TDescriptorSetLayout, DescriptorSetLayout<typename TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSetLayout::descriptor_set_type>>
     class DescriptorSetLayoutBuilder : public Builder<TDescriptorSetLayout, TParent> {
     public:
         using Builder<TDescriptorSetLayout, TParent>::Builder;
@@ -1014,7 +1014,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TPushConstantsLayout">The type of the push constants layout. Must implement <see cref="PushConstantsLayout" />.</typeparam>
     /// <seealso cref="PushConstantsLayout" />
     template <typename TPushConstantsLayout, typename TParent> requires
-        rtti::implements<TPushConstantsLayout, PushConstantsLayout<typename TPushConstantsLayout::push_constants_range_type>>
+        meta::implements<TPushConstantsLayout, PushConstantsLayout<typename TPushConstantsLayout::push_constants_range_type>>
     class PushConstantsLayoutBuilder : public Builder<TPushConstantsLayout, TParent> {
     public:
         using Builder<TPushConstantsLayout, TParent>::Builder;
@@ -1065,7 +1065,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TPipelineLayout">The type of the pipeline layout. Must implement <see cref="PipelineLayout" />.</typeparam>
     /// <seealso cref="PipelineLayout" />
     template <typename TPipelineLayout> requires
-        rtti::implements<TPipelineLayout, PipelineLayout<typename TPipelineLayout::descriptor_set_layout_type, typename TPipelineLayout::push_constants_layout_type>>
+        meta::implements<TPipelineLayout, PipelineLayout<typename TPipelineLayout::descriptor_set_layout_type, typename TPipelineLayout::push_constants_layout_type>>
     class PipelineLayoutBuilder : public Builder<TPipelineLayout, std::nullptr_t, SharedPtr<TPipelineLayout>> {
     public:
         using Builder<TPipelineLayout, std::nullptr_t, SharedPtr<TPipelineLayout>>::Builder;
@@ -1119,7 +1119,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TInputAssembler">The type of the input assembler state. Must implement <see cref="InputAssembler" />.</typeparam>
     /// <seealso cref="InputAssembler" />
     template <typename TInputAssembler> requires
-        rtti::implements<TInputAssembler, InputAssembler<typename TInputAssembler::vertex_buffer_layout_type, typename TInputAssembler::index_buffer_layout_type>>
+        meta::implements<TInputAssembler, InputAssembler<typename TInputAssembler::vertex_buffer_layout_type, typename TInputAssembler::index_buffer_layout_type>>
     class InputAssemblerBuilder : public Builder<TInputAssembler, std::nullptr_t, SharedPtr<TInputAssembler>> {
     public:
         using Builder<TInputAssembler, std::nullptr_t, SharedPtr<TInputAssembler>>::Builder;
@@ -1187,7 +1187,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="RenderPipeline" />.</typeparam>
     /// <seealso cref="RenderPipeline" />
     template <typename TRenderPipeline> requires
-        rtti::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>>
+        meta::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>>
     class RenderPipelineBuilder : public Builder<TRenderPipeline> {
     public:
         using Builder<TRenderPipeline>::Builder;
@@ -1293,7 +1293,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TComputePipeline">The type of the compute pipeline. Must implement <see cref="ComputePipeline" />.</typeparam>
     /// <seealso cref="ComputePipeline" />
     template <typename TComputePipeline> requires
-        rtti::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>>
+        meta::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>>
     class ComputePipelineBuilder : public Builder<TComputePipeline> {
     public:
         using Builder<TComputePipeline>::Builder;
@@ -1350,7 +1350,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TRenderPass">The type of the render pass. Must implement <see cref="RenderPass" />.</typeparam>
     /// <seealso cref="RenderPass" />
     template <typename TRenderPass> requires
-        rtti::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, typename TRenderPass::command_queue_type, typename TRenderPass::frame_buffer_type, typename TRenderPass::input_attachment_mapping_type>>
+        meta::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, typename TRenderPass::command_queue_type, typename TRenderPass::frame_buffer_type, typename TRenderPass::input_attachment_mapping_type>>
     class RenderPassBuilder : public Builder<TRenderPass> {
     public:
         using Builder<TRenderPass>::Builder;
