@@ -97,16 +97,14 @@ public:
 
 	inline void buildAccelerationStructure(const DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer)
 	{
-		auto descriptions = tlas.buildInfo();
-
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC tlasDesc = {
 			.DestAccelerationStructureData = tlas.buffer()->virtualAddress(),
 			.Inputs = {
 				.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL,
 				.Flags = std::bit_cast<D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS>(tlas.flags()),
-				.NumDescs = static_cast<UInt32>(descriptions.size()),
+				.NumDescs = static_cast<UInt32>(tlas.instances().size()),
 				.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY,
-				.InstanceDescs = descriptions.data()
+				.InstanceDescs = tlas.instanceBuffer()->virtualAddress()
 			},
 			.ScratchAccelerationStructureData = scratchBuffer->virtualAddress()
 		};

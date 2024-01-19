@@ -3469,13 +3469,15 @@ namespace LiteFX::Rendering {
         /// Returns the buffer that stores the acceleration structure after building.
         /// </summary>
         /// <returns>The buffer that stores the acceleration structure after building and `nullptr` before building.</returns>
-        inline const IBuffer* buffer() const noexcept {
-            return this->getBuffer();
-        }
+        virtual const IBuffer* buffer() const noexcept = 0;
 
         /// <summary>
         /// Allocates the buffer that is used to store the acceleration structure on the GPU.
         /// </summary>
+        /// <remarks>
+        /// Allocating buffers for an acceleration structure makes it immutable. Attempting to add any geometry/instance data to the acceleration structure afterwards will
+        /// raise an exception.
+        /// </remarks>
         /// <param name="device">The device to create the acceleration structure with.</param>
         /// <exception cref="RuntimeException">Thrown, if the buffer for this acceleration structure has already been allocated.</exception>
         inline void allocateBuffer(const IGraphicsDevice& device) {
@@ -3483,7 +3485,6 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        virtual const IBuffer* getBuffer() const noexcept = 0;
         virtual void makeBuffer(const IGraphicsDevice& device) = 0;
     };
 
@@ -3491,11 +3492,13 @@ namespace LiteFX::Rendering {
     /// A structure that holds a singular entity of geometry for hardware ray-tracing.
     /// </summary>
     /// <remarks>
-    /// Bottom-level acceleration structures describe actual pieces of geometry (sets of triangular meshes and/or axis-aligned bounding boxes for procedural geometry). They
-    /// can best be thought of entities in terms of a scene graph, whilst <see cref="ITopLevelAccelerationStructure" />s represent their respective *instances*. For example,
-    /// a top-level acceleration structure (TLAS) would store the world transform of the object itself, which can be placed multiple times in the scene with different 
-    /// transforms each time. Each TLAS points to a bottom-level acceleration structure (BLAS), that contains the actual geometry, consisting of multiple meshes that are all
-    /// transformed relative to the TLAS transform.
+    /// Bottom-level acceleration structures describe actual pieces of geometry (sets of triangular meshes or axis-aligned bounding boxes for procedural geometry). They can 
+    /// best be thought of entities in terms of a scene graph, whilst <see cref="ITopLevelAccelerationStructure" />s represent their respective *instances*. For example, a 
+    /// top-level acceleration structure (TLAS) would store the world transform of the object itself, which can be placed multiple times in the scene with different transforms 
+    /// each time. Each TLAS points to a bottom-level acceleration structure (BLAS), that contains the actual geometry, consisting of multiple meshes that are all transformed 
+    /// relative to the TLAS transform.
+    /// 
+    /// Note that a bottom-level acceleration structure can only contain either triangle meshes or bounding boxes, but never both in the same structure.
     /// </remarks>
     /// <seealso cref="TriangleMesh" />
     /// <seealso cref="AxisAlignedBoundingBox" />
@@ -3635,6 +3638,7 @@ namespace LiteFX::Rendering {
         /// Adds a triangle mesh to the BLAS.
         /// </summary>
         /// <param name="mesh">The triangle mesh to add to the BLAS.</param>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes, or if the acceleration structure buffers have already been allocated.</exception>
         virtual void addTriangleMesh(const TriangleMesh& mesh) = 0;
 
         /// <summary>
@@ -3644,6 +3648,7 @@ namespace LiteFX::Rendering {
         /// <param name="indexBuffer">The index buffer that stores the mesh indices.</param>
         /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
         /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes, or if the acceleration structure buffers have already been allocated.</exception>
         inline void addTriangleMesh(SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) {
             this->addTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer, flags));
         }
@@ -3658,6 +3663,7 @@ namespace LiteFX::Rendering {
         /// Adds a buffer containing axis-aligned bounding boxes to the BLAS.
         /// </summary>
         /// <param name="aabbs">The bounding boxes to add to the BLAS.</param>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes, or if the acceleration structure buffers have already been allocated.</exception>
         virtual void addBoundingBox(const BoundingBoxes& aabbs) = 0;
 
         /// <summary>
@@ -3665,6 +3671,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="buffer">A buffer containing the bounding box definitions.</param>
         /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes, or if the acceleration structure buffers have already been allocated.</exception>
         inline void addBoundingBox(SharedPtr<const IBuffer> buffer, GeometryFlags flags = GeometryFlags::None) {
             this->addBoundingBox(BoundingBoxes { .Buffer = buffer, .Flags = flags });
         }
@@ -3675,6 +3682,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="mesh">The triangle mesh to add to the BLAS.</param>
         /// <returns>A reference to the current BLAS.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes, or if the acceleration structure buffers have already been allocated.</exception>
         template <typename TSelf>
         inline auto withTriangleMesh(this TSelf&& self, const TriangleMesh& mesh) -> TSelf& {
             self.addTriangleMesh(mesh);
@@ -3689,6 +3697,7 @@ namespace LiteFX::Rendering {
         /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
         /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
         /// <returns>A reference to the current BLAS.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes, or if the acceleration structure buffers have already been allocated.</exception>
         template <typename TSelf>
         inline auto withTriangleMesh(this TSelf&& self, SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) -> TSelf& {
             return self.withTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer, flags));
@@ -3699,6 +3708,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="aabb">The bounding box buffer to add to the BLAS.</param>
         /// <returns>A reference to the current BLAS.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes, or if the acceleration structure buffers have already been allocated.</exception>
         template <typename TSelf>
         inline auto withBoundingBox(this TSelf&& self, const BoundingBoxes& aabb) -> TSelf& {
             self.addBoundingBox(aabb);
@@ -3711,6 +3721,7 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">A buffer containing the bounding box definitions.</param>
         /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
         /// <returns>A reference to the current BLAS.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes, or if the acceleration structure buffers have already been allocated.</exception>
         template <typename TSelf>
         inline auto withBoundingBox(this TSelf&& self, SharedPtr<const IBuffer> buffer, GeometryFlags flags = GeometryFlags::None) -> TSelf& {
             return self.withBoundingBox(BoundingBoxes { .Buffer = buffer, .Flags = flags });
@@ -3726,7 +3737,7 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Represents an instance of an <see cref="IBottomLevelAccelerationStructure" />.
         /// </summary>
-        struct Instance final {
+        struct alignas(16) Instance final {
             /// <summary>
             /// The bottom-level acceleration structure that contains the geometries of this instance.
             /// </summary>
@@ -3771,6 +3782,7 @@ namespace LiteFX::Rendering {
         /// Adds an instance to the TLAS.
         /// </summary>
         /// <param name="instance">The instance to add to the TLAS.</param>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure buffers have already been allocated.</exception>
         virtual void addInstance(const Instance& instance) = 0;
 
         /// <summary>
@@ -3781,9 +3793,19 @@ namespace LiteFX::Rendering {
         /// <param name="hitGroup">The index of the hit group shader in the shader binding table.</param>
         /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
         /// <param name="flags">The flags that control the behavior of the instance.</param>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure buffers have already been allocated.</exception>
         inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroup, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) {
             this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroup = hitGroup, .Flags = flags });
         }
+
+        /// <summary>
+        /// Returns a pointer to a buffer that stores the instance data on the GPU.
+        /// </summary>
+        /// <remarks>
+        /// The buffer is allocated alongside the acceleration structure buffer when calling <see cref="IAccelerationStructure::allocateBuffer" /> and populated when building.
+        /// </remarks>
+        /// <returns>A pointer to a buffer that stores the instance data on the GPU.</returns>
+        virtual const IBuffer* instanceBuffer() const noexcept = 0;
 
     public:
         /// <summary>
@@ -3791,6 +3813,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="instance">The instance to add to the TLAS.</param>
         /// <returns>A reference to the current TLAS.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure buffers have already been allocated.</exception>
         template<typename TSelf>
         inline auto withInstance(this TSelf&& self, const Instance& instance) -> TSelf& {
             self.addInstance(instance);

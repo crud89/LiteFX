@@ -127,6 +127,12 @@ const Array<TriangleMesh>& DirectX12BottomLevelAccelerationStructure::triangleMe
 
 void DirectX12BottomLevelAccelerationStructure::addTriangleMesh(const TriangleMesh& mesh)
 {
+    if (m_impl->m_buffer != nullptr) [[unlikely]]
+        throw RuntimeException("An acceleration structure cannot be modified after buffers for it have been created.");
+
+    if (!m_impl->m_boundingBoxes.empty()) [[unlikely]]
+        throw RuntimeException("A bottom-level acceleration structure can only contain either bounding boxes or triangle meshes, but not both at the same time.");
+
     m_impl->m_triangleMeshes.push_back(mesh);
 }
 
@@ -137,6 +143,12 @@ const Array<BoundingBoxes>& DirectX12BottomLevelAccelerationStructure::boundingB
 
 void DirectX12BottomLevelAccelerationStructure::addBoundingBox(const BoundingBoxes& aabb)
 {
+    if (m_impl->m_buffer != nullptr) [[unlikely]]
+        throw RuntimeException("An acceleration structure cannot be modified after buffers for it have been created.");
+
+    if (!m_impl->m_triangleMeshes.empty()) [[unlikely]]
+        throw RuntimeException("A bottom-level acceleration structure can only contain either bounding boxes or triangle meshes, but not both at the same time.");
+
     m_impl->m_boundingBoxes.push_back(aabb);
 }
 

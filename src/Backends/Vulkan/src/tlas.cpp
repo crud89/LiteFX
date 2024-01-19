@@ -16,7 +16,7 @@ public:
 private:
     Array<Instance> m_instances { };
     AccelerationStructureFlags m_flags;
-    UniquePtr<IVulkanBuffer> m_buffer;
+    UniquePtr<IVulkanBuffer> m_buffer, m_instanceBuffer;
     UInt64 m_scratchBufferSize { };
 
 public:
@@ -81,8 +81,13 @@ void VulkanTopLevelAccelerationStructure::allocateBuffer(const VulkanDevice& dev
     UInt64 bufferSize{ };
     device.computeAccelerationStructureSizes(*this, bufferSize, m_impl->m_scratchBufferSize);
 
-    // Allocate the buffer.
+    // Allocate the buffers.
     m_impl->m_buffer = device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, bufferSize, 1, ResourceUsage::AllowWrite);
+    m_impl->m_instanceBuffer = device.factory().createBuffer(BufferType::Storage, ResourceHeap::Dynamic, sizeof(VkAccelerationStructureInstanceKHR) * m_impl->m_instances.size(), 1, ResourceUsage::AccelerationStructureBuildInput);
+
+    // Map the instance buffer.
+    auto buildInfo = m_impl->buildInfo();
+    m_impl->m_instanceBuffer->map(buildInfo.data(), sizeof(Instance) * m_impl->m_instances.size());
 
     // Create a handle for the acceleration structure.
     VkAccelerationStructureCreateInfoKHR info = {
@@ -102,6 +107,9 @@ const Array<Instance>& VulkanTopLevelAccelerationStructure::instances() const no
 
 void VulkanTopLevelAccelerationStructure::addInstance(const Instance& instance)
 {
+    if (m_impl->m_buffer != nullptr) [[unlikely]]
+        throw RuntimeException("An acceleration structure cannot be modified after buffers for it have been created.");
+
     m_impl->m_instances.push_back(instance);
 }
 
@@ -113,4 +121,9 @@ Array<VkAccelerationStructureInstanceKHR> VulkanTopLevelAccelerationStructure::b
 void VulkanTopLevelAccelerationStructure::makeBuffer(const IGraphicsDevice& device)
 {
     this->allocateBuffer(dynamic_cast<const VulkanDevice&>(device));
+}
+
+const IVulkanBuffer* VulkanTopLevelAccelerationStructure::instanceBuffer() const noexcept
+{
+    return m_impl->m_instanceBuffer.get();
 }

@@ -222,10 +222,6 @@ namespace LiteFX::Rendering::Backends {
         Array<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> buildInfo() const;
 
     private:
-        inline const IBuffer* getBuffer() const noexcept override {
-            return this->buffer();
-        }
-
         inline void makeBuffer(const IGraphicsDevice& device) override;
     };
 
@@ -274,14 +270,13 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void addInstance(const Instance& instance) override;
 
+        /// <inheritdoc />
+        const IVulkanBuffer* instanceBuffer() const noexcept override;
+
     private:
         Array<VkAccelerationStructureInstanceKHR> buildInfo() const noexcept;
 
     private:
-        inline const IBuffer* getBuffer() const noexcept override {
-            return this->buffer();
-        }
-
         inline void makeBuffer(const IGraphicsDevice& device) override;
     };
 

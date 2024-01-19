@@ -206,10 +206,6 @@ namespace LiteFX::Rendering::Backends {
         Array<D3D12_RAYTRACING_GEOMETRY_DESC> buildInfo() const;
 
     private:
-        inline const IBuffer* getBuffer() const noexcept override {
-            return this->buffer();
-        }
-
         inline void makeBuffer(const IGraphicsDevice& device) override;
     };
 
@@ -258,14 +254,13 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void addInstance(const Instance& instance) override;
 
+        /// <inheritdoc />
+        const IDirectX12Buffer* instanceBuffer() const noexcept;
+
     private:
         Array<D3D12_RAYTRACING_INSTANCE_DESC> buildInfo() const;
 
     private:
-        inline const IBuffer* getBuffer() const noexcept override {
-            return this->buffer();
-        }
-
         inline void makeBuffer(const IGraphicsDevice& device) override;
     };
 

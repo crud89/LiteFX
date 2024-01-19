@@ -137,7 +137,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Build the BLAS and the TLAS.
     commandBuffer->buildAccelerationStructure(*blas, scratchBuffer);
     // TODO: barrier in order to wait for building process to be finished?!
-    commandBuffer->buildAccelerationStructure(*tlas, scratchBuffer);
+    //commandBuffer->buildAccelerationStructure(*tlas, scratchBuffer);
 
 
 

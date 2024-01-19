@@ -97,15 +97,14 @@ public:
 
 	inline void buildAccelerationStructure(const VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer)
 	{
-		auto instances = tlas.buildInfo();
-		Array<VkAccelerationStructureBuildRangeInfoKHR> ranges { instances.size() };
+		Array<VkAccelerationStructureBuildRangeInfoKHR> ranges { tlas.instances().size()};
 		auto rangePointer = ranges.data();
 
 		VkAccelerationStructureGeometryInstancesDataKHR instanceInfo = {
 			.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR,
 			.arrayOfPointers = false,
 			.data = {
-				.hostAddress = instances.data()
+				.deviceAddress = tlas.instanceBuffer()->virtualAddress()
 			}
 		};
 
