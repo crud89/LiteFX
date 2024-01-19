@@ -7,6 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks { nullptr };
 extern PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizes { nullptr };
 extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure { nullptr };
+extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure { nullptr };
 extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructures { nullptr };
 
 // ------------------------------------------------------------------------------------------------
@@ -374,6 +375,9 @@ public:
 
         if (vkCreateAccelerationStructure == nullptr)
             vkCreateAccelerationStructure = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCreateAccelerationStructureKHR"));
+
+        if (vkDestroyAccelerationStructure == nullptr)
+            vkDestroyAccelerationStructure = reinterpret_cast<PFN_vkDestroyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkDestroyAccelerationStructureKHR"));
 
         if (vkCmdBuildAccelerationStructures == nullptr)
             vkCmdBuildAccelerationStructures = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(::vkGetDeviceProcAddr(device, "vkCmdBuildAccelerationStructuresKHR"));

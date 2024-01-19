@@ -5,6 +5,7 @@ using TriangleMesh  = IBottomLevelAccelerationStructure::TriangleMesh;
 using BoundingBoxes = IBottomLevelAccelerationStructure::BoundingBoxes;
 
 extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure;
+extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -20,6 +21,7 @@ private:
     AccelerationStructureFlags m_flags;
     UniquePtr<IVulkanBuffer> m_buffer;
     UInt64 m_scratchBufferSize { };
+    const VulkanDevice* m_device { nullptr };
 
 public:
     VulkanBottomLevelAccelerationStructureImpl(VulkanBottomLevelAccelerationStructure* parent, AccelerationStructureFlags flags) :
@@ -101,7 +103,11 @@ VulkanBottomLevelAccelerationStructure::VulkanBottomLevelAccelerationStructure(A
 {
 }
 
-VulkanBottomLevelAccelerationStructure::~VulkanBottomLevelAccelerationStructure() noexcept = default;
+VulkanBottomLevelAccelerationStructure::~VulkanBottomLevelAccelerationStructure() noexcept
+{
+    if (this->handle() != VK_NULL_HANDLE)
+        ::vkDestroyAccelerationStructure(m_impl->m_device->handle(), this->handle(), nullptr);
+}
 
 AccelerationStructureFlags VulkanBottomLevelAccelerationStructure::flags() const noexcept
 {
@@ -122,6 +128,9 @@ void VulkanBottomLevelAccelerationStructure::allocateBuffer(const VulkanDevice& 
 {
     if (m_impl->m_buffer != nullptr) [[unlikely]]
         throw RuntimeException("The buffer for this acceleration structure has already been allocated.");
+
+    // Store the device.
+    m_impl->m_device = &device;
 
     // Compute buffer sizes.
     UInt64 bufferSize{ };

@@ -4,6 +4,7 @@ using namespace LiteFX::Rendering::Backends;
 using Instance = ITopLevelAccelerationStructure::Instance;
 
 extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure;
+extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -18,6 +19,7 @@ private:
     AccelerationStructureFlags m_flags;
     UniquePtr<IVulkanBuffer> m_buffer, m_instanceBuffer;
     UInt64 m_scratchBufferSize { };
+    const VulkanDevice* m_device { nullptr };
 
 public:
     VulkanTopLevelAccelerationStructureImpl(VulkanTopLevelAccelerationStructure* parent, AccelerationStructureFlags flags) :
@@ -55,7 +57,11 @@ VulkanTopLevelAccelerationStructure::VulkanTopLevelAccelerationStructure(Acceler
 {
 }
 
-VulkanTopLevelAccelerationStructure::~VulkanTopLevelAccelerationStructure() noexcept = default;
+VulkanTopLevelAccelerationStructure::~VulkanTopLevelAccelerationStructure() noexcept
+{
+    if (this->handle() != VK_NULL_HANDLE)
+        ::vkDestroyAccelerationStructure(m_impl->m_device->handle(), this->handle(), nullptr);
+}
 
 AccelerationStructureFlags VulkanTopLevelAccelerationStructure::flags() const noexcept
 {
@@ -76,6 +82,9 @@ void VulkanTopLevelAccelerationStructure::allocateBuffer(const VulkanDevice& dev
 {
     if (m_impl->m_buffer != nullptr) [[unlikely]]
         throw RuntimeException("The buffer for this acceleration structure has already been allocated.");
+
+    // Store the device.
+    m_impl->m_device = &device;
 
     // Compute buffer sizes.
     UInt64 bufferSize{ };
