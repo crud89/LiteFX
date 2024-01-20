@@ -36,14 +36,16 @@ public:
             if (instance.BottomLevelAccelerationStructure->buffer() == nullptr) [[unlikely]]
                 throw RuntimeException("The bottom-level acceleration structure for at least one instance has not yet been built.");
 
-            return VkAccelerationStructureInstanceKHR {
-                .transform = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f },
+            auto desc = VkAccelerationStructureInstanceKHR {
                 .instanceCustomIndex = instance.Id,
                 .mask = instance.Mask,
                 .instanceShaderBindingTableRecordOffset = instance.HitGroup,
                 .flags = std::bit_cast<VkGeometryInstanceFlagsKHR>(instance.Flags),
                 .accelerationStructureReference = instance.BottomLevelAccelerationStructure->buffer()->virtualAddress()
             };
+
+            std::memcpy(desc.transform.matrix, instance.Transform.elements(), sizeof(Float) * 12);
+            return desc;
         }) | std::ranges::to<Array<VkAccelerationStructureInstanceKHR>>();
     }
 };

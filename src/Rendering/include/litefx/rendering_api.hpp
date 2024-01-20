@@ -3788,7 +3788,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The transformation matrix for the instance.
             /// </summary>
-            //Matrix4f Transform;
+            TMatrix3x4<Float> Transform = TMatrix3x4<Float>::identity();
 
             /// <summary>
             /// The instance ID used in shaders to identify the instance.
@@ -3839,6 +3839,20 @@ namespace LiteFX::Rendering {
         inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroup, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) {
             this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroup = hitGroup, .Flags = flags });
         }
+        
+        /// <summary>
+        /// Adds an instance to the TLAS.
+        /// </summary>
+        /// <param name="blas">The bottom-level acceleration structure that contains the geometries of the instance.</param>
+        /// <param name="transform">The transformation matrix applied to the instance geometry.</param>
+        /// <param name="id">The instance ID used in shaders to identify the instance.</param>
+        /// <param name="hitGroup">The index of the hit group shader in the shader binding table.</param>
+        /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
+        /// <param name="flags">The flags that control the behavior of the instance.</param>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure buffers have already been allocated.</exception>
+        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroup, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) {
+            this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroup = hitGroup, .Flags = flags });
+        }
 
         /// <summary>
         /// Returns a pointer to a buffer that stores the instance data on the GPU.
@@ -3874,6 +3888,22 @@ namespace LiteFX::Rendering {
         template<typename TSelf>
         inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroup, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) -> TSelf& {
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroup = hitGroup, .Flags = flags });
+            return self;
+        }
+
+        /// <summary>
+        /// Adds an instance to the current TLAS.
+        /// </summary>
+        /// <param name="blas">The bottom-level acceleration structure that contains the geometries of the instance.</param>
+        /// <param name="transform">The transformation matrix applied to the instance geometry.</param>
+        /// <param name="id">The instance ID used in shaders to identify the instance.</param>
+        /// <param name="hitGroup">The index of the hit group shader in the shader binding table.</param>
+        /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
+        /// <param name="flags">The flags that control the behavior of the instance.</param>
+        /// <returns>A reference to the current TLAS.</returns>
+        template<typename TSelf>
+        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroup, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) -> TSelf& {
+            self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroup = hitGroup, .Flags = flags });
             return self;
         }
     };

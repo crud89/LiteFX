@@ -32,14 +32,16 @@ public:
             if (instance.BottomLevelAccelerationStructure->buffer() == nullptr) [[unlikely]]
                 throw RuntimeException("The bottom-level acceleration structure for at least one instance has not yet been built.");
 
-            return D3D12_RAYTRACING_INSTANCE_DESC {
-                .Transform = { 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f },
+            auto desc = D3D12_RAYTRACING_INSTANCE_DESC {
                 .InstanceID = instance.Id,
                 .InstanceMask = instance.Mask,
                 .InstanceContributionToHitGroupIndex = instance.HitGroup,
                 .Flags = static_cast<UINT>(instance.Flags),
                 .AccelerationStructure = instance.BottomLevelAccelerationStructure->buffer()->virtualAddress()
             };
+
+            std::memcpy(desc.Transform, instance.Transform.elements(), sizeof(Float) * 12);
+            return desc;
         }) | std::ranges::to<Array<D3D12_RAYTRACING_INSTANCE_DESC>>();
     }
 };

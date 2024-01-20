@@ -118,15 +118,15 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     blas->allocateBuffer(*m_device);
 
     auto tlas = m_device->factory().createTopLevelAccelerationStructure();
-    tlas->withInstance(blas, 0, 0)
-        .withInstance(blas, 1, 0)
-        .withInstance(blas, 2, 0)
-        .withInstance(blas, 3, 0)
-        .withInstance(blas, 4, 0)
-        .withInstance(blas, 5, 0)
-        .withInstance(blas, 6, 0)
-        .withInstance(blas, 7, 0)
-        .withInstance(blas, 8, 0);
+    tlas->withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-2.0f, -2.0f, 0.0f))), 0, 0)
+        .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-2.0f, 0.0f, 0.0f))), 1, 0)
+        .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-2.0f, 2.0f, 0.0f))), 2, 0)
+        .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(0.0f, -2.0f, 0.0f))), 3, 0)
+        .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(0.0f, 0.0f, 0.0f))), 4, 0)
+        .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(0.0f, 2.0f, 0.0f))), 5, 0)
+        .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(2.0f, -2.0f, 0.0f))), 6, 0)
+        .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(2.0f, 0.0f, 0.0f))), 7, 0)
+        .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(2.0f, 2.0f, 0.0f))), 8, 0);
 
     tlas->allocateBuffer(*m_device);
 
