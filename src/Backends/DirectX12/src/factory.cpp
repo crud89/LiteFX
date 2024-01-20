@@ -91,6 +91,9 @@ UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String&
 	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	resourceDesc.Flags = LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite) ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 
+	if (type == BufferType::AccelerationStructure)
+		resourceDesc.Flags |= D3D12_RESOURCE_FLAG_RAYTRACING_ACCELERATION_STRUCTURE;
+
 	D3D12MA::ALLOCATION_DESC allocationDesc { };
 
 	switch (heap)
