@@ -169,6 +169,7 @@ private:
 #endif
 
 #ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
+        m_extensions.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
         m_extensions.push_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
         m_extensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
 #endif
