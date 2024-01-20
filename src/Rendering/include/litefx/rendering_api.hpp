@@ -2257,6 +2257,22 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The name of the shader module entry point.</returns>
         virtual const String& entryPoint() const noexcept = 0;
+
+        /// <summary>
+        /// For ray tracing shader modules, returns the index defines the order of the shader module within the <see cref="IShaderProgram" />. Ignored for other shader 
+        /// modules.
+        /// </summary>
+        /// <remarks>
+        /// Note that indices must be continuous and unique amongst all shader modules of a shader type within a shader program. This means, that there can be two modules
+        /// with the same index, if they have different types.
+        /// 
+        /// This index also defines the hit group for geometries. A hit group index behaves slightly different from the rule above. The index range must be continuous 
+        /// amongst hit group shader stages (<see cref="ShaderStage::AnyHit" />, <see cref="ShaderStage::ClosestHit" /> and <see cref="ShaderStage::Intersection" />). 
+        /// However, the rules for forming a hit group still apply: intersection shaders must not be combined with hit shaders, but hit shaders can be combined with each
+        /// other, i.e., they can share the same index, which is the only exception to the index uniqueness rule.
+        /// </remarks>
+        /// <returns>The index that defines the order of the shader module within the <see cref="IShaderProgram" />.</returns>
+        virtual UInt32 index() const noexcept = 0;
     };
 
     /// <summary>
@@ -4541,6 +4557,46 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// The interface for a shader program.
     /// </summary>
+    /// <remarks>
+    /// A shader program differs in it's functionality as well as the contained shader modules, depending on the pipeline type it gets assigned to. A shader program can be
+    /// of any of the following types:
+    /// 
+    /// <list type="bullet">
+    /// <item>
+    /// <description>
+    /// **Rasterization:** A rasterization pipeline is a traditional pipeline, that can contain at maximum one module of the following stages: *Vertex*, *Tessellation Control*, 
+    /// *Tessellation Evaluation*, *Geometry*, *Fragment*. A vertex and fragment shader are required for rasterization programs.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// **Mesh shading:** If mesh shader support is enabled (through the compiler flag `LITEFX_BUILD_MESH_SHADER_SUPPORT`), a mesh shading program can contain at maximum one 
+    /// module of the following stages: *Task*, *Mesh*, *Fragment*. A mesh and fragment shader are required for a mesh shading program.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// **Compute:** A compute shader program must only contain a single module for the *Compute* stage.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// **Ray-tracing:** If ray tracing support is enabled (through the compiler flag `LITEFX_BUILD_RAY_TRACING_SUPPORT`), a ray tracing program can contain modules of the
+    /// following stages: *Ray Generation*, *Any Hit*, *Closest Hit*, *Intersection*, *Miss*, *Callable*. There must be exactly one *Ray Generation* module. All other modules
+    /// can occur multiple times. *Intersection*, *Closest Hit* and *Any Hit* are grouped into hit groups. A hit group defines which shaders belong together and by extension,
+    /// which shaders are invoked if a certain geometry is hit during ray tracing. A hit group is identified by an index, that is later passed to individual geometries as part
+    /// of an <see cref="IBottomLevelAccelerationStructure" />. Hit group indices must be continuous and unique, i.e., there must be no gaps between indices and no index must
+    /// exist twice. A hit group must contain either an *Intersection* module, if the geometry is an bounding box or an *Any Hit*/*Closest Hit* module (both are allowed to be
+    /// combined, but at least one of them needs to exist in a hit group), if the geometry is a triangle mesh. There can be multiple *Miss* shaders, where the one that's 
+    /// invoked is determined at runtime by an index passed to the generated ray during *Ray Generation*. Similarly, there can be multiple *Callable* shaders, which can then 
+    /// be addressed using an user-specified index at runtime.
+    /// </description>
+    /// </item>
+    /// </list>
+    /// 
+    /// Shaders from different program types must not be mixed. For example, it is not valid to add a compute module to a rasterization program. The only exception to this
+    /// is the <see cref="ShaderStage::Fragment" /> module, which can be added to a mesh pipeline, as well as a rasterization pipeline.
+    /// </remarks>
     /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
     class LITEFX_RENDERING_API IShaderProgram {
     public:

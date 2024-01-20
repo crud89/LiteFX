@@ -12,13 +12,14 @@ public:
 	friend class VulkanShaderModule;
 
 private:
+	UInt32 m_index;
 	ShaderStage m_type;
 	String m_fileName, m_entryPoint, m_bytecode;
 	const VulkanDevice& m_device;
 
 public:
-	VulkanShaderModuleImpl(VulkanShaderModule* parent, const VulkanDevice& device, ShaderStage type, const String& fileName, const String& entryPoint) :
-		base(parent), m_device(device), m_fileName(fileName), m_entryPoint(entryPoint), m_type(type) 
+	VulkanShaderModuleImpl(VulkanShaderModule* parent, const VulkanDevice& device, ShaderStage type, const String& fileName, const String& entryPoint, UInt32 index) :
+		base(parent), m_device(device), m_fileName(fileName), m_entryPoint(entryPoint), m_type(type), m_index(index)
 	{
 	}
 
@@ -74,14 +75,14 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanShaderModule::VulkanShaderModule(const VulkanDevice& device, ShaderStage type, const String& fileName, const String& entryPoint) :
-	Resource<VkShaderModule>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanShaderModuleImpl>(this, device, type, fileName, entryPoint))
+VulkanShaderModule::VulkanShaderModule(const VulkanDevice& device, ShaderStage type, const String& fileName, const String& entryPoint, UInt32 index) :
+	Resource<VkShaderModule>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanShaderModuleImpl>(this, device, type, fileName, entryPoint, index))
 {
 	this->handle() = m_impl->initialize();
 }
 
-VulkanShaderModule::VulkanShaderModule(const VulkanDevice& device, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint) :
-	Resource<VkShaderModule>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanShaderModuleImpl>(this, device, type, name, entryPoint))
+VulkanShaderModule::VulkanShaderModule(const VulkanDevice& device, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, UInt32 index) :
+	Resource<VkShaderModule>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanShaderModuleImpl>(this, device, type, name, entryPoint, index))
 {
 	this->handle() = m_impl->initialize(stream);
 }
@@ -104,6 +105,11 @@ const String& VulkanShaderModule::fileName() const noexcept
 const String& VulkanShaderModule::entryPoint() const noexcept
 {
 	return m_impl->m_entryPoint;
+}
+
+UInt32 VulkanShaderModule::index() const noexcept 
+{
+	return m_impl->m_index;
 }
 
 const String& VulkanShaderModule::bytecode() const noexcept

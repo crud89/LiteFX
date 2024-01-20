@@ -349,7 +349,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="type">The shader stage, this module is used in.</param>
         /// <param name="fileName">The file name of the module source.</param>
         /// <param name="entryPoint">The name of the module entry point.</param>
-        explicit DirectX12ShaderModule(const DirectX12Device& device, ShaderStage type, const String& fileName, const String& entryPoint = "main");
+        /// <param name="index">The index of the shader module within the shader program.</param>
+        explicit DirectX12ShaderModule(const DirectX12Device& device, ShaderStage type, const String& fileName, const String& entryPoint = "main", UInt32 index = 0);
 
         /// <summary>
         /// Initializes a new DirectX 12 shader module.
@@ -359,7 +360,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="stream">The file stream to read the shader module from.</param>
         /// <param name="name">The file name of the module source.</param>
         /// <param name="entryPoint">The name of the module entry point.</param>
-        explicit DirectX12ShaderModule(const DirectX12Device& device, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint = "main");
+        /// <param name="index">The index of the shader module within the shader program.</param>
+        explicit DirectX12ShaderModule(const DirectX12Device& device, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint = "main", UInt32 index = 0);
         DirectX12ShaderModule(const DirectX12ShaderModule&) noexcept = delete;
         DirectX12ShaderModule(DirectX12ShaderModule&&) noexcept = delete;
         virtual ~DirectX12ShaderModule() noexcept;
@@ -374,6 +376,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         ShaderStage type() const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 index() const noexcept override;
     };
 
     /// <summary>
