@@ -764,9 +764,49 @@ namespace LiteFX::Rendering {
         Mesh = 0x00000080,
 
         /// <summary>
+        /// Represents the ray generation shader stage.
+        /// </summary>
+        RayGeneration = 0x00000100,
+
+        /// <summary>
+        /// Represents the any-hit shader stage.
+        /// </summary>
+        AnyHit = 0x00000200,
+
+        /// <summary>
+        /// Represents the closest-hit shader stage.
+        /// </summary>
+        ClosestHit = 0x00000400,
+
+        /// <summary>
+        /// Represents the miss shader stage.
+        /// </summary>
+        Miss = 0x00000800,
+
+        /// <summary>
+        /// Represents the intersection shader stage.
+        /// </summary>
+        Intersection = 0x00001000,
+
+        /// <summary>
+        /// Represents the callable shader stage.
+        /// </summary>
+        Callable = 0x00002000,
+
+        /// <summary>
+        /// Represents the complete mesh shading pipeline.
+        /// </summary>
+        MeshPipeline = Task | Mesh | Fragment,
+
+        /// <summary>
+        /// Represents the complete ray-tracing pipeline.
+        /// </summary>
+        RayTracingPipeline = RayGeneration | AnyHit | ClosestHit | Miss | Intersection | Callable,
+
+        /// <summary>
         /// Enables all supported shader stages.
         /// </summary>
-        Any = Vertex | TessellationControl | TessellationEvaluation | Geometry | Fragment | Compute | Task | Mesh,
+        Any = Vertex | TessellationControl | TessellationEvaluation | Geometry | Fragment | Compute | Task | Mesh | RayGeneration | AnyHit | ClosestHit | Miss | Intersection | Callable,
 
         /// <summary>
         /// Represents an unknown shader stage.

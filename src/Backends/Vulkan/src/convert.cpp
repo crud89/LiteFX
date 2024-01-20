@@ -783,6 +783,18 @@ constexpr ShaderStage LiteFX::Rendering::Backends::Vk::getShaderStage(const VkSh
 		return ShaderStage::Task;
 	case VkShaderStageFlagBits::VK_SHADER_STAGE_MESH_BIT_EXT:
 		return ShaderStage::Mesh;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_RAYGEN_BIT_KHR:
+		return ShaderStage::RayGeneration;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_ANY_HIT_BIT_KHR:
+		return ShaderStage::AnyHit;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR:
+		return ShaderStage::ClosestHit;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_INTERSECTION_BIT_KHR:
+		return ShaderStage::Intersection;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_MISS_BIT_KHR:
+		return ShaderStage::Miss;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_CALLABLE_BIT_KHR:
+		return ShaderStage::Callable;
 	default:
 		return ShaderStage::Other;
 	}
@@ -808,6 +820,18 @@ constexpr VkShaderStageFlagBits LiteFX::Rendering::Backends::Vk::getShaderStage(
 		return VkShaderStageFlagBits::VK_SHADER_STAGE_TASK_BIT_EXT;
 	case ShaderStage::Mesh:
 		return VkShaderStageFlagBits::VK_SHADER_STAGE_MESH_BIT_EXT;
+	case ShaderStage::RayGeneration:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+	case ShaderStage::AnyHit:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+	case ShaderStage::ClosestHit:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+	case ShaderStage::Intersection:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
+	case ShaderStage::Miss:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_MISS_BIT_KHR;
+	case ShaderStage::Callable:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_CALLABLE_BIT_KHR;
 	case ShaderStage::Other:
 	default:
 		throw std::invalid_argument("Unsupported shader type.");

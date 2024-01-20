@@ -331,6 +331,10 @@ struct LITEFX_RENDERING_API fmt::formatter<ShaderStage> : formatter<string_view>
 
 		if (t == ShaderStage::Other)
 			names.push_back("Other");
+		else if (t == ShaderStage::MeshPipeline)
+			names.push_back("Mesh Shading");
+		if (t == ShaderStage::RayTracingPipeline)
+			names.push_back("Ray Tracing");
 		else
 		{
 			if ((t & ShaderStage::Vertex) == ShaderStage::Vertex)
@@ -349,6 +353,18 @@ struct LITEFX_RENDERING_API fmt::formatter<ShaderStage> : formatter<string_view>
 				names.push_back("Mesh");
 			if ((t & ShaderStage::Task) == ShaderStage::Task)
 				names.push_back("Task");
+			if ((t & ShaderStage::RayGeneration) == ShaderStage::RayGeneration)
+				names.push_back("Ray Generation");
+			if ((t & ShaderStage::AnyHit) == ShaderStage::AnyHit)
+				names.push_back("Any Hit");
+			if ((t & ShaderStage::ClosestHit) == ShaderStage::ClosestHit)
+				names.push_back("Closest Hit");
+			if ((t & ShaderStage::Intersection) == ShaderStage::Intersection)
+				names.push_back("Intersection");
+			if ((t & ShaderStage::Miss) == ShaderStage::Miss)
+				names.push_back("Miss");
+			if ((t & ShaderStage::Callable) == ShaderStage::Callable)
+				names.push_back("Callable");
 		}
 
 		String name = Join(names, " | ");
