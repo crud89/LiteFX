@@ -381,8 +381,9 @@ namespace LiteFX::Rendering {
         /// <param name="type">The type of the shader module.</param>
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
+        /// <param name="index">The index of the shader module within the shader program.</param>
         /// <returns>The shader module instance.</return>
-        constexpr inline virtual UniquePtr<shader_module_type> makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint) = 0;
+        constexpr inline virtual UniquePtr<shader_module_type> makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, std::optional<UInt32> index = std::nullopt) = 0;
 
         /// <summary>
         /// Called to create a new shader module in the program that is loaded from a stream.
@@ -391,8 +392,9 @@ namespace LiteFX::Rendering {
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
+        /// <param name="index">The index of the shader module within the shader program.</param>
         /// <returns>The shader module instance.</return>
-        constexpr inline virtual UniquePtr<shader_module_type> makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint) = 0;
+        constexpr inline virtual UniquePtr<shader_module_type> makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, std::optional<UInt32> index = std::nullopt) = 0;
 
     public:
         /// <summary>
@@ -402,8 +404,8 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withShaderModule(this TSelf&& self, ShaderStage type, const String& fileName, const String& entryPoint = "main") -> TSelf& {
-            self.m_state.modules.push_back(std::move(static_cast<ShaderProgramBuilder&>(self).makeShaderModule(type, fileName, entryPoint)));
+        constexpr inline [[nodiscard]] auto withShaderModule(this TSelf&& self, ShaderStage type, const String& fileName, const String& entryPoint = "main", std::optional<UInt32> index = std::nullopt) -> TSelf& {
+            self.m_state.modules.push_back(std::move(static_cast<ShaderProgramBuilder&>(self).makeShaderModule(type, fileName, entryPoint, index)));
             return self;
         }
 
@@ -415,8 +417,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withShaderModule(this TSelf&& self, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
-            self.m_state.modules.push_back(std::move(static_cast<ShaderProgramBuilder&>(self).makeShaderModule(type, stream, name, entryPoint)));
+        constexpr inline [[nodiscard]] auto withShaderModule(this TSelf&& self, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint = "main", std::optional<UInt32> index = std::nullopt) -> TSelf& {
+            self.m_state.modules.push_back(std::move(static_cast<ShaderProgramBuilder&>(self).makeShaderModule(type, stream, name, entryPoint, index)));
             return self;
         }
 
@@ -441,6 +443,8 @@ namespace LiteFX::Rendering {
             return self.withShaderModule(ShaderStage::Vertex, stream, name, entryPoint);
         }
 
+
+#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         /// <summary>
         /// Adds a task shader module to the program.
         /// </summary>
@@ -450,7 +454,6 @@ namespace LiteFX::Rendering {
         constexpr inline [[nodiscard]] auto withTaskShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
             return self.withShaderModule(ShaderStage::Task, fileName, entryPoint);
         }
-
         /// <summary>
         /// Adds a task shader module to the program.
         /// </summary>
@@ -482,6 +485,7 @@ namespace LiteFX::Rendering {
         constexpr inline [[nodiscard]] auto withMeshShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
             return self.withShaderModule(ShaderStage::Mesh, stream, name, entryPoint);
         }
+#endif // LITEFX_BUILD_MESH_SHADER_SUPPORT
 
         /// <summary>
         /// Adds a tessellation control shader module to the program.
@@ -587,6 +591,144 @@ namespace LiteFX::Rendering {
         constexpr inline [[nodiscard]] auto withComputeShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
             return self.withShaderModule(ShaderStage::Compute, stream, name, entryPoint);
         }
+
+#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
+        /// <summary>
+        /// Adds a ray generation shader module to the program.
+        /// </summary>
+        /// <param name="fileName">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        template<typename TSelf>
+        constexpr inline [[nodiscard]] auto withRayGenerationShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
+            return self.withShaderModule(ShaderStage::RayGeneration, fileName, entryPoint);
+        }
+
+        /// <summary>
+        /// Adds a ray generation shader module to the program.
+        /// </summary>
+        /// <param name="stream">The file stream of the module.</param>
+        /// <param name="name">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        template<typename TSelf>
+        constexpr inline [[nodiscard]] auto withRayGenerationShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
+            return self.withShaderModule(ShaderStage::RayGeneration, stream, name, entryPoint);
+        }
+
+        /// <summary>
+        /// Adds a miss shader module to the program.
+        /// </summary>
+        /// <param name="fileName">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        /// <param name="index">The index of the shader module within the shader program, or `std::nullopt` to use the number of already provided modules in the shader type group.</param>
+        template<typename TSelf>
+        constexpr inline [[nodiscard]] auto withMissShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main", std::optional<UInt32> index = std::nullopt) -> TSelf& {
+            return self.withShaderModule(ShaderStage::Miss, fileName, entryPoint, index);
+        }
+
+        /// <summary>
+        /// Adds a miss shader module to the program.
+        /// </summary>
+        /// <param name="stream">The file stream of the module.</param>
+        /// <param name="name">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        /// <param name="index">The index of the shader module within the shader program, or `std::nullopt` to use the number of already provided modules in the shader type group.</param>
+        template<typename TSelf>
+        constexpr inline [[nodiscard]] auto withMissShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main", std::optional<UInt32> index = std::nullopt) -> TSelf& {
+            return self.withShaderModule(ShaderStage::Miss, stream, name, entryPoint, index);
+        }
+
+        /// <summary>
+        /// Adds a callable shader module to the program.
+        /// </summary>
+        /// <param name="fileName">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        /// <param name="index">The index of the shader module within the shader program, or `std::nullopt` to use the number of already provided modules in the shader type group.</param>
+        template<typename TSelf>
+        constexpr inline [[nodiscard]] auto withCallableShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main", std::optional<UInt32> index = std::nullopt) -> TSelf& {
+            return self.withShaderModule(ShaderStage::Callable, fileName, entryPoint, index);
+        }
+
+        /// <summary>
+        /// Adds a callable shader module to the program.
+        /// </summary>
+        /// <param name="stream">The file stream of the module.</param>
+        /// <param name="name">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        /// <param name="index">The index of the shader module within the shader program, or `std::nullopt` to use the number of already provided modules in the shader type group.</param>
+        template<typename TSelf>
+        constexpr inline [[nodiscard]] auto withCallableShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main", std::optional<UInt32> index = std::nullopt) -> TSelf& {
+            return self.withShaderModule(ShaderStage::Callable, stream, name, entryPoint, index);
+        }
+
+        /// <summary>
+        /// Adds an intersection hit shader module to the program.
+        /// </summary>
+        /// <param name="fileName">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        /// <param name="index">The index of the shader module within the shader program, or `std::nullopt` to use the number of already provided modules in the shader type group.</param>
+        template<typename TSelf>
+        constexpr inline [[nodiscard]] auto withIntersectionShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main", std::optional<UInt32> index = std::nullopt) -> TSelf& {
+            return self.withShaderModule(ShaderStage::Intersection, fileName, entryPoint, index);
+        }
+
+        /// <summary>
+        /// Adds an intersection hit shader module to the program.
+        /// </summary>
+        /// <param name="stream">The file stream of the module.</param>
+        /// <param name="name">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        /// <param name="index">The index of the shader module within the shader program, or `std::nullopt` to use the number of already provided modules in the shader type group.</param>
+        template<typename TSelf>
+        constexpr inline [[nodiscard]] auto withIntersectionShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main", std::optional<UInt32> index = std::nullopt) -> TSelf& {
+            return self.withShaderModule(ShaderStage::Intersection, stream, name, entryPoint, index);
+        }
+
+        /// <summary>
+        /// Adds an any hit shader module to the program.
+        /// </summary>
+        /// <param name="fileName">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        /// <param name="index">The index of the shader module within the shader program, or `std::nullopt` to use the number of already provided modules in the shader type group.</param>
+        template<typename TSelf>
+        constexpr inline [[nodiscard]] auto withAnyHitShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main", std::optional<UInt32> index = std::nullopt) -> TSelf& {
+            return self.withShaderModule(ShaderStage::AnyHit, fileName, entryPoint, index);
+        }
+
+        /// <summary>
+        /// Adds an any hit shader module to the program.
+        /// </summary>
+        /// <param name="stream">The file stream of the module.</param>
+        /// <param name="name">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        /// <param name="index">The index of the shader module within the shader program, or `std::nullopt` to use the number of already provided modules in the shader type group.</param>
+        template<typename TSelf>
+        constexpr inline [[nodiscard]] auto withAnyHitShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main", std::optional<UInt32> index = std::nullopt) -> TSelf& {
+            return self.withShaderModule(ShaderStage::AnyHit, stream, name, entryPoint, index);
+        }
+
+        /// <summary>
+        /// Adds a closest hit shader module to the program.
+        /// </summary>
+        /// <param name="fileName">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        /// <param name="index">The index of the shader module within the shader program, or `std::nullopt` to use the number of already provided modules in the shader type group.</param>
+        template<typename TSelf>
+        constexpr inline [[nodiscard]] auto withClosestHitShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main", std::optional<UInt32> index = std::nullopt) -> TSelf& {
+            return self.withShaderModule(ShaderStage::ClosestHit, fileName, entryPoint, index);
+        }
+
+        /// <summary>
+        /// Adds a closest hit shader module to the program.
+        /// </summary>
+        /// <param name="stream">The file stream of the module.</param>
+        /// <param name="name">The file name of the module.</param>
+        /// <param name="entryPoint">The name of the entry point for the module.</param>
+        /// <param name="index">The index of the shader module within the shader program, or `std::nullopt` to use the number of already provided modules in the shader type group.</param>
+        template<typename TSelf>
+        constexpr inline [[nodiscard]] auto withClosestHitShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main", std::optional<UInt32> index = std::nullopt) -> TSelf& {
+            return self.withShaderModule(ShaderStage::ClosestHit, stream, name, entryPoint, index);
+        }
+#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
     };
 
     /// <summary>

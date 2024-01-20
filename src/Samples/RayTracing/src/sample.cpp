@@ -70,23 +70,26 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     // Create the shader program.
     SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
-        .withVertexShaderModule("shaders/basic_vs." + FileExtensions<TRenderBackend>::SHADER)
-        .withFragmentShaderModule("shaders/basic_fs." + FileExtensions<TRenderBackend>::SHADER);
+        .withRayGenerationShaderModule("shaders/raytracing_gen." + FileExtensions<TRenderBackend>::SHADER)
+        .withClosestHitShaderModule("shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER)
+        .withMissShaderModule("shaders/raytracing_miss." + FileExtensions<TRenderBackend>::SHADER);
 
-    // Create a render pipeline.
-    UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
-        .inputAssembler(inputAssembler)
-        .rasterizer(device->buildRasterizer()
-            .polygonMode(PolygonMode::Solid)
-            .cullMode(CullMode::BackFaces)
-            .cullOrder(CullOrder::ClockWise)
-            .lineWidth(1.f))
-        .layout(shaderProgram->reflectPipelineLayout())
-        .shaderProgram(shaderProgram);
+    //// Create a render pipeline.
+    //UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
+    //    .inputAssembler(inputAssembler)
+    //    .rasterizer(device->buildRasterizer()
+    //        .polygonMode(PolygonMode::Solid)
+    //        .cullMode(CullMode::BackFaces)
+    //        .cullOrder(CullOrder::ClockWise)
+    //        .lineWidth(1.f))
+    //    .layout(shaderProgram->reflectPipelineLayout())
+    //    .shaderProgram(shaderProgram);
 
-    // Add the resources to the device state.
-    device->state().add(std::move(renderPass));
-    device->state().add(std::move(renderPipeline));
+    //// Add the resources to the device state.
+    //device->state().add(std::move(renderPass));
+    //device->state().add(std::move(renderPipeline));
+
+    throw;
 }
 
 void SampleApp::initBuffers(IRenderBackend* backend)
@@ -140,8 +143,6 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     barrier->transition(*scratchBuffer, ResourceAccess::AccelerationStructureWrite, ResourceAccess::AccelerationStructureRead);
     commandBuffer->barrier(*barrier);
     commandBuffer->buildAccelerationStructure(*tlas, scratchBuffer);
-
-
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
