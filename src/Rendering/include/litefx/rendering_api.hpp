@@ -1348,7 +1348,33 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// Translates to `VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_RESOLVE` in DirectX 12 ❎.
         /// </remarks>
-        Resolve = 0x00001000
+        Resolve = 0x00001000,
+
+        /// <summary>
+        /// Waits for previous commands to finish the building stage for an acceleration structure, or blocks the following commands until the building has finished.
+        /// </summary>
+        /// <remarks>
+        /// This flag is only supported, if ray-tracing support is enabled. It translates to `VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE` in DirectX 12 ❎.
+        /// </remarks>
+        /// <seealso cref="IAccelerationStructure" />
+        AccelerationStructureBuild = 0x00010000,
+
+        /// <summary>
+        /// Waits for previous commands to finish the copying stage for an acceleration structure, or blocks the following commands until the copying has finished.
+        /// </summary>
+        /// <remarks>
+        /// This flag is only supported, if ray-tracing support is enabled. It translates to `VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_COPY_RAYTRACING_ACCELERATION_STRUCTURE` in DirectX 12 ❎.
+        /// </remarks>
+        /// <seealso cref="IAccelerationStructure" />
+        AccelerationStructureCopy = 0x00020000,
+
+        /// <summary>
+        /// Waits for the previous commands to finish ray-tracing shader stages, or blocks the following commands until ray-tracing has finished.
+        /// </summary>
+        /// <remarks>
+        /// This flag is only supported if ray-tracing support is enabled. It translates to `VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_RAYTRACING` in DirectX 12 ❎.
+        /// </remarks>
+        Raytracing = 0x00040000,
     };
 
     /// <summary>
@@ -1482,7 +1508,23 @@ namespace LiteFX::Rendering {
         /// 
         /// This access mode translates to `D3D12_BARRIER_ACCESS_COMMON` in the DirectX 12 ❎ backend and `VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT` in the Vulkan 🌋 backend.
         /// </remarks>
-        Common = 0x00002000
+        Common = 0x00002000,
+
+        /// <summary>
+        /// Indicates that a resources is accessed to read an acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// This access mode flags is only supported if ray-tracing support is enabled. It translates `D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ` in the DirectX 12 ❎ backend and `VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR` in the Vulkan 🌋 backend.
+        /// </remarks>
+        AccelerationStructureRead = 0x00010000,
+
+        /// <summary>
+        /// Indicates that a resources is accessed to write an acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// This access mode flags is only supported if ray-tracing support is enabled. It translates `D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE` in the DirectX 12 ❎ backend and `VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR` in the Vulkan 🌋 backend.
+        /// </remarks>
+        AccelerationStructureWrite = 0x00020000,
     };
 
     /// <summary>

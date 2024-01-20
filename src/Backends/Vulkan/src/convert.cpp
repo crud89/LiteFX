@@ -1005,6 +1005,13 @@ constexpr VkPipelineStageFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk
 		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Resolve))
 		sync |= VK_PIPELINE_STAGE_TRANSFER_BIT;
 
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Raytracing))
+		sync |= VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::AccelerationStructureBuild) || 
+		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::AccelerationStructureCopy))
+		sync |= VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;
+
 	return sync;
 }
 
@@ -1056,6 +1063,12 @@ constexpr VkAccessFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getRe
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ResolveWrite))
 		access |= VK_ACCESS_MEMORY_WRITE_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::AccelerationStructureRead))
+		access |= VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::AccelerationStructureWrite))
+		access |= VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;
 
 	return access;
 }
