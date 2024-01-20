@@ -111,6 +111,10 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 		usageFlags |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR;
 		alignment = m_impl->m_device.adapter().limits().minUniformBufferOffsetAlignment;
 		break;
+	case BufferType::ShaderBindingTable:
+		usageFlags |= VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR;
+		alignment = m_impl->m_device.adapter().limits().minStorageBufferOffsetAlignment;
+		break;
 	}
 
 	if (alignment > 0)

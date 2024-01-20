@@ -568,6 +568,11 @@ namespace LiteFX::Rendering {
         AccelerationStructure = 0x00000006,
 
         /// <summary>
+        /// Describes a shader binding table for ray-tracing.
+        /// </summary>
+        ShaderBindingTable = 0x00000007,
+
+        /// <summary>
         /// Describes another type of buffer, such as samplers or images.
         /// </summary>
         /// <remarks>

@@ -259,6 +259,7 @@ struct LITEFX_RENDERING_API fmt::formatter<BufferType> : formatter<string_view> 
 		case Storage:               name = "Storage"; break;
 		case Texel:                 name = "Texel"; break;
 		case AccelerationStructure: name = "Acceleration Structure"; break;
+		case ShaderBindingTable:    name = "Shader Binding Table"; break;
 		case Other:                 name = "Other"; break;
 		}
 		return formatter<string_view>::format(name, ctx);
