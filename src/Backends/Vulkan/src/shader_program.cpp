@@ -319,31 +319,6 @@ public:
         base(parent), m_device(device)
     {
     }
-
-    UInt32 findModuleIndex(ShaderStage stage)
-    {
-        switch (stage)
-        {
-        default:
-            return 0;
-        case ShaderStage::Miss:
-            return std::ranges::distance(this->m_parent->m_state.modules | std::views::filter([](auto& module) { return module->type() == ShaderStage::Miss; }));
-        case ShaderStage::Callable:
-            return std::ranges::distance(this->m_parent->m_state.modules | std::views::filter([](auto& module) { return module->type() == ShaderStage::Callable; }));
-        case ShaderStage::AnyHit:
-        case ShaderStage::ClosestHit:
-        case ShaderStage::Intersection:
-        {
-            // TODO: Find a more efficient way to handle this.
-            auto indices = this->m_parent->m_state.modules |
-                std::views::filter([](auto& module) { return module->type() == ShaderStage::AnyHit || module->type() == ShaderStage::ClosestHit || module->type() == ShaderStage::Intersection; }) |
-                std::views::transform([](auto& module) { return module->index(); }) |
-                std::ranges::to<std::vector<UInt32>>();
-            std::ranges::sort(indices);
-            return std::ranges::size(std::ranges::unique(indices));
-        }
-        }
-    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -362,13 +337,13 @@ void VulkanShaderProgramBuilder::build()
     this->instance()->m_impl->m_modules = std::move(m_state.modules);
 }
 
-constexpr UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, std::optional<UInt32> index)
+constexpr UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint)
 {
-    return makeUnique<VulkanShaderModule>(m_impl->m_device, type, fileName, entryPoint, index.value_or(m_impl->findModuleIndex(type)));
+    return makeUnique<VulkanShaderModule>(m_impl->m_device, type, fileName, entryPoint);
 }
 
-constexpr UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, std::optional<UInt32> index)
+constexpr UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint)
 {
-    return makeUnique<VulkanShaderModule>(m_impl->m_device, type, stream, name, entryPoint, index.value_or(m_impl->findModuleIndex(type)));
+    return makeUnique<VulkanShaderModule>(m_impl->m_device, type, stream, name, entryPoint);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

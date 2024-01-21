@@ -366,8 +366,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="type">The shader stage, this module is used in.</param>
         /// <param name="fileName">The file name of the module source.</param>
         /// <param name="entryPoint">The name of the module entry point.</param>
-        /// <param name="index">The index of the shader module within the shader program.</param>
-        explicit VulkanShaderModule(const VulkanDevice& device, ShaderStage type, const String& fileName, const String& entryPoint = "main", UInt32 index = 0);
+        explicit VulkanShaderModule(const VulkanDevice& device, ShaderStage type, const String& fileName, const String& entryPoint = "main");
 
         /// <summary>
         /// Initializes a new Vulkan shader module.
@@ -377,8 +376,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="stream">The file stream of the module source.</param>
         /// <param name="name">The file name of the module source.</param>
         /// <param name="entryPoint">The name of the module entry point.</param>
-        /// <param name="index">The index of the shader module within the shader program.</param>
-        explicit VulkanShaderModule(const VulkanDevice& device, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint = "main", UInt32 index = 0);
+        explicit VulkanShaderModule(const VulkanDevice& device, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint = "main");
         VulkanShaderModule(const VulkanShaderModule&) noexcept = delete;
         VulkanShaderModule(VulkanShaderModule&&) noexcept = delete;
         virtual ~VulkanShaderModule() noexcept;
@@ -393,9 +391,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         ShaderStage type() const noexcept override;
-
-        /// <inheritdoc />
-        UInt32 index() const noexcept override;
 
     public:
         /// <summary>

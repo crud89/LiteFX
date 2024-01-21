@@ -2257,22 +2257,6 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The name of the shader module entry point.</returns>
         virtual const String& entryPoint() const noexcept = 0;
-
-        /// <summary>
-        /// For ray tracing shader modules, returns the index defines the order of the shader module within the <see cref="IShaderProgram" />. Ignored for other shader 
-        /// modules.
-        /// </summary>
-        /// <remarks>
-        /// Note that indices must be continuous and unique amongst all shader modules of a shader type within a shader program. This means, that there can be two modules
-        /// with the same index, if they have different types.
-        /// 
-        /// This index also defines the hit group for geometries. A hit group index behaves slightly different from the rule above. The index range must be continuous 
-        /// amongst hit group shader stages (<see cref="ShaderStage::AnyHit" />, <see cref="ShaderStage::ClosestHit" /> and <see cref="ShaderStage::Intersection" />). 
-        /// However, the rules for forming a hit group still apply: intersection shaders must not be combined with hit shaders, but hit shaders can be combined with each
-        /// other, i.e., they can share the same index, which is the only exception to the index uniqueness rule.
-        /// </remarks>
-        /// <returns>The index that defines the order of the shader module within the <see cref="IShaderProgram" />.</returns>
-        virtual UInt32 index() const noexcept = 0;
     };
 
     /// <summary>
@@ -4555,6 +4539,478 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Describes a record within a shader binding table.
+    /// </summary>
+    /// <remarks>
+    /// A shader record contains a shader group, that is either a single shader of type <see cref="ShaderStage::RayGeneration" />, <see cref="ShaderStage::Intersection" />,
+    /// <see cref="ShaderStage::Miss" /> or <see cref="ShaderStage::Callable" />, or a pair of types <see cref="ShaderStage::ClosestHit" /> and <see cref="ShaderStage::AnyHit" />,
+    /// where at least one of them needs to be set.
+    /// 
+    /// Typically you do not want to implement this interface itself. Prefer using the <see cref="ShaderRecord" /> template to create shader records instead.
+    /// </remarks>
+    /// <seealso cref="ShaderRecord" />
+    /// <seealso cref="IShaderProgram::buildShaderBindingTable" />
+    struct LITEFX_RENDERING_API IShaderRecord {
+    public:
+        /// <summary>
+        /// Describes a hit group for a triangle mesh geometry.
+        /// </summary>
+        /// <remarks>
+        /// Note that when using this structure, at least one of the contained shaders must be set. A shader record containing a mesh geometry hit group must 
+        /// only be ever called by triangle mesh bottom-level acceleration structures.
+        /// </remarks>
+        /// <seealso cref="IBottomLevelAccelerationStructure" />
+        struct MeshGeometryHitGroup {
+            /// <summary>
+            /// The closest hit shader for the triangle mesh.
+            /// </summary>
+            const IShaderModule* ClosestHitShader;
+
+            /// <summary>
+            /// The any hit shader for the triangle mesh.
+            /// </summary>
+            const IShaderModule* AnyHitShader;
+        };
+
+        /// <summary>
+        /// Defines the type that stores the shaders of the shader group.
+        /// </summary>
+        using shader_group_type = Variant<const IShaderModule*, MeshGeometryHitGroup>;
+
+    public:
+        /// <summary>
+        /// Returns the shader group containing the modules for this record.
+        /// </summary>
+        virtual const shader_group_type& shaderGroup() const noexcept = 0;
+
+        /// <summary>
+        /// Returns a pointer to the payload of the record.
+        /// </summary>
+        /// <returns>A pointer to the payload of the record.</returns>
+        virtual const void* payloadData() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the size of the payload.
+        /// </summary>
+        /// <returns>The size of the payload.</returns>
+        virtual UInt64 payloadSize() const noexcept = 0;
+
+    public:
+        virtual ~IShaderRecord() noexcept = default;
+    };
+
+    /// <summary>
+    /// Defines a generic shader record.
+    /// </summary>
+    /// <seealso cref="ShaderRecord{{}}" />
+    /// <seealso cref="ShaderRecord{{typename TPayload}}" />
+    template <typename... TPayload>
+    struct ShaderRecord;
+
+    /// <summary>
+    /// Denotes a shader record containing a payload.
+    /// </summary>
+    /// <remarks>
+    /// The <typeparamref name="TPayload" /> defines the data that is passed to a shader's local resource bindings upon invocation. Two types of elements are 
+    /// allowed: buffer references and constants. Buffer references can be obtained by calling <see cref="IBuffer::virtualAddress" /> and are always 8 bytes
+    /// long. Constants do not strictly need to follow 8 byte alignment rules, but rather can also be smaller, in which case they should be defined as an
+    /// aligned array, aligned to 8 bytes within the payload.
+    /// </remarks>
+    /// <seealso cref="https://github.com/crud89/LiteFX/wiki/Raytracing#local-resource-bindings" />
+    template <typename TPayload> requires (std::alignment_of_v<TPayload> == 8)
+    struct ShaderRecord<TPayload> final : public IShaderRecord {
+    public:
+        using shader_group_type = IShaderRecord::shader_group_type;
+
+    private:
+        /// <summary>
+        /// Stores the payload of the shader record, that gets passed to the shader local data.
+        /// </summary>
+        TPayload m_payload;
+        
+        /// <summary>
+        /// Stores the shader group.
+        /// </summary>
+        shader_group_type m_shaderGroup;
+
+    public:
+        /// <inheritdoc />
+        const shader_group_type& shaderGroup() const noexcept override {
+            return m_shaderGroup;
+        }
+
+        /// <inheritdoc />
+        const void* payloadData() const noexcept override {
+            return reinterpret_cast<const void*>(&m_payload);
+        }
+
+        /// <inheritdoc />
+        UInt64 payloadSize() const noexcept override {
+            return sizeof(TPayload);
+        }
+
+    public:
+        ShaderRecord() = delete;
+        virtual ~ShaderRecord() noexcept = default;
+
+        /// <summary>
+        /// Initializes a shader record.
+        /// </summary>
+        /// <param name="group">The shader group containing the modules to invoke.</param>
+        /// <param name="payload">The payload to pass to the shader's local resource bindings.</param>
+        ShaderRecord(const shader_group_type& group, TPayload payload) noexcept :
+            m_shaderGroup(group), m_payload(payload) { }
+
+        /// <summary>
+        /// Copies another shader record.
+        /// </summary>
+        /// <param name="_other">The shader record to copy.</param>
+        ShaderRecord(const ShaderRecord& _other) :
+            m_shaderGroup(_other.m_shaderGroup), m_payload(_other.m_payload) { }
+
+        /// <summary>
+        /// Takes over another shader record.
+        /// </summary>
+        /// <param name="_other">The shader record to take over.</param>
+        ShaderRecord(ShaderRecord&& _other) :
+            m_shaderGroup(std::move(_other.m_shaderGroup)), m_payload(std::move(_other.m_payload)) { }
+
+        /// <summary>
+        /// Copies another shader record.
+        /// </summary>
+        /// <param name="_other">The shader record to copy.</param>
+        /// <returns>A reference to the current shader record.</returns>
+        auto& operator=(const ShaderRecord& _other) {
+            m_shaderGroup = _other.m_shaderGroup;
+            m_payload = _other.m_payload;
+            return *this;
+        }
+
+        /// <summary>
+        /// Takes over another shader record.
+        /// </summary>
+        /// <param name="_other">The shader record to take over.</param>
+        /// <returns>A reference to the current shader record.</returns>
+        auto& operator=(ShaderRecord&& _other) {
+            m_shaderGroup = std::move(_other.m_shaderGroup);
+            m_payload = std::move(_other.m_payload);
+            return *this;
+        }
+    };
+
+    /// <summary>
+    /// Denotes a shader record containing no payload.
+    /// </summary>
+    template <>
+    struct ShaderRecord<> final : public IShaderRecord {
+    public:
+        using shader_group_type = IShaderRecord::shader_group_type;
+
+    private:
+        /// <summary>
+        /// Stores the shader group.
+        /// </summary>
+        shader_group_type m_shaderGroup;
+
+    public:
+        /// <inheritdoc />
+        const shader_group_type& shaderGroup() const noexcept override {
+            return m_shaderGroup;
+        }
+
+        /// <inheritdoc />
+        const void* payloadData() const noexcept override {
+            return nullptr;
+        }
+
+        /// <inheritdoc />
+        UInt64 payloadSize() const noexcept override {
+            return 0_ui64;
+        }
+
+    public:
+        ShaderRecord() = delete;
+        virtual ~ShaderRecord() noexcept = default;
+
+        /// <summary>
+        /// Initializes a shader record.
+        /// </summary>
+        /// <param name="group">The shader group containing the modules to invoke.</param>
+        ShaderRecord(const shader_group_type& group) noexcept :
+            m_shaderGroup(group) { }
+
+        /// <summary>
+        /// Copies another shader record.
+        /// </summary>
+        /// <param name="_other">The shader record to copy.</param>
+        ShaderRecord(const ShaderRecord& _other) :
+            m_shaderGroup(_other.m_shaderGroup) { }
+
+        /// <summary>
+        /// Takes over another shader record.
+        /// </summary>
+        /// <param name="_other">The shader record to take over.</param>
+        ShaderRecord(ShaderRecord&& _other) :
+            m_shaderGroup(std::move(_other.m_shaderGroup)) { }
+
+        /// <summary>
+        /// Copies another shader record.
+        /// </summary>
+        /// <param name="_other">The shader record to copy.</param>
+        /// <returns>A reference to the current shader record.</returns>
+        auto& operator=(const ShaderRecord& _other) {
+            m_shaderGroup = _other.m_shaderGroup;
+            return *this;
+        }
+
+        /// <summary>
+        /// Takes over another shader record.
+        /// </summary>
+        /// <param name="_other">The shader record to take over.</param>
+        /// <returns>A reference to the current shader record.</returns>
+        auto& operator=(ShaderRecord&& _other) {
+            m_shaderGroup = std::move(_other.m_shaderGroup);
+            return *this;
+        }
+    };
+
+    /// <summary>
+    /// Stores a set of <see cref="IShaderRecord" />s in that later form a shader binding table used for ray-tracing.
+    /// </summary>
+    class LITEFX_RENDERING_API ShaderRecordCollection final {
+        friend class IShaderProgram;
+
+    private:
+        const IShaderProgram& m_program;
+        Array<UniquePtr<const IShaderRecord>> m_records;
+
+        /// <summary>
+        /// Initializes a new shader record collection.
+        /// </summary>
+        /// <param name="shaderProgram">The shader program that contains the shader modules</param>
+        ShaderRecordCollection(const IShaderProgram& shaderProgram) noexcept : m_program(shaderProgram) { }
+
+    public:
+        ShaderRecordCollection() = delete;
+        ShaderRecordCollection(const ShaderRecordCollection&) = delete;
+        ShaderRecordCollection(ShaderRecordCollection&&) = default;
+        ~ShaderRecordCollection() noexcept = default;
+
+    private:
+        /// <summary>
+        /// Finds a shader module in the parent shader program.
+        /// </summary>
+        /// <param name="name">The case-sensitive name of the shader module to find.</param>
+        /// <returns>A pointer to the shader module, or `nullptr`, if no module with the specified name was found in the parent program.</returns>
+        const IShaderModule* findShaderModule(StringView name) const noexcept;
+
+    public:
+        /// <summary>
+        /// Returns an array of all shader records within the shader record collection.
+        /// </summary>
+        /// <returns>The array containing all shader records within the shader record collection.</returns>
+        const Array<UniquePtr<const IShaderRecord>>& shaderRecords() const noexcept;
+
+        /// <summary>
+        /// Adds a new shader record to the shader record collection.
+        /// </summary>
+        /// <param name="record">The shader record to add to the shader record collection.</param>
+        /// <exception cref="ArgumentNotInitializedException">Thrown, if the shader record was not initialized.</exception>
+        /// <exception cref="InvalidArgumentException">Thrown, if the shader module(s) within the shader record are of invalid type, or the parent shader program does not contain the shader module(s).</exception>
+        void addShaderRecord(UniquePtr<const IShaderRecord>&& record);
+
+        /// <summary>
+        /// Computes the aligned amount of memory for each shader group in the shader record collection.
+        /// </summary>
+        /// <param name="rayGenGroupSize">A reference that receives the amount of memory required for the ray generation shader group.</param>
+        /// <param name="hitGroupSize">A reference that receives the amount of memory required for the hit shader group.</param>
+        /// <param name="missGroupSize">A reference that receives the amount of memory required for the miss shader group.</param>
+        /// <param name="callableGroupSize">A reference that receives the amount of memory required for the callable shader group.</param>
+        void computeShaderTableSizes(UInt64& rayGenGroupSize, UInt64& hitGroupSize, UInt64& missGroupSize, UInt64& callableGroupSize) const noexcept;
+
+    public:
+        /// <summary>
+        /// Adds a new shader record based on the name of a shader module in the parent shader program.
+        /// </summary>
+        /// <remarks>
+        /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an 
+        /// any and closest hit shader, use <see cref="addMeshGeometryShaderHitGroupRecord" /> instead.
+        /// </remarks>
+        /// <param name="shaderName">The name of the shader module.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if no shader module with the provided name was found in the parent shader program.</exception>
+        inline void addShaderRecord(StringView shaderName) {
+            auto shaderModule = this->findShaderModule(shaderName);
+
+            if (shaderModule == nullptr) [[unlikely]]
+                throw InvalidArgumentException("shaderName", "The parent shader program does not contain a shader named \"{}\".", shaderName);
+
+            if (shaderModule->type() == ShaderStage::AnyHit)
+                this->addShaderRecord(makeUnique<ShaderRecord<>>(IShaderRecord::MeshGeometryHitGroup{ .AnyHitShader = shaderModule }));
+            else if (shaderModule->type() == ShaderStage::ClosestHit)
+                this->addShaderRecord(makeUnique<ShaderRecord<>>(IShaderRecord::MeshGeometryHitGroup{ .ClosestHitShader = shaderModule }));
+            else
+                this->addShaderRecord(makeUnique<ShaderRecord<>>(shaderModule));
+        }
+
+        /// <summary>
+        /// Adds a new shader record based on the name of a shader module in the parent shader program.
+        /// </summary>
+        /// <remarks>
+        /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an 
+        /// any and closest hit shader, use <see cref="addMeshGeometryShaderHitGroupRecord" /> instead.
+        /// </remarks>
+        /// <typeparam name="TPayload">The type of the shader record payload.</typeparam>
+        /// <param name="shaderName">The name of the shader module.</param>
+        /// <param name="payload">The payload of the shader record.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if no shader module with the provided name was found in the parent shader program.</exception>
+        template <typename TPayload> requires (std::alignment_of_v<TPayload>() == 8)
+        inline void addShaderRecord(StringView shaderName, TPayload payload) {
+            auto shaderModule = this->findShaderModule(shaderName);
+
+            if (shaderModule == nullptr) [[unlikely]]
+                throw InvalidArgumentException("shaderName", "The parent shader program does not contain a shader named \"{}\".", shaderName);
+                
+            if (shaderModule->type() == ShaderStage::AnyHit)
+                this->addShaderRecord(makeUnique<ShaderRecord<TPayload>>(IShaderRecord::MeshGeometryHitGroup{ .AnyHitShader = shaderModule }, payload));
+            else if (shaderModule->type() == ShaderStage::ClosestHit)
+                this->addShaderRecord(makeUnique<ShaderRecord<TPayload>>(IShaderRecord::MeshGeometryHitGroup{ .ClosestHitShader = shaderModule }, payload));
+            else
+                this->addShaderRecord(makeUnique<ShaderRecord<TPayload>>(shaderModule, payload));
+        }
+
+        /// <summary>
+        /// Adds a new mesh geometry hit group record based on names of the shader modules.
+        /// </summary>
+        /// <param name="anyHitShaderName">The name of the any hit shader module.</param>
+        /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if both provided shader names are empty or not found, the shaders are not of the right type or do not belong to the parent shader program.</exception>
+        inline void addMeshGeometryShaderHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName) {
+            IShaderRecord::MeshGeometryHitGroup hitGroup = { 
+                .ClosestHitShader = closestHitShaderName.has_value() ? this->findShaderModule(closestHitShaderName.value()) : nullptr,
+                .AnyHitShader = anyHitShaderName.has_value() ? this->findShaderModule(anyHitShaderName.value()) : nullptr
+            };
+
+            this->addShaderRecord(makeUnique<ShaderRecord<>>(hitGroup));
+        }
+
+        /// <summary>
+        /// Adds a new mesh geometry hit group record based on names of the shader modules.
+        /// </summary>
+        /// <typeparam name="TPayload">The type of the shader record payload.</typeparam>
+        /// <param name="anyHitShaderName">The name of the any hit shader module.</param>
+        /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
+        /// <param name="payload">The payload of the shader record.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if both provided shader names are empty or not found, the shaders are not of the right type or do not belong to the parent shader program.</exception>
+        template <typename TPayload> requires (std::alignment_of_v<TPayload>() == 8)
+        inline void addMeshGeometryShaderHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName, TPayload payload) {
+            IShaderRecord::MeshGeometryHitGroup hitGroup = { 
+                .ClosestHitShader = closestHitShaderName.has_value() ? this->findShaderModule(closestHitShaderName.value()) : nullptr,
+                .AnyHitShader = anyHitShaderName.has_value() ? this->findShaderModule(anyHitShaderName.value()) : nullptr
+            };
+
+            this->addShaderRecord(makeUnique<ShaderRecord<TPayload>>(hitGroup, payload));
+        }
+
+        /// <summary>
+        /// Adds a new shader record to the shader record collection.
+        /// </summary>
+        /// <param name="shaderGroup">The shader module or hit group.</param>
+        inline void addShaderRecord(const ShaderRecord<>::shader_group_type& shaderGroup) {
+            this->addShaderRecord(makeUnique<ShaderRecord<>>(shaderGroup));
+        }
+
+        /// <summary>
+        /// Adds a new shader record to the shader record collection.
+        /// </summary>
+        /// <typeparam name="TPayload">The type of the shader record payload.</typeparam>
+        /// <param name="shaderGroup">The shader module or hit group.</param>
+        /// <param name="payload">The payload of the shader record.</param>
+        template <typename TPayload> requires (std::alignment_of_v<TPayload>() == 8)
+        inline void addShaderRecord(ShaderRecord<TPayload>::shader_group_type shaderGroup, TPayload payload) {
+            this->addShaderRecord(makeUnique<ShaderRecord<TPayload>>(shaderGroup, payload));
+        }
+
+        /// <summary>
+        /// Adds a new shader record based on the name of a shader module in the parent shader program.
+        /// </summary>
+        /// <remarks>
+        /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an 
+        /// any and closest hit shader, use <see cref="withMeshGeometryShaderHitGroupRecord" /> instead.
+        /// </remarks>
+        /// <param name="shaderName">The name of the shader module.</param>
+        /// <returns>A reference to the current shader record collection.</returns>
+        inline ShaderRecordCollection&& withShaderRecord(StringView shaderName) {
+            this->addShaderRecord(shaderName);
+            return std::forward<ShaderRecordCollection>(*this);
+        }
+
+        /// <summary>
+        /// Adds a new shader record based on the name of a shader module in the parent shader program.
+        /// </summary>
+        /// <remarks>
+        /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an 
+        /// any and closest hit shader, use <see cref="withMeshGeometryShaderHitGroupRecord" /> instead.
+        /// </remarks>
+        /// <typeparam name="TPayload">The type of the shader record payload.</typeparam>
+        /// <param name="shaderName"></param>
+        /// <param name="payload">The payload of the shader record.</param>
+        /// <returns>A reference to the current shader record collection.</returns>
+        template <typename TPayload> requires (std::alignment_of_v<TPayload>() == 8)
+        inline ShaderRecordCollection&& withShaderRecord(StringView shaderName, TPayload payload) {
+            this->addShaderRecord(shaderName, payload);
+            return std::forward<ShaderRecordCollection>(*this);
+        }
+
+        /// <summary>
+        /// Adds a new mesh geometry hit group record based on names of the shader modules.
+        /// </summary>
+        /// <param name="anyHitShaderName">The name of the any hit shader module.</param>
+        /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
+        /// <returns>A reference to the current shader record collection.</returns>
+        inline ShaderRecordCollection&& withMeshGeometryHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName) {
+            this->addMeshGeometryShaderHitGroupRecord(anyHitShaderName, closestHitShaderName);
+            return std::forward<ShaderRecordCollection>(*this);
+        }
+
+        /// <summary>
+        /// Adds a new mesh geometry hit group record based on names of the shader modules.
+        /// </summary>
+        /// <typeparam name="TPayload">The type of the shader record payload.</typeparam>
+        /// <param name="anyHitShaderName">The name of the any hit shader module.</param>
+        /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
+        /// <param name="payload">The payload of the shader record.</param>
+        /// <returns>A reference to the current shader record collection.</returns>
+        template <typename TPayload> requires (std::alignment_of_v<TPayload>() == 8)
+        inline ShaderRecordCollection&& withMeshGeometryHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName, TPayload payload) {
+            this->addMeshGeometryShaderHitGroupRecord(anyHitShaderName, closestHitShaderName, payload);
+            return std::forward<ShaderRecordCollection>(*this);
+        }
+
+        /// <summary>
+        /// Adds a new shader record to the shader record collection.
+        /// </summary>
+        /// <param name="shaderGroup">The shader module or hit group.</param>
+        /// <returns>A reference to the current shader record collection.</returns>
+        inline ShaderRecordCollection&& withShaderRecord(ShaderRecord<>::shader_group_type shaderGroup) {
+            this->addShaderRecord(shaderGroup);
+            return std::forward<ShaderRecordCollection>(*this);
+        }
+
+        /// <summary>
+        /// Adds a new shader record to the shader record collection.
+        /// </summary>
+        /// <typeparam name="TPayload">The type of the shader record payload.</typeparam>
+        /// <param name="shaderGroup">The shader module or hit group.</param>
+        /// <param name="payload">The payload of the shader record.</param>
+        /// <returns>A reference to the current shader record collection.</returns>
+        template <typename TPayload> requires (std::alignment_of_v<TPayload>() == 8)
+        inline ShaderRecordCollection&& withShaderRecord(ShaderRecord<TPayload>::shader_group_type shaderGroup, TPayload payload) {
+            this->addShaderRecord(shaderGroup, payload);
+            return std::forward<ShaderRecordCollection>(*this);
+        }
+    };
+
+    /// <summary>
     /// The interface for a shader program.
     /// </summary>
     /// <remarks>
@@ -4583,13 +5039,7 @@ namespace LiteFX::Rendering {
     /// <description>
     /// **Ray-tracing:** If ray tracing support is enabled (through the compiler flag `LITEFX_BUILD_RAY_TRACING_SUPPORT`), a ray tracing program can contain modules of the
     /// following stages: *Ray Generation*, *Any Hit*, *Closest Hit*, *Intersection*, *Miss*, *Callable*. There must be exactly one *Ray Generation* module. All other modules
-    /// can occur multiple times. *Intersection*, *Closest Hit* and *Any Hit* are grouped into hit groups. A hit group defines which shaders belong together and by extension,
-    /// which shaders are invoked if a certain geometry is hit during ray tracing. A hit group is identified by an index, that is later passed to individual geometries as part
-    /// of an <see cref="IBottomLevelAccelerationStructure" />. Hit group indices must be continuous and unique, i.e., there must be no gaps between indices and no index must
-    /// exist twice. A hit group must contain either an *Intersection* module, if the geometry is an bounding box or an *Any Hit*/*Closest Hit* module (both are allowed to be
-    /// combined, but at least one of them needs to exist in a hit group), if the geometry is a triangle mesh. There can be multiple *Miss* shaders, where the one that's 
-    /// invoked is determined at runtime by an index passed to the generated ray during *Ray Generation*. Similarly, there can be multiple *Callable* shaders, which can then 
-    /// be addressed using an user-specified index at runtime.
+    /// can occur multiple times. To build a ray tracing pipeline, all shaders should be added to a single shader program, which is then passed to the pipeline during creation.
     /// </description>
     /// </item>
     /// </list>
@@ -4603,6 +5053,40 @@ namespace LiteFX::Rendering {
         virtual ~IShaderProgram() noexcept = default;
 
     public:
+        /// <summary>
+        /// Returns a pointer to shader module based on its (case-sensitive) name.
+        /// </summary>
+        /// <param name="name">The name or file name of the shader module.</param>
+        /// <returns>A pointer to the shader module, or `nullptr`, if it was not found.</returns>
+        inline const IShaderModule* operator[](StringView name) const noexcept {
+            auto modules = this->getModules();
+
+            if (auto match = std::ranges::find_if(modules, [name](auto module) { return std::strcmp(module->fileName().c_str(), name.data()) == 0; }); match != modules.end())
+                return *match;
+
+            return nullptr;
+        }
+
+        /// <summary>
+        /// Returns `true`, if the program contains a shader module with the provided name or file name and `false` otherwise.
+        /// </summary>
+        /// <param name="name">The case-sensitive name or file name of the shader module to look up.</param>
+        /// <returns>`true`, if the program contains a shader module with the provided name or file name and `false` otherwise.</returns>
+        inline bool contains(StringView name) const noexcept {
+            auto modules = this->getModules();
+            return std::ranges::find_if(modules, [name](auto module) { return std::strcmp(module->fileName().c_str(), name.data()) == 0; }) != modules.end();
+        };
+
+        /// <summary>
+        /// Returns `true`, if the program contains the provided shader module and `false` otherwise.
+        /// </summary>
+        /// <param name="module">The module to look up in the shader program.</param>
+        /// <returns>`true`, if the program contains the provided shader module and `false` otherwise.</returns>
+        inline bool contains(const IShaderModule& module) const noexcept {
+            auto modules = this->getModules();
+            return std::ranges::find_if(modules, [&module](auto m) { return m == &module; }) != modules.end();
+        };
+
         /// <summary>
         /// Returns the modules, the shader program is build from.
         /// </summary>
@@ -4638,6 +5122,14 @@ namespace LiteFX::Rendering {
         inline SharedPtr<IPipelineLayout> reflectPipelineLayout() const {
             return this->parsePipelineLayout();
         };
+
+        /// <summary>
+        /// Builds a shader record collection based on the current shader program.
+        /// </summary>
+        /// <returns>The shader record collection instance.</returns>
+        inline [[nodiscard]] ShaderRecordCollection buildShaderRecordCollection() const noexcept {
+            return ShaderRecordCollection(*this);
+        }
 
     private:
         virtual Enumerable<const IShaderModule*> getModules() const noexcept = 0;

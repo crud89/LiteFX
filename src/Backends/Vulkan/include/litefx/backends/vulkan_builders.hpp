@@ -63,10 +63,10 @@ namespace LiteFX::Rendering::Backends {
 		// ShaderProgramBuilder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline UniquePtr<VulkanShaderModule> makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, std::optional<UInt32> index = std::nullopt) override;
+		constexpr inline UniquePtr<VulkanShaderModule> makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint) override;
 
 		/// <inheritdoc />
-		constexpr inline UniquePtr<VulkanShaderModule> makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, std::optional<UInt32> index = std::nullopt) override;
+		constexpr inline UniquePtr<VulkanShaderModule> makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint) override;
 	};
 
 	/// <summary>

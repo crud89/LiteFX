@@ -74,6 +74,12 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .withClosestHitShaderModule("shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER)
         .withMissShaderModule("shaders/raytracing_miss." + FileExtensions<TRenderBackend>::SHADER);
 
+    // Build a shader binding table.
+    ShaderRecordCollection shaderRecords = shaderProgram->buildShaderRecordCollection()
+        .withShaderRecord("shaders/raytracing_gen." + FileExtensions<TRenderBackend>::SHADER)
+        .withShaderRecord("shaders/raytracing_miss." + FileExtensions<TRenderBackend>::SHADER)
+        .withMeshGeometryHitGroupRecord(std::nullopt, "shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER);
+
     //// Create a render pipeline.
     //UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
     //    .inputAssembler(inputAssembler)
