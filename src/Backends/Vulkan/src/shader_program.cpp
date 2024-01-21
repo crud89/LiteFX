@@ -104,6 +104,94 @@ public:
     }
 
 public:
+    void validate()
+    {
+        // First check if there are any modules at all, or any that are uninitialized.
+        if (m_modules.empty()) [[unlikely]]
+            return; // Not exactly a reason to throw, but rather an empty group cannot be meaningful used anyway.
+
+        if (std::ranges::contains(m_modules, nullptr)) [[unlikely]]
+            throw InvalidArgumentException("modules", "At least one of the shader modules is not initialized.");
+
+        // Check if there are combinations, that are not supported.
+        Dictionary<ShaderStage, UInt32> shaders = {
+            { ShaderStage::Compute, 0 },
+            { ShaderStage::Vertex, 0 },
+            { ShaderStage::Geometry, 0 },
+            { ShaderStage::TessellationControl, 0 },
+            { ShaderStage::TessellationEvaluation, 0 },
+            { ShaderStage::Fragment, 0 },
+            { ShaderStage::Task, 0 },
+            { ShaderStage::Mesh, 0 },
+            { ShaderStage::RayGeneration, 0 },
+            { ShaderStage::Miss, 0 },
+            { ShaderStage::Callable, 0 },
+            { ShaderStage::AnyHit, 0 },
+            { ShaderStage::ClosestHit, 0 },
+            { ShaderStage::Intersection, 0 }
+        };
+
+        std::ranges::for_each(m_modules, [&shaders](auto& module) { shaders[module->type()]++; });
+
+        bool containsComputeGroup    = shaders[ShaderStage::Compute] > 0;
+        bool containsGraphicsGroup   = shaders[ShaderStage::Vertex] > 0 || shaders[ShaderStage::Geometry] > 0 || shaders[ShaderStage::TessellationControl] > 0 || shaders[ShaderStage::TessellationEvaluation] > 0;
+        bool containsFragmentGroup   = shaders[ShaderStage::Fragment] > 0;
+        bool containsMeshGroup       = shaders[ShaderStage::Task] > 0 || shaders[ShaderStage::Mesh] > 0;
+        bool containsRaytracingGroup = shaders[ShaderStage::RayGeneration] > 0 || shaders[ShaderStage::Miss] > 0 || shaders[ShaderStage::Callable] > 0 || shaders[ShaderStage::AnyHit] > 0 || shaders[ShaderStage::ClosestHit] > 0 || shaders[ShaderStage::Intersection] > 0;
+
+        // Compute groups must be compute only.
+        if (containsComputeGroup)
+        {
+            if (containsGraphicsGroup || containsMeshGroup || containsFragmentGroup || containsRaytracingGroup) [[unlikely]]
+                throw InvalidArgumentException("modules", "The provided shader modules mix compute shaders with non-compute shaders.");
+            if (shaders[ShaderStage::Compute] > 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "If a shader program contains a compute shader, it must contain only one shader module.");
+
+            return;
+        }
+
+        // No compute shaders from this point - are we on a ray-tracing group?
+        if (containsRaytracingGroup)
+        {
+            if (containsGraphicsGroup || containsMeshGroup || containsFragmentGroup) [[unlikely]]
+                throw InvalidArgumentException("modules", "If a shader program contains ray-tracing shaders, it must only contain ray-tracing shaders.");
+            if (containsRaytracingGroup && shaders[ShaderStage::RayGeneration] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "If ray-tracing shaders are present, there must also be exactly one ray generation shader.");
+                
+            return;
+        }
+
+        // No ray-tracing from this point... next are mesh shaders.
+        if (containsMeshGroup)
+        {
+            if (containsGraphicsGroup) [[unlikely]]
+                throw InvalidArgumentException("modules", "Mesh shaders must not be combined with graphics shaders.");
+            if (shaders[ShaderStage::Fragment] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a mesh shader program, there must be exactly one fragment/pixel shader.");
+            if (shaders[ShaderStage::Mesh] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a mesh shader program, there must be exactly one mesh shader.");
+            if (shaders[ShaderStage::Task] > 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a mesh shader program, there must be at most one mesh shader.");
+
+            return;
+        }
+
+        // Now on to the standard graphics shaders.
+        if (containsGraphicsGroup)
+        {
+            if (shaders[ShaderStage::Fragment] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a graphics shader program, there must be exactly one fragment/pixel shader.");
+            if (shaders[ShaderStage::Vertex] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a graphics shader program, there must be exactly one vertex shader.");
+            if (shaders[ShaderStage::TessellationControl] > 1 || shaders[ShaderStage::TessellationEvaluation] > 1 || shaders[ShaderStage::Geometry] > 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a graphics shader program, there must be at most one geometry, tessellation control/domain or tessellation evaluation/hull shader.");
+        }
+
+        // Finally, let's check if there's a lonely fragment shader.
+        if (containsFragmentGroup) [[unlikely]]
+            throw InvalidArgumentException("modules", "A shader program that contains only a fragment/pixel shader is not valid.");
+    }
+
     SharedPtr<VulkanPipelineLayout> reflectPipelineLayout()
     {
         // First, filter the descriptor sets and push constant ranges.
@@ -283,6 +371,7 @@ public:
 VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules) :
     m_impl(makePimpl<VulkanShaderProgramImpl>(this, device, std::move(modules)))
 {
+    m_impl->validate();
 }
 
 VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device) noexcept :
@@ -335,6 +424,7 @@ constexpr VulkanShaderProgramBuilder::~VulkanShaderProgramBuilder() noexcept = d
 void VulkanShaderProgramBuilder::build()
 {
     this->instance()->m_impl->m_modules = std::move(m_state.modules);
+    this->instance()->m_impl->validate();
 }
 
 constexpr UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint)
