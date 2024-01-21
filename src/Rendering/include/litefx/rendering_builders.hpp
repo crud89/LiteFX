@@ -402,9 +402,9 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withShaderModule(this TSelf&& self, ShaderStage type, const String& fileName, const String& entryPoint = "main") -> TSelf& {
+        constexpr inline [[nodiscard]] auto withShaderModule(this TSelf&& self, ShaderStage type, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
             self.m_state.modules.push_back(std::move(static_cast<ShaderProgramBuilder&>(self).makeShaderModule(type, fileName, entryPoint)));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -415,9 +415,9 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withShaderModule(this TSelf&& self, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
+        constexpr inline [[nodiscard]] auto withShaderModule(this TSelf&& self, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
             self.m_state.modules.push_back(std::move(static_cast<ShaderProgramBuilder&>(self).makeShaderModule(type, stream, name, entryPoint)));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -426,8 +426,8 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withVertexShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Vertex, fileName, entryPoint);
+        constexpr inline [[nodiscard]] auto withVertexShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Vertex, fileName, entryPoint));
         }
 
         /// <summary>
@@ -437,8 +437,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withVertexShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Vertex, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withVertexShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Vertex, stream, name, entryPoint));
         }
 
 
@@ -449,8 +449,8 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withTaskShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Task, fileName, entryPoint);
+        constexpr inline [[nodiscard]] auto withTaskShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Task, fileName, entryPoint));
         }
         /// <summary>
         /// Adds a task shader module to the program.
@@ -459,8 +459,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withTaskShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Task, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withTaskShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Task, stream, name, entryPoint));
         }
 
         /// <summary>
@@ -469,8 +469,8 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withMeshShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Mesh, fileName, entryPoint);
+        constexpr inline [[nodiscard]] auto withMeshShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Mesh, fileName, entryPoint));
         }
 
         /// <summary>
@@ -480,8 +480,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withMeshShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Mesh, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withMeshShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Mesh, stream, name, entryPoint));
         }
 #endif // LITEFX_BUILD_MESH_SHADER_SUPPORT
 
@@ -491,8 +491,8 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withTessellationControlShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::TessellationControl, fileName, entryPoint);
+        constexpr inline [[nodiscard]] auto withTessellationControlShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::TessellationControl, fileName, entryPoint));
         }
 
         /// <summary>
@@ -502,8 +502,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withTessellationControlShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::TessellationControl, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withTessellationControlShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::TessellationControl, stream, name, entryPoint));
         }
 
         /// <summary>
@@ -512,8 +512,8 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withTessellationEvaluationShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::TessellationEvaluation, fileName, entryPoint);
+        constexpr inline [[nodiscard]] auto withTessellationEvaluationShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::TessellationEvaluation, fileName, entryPoint));
         }
 
         /// <summary>
@@ -523,8 +523,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withTessellationEvaluationShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::TessellationEvaluation, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withTessellationEvaluationShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::TessellationEvaluation, stream, name, entryPoint));
         }
 
         /// <summary>
@@ -533,8 +533,8 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withGeometryShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Geometry, fileName, entryPoint);
+        constexpr inline [[nodiscard]] auto withGeometryShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Geometry, fileName, entryPoint));
         }
 
         /// <summary>
@@ -544,8 +544,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withGeometryShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Geometry, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withGeometryShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Geometry, stream, name, entryPoint));
         }
 
         /// <summary>
@@ -554,8 +554,8 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withFragmentShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Fragment, fileName, entryPoint);
+        constexpr inline [[nodiscard]] auto withFragmentShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Fragment, fileName, entryPoint));
         }
 
         /// <summary>
@@ -565,8 +565,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withFragmentShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Fragment, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withFragmentShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Fragment, stream, name, entryPoint));
         }
 
         /// <summary>
@@ -575,8 +575,8 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withComputeShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Compute, fileName, entryPoint);
+        constexpr inline [[nodiscard]] auto withComputeShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Compute, fileName, entryPoint));
         }
 
         /// <summary>
@@ -586,8 +586,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withComputeShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Compute, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withComputeShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Compute, stream, name, entryPoint));
         }
 
 #ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
@@ -597,8 +597,8 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withRayGenerationShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::RayGeneration, fileName, entryPoint);
+        constexpr inline [[nodiscard]] auto withRayGenerationShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::RayGeneration, fileName, entryPoint));
         }
 
         /// <summary>
@@ -608,8 +608,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withRayGenerationShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::RayGeneration, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withRayGenerationShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::RayGeneration, stream, name, entryPoint));
         }
 
         /// <summary>
@@ -618,8 +618,8 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withMissShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Miss, fileName, entryPoint);
+        constexpr inline [[nodiscard]] auto withMissShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Miss, fileName, entryPoint));
         }
 
         /// <summary>
@@ -629,8 +629,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withMissShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Miss, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withMissShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Miss, stream, name, entryPoint));
         }
 
         /// <summary>
@@ -639,8 +639,8 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withCallableShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Callable, fileName, entryPoint);
+        constexpr inline [[nodiscard]] auto withCallableShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Callable, fileName, entryPoint));
         }
 
         /// <summary>
@@ -650,8 +650,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withCallableShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Callable, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withCallableShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Callable, stream, name, entryPoint));
         }
 
         /// <summary>
@@ -660,8 +660,8 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withIntersectionShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Intersection, fileName, entryPoint);
+        constexpr inline [[nodiscard]] auto withIntersectionShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Intersection, fileName, entryPoint));
         }
 
         /// <summary>
@@ -671,8 +671,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withIntersectionShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::Intersection, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withIntersectionShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Intersection, stream, name, entryPoint));
         }
 
         /// <summary>
@@ -681,8 +681,8 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withAnyHitShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::AnyHit, fileName, entryPoint);
+        constexpr inline [[nodiscard]] auto withAnyHitShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::AnyHit, fileName, entryPoint));
         }
 
         /// <summary>
@@ -692,8 +692,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withAnyHitShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::AnyHit, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withAnyHitShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::AnyHit, stream, name, entryPoint));
         }
 
         /// <summary>
@@ -702,8 +702,8 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withClosestHitShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::ClosestHit, fileName, entryPoint);
+        constexpr inline [[nodiscard]] auto withClosestHitShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::ClosestHit, fileName, entryPoint));
         }
 
         /// <summary>
@@ -713,8 +713,8 @@ namespace LiteFX::Rendering {
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withClosestHitShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf& {
-            return self.withShaderModule(ShaderStage::ClosestHit, stream, name, entryPoint);
+        constexpr inline [[nodiscard]] auto withClosestHitShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::ClosestHit, stream, name, entryPoint));
         }
 #endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
     };
@@ -778,9 +778,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="mode">The polygon mode to initialize the rasterizer state with.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto polygonMode(this TSelf&& self, PolygonMode mode) noexcept -> TSelf& {
+        constexpr inline [[nodiscard]] auto polygonMode(this TSelf&& self, PolygonMode mode) noexcept -> TSelf&& {
             self.m_state.polygonMode = mode;
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -788,9 +788,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="mode">The cull mode to initialize the rasterizer state with.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto cullMode(this TSelf&& self, CullMode mode) noexcept -> TSelf& {
+        constexpr inline [[nodiscard]] auto cullMode(this TSelf&& self, CullMode mode) noexcept -> TSelf&& {
             self.m_state.cullMode = mode;
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -798,9 +798,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="order">The cull order to initialize the rasterizer state with.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto cullOrder(this TSelf&& self, CullOrder order) noexcept -> TSelf& {
+        constexpr inline [[nodiscard]] auto cullOrder(this TSelf&& self, CullOrder order) noexcept -> TSelf&& {
             self.m_state.cullOrder = order;
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -808,9 +808,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="width">The line width to initialize the rasterizer state with.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto lineWidth(this TSelf&& self, Float width) noexcept -> TSelf& {
+        constexpr inline [[nodiscard]] auto lineWidth(this TSelf&& self, Float width) noexcept -> TSelf&& {
             self.m_state.lineWidth = width;
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -818,9 +818,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="depthBias">The depth bias the rasterizer should use.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto depthBias(this TSelf&& self, const DepthStencilState::DepthBias& depthBias) noexcept -> TSelf& {
+        constexpr inline [[nodiscard]] auto depthBias(this TSelf&& self, const DepthStencilState::DepthBias& depthBias) noexcept -> TSelf&& {
             self.m_state.depthBias = depthBias;
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -828,9 +828,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="depthState">The depth state of the rasterizer.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto depthState(this TSelf&& self, const DepthStencilState::DepthState& depthState) noexcept -> TSelf& {
+        constexpr inline [[nodiscard]] auto depthState(this TSelf&& self, const DepthStencilState::DepthState& depthState) noexcept -> TSelf&& {
             self.m_state.depthState = depthState;
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -838,9 +838,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="stencilState">The stencil state of the rasterizer.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto stencilState(this TSelf&& self, const DepthStencilState::StencilState& stencilState) noexcept -> TSelf& {
+        constexpr inline [[nodiscard]] auto stencilState(this TSelf&& self, const DepthStencilState::StencilState& stencilState) noexcept -> TSelf&& {
             self.m_state.stencilState = stencilState;
-            return self;
+            return std::forward<TSelf>(self);
         }
     };
 
@@ -873,9 +873,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="attribute">The attribute to add to the layout.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto withAttribute(this TSelf&& self, UniquePtr<BufferAttribute>&& attribute) -> TSelf& {
+        constexpr inline [[nodiscard]] auto withAttribute(this TSelf&& self, UniquePtr<BufferAttribute>&& attribute) -> TSelf&& {
             self.m_state.attributes.push_back(std::move(attribute));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -889,9 +889,9 @@ namespace LiteFX::Rendering {
         /// <param name="semantic">The semantic of the attribute.</param>
         /// <param name="semanticIndex">The semantic index of the attribute.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto withAttribute(this TSelf&& self, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf& {
+        constexpr inline [[nodiscard]] auto withAttribute(this TSelf&& self, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf&& {
             self.withAttribute(std::move(makeUnique<BufferAttribute>(static_cast<UInt32>(self.m_state.attributes.size()), offset, format, semantic, semanticIndex)));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -903,9 +903,9 @@ namespace LiteFX::Rendering {
         /// <param name="semantic">The semantic of the attribute.</param>
         /// <param name="semanticIndex">The semantic index of the attribute.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto withAttribute(this TSelf&& self, UInt32 location, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf& {
+        constexpr inline [[nodiscard]] auto withAttribute(this TSelf&& self, UInt32 location, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf&& {
             self.withAttribute(std::move(makeUnique<BufferAttribute>(location, offset, format, semantic, semanticIndex)));
-            return self;
+            return std::forward<TSelf>(self);
         }
     };
 
@@ -986,9 +986,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="layout">The descriptor layout to add.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto withDescriptor(this TSelf&& self, UniquePtr<descriptor_layout_type>&& layout) -> TSelf& {
+        constexpr inline [[nodiscard]] auto withDescriptor(this TSelf&& self, UniquePtr<descriptor_layout_type>&& layout) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(layout));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -999,9 +999,9 @@ namespace LiteFX::Rendering {
         /// <param name="descriptorSize">The size of a single descriptor.</param>
         /// <param name="descriptors">The number of descriptors to bind.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto withDescriptor(this TSelf&& self, DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors = 1) -> TSelf& {
+        constexpr inline [[nodiscard]] auto withDescriptor(this TSelf&& self, DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors = 1) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(type, binding, descriptorSize, descriptors)));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1019,9 +1019,9 @@ namespace LiteFX::Rendering {
         /// <param name="maxLod">The furthest mip map distance level. </param>
         /// <param name="anisotropy">The maximum anisotropy.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto withStaticSampler(this TSelf&& self, UInt32 binding, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float minLod = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float anisotropy = 0.f) -> TSelf& {
+        constexpr inline [[nodiscard]] auto withStaticSampler(this TSelf&& self, UInt32 binding, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float minLod = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float anisotropy = 0.f) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(binding, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy)));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1031,9 +1031,9 @@ namespace LiteFX::Rendering {
         /// <param name="descriptorSize">The size of a single descriptor.</param>
         /// <param name="descriptors">The number of descriptors in the array.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto withConstantBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors = 1) -> TSelf& {
+        constexpr inline [[nodiscard]] auto withConstantBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors = 1) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(DescriptorType::ConstantBuffer, binding, descriptorSize, descriptors)));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1043,9 +1043,9 @@ namespace LiteFX::Rendering {
         /// <param name="descriptors">The number of descriptors in the array.</param>
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto withBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf& {
+        constexpr inline [[nodiscard]] auto withBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(writable ? DescriptorType::RWBuffer : DescriptorType::Buffer, binding, 0, descriptors)));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1055,9 +1055,9 @@ namespace LiteFX::Rendering {
         /// <param name="descriptors">The number of descriptors in the array.</param>
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto withStructuredBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf& {
+        constexpr inline [[nodiscard]] auto withStructuredBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(writable ? DescriptorType::RWStructuredBuffer : DescriptorType::StructuredBuffer, binding, 0, descriptors)));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1067,9 +1067,9 @@ namespace LiteFX::Rendering {
         /// <param name="descriptors">The number of descriptors in the array.</param>
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto withByteAddressBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf& {
+        constexpr inline [[nodiscard]] auto withByteAddressBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(writable ? DescriptorType::RWByteAddressBuffer : DescriptorType::ByteAddressBuffer, binding, 0, descriptors)));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1079,9 +1079,9 @@ namespace LiteFX::Rendering {
         /// <param name="descriptors">The number of descriptors in the array.</param>
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto withTexture(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf& {
+        constexpr inline [[nodiscard]] auto withTexture(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(writable ? DescriptorType::RWTexture : DescriptorType::Texture, binding, 0, descriptors)));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1089,9 +1089,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="binding">The binding point or register index of the descriptor.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto withInputAttachment(this TSelf&& self, UInt32 binding) -> TSelf& {
+        constexpr inline [[nodiscard]] auto withInputAttachment(this TSelf&& self, UInt32 binding) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(DescriptorType::InputAttachment, binding, 0)));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1100,9 +1100,9 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The binding point or register index of the descriptor.</param>
         /// <param name="descriptors">The number of descriptors in the array.</param>
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto withSampler(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1) -> TSelf& {
+        constexpr inline [[nodiscard]] auto withSampler(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(DescriptorType::Sampler, binding, 0, descriptors)));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1110,9 +1110,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="space">The space, the descriptor set is bound to.</param>
         template <typename TSelf>
-        constexpr inline auto space(this TSelf&& self, UInt32 space) noexcept -> TSelf& {
+        constexpr inline auto space(this TSelf&& self, UInt32 space) noexcept -> TSelf&& {
             self.m_state.space = space;
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1120,9 +1120,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
         template <typename TSelf>
-        constexpr inline auto shaderStages(this TSelf&& self, ShaderStage stages) noexcept -> TSelf& {
+        constexpr inline auto shaderStages(this TSelf&& self, ShaderStage stages) noexcept -> TSelf&& {
             self.m_state.stages = stages;
-            return self;
+            return std::forward<TSelf>(self);
         }
 
     public:
@@ -1132,9 +1132,9 @@ namespace LiteFX::Rendering {
         /// <param name="layout">The layout of the descriptor.</param>
         /// <seealso cref="DescriptorLayout" />
         template <typename TSelf>
-        constexpr inline [[nodiscard]] auto use(this TSelf&& self, UniquePtr<descriptor_layout_type>&& layout) -> TSelf& {
+        constexpr inline [[nodiscard]] auto use(this TSelf&& self, UniquePtr<descriptor_layout_type>&& layout) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(layout));
-            return self;
+            return std::forward<TSelf>(self);
         }
     };
 
@@ -1183,9 +1183,9 @@ namespace LiteFX::Rendering {
         /// <param name="space">The descriptor space, the range is bound to.</param>
         /// <param name="binding">The binding point for the range.</param>
         template <typename TSelf>
-        constexpr inline auto withRange(this TSelf&& self, ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) -> TSelf& {
+        constexpr inline auto withRange(this TSelf&& self, ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) -> TSelf&& {
             self.m_state.ranges.push_back(std::move(self.makeRange(shaderStages, offset, size, space, binding)));
-            return self;
+            return std::forward<TSelf>(self);
         }
     };
 
@@ -1226,9 +1226,9 @@ namespace LiteFX::Rendering {
         /// <param name="layout">The layout of the descriptor set.</param>
         /// <seealso cref="DescriptorSetLayout" />
         template <typename TSelf>
-        constexpr inline auto use(this TSelf&& self, UniquePtr<descriptor_set_layout_type>&& layout) -> TSelf& {
+        constexpr inline auto use(this TSelf&& self, UniquePtr<descriptor_set_layout_type>&& layout) -> TSelf&& {
             self.m_state.descriptorSetLayouts.push_back(std::move(layout));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1237,9 +1237,9 @@ namespace LiteFX::Rendering {
         /// <param name="layout">The layout of the push constants range.</param>
         /// <seealso cref="PushConstantsLayout" />
         template <typename TSelf>
-        constexpr inline auto use(this TSelf&& self, UniquePtr<push_constants_layout_type>&& layout) -> TSelf& {
+        constexpr inline auto use(this TSelf&& self, UniquePtr<push_constants_layout_type>&& layout) -> TSelf&& {
             self.m_state.pushConstantsLayout = std::move(layout);
-            return self;
+            return std::forward<TSelf>(self);
         }
     };
 
@@ -1284,9 +1284,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="topology">The topology to initialize the input assembler with.</param>
         template <typename TSelf>
-        constexpr inline auto topology(this TSelf&& self, PrimitiveTopology topology) -> TSelf& {
+        constexpr inline auto topology(this TSelf&& self, PrimitiveTopology topology) -> TSelf&& {
             self.m_state.topology = topology;
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1294,9 +1294,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="layout">The layout to add to the input assembler.</param>
         template <typename TSelf>
-        constexpr inline auto use(this TSelf&& self, UniquePtr<vertex_buffer_layout_type>&& layout) -> TSelf& {
+        constexpr inline auto use(this TSelf&& self, UniquePtr<vertex_buffer_layout_type>&& layout) -> TSelf&& {
             self.m_state.vertexBufferLayouts.push_back(std::move(layout));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1305,9 +1305,9 @@ namespace LiteFX::Rendering {
         /// <param name="layout"></param>
         /// <exception cref="RuntimeException">Thrown if another index buffer layout has already been specified.</excpetion>
         template <typename TSelf>
-        constexpr inline auto use(this TSelf&& self, UniquePtr<index_buffer_layout_type>&& layout) -> TSelf& {
+        constexpr inline auto use(this TSelf&& self, UniquePtr<index_buffer_layout_type>&& layout) -> TSelf&& {
             self.m_state.indexBufferLayout = std::move(layout);
-            return self;
+            return std::forward<TSelf>(self);
         }
     };
 
@@ -1368,9 +1368,9 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="program">The program to add to the pipeline layout.</param>
         template <typename TSelf>
-        constexpr inline auto shaderProgram(this TSelf&& self, SharedPtr<shader_program_type> program) -> TSelf& {
+        constexpr inline auto shaderProgram(this TSelf&& self, SharedPtr<shader_program_type> program) -> TSelf&& {
             self.m_state.shaderProgram = program;
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1378,9 +1378,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="layout">The pipeline layout to initialize the render pipeline with.</param>
         template <typename TSelf>
-        constexpr inline auto layout(this TSelf&& self, SharedPtr<pipeline_layout_type> layout) -> TSelf& {
+        constexpr inline auto layout(this TSelf&& self, SharedPtr<pipeline_layout_type> layout) -> TSelf&& {
             self.m_state.pipelineLayout = layout;
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1388,9 +1388,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="rasterizer">The rasterizer state to initialize the render pipeline with.</param>
         template <typename TSelf>
-        constexpr inline auto rasterizer(this TSelf&& self, SharedPtr<rasterizer_type> rasterizer) -> TSelf& {
+        constexpr inline auto rasterizer(this TSelf&& self, SharedPtr<rasterizer_type> rasterizer) -> TSelf&& {
             self.m_state.rasterizer = rasterizer;
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1398,9 +1398,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="inputAssembler">The input assembler state to initialize the render pipeline with.</param>
         template <typename TSelf>
-        constexpr inline auto inputAssembler(this TSelf&& self, SharedPtr<input_assembler_type> inputAssembler) -> TSelf& {
+        constexpr inline auto inputAssembler(this TSelf&& self, SharedPtr<input_assembler_type> inputAssembler) -> TSelf&& {
             self.m_state.inputAssembler = inputAssembler;
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1411,9 +1411,9 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="enable">Whether or not to use <i>Alpha-to-Coverage</i> multi-sampling.</param>
         template <typename TSelf>
-        constexpr inline auto enableAlphaToCoverage(this TSelf&& self, bool enable = true) -> TSelf& {
+        constexpr inline auto enableAlphaToCoverage(this TSelf&& self, bool enable = true) -> TSelf&& {
             self.m_state.enableAlphaToCoverage = enable;
-            return self;
+            return std::forward<TSelf>(self);
         }
     };
 
@@ -1457,9 +1457,9 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="program">The program to add to the pipeline layout.</param>
         template <typename TSelf>
-        constexpr inline auto shaderProgram(this TSelf&& self, SharedPtr<shader_program_type> program) -> TSelf& {
+        constexpr inline auto shaderProgram(this TSelf&& self, SharedPtr<shader_program_type> program) -> TSelf&& {
             self.m_state.shaderProgram = program;
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1467,9 +1467,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="layout">The pipeline layout to initialize the compute pipeline with.</param>
         template <typename TSelf>
-        constexpr inline auto layout(this TSelf&& self, SharedPtr<pipeline_layout_type> layout) -> TSelf& {
+        constexpr inline auto layout(this TSelf&& self, SharedPtr<pipeline_layout_type> layout) -> TSelf&& {
             self.m_state.pipelineLayout = layout;
-            return self;
+            return std::forward<TSelf>(self);
         }
     };
 
@@ -1538,9 +1538,9 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="queue">The command queue, the render pass will execute on.</param>
         template <typename TSelf>
-        constexpr inline auto executeOn(this TSelf&& self, const command_queue_type& queue) -> TSelf& {
+        constexpr inline auto executeOn(this TSelf&& self, const command_queue_type& queue) -> TSelf&& {
             self.m_state.commandQueue = &queue;
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1548,9 +1548,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="count">The number of command buffers.</param>
         template <typename TSelf>
-        constexpr inline auto commandBuffers(this TSelf&& self, UInt32 count) -> TSelf& {
+        constexpr inline auto commandBuffers(this TSelf&& self, UInt32 count) -> TSelf&& {
             self.m_state.commandBufferCount = count;
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1558,9 +1558,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="samples">The number of samples for each render target.</param>
         template <typename TSelf>
-        constexpr inline auto multiSamplingLevel(this TSelf&& self, MultiSamplingLevel samples) -> TSelf& {
+        constexpr inline auto multiSamplingLevel(this TSelf&& self, MultiSamplingLevel samples) -> TSelf&& {
             self.m_state.multiSamplingLevel = samples;
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1571,9 +1571,9 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="clearValues">The fixed clear value for the render target.</param>
         template <typename TSelf>
-        constexpr inline auto renderTarget(this TSelf&& self, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf& {
+        constexpr inline auto renderTarget(this TSelf&& self, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf&& {
             self.renderTarget("", static_cast<UInt32>(self.m_state.renderTargets.size()), type, format, flags, clearValues);
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1585,9 +1585,9 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="clearValues">The fixed clear value for the render target.</param>
         template <typename TSelf>
-        constexpr inline auto renderTarget(this TSelf&& self, const String& name, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf& {
+        constexpr inline auto renderTarget(this TSelf&& self, const String& name, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf&& {
             self.renderTarget(name, static_cast<UInt32>(self.m_state.renderTargets.size()), type, format, flags, clearValues);
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1599,9 +1599,9 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="clearValues">The fixed clear value for the render target.</param>
         template <typename TSelf>
-        constexpr inline auto renderTarget(this TSelf&& self, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf& {
+        constexpr inline auto renderTarget(this TSelf&& self, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf&& {
             self.renderTarget("", location, type, format, flags, clearValues);
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1614,9 +1614,9 @@ namespace LiteFX::Rendering {
         /// <param name="format">The color format of the render target.</param>
         /// <param name="clearValues">The fixed clear value for the render target.</param>
         template <typename TSelf>
-        constexpr inline auto renderTarget(this TSelf&& self, const String& name, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf& {
+        constexpr inline auto renderTarget(this TSelf&& self, const String& name, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf&& {
             self.m_state.renderTargets.push_back(RenderTarget(name, location, type, format, flags, clearValues));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1628,9 +1628,9 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="clearValues">The fixed clear value for the render target.</param>
         template <typename TSelf>
-        constexpr inline auto renderTarget(this TSelf&& self, input_attachment_mapping_type& output, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf& {
+        constexpr inline auto renderTarget(this TSelf&& self, input_attachment_mapping_type& output, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf&& {
             self.renderTarget("", output, static_cast<UInt32>(self.m_state.m_renderTargets.size()), type, format, flags, clearValues);
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1643,9 +1643,9 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="clearValues">The fixed clear value for the render target.</param>
         template <typename TSelf>
-        constexpr inline auto renderTarget(this TSelf&& self, const String& name, input_attachment_mapping_type& output, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf& {
+        constexpr inline auto renderTarget(this TSelf&& self, const String& name, input_attachment_mapping_type& output, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf&& {
             self.renderTarget(name, output, static_cast<UInt32>(self.m_state.renderTargets.size()), type, format, flags, clearValues);
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1658,9 +1658,9 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="clearValues">The fixed clear value for the render target.</param>
         template <typename TSelf>
-        constexpr inline auto renderTarget(this TSelf&& self, input_attachment_mapping_type& output, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf& {
+        constexpr inline auto renderTarget(this TSelf&& self, input_attachment_mapping_type& output, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf&& {
             self.renderTarget("", output, location, type, format, flags, clearValues);
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1668,9 +1668,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="inputAttachment">The input attachment to add.</param>
         template <typename TSelf>
-        constexpr inline auto inputAttachment(this TSelf&& self, const input_attachment_mapping_type& inputAttachment) -> TSelf& {
+        constexpr inline auto inputAttachment(this TSelf&& self, const input_attachment_mapping_type& inputAttachment) -> TSelf&& {
             self.m_state.inputAttachments.push_back(inputAttachment);
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1680,9 +1680,9 @@ namespace LiteFX::Rendering {
         /// <param name="renderPass">The render pass, the input attachment is created from.</param>
         /// <param name="outputLocation">The location to which the input attachment is written by <paramref name="renderPass" />.</param>
         template <typename TSelf>
-        constexpr inline auto inputAttachment(this TSelf&& self, UInt32 inputLocation, const render_pass_type& renderPass, UInt32 outputLocation) -> TSelf& {
+        constexpr inline auto inputAttachment(this TSelf&& self, UInt32 inputLocation, const render_pass_type& renderPass, UInt32 outputLocation) -> TSelf&& {
             self.inputAttachment(static_cast<RenderPassBuilder&>(self).makeInputAttachment(inputLocation, renderPass, renderPass.renderTarget(outputLocation)));
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -1692,9 +1692,9 @@ namespace LiteFX::Rendering {
         /// <param name="renderPass">The render pass, the input attachment is created from.</param>
         /// <param name="renderTarget">The render target that is bound as input attachment.</param>
         template <typename TSelf>
-        constexpr inline auto inputAttachment(this TSelf&& self, UInt32 inputLocation, const render_pass_type& renderPass, RenderTarget renderTarget) -> TSelf& {
+        constexpr inline auto inputAttachment(this TSelf&& self, UInt32 inputLocation, const render_pass_type& renderPass, RenderTarget renderTarget) -> TSelf&& {
             self.inputAttachment(static_cast<RenderPassBuilder&>(self).makeInputAttachment(inputLocation, renderPass, renderTarget));
-            return self;
+            return std::forward<TSelf>(self);
         }
     };
 

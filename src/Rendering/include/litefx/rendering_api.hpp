@@ -3771,9 +3771,9 @@ namespace LiteFX::Rendering {
         /// <returns>A reference to the current BLAS.</returns>
         /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes, or if the acceleration structure buffers have already been allocated.</exception>
         template <typename TSelf>
-        inline auto withTriangleMesh(this TSelf&& self, const TriangleMesh& mesh) -> TSelf& {
+        inline auto withTriangleMesh(this TSelf&& self, const TriangleMesh& mesh) -> TSelf&& {
             self.addTriangleMesh(mesh);
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -3786,7 +3786,7 @@ namespace LiteFX::Rendering {
         /// <returns>A reference to the current BLAS.</returns>
         /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes, or if the acceleration structure buffers have already been allocated.</exception>
         template <typename TSelf>
-        inline auto withTriangleMesh(this TSelf&& self, SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) -> TSelf& {
+        inline auto withTriangleMesh(this TSelf&& self, SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) -> TSelf&& {
             return self.withTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer, flags));
         }
 
@@ -3797,9 +3797,9 @@ namespace LiteFX::Rendering {
         /// <returns>A reference to the current BLAS.</returns>
         /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes, or if the acceleration structure buffers have already been allocated.</exception>
         template <typename TSelf>
-        inline auto withBoundingBox(this TSelf&& self, const BoundingBoxes& aabb) -> TSelf& {
+        inline auto withBoundingBox(this TSelf&& self, const BoundingBoxes& aabb) -> TSelf&& {
             self.addBoundingBox(aabb);
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -3810,7 +3810,7 @@ namespace LiteFX::Rendering {
         /// <returns>A reference to the current BLAS.</returns>
         /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes, or if the acceleration structure buffers have already been allocated.</exception>
         template <typename TSelf>
-        inline auto withBoundingBox(this TSelf&& self, SharedPtr<const IBuffer> buffer, GeometryFlags flags = GeometryFlags::None) -> TSelf& {
+        inline auto withBoundingBox(this TSelf&& self, SharedPtr<const IBuffer> buffer, GeometryFlags flags = GeometryFlags::None) -> TSelf&& {
             return self.withBoundingBox(BoundingBoxes { .Buffer = buffer, .Flags = flags });
         }
     };
@@ -3916,9 +3916,9 @@ namespace LiteFX::Rendering {
         /// <returns>A reference to the current TLAS.</returns>
         /// <exception cref="RuntimeException">Thrown, if the acceleration structure buffers have already been allocated.</exception>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, const Instance& instance) -> TSelf& {
+        inline auto withInstance(this TSelf&& self, const Instance& instance) -> TSelf&& {
             self.addInstance(instance);
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -3931,9 +3931,9 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <returns>A reference to the current TLAS.</returns>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroup, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) -> TSelf& {
+        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroup, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) -> TSelf&& {
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroup = hitGroup, .Flags = flags });
-            return self;
+            return std::forward<TSelf>(self);
         }
 
         /// <summary>
@@ -3947,9 +3947,9 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <returns>A reference to the current TLAS.</returns>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroup, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) -> TSelf& {
+        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroup, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) -> TSelf&& {
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroup = hitGroup, .Flags = flags });
-            return self;
+            return std::forward<TSelf>(self);
         }
     };
 

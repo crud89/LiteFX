@@ -140,7 +140,7 @@ namespace LiteFX::Rendering::Backends {
 		template <typename TSelf>
 		constexpr inline auto indexType(this TSelf&& self, IndexType type) -> TSelf&& {
 			self.use(makeUnique<DirectX12IndexBufferLayout>(type));
-			return self;
+			return std::forward<TSelf>(self);
 		}
 	};
 
