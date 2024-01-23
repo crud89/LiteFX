@@ -90,16 +90,16 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .withShaderRecord("shaders/raytracing_miss." + FileExtensions<TRenderBackend>::SHADER)
         .withMeshGeometryHitGroupRecord(std::nullopt, "shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER, GeometryData { .Index = 0 });
 
-    //// Create a render pipeline.
-    //UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
-    //    .inputAssembler(inputAssembler)
-    //    .rasterizer(device->buildRasterizer()
-    //        .polygonMode(PolygonMode::Solid)
-    //        .cullMode(CullMode::BackFaces)
-    //        .cullOrder(CullOrder::ClockWise)
-    //        .lineWidth(1.f))
-    //    .layout(shaderProgram->reflectPipelineLayout())
-    //    .shaderProgram(shaderProgram);
+    // Create a render pipeline.
+    UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
+        .inputAssembler(inputAssembler)
+        .rasterizer(device->buildRasterizer()
+            .polygonMode(PolygonMode::Solid)
+            .cullMode(CullMode::BackFaces)
+            .cullOrder(CullOrder::ClockWise)
+            .lineWidth(1.f))
+        .layout(shaderProgram->reflectPipelineLayout())
+        .shaderProgram(shaderProgram);
 
     //// Add the resources to the device state.
     //device->state().add(std::move(renderPass));

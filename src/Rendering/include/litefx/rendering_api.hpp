@@ -518,6 +518,11 @@ namespace LiteFX::Rendering {
         /// In GLSL, use the <c>buffer</c> keyword to access byte address buffers. In HLSL, use the <c>RWByteAddressBuffer</c> keyword.
         /// </remarks>
         RWByteAddressBuffer = 0x00000017,
+
+        /// <summary>
+        /// Represents a ray-tracing acceleration structure.
+        /// </summary>
+        AccelerationStructure = 0x00000008
     };
 
     /// <summary>

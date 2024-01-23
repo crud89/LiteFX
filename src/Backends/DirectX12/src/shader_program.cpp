@@ -354,8 +354,8 @@ public:
                     type = inputDesc.Dimension == D3D_SRV_DIMENSION_BUFFER ? DescriptorType::RWBuffer : DescriptorType::RWTexture;
                     break;
                 }
-                case D3D_SIT_SAMPLER:     type = DescriptorType::Sampler; break;
-                case D3D_SIT_RTACCELERATIONSTRUCTURE:
+                case D3D_SIT_SAMPLER:                 type = DescriptorType::Sampler; break;
+                case D3D_SIT_RTACCELERATIONSTRUCTURE: type = DescriptorType::AccelerationStructure; break;
                 case D3D_SIT_UAV_FEEDBACKTEXTURE: throw RuntimeException("The shader exposes an unsupported resource of type {1} at binding point {0}.", i, inputDesc.Type);
                 default: throw RuntimeException("The shader exposes an unknown resource type in binding {0}.", i);
                 }

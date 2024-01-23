@@ -37,6 +37,9 @@ public:
         case DescriptorType::Buffer:
             m_bufferType = BufferType::Texel;
             break;
+        case DescriptorType::AccelerationStructure:
+            m_bufferType = BufferType::AccelerationStructure;
+            break;
         default:
             m_bufferType = BufferType::Other;
         }

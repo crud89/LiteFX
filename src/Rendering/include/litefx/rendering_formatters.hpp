@@ -241,6 +241,7 @@ struct LITEFX_RENDERING_API fmt::formatter<DescriptorType> : formatter<string_vi
 		case ByteAddressBuffer: name = "ByteAddressBuffer"; break;
 		case RWByteAddressBuffer: name = "RWByteAddressBuffer"; break;
 		case InputAttachment: name = "Input Attachment"; break;
+		case AccelerationStructure: name = "Acceleration Structure"; break;
 		}
 		return formatter<string_view>::format(name, ctx);
 	}

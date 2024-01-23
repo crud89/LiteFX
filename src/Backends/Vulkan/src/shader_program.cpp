@@ -240,17 +240,18 @@ public:
 
                     switch (descriptor->descriptor_type)
                     {
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:    throw RuntimeException("The shader exposes a combined image samplers, which is currently not supported.");
-                    case SPV_REFLECT_TYPE_FLAG_EXTERNAL_ACCELERATION_STRUCTURE: throw RuntimeException("The shader exposes an acceleration structure, which is currently not supported.");
+                    default: throw RuntimeException("Unsupported descriptor type detected.");
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:     throw RuntimeException("The shader exposes a combined image samplers, which is currently not supported.");
                     case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:    throw RuntimeException("The shader exposes a dynamic buffer, which is currently not supported.");
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLER:                   type = DescriptorType::Sampler; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE:             type = DescriptorType::Texture; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_IMAGE:             type = DescriptorType::RWTexture; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER:            type = DescriptorType::ConstantBuffer; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:          type = DescriptorType::InputAttachment; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:      type = DescriptorType::Buffer; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:      type = DescriptorType::RWBuffer; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:     throw RuntimeException("The shader exposes a dynamic buffer, which is currently not supported.");
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLER:                    type = DescriptorType::Sampler; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE:              type = DescriptorType::Texture; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_IMAGE:              type = DescriptorType::RWTexture; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER:             type = DescriptorType::ConstantBuffer; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:           type = DescriptorType::InputAttachment; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:       type = DescriptorType::Buffer; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:       type = DescriptorType::RWBuffer; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR: type = DescriptorType::AccelerationStructure; break;
                     case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER:
                     {
                         // NOTE: Storage buffers need special care here. For more information see: 

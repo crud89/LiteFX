@@ -1109,6 +1109,18 @@ namespace LiteFX::Rendering {
             return std::forward<TSelf>(self);
         }
 
+#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
+        /// <summary>
+        /// Adds a ray tracing acceleration structure.
+        /// </summary>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        template <typename TSelf>
+        constexpr inline [[nodiscard]] auto withAccelerationStructure(this TSelf&& self, UInt32 binding) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(DescriptorType::AccelerationStructure, binding, 0)));
+            return std::forward<TSelf>(self);
+        }
+#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
+
         /// <summary>
         /// Adds a sampler descriptor.
         /// </summary>
