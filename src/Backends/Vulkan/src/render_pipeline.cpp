@@ -36,6 +36,20 @@ public:
 public:
 	VkPipeline initialize()
 	{
+		// Validate shader stage usage.
+		auto modules = m_program->modules();
+		bool hasComputeShaders    = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::Compute, module->type()); }) != modules.end();
+		bool hasRayTracingShaders = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, module->type()); }) != modules.end();
+		bool hasMeshShaders       = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::MeshPipeline, module->type()); }) != modules.end();
+		bool hasDirectShaders     = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RasterizationPipeline, module->type()); }) != modules.end();
+
+		if (hasComputeShaders) [[unlikely]]
+			throw InvalidArgumentException("shaderProgram", "The shader program contains a compute shader, which is not supported in a graphics pipeline.");
+		else if (hasComputeShaders) [[unlikely]]
+			throw InvalidArgumentException("shaderProgram", "The shader program contains ray-tracing shaders, which is not supported in a graphics pipeline.");
+		else if (hasMeshShaders && hasDirectShaders) [[unlikely]]
+			throw InvalidArgumentException("shaderProgram", "A shader program that contains mesh shaders must not also contain vertex, geometry, domain or hull shaders.");
+
 		// Setup dynamic state.
 		Array<VkDynamicState> dynamicStates { 
 			VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT, 
@@ -51,26 +65,14 @@ public:
 		dynamicState.dynamicStateCount = static_cast<UInt32>(dynamicStates.size());
 
 		// Setup shader stages.
-		auto modules = m_program->modules();
 		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(reinterpret_cast<const void*>(m_program.get())), modules.size());
 
 		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
 			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
 			std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
 
-		// If there are ray-tracing shader modules, the pipeline needs to be created differently.
-		bool isRayTracingPipeline = std::ranges::any_of(modules, [](const VulkanShaderModule* shaderModule) { return LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, shaderModule->type()); });
-
-#ifndef LITEFX_BUILD_RAY_TRACING_SUPPORT
-		if (isRayTracingPipeline)
-			throw RuntimeException("Cannot build ray tracing pipeline: ray tracing support is disabled in this engine build.");
-		
-		auto pipeline = initializeGraphicsPipeline(inputState, inputAssembly, viewportState, rasterizerState, multisampling, colorBlending, depthStencilState, dynamicState, shaderStages);
-#else
-		auto pipeline = isRayTracingPipeline ?
-			this->initializeRayTracingPipeline(dynamicState, shaderStages) :
-			this->initializeGraphicsPipeline(dynamicState, shaderStages);
-#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
+		// Setup the pipeline.
+		auto pipeline = this->initializeGraphicsPipeline(dynamicState, shaderStages);
 
 #ifndef NDEBUG
 		m_renderPass.device().setDebugName(*reinterpret_cast<const UInt64*>(&pipeline), VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, m_parent->name());
@@ -239,29 +241,6 @@ public:
 
 		return pipeline;
 	}
-
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
-	VkPipeline initializeRayTracingPipeline(const VkPipelineDynamicStateCreateInfo& dynamicState, const LiteFX::Array<VkPipelineShaderStageCreateInfo>& shaderStages)
-	{
-		LITEFX_TRACE(VULKAN_LOG, "Creating ray-tracing pipeline \"{1}\" for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_parent->name());
-
-		VkRayTracingPipelineCreateInfoKHR pipelineInfo = {
-			.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR,
-			.stageCount = static_cast<UInt32>(shaderStages.size()),
-			.pStages = shaderStages.data(),
-			.groupCount = 0,		// TODO: This must receive the SBT.
-			.pGroups = nullptr,
-			.maxPipelineRayRecursionDepth = 10, // TODO: Make configurable.
-			.pDynamicState = &dynamicState,
-			.layout = std::as_const(*m_layout.get()).handle()
-		};
-
-		VkPipeline pipeline;
-		raiseIfFailed(::vkCreateRayTracingPipelines(m_renderPass.device().handle(), VK_NULL_HANDLE, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
-
-		return pipeline;
-	}
-#endif
 };
 
 // ------------------------------------------------------------------------------------------------

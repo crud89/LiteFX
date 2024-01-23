@@ -40,12 +40,15 @@ public:
 
 		// Validate shader stage usage.
 		auto modules = m_program->modules();
-		bool hasComputeShaders = std::ranges::find_if(modules, [](const auto& module) { return module->type() == ShaderStage::Compute; }) != modules.end();
-		bool hasMeshShaders    = std::ranges::find_if(modules, [](const auto& module) { return module->type() == ShaderStage::Task || module->type() == ShaderStage::Mesh; }) != modules.end();
-		bool hasDirectShaders  = std::ranges::find_if(modules, [](const auto& module) { return module->type() == ShaderStage::Vertex || module->type() == ShaderStage::TessellationControl || module->type() == ShaderStage::TessellationEvaluation || module->type() == ShaderStage::Geometry; }) != modules.end();
+		bool hasComputeShaders    = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::Compute, module->type()); }) != modules.end();
+		bool hasRayTracingShaders = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, module->type()); }) != modules.end();
+		bool hasMeshShaders       = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::MeshPipeline, module->type()); }) != modules.end();
+		bool hasDirectShaders     = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RasterizationPipeline, module->type()); }) != modules.end();
 		
 		if (hasComputeShaders) [[unlikely]]
 			throw InvalidArgumentException("shaderProgram", "The shader program contains a compute shader, which is not supported in a graphics pipeline.");
+		else if (hasComputeShaders) [[unlikely]]
+			throw InvalidArgumentException("shaderProgram", "The shader program contains ray-tracing shaders, which is not supported in a graphics pipeline.");
 		else if (hasMeshShaders && hasDirectShaders) [[unlikely]]
 			throw InvalidArgumentException("shaderProgram", "A shader program that contains mesh shaders must not also contain vertex, geometry, domain or hull shaders.");
 

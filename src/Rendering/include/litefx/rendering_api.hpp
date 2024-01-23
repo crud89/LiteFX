@@ -799,6 +799,11 @@ namespace LiteFX::Rendering {
         Callable = 0x00002000,
 
         /// <summary>
+        /// Represents the complete rasterization pipeline.
+        /// </summary>
+        RasterizationPipeline = Vertex | Geometry | TessellationControl | TessellationEvaluation | Fragment,
+
+        /// <summary>
         /// Represents the complete mesh shading pipeline.
         /// </summary>
         MeshPipeline = Task | Mesh | Fragment,
@@ -5261,6 +5266,9 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// The interface for a pipeline.
     /// </summary>
+    /// <seealso cref="IComputePipeline" />
+    /// <seealso cref="IRenderPipeline" />
+    /// <seealso cref="IRayTracingPipeline" />
     class LITEFX_RENDERING_API IPipeline : public virtual IStateResource {
     public:
         virtual ~IPipeline() noexcept = default;
