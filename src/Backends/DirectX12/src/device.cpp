@@ -216,7 +216,7 @@ public:
 			Array<UniquePtr<DirectX12ShaderModule>> modules;
 			auto blitShader = LiteFX::Backends::DirectX12::Shaders::blit_dxi::open();
 			modules.push_back(std::move(makeUnique<DirectX12ShaderModule>(*m_parent, ShaderStage::Compute, blitShader, LiteFX::Backends::DirectX12::Shaders::blit_dxi::name(), "main")));
-			auto shaderProgram = makeShared<DirectX12ShaderProgram>(*m_parent, std::move(modules | std::views::as_rvalue));
+			auto shaderProgram = DirectX12ShaderProgram::create(*m_parent, std::move(modules | std::views::as_rvalue));
 
 			// Allocate descriptor set layouts.
 			UniquePtr<DirectX12PushConstantsLayout> pushConstantsLayout = nullptr;
@@ -481,6 +481,18 @@ DirectX12ComputePipelineBuilder DirectX12Device::buildComputePipeline(const Stri
 {
 	return DirectX12ComputePipelineBuilder(*this, name);
 }
+
+#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
+DirectX12RayTracingPipelineBuilder DirectX12Device::buildRayTracingPipeline(ShaderRecordCollection&& shaderRecords) const
+{
+	return this->buildRayTracingPipeline("", std::move(shaderRecords));
+}
+
+DirectX12RayTracingPipelineBuilder DirectX12Device::buildRayTracingPipeline(const String& name, ShaderRecordCollection&& shaderRecords) const
+{
+	return DirectX12RayTracingPipelineBuilder(*this, std::move(shaderRecords), name);
+}
+#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
 
 DirectX12PipelineLayoutBuilder DirectX12Device::buildPipelineLayout() const
 {

@@ -60,6 +60,7 @@ namespace LiteFX::Rendering::Backends {
     class DirectX12PipelineState;
     class DirectX12RenderPipeline;
     class DirectX12ComputePipeline;
+    class DirectX12RayTracingPipeline;
     class DirectX12FrameBuffer;
     class DirectX12RenderPass;
     class DirectX12InputAttachmentMapping;
@@ -89,6 +90,7 @@ namespace LiteFX::Rendering::Backends {
     class DirectX12RasterizerBuilder;
     class DirectX12RenderPipelineBuilder;
     class DirectX12ComputePipelineBuilder;
+    class DirectX12RayTracingPipelineBuilder;
     class DirectX12RenderPassBuilder;
     class DirectX12BarrierBuilder;
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

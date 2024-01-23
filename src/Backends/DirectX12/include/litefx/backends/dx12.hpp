@@ -390,23 +390,28 @@ namespace LiteFX::Rendering::Backends {
         LITEFX_IMPLEMENTATION(DirectX12ShaderProgramImpl);
         LITEFX_BUILDER(DirectX12ShaderProgramBuilder);
 
-    public:
-        /// <summary>
-        /// Initializes a new DirectX 12 shader program.
-        /// </summary>
-        /// <param name="device">The parent device of the shader program.</param>
-        /// <param name="modules">The shader modules used by the shader program.</param>
-        explicit DirectX12ShaderProgram(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) noexcept;
-        DirectX12ShaderProgram(DirectX12ShaderProgram&&) noexcept = delete;
-        DirectX12ShaderProgram(const DirectX12ShaderProgram&) noexcept = delete;
-        virtual ~DirectX12ShaderProgram() noexcept;
-
     private:
         /// <summary>
         /// Initializes a new DirectX 12 shader program.
         /// </summary>
         /// <param name="device">The parent device of the shader program.</param>
+        /// <param name="modules">The shader modules used by the shader program.</param>
+        explicit DirectX12ShaderProgram(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules);
+
+        /// <summary>
+        /// Initializes a new DirectX 12 shader program.
+        /// </summary>
+        /// <param name="device">The parent device of the shader program.</param>
         explicit DirectX12ShaderProgram(const DirectX12Device& device) noexcept;
+
+        // Factory method.
+    public:
+        static inline SharedPtr<DirectX12ShaderProgram> create(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules);
+
+    public:
+        DirectX12ShaderProgram(DirectX12ShaderProgram&&) noexcept = delete;
+        DirectX12ShaderProgram(const DirectX12ShaderProgram&) noexcept = delete;
+        virtual ~DirectX12ShaderProgram() noexcept;
 
     public:
         /// <inheritdoc />
@@ -1200,6 +1205,54 @@ namespace LiteFX::Rendering::Backends {
     };
 
     /// <summary>
+    /// Implements a DirectX 12 <see cref="RayTracingPipeline" />.
+    /// </summary>
+    /// <seealso cref="DirectX12RenderPipeline" />
+    /// <seealso cref="DirectX12RayTracingPipelineBuilder" />
+    class LITEFX_DIRECTX12_API DirectX12RayTracingPipeline final : public virtual DirectX12PipelineState, public RayTracingPipeline<DirectX12PipelineLayout, DirectX12ShaderProgram> {
+        LITEFX_IMPLEMENTATION(DirectX12RayTracingPipelineImpl);
+        LITEFX_BUILDER(DirectX12RayTracingPipelineBuilder);
+
+    public:
+        /// <summary>
+        /// Initializes a new DirectX 12 ray-tracing pipeline.
+        /// </summary>
+        /// <param name="device">The parent device.</param>
+        /// <param name="layout">The layout of the pipeline.</param>
+        /// <param name="shaderProgram">The shader program used by this pipeline.</param>
+        /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
+        /// <param name="name">The optional debug name of the ray-tracing pipeline.</param>
+        explicit DirectX12RayTracingPipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, const String& name = "");
+        DirectX12RayTracingPipeline(DirectX12RayTracingPipeline&&) noexcept = delete;
+        DirectX12RayTracingPipeline(const DirectX12RayTracingPipeline&) noexcept = delete;
+        virtual ~DirectX12RayTracingPipeline() noexcept;
+
+    private:
+        /// <summary>
+        /// Initializes a new DirectX 12 ray-tracing pipeline.
+        /// </summary>
+        /// <param name="device">The parent device.</param>
+        /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
+        DirectX12RayTracingPipeline(const DirectX12Device& device, ShaderRecordCollection&& shaderRecords) noexcept;
+
+        // Pipeline interface.
+    public:
+        /// <inheritdoc />
+        SharedPtr<const DirectX12ShaderProgram> program() const noexcept override;
+
+        /// <inheritdoc />
+        SharedPtr<const DirectX12PipelineLayout> layout() const noexcept override;
+
+        // RayTracingPipeline interface.
+    public:
+        const ShaderRecordCollection& shaderRecords() const noexcept override;
+
+        // DirectX12PipelineState interface.
+    public:
+        void use(const DirectX12CommandBuffer& commandBuffer) const noexcept override;
+    };
+
+    /// <summary>
     /// Implements a DirectX 12 frame buffer.
     /// </summary>
     /// <seealso cref="DirectX12RenderPass" />
@@ -1738,7 +1791,7 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// Implements a DirectX 12 graphics device.
     /// </summary>
-    class LITEFX_DIRECTX12_API DirectX12Device final : public GraphicsDevice<DirectX12GraphicsFactory, DirectX12Surface, DirectX12GraphicsAdapter, DirectX12SwapChain, DirectX12Queue, DirectX12RenderPass, DirectX12ComputePipeline, DirectX12Barrier>, public ComResource<ID3D12Device10> {
+    class LITEFX_DIRECTX12_API DirectX12Device final : public GraphicsDevice<DirectX12GraphicsFactory, DirectX12Surface, DirectX12GraphicsAdapter, DirectX12SwapChain, DirectX12Queue, DirectX12RenderPass, DirectX12ComputePipeline, DirectX12RayTracingPipeline, DirectX12Barrier>, public ComResource<ID3D12Device10> {
         LITEFX_IMPLEMENTATION(DirectX12DeviceImpl);
 
     public:
@@ -1918,6 +1971,14 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         [[nodiscard]] DirectX12ComputePipelineBuilder buildComputePipeline(const String& name) const override;
+
+#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
+        /// <inheritdoc />
+        [[nodiscard]] DirectX12RayTracingPipelineBuilder buildRayTracingPipeline(ShaderRecordCollection&& shaderRecords) const override;
+
+        /// <inheritdoc />
+        [[nodiscard]] DirectX12RayTracingPipelineBuilder buildRayTracingPipeline(const String& name, ShaderRecordCollection&& shaderRecords) const override;
+#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
         
         /// <inheritdoc />
         [[nodiscard]] DirectX12PipelineLayoutBuilder buildPipelineLayout() const override;

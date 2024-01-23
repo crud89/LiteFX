@@ -1357,9 +1357,17 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Returns a builder for a <see cref="RayTracingPipeline" />.
         /// </summary>
-        /// <param name="name">The name of the ray-tracing pipeline.</param>
+        /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
         /// <returns>An instance of a builder that is used to create a new ray-tracing pipeline.</returns>
-        [[nodiscard]] virtual ray_tracing_pipeline_builder_type buildRayTracingPipeline(const String& name) const = 0;
+        [[nodiscard]] virtual ray_tracing_pipeline_builder_type buildRayTracingPipeline(ShaderRecordCollection&& shaderRecords) const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="RayTracingPipeline" />.
+        /// </summary>
+        /// <param name="name">The name of the ray-tracing pipeline.</param>
+        /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
+        /// <returns>An instance of a builder that is used to create a new ray-tracing pipeline.</returns>
+        [[nodiscard]] virtual ray_tracing_pipeline_builder_type buildRayTracingPipeline(const String& name, ShaderRecordCollection&& shaderRecords) const = 0;
 #endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
 
         /// <summary>

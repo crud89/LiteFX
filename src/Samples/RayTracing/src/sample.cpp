@@ -48,7 +48,7 @@ template<typename TRenderBackend> requires
 void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState)
 {
     using RenderPass = TRenderBackend::render_pass_type;
-    using RenderPipeline = TRenderBackend::render_pipeline_type;
+    using RayTracingPipeline = TRenderBackend::ray_tracing_pipeline_type;
     using PipelineLayout = TRenderBackend::pipeline_layout_type;
     using ShaderProgram = TRenderBackend::shader_program_type;
     using InputAssembler = TRenderBackend::input_assembler_type;
@@ -70,8 +70,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     // Create a geometry render pass.
     UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
-        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
-        .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
+        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f });
 
     // Create the shader program.
     // NOTE: The hit shader here receives per-invocation data at the descriptor bound to register 0, space/set 1.
@@ -80,20 +79,17 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .withClosestHitShaderModule("shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER, DescriptorBindingPoint { .Register = 0, .Space = 1 })
         .withMissShaderModule("shaders/raytracing_miss." + FileExtensions<TRenderBackend>::SHADER);
 
-    // Build a shader binding table.
+    // Build a shader record collection and create a ray-tracing pipeline.
     // NOTE: The local data (payload) for the shader invocation must be defined before building the shader binding table. A shader module may occur multiple times with different 
     // payloads, which can become hard to read and debug, hence it is preferred to use local shader data as sparingly as possible. In this particular case we pass the geometry 
     // index to the shader and since out BLAS (defined later) only contains a single geometry, we only need one entry here. If you only target hardware that supports DXR 1.1 or,
     // you can eliminate the payload entirely by calling the `GeometryIndex()` intrinsic from the shader.
-    ShaderRecordCollection shaderRecords = shaderProgram->buildShaderRecordCollection()
-        .withShaderRecord("shaders/raytracing_gen." + FileExtensions<TRenderBackend>::SHADER)
-        .withShaderRecord("shaders/raytracing_miss." + FileExtensions<TRenderBackend>::SHADER)
-        .withMeshGeometryHitGroupRecord(std::nullopt, "shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER, GeometryData { .Index = 0 });
-
-    // Create a render pipeline.
-    UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
-        .layout(shaderProgram->reflectPipelineLayout())
-        .shaderProgram(shaderRecords);
+    UniquePtr<RayTracingPipeline> rayTracingPipeline = device->buildRayTracingPipeline("RT Geometry", 
+        shaderProgram->buildShaderRecordCollection()
+            .withShaderRecord("shaders/raytracing_gen." + FileExtensions<TRenderBackend>::SHADER)
+            .withShaderRecord("shaders/raytracing_miss." + FileExtensions<TRenderBackend>::SHADER)
+            .withMeshGeometryHitGroupRecord(std::nullopt, "shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER, GeometryData { .Index = 0 }))
+        .layout(shaderProgram->reflectPipelineLayout());
 
     //// Add the resources to the device state.
     //device->state().add(std::move(renderPass));

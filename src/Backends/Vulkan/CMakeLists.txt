@@ -36,6 +36,7 @@ SET(VULKAN_BACKEND_SOURCES
     "src/render_pass.cpp"
     "src/render_pipeline.cpp"
     "src/compute_pipeline.cpp"
+    "src/ray_tracing_pipeline.cpp"
     "src/shader_module.cpp"
     "src/shader_program.cpp"
     "src/pipeline_layout.cpp"

@@ -1520,36 +1520,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         struct RayTracingPipelineState {
             /// <summary>
-            /// The ray-tracing pipeline shader program.
-            /// </summary>
-            SharedPtr<shader_program_type> shaderProgram;
-
-            /// <summary>
             /// The ray-tracing pipeline layout.
             /// </summary>
             SharedPtr<pipeline_layout_type> pipelineLayout;
-
-            /// <summary>
-            /// The ray-tracing shader record collection.
-            /// </summary>
-            ShaderRecordCollection shaderRecordCollection;
         } m_state;
 
     public:
-        /// <summary>
-        /// Adds a shader program to the pipeline.
-        /// </summary>
-        /// <remarks>
-        /// Note that a pipeline must only have one shader program. If this method is called twice, the second call will overwrite the shader
-        /// program set by the first call.
-        /// </remarks>
-        /// <param name="program">The program to add to the pipeline layout.</param>
-        template <typename TSelf>
-        constexpr inline auto shaderProgram(this TSelf&& self, SharedPtr<shader_program_type> program) -> TSelf&& {
-            self.m_state.shaderProgram = program;
-            return std::forward<TSelf>(self);
-        }
-
         /// <summary>
         /// Uses the provided pipeline layout to initialize the ray-tracing pipeline. Can be invoked only once.
         /// </summary>
@@ -1557,16 +1533,6 @@ namespace LiteFX::Rendering {
         template <typename TSelf>
         constexpr inline auto layout(this TSelf&& self, SharedPtr<pipeline_layout_type> layout) -> TSelf&& {
             self.m_state.pipelineLayout = layout;
-            return std::forward<TSelf>(self);
-        }
-
-        /// <summary>
-        /// Uses the provided shader record collection to initialize the ray-tracing pipeline. Can be invoked only once.
-        /// </summary>
-        /// <param name="shaderRecords">The shader record collection to initialize the ray-tracing pipeline with.</param>
-        template <typename TSelf>
-        constexpr inline auto layout(this TSelf&& self, ShaderRecordCollection&& shaderRecords) -> TSelf&& {
-            self.m_state.shaderRecordCollection = std::move(shaderRecords);
             return std::forward<TSelf>(self);
         }
     };

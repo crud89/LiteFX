@@ -546,6 +546,18 @@ VulkanComputePipelineBuilder VulkanDevice::buildComputePipeline(const String& na
     return VulkanComputePipelineBuilder(*this, name);
 }
 
+#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
+VulkanRayTracingPipelineBuilder VulkanDevice::buildRayTracingPipeline(ShaderRecordCollection&& shaderRecords) const
+{
+    return this->buildRayTracingPipeline("", std::move(shaderRecords));
+}
+
+VulkanRayTracingPipelineBuilder VulkanDevice::buildRayTracingPipeline(const String& name, ShaderRecordCollection&& shaderRecords) const
+{
+    return VulkanRayTracingPipelineBuilder(*this, std::move(shaderRecords), name);
+}
+#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
+
 VulkanPipelineLayoutBuilder VulkanDevice::buildPipelineLayout() const
 {
     return VulkanPipelineLayoutBuilder(*this);

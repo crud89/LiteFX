@@ -55,6 +55,7 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/barrier.cpp"
     "src/render_pipeline.cpp"
     "src/compute_pipeline.cpp"
+    "src/ray_tracing_pipeline.cpp"
     "src/pipeline_layout.cpp"
     "src/rasterizer.cpp"
     "src/input_assembler.cpp"

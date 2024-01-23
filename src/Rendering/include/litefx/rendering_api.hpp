@@ -4828,14 +4828,19 @@ namespace LiteFX::Rendering {
         friend class IShaderProgram;
 
     private:
-        const IShaderProgram& m_program;
+        SharedPtr<const IShaderProgram> m_program;
         Array<UniquePtr<const IShaderRecord>> m_records;
 
         /// <summary>
         /// Initializes a new shader record collection.
         /// </summary>
         /// <param name="shaderProgram">The shader program that contains the shader modules</param>
-        ShaderRecordCollection(const IShaderProgram& shaderProgram) noexcept : m_program(shaderProgram) { }
+        ShaderRecordCollection(SharedPtr<const IShaderProgram> shaderProgram) noexcept : 
+            m_program(shaderProgram) 
+        {
+            // This can only be built from a shader program, which passes the pointer to itself, which must not be nullptr. If more factory methods are added,
+            // we must validate the program pointer here.
+        }
 
     public:
         ShaderRecordCollection() = delete;
@@ -4856,7 +4861,7 @@ namespace LiteFX::Rendering {
         /// Returns the parent shader program of the collection.
         /// </summary>
         /// <returns>The parent shader program of the collection.</returns>
-        inline const IShaderProgram& program() const noexcept {
+        inline SharedPtr<const IShaderProgram> program() const noexcept {
             return m_program;
         }
 
@@ -5103,9 +5108,26 @@ namespace LiteFX::Rendering {
     /// is the <see cref="ShaderStage::Fragment" /> module, which can be added to a mesh pipeline, as well as a rasterization pipeline.
     /// </remarks>
     /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
-    class LITEFX_RENDERING_API IShaderProgram {
+    class LITEFX_RENDERING_API IShaderProgram : public std::enable_shared_from_this<IShaderProgram> {
     public:
         virtual ~IShaderProgram() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns a pointer with shared ownership to the current instance.
+        /// </summary>
+        /// <returns>A pointer with shared ownership to the current instance.</returns>
+        inline std::shared_ptr<const IShaderProgram> getptr() const {
+            return shared_from_this();
+        }
+
+        /// <summary>
+        /// Returns a pointer with shared ownership to the current instance.
+        /// </summary>
+        /// <returns>A pointer with shared ownership to the current instance.</returns>
+        inline std::shared_ptr<IShaderProgram> getptr() {
+            return shared_from_this();
+        }
 
     public:
         /// <summary>
@@ -5183,7 +5205,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The shader record collection instance.</returns>
         inline [[nodiscard]] ShaderRecordCollection buildShaderRecordCollection() const noexcept {
-            return ShaderRecordCollection(*this);
+            return ShaderRecordCollection(this->getptr());
         }
 
     private:

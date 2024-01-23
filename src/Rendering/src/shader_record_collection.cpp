@@ -4,7 +4,7 @@ using namespace LiteFX::Rendering;
 
 const IShaderModule* ShaderRecordCollection::findShaderModule(StringView name) const noexcept
 {
-	return m_program[name];
+	return (*m_program)[name];
 }
 
 const Array<UniquePtr<const IShaderRecord>>& ShaderRecordCollection::shaderRecords() const noexcept
@@ -29,13 +29,13 @@ void ShaderRecordCollection::addShaderRecord(UniquePtr<const IShaderRecord>&& re
 		if (hitGroup.AnyHitShader != nullptr && hitGroup.AnyHitShader->type() != ShaderStage::AnyHit) [[unlikely]]
 			throw InvalidArgumentException("record", "The record contains a mesh geometry hit group, but the any hit shader in it has the wrong type.");
 
-		if (hitGroup.AnyHitShader != nullptr && !m_program.contains(*hitGroup.AnyHitShader)) [[unlikely]]
+		if (hitGroup.AnyHitShader != nullptr && !m_program->contains(*hitGroup.AnyHitShader)) [[unlikely]]
 			throw InvalidArgumentException("record", "The record contains a mesh geometry hit group, but the any hit shader does not belong to the shader record collection parent program (module: {0}).", hitGroup.AnyHitShader->fileName());
 
 		if (hitGroup.ClosestHitShader != nullptr && hitGroup.ClosestHitShader->type() != ShaderStage::ClosestHit) [[unlikely]]
 			throw InvalidArgumentException("record", "The record contains a mesh geometry hit group, but the closest hit shader in it has the wrong type.");
 
-		if (hitGroup.ClosestHitShader != nullptr && !m_program.contains(*hitGroup.ClosestHitShader)) [[unlikely]]
+		if (hitGroup.ClosestHitShader != nullptr && !m_program->contains(*hitGroup.ClosestHitShader)) [[unlikely]]
 			throw InvalidArgumentException("record", "The record contains a mesh geometry hit group, but the closest hit shader does not belong to the shader record collection parent program (module: {0}).", hitGroup.ClosestHitShader->fileName());
 	}
 	else if (std::holds_alternative<const IShaderModule*>(group))
@@ -48,7 +48,7 @@ void ShaderRecordCollection::addShaderRecord(UniquePtr<const IShaderRecord>&& re
 		if (module->type() != ShaderStage::RayGeneration && module->type() != ShaderStage::Intersection && module->type() != ShaderStage::Miss && module->type() != ShaderStage::Callable) [[unlikely]]
 			throw InvalidArgumentException("record", "The record does contain a shader module, but it has not a valid ray-tracing type.");
 		
-		if (!m_program.contains(*module)) [[unlikely]]
+		if (!m_program->contains(*module)) [[unlikely]]
 			throw InvalidArgumentException("record", "The record does contain a shader module, but it does not belong to the shader record collection parent program (module: {0}).", module->fileName());
 	}
 	else

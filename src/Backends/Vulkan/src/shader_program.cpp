@@ -382,6 +382,11 @@ VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device) noexcept :
 
 VulkanShaderProgram::~VulkanShaderProgram() noexcept = default;
 
+SharedPtr<VulkanShaderProgram> VulkanShaderProgram::create(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules)
+{
+    return SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device, std::move(modules)));
+}
+
 Enumerable<const VulkanShaderModule*> VulkanShaderProgram::modules() const noexcept
 {
     return m_impl->m_modules | std::views::transform([](const UniquePtr<VulkanShaderModule>& shader) { return shader.get(); });
@@ -416,7 +421,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 constexpr VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(const VulkanDevice& device) :
-    m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this, device)), ShaderProgramBuilder(UniquePtr<VulkanShaderProgram>(new VulkanShaderProgram(device)))
+    m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this, device)), ShaderProgramBuilder(SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device)))
 {
 }
 

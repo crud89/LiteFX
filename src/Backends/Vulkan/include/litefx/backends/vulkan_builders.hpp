@@ -298,6 +298,29 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
+	/// Builds a Vulkan <see cref="RayTracingPipeline" />.
+	/// </summary>
+	/// <seealso cref="VulkanRayTracingPipeline" />
+	class LITEFX_VULKAN_API [[nodiscard]] VulkanRayTracingPipelineBuilder final : public RayTracingPipelineBuilder<VulkanRayTracingPipeline> {
+	public:
+		/// <summary>
+		/// Initializes a Vulkan ray-tracing pipeline builder.
+		/// </summary>
+		/// <param name="device">The parent device</param>
+        /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
+		/// <param name="name">A debug name for the ray-tracing pipeline.</param>
+		constexpr inline explicit VulkanRayTracingPipelineBuilder(const VulkanDevice& device, ShaderRecordCollection&& shaderRecords, const String& name = "");
+		VulkanRayTracingPipelineBuilder(VulkanRayTracingPipelineBuilder&&) = delete;
+		VulkanRayTracingPipelineBuilder(const VulkanRayTracingPipelineBuilder&) = delete;
+		constexpr inline virtual ~VulkanRayTracingPipelineBuilder() noexcept;
+
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		inline void build() override;
+	};
+
+	/// <summary>
 	/// Implements the Vulkan <see cref="RenderPassBuilder" />.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPass" />

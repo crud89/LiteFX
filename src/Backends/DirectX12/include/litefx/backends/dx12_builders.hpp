@@ -298,6 +298,29 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
+	/// Builds a DirectX 12 <see cref="RayTracingPipeline" />.
+	/// </summary>
+	/// <seealso cref="DirectX12RayTracingPipeline" />
+	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12RayTracingPipelineBuilder final : public RayTracingPipelineBuilder<DirectX12RayTracingPipeline> {
+	public:
+		/// <summary>
+		/// Initializes a DirectX 12 ray-tracing pipeline builder.
+		/// </summary>
+		/// <param name="device">The parent device</param>
+        /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
+		/// <param name="name">A debug name for the ray-tracing pipeline.</param>
+		constexpr inline explicit DirectX12RayTracingPipelineBuilder(const DirectX12Device& device, ShaderRecordCollection&& shaderRecords, const String& name = "");
+		DirectX12RayTracingPipelineBuilder(DirectX12RayTracingPipelineBuilder&&) = delete;
+		DirectX12RayTracingPipelineBuilder(const DirectX12RayTracingPipelineBuilder&) = delete;
+		constexpr inline virtual ~DirectX12RayTracingPipelineBuilder() noexcept;
+
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		inline void build() override;
+	};
+
+	/// <summary>
 	/// Implements the DirectX 12 <see cref="RenderPassBuilder" />.
 	/// </summary>
 	/// <seealso cref="DirectX12RenderPass" />

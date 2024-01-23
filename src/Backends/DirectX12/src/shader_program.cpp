@@ -456,7 +456,7 @@ void DirectX12ShaderProgram::suppressMissingRootSignatureWarning(bool disableWar
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) noexcept :
+DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) :
     m_impl(makePimpl<DirectX12ShaderProgramImpl>(this, device, std::move(modules)))
 {
     m_impl->validate();
@@ -468,6 +468,11 @@ DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device) no
 }
 
 DirectX12ShaderProgram::~DirectX12ShaderProgram() noexcept = default;
+
+SharedPtr<DirectX12ShaderProgram> DirectX12ShaderProgram::create(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules)
+{
+    return SharedPtr<DirectX12ShaderProgram>(new DirectX12ShaderProgram(device, std::move(modules)));
+}
 
 Enumerable<const DirectX12ShaderModule*> DirectX12ShaderProgram::modules() const noexcept
 {
@@ -503,7 +508,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 constexpr DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilder(const DirectX12Device& device) :
-    m_impl(makePimpl<DirectX12ShaderProgramBuilderImpl>(this, device)), ShaderProgramBuilder(UniquePtr<DirectX12ShaderProgram>(new DirectX12ShaderProgram(device)))
+    m_impl(makePimpl<DirectX12ShaderProgramBuilderImpl>(this, device)), ShaderProgramBuilder(SharedPtr<DirectX12ShaderProgram>(new DirectX12ShaderProgram(device)))
 {
 }
 
