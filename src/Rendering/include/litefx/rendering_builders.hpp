@@ -1523,6 +1523,11 @@ namespace LiteFX::Rendering {
             /// The ray-tracing pipeline layout.
             /// </summary>
             SharedPtr<pipeline_layout_type> pipelineLayout;
+
+            /// <summary>
+            /// The maximum number of ray bounces in the pipeline.
+            /// </summary>
+            UInt32 maxRecursionDepth;
         } m_state;
 
     public:
@@ -1533,6 +1538,16 @@ namespace LiteFX::Rendering {
         template <typename TSelf>
         constexpr inline auto layout(this TSelf&& self, SharedPtr<pipeline_layout_type> layout) -> TSelf&& {
             self.m_state.pipelineLayout = layout;
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Sets the maximum number of ray bounces allowed in the pipeline.
+        /// </summary>
+        /// <param name="maxRecursionDepth">The maximum number of ray bounces allowed in the pipeline.</param>
+        template <typename TSelf>
+        constexpr inline auto maxBounces(this TSelf&& self, UInt32 maxRecursionDepth) -> TSelf&& {
+            self.m_state.maxRecursionDepth = maxRecursionDepth;
             return std::forward<TSelf>(self);
         }
     };

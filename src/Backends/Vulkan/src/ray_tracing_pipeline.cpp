@@ -18,11 +18,12 @@ private:
 	SharedPtr<VulkanPipelineLayout> m_layout;
 	SharedPtr<const VulkanShaderProgram> m_program;
 	ShaderRecordCollection m_shaderRecordCollection;
+	UInt32 m_maxRecursionDepth { 10 };
 	const VulkanDevice& m_device;
 
 public:
-	VulkanRayTracingPipelineImpl(VulkanRayTracingPipeline* parent, const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords) :
-		base(parent), m_device(device), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords))
+	VulkanRayTracingPipelineImpl(VulkanRayTracingPipeline* parent, const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, UInt32 maxRecursionDepth, ShaderRecordCollection&& shaderRecords) :
+		base(parent), m_device(device), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords)), m_maxRecursionDepth(maxRecursionDepth)
 	{
 	}
 
@@ -60,58 +61,54 @@ public:
 
 		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(reinterpret_cast<const void*>(m_program.get())), modules.size());
 
-		if (modules.size() > 1)
-			throw RuntimeException("Only one shader module must be bound to a ray-tracing pipeline.");
-
 		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
 			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
 			std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
 
-		throw;
-//		// Setup pipeline state.
-//		VkRayTracingPipelineCreateInfo pipelineInfo = {};
-//		pipelineInfo.sType = VK_STRUCTURE_TYPE_RAYTRACING_PIPELINE_CREATE_INFO;
-//		pipelineInfo.layout = std::as_const(*m_layout.get()).handle();
-//		pipelineInfo.stage = shaderStages.front();
-//
-//		VkPipeline pipeline;
-//		raiseIfFailed(::vkCreateRayTracingPipelines(m_device.handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create ray-tracing pipeline.");
-//
-//#ifndef NDEBUG
-//		m_device.setDebugName(*reinterpret_cast<const UInt64*>(&pipeline), VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, m_parent->name());
-//#endif
-//
-//		return pipeline;
+		// Setup dynamic state.
+		Array<VkDynamicState> dynamicStates { 
+			VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT, 
+			VkDynamicState::VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT, 
+			VkDynamicState::VK_DYNAMIC_STATE_LINE_WIDTH, 
+			VkDynamicState::VK_DYNAMIC_STATE_BLEND_CONSTANTS,
+			VkDynamicState::VK_DYNAMIC_STATE_STENCIL_REFERENCE
+		};
+
+		VkPipelineDynamicStateCreateInfo dynamicState = {
+			.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+			.dynamicStateCount = static_cast<UInt32>(dynamicStates.size()),
+			.pDynamicStates = dynamicStates.data()
+		};
+
+		// Setup pipeline.
+		VkRayTracingPipelineCreateInfoKHR pipelineInfo = {
+			.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR,
+			.stageCount = static_cast<UInt32>(shaderStages.size()),
+			.pStages = shaderStages.data(),
+			.groupCount = 0,		// TODO: This must receive the SBT.
+			.pGroups = nullptr,
+			.maxPipelineRayRecursionDepth = m_maxRecursionDepth,
+			.pDynamicState = &dynamicState,
+			.layout = std::as_const(*m_layout.get()).handle()
+		};
+
+		VkPipeline pipeline;
+		raiseIfFailed(::vkCreateRayTracingPipelines(m_device.handle(), VK_NULL_HANDLE, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
+
+#ifndef NDEBUG
+		m_device.setDebugName(*reinterpret_cast<const UInt64*>(&pipeline), VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, m_parent->name());
+#endif
+
+		return pipeline;
 	}
-
-	//VkPipeline initializeRayTracingPipeline(const VkPipelineDynamicStateCreateInfo& dynamicState, const LiteFX::Array<VkPipelineShaderStageCreateInfo>& shaderStages)
-	//{
-	//	LITEFX_TRACE(VULKAN_LOG, "Creating ray-tracing pipeline \"{1}\" for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_parent->name());
-
-	//	VkRayTracingPipelineCreateInfoKHR pipelineInfo = {
-	//		.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR,
-	//		.stageCount = static_cast<UInt32>(shaderStages.size()),
-	//		.pStages = shaderStages.data(),
-	//		.groupCount = 0,		// TODO: This must receive the SBT.
-	//		.pGroups = nullptr,
-	//		.maxPipelineRayRecursionDepth = 10, // TODO: Make configurable.
-	//		.pDynamicState = &dynamicState,
-	//		.layout = std::as_const(*m_layout.get()).handle()
-	//	};
-
-	//	VkPipeline pipeline;
-	//	raiseIfFailed(::vkCreateRayTracingPipelines(m_renderPass.device().handle(), VK_NULL_HANDLE, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
-
-	//	return pipeline;
-	//}
 };
 
 // ------------------------------------------------------------------------------------------------
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, const String& name) :
-	m_impl(makePimpl<VulkanRayTracingPipelineImpl>(this, device, layout, shaderProgram, std::move(shaderRecords))), VulkanPipelineState(VK_NULL_HANDLE)
+VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth, const String& name) :
+	m_impl(makePimpl<VulkanRayTracingPipelineImpl>(this, device, layout, shaderProgram, maxRecursionDepth, std::move(shaderRecords))), VulkanPipelineState(VK_NULL_HANDLE)
 {
 	if (!name.empty())
 		this->name() = name;
@@ -144,6 +141,11 @@ const ShaderRecordCollection& VulkanRayTracingPipeline::shaderRecords() const no
 	return m_impl->m_shaderRecordCollection;
 }
 
+UInt32 VulkanRayTracingPipeline::maxRecursionDepth() const noexcept
+{
+	return m_impl->m_maxRecursionDepth;
+}
+
 void VulkanRayTracingPipeline::use(const VulkanCommandBuffer& commandBuffer) const noexcept
 {
 	::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, this->handle());
@@ -172,6 +174,7 @@ void VulkanRayTracingPipelineBuilder::build()
 {
 	auto instance = this->instance();
 	instance->m_impl->m_layout = m_state.pipelineLayout;
+	instance->m_impl->m_maxRecursionDepth = m_state.maxRecursionDepth;
 	instance->handle() = instance->m_impl->initialize();
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

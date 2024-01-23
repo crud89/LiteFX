@@ -6025,6 +6025,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The shader record collection of the ray tracing pipeline.</returns>
         virtual const ShaderRecordCollection& shaderRecords() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the maximum number of ray bounces.
+        /// </summary>
+        /// <returns>The shader record collection of the ray tracing pipeline.</returns>
+        virtual UInt32 maxRecursionDepth() const noexcept = 0;
     };
 
     /// <summary>

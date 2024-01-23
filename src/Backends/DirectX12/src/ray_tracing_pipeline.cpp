@@ -16,11 +16,12 @@ private:
 	SharedPtr<DirectX12PipelineLayout> m_layout;
 	SharedPtr<const DirectX12ShaderProgram> m_program;
 	ShaderRecordCollection m_shaderRecordCollection;
+	UInt32 m_maxRecursionDepth { 10 };
 	const DirectX12Device& m_device;
 
 public:
-	DirectX12RayTracingPipelineImpl(DirectX12RayTracingPipeline* parent, const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords) :
-		base(parent), m_device(device), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords))
+	DirectX12RayTracingPipelineImpl(DirectX12RayTracingPipeline* parent, const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, UInt32 maxRecursionDepth, ShaderRecordCollection&& shaderRecords) :
+		base(parent), m_device(device), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords)), m_maxRecursionDepth(maxRecursionDepth)
 	{
 	}
 
@@ -95,8 +96,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, const String& name) :
-	m_impl(makePimpl<DirectX12RayTracingPipelineImpl>(this, device, layout, shaderProgram, std::move(shaderRecords))), DirectX12PipelineState(nullptr)
+DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth, const String& name) :
+	m_impl(makePimpl<DirectX12RayTracingPipelineImpl>(this, device, layout, shaderProgram, maxRecursionDepth, std::move(shaderRecords))), DirectX12PipelineState(nullptr)
 {
 	if (!name.empty())
 		this->name() = name;
@@ -126,6 +127,11 @@ const ShaderRecordCollection& DirectX12RayTracingPipeline::shaderRecords() const
 	return m_impl->m_shaderRecordCollection;
 }
 
+UInt32 DirectX12RayTracingPipeline::maxRecursionDepth() const noexcept
+{
+	return m_impl->m_maxRecursionDepth;
+}
+
 void DirectX12RayTracingPipeline::use(const DirectX12CommandBuffer& commandBuffer) const noexcept
 {
 	//commandBuffer.handle()->SetPipelineState(this->handle().Get());
@@ -150,6 +156,7 @@ void DirectX12RayTracingPipelineBuilder::build()
 {
 	auto instance = this->instance();
 	instance->m_impl->m_layout = m_state.pipelineLayout;
+	instance->m_impl->m_maxRecursionDepth = m_state.maxRecursionDepth;
 	instance->handle() = instance->m_impl->initialize();
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

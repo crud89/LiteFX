@@ -442,7 +442,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="device">The parent device of the shader program.</param>
         /// <param name="modules">The shader modules used by the shader program.</param>
-        static inline SharedPtr<VulkanShaderProgram> create(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules);
+        static SharedPtr<VulkanShaderProgram> create(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules);
 
     public:
         VulkanShaderProgram(VulkanShaderProgram&&) noexcept = delete;
@@ -1225,8 +1225,9 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="layout">The layout of the pipeline.</param>
         /// <param name="shaderProgram">The shader program used by the pipeline.</param>
         /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
+        /// <param name="maxRecursionDepth">The maximum number of ray bounces.</param>
         /// <param name="name">The optional debug name of the render pipeline.</param>
-        explicit VulkanRayTracingPipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, const String& name = "");
+        explicit VulkanRayTracingPipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth = 10, const String& name = "");
         VulkanRayTracingPipeline(VulkanRayTracingPipeline&&) noexcept = delete;
         VulkanRayTracingPipeline(const VulkanRayTracingPipeline&) noexcept = delete;
         virtual ~VulkanRayTracingPipeline() noexcept;
@@ -1249,7 +1250,11 @@ namespace LiteFX::Rendering::Backends {
 
         // RayTracingPipeline interface.
     public:
+        /// <inheritdoc />
         const ShaderRecordCollection& shaderRecords() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt32 maxRecursionDepth() const noexcept override;
 
         // VulkanPipelineState interface.
     public:

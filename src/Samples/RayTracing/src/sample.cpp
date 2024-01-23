@@ -84,11 +84,12 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     // payloads, which can become hard to read and debug, hence it is preferred to use local shader data as sparingly as possible. In this particular case we pass the geometry 
     // index to the shader and since out BLAS (defined later) only contains a single geometry, we only need one entry here. If you only target hardware that supports DXR 1.1 or,
     // you can eliminate the payload entirely by calling the `GeometryIndex()` intrinsic from the shader.
-    UniquePtr<RayTracingPipeline> rayTracingPipeline = device->buildRayTracingPipeline("RT Geometry", 
+    UniquePtr<RayTracingPipeline> rayTracingPipeline = device->buildRayTracingPipeline("RT Geometry",
         shaderProgram->buildShaderRecordCollection()
             .withShaderRecord("shaders/raytracing_gen." + FileExtensions<TRenderBackend>::SHADER)
             .withShaderRecord("shaders/raytracing_miss." + FileExtensions<TRenderBackend>::SHADER)
-            .withMeshGeometryHitGroupRecord(std::nullopt, "shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER, GeometryData { .Index = 0 }))
+            .withMeshGeometryHitGroupRecord(std::nullopt, "shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER, GeometryData{ .Index = 0 }))
+        .maxBounces(4)
         .layout(shaderProgram->reflectPipelineLayout());
 
     //// Add the resources to the device state.

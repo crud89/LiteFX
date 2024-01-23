@@ -406,7 +406,7 @@ namespace LiteFX::Rendering::Backends {
 
         // Factory method.
     public:
-        static inline SharedPtr<DirectX12ShaderProgram> create(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules);
+        static SharedPtr<DirectX12ShaderProgram> create(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules);
 
     public:
         DirectX12ShaderProgram(DirectX12ShaderProgram&&) noexcept = delete;
@@ -1221,8 +1221,9 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="layout">The layout of the pipeline.</param>
         /// <param name="shaderProgram">The shader program used by this pipeline.</param>
         /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
+        /// <param name="maxRecursionDepth">The maximum number of ray bounces.</param>
         /// <param name="name">The optional debug name of the ray-tracing pipeline.</param>
-        explicit DirectX12RayTracingPipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, const String& name = "");
+        explicit DirectX12RayTracingPipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth = 10, const String& name = "");
         DirectX12RayTracingPipeline(DirectX12RayTracingPipeline&&) noexcept = delete;
         DirectX12RayTracingPipeline(const DirectX12RayTracingPipeline&) noexcept = delete;
         virtual ~DirectX12RayTracingPipeline() noexcept;
@@ -1245,7 +1246,11 @@ namespace LiteFX::Rendering::Backends {
 
         // RayTracingPipeline interface.
     public:
+        /// <inheritdoc />
         const ShaderRecordCollection& shaderRecords() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt32 maxRecursionDepth() const noexcept override;
 
         // DirectX12PipelineState interface.
     public:
