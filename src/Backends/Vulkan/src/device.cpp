@@ -9,6 +9,7 @@ extern PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBui
 extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure { nullptr };
 extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure { nullptr };
 extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructures { nullptr };
+extern PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelines { nullptr };
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -382,6 +383,9 @@ public:
 
         if (vkCmdBuildAccelerationStructures == nullptr)
             vkCmdBuildAccelerationStructures = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(::vkGetDeviceProcAddr(device, "vkCmdBuildAccelerationStructuresKHR"));
+
+        if (vkCreateRayTracingPipelines == nullptr)
+            vkCreateRayTracingPipelines = reinterpret_cast<PFN_vkCreateRayTracingPipelinesKHR>(::vkGetDeviceProcAddr(device, "vkCreateRayTracingPipelinesKHR"));
 #endif
 
         return device;
