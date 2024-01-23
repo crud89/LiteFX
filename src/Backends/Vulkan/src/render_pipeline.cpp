@@ -3,8 +3,6 @@
 
 using namespace LiteFX::Rendering::Backends;
 
-extern PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelines;
-
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
@@ -45,7 +43,7 @@ public:
 
 		if (hasComputeShaders) [[unlikely]]
 			throw InvalidArgumentException("shaderProgram", "The shader program contains a compute shader, which is not supported in a graphics pipeline.");
-		else if (hasComputeShaders) [[unlikely]]
+		else if (hasRayTracingShaders) [[unlikely]]
 			throw InvalidArgumentException("shaderProgram", "The shader program contains ray-tracing shaders, which is not supported in a graphics pipeline.");
 		else if (hasMeshShaders && hasDirectShaders) [[unlikely]]
 			throw InvalidArgumentException("shaderProgram", "A shader program that contains mesh shaders must not also contain vertex, geometry, domain or hull shaders.");

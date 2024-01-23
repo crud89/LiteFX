@@ -54,6 +54,7 @@ namespace LiteFX::Rendering {
     class ICommandBuffer;
     class IRenderPipeline;
     class IComputePipeline;
+    class IRayTracingPipeline;
     class IFrameBuffer;
     class IRenderPass;
     class ISwapChain;
@@ -5987,6 +5988,21 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IComputePipeline : public virtual IPipeline {
     public:
         virtual ~IComputePipeline() noexcept = default;
+    };
+
+    /// <summary>
+    /// The interface for a ray tracing pipeline.
+    /// </summary>
+    class LITEFX_RENDERING_API IRayTracingPipeline : public virtual IPipeline {
+    public:
+        virtual ~IRayTracingPipeline() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns the shader record collection of the ray tracing pipeline.
+        /// </summary>
+        /// <returns>The shader record collection of the ray tracing pipeline.</returns>
+        virtual const ShaderRecordCollection& shaderRecords() const noexcept = 0;
     };
 
     /// <summary>

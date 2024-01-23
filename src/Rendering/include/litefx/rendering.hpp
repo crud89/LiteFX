@@ -323,7 +323,7 @@ namespace LiteFX::Rendering {
     };
     
     /// <summary>
-    /// Represents a the layout of a <see cref="RenderPipeline" /> or a <see cref="ComputePipeline" />.
+    /// Represents a the layout of a <see cref="RenderPipeline" />, <see cref="ComputePipeline" /> or <see cref="RayTracingPipeline" />.
     /// </summary>
     /// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="DescriptorSetLayout"/>.</typeparam>
     /// <typeparam name="TPushConstantsLayout">The type of the push constants layout. Must implement <see cref="PushConstantsLayout"/>.</typeparam>
@@ -763,6 +763,18 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Represents a ray-tracing <see cref="Pipeline" />.
+    /// </summary>
+    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
+    /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
+    /// <seealso cref="RayTracingPipelineBuilder" />
+    template <typename TPipelineLayout, typename TShaderProgram>
+    class RayTracingPipeline : public IRayTracingPipeline, public Pipeline<TPipelineLayout, TShaderProgram> {
+    public:
+        virtual ~RayTracingPipeline() noexcept = default;
+    };
+
+    /// <summary>
     /// Stores the images for the output attachments for a back buffer of a <see cref="RenderPass" />, as well as a <see cref="CommandBuffer" /> instance, that records draw commands.
     /// </summary>
     /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
@@ -1191,8 +1203,9 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="CommandQueue" />.</typeparam>
     /// <typeparam name="TRenderPass">The type of the render pass. Must implement <see cref="RenderPass" />.</typeparam>
     /// <typeparam name="TComputePipeline">The type of the compute pipeline. Must implement <see cref="ComputePipeline" />.</typeparam>
+    /// <typeparam name="TRayTracingPipeline">The type of the ray-tracing pipeline. Must implement <see cref="RayTracingPipeline" />.</typeparam>
     /// <typeparam name="TBarrier">The type of the memory barrier. Must implement <see cref="Barrier" />.</typeparam>
-    template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TComputePipeline, typename TBarrier> requires
+    template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TComputePipeline, typename TRayTracingPipeline, typename TBarrier> requires
         meta::implements<TSurface, ISurface> &&
         meta::implements<TGraphicsAdapter, IGraphicsAdapter> &&
         meta::implements<TSwapChain, SwapChain<typename TFactory::image_type, typename TRenderPass::frame_buffer_type>> &&
@@ -1200,6 +1213,7 @@ namespace LiteFX::Rendering {
         meta::implements<TFactory, GraphicsFactory<typename TFactory::descriptor_layout_type, typename TFactory::buffer_type, typename TFactory::vertex_buffer_type, typename TFactory::index_buffer_type, typename TFactory::image_type, typename TFactory::sampler_type, typename TFactory::bottom_level_acceleration_structure_type, typename TFactory::top_level_acceleration_structure_type>> &&
         meta::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, TCommandQueue, typename TRenderPass::frame_buffer_type, typename TRenderPass::input_attachment_mapping_type>> &&
         meta::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>> &&
+        meta::implements<TRayTracingPipeline, RayTracingPipeline<typename TRayTracingPipeline::pipeline_layout_type, typename TRayTracingPipeline::shader_program_type>> &&
         meta::implements<TBarrier, Barrier<typename TFactory::buffer_type, typename TFactory::image_type>>
     class GraphicsDevice : public IGraphicsDevice {
     public:
@@ -1222,6 +1236,7 @@ namespace LiteFX::Rendering {
         using frame_buffer_type = render_pass_type::frame_buffer_type;
         using render_pipeline_type = render_pass_type::render_pipeline_type;
         using compute_pipeline_type = TComputePipeline;
+        using ray_tracing_pipeline_type = TRayTracingPipeline;
         using pipeline_layout_type = render_pipeline_type::pipeline_layout_type;
         using shader_program_type = render_pipeline_type::shader_program_type;
         using input_assembler_type = render_pipeline_type::input_assembler_type;
@@ -1292,6 +1307,7 @@ namespace LiteFX::Rendering {
         using render_pass_builder_type = render_pass_type::builder_type;
         using render_pipeline_builder_type = render_pipeline_type::builder_type;
         using compute_pipeline_builder_type = compute_pipeline_type::builder_type;
+        using ray_tracing_pipeline_builder_type = ray_tracing_pipeline_type::builder_type;
         using pipeline_layout_builder_type = pipeline_layout_type::builder_type;
         using input_assembler_builder_type = input_assembler_type::builder_type;
         using rasterizer_builder_type = rasterizer_type::builder_type;
@@ -1337,6 +1353,15 @@ namespace LiteFX::Rendering {
         /// <returns>An instance of a builder that is used to create a new render pipeline.</returns>
         [[nodiscard]] virtual render_pipeline_builder_type buildRenderPipeline(const render_pass_type& renderPass, const String& name) const = 0;
 
+#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
+        /// <summary>
+        /// Returns a builder for a <see cref="RayTracingPipeline" />.
+        /// </summary>
+        /// <param name="name">The name of the ray-tracing pipeline.</param>
+        /// <returns>An instance of a builder that is used to create a new ray-tracing pipeline.</returns>
+        [[nodiscard]] virtual ray_tracing_pipeline_builder_type buildRayTracingPipeline(const String& name) const = 0;
+#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
+
         /// <summary>
         /// Returns a builder for a <see cref="PipelineLayout" />.
         /// </summary>
@@ -1374,7 +1399,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="GraphicsDevice" />.</typeparam>
     template <typename TGraphicsDevice> requires
-        meta::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::compute_pipeline_type, typename TGraphicsDevice::barrier_type>>
+        meta::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::compute_pipeline_type, typename TGraphicsDevice::ray_tracing_pipeline_type, typename TGraphicsDevice::barrier_type>>
     class RenderBackend : public IRenderBackend {
     public:
         using device_type = TGraphicsDevice;
@@ -1396,6 +1421,7 @@ namespace LiteFX::Rendering {
         using pipeline_layout_type = device_type::pipeline_layout_type;
         using render_pipeline_type = device_type::render_pipeline_type;
         using compute_pipeline_type = device_type::compute_pipeline_type;
+        using ray_tracing_pipeline_type = device_type::ray_tracing_pipeline_type;
         using shader_program_type = device_type::shader_program_type;
         using input_assembler_type = device_type::input_assembler_type;
         using rasterizer_type = device_type::rasterizer_type;

@@ -1111,7 +1111,7 @@ namespace LiteFX::Rendering {
 
 #ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
         /// <summary>
-        /// Adds a ray tracing acceleration structure.
+        /// Adds a ray-tracing acceleration structure.
         /// </summary>
         /// <param name="binding">The binding point or register index of the descriptor.</param>
         template <typename TSelf>
@@ -1445,7 +1445,7 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Describes the interface of a render pipeline builder.
+    /// Describes the interface of a compute pipeline builder.
     /// </summary>
     /// <typeparam name="TComputePipeline">The type of the compute pipeline. Must implement <see cref="ComputePipeline" />.</typeparam>
     /// <seealso cref="ComputePipeline" />
@@ -1496,6 +1496,77 @@ namespace LiteFX::Rendering {
         template <typename TSelf>
         constexpr inline auto layout(this TSelf&& self, SharedPtr<pipeline_layout_type> layout) -> TSelf&& {
             self.m_state.pipelineLayout = layout;
+            return std::forward<TSelf>(self);
+        }
+    };
+
+    /// <summary>
+    /// Describes the interface of a ray-tracing pipeline builder.
+    /// </summary>
+    /// <typeparam name="TRayTracingPipeline">The type of the ray-tracing pipeline. Must implement <see cref="RayTracingPipeline" />.</typeparam>
+    /// <seealso cref="RayTracingPipeline" />
+    template <typename TRayTracingPipeline> requires
+        meta::implements<TRayTracingPipeline, RayTracingPipeline<typename TRayTracingPipeline::pipeline_layout_type, typename TRayTracingPipeline::shader_program_type>>
+    class RayTracingPipelineBuilder : public Builder<TRayTracingPipeline> {
+    public:
+        using Builder<TRayTracingPipeline>::Builder;
+        using raytracing_pipeline_type = TRayTracingPipeline;
+        using pipeline_layout_type = raytracing_pipeline_type::pipeline_layout_type;
+        using shader_program_type = raytracing_pipeline_type::shader_program_type;
+
+    protected:
+        /// <summary>
+        /// Stores the ray-tracing pipeline state while building.
+        /// </summary>
+        struct RayTracingPipelineState {
+            /// <summary>
+            /// The ray-tracing pipeline shader program.
+            /// </summary>
+            SharedPtr<shader_program_type> shaderProgram;
+
+            /// <summary>
+            /// The ray-tracing pipeline layout.
+            /// </summary>
+            SharedPtr<pipeline_layout_type> pipelineLayout;
+
+            /// <summary>
+            /// The ray-tracing shader record collection.
+            /// </summary>
+            ShaderRecordCollection shaderRecordCollection;
+        } m_state;
+
+    public:
+        /// <summary>
+        /// Adds a shader program to the pipeline.
+        /// </summary>
+        /// <remarks>
+        /// Note that a pipeline must only have one shader program. If this method is called twice, the second call will overwrite the shader
+        /// program set by the first call.
+        /// </remarks>
+        /// <param name="program">The program to add to the pipeline layout.</param>
+        template <typename TSelf>
+        constexpr inline auto shaderProgram(this TSelf&& self, SharedPtr<shader_program_type> program) -> TSelf&& {
+            self.m_state.shaderProgram = program;
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Uses the provided pipeline layout to initialize the ray-tracing pipeline. Can be invoked only once.
+        /// </summary>
+        /// <param name="layout">The pipeline layout to initialize the ray-tracing pipeline with.</param>
+        template <typename TSelf>
+        constexpr inline auto layout(this TSelf&& self, SharedPtr<pipeline_layout_type> layout) -> TSelf&& {
+            self.m_state.pipelineLayout = layout;
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Uses the provided shader record collection to initialize the ray-tracing pipeline. Can be invoked only once.
+        /// </summary>
+        /// <param name="shaderRecords">The shader record collection to initialize the ray-tracing pipeline with.</param>
+        template <typename TSelf>
+        constexpr inline auto layout(this TSelf&& self, ShaderRecordCollection&& shaderRecords) -> TSelf&& {
+            self.m_state.shaderRecordCollection = std::move(shaderRecords);
             return std::forward<TSelf>(self);
         }
     };
