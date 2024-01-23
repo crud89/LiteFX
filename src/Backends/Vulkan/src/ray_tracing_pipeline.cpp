@@ -67,11 +67,7 @@ public:
 
 		// Setup dynamic state.
 		Array<VkDynamicState> dynamicStates { 
-			VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT, 
-			VkDynamicState::VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT, 
-			VkDynamicState::VK_DYNAMIC_STATE_LINE_WIDTH, 
-			VkDynamicState::VK_DYNAMIC_STATE_BLEND_CONSTANTS,
-			VkDynamicState::VK_DYNAMIC_STATE_STENCIL_REFERENCE
+			VkDynamicState::VK_DYNAMIC_STATE_RAY_TRACING_PIPELINE_STACK_SIZE_KHR
 		};
 
 		VkPipelineDynamicStateCreateInfo dynamicState = {
