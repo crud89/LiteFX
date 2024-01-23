@@ -4863,7 +4863,7 @@ namespace LiteFX::Rendering {
         /// <param name="shaderName">The name of the shader module.</param>
         /// <param name="payload">The payload of the shader record.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if no shader module with the provided name was found in the parent shader program.</exception>
-        template <typename TPayload> requires (std::alignment_of_v<TPayload>() == 8)
+        template <typename TPayload> requires (std::alignment_of_v<TPayload> == 8)
         inline void addShaderRecord(StringView shaderName, TPayload payload) {
             auto shaderModule = this->findShaderModule(shaderName);
 
@@ -4901,7 +4901,7 @@ namespace LiteFX::Rendering {
         /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
         /// <param name="payload">The payload of the shader record.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if both provided shader names are empty or not found, the shaders are not of the right type or do not belong to the parent shader program.</exception>
-        template <typename TPayload> requires (std::alignment_of_v<TPayload>() == 8)
+        template <typename TPayload> requires (std::alignment_of_v<TPayload> == 8)
         inline void addMeshGeometryShaderHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName, TPayload payload) {
             IShaderRecord::MeshGeometryHitGroup hitGroup = { 
                 .ClosestHitShader = closestHitShaderName.has_value() ? this->findShaderModule(closestHitShaderName.value()) : nullptr,
@@ -4925,7 +4925,7 @@ namespace LiteFX::Rendering {
         /// <typeparam name="TPayload">The type of the shader record payload.</typeparam>
         /// <param name="shaderGroup">The shader module or hit group.</param>
         /// <param name="payload">The payload of the shader record.</param>
-        template <typename TPayload> requires (std::alignment_of_v<TPayload>() == 8)
+        template <typename TPayload> requires (std::alignment_of_v<TPayload> == 8)
         inline void addShaderRecord(ShaderRecord<TPayload>::shader_group_type shaderGroup, TPayload payload) {
             this->addShaderRecord(makeUnique<ShaderRecord<TPayload>>(shaderGroup, payload));
         }
@@ -4955,7 +4955,7 @@ namespace LiteFX::Rendering {
         /// <param name="shaderName"></param>
         /// <param name="payload">The payload of the shader record.</param>
         /// <returns>A reference to the current shader record collection.</returns>
-        template <typename TPayload> requires (std::alignment_of_v<TPayload>() == 8)
+        template <typename TPayload> requires (std::alignment_of_v<TPayload> == 8)
         inline ShaderRecordCollection&& withShaderRecord(StringView shaderName, TPayload payload) {
             this->addShaderRecord(shaderName, payload);
             return std::forward<ShaderRecordCollection>(*this);
@@ -4980,7 +4980,7 @@ namespace LiteFX::Rendering {
         /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
         /// <param name="payload">The payload of the shader record.</param>
         /// <returns>A reference to the current shader record collection.</returns>
-        template <typename TPayload> requires (std::alignment_of_v<TPayload>() == 8)
+        template <typename TPayload> requires (std::alignment_of_v<TPayload> == 8)
         inline ShaderRecordCollection&& withMeshGeometryHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName, TPayload payload) {
             this->addMeshGeometryShaderHitGroupRecord(anyHitShaderName, closestHitShaderName, payload);
             return std::forward<ShaderRecordCollection>(*this);
@@ -5003,7 +5003,7 @@ namespace LiteFX::Rendering {
         /// <param name="shaderGroup">The shader module or hit group.</param>
         /// <param name="payload">The payload of the shader record.</param>
         /// <returns>A reference to the current shader record collection.</returns>
-        template <typename TPayload> requires (std::alignment_of_v<TPayload>() == 8)
+        template <typename TPayload> requires (std::alignment_of_v<TPayload> == 8)
         inline ShaderRecordCollection&& withShaderRecord(ShaderRecord<TPayload>::shader_group_type shaderGroup, TPayload payload) {
             this->addShaderRecord(shaderGroup, payload);
             return std::forward<ShaderRecordCollection>(*this);
