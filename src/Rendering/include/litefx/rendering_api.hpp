@@ -4847,6 +4847,14 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// Returns the parent shader program of the collection.
+        /// </summary>
+        /// <returns>The parent shader program of the collection.</returns>
+        inline const IShaderProgram& program() const noexcept {
+            return m_program;
+        }
+
+        /// <summary>
         /// Returns an array of all shader records within the shader record collection.
         /// </summary>
         /// <returns>The array containing all shader records within the shader record collection.</returns>
