@@ -7,10 +7,10 @@ RaytracingAccelerationStructure SceneBVH : register(t1, space0);
 void main()
 {
     HitInfo payload;
-    payload.Color = float3(0.9, 0.6, 0.2);
+    payload.Color = float3(0.0, 0.0, 0.0);
     payload.Distance = 1.0;
     
-    uint3 rayIndes = DispatchRaysIndex();
+    uint3 rayIndex = DispatchRaysIndex();
 
-    Output[rayIndes.xy] = float4(payload.Color, 1.f);
+    Output[rayIndex.xy] = float4(payload.Color, 1.f);
 }
