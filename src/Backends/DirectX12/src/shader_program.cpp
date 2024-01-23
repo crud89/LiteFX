@@ -515,13 +515,13 @@ void DirectX12ShaderProgramBuilder::build()
     this->instance()->m_impl->validate();
 }
 
-constexpr UniquePtr<DirectX12ShaderModule> DirectX12ShaderProgramBuilder::makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint)
+constexpr UniquePtr<DirectX12ShaderModule> DirectX12ShaderProgramBuilder::makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
-    return makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, fileName, entryPoint);
+    return makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, fileName, entryPoint, shaderLocalDescriptor);
 }
 
-constexpr UniquePtr<DirectX12ShaderModule> DirectX12ShaderProgramBuilder::makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint)
+constexpr UniquePtr<DirectX12ShaderModule> DirectX12ShaderProgramBuilder::makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
-    return makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, stream, name, entryPoint);
+    return makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, stream, name, entryPoint, shaderLocalDescriptor);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

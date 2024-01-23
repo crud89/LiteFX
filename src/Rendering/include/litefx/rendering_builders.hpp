@@ -381,8 +381,9 @@ namespace LiteFX::Rendering {
         /// <param name="type">The type of the shader module.</param>
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
+        /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data for ray-tracing shaders.</param>
         /// <returns>The shader module instance.</return>
-        constexpr inline virtual UniquePtr<shader_module_type> makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint) = 0;
+        constexpr inline virtual UniquePtr<shader_module_type> makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) = 0;
 
         /// <summary>
         /// Called to create a new shader module in the program that is loaded from a stream.
@@ -391,8 +392,9 @@ namespace LiteFX::Rendering {
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
+        /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data for ray-tracing shaders.</param>
         /// <returns>The shader module instance.</return>
-        constexpr inline virtual UniquePtr<shader_module_type> makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint) = 0;
+        constexpr inline virtual UniquePtr<shader_module_type> makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) = 0;
 
     public:
         /// <summary>
@@ -401,9 +403,10 @@ namespace LiteFX::Rendering {
         /// <param name="type">The type of the shader module.</param>
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
+        /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data for ray-tracing shaders.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withShaderModule(this TSelf&& self, ShaderStage type, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
-            self.m_state.modules.push_back(std::move(static_cast<ShaderProgramBuilder&>(self).makeShaderModule(type, fileName, entryPoint)));
+        constexpr inline [[nodiscard]] auto withShaderModule(this TSelf&& self, ShaderStage type, const String& fileName, const String& entryPoint = "main", const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt) -> TSelf&& {
+            self.m_state.modules.push_back(std::move(static_cast<ShaderProgramBuilder&>(self).makeShaderModule(type, fileName, entryPoint, shaderLocalDescriptor)));
             return std::forward<TSelf>(self);
         }
 
@@ -414,9 +417,10 @@ namespace LiteFX::Rendering {
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
+        /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data for ray-tracing shaders.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withShaderModule(this TSelf&& self, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
-            self.m_state.modules.push_back(std::move(static_cast<ShaderProgramBuilder&>(self).makeShaderModule(type, stream, name, entryPoint)));
+        constexpr inline [[nodiscard]] auto withShaderModule(this TSelf&& self, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint = "main", const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt) -> TSelf&& {
+            self.m_state.modules.push_back(std::move(static_cast<ShaderProgramBuilder&>(self).makeShaderModule(type, stream, name, entryPoint, shaderLocalDescriptor)));
             return std::forward<TSelf>(self);
         }
 
@@ -595,10 +599,11 @@ namespace LiteFX::Rendering {
         /// Adds a ray generation shader module to the program.
         /// </summary>
         /// <param name="fileName">The file name of the module.</param>
+        /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withRayGenerationShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
-            return std::forward<TSelf>(self.withShaderModule(ShaderStage::RayGeneration, fileName, entryPoint));
+        constexpr inline [[nodiscard]] auto withRayGenerationShaderModule(this TSelf&& self, const String& fileName, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::RayGeneration, fileName, entryPoint, shaderLocalDescriptor));
         }
 
         /// <summary>
@@ -606,20 +611,22 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
+        /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withRayGenerationShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
-            return std::forward<TSelf>(self.withShaderModule(ShaderStage::RayGeneration, stream, name, entryPoint));
+        constexpr inline [[nodiscard]] auto withRayGenerationShaderModule(this TSelf&& self, std::istream& stream, const String& name, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::RayGeneration, stream, name, entryPoint, shaderLocalDescriptor));
         }
 
         /// <summary>
         /// Adds a miss shader module to the program.
         /// </summary>
         /// <param name="fileName">The file name of the module.</param>
+        /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withMissShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
-            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Miss, fileName, entryPoint));
+        constexpr inline [[nodiscard]] auto withMissShaderModule(this TSelf&& self, const String& fileName, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Miss, fileName, entryPoint, shaderLocalDescriptor));
         }
 
         /// <summary>
@@ -627,20 +634,22 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
+        /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withMissShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
-            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Miss, stream, name, entryPoint));
+        constexpr inline [[nodiscard]] auto withMissShaderModule(this TSelf&& self, std::istream& stream, const String& name, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Miss, stream, name, entryPoint, shaderLocalDescriptor));
         }
 
         /// <summary>
         /// Adds a callable shader module to the program.
         /// </summary>
         /// <param name="fileName">The file name of the module.</param>
+        /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withCallableShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
-            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Callable, fileName, entryPoint));
+        constexpr inline [[nodiscard]] auto withCallableShaderModule(this TSelf&& self, const String& fileName, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Callable, fileName, entryPoint, shaderLocalDescriptor));
         }
 
         /// <summary>
@@ -648,10 +657,11 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
+        /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withCallableShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
-            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Callable, stream, name, entryPoint));
+        constexpr inline [[nodiscard]] auto withCallableShaderModule(this TSelf&& self, std::istream& stream, const String& name, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Callable, stream, name, entryPoint, shaderLocalDescriptor));
         }
 
         /// <summary>
@@ -660,8 +670,8 @@ namespace LiteFX::Rendering {
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withIntersectionShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
-            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Intersection, fileName, entryPoint));
+        constexpr inline [[nodiscard]] auto withIntersectionShaderModule(this TSelf&& self, const String& fileName, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Intersection, fileName, entryPoint, shaderLocalDescriptor));
         }
 
         /// <summary>
@@ -669,20 +679,22 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
+        /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withIntersectionShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
-            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Intersection, stream, name, entryPoint));
+        constexpr inline [[nodiscard]] auto withIntersectionShaderModule(this TSelf&& self, std::istream& stream, const String& name, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::Intersection, stream, name, entryPoint, shaderLocalDescriptor));
         }
 
         /// <summary>
         /// Adds an any hit shader module to the program.
         /// </summary>
         /// <param name="fileName">The file name of the module.</param>
+        /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withAnyHitShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
-            return std::forward<TSelf>(self.withShaderModule(ShaderStage::AnyHit, fileName, entryPoint));
+        constexpr inline [[nodiscard]] auto withAnyHitShaderModule(this TSelf&& self, const String& fileName, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::AnyHit, fileName, entryPoint, shaderLocalDescriptor));
         }
 
         /// <summary>
@@ -690,20 +702,22 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
+        /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withAnyHitShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
-            return std::forward<TSelf>(self.withShaderModule(ShaderStage::AnyHit, stream, name, entryPoint));
+        constexpr inline [[nodiscard]] auto withAnyHitShaderModule(this TSelf&& self, std::istream& stream, const String& name, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::AnyHit, stream, name, entryPoint, shaderLocalDescriptor));
         }
 
         /// <summary>
         /// Adds a closest hit shader module to the program.
         /// </summary>
         /// <param name="fileName">The file name of the module.</param>
+        /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withClosestHitShaderModule(this TSelf&& self, const String& fileName, const String& entryPoint = "main") -> TSelf&& {
-            return std::forward<TSelf>(self.withShaderModule(ShaderStage::ClosestHit, fileName, entryPoint));
+        constexpr inline [[nodiscard]] auto withClosestHitShaderModule(this TSelf&& self, const String& fileName, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::ClosestHit, fileName, entryPoint, shaderLocalDescriptor));
         }
 
         /// <summary>
@@ -711,10 +725,11 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
+        /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
-        constexpr inline [[nodiscard]] auto withClosestHitShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
-            return std::forward<TSelf>(self.withShaderModule(ShaderStage::ClosestHit, stream, name, entryPoint));
+        constexpr inline [[nodiscard]] auto withClosestHitShaderModule(this TSelf&& self, std::istream& stream, const String& name, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt, const String& entryPoint = "main") -> TSelf&& {
+            return std::forward<TSelf>(self.withShaderModule(ShaderStage::ClosestHit, stream, name, entryPoint, shaderLocalDescriptor));
         }
 #endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
     };

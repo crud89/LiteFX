@@ -25,6 +25,11 @@ struct TransformBuffer {
     glm::mat4 World;
 } transform;
 
+struct alignas(8) GeometryData {
+    UInt32 Index;
+    UInt32 Padding[3];
+};
+
 template<typename TRenderBackend> requires
     meta::implements<TRenderBackend, IRenderBackend>
 struct FileExtensions {
@@ -69,16 +74,21 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
     // Create the shader program.
+    // NOTE: The hit shader here receives per-invocation data at the descriptor bound to register 0, space/set 1.
     SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
         .withRayGenerationShaderModule("shaders/raytracing_gen." + FileExtensions<TRenderBackend>::SHADER)
-        .withClosestHitShaderModule("shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER)
+        .withClosestHitShaderModule("shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER, DescriptorBindingPoint { .Register = 0, .Space = 1 })
         .withMissShaderModule("shaders/raytracing_miss." + FileExtensions<TRenderBackend>::SHADER);
 
     // Build a shader binding table.
+    // NOTE: The local data (payload) for the shader invocation must be defined before building the shader binding table. A shader module may occur multiple times with different 
+    // payloads, which can become hard to read and debug, hence it is preferred to use local shader data as sparingly as possible. In this particular case we pass the geometry 
+    // index to the shader and since out BLAS (defined later) only contains a single geometry, we only need one entry here. If you only target hardware that supports DXR 1.1 or,
+    // you can eliminate the payload entirely by calling the `GeometryIndex()` intrinsic from the shader.
     ShaderRecordCollection shaderRecords = shaderProgram->buildShaderRecordCollection()
         .withShaderRecord("shaders/raytracing_gen." + FileExtensions<TRenderBackend>::SHADER)
         .withShaderRecord("shaders/raytracing_miss." + FileExtensions<TRenderBackend>::SHADER)
-        .withMeshGeometryHitGroupRecord(std::nullopt, "shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER);
+        .withMeshGeometryHitGroupRecord(std::nullopt, "shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER, GeometryData { .Index = 0 });
 
     //// Create a render pipeline.
     //UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")

@@ -2227,6 +2227,22 @@ namespace LiteFX::Rendering {
     public:
         virtual ~ISurface() noexcept = default;
     };
+    
+    /// <summary>
+    /// Describes a single descriptor binding point within a <see cref="IShaderModule" />.
+    /// </summary>
+    struct LITEFX_RENDERING_API DescriptorBindingPoint final {
+    public:
+        /// <summary>
+        /// Stores the register index of the binding point.
+        /// </summary>
+        UInt32 Register { 0 };
+
+        /// <summary>
+        /// Stores the descriptor space (or set index) of the binding point.
+        /// </summary>
+        UInt32 Space { 0 };
+    };
 
     /// <summary>
     /// Represents a single shader module, i.e. a part of a <see cref="IShaderProgram" />.
@@ -2257,6 +2273,26 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The name of the shader module entry point.</returns>
         virtual const String& entryPoint() const noexcept = 0;
+
+        /// <summary>
+        /// For ray-tracing shader modules returns the binding point for the descriptor that receives shader-local data.
+        /// </summary>
+        /// <remarks>
+        /// Ray-tracing shaders, especially hit and intersection shaders may rely on local per-invocation data to handle ray intersections. One prominent example of such data is a custom 
+        /// index that identifies the geometry within the instance that has been hit, which can then be used to index into bindless arrays to acquire additional data, such as material 
+        /// properties or texture maps. This data is placed alongside the shader binding table created from a <see cref="ShaderRecordCollection" /> and passed to the shader when it is 
+        /// invoked. However, when building the <see cref="IPipelineLayout" /> for a ray-tracing pipeline, the device needs to know which descriptors bind globally and which descriptor
+        /// binds locally. This information currently cannot be reliably acquired by shader reflection and must thus be specified on a per-module basis. 
+        /// 
+        /// Note that it is only possible for one descriptor to bind to local data. However, this descriptor can bind a constant/uniform buffer that contains multiple variables. Whilst 
+        /// it is possible to bind buffer references (using <see cref="IDeviceMemory::virtualAddress" />), support for it is differs depending on the shader language. To keep shaders 
+        /// portable, it is recommended to use descriptor indexing to bind buffers and textures and only pass constant values into local descriptor bindings.
+        /// 
+        /// For shader modules of types other than ray-tracing, this setting is ignored.
+        /// </remarks>
+        /// <returns>Returns the binding point for the descriptor that receives shader-local data.</returns>
+        /// <seealso cref="ShaderRecord{{typename TPayload}}" />
+        virtual const Optional<DescriptorBindingPoint>& shaderLocalDescriptor() const noexcept = 0;
     };
 
     /// <summary>
