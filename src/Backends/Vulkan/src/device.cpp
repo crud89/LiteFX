@@ -171,6 +171,7 @@ private:
 
 #ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
         m_extensions.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
+        m_extensions.push_back(VK_KHR_RAY_QUERY_EXTENSION_NAME);
         m_extensions.push_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
         m_extensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
 #endif
@@ -265,8 +266,20 @@ public:
 
         // Enable raytracing features.
 #if   defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+        VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR,
+            .rayQuery = true
+        };
+
+        VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR,
+            .pNext = &rayQueryFeatures,
+            .rayTracingPipeline = true
+        };
+
         VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR,
+            .pNext = &rayTracingPipelineFeatures,
             .accelerationStructure = true,
             .descriptorBindingAccelerationStructureUpdateAfterBind = true
         };
