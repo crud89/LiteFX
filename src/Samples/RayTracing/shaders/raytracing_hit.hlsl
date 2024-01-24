@@ -10,10 +10,10 @@ struct MaterialData
     float4 Color;
 };
 
-StructuredBuffer<MaterialData> materials[] : register(t2, space1);
+StructuredBuffer<MaterialData> materials[]      : register(t2, space2);
 
 [[vk::shader_record_ext]]
-ConstantBuffer<GeometryData> geometryProperties : register(b0, space2);
+ConstantBuffer<GeometryData> geometryProperties : register(b0, space3);
 
 [shader("closesthit")]
 void main(inout HitInfo payload, in Attributes attributes)

@@ -1,10 +1,12 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-enum DescriptorSets : UInt32
+enum class DescriptorSets : UInt32
 {
-    Constant = 0,                                       // All buffers that are immutable.
-    PerFrame = 1,                                       // All buffers that are updated each frame.
+    StaticData   = 0, // Camera and acceleration structures.
+    FrameBuffer  = 1, // The frame buffer descriptor to write into.
+    Materials    = 2, // The bind-less material properties array.
+    GeometryData = 3  // The shader-local per-geometry data.
 };
 
 const Array<Vertex> vertices =
@@ -22,10 +24,6 @@ struct CameraBuffer {
     glm::mat4 InverseView;
     glm::mat4 InverseProjection;
 } camera;
-
-struct TransformBuffer {
-    glm::mat4 World;
-} transform;
 
 struct alignas(8) GeometryData {
     UInt32 Index;
@@ -90,7 +88,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         shaderProgram->buildShaderRecordCollection()
             .withShaderRecord("shaders/raytracing_gen." + FileExtensions<TRenderBackend>::SHADER)
             .withShaderRecord("shaders/raytracing_miss." + FileExtensions<TRenderBackend>::SHADER)
-            .withMeshGeometryHitGroupRecord(std::nullopt, "shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER, GeometryData{ .Index = 0 }))
+            .withMeshGeometryHitGroupRecord(std::nullopt, "shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER, GeometryData { .Index = 0 }))
         .maxBounces(4)
         .layout(shaderProgram->reflectPipelineLayout());
 
@@ -152,41 +150,28 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     commandBuffer->buildAccelerationStructure(*tlas, scratchBuffer);
 
     // Create a shader binding table from the pipeline and transfer it into a GPU buffer (not necessarily required for such a small SBT, but for demonstration purposes).
-    ShaderBindingTableOffsets offsets;
     auto& geometryPipeline = dynamic_cast<IRayTracingPipeline&>(m_device->state().pipeline("RT Geometry"));
-    auto stagingSBT = geometryPipeline.allocateShaderBindingTable(offsets);
+    auto stagingSBT = geometryPipeline.allocateShaderBindingTable(m_offsets);
     auto shaderBindingTable = m_device->factory().createBuffer("Shader Binding Table", BufferType::ShaderBindingTable, ResourceHeap::Resource, stagingSBT->elementSize(), stagingSBT->elements(), ResourceUsage::TransferDestination);
     commandBuffer->transfer(asShared(std::move(stagingSBT)), *shaderBindingTable, 0, 0, shaderBindingTable->elements());
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
-    auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
-    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, ResourceHeap::Resource);
-    auto cameraBindings = cameraBindingLayout.allocate({ { .resource = *cameraBuffer } });
+    auto& staticDataBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::StaticData));
+    auto cameraBuffer = m_device->factory().createBuffer("Camera", staticDataBindingsLayout, 0, ResourceHeap::Resource);
+    auto staticDataBindings = staticDataBindingsLayout.allocate({ { .resource = *cameraBuffer }/*, { .resource = *tlas } */});
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraBuffer);
-
-    // TODO: Handle transform in bind-less buffer.
-    //// Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
-    //// create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
-    //auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    //auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, ResourceHeap::Dynamic, 3);
-    //auto transformBindings = transformBindingLayout.allocateMultiple(3, {
-    //    { { .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
-    //    { { .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
-    //    { { .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
-    //});
-    
+        
     // End and submit the command buffer and wait for it to finish.
     auto fence = commandBuffer->submit();
     m_device->defaultQueue(QueueType::Graphics).waitFor(fence);
     
     // Add everything to the state.
     m_device->state().add(std::move(cameraBuffer));
-    //m_device->state().add(std::move(transformBuffer));
-    m_device->state().add("Camera Bindings", std::move(cameraBindings));
-    //std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Transform Bindings {0}", i++), std::move(binding)); });
+    m_device->state().add(std::move(shaderBindingTable));
+    m_device->state().add("Static Data Bindings", std::move(staticDataBindings));
 }
 
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
@@ -200,7 +185,7 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffe
     camera.InverseProjection = glm::inverse(projection);
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
-    auto cameraStagingBuffer = m_device->factory().createBuffer(m_device->state().pipeline("RT Geometry"), DescriptorSets::Constant, 0, ResourceHeap::Staging);
+    auto cameraStagingBuffer = m_device->factory().createBuffer(m_device->state().pipeline("RT Geometry"), std::to_underlying(DescriptorSets::StaticData), 0, ResourceHeap::Staging);
     cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
     commandBuffer.transfer(asShared(std::move(cameraStagingBuffer)), buffer);
 }
@@ -409,36 +394,42 @@ void SampleApp::drawFrame()
     // Swap the back buffers for the next frame.
     auto backBuffer = m_device->swapChain().swapBackBuffer();
 
+    // TODO: Clear the back buffer.
+
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
-    auto& renderPass = m_device->state().renderPass("Opaque");
-    auto& geometryPipeline = m_device->state().pipeline("Geometry");
-    auto& transformBuffer = m_device->state().buffer("Transform");
-    auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
-    auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer));
+    auto& geometryPipeline = m_device->state().pipeline("RT Geometry");
+    auto& staticDataBindings = m_device->state().descriptorSet("Static Data Bindings");
 
     // Wait for all transfers to finish.
-    renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
+    auto& graphicsQueue = m_device->defaultQueue(QueueType::Graphics);
+    graphicsQueue.beginDebugRegion("Ray-Tracing");
+    graphicsQueue.waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
+    auto commandBuffer = graphicsQueue.createCommandBuffer(true);
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
-    renderPass.begin(backBuffer);
-    auto commandBuffer = renderPass.activeFrameBuffer().commandBuffer(0);
     commandBuffer->use(geometryPipeline);
-    commandBuffer->setViewports(m_viewport.get());
-    commandBuffer->setScissors(m_scissor.get());
+    //commandBuffer->setViewports(m_viewport.get());
+    //commandBuffer->setScissors(m_scissor.get());
 
     // Get the amount of time that has passed since the first frame.
     auto now = std::chrono::high_resolution_clock::now();
     auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
-    // Compute world transform and update the transform buffer.
-    transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
+    // TODO: Rotate camera.
+    //// Compute world transform and update the transform buffer.
+    //transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    //transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
     // Bind both descriptor sets to the pipeline.
-    commandBuffer->bind(cameraBindings);
-    commandBuffer->bind(transformBindings);
+    commandBuffer->bind(staticDataBindings);
+    // TODO: All the other bindings.
+    //commandBuffer->bind(transformBindings);
 
     // Draw the object and present the frame by ending the render pass.
-    //commandBuffer->drawIndexed(indexBuffer.elements());
-    renderPass.end();
+    //commandBuffer->traceRays(...);
+
+    // Present.
+    auto fence = graphicsQueue.submit(commandBuffer);
+    graphicsQueue.endDebugRegion();
+    m_device->swapChain().present(fence);
 }

@@ -77,6 +77,11 @@ private:
 	/// </summary>
 	UInt64 m_transferFence = 0;
 
+	/// <summary>
+	/// Stores the offsets, sizes and stride for the shader records in the only shader binding table we're going to create.
+	/// </summary>
+	ShaderBindingTableOffsets m_offsets;
+
 public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) : 
 		App(), m_window(std::move(window)), m_adapterId(adapterId), m_device(nullptr)
