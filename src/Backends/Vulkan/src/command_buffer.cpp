@@ -610,7 +610,7 @@ void VulkanCommandBuffer::buildAccelerationStructure(const VulkanTopLevelAcceler
 void VulkanCommandBuffer::traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IVulkanBuffer& rayGenerationShaderBindingTable, const IVulkanBuffer* missShaderBindingTable, const IVulkanBuffer* hitShaderBindingTable, const IVulkanBuffer* callableShaderBindingTable) const noexcept
 {
 	VkStridedDeviceAddressRegionKHR raygen = {
-		.deviceAddress = rayGenerationShaderBindingTable.virtualAddress() + offsets.RayGenerationGroupStride,
+		.deviceAddress = rayGenerationShaderBindingTable.virtualAddress() + offsets.RayGenerationGroupOffset,
 		.stride = offsets.RayGenerationGroupStride,
 		.size = offsets.RayGenerationGroupSize
 	};
