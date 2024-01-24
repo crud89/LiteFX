@@ -165,7 +165,6 @@ public:
 
 		// Compute the record size by aligning the handle and payload sizes.
 		auto recordSize = Math::align<UInt64>(rayTracingProperties.shaderGroupHandleSize + payloadSize, rayTracingProperties.shaderGroupBaseAlignment);
-		offsets.RecordStride = recordSize;
 
 		// Count the shader records that go into the SBT.
 		auto totalRecordCount = std::ranges::distance(m_shaderRecordCollection.shaderRecords() | std::views::filter(filterByGroupType));
@@ -209,18 +208,22 @@ public:
 				case ShaderBindingGroup::RayGeneration:
 					offsets.RayGenerationGroupOffset = record * recordSize;
 					offsets.RayGenerationGroupSize = recordCount * recordSize;
+					offsets.RayGenerationGroupStride = recordSize;
 					break;
 				case ShaderBindingGroup::Miss:
 					offsets.MissGroupOffset = record * recordSize;
 					offsets.MissGroupSize = recordCount * recordSize;
+					offsets.MissGroupStride = recordSize;
 					break;
 				case ShaderBindingGroup::Callable:
 					offsets.CallableGroupOffset = record * recordSize;
 					offsets.CallableGroupSize = recordCount * recordSize;
+					offsets.CallableGroupStride = recordSize;
 					break;
 				case ShaderBindingGroup::HitGroup:
 					offsets.HitGroupOffset = record * recordSize;
 					offsets.HitGroupSize = recordCount * recordSize;
+					offsets.HitGroupStride = recordSize;
 					break;
 				default:
 					std::unreachable();

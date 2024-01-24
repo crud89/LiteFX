@@ -3,6 +3,7 @@
 using namespace LiteFX::Rendering::Backends;
 
 extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructures;
+extern PFN_vkCmdTraceRaysKHR vkCmdTraceRays;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -604,5 +605,39 @@ void VulkanCommandBuffer::buildAccelerationStructure(const VulkanTopLevelAcceler
 
 	// Create the acceleration structure.
 	m_impl->buildAccelerationStructure(tlas, scratchBuffer);
+}
+
+void VulkanCommandBuffer::traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IVulkanBuffer& rayGenerationShaderBindingTable, const IVulkanBuffer* missShaderBindingTable, const IVulkanBuffer* hitShaderBindingTable, const IVulkanBuffer* callableShaderBindingTable) const noexcept
+{
+	VkStridedDeviceAddressRegionKHR raygen = {
+		.deviceAddress = rayGenerationShaderBindingTable.virtualAddress() + offsets.RayGenerationGroupStride,
+		.stride = offsets.RayGenerationGroupStride,
+		.size = offsets.RayGenerationGroupSize
+	};
+
+	VkStridedDeviceAddressRegionKHR miss { }, hit { }, callable { };
+
+	if (missShaderBindingTable != nullptr)
+	{
+		miss.deviceAddress = missShaderBindingTable->virtualAddress() + offsets.MissGroupOffset;
+		miss.stride = offsets.MissGroupStride;
+		miss.size = offsets.MissGroupSize;
+	}
+
+	if (hitShaderBindingTable != nullptr)
+	{
+		hit.deviceAddress = hitShaderBindingTable->virtualAddress() + offsets.HitGroupOffset;
+		hit.stride = offsets.HitGroupStride;
+		hit.size = offsets.HitGroupSize;
+	}
+
+	if (callableShaderBindingTable != nullptr)
+	{
+		callable.deviceAddress = callableShaderBindingTable->virtualAddress() + offsets.CallableGroupOffset;
+		callable.stride = offsets.CallableGroupStride;
+		callable.size = offsets.CallableGroupSize;
+	}
+
+	::vkCmdTraceRays(this->handle(), &raygen, &miss, &hit, &callable, width, height, depth);
 }
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)

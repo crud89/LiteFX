@@ -422,6 +422,7 @@ void SampleApp::drawFrame()
     auto& staticDataBindings = m_device->state().descriptorSet("Static Data Bindings");
     auto& materialBindings = m_device->state().descriptorSet("Material Bindings");
     auto& outputBindings = m_device->state().descriptorSet(fmt::format("Output Bindings {0}", backBuffer));
+    auto& shaderBindingTable = m_device->state().buffer("Shader Binding Table");
 
     // Wait for all transfers to finish.
     auto& graphicsQueue = m_device->defaultQueue(QueueType::Graphics);
@@ -444,11 +445,9 @@ void SampleApp::drawFrame()
     commandBuffer->bind(staticDataBindings);
     commandBuffer->bind(outputBindings);
     commandBuffer->bind(materialBindings);
-    // TODO: All the other bindings.
-    //commandBuffer->bind(transformBindings);
 
     // Draw the object and present the frame by ending the render pass.
-    //commandBuffer->traceRays(...);
+    commandBuffer->traceRays(m_viewport->getRectangle().width(), m_viewport->getRectangle().height(), 1, m_offsets, shaderBindingTable, &shaderBindingTable, &shaderBindingTable);
 
     // Present.
     auto fence = graphicsQueue.submit(commandBuffer);

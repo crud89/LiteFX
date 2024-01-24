@@ -522,4 +522,9 @@ void DirectX12CommandBuffer::buildAccelerationStructure(const DirectX12TopLevelA
 	// Create the acceleration structure.
 	m_impl->buildAccelerationStructure(tlas, scratchBuffer);
 }
+
+void DirectX12CommandBuffer::traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IDirectX12Buffer& rayGenerationShaderBindingTable, const IDirectX12Buffer* missShaderBindingTable, const IDirectX12Buffer* hitShaderBindingTable, const IDirectX12Buffer* callableShaderBindingTable) const noexcept
+{
+	throw;
+}
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)

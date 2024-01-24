@@ -618,6 +618,14 @@ namespace LiteFX::Rendering {
         virtual void buildAccelerationStructure(const top_level_acceleration_structure_type& tlas, const SharedPtr<const buffer_type> scratchBuffer) const = 0;
 
         // TODO: Add copy commands to support compaction and serialization.
+
+        /// <inheritdoc />
+        virtual void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const buffer_type& rayGenerationShaderBindingTable, const buffer_type* missShaderBindingTable, const buffer_type* hitShaderBindingTable, const buffer_type* callableShaderBindingTable) const noexcept = 0;
+
+        /// <inheritdoc />
+        inline void traceRays(const Vector3u& dimensions, const ShaderBindingTableOffsets& offsets, const buffer_type& rayGenerationShaderBindingTable, const buffer_type* missShaderBindingTable, const buffer_type* hitShaderBindingTable, const buffer_type* callableShaderBindingTable) const noexcept {
+            this->traceRays(dimensions.x(), dimensions.y(), dimensions.z(), offsets, rayGenerationShaderBindingTable, missShaderBindingTable, hitShaderBindingTable, callableShaderBindingTable);
+        }
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
     private:
@@ -720,6 +728,10 @@ namespace LiteFX::Rendering {
 
         void cmdBuildAccelerationStructure(const ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer) const override {
             this->buildAccelerationStructure(dynamic_cast<const top_level_acceleration_structure_type&>(tlas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer));
+        }
+
+        void cmdTraceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable, const IBuffer* hitShaderBindingTable, const IBuffer* callableShaderBindingTable) const noexcept override {
+            this->traceRays(width, height, depth, offsets, dynamic_cast<const buffer_type&>(rayGenerationShaderBindingTable), dynamic_cast<const buffer_type*>(missShaderBindingTable), dynamic_cast<const buffer_type*>(hitShaderBindingTable), dynamic_cast<const buffer_type*>(callableShaderBindingTable));
         }
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     };

@@ -3050,6 +3050,75 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Describes the offsets and sizes of a shader group within a shader binding table buffer.
+    /// </summary>
+    /// <remarks>
+    /// If a group is not present within a shader binding table, the offset for this group is set to the maximum possible value and the size is set to `0`.
+    /// </remarks>
+    /// <seealso cref="IRayTracingPipeline::allocateShaderBindingTable" /> 
+    struct LITEFX_RENDERING_API ShaderBindingTableOffsets {
+        /// <summary>
+        /// The offset to the beginning of the ray generation group within the shader binding table.
+        /// </summary>
+        UInt64 RayGenerationGroupOffset { std::numeric_limits<UInt64>::max() };
+
+        /// <summary>
+        /// The size of the ray generation group within the shader binding table.
+        /// </summary>
+        UInt64 RayGenerationGroupSize { 0 };
+
+        /// <summary>
+        /// The stride between individual ray generation group records in the shader binding table.
+        /// </summary>
+        UInt64 RayGenerationGroupStride { 0 };
+
+        /// <summary>
+        /// The offset to the beginning of the hit group within the shader binding table.
+        /// </summary>
+        UInt64 HitGroupOffset { std::numeric_limits<UInt64>::max() };
+
+        /// <summary>
+        /// The size of the hit group within the shader binding table.
+        /// </summary>
+        UInt64 HitGroupSize { 0 };
+
+        /// <summary>
+        /// The stride between individual hit group records in the shader binding table.
+        /// </summary>
+        UInt64 HitGroupStride { 0 };
+
+        /// <summary>
+        /// The offset to the beginning of the miss group within the shader binding table.
+        /// </summary>
+        UInt64 MissGroupOffset{ std::numeric_limits<UInt64>::max() };
+
+        /// <summary>
+        /// The size of the miss group within the shader binding table.
+        /// </summary>
+        UInt64 MissGroupSize { 0 };
+
+        /// <summary>
+        /// The stride between individual miss group records in the shader binding table.
+        /// </summary>
+        UInt64 MissGroupStride { 0 };
+
+        /// <summary>
+        /// The offset to the beginning of the callable group within the shader binding table.
+        /// </summary>
+        UInt64 CallableGroupOffset { std::numeric_limits<UInt64>::max() };
+
+        /// <summary>
+        /// The size of the callable group within the shader binding table.
+        /// </summary>
+        UInt64 CallableGroupSize { 0 };
+
+        /// <summary>
+        /// The stride between individual callable group records in the shader binding table.
+        /// </summary>
+        UInt64 CallableGroupStride { 0 };
+    };
+
+    /// <summary>
     /// An event that is used to measure timestamps in a command queue.
     /// </summary>
     /// <remarks>
@@ -5846,6 +5915,36 @@ namespace LiteFX::Rendering {
         }
 #endif
 
+#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
+        /// <summary>
+        /// Executes a query on a ray-tracing pipeline.
+        /// </summary>
+        /// <param name="width">The width of the ray-tracing query.</param>
+        /// <param name="height">The height of the ray-tracing query.</param>
+        /// <param name="depth">The depth of the ray-tracing query.</param>
+        /// <param name="offsets">The offsets, sizes and strides for each shader binding table.</param>
+        /// <param name="rayGenerationShaderBindingTable">The shader binding table that contains the ray generation shader.</param>
+        /// <param name="missShaderBindingTable">The shader binding table that contains the miss shaders.</param>
+        /// <param name="hitShaderBindingTable">The shader binding table that contains the hit shaders.</param>
+        /// <param name="callableShaderBindingTable">The shader binding table that contains the callable shaders.</param>
+        inline void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable = nullptr, const IBuffer* hitShaderBindingTable = nullptr, const IBuffer* callableShaderBindingTable = nullptr) const noexcept {
+            this->cmdTraceRays(width, height, depth, offsets, rayGenerationShaderBindingTable, missShaderBindingTable, hitShaderBindingTable, callableShaderBindingTable);
+        }
+
+        /// <summary>
+        /// Executes a query on a ray-tracing pipeline.
+        /// </summary>
+        /// <param name="dimensions">The dimensions of the ray-tracing query.</param>
+        /// <param name="offsets">The offsets, sizes and strides for each shader binding table.</param>
+        /// <param name="rayGenerationShaderBindingTable">The shader binding table that contains the ray generation shader.</param>
+        /// <param name="missShaderBindingTable">The shader binding table that contains the miss shaders.</param>
+        /// <param name="hitShaderBindingTable">The shader binding table that contains the hit shaders.</param>
+        /// <param name="callableShaderBindingTable">The shader binding table that contains the callable shaders.</param>
+        inline void traceRays(const Vector3u& dimensions, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable = nullptr, const IBuffer* hitShaderBindingTable = nullptr, const IBuffer* callableShaderBindingTable = nullptr) const noexcept {
+            this->traceRays(dimensions.x(), dimensions.y(), dimensions.z(), offsets, rayGenerationShaderBindingTable, missShaderBindingTable, hitShaderBindingTable, callableShaderBindingTable);
+        }
+#endif
+
         /// <summary>
         /// Draws a number of vertices from the currently bound vertex buffer.
         /// </summary>
@@ -6073,6 +6172,7 @@ namespace LiteFX::Rendering {
         virtual void cmdBuildAccelerationStructure(const IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer) const = 0;
         virtual void cmdBuildAccelerationStructure(const ITopLevelAccelerationStructure& tlas) const = 0;
         virtual void cmdBuildAccelerationStructure(const ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer) const = 0;
+        virtual void cmdTraceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable, const IBuffer* hitShaderBindingTable, const IBuffer* callableShaderBindingTable) const noexcept = 0;
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
         /// <summary>
@@ -6131,60 +6231,6 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IComputePipeline : public virtual IPipeline {
     public:
         virtual ~IComputePipeline() noexcept = default;
-    };
-
-    /// <summary>
-    /// Describes the offsets and sizes of a shader group within a shader binding table buffer.
-    /// </summary>
-    /// <remarks>
-    /// If a group is not present within a shader binding table, the offset for this group is set to the maximum possible value and the size is set to `0`.
-    /// </remarks>
-    /// <seealso cref="IRayTracingPipeline::allocateShaderBindingTable" /> 
-    struct LITEFX_RENDERING_API ShaderBindingTableOffsets {
-        /// <summary>
-        /// The stride between individual records in the shader binding table.
-        /// </summary>
-        UInt64 RecordStride { 0 };
-
-        /// <summary>
-        /// The offset to the beginning of the ray generation group within the shader binding table.
-        /// </summary>
-        UInt64 RayGenerationGroupOffset { std::numeric_limits<UInt64>::max() };
-
-        /// <summary>
-        /// The size of the ray generation group within the shader binding table.
-        /// </summary>
-        UInt64 RayGenerationGroupSize { 0 };
-
-        /// <summary>
-        /// The offset to the beginning of the hit group within the shader binding table.
-        /// </summary>
-        UInt64 HitGroupOffset { std::numeric_limits<UInt64>::max() };
-
-        /// <summary>
-        /// The size of the hit group within the shader binding table.
-        /// </summary>
-        UInt64 HitGroupSize { 0 };
-
-        /// <summary>
-        /// The offset to the beginning of the miss group within the shader binding table.
-        /// </summary>
-        UInt64 MissGroupOffset{ std::numeric_limits<UInt64>::max() };
-
-        /// <summary>
-        /// The size of the miss group within the shader binding table.
-        /// </summary>
-        UInt64 MissGroupSize { 0 };
-
-        /// <summary>
-        /// The offset to the beginning of the callable group within the shader binding table.
-        /// </summary>
-        UInt64 CallableGroupOffset { std::numeric_limits<UInt64>::max() };
-
-        /// <summary>
-        /// The size of the callable group within the shader binding table.
-        /// </summary>
-        UInt64 CallableGroupSize { 0 };
     };
 
     /// <summary>
