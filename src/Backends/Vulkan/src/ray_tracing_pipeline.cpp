@@ -141,7 +141,7 @@ public:
 	UniquePtr<IVulkanBuffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups)
 	{
 		// NOTE: It is assumed that the shader record collection did not change between pipeline creation and SBT allocation (hence its const-ness)!
-		offsets = {};
+		offsets = { };
 		
 		// Get the physical device properties, as they dictate alignment rules.
 		VkPhysicalDeviceRayTracingPipelinePropertiesKHR rayTracingProperties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR };
@@ -165,6 +165,7 @@ public:
 
 		// Compute the record size by aligning the handle and payload sizes.
 		auto recordSize = Math::align<UInt64>(rayTracingProperties.shaderGroupHandleSize + payloadSize, rayTracingProperties.shaderGroupBaseAlignment);
+		offsets.RecordStride = recordSize;
 
 		// Count the shader records that go into the SBT.
 		auto totalRecordCount = std::ranges::distance(m_shaderRecordCollection.shaderRecords() | std::views::filter(filterByGroupType));

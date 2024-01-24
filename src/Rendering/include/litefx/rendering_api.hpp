@@ -6107,6 +6107,11 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IRayTracingPipeline::allocateShaderBindingTable" /> 
     struct LITEFX_RENDERING_API ShaderBindingTableOffsets {
         /// <summary>
+        /// The stride between individual records in the shader binding table.
+        /// </summary>
+        UInt64 RecordStride { 0 };
+
+        /// <summary>
         /// The offset to the beginning of the ray generation group within the shader binding table.
         /// </summary>
         UInt64 RayGenerationGroupOffset { std::numeric_limits<UInt64>::max() };
