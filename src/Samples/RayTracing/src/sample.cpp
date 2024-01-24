@@ -430,6 +430,11 @@ void SampleApp::drawFrame()
     graphicsQueue.waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
     auto commandBuffer = graphicsQueue.createCommandBuffer(true);
 
+    // Transition back buffer image into read-write state.
+    auto barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Raytracing);
+    barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::Undefined, ImageLayout::ReadWrite);
+    commandBuffer->barrier(*barrier);
+
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     commandBuffer->use(geometryPipeline);
     //commandBuffer->setViewports(m_viewport.get());
@@ -448,6 +453,11 @@ void SampleApp::drawFrame()
 
     // Draw the object and present the frame by ending the render pass.
     commandBuffer->traceRays(m_viewport->getRectangle().width(), m_viewport->getRectangle().height(), 1, m_offsets, shaderBindingTable, &shaderBindingTable, &shaderBindingTable);
+
+    // Transition the image back into `Present` layout.
+    barrier = m_device->makeBarrier(PipelineStage::Raytracing, PipelineStage::Resolve);
+    barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::ShaderReadWrite, ResourceAccess::Common, ImageLayout::ReadWrite, ImageLayout::Present);
+    commandBuffer->barrier(*barrier);
 
     // Present.
     auto fence = graphicsQueue.submit(commandBuffer);
