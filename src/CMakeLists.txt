@@ -56,6 +56,7 @@ IF(LITEFX_BUILD_EXAMPLES)
     ADD_SUBDIRECTORY(Samples/Multithreading)
     ADD_SUBDIRECTORY(Samples/Bindless)
     ADD_SUBDIRECTORY(Samples/Compute)
+    ADD_SUBDIRECTORY(Samples/Indirect)
 
     IF(LITEFX_BUILD_MESH_SHADER_SUPPORT)
         ADD_SUBDIRECTORY(Samples/MeshShader)

@@ -158,8 +158,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="parent">The parent pipeline layout builder.</param>
 		/// <param name="space">The space the descriptor set is bound to.</param>
 		/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
-		/// <param name="maxUnboundedArraySize">The maximum array size of unbounded descriptor arrays in this descriptor set.</param>
-		constexpr inline explicit VulkanDescriptorSetLayoutBuilder(VulkanPipelineLayoutBuilder& parent, UInt32 space = 0, ShaderStage stages = ShaderStage::Any, UInt32 maxUnboundedArraySize = 0);
+		constexpr inline explicit VulkanDescriptorSetLayoutBuilder(VulkanPipelineLayoutBuilder& parent, UInt32 space = 0, ShaderStage stages = ShaderStage::Any);
 		VulkanDescriptorSetLayoutBuilder(const VulkanDescriptorSetLayoutBuilder&) = delete;
 		VulkanDescriptorSetLayoutBuilder(VulkanDescriptorSetLayoutBuilder&&) = delete;
 		constexpr inline virtual ~VulkanDescriptorSetLayoutBuilder() noexcept;
@@ -236,8 +235,7 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="space">The space, the descriptor set is bound to.</param>
 		/// <param name="stages">The stages, the descriptor set will be accessible from.</param>
-		/// <param name="maxUnboundedArraySize">The maximum array size of unbounded descriptor arrays in this descriptor set.</param>
-		constexpr inline VulkanDescriptorSetLayoutBuilder descriptorSet(UInt32 space = 0, ShaderStage stages = ShaderStage::Any, UInt32 maxUnboundedArraySize = 0);
+		constexpr inline VulkanDescriptorSetLayoutBuilder descriptorSet(UInt32 space = 0, ShaderStage stages = ShaderStage::Any);
 
 		/// <summary>
 		/// Builds a new push constants layout for the pipeline layout.
