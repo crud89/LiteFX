@@ -47,7 +47,6 @@ template<typename TRenderBackend> requires
     meta::implements<TRenderBackend, IRenderBackend>
 void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState)
 {
-    using RenderPass = TRenderBackend::render_pass_type;
     using RayTracingPipeline = TRenderBackend::ray_tracing_pipeline_type;
     using PipelineLayout = TRenderBackend::pipeline_layout_type;
     using ShaderProgram = TRenderBackend::shader_program_type;
@@ -67,10 +66,6 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
             .add();
 
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
-
-    // Create a geometry render pass.
-    UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
-        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f });
 
     // Create the shader program.
     // NOTE: The hit shader here receives per-invocation data at the descriptor bound to register 0, space/set 1.
@@ -93,7 +88,6 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .layout(shaderProgram->reflectPipelineLayout());
 
     // Add the resources to the device state.
-    device->state().add(std::move(renderPass));
     device->state().add(std::move(rayTracingPipeline));
 }
 
@@ -166,6 +160,15 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraBuffer);
         
+    // Bind the swap chain back buffers to the ray-tracing pipeline output.
+    auto& swapChain = m_device->swapChain();
+    auto& outputBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::FrameBuffer));
+    auto outputBindings = outputBindingsLayout.allocateMultiple(3, {
+        { { .resource = *swapChain.image(0) } },
+        { { .resource = *swapChain.image(1) } },
+        { { .resource = *swapChain.image(2) } }
+    });
+
     // End and submit the command buffer and wait for it to finish.
     auto fence = commandBuffer->submit();
     m_device->defaultQueue(QueueType::Graphics).waitFor(fence);
@@ -175,6 +178,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_device->state().add(std::move(cameraBuffer));
     m_device->state().add(std::move(shaderBindingTable));
     m_device->state().add("Static Data Bindings", std::move(staticDataBindings));
+    std::ranges::for_each(outputBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Output Bindings {0}", i++), std::move(binding)); });
 }
 
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
@@ -285,10 +289,7 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     auto renderArea = Size2d(e.width(), e.height());
     m_device->swapChain().reset(surfaceFormat, renderArea, 3);
 
-    // NOTE: Important to do this in order, since dependencies (i.e. input attachments) are re-created and might be mapped to images that do no longer exist when a dependency
-    //       gets re-created. This is hard to detect, since some frame buffers can have a constant size, that does not change with the render area and do not need to be 
-    //       re-created. We should either think of a clever implicit dependency management for this, or at least document this behavior!
-    m_device->state().renderPass("Opaque").resizeFrameBuffers(renderArea);
+    // Re-bind swap chain back buffers to ray-tracing pipeline output.
 
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
@@ -397,11 +398,10 @@ void SampleApp::drawFrame()
     // Swap the back buffers for the next frame.
     auto backBuffer = m_device->swapChain().swapBackBuffer();
 
-    // TODO: Clear the back buffer.
-
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
     auto& geometryPipeline = m_device->state().pipeline("RT Geometry");
     auto& staticDataBindings = m_device->state().descriptorSet("Static Data Bindings");
+    auto& outputBindings = m_device->state().descriptorSet(fmt::format("Output Bindings {0}", backBuffer));
 
     // Wait for all transfers to finish.
     auto& graphicsQueue = m_device->defaultQueue(QueueType::Graphics);
@@ -419,12 +419,10 @@ void SampleApp::drawFrame()
     auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
     // TODO: Rotate camera.
-    //// Compute world transform and update the transform buffer.
-    //transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    //transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
     // Bind both descriptor sets to the pipeline.
     commandBuffer->bind(staticDataBindings);
+    commandBuffer->bind(outputBindings);
     // TODO: All the other bindings.
     //commandBuffer->bind(transformBindings);
 
