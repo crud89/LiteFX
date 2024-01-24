@@ -463,13 +463,13 @@ Enumerable<UniquePtr<IVulkanSampler>> VulkanGraphicsFactory::createSamplers(UInt
 }
 
 #if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-UniquePtr<VulkanBottomLevelAccelerationStructure> VulkanGraphicsFactory::createBottomLevelAccelerationStructure(AccelerationStructureFlags flags) const
+UniquePtr<VulkanBottomLevelAccelerationStructure> VulkanGraphicsFactory::createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const
 {
-	return makeUnique<VulkanBottomLevelAccelerationStructure>(flags);
+	return makeUnique<VulkanBottomLevelAccelerationStructure>(flags, name);
 }
 
-UniquePtr<VulkanTopLevelAccelerationStructure> VulkanGraphicsFactory::createTopLevelAccelerationStructure(AccelerationStructureFlags flags) const
+UniquePtr<VulkanTopLevelAccelerationStructure> VulkanGraphicsFactory::createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const
 {
-	return makeUnique<VulkanTopLevelAccelerationStructure>(flags);
+	return makeUnique<VulkanTopLevelAccelerationStructure>(flags, name);
 }
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)

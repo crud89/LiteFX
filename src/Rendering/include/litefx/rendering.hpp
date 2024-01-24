@@ -1142,10 +1142,20 @@ namespace LiteFX::Rendering {
 
 #if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
         /// <inheritdoc />
-        virtual UniquePtr<TBLAS> createBottomLevelAccelerationStructure(AccelerationStructureFlags flags) const = 0;
+        inline UniquePtr<TBLAS> createBottomLevelAccelerationStructure(AccelerationStructureFlags flags) const {
+            return this->createBottomLevelAccelerationStructure("", flags);
+        }
 
         /// <inheritdoc />
-        virtual UniquePtr<TTLAS> createTopLevelAccelerationStructure(AccelerationStructureFlags flags) const = 0;
+        virtual UniquePtr<TBLAS> createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const = 0;
+
+        /// <inheritdoc />
+        inline UniquePtr<TTLAS> createTopLevelAccelerationStructure(AccelerationStructureFlags flags) const {
+            return this->createTopLevelAccelerationStructure("", flags);
+        }
+
+        /// <inheritdoc />
+        virtual UniquePtr<TTLAS> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const = 0;
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
     private:
@@ -1206,12 +1216,12 @@ namespace LiteFX::Rendering {
         }
 
 #if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-        inline UniquePtr<IBottomLevelAccelerationStructure> getBlas(AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override {
-            return this->createBottomLevelAccelerationStructure(flags);
+        inline UniquePtr<IBottomLevelAccelerationStructure> getBlas(StringView name, AccelerationStructureFlags flags) const override {
+            return this->createBottomLevelAccelerationStructure(name, flags);
         }
 
-        inline UniquePtr<ITopLevelAccelerationStructure> getTlas(AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override {
-            return this->createTopLevelAccelerationStructure(flags);
+        inline UniquePtr<ITopLevelAccelerationStructure> getTlas(StringView name, AccelerationStructureFlags flags) const override {
+            return this->createTopLevelAccelerationStructure(name, flags);
         }
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     };

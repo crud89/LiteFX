@@ -125,7 +125,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     blas->withTriangleMesh({ asShared(std::move(vertexBuffer)), asShared(std::move(indexBuffer)) });
     blas->allocateBuffer(*m_device);
 
-    auto tlas = m_device->factory().createTopLevelAccelerationStructure();
+    auto tlas = m_device->factory().createTopLevelAccelerationStructure("TLAS");
     tlas->withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-2.0f, -2.0f, 0.0f))), 0, 0)
         .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-2.0f, 0.0f, 0.0f))), 1, 0)
         .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-2.0f, 2.0f, 0.0f))), 2, 0)
@@ -171,6 +171,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_device->defaultQueue(QueueType::Graphics).waitFor(fence);
     
     // Add everything to the state.
+    m_device->state().add(std::move(tlas)); // No need to store the BLAS, as it is contained in the TLAS.
     m_device->state().add(std::move(cameraBuffer));
     m_device->state().add(std::move(shaderBindingTable));
     m_device->state().add("Static Data Bindings", std::move(staticDataBindings));

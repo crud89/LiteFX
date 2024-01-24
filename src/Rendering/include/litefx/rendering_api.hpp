@@ -38,6 +38,7 @@ namespace LiteFX::Rendering {
     class IBuffer;
     class IImage;
     class ISampler;
+    class IAccelerationStructure;
     class IBottomLevelAccelerationStructure;
     class ITopLevelAccelerationStructure;
     class IBarrier;
@@ -2099,6 +2100,21 @@ namespace LiteFX::Rendering {
         /// <param name="sampler">The sampler to add to the device state.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if another sampler with the same <paramref name="id" /> has already been added.</exception>
         void add(const String& id, UniquePtr<ISampler>&& sampler);
+
+        /// <summary>
+        /// Adds a new acceleration structure to the device state and uses its name as identifier.
+        /// </summary>
+        /// <param name="accelerationStructure">The acceleration structure to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another acceleration structure with the same <paramref name="id" /> has already been added.</exception>
+        void add(UniquePtr<IAccelerationStructure>&& accelerationStructure);
+
+        /// <summary>
+        /// Adds a new acceleration structure to the device state.
+        /// </summary>
+        /// <param name="id">The identifier for the acceleration structure.</param>
+        /// <param name="accelerationStructure">The acceleration structure to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another acceleration structure with the same <paramref name="id" /> has already been added.</exception>
+        void add(const String& id, UniquePtr<IAccelerationStructure>&& accelerationStructure);
         
         /// <summary>
         /// Adds a new descriptor set to the device state.
@@ -2157,7 +2173,7 @@ namespace LiteFX::Rendering {
         IImage& image(const String& id) const;
 
         /// <summary>
-        /// Returns an sampler from the device state.
+        /// Returns a sampler from the device state.
         /// </summary>
         /// <param name="id">The identifier associated with the sampler.</param>
         /// <returns>A reference of the sampler.</returns>
@@ -2165,7 +2181,15 @@ namespace LiteFX::Rendering {
         ISampler& sampler(const String& id) const;
 
         /// <summary>
-        /// Returns an descriptor set from the device state.
+        /// Returns an acceleration structure from the device state.
+        /// </summary>
+        /// <param name="id">The identifier associated with the acceleration structure.</param>
+        /// <returns>A reference of the acceleration structure.</returns>
+        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no acceleration structure has been added for the provided <paramref name="id" />.</exception>
+        IAccelerationStructure& accelerationStructure(const String& id) const;
+
+        /// <summary>
+        /// Returns a descriptor set from the device state.
         /// </summary>
         /// <param name="id">The identifier associated with the descriptor set.</param>
         /// <returns>A reference of the descriptor set.</returns>
@@ -3650,7 +3674,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <seealso cref="IBottomLevelAccelerationStructure" />
     /// <seealso cref="ITopLevelAccelerationStructure" />
-    class LITEFX_RENDERING_API IAccelerationStructure {
+    class LITEFX_RENDERING_API IAccelerationStructure : public virtual IStateResource {
     public:
         virtual ~IAccelerationStructure() noexcept = default;
 
@@ -7324,7 +7348,18 @@ namespace LiteFX::Rendering {
         /// <returns>The bottom-level acceleration structure instance.</returns>
         /// <seealso cref="IBottomLevelAccelerationStructure" />
         inline UniquePtr<IBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None) const {
-            return this->getBlas(flags);
+            return this->createBottomLevelAccelerationStructure("", flags);
+        }
+
+        /// <summary>
+        /// Creates a bottom-level acceleration structure.
+        /// </summary>
+        /// <param name="name">The name of the acceleration structure resource.</param>
+        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
+        /// <returns>The bottom-level acceleration structure instance.</returns>
+        /// <seealso cref="IBottomLevelAccelerationStructure" />
+        inline UniquePtr<IBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const {
+            return this->getBlas(name, flags);
         }
 
         /// <summary>
@@ -7334,7 +7369,18 @@ namespace LiteFX::Rendering {
         /// <returns>The top-level acceleration structure instance.</returns>
         /// <seealso cref="ITopLevelAccelerationStructure" />
         inline UniquePtr<ITopLevelAccelerationStructure> createTopLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None) const {
-            return this->getTlas(flags);
+            return this->createTopLevelAccelerationStructure("", flags);
+        }
+
+        /// <summary>
+        /// Creates a top-level acceleration structure.
+        /// </summary>
+        /// <param name="name">The name of the acceleration structure resource.</param>
+        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
+        /// <returns>The top-level acceleration structure instance.</returns>
+        /// <seealso cref="ITopLevelAccelerationStructure" />
+        inline UniquePtr<ITopLevelAccelerationStructure> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const {
+            return this->getTlas(name, flags);
         }
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
@@ -7355,8 +7401,8 @@ namespace LiteFX::Rendering {
         virtual Enumerable<UniquePtr<ISampler>> getSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
         
 #if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-        virtual UniquePtr<IBottomLevelAccelerationStructure> getBlas(AccelerationStructureFlags flags) const = 0;
-        virtual UniquePtr<ITopLevelAccelerationStructure> getTlas(AccelerationStructureFlags flags) const = 0;
+        virtual UniquePtr<IBottomLevelAccelerationStructure> getBlas(StringView name, AccelerationStructureFlags flags) const = 0;
+        virtual UniquePtr<ITopLevelAccelerationStructure> getTlas(StringView name, AccelerationStructureFlags flags) const = 0;
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     };
 

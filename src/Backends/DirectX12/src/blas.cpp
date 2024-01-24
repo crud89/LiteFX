@@ -85,8 +85,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12BottomLevelAccelerationStructure::DirectX12BottomLevelAccelerationStructure(AccelerationStructureFlags flags) :
-    m_impl(makePimpl<DirectX12BottomLevelAccelerationStructureImpl>(this, flags))
+DirectX12BottomLevelAccelerationStructure::DirectX12BottomLevelAccelerationStructure(AccelerationStructureFlags flags, StringView name) :
+    m_impl(makePimpl<DirectX12BottomLevelAccelerationStructureImpl>(this, flags)), StateResource(name)
 {
 }
 

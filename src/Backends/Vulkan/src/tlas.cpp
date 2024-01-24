@@ -54,8 +54,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanTopLevelAccelerationStructure::VulkanTopLevelAccelerationStructure(AccelerationStructureFlags flags) :
-    m_impl(makePimpl<VulkanTopLevelAccelerationStructureImpl>(this, flags)), Resource(VK_NULL_HANDLE)
+VulkanTopLevelAccelerationStructure::VulkanTopLevelAccelerationStructure(AccelerationStructureFlags flags, StringView name) :
+    m_impl(makePimpl<VulkanTopLevelAccelerationStructureImpl>(this, flags)), Resource(VK_NULL_HANDLE), StateResource(name)
 {
 }
 

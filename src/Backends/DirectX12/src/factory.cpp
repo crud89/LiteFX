@@ -331,13 +331,13 @@ Enumerable<UniquePtr<IDirectX12Sampler>> DirectX12GraphicsFactory::createSampler
 }
 
 #if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-UniquePtr<DirectX12BottomLevelAccelerationStructure> DirectX12GraphicsFactory::createBottomLevelAccelerationStructure(AccelerationStructureFlags flags) const
+UniquePtr<DirectX12BottomLevelAccelerationStructure> DirectX12GraphicsFactory::createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const
 {
-	return makeUnique<DirectX12BottomLevelAccelerationStructure>(flags);
+	return makeUnique<DirectX12BottomLevelAccelerationStructure>(flags, name);
 }
 
-UniquePtr<DirectX12TopLevelAccelerationStructure> DirectX12GraphicsFactory::createTopLevelAccelerationStructure(AccelerationStructureFlags flags) const
+UniquePtr<DirectX12TopLevelAccelerationStructure> DirectX12GraphicsFactory::createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const
 {
-	return makeUnique<DirectX12TopLevelAccelerationStructure>(flags);
+	return makeUnique<DirectX12TopLevelAccelerationStructure>(flags, name);
 }
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)

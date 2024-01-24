@@ -98,8 +98,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBottomLevelAccelerationStructure::VulkanBottomLevelAccelerationStructure(AccelerationStructureFlags flags) :
-    m_impl(makePimpl<VulkanBottomLevelAccelerationStructureImpl>(this, flags)), Resource(VK_NULL_HANDLE)
+VulkanBottomLevelAccelerationStructure::VulkanBottomLevelAccelerationStructure(AccelerationStructureFlags flags, StringView name) :
+    m_impl(makePimpl<VulkanBottomLevelAccelerationStructureImpl>(this, flags)), Resource(VK_NULL_HANDLE), StateResource(name)
 {
 }
 
