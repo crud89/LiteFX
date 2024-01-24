@@ -19,6 +19,8 @@ const Array<UInt16> indices = { 0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3 };
 
 struct CameraBuffer {
     glm::mat4 ViewProjection;
+    glm::mat4 InverseView;
+    glm::mat4 InverseProjection;
 } camera;
 
 struct TransformBuffer {
@@ -156,8 +158,6 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto shaderBindingTable = m_device->factory().createBuffer("Shader Binding Table", BufferType::ShaderBindingTable, ResourceHeap::Resource, stagingSBT->elementSize(), stagingSBT->elements(), ResourceUsage::TransferDestination);
     commandBuffer->transfer(asShared(std::move(stagingSBT)), *shaderBindingTable, 0, 0, shaderBindingTable->elements());
 
-    throw;
-
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
@@ -167,15 +167,16 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraBuffer);
 
-    // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
-    // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
-    auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, ResourceHeap::Dynamic, 3);
-    auto transformBindings = transformBindingLayout.allocateMultiple(3, {
-        { { .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
-        { { .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
-        { { .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
-    });
+    // TODO: Handle transform in bind-less buffer.
+    //// Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
+    //// create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
+    //auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
+    //auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, ResourceHeap::Dynamic, 3);
+    //auto transformBindings = transformBindingLayout.allocateMultiple(3, {
+    //    { { .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
+    //    { { .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
+    //    { { .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
+    //});
     
     // End and submit the command buffer and wait for it to finish.
     auto fence = commandBuffer->submit();
@@ -183,9 +184,9 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     
     // Add everything to the state.
     m_device->state().add(std::move(cameraBuffer));
-    m_device->state().add(std::move(transformBuffer));
+    //m_device->state().add(std::move(transformBuffer));
     m_device->state().add("Camera Bindings", std::move(cameraBindings));
-    std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Transform Bindings {0}", i++), std::move(binding)); });
+    //std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Transform Bindings {0}", i++), std::move(binding)); });
 }
 
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
@@ -195,9 +196,11 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffe
     glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;
+    camera.InverseView = glm::inverse(view);
+    camera.InverseProjection = glm::inverse(projection);
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
-    auto cameraStagingBuffer = m_device->factory().createBuffer(m_device->state().pipeline("Geometry"), DescriptorSets::Constant, 0, ResourceHeap::Staging);
+    auto cameraStagingBuffer = m_device->factory().createBuffer(m_device->state().pipeline("RT Geometry"), DescriptorSets::Constant, 0, ResourceHeap::Staging);
     cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
     commandBuffer.transfer(asShared(std::move(cameraStagingBuffer)), buffer);
 }
