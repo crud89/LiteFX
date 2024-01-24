@@ -826,6 +826,42 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Describes the type of a shader module record within a shader collection or shader binting table.
+    /// </summary>
+    /// <seealso cref="IShaderRecord" />
+    enum class ShaderRecordType {
+        /// <summary>
+        /// Represents a ray generation shader record.
+        /// </summary>
+        RayGeneration = 0x01,
+
+        /// <summary>
+        /// Represents a hit group shader record.
+        /// </summary>
+        HitGroup = 0x02,
+
+        /// <summary>
+        /// Represents an intersection shader record.
+        /// </summary>
+        Intersection = 0x03,
+
+        /// <summary>
+        /// Represents a miss shader record.
+        /// </summary>
+        Miss = 0x04,
+
+        /// <summary>
+        /// Represents a callable shader record.
+        /// </summary>
+        Callable = 0x05,
+
+        /// <summary>
+        /// Represents a shader record that contains a module of an unsupported shader stage.
+        /// </summary>
+        Invalid = 0x7FFFFFFF
+    };
+
+    /// <summary>
     /// Describes the draw mode for polygons.
     /// </summary>
     /// <seealso cref="InputAssembler" />
@@ -4623,6 +4659,33 @@ namespace LiteFX::Rendering {
         /// Defines the type that stores the shaders of the shader group.
         /// </summary>
         using shader_group_type = Variant<const IShaderModule*, MeshGeometryHitGroup>;
+
+    public:
+        /// <summary>
+        /// Returns the type of the shader record.
+        /// </summary>
+        /// <returns>The type of the shader record.</returns>
+        inline ShaderRecordType type() const noexcept {
+            const auto& group = this->shaderGroup();
+
+            if (std::holds_alternative<MeshGeometryHitGroup>(group))
+            {
+                return ShaderRecordType::HitGroup;
+            }
+            else if (std::holds_alternative<const IShaderModule*>(group))
+            {
+                switch (std::get<const IShaderModule*>(group)->type())
+                {
+                case ShaderStage::RayGeneration: return ShaderRecordType::RayGeneration;
+                case ShaderStage::Miss: return ShaderRecordType::Miss;
+                case ShaderStage::Callable: return ShaderRecordType::Callable;
+                case ShaderStage::Intersection: return ShaderRecordType::Intersection;
+                default: return ShaderRecordType::Invalid;
+                }
+            }
+
+            std::unreachable();
+        }
 
     public:
         /// <summary>

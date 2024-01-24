@@ -46,7 +46,7 @@ public:
 		LITEFX_TRACE(VULKAN_LOG, "Creating ray-tracing pipeline (\"{1}\") for layout {0} (records: {2})...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_parent->name(), m_shaderRecordCollection.shaderRecords().size());
 	
 		// Validate shader stage usage.
-		auto modules = m_program->modules();
+		auto modules = m_program->modules() | std::ranges::to<std::vector>();
 		bool hasComputeShaders    = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::Compute, module->type()); }) != modules.end();
 		bool hasRayTracingShaders = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, module->type()); }) != modules.end();
 		bool hasMeshShaders       = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::MeshPipeline, module->type()); }) != modules.end();
@@ -65,6 +65,45 @@ public:
 			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
 			std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
 
+		// Associate each shader module with an index for faster lookup when building the shader binding table (SBT).
+		auto moduleIds = modules | 
+			std::views::enumerate | 
+			std::views::transform([](const auto& tuple) { return std::make_tuple(static_cast<const IShaderModule*>(std::get<1>(tuple)), std::get<0>(tuple)); }) | 
+			std::ranges::to<std::map>();
+
+		// Create an array of shader group records.
+		auto shaderGroups = m_shaderRecordCollection.shaderRecords() | std::views::transform([&moduleIds](const UniquePtr<const IShaderRecord>& record) {
+			VkRayTracingShaderGroupCreateInfoKHR group = { .sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR };
+
+			switch (record->type())
+			{
+			case ShaderRecordType::RayGeneration:
+			case ShaderRecordType::Miss:
+			case ShaderRecordType::Callable:
+				group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
+				group.generalShader = moduleIds.at(std::get<const IShaderModule*>(record->shaderGroup()));
+				group.anyHitShader = group.closestHitShader = group.intersectionShader = VK_SHADER_UNUSED_KHR;
+				break;
+			case ShaderRecordType::Intersection:
+				group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_PROCEDURAL_HIT_GROUP_KHR;
+				group.intersectionShader = moduleIds.at(std::get<const IShaderModule*>(record->shaderGroup()));
+				group.anyHitShader = group.closestHitShader = group.generalShader = VK_SHADER_UNUSED_KHR;
+				break;
+			case ShaderRecordType::HitGroup:
+			{
+				const auto& hitGroup = std::get<IShaderRecord::MeshGeometryHitGroup>(record->shaderGroup());
+				group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
+				group.closestHitShader = hitGroup.ClosestHitShader != nullptr ? moduleIds.at(hitGroup.ClosestHitShader) : VK_SHADER_UNUSED_KHR;
+				group.anyHitShader = hitGroup.AnyHitShader != nullptr ? moduleIds.at(hitGroup.AnyHitShader) : VK_SHADER_UNUSED_KHR;
+				group.intersectionShader = group.generalShader = VK_SHADER_UNUSED_KHR;
+				break;
+			}
+			default: throw InvalidArgumentException("shaderRecords", "At least one record in the shader record collection is not a valid ray-tracing shader.");
+			}
+
+			return group;
+		}) | std::ranges::to<Array<VkRayTracingShaderGroupCreateInfoKHR>>();
+
 		// Setup dynamic state.
 		Array<VkDynamicState> dynamicStates { 
 			VkDynamicState::VK_DYNAMIC_STATE_RAY_TRACING_PIPELINE_STACK_SIZE_KHR
@@ -81,8 +120,8 @@ public:
 			.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR,
 			.stageCount = static_cast<UInt32>(shaderStages.size()),
 			.pStages = shaderStages.data(),
-			.groupCount = 0,		// TODO: This must receive the SBT.
-			.pGroups = nullptr,
+			.groupCount = static_cast<UInt32>(shaderGroups.size()),
+			.pGroups = shaderGroups.data(),
 			.maxPipelineRayRecursionDepth = m_maxRecursionDepth,
 			.pDynamicState = &dynamicState,
 			.layout = std::as_const(*m_layout.get()).handle()
