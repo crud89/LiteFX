@@ -423,8 +423,7 @@ void SampleApp::drawFrame()
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 
     // Wait for all transfers to finish.
-    renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer),
- m_transferFence);
+    renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     renderPass.begin(backBuffer);
