@@ -4322,7 +4322,7 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IDescriptorSetLayout" />
     struct LITEFX_RENDERING_API DescriptorBinding {
     public:
-        using resource_container = Variant<std::monostate, Ref<IBuffer>, Ref<IImage>, Ref<ISampler>>;
+        using resource_container = Variant<std::monostate, Ref<const IBuffer>, Ref<const IImage>, Ref<const ISampler>>;
         
     public:
         /// <summary>

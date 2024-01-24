@@ -149,6 +149,8 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     commandBuffer->barrier(*barrier);
     commandBuffer->buildAccelerationStructure(*tlas, scratchBuffer);
 
+    // TODO: The TLAS allocates an instance buffer that we could release after building the acceleration structure, if we do not need it for future updates.
+
     // Create a shader binding table from the pipeline and transfer it into a GPU buffer (not necessarily required for such a small SBT, but for demonstration purposes).
     auto& geometryPipeline = dynamic_cast<IRayTracingPipeline&>(m_device->state().pipeline("RT Geometry"));
     auto stagingSBT = geometryPipeline.allocateShaderBindingTable(m_offsets);
@@ -159,7 +161,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& staticDataBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::StaticData));
     auto cameraBuffer = m_device->factory().createBuffer("Camera", staticDataBindingsLayout, 0, ResourceHeap::Resource);
-    auto staticDataBindings = staticDataBindingsLayout.allocate({ { .resource = *cameraBuffer }/*, { .resource = *tlas } */});
+    auto staticDataBindings = staticDataBindingsLayout.allocate({ { .resource = *cameraBuffer }, { .resource = *tlas->buffer()}});
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraBuffer);
