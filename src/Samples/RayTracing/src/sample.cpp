@@ -1,6 +1,9 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
 
+// Currently there's only one geometry.
+#define NUM_GEOMETRIES 1
+
 enum class DescriptorSets : UInt32
 {
     StaticData   = 0, // Camera and acceleration structures.
@@ -25,6 +28,10 @@ struct CameraBuffer {
     glm::mat4 InverseProjection;
 } camera;
 
+struct MaterialData {
+    glm::vec4 Color = { 0.4f, 0.3f, 0.6f, 1.0f };
+} materials[NUM_GEOMETRIES];
+
 struct alignas(8) GeometryData {
     UInt32 Index;
     UInt32 Padding[3];
@@ -47,6 +54,7 @@ template<typename TRenderBackend> requires
     meta::implements<TRenderBackend, IRenderBackend>
 void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState)
 {
+    using RenderPass = TRenderBackend::render_pass_type;
     using RayTracingPipeline = TRenderBackend::ray_tracing_pipeline_type;
     using PipelineLayout = TRenderBackend::pipeline_layout_type;
     using ShaderProgram = TRenderBackend::shader_program_type;
@@ -115,6 +123,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
 
     // Pre-build acceleration structures. We start with 1 bottom-level acceleration structure (BLAS) for our simple geometry and a few top-level acceleration structures (TLAS) for the instances.
+    // NOTE: If there are more meshes/geometries, we would need to increase `NUM_GEOMETRIES`.
     auto blas = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure()));
     blas->withTriangleMesh({ asShared(std::move(vertexBuffer)), asShared(std::move(indexBuffer)) });
     blas->allocateBuffer(*m_device);
@@ -169,6 +178,12 @@ void SampleApp::initBuffers(IRenderBackend* backend)
         { { .resource = *swapChain.image(2) } }
     });
 
+    // Bind the material data.
+    auto& materialBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::Materials));
+    auto materialBuffer = m_device->factory().createBuffer("Material Buffer", materialBindingsLayout, 0, ResourceHeap::Dynamic, sizeof(MaterialData), NUM_GEOMETRIES);
+    auto materialBindings = materialBindingsLayout.allocate(NUM_GEOMETRIES, { { .resource = *materialBuffer } });
+    materialBuffer->map(reinterpret_cast<const void*>(&materials[0]), sizeof(MaterialData));
+
     // End and submit the command buffer and wait for it to finish.
     auto fence = commandBuffer->submit();
     m_device->defaultQueue(QueueType::Graphics).waitFor(fence);
@@ -176,9 +191,11 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Add everything to the state.
     m_device->state().add(std::move(tlas)); // No need to store the BLAS, as it is contained in the TLAS.
     m_device->state().add(std::move(cameraBuffer));
+    m_device->state().add(std::move(materialBuffer));
     m_device->state().add(std::move(shaderBindingTable));
     m_device->state().add("Static Data Bindings", std::move(staticDataBindings));
     std::ranges::for_each(outputBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Output Bindings {0}", i++), std::move(binding)); });
+    m_device->state().add("Material Bindings", std::move(materialBindings));
 }
 
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
@@ -398,9 +415,12 @@ void SampleApp::drawFrame()
     // Swap the back buffers for the next frame.
     auto backBuffer = m_device->swapChain().swapBackBuffer();
 
+    // TODO: Clear back buffer (vkCmdClearColorImage, ClearUnorderedAccessViewFloat).
+
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
     auto& geometryPipeline = m_device->state().pipeline("RT Geometry");
     auto& staticDataBindings = m_device->state().descriptorSet("Static Data Bindings");
+    auto& materialBindings = m_device->state().descriptorSet("Material Bindings");
     auto& outputBindings = m_device->state().descriptorSet(fmt::format("Output Bindings {0}", backBuffer));
 
     // Wait for all transfers to finish.
@@ -423,6 +443,7 @@ void SampleApp::drawFrame()
     // Bind both descriptor sets to the pipeline.
     commandBuffer->bind(staticDataBindings);
     commandBuffer->bind(outputBindings);
+    commandBuffer->bind(materialBindings);
     // TODO: All the other bindings.
     //commandBuffer->bind(transformBindings);
 

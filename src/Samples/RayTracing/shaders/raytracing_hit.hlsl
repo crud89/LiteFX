@@ -10,7 +10,7 @@ struct MaterialData
     float4 Color;
 };
 
-StructuredBuffer<MaterialData> materials[]      : register(t2, space2);
+StructuredBuffer<MaterialData> materials[]      : register(t0, space2);
 
 [[vk::shader_record_ext]]
 ConstantBuffer<GeometryData> geometryProperties : register(b0, space3);

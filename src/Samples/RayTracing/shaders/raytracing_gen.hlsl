@@ -9,7 +9,7 @@ struct CameraData
 
 ConstantBuffer<CameraData> camera        : register(b0, space0);
 RaytracingAccelerationStructure scene    : register(t1, space0);
-RWTexture2D<float4> output               : register(u1, space1);
+RWTexture2D<float4> output               : register(u0, space1);
 
 [shader("raygeneration")]
 void main()
