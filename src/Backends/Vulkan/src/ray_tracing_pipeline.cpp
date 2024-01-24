@@ -4,6 +4,7 @@
 using namespace LiteFX::Rendering::Backends;
 
 extern PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelines;
+extern PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandles;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -17,7 +18,7 @@ public:
 private:
 	SharedPtr<VulkanPipelineLayout> m_layout;
 	SharedPtr<const VulkanShaderProgram> m_program;
-	ShaderRecordCollection m_shaderRecordCollection;
+	const ShaderRecordCollection m_shaderRecordCollection;
 	UInt32 m_maxRecursionDepth { 10 };
 	const VulkanDevice& m_device;
 
@@ -72,7 +73,7 @@ public:
 			std::ranges::to<std::map>();
 
 		// Create an array of shader group records.
-		auto shaderGroups = m_shaderRecordCollection.shaderRecords() | std::views::transform([&moduleIds](const UniquePtr<const IShaderRecord>& record) {
+		auto shaderGroups = m_shaderRecordCollection.shaderRecords() | std::views::transform([&moduleIds](auto& record) {
 			VkRayTracingShaderGroupCreateInfoKHR group = { .sType = VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR };
 
 			switch (record->type())
@@ -136,6 +137,110 @@ public:
 
 		return pipeline;
 	}
+
+	UniquePtr<IVulkanBuffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups)
+	{
+		// NOTE: It is assumed that the shader record collection did not change between pipeline creation and SBT allocation (hence its const-ness)!
+		offsets = {};
+		
+		// Get the physical device properties, as they dictate alignment rules.
+		VkPhysicalDeviceRayTracingPipelinePropertiesKHR rayTracingProperties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR };
+		VkPhysicalDeviceProperties2 deviceProperties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2, .pNext = &rayTracingProperties };
+		::vkGetPhysicalDeviceProperties2(m_device.adapter().handle(), &deviceProperties);
+
+		// Find the maximum payload size amongst the included shader records.
+		auto filterByGroupType = [groups](auto& record) -> bool {
+			switch (record->type())
+			{
+			case ShaderRecordType::RayGeneration: return LITEFX_FLAG_IS_SET(groups, ShaderBindingGroup::RayGeneration);
+			case ShaderRecordType::Miss:          return LITEFX_FLAG_IS_SET(groups, ShaderBindingGroup::Miss);
+			case ShaderRecordType::Callable:      return LITEFX_FLAG_IS_SET(groups, ShaderBindingGroup::Callable);
+			case ShaderRecordType::Intersection:
+			case ShaderRecordType::HitGroup:      return LITEFX_FLAG_IS_SET(groups, ShaderBindingGroup::HitGroup);
+			default: std::unreachable(); // Must be caught during pipeline creation!
+			}
+		};
+
+		auto payloadSize = std::ranges::max(m_shaderRecordCollection.shaderRecords() | std::views::filter(filterByGroupType) | std::views::transform([](auto& record) { return record->payloadSize(); }));
+
+		// Compute the record size by aligning the handle and payload sizes.
+		auto recordSize = Math::align<UInt64>(rayTracingProperties.shaderGroupHandleSize + payloadSize, rayTracingProperties.shaderGroupBaseAlignment);
+
+		// Count the shader records that go into the SBT.
+		auto totalRecordCount = std::ranges::distance(m_shaderRecordCollection.shaderRecords() | std::views::filter(filterByGroupType));
+
+		// Map the records to their indices.
+		auto shaderRecordIds = m_shaderRecordCollection.shaderRecords() | std::views::enumerate | 
+			std::views::transform([](const auto& tuple) { return std::make_tuple(std::get<1>(tuple).get(), std::get<0>(tuple)); }) | 
+			std::ranges::to<std::map>();
+
+		// Allocate a buffer for the shader binding table.
+		// NOTE: Updating the SBT to change payloads is currently unsupported. Instead, bind-less resources should be used.
+		auto result = m_device.factory().createBuffer(BufferType::ShaderBindingTable, ResourceHeap::Dynamic, recordSize, totalRecordCount, ResourceUsage::TransferSource);
+
+		// Write each record group by group.
+		UInt32 record{ 0 };
+		Array<Byte> recordData(recordSize, 0x00);
+
+		// Write each shader binding group that should be included.
+		for (auto group : { ShaderBindingGroup::RayGeneration, ShaderBindingGroup::Miss, ShaderBindingGroup::Callable, ShaderBindingGroup::HitGroup })
+		{
+			auto groupFilter = [group](auto& record) -> bool { 
+				switch (group)
+				{
+				case ShaderBindingGroup::RayGeneration: return record->type() == ShaderRecordType::RayGeneration;
+				case ShaderBindingGroup::Miss:          return record->type() == ShaderRecordType::Miss;
+				case ShaderBindingGroup::Callable:      return record->type() == ShaderRecordType::Callable;
+				case ShaderBindingGroup::HitGroup:      return record->type() == ShaderRecordType::HitGroup || record->type() == ShaderRecordType::Intersection;
+				default: std::unreachable(); // Same as above.
+				}
+			};
+
+			if (LITEFX_FLAG_IS_SET(groups, group))
+			{
+				// Get the number of shaders in the group.
+				auto filteredRecords = m_shaderRecordCollection.shaderRecords() | std::views::filter(groupFilter);
+				auto recordCount = std::ranges::distance(filteredRecords);
+
+				// Store the group offset and size.
+				switch (group)
+				{
+				case ShaderBindingGroup::RayGeneration:
+					offsets.RayGenerationGroupOffset = record * recordSize;
+					offsets.RayGenerationGroupSize = recordCount * recordSize;
+					break;
+				case ShaderBindingGroup::Miss:
+					offsets.MissGroupOffset = record * recordSize;
+					offsets.MissGroupSize = recordCount * recordSize;
+					break;
+				case ShaderBindingGroup::Callable:
+					offsets.CallableGroupOffset = record * recordSize;
+					offsets.CallableGroupSize = recordCount * recordSize;
+					break;
+				case ShaderBindingGroup::HitGroup:
+					offsets.HitGroupOffset = record * recordSize;
+					offsets.HitGroupSize = recordCount * recordSize;
+					break;
+				default:
+					std::unreachable();
+				}
+
+				// Write each record and its payload into the buffer.
+				for (auto& currentRecord : filteredRecords)
+				{
+					// Get the shader group handle for the current record.
+					auto id = shaderRecordIds.at(currentRecord.get());
+					raiseIfFailed(::vkGetRayTracingShaderGroupHandles(m_device.handle(), m_parent->handle(), id, 1, rayTracingProperties.shaderGroupHandleSize, recordData.data()), "Unable to query shader record handle.");
+
+					// Write the payload and map everything into the buffer.
+					std::memcpy(recordData.data() + rayTracingProperties.shaderGroupHandleSize, currentRecord->payloadData(), currentRecord->payloadSize());
+					result->map(recordData.data(), recordSize, record++);
+				}
+			}
+		}
+
+		return result;
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -179,6 +284,11 @@ const ShaderRecordCollection& VulkanRayTracingPipeline::shaderRecords() const no
 UInt32 VulkanRayTracingPipeline::maxRecursionDepth() const noexcept
 {
 	return m_impl->m_maxRecursionDepth;
+}
+
+UniquePtr<IVulkanBuffer> VulkanRayTracingPipeline::allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const noexcept
+{
+	return m_impl->allocateShaderBindingTable(offsets, groups);
 }
 
 void VulkanRayTracingPipeline::use(const VulkanCommandBuffer& commandBuffer) const noexcept

@@ -1254,7 +1254,10 @@ namespace LiteFX::Rendering::Backends {
         const ShaderRecordCollection& shaderRecords() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 maxRecursionDepth() const noexcept override;
+        UInt32 maxRecursionDepth() const noexcept override;
+
+        /// <inheritdoc />
+        UniquePtr<IVulkanBuffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups = ShaderBindingGroup::All) const noexcept override;
 
         // VulkanPipelineState interface.
     public:

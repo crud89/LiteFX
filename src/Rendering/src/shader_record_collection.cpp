@@ -59,8 +59,3 @@ void ShaderRecordCollection::addShaderRecord(UniquePtr<const IShaderRecord>&& re
 
 	m_records.push_back(std::move(record));
 }
-
-void ShaderRecordCollection::computeShaderTableSizes(UInt64& rayGenGroupSize, UInt64& hitGroupSize, UInt64& missGroupSize, UInt64& callableGroupSize) const noexcept
-{
-	throw;
-}

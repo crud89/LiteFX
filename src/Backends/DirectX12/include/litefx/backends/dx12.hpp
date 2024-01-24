@@ -1250,7 +1250,10 @@ namespace LiteFX::Rendering::Backends {
         const ShaderRecordCollection& shaderRecords() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 maxRecursionDepth() const noexcept override;
+        UInt32 maxRecursionDepth() const noexcept override;
+
+        /// <inheritdoc />
+        UniquePtr<IDirectX12Buffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups = ShaderBindingGroup::All) const noexcept override;
 
         // DirectX12PipelineState interface.
     public:

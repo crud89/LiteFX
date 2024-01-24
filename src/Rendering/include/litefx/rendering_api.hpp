@@ -829,7 +829,7 @@ namespace LiteFX::Rendering {
     /// Describes the type of a shader module record within a shader collection or shader binting table.
     /// </summary>
     /// <seealso cref="IShaderRecord" />
-    enum class ShaderRecordType {
+    enum class LITEFX_RENDERING_API ShaderRecordType {
         /// <summary>
         /// Represents a ray generation shader record.
         /// </summary>
@@ -859,6 +859,37 @@ namespace LiteFX::Rendering {
         /// Represents a shader record that contains a module of an unsupported shader stage.
         /// </summary>
         Invalid = 0x7FFFFFFF
+    };
+
+    /// <summary>
+    /// Describes a group or combination of groups of a shader binding table.
+    /// </summary>
+    /// <seealso cref="IRayTracingPipeline::allocateShaderBindingTable" />
+    enum class LITEFX_RENDERING_API ShaderBindingGroup : UInt32 {
+        /// <summary>
+        /// Refers to the group of the shader binding table that stores the ray generation shader.
+        /// </summary>
+        RayGeneration = 0x01,
+
+        /// <summary>
+        /// Refers to the group of the shader binding table that stores the geometry hit shaders.
+        /// </summary>
+        HitGroup = 0x02,
+
+        /// <summary>
+        /// Refers to the group of the shader binding table that stores the miss shaders.
+        /// </summary>
+        Miss = 0x04,
+
+        /// <summary>
+        /// Refers to the group of the shader binding table that stores the callable shaders.
+        /// </summary>
+        Callable = 0x08,
+
+        /// <summary>
+        /// Refers to a combination of all possible groups that can be stored in a shader binding table.
+        /// </summary>
+        All = RayGeneration | HitGroup | Miss | Callable
     };
 
     /// <summary>
@@ -1842,6 +1873,7 @@ namespace LiteFX::Rendering {
     LITEFX_DEFINE_FLAGS(ResourceUsage);
     LITEFX_DEFINE_FLAGS(AccelerationStructureFlags);
     LITEFX_DEFINE_FLAGS(InstanceFlags);
+    LITEFX_DEFINE_FLAGS(ShaderBindingGroup);
 
 #pragma endregion
 
@@ -4942,15 +4974,6 @@ namespace LiteFX::Rendering {
         /// <exception cref="InvalidArgumentException">Thrown, if the shader module(s) within the shader record are of invalid type, or the parent shader program does not contain the shader module(s).</exception>
         void addShaderRecord(UniquePtr<const IShaderRecord>&& record);
 
-        /// <summary>
-        /// Computes the aligned amount of memory for each shader group in the shader record collection.
-        /// </summary>
-        /// <param name="rayGenGroupSize">A reference that receives the amount of memory required for the ray generation shader group.</param>
-        /// <param name="hitGroupSize">A reference that receives the amount of memory required for the hit shader group.</param>
-        /// <param name="missGroupSize">A reference that receives the amount of memory required for the miss shader group.</param>
-        /// <param name="callableGroupSize">A reference that receives the amount of memory required for the callable shader group.</param>
-        void computeShaderTableSizes(UInt64& rayGenGroupSize, UInt64& hitGroupSize, UInt64& missGroupSize, UInt64& callableGroupSize) const noexcept;
-
     public:
         /// <summary>
         /// Adds a new shader record based on the name of a shader module in the parent shader program.
@@ -6076,6 +6099,55 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Describes the offsets and sizes of a shader group within a shader binding table buffer.
+    /// </summary>
+    /// <remarks>
+    /// If a group is not present within a shader binding table, the offset for this group is set to the maximum possible value and the size is set to `0`.
+    /// </remarks>
+    /// <seealso cref="IRayTracingPipeline::allocateShaderBindingTable" /> 
+    struct LITEFX_RENDERING_API ShaderBindingTableOffsets {
+        /// <summary>
+        /// The offset to the beginning of the ray generation group within the shader binding table.
+        /// </summary>
+        UInt64 RayGenerationGroupOffset { std::numeric_limits<UInt64>::max() };
+
+        /// <summary>
+        /// The size of the ray generation group within the shader binding table.
+        /// </summary>
+        UInt64 RayGenerationGroupSize { 0 };
+
+        /// <summary>
+        /// The offset to the beginning of the hit group within the shader binding table.
+        /// </summary>
+        UInt64 HitGroupOffset { std::numeric_limits<UInt64>::max() };
+
+        /// <summary>
+        /// The size of the hit group within the shader binding table.
+        /// </summary>
+        UInt64 HitGroupSize { 0 };
+
+        /// <summary>
+        /// The offset to the beginning of the miss group within the shader binding table.
+        /// </summary>
+        UInt64 MissGroupOffset{ std::numeric_limits<UInt64>::max() };
+
+        /// <summary>
+        /// The size of the miss group within the shader binding table.
+        /// </summary>
+        UInt64 MissGroupSize { 0 };
+
+        /// <summary>
+        /// The offset to the beginning of the callable group within the shader binding table.
+        /// </summary>
+        UInt64 CallableGroupOffset { std::numeric_limits<UInt64>::max() };
+
+        /// <summary>
+        /// The size of the callable group within the shader binding table.
+        /// </summary>
+        UInt64 CallableGroupSize { 0 };
+    };
+
+    /// <summary>
     /// The interface for a ray tracing pipeline.
     /// </summary>
     class LITEFX_RENDERING_API IRayTracingPipeline : public virtual IPipeline {
@@ -6094,6 +6166,28 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The shader record collection of the ray tracing pipeline.</returns>
         virtual UInt32 maxRecursionDepth() const noexcept = 0;
+
+        /// <summary>
+        /// Allocates a buffer that contains the shader binding table containing the shader groups specified by the <paramref name="groups" /> parameter.
+        /// </summary>
+        /// <remarks>
+        /// The shader binding table consists out of individual shader records, where each record refers to a shader record plus its payload, as specified in the shader record 
+        /// collection that was passed to the ray-tracing pipeline during creation. The size of a record within the shader binding table is determined by the largest payload
+        /// size of all records of the groups to be included. It makes sense to pack multiple records into the same buffer for efficiency, however it may generally be a good
+        /// idea to separate groups that require large amount of local shader data into their own buffers to keep the other buffers smaller.
+        /// 
+        /// The shader binding table is created on the default resource heap (<see cref="ResourceHeap::Dynamic" />). However, for best performance, consider transfering it to a
+        /// buffer on the GPU resource heap (<see cref="ResourceHeap::Resource" />) afterwards.
+        /// </remarks>
+        /// <param name="offsets">A reference to a structure that receives the offsets and sizes to the groups within the shader binding table.</param>
+        /// <param name="groups">The groups to include into the shader binding table.</param>
+        /// <returns>The buffer that stores the shader binding table.</returns>
+        inline UniquePtr<IBuffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups = ShaderBindingGroup::All) const noexcept {
+            return this->getShaderBindingTable(offsets, groups);
+        }
+
+    private:
+        virtual UniquePtr<IBuffer> getShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const noexcept = 0;
     };
 
     /// <summary>

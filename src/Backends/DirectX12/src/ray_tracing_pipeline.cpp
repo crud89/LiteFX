@@ -15,7 +15,7 @@ public:
 private:
 	SharedPtr<DirectX12PipelineLayout> m_layout;
 	SharedPtr<const DirectX12ShaderProgram> m_program;
-	ShaderRecordCollection m_shaderRecordCollection;
+	const ShaderRecordCollection m_shaderRecordCollection;
 	UInt32 m_maxRecursionDepth { 10 };
 	const DirectX12Device& m_device;
 
@@ -130,6 +130,11 @@ const ShaderRecordCollection& DirectX12RayTracingPipeline::shaderRecords() const
 UInt32 DirectX12RayTracingPipeline::maxRecursionDepth() const noexcept
 {
 	return m_impl->m_maxRecursionDepth;
+}
+
+UniquePtr<IDirectX12Buffer> DirectX12RayTracingPipeline::allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const noexcept
+{
+	throw;
 }
 
 void DirectX12RayTracingPipeline::use(const DirectX12CommandBuffer& commandBuffer) const noexcept

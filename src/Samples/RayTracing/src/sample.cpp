@@ -92,11 +92,9 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .maxBounces(4)
         .layout(shaderProgram->reflectPipelineLayout());
 
-    //// Add the resources to the device state.
-    //device->state().add(std::move(renderPass));
-    //device->state().add(std::move(renderPipeline));
-
-    throw;
+    // Add the resources to the device state.
+    device->state().add(std::move(renderPass));
+    device->state().add(std::move(rayTracingPipeline));
 }
 
 void SampleApp::initBuffers(IRenderBackend* backend)
@@ -151,9 +149,17 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     commandBuffer->barrier(*barrier);
     commandBuffer->buildAccelerationStructure(*tlas, scratchBuffer);
 
+    // Create a shader binding table from the pipeline and transfer it into a GPU buffer (not necessarily required for such a small SBT, but for demonstration purposes).
+    ShaderBindingTableOffsets offsets;
+    auto& geometryPipeline = dynamic_cast<IRayTracingPipeline&>(m_device->state().pipeline("RT Geometry"));
+    auto stagingSBT = geometryPipeline.allocateShaderBindingTable(offsets);
+    auto shaderBindingTable = m_device->factory().createBuffer("Shader Binding Table", BufferType::ShaderBindingTable, ResourceHeap::Resource, stagingSBT->elementSize(), stagingSBT->elements(), ResourceUsage::TransferDestination);
+    commandBuffer->transfer(asShared(std::move(stagingSBT)), *shaderBindingTable, 0, 0, shaderBindingTable->elements());
+
+    throw;
+
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
-    auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
     auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, ResourceHeap::Resource);
     auto cameraBindings = cameraBindingLayout.allocate({ { .resource = *cameraBuffer } });

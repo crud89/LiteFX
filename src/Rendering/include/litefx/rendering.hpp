@@ -771,7 +771,25 @@ namespace LiteFX::Rendering {
     template <typename TPipelineLayout, typename TShaderProgram>
     class RayTracingPipeline : public IRayTracingPipeline, public Pipeline<TPipelineLayout, TShaderProgram> {
     public:
+        using base_type = Pipeline<TPipelineLayout, TShaderProgram>;
+        using descriptor_set_layout_type = base_type::pipeline_layout_type::descriptor_set_layout_type;
+        using descriptor_set_type = descriptor_set_layout_type::descriptor_set_type;
+        using descriptor_layout_type = descriptor_set_layout_type::descriptor_layout_type;
+        using buffer_type = descriptor_set_type::buffer_type;
+        using image_type = descriptor_set_type::image_type;
+        using sampler_type = descriptor_set_type::sampler_type;
+
+    public:
         virtual ~RayTracingPipeline() noexcept = default;
+
+    public:
+        /// <inheritdoc />
+        virtual UniquePtr<buffer_type> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups = ShaderBindingGroup::All) const noexcept = 0;
+
+    private:
+        inline UniquePtr<IBuffer> getShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const noexcept override {
+            return this->allocateShaderBindingTable(offsets, groups);
+        }
     };
 
     /// <summary>
