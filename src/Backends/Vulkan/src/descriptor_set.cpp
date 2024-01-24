@@ -252,6 +252,32 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, 
     ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
+void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStructure& accelerationStructure, UInt32 descriptor) const
+{
+    const auto& layout = m_impl->m_layout.descriptor(binding);
+
+    if (layout.descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
+        throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor.", binding);
+
+    VkWriteDescriptorSetAccelerationStructureKHR accelerationStructureInfo = {
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR,
+        .accelerationStructureCount = 1,
+        .pAccelerationStructures = &accelerationStructure.handle()
+    };
+    
+    VkWriteDescriptorSet descriptorWrite = { 
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .pNext = &accelerationStructureInfo,
+        .dstSet = this->handle(),
+        .dstBinding = binding,
+        .dstArrayElement = descriptor,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
+    };
+
+    ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
+}
+
 void VulkanDescriptorSet::attach(UInt32 binding, const IVulkanImage& image) const
 {
     const auto& layout = m_impl->m_layout.descriptor(binding);

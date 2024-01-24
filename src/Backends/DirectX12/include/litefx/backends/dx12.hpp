@@ -152,10 +152,21 @@ namespace LiteFX::Rendering::Backends {
     };
 
     /// <summary>
+    /// Represents the base interface for a DirectX 12 acceleration structure implementation.
+    /// </summary>
+    /// <seealso cref="DirectX12DescriptorSet" />
+    /// <seealso cref="DirectX12BottomLevelAccelerationStructure" />
+    /// <seealso cref="DirectX12TopevelAccelerationStructure" />
+    class LITEFX_DIRECTX12_API IDirectX12AccelerationStructure : public virtual IAccelerationStructure {
+    public:
+        virtual ~IDirectX12AccelerationStructure() noexcept = default;
+    };
+
+    /// <summary>
     /// Implements a DirectX 12 bottom-level acceleration structure (BLAS).
     /// </summary>
     /// <seealso cref="DirectX12TopLevelAccelerationStructure" />
-    class LITEFX_DIRECTX12_API DirectX12BottomLevelAccelerationStructure final : public IBottomLevelAccelerationStructure {
+    class LITEFX_DIRECTX12_API DirectX12BottomLevelAccelerationStructure final : public IBottomLevelAccelerationStructure, public virtual IDirectX12AccelerationStructure {
         LITEFX_IMPLEMENTATION(DirectX12BottomLevelAccelerationStructureImpl);
         friend class DirectX12Device;
         friend class DirectX12CommandBuffer;
@@ -213,7 +224,7 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a DirectX 12 top-level acceleration structure (TLAS).
     /// </summary>
     /// <seealso cref="DirectX12BottomLevelAccelerationStructure" />
-    class LITEFX_DIRECTX12_API DirectX12TopLevelAccelerationStructure final : public ITopLevelAccelerationStructure {
+    class LITEFX_DIRECTX12_API DirectX12TopLevelAccelerationStructure final : public ITopLevelAccelerationStructure, public virtual IDirectX12AccelerationStructure {
         LITEFX_IMPLEMENTATION(DirectX12TopLevelAccelerationStructureImpl);
         friend class DirectX12Device;
         friend class DirectX12CommandBuffer;
@@ -445,11 +456,11 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a DirectX 12 <see cref="DescriptorSet" />.
     /// </summary>
     /// <seealso cref="DirectX12DescriptorSetLayout" />
-    class LITEFX_DIRECTX12_API DirectX12DescriptorSet final : public DescriptorSet<IDirectX12Buffer, IDirectX12Image, IDirectX12Sampler> {
+    class LITEFX_DIRECTX12_API DirectX12DescriptorSet final : public DescriptorSet<IDirectX12Buffer, IDirectX12Image, IDirectX12Sampler, IDirectX12AccelerationStructure> {
         LITEFX_IMPLEMENTATION(DirectX12DescriptorSetImpl);
 
     public:
-        using base_type = DescriptorSet<IDirectX12Buffer, IDirectX12Image, IDirectX12Sampler>;
+        using base_type = DescriptorSet<IDirectX12Buffer, IDirectX12Image, IDirectX12Sampler, IDirectX12AccelerationStructure>;
         using base_type::update;
         using base_type::attach;
 
@@ -481,6 +492,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void update(UInt32 binding, const IDirectX12Sampler& sampler, UInt32 descriptor = 0) const override;
+
+        /// <inheritdoc />
+        void update(UInt32 binding, const IDirectX12AccelerationStructure& accelerationStructure, UInt32 descriptor = 0) const override;
 
         /// <inheritdoc />
         void attach(UInt32 binding, const IDirectX12Image& image) const override;

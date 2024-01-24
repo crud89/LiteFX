@@ -133,11 +133,13 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TBuffer">The type of the buffer interface. Must inherit from <see cref="IBuffer"/>.</typeparam>
     /// <typeparam name="TImage">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TSampler">The type of the sampler interface. Must inherit from <see cref="ISampler"/>.</typeparam>
+    /// <typeparam name="TAccelerationStructure">The type of the acceleration structure interface. Must inherit from <see cref="IAccelerationStructure"/>.</typeparam>
     /// <seealso cref="DescriptorSetLayout" />
-    template <typename TBuffer, typename TImage, typename TSampler> requires
+    template <typename TBuffer, typename TImage, typename TSampler, typename TAccelerationStructure> requires
         std::derived_from<TBuffer, IBuffer> &&
         std::derived_from<TSampler, ISampler> &&
-        std::derived_from<TImage, IImage>
+        std::derived_from<TImage, IImage> &&
+        std::derived_from<TAccelerationStructure, IAccelerationStructure>
     class DescriptorSet : public IDescriptorSet {
     public:
         using IDescriptorSet::attach;
@@ -146,6 +148,7 @@ namespace LiteFX::Rendering {
         using buffer_type = TBuffer;
         using sampler_type = TSampler;
         using image_type = TImage;
+        using acceleration_structure_type = TAccelerationStructure;
 
     public:
         virtual ~DescriptorSet() noexcept = default;
@@ -161,6 +164,9 @@ namespace LiteFX::Rendering {
         virtual void update(UInt32 binding, const sampler_type& sampler, UInt32 descriptor = 0) const = 0;
 
         /// <inheritdoc />
+        virtual void update(UInt32 binding, const acceleration_structure_type& accelerationStructure, UInt32 descriptor = 0) const = 0;
+
+        /// <inheritdoc />
         virtual void attach(UInt32 binding, const image_type& image) const = 0;
 
     private:
@@ -168,15 +174,19 @@ namespace LiteFX::Rendering {
             this->update(binding, dynamic_cast<const buffer_type&>(buffer), bufferElement, elements, firstDescriptor);
         }
 
-        void doUpdate(UInt32 binding, const IImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const  override {
+        void doUpdate(UInt32 binding, const IImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const override {
             this->update(binding, dynamic_cast<const image_type&>(texture), descriptor, firstLevel, levels, firstLayer, layers);
         }
 
-        void doUpdate(UInt32 binding, const ISampler& sampler, UInt32 descriptor) const  override {
+        void doUpdate(UInt32 binding, const ISampler& sampler, UInt32 descriptor) const override {
             this->update(binding, dynamic_cast<const sampler_type&>(sampler), descriptor);
         }
 
-        void doAttach(UInt32 binding, const IImage& image) const  override {
+        void doUpdate(UInt32 binding, const IAccelerationStructure& accelerationStructure, UInt32 descriptor) const override {
+            this->update(binding, dynamic_cast<const acceleration_structure_type&>(accelerationStructure), descriptor);
+        }
+
+        void doAttach(UInt32 binding, const IImage& image) const override {
             this->attach(binding, dynamic_cast<const image_type&>(image));
         }
     };
@@ -195,7 +205,7 @@ namespace LiteFX::Rendering {
     /// <seealso cref="DescriptorSet" />
     template <typename TDescriptorLayout, typename TDescriptorSet> requires
         meta::implements<TDescriptorLayout, IDescriptorLayout> &&
-        meta::implements<TDescriptorSet, DescriptorSet<typename TDescriptorSet::buffer_type, typename TDescriptorSet::image_type, typename TDescriptorSet::sampler_type>>
+        meta::implements<TDescriptorSet, DescriptorSet<typename TDescriptorSet::buffer_type, typename TDescriptorSet::image_type, typename TDescriptorSet::sampler_type, typename TDescriptorSet::acceleration_structure_type>>
     class DescriptorSetLayout : public IDescriptorSetLayout {
     public:
         using IDescriptorSetLayout::free;

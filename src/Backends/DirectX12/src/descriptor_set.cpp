@@ -389,6 +389,11 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sam
     m_impl->m_layout.device().updateSamplerDescriptors(*this, offset, 1);
 }
 
+void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12AccelerationStructure& accelerationStructure, UInt32 descriptor) const
+{
+    throw;
+}
+
 void DirectX12DescriptorSet::attach(UInt32 binding, const IDirectX12Image& image) const
 {
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);

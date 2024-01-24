@@ -76,6 +76,7 @@ namespace LiteFX::Rendering::Backends {
     class IDirectX12IndexBuffer;
     class IDirectX12Image;
     class IDirectX12Sampler;
+    class IDirectX12AccelerationStructure;
     class DirectX12BottomLevelAccelerationStructure;
     class DirectX12TopLevelAccelerationStructure;
 

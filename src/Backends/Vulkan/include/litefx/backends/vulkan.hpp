@@ -168,10 +168,21 @@ namespace LiteFX::Rendering::Backends {
     };
 
     /// <summary>
+    /// Represents the base interface for a Vulkan acceleration structure implementation.
+    /// </summary>
+    /// <seealso cref="VulkanDescriptorSet" />
+    /// <seealso cref="VulkanBottomLevelAccelerationStructure" />
+    /// <seealso cref="VulkanTopevelAccelerationStructure" />
+    class LITEFX_VULKAN_API IVulkanAccelerationStructure : public virtual IAccelerationStructure, public virtual IResource<VkAccelerationStructureKHR> {
+    public:
+        virtual ~IVulkanAccelerationStructure() noexcept = default;
+    };
+
+    /// <summary>
     /// Implements a Vulkan bottom-level acceleration structure (BLAS).
     /// </summary>
     /// <seealso cref="VulkanTopLevelAccelerationStructure" />
-    class LITEFX_VULKAN_API VulkanBottomLevelAccelerationStructure final : public IBottomLevelAccelerationStructure, public virtual Resource<VkAccelerationStructureKHR> {
+    class LITEFX_VULKAN_API VulkanBottomLevelAccelerationStructure final : public IBottomLevelAccelerationStructure, public virtual IVulkanAccelerationStructure, public virtual Resource<VkAccelerationStructureKHR> {
         LITEFX_IMPLEMENTATION(VulkanBottomLevelAccelerationStructureImpl);
         friend class VulkanDevice;
         friend class VulkanCommandBuffer;
@@ -229,7 +240,7 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a Vulkan top-level acceleration structure (TLAS).
     /// </summary>
     /// <seealso cref="VulkanBottomLevelAccelerationStructure" />
-    class LITEFX_VULKAN_API VulkanTopLevelAccelerationStructure final : public ITopLevelAccelerationStructure, public virtual Resource<VkAccelerationStructureKHR> {
+    class LITEFX_VULKAN_API VulkanTopLevelAccelerationStructure final : public ITopLevelAccelerationStructure, public virtual IVulkanAccelerationStructure, public virtual Resource<VkAccelerationStructureKHR> {
         LITEFX_IMPLEMENTATION(VulkanTopLevelAccelerationStructureImpl);
         friend class VulkanDevice;
         friend class VulkanCommandBuffer;
@@ -466,11 +477,11 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a Vulkan <see cref="DescriptorSet" />.
     /// </summary>
     /// <seealso cref="VulkanDescriptorSetLayout" />
-    class LITEFX_VULKAN_API VulkanDescriptorSet final : public DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler>, public Resource<VkDescriptorSet> {
+    class LITEFX_VULKAN_API VulkanDescriptorSet final : public DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler, IVulkanAccelerationStructure>, public Resource<VkDescriptorSet> {
         LITEFX_IMPLEMENTATION(VulkanDescriptorSetImpl);
 
     public:
-        using base_type = DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler>;
+        using base_type = DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler, IVulkanAccelerationStructure>;
         using base_type::update;
         using base_type::attach;
 
@@ -501,6 +512,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void update(UInt32 binding, const IVulkanSampler& sampler, UInt32 descriptor = 0) const override;
+
+        /// <inheritdoc />
+        void update(UInt32 binding, const IVulkanAccelerationStructure& accelerationStructure, UInt32 descriptor = 0) const override;
 
         /// <inheritdoc />
         void attach(UInt32 binding, const IVulkanImage& image) const override;
