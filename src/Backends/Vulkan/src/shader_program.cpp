@@ -185,6 +185,8 @@ public:
                 throw InvalidArgumentException("modules", "In a graphics shader program, there must be exactly one vertex shader.");
             if (shaders[ShaderStage::TessellationControl] > 1 || shaders[ShaderStage::TessellationEvaluation] > 1 || shaders[ShaderStage::Geometry] > 1) [[unlikely]]
                 throw InvalidArgumentException("modules", "In a graphics shader program, there must be at most one geometry, tessellation control/domain or tessellation evaluation/hull shader.");
+
+            return;
         }
 
         // Finally, let's check if there's a lonely fragment shader.

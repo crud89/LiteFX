@@ -38,19 +38,9 @@ public:
 	{
 		LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline \"{1}\" for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_parent->name());
 
-		// Validate shader stage usage.
+		// Check if there are mesh shaders in the program.
 		auto modules = m_program->modules();
-		bool hasComputeShaders    = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::Compute, module->type()); }) != modules.end();
-		bool hasRayTracingShaders = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, module->type()); }) != modules.end();
-		bool hasMeshShaders       = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::MeshPipeline, module->type()); }) != modules.end();
-		bool hasDirectShaders     = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RasterizationPipeline, module->type()); }) != modules.end();
-		
-		if (hasComputeShaders) [[unlikely]]
-			throw InvalidArgumentException("shaderProgram", "The shader program contains a compute shader, which is not supported in a graphics pipeline.");
-		else if (hasRayTracingShaders) [[unlikely]]
-			throw InvalidArgumentException("shaderProgram", "The shader program contains ray-tracing shaders, which is not supported in a graphics pipeline.");
-		else if (hasMeshShaders && hasDirectShaders) [[unlikely]]
-			throw InvalidArgumentException("shaderProgram", "A shader program that contains mesh shaders must not also contain vertex, geometry, domain or hull shaders.");
+		bool hasMeshShaders = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::Mesh | ShaderStage::Task, module->type()); }) != modules.end();
 
 		// Setup rasterizer state.
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
