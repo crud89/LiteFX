@@ -122,6 +122,12 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, indices.size(), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
     commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
 
+    // Before building the acceleration structures the GPU needs to wait for the transfer to finish.
+    auto barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::AccelerationStructureBuild);
+    barrier->transition(*vertexBuffer, ResourceAccess::TransferWrite, ResourceAccess::Common);
+    barrier->transition(*indexBuffer, ResourceAccess::TransferWrite, ResourceAccess::Common);
+    commandBuffer->barrier(*barrier);
+
     // Pre-build acceleration structures. We start with 1 bottom-level acceleration structure (BLAS) for our simple geometry and a few top-level acceleration structures (TLAS) for the instances.
     // NOTE: If there are more meshes/geometries, we would need to increase `NUM_GEOMETRIES`.
     auto blas = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure()));
@@ -147,8 +153,8 @@ void SampleApp::initBuffers(IRenderBackend* backend)
 
     // Build the BLAS and the TLAS. We need to barrier in between both to prevent simultaneous scratch buffer writes.
     commandBuffer->buildAccelerationStructure(*blas, scratchBuffer);
-    auto barrier = m_device->makeBarrier(PipelineStage::AccelerationStructureBuild, PipelineStage::AccelerationStructureBuild);
-    barrier->transition(*scratchBuffer, ResourceAccess::AccelerationStructureWrite, ResourceAccess::AccelerationStructureRead);
+    barrier = m_device->makeBarrier(PipelineStage::AccelerationStructureBuild, PipelineStage::AccelerationStructureBuild);
+    barrier->transition(*scratchBuffer, ResourceAccess::AccelerationStructureWrite, ResourceAccess::AccelerationStructureWrite);
     commandBuffer->barrier(*barrier);
     commandBuffer->buildAccelerationStructure(*tlas, scratchBuffer);
 

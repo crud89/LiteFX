@@ -98,8 +98,8 @@ public:
 
 	inline void buildAccelerationStructure(const VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer)
 	{
-		Array<VkAccelerationStructureBuildRangeInfoKHR> ranges { tlas.instances().size()};
-		auto rangePointer = ranges.data();
+		VkAccelerationStructureBuildRangeInfoKHR ranges { tlas.instances().size() };
+		auto rangePointer = &ranges;
 
 		VkAccelerationStructureGeometryInstancesDataKHR instanceInfo = {
 			.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR,
