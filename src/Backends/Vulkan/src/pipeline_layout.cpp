@@ -44,11 +44,14 @@ public:
 
             if (a == b) [[unlikely]]
                 throw InvalidArgumentException("descriptorSetLayouts", "Two layouts defined for the same descriptor set {}. Each descriptor set must use it's own space.", a);
-            
-            while (i != a)
-                emptySets.push_back(i);
 
-            ++i;
+            // Fill space until we reached the last descriptor set, but do skip the first set. This can only happen for the first set in the collection. E.g., if the first set has index 2 and the second one has index 3, 
+            // we fill until we reach index 3, but skip index 2. For all other sets, this fills the gap between first and second set (e.g., between set 2 and 4, if no set 3 is defined).
+            for (i; i < b; i++)
+            {
+                if (i != a)
+                    emptySets.push_back(i);
+            }
         }
 
         // Add empty sets.
