@@ -307,6 +307,11 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     m_device->swapChain().reset(surfaceFormat, renderArea, 3);
 
     // Re-bind swap chain back buffers to ray-tracing pipeline output.
+    for (int i = 0; i < 3; ++i)
+    {
+        auto& outputBindings = m_device->state().descriptorSet(fmt::format("Output Bindings {0}", i));
+        outputBindings.update(0, *m_device->swapChain().image(i));
+    }
 
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
