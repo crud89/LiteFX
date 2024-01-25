@@ -1,6 +1,9 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 // Currently there's only one geometry.
 #define NUM_GEOMETRIES 1
 
@@ -9,7 +12,8 @@ enum class DescriptorSets : UInt32
     StaticData   = 0, // Camera and acceleration structures.
     FrameBuffer  = 1, // The frame buffer descriptor to write into.
     Materials    = 2, // The bind-less material properties array.
-    GeometryData = 3  // The shader-local per-geometry data.
+    GeometryData = 3, // The shader-local per-geometry data.
+    Sampler      = 4  // Skybox sampler state.
 };
 
 const Array<Vertex> vertices =
@@ -166,14 +170,42 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto shaderBindingTable = m_device->factory().createBuffer("Shader Binding Table", BufferType::ShaderBindingTable, ResourceHeap::Resource, stagingSBT->elementSize(), stagingSBT->elements(), ResourceUsage::TransferDestination);
     commandBuffer->transfer(asShared(std::move(stagingSBT)), *shaderBindingTable, 0, 0, shaderBindingTable->elements());
 
+    // Load and upload skybox texture.
+    // NOTE: See textures sample for details. We're not creating mip maps here.
+    using ImageDataPtr = UniquePtr<stbi_uc, decltype(&::stbi_image_free)>;
+
+    int width, height, channels;
+    auto imageData = ImageDataPtr(::stbi_load("assets/rt_skybox.jpg", &width, &height, &channels, STBI_rgb_alpha), ::stbi_image_free);
+
+    if (imageData == nullptr)
+        throw std::runtime_error("Texture could not be loaded: \"assets/rt_skybox.jpg\".");
+
+    auto texture = m_device->factory().createTexture("Skybox", Format::R8G8B8A8_UNORM, Size2d(width, height), ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
+    barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Transfer);
+    barrier->transition(*texture, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
+    commandBuffer->barrier(*barrier);
+    auto stagedTexture = m_device->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, texture->size(0));
+    stagedTexture->map(imageData.get(), texture->size(0), 0);
+
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& staticDataBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::StaticData));
     auto cameraBuffer = m_device->factory().createBuffer("Camera", staticDataBindingsLayout, 0, ResourceHeap::Resource);
-    auto staticDataBindings = staticDataBindingsLayout.allocate({ { .resource = *cameraBuffer }, { .resource = *tlas }});
+    auto staticDataBindings = staticDataBindingsLayout.allocate({ { .resource = *cameraBuffer }, { .resource = *tlas }, { .resource = *texture } });
+
+    // Transfer the skybox texture.
+    commandBuffer->transfer(asShared(std::move(stagedTexture)), *texture);
+    barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::Raytracing);
+    barrier->transition(*texture, ResourceAccess::TransferWrite, ResourceAccess::ShaderRead, ImageLayout::CopyDestination, ImageLayout::ShaderResource);
+    commandBuffer->barrier(*barrier);
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraBuffer);
+
+    // Create a sampler for the skybox (note that a static sampler would make more sense here, but let's not care too much, as it's a demo).
+    auto sampler = m_device->factory().createSampler();
+    auto& samplerBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::Sampler));
+    auto samplerBindings = samplerBindingsLayout.allocate({ { .resource = *sampler } });
         
     // Bind the swap chain back buffers to the ray-tracing pipeline output.
     auto& swapChain = m_device->swapChain();
@@ -197,9 +229,12 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Add everything to the state.
     m_device->state().add(std::move(tlas)); // No need to store the BLAS, as it is contained in the TLAS.
     m_device->state().add(std::move(cameraBuffer));
+    m_device->state().add(std::move(texture));
+    m_device->state().add(std::move(sampler));
     m_device->state().add(std::move(materialBuffer));
     m_device->state().add(std::move(shaderBindingTable));
     m_device->state().add("Static Data Bindings", std::move(staticDataBindings));
+    m_device->state().add("Sampler Bindings", std::move(samplerBindings));
     std::ranges::for_each(outputBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Output Bindings {0}", i++), std::move(binding)); });
     m_device->state().add("Material Bindings", std::move(materialBindings));
 }
@@ -432,6 +467,7 @@ void SampleApp::drawFrame()
     auto& geometryPipeline = m_device->state().pipeline("RT Geometry");
     auto& staticDataBindings = m_device->state().descriptorSet("Static Data Bindings");
     auto& materialBindings = m_device->state().descriptorSet("Material Bindings");
+    auto& samplerBindings = m_device->state().descriptorSet("Sampler Bindings");
     auto& outputBindings = m_device->state().descriptorSet(fmt::format("Output Bindings {0}", backBuffer));
     auto& shaderBindingTable = m_device->state().buffer("Shader Binding Table");
 
@@ -461,6 +497,7 @@ void SampleApp::drawFrame()
     commandBuffer->bind(staticDataBindings);
     commandBuffer->bind(outputBindings);
     commandBuffer->bind(materialBindings);
+    commandBuffer->bind(samplerBindings);
 
     // Draw the object and present the frame by ending the render pass.
     commandBuffer->traceRays(m_viewport->getRectangle().width(), m_viewport->getRectangle().height(), 1, m_offsets, shaderBindingTable, &shaderBindingTable, &shaderBindingTable);
