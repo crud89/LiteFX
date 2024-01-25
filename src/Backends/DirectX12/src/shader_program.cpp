@@ -47,6 +47,7 @@ private:
         UInt32 elements;
         DescriptorType type;
         Optional<D3D12_STATIC_SAMPLER_DESC> staticSamplerState;
+        bool local = false;
 
         bool equals(const DescriptorInfo& rhs)
         {
@@ -363,7 +364,11 @@ public:
             raiseIfFailed(reflection->Load(std::as_const(*shaderModule).handle().Get()), "Unable to load reflection from shader module.");
 
             // Callback to register a new descriptor set or merge a descriptor into an existing one.
-            auto registerDescriptor = [&descriptorSetLayouts](const DescriptorInfo& descriptor, D3D12_SHADER_INPUT_BIND_DESC inputDesc, const IShaderModule* shaderModule) {
+            auto registerDescriptor = [&descriptorSetLayouts](DescriptorInfo& descriptor, D3D12_SHADER_INPUT_BIND_DESC inputDesc, const IShaderModule* shaderModule) {
+                // Mark the descriptor as part of the local root signature, if the shader module has a local descriptor.
+                descriptor.local = !shaderModule->shaderLocalDescriptor().has_value() ? false :
+                    shaderModule->shaderLocalDescriptor().value().Register == inputDesc.BindPoint && shaderModule->shaderLocalDescriptor().value().Space == inputDesc.Space;
+
                 // Check if a descriptor set has already been defined for the space.
                 if (!descriptorSetLayouts.contains(inputDesc.Space))
                     descriptorSetLayouts.insert(std::make_pair(inputDesc.Space, DescriptorSetInfo{ .space = inputDesc.Space, .stage = shaderModule->type(), .descriptors = { descriptor } }));
@@ -476,7 +481,7 @@ public:
                                 DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressU), DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressV), DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressW),
                                 D3D12_DECODE_MIP_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? MipMapMode::Nearest : MipMapMode::Linear,
                                 descriptor->staticSamplerState->MipLODBias, descriptor->staticSamplerState->MinLOD, descriptor->staticSamplerState->MaxLOD, static_cast<Float>(descriptor->staticSamplerState->MaxAnisotropy)), descriptor->location) :
-                            makeUnique<DirectX12DescriptorLayout>(descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements);
+                            makeUnique<DirectX12DescriptorLayout>(descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->local);
                 }() | std::views::as_rvalue;
 
                 co_yield makeUnique<DirectX12DescriptorSetLayout>(m_device, std::move(descriptors), descriptorSet.space, descriptorSet.stage);

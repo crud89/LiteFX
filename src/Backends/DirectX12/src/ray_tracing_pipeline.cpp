@@ -59,6 +59,55 @@ public:
 		
 		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(m_program.get()), modules.size());
 
+		// Define the pipeline as a set of state objects.
+		Array<D3D12_STATE_SUBOBJECT> subobjects;
+		Array<Tuple<D3D12_EXPORT_DESC, D3D12_DXIL_LIBRARY_DESC>> shaderModuleSubobjects;
+
+		// First, describe the shader modules individually.
+		std::ranges::for_each(m_program->modules(), [&](const DirectX12ShaderModule* module) {
+			D3D12_EXPORT_DESC exportDesc = {
+				.Name = Widen(module->fileName()).c_str(),
+				.ExportToRename = Widen(module->entryPoint()).c_str()
+			};
+
+			D3D12_DXIL_LIBRARY_DESC libraryDesc = {
+				.DXILLibrary = {
+					.pShaderBytecode = module->handle()->GetBufferPointer(),
+					.BytecodeLength = module->handle()->GetBufferSize()
+				},
+				.NumExports = 1,
+				.pExports = &exportDesc
+			};
+
+			D3D12_STATE_SUBOBJECT moduleSubobject = {
+				.Type = D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY,
+				.pDesc = &libraryDesc
+			};
+
+			subobjects.push_back(moduleSubobject);
+			shaderModuleSubobjects.push_back(std::make_tuple(exportDesc, libraryDesc));
+		});
+
+
+
+		//D3D12_EXPORT_DESC // <- shader module name + entry point.
+		// D3D12_DXIL_LIBRARY_DESC 
+
+		// Define pipeline description from sub-objects.
+		D3D12_STATE_OBJECT_DESC pipelineDesc = {
+			.Type = D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE,
+			.NumSubobjects = static_cast<UInt32>(subobjects.size()),
+			.pSubobjects = subobjects.data()
+		};
+
+		// Create the pipeline.
+		ComPtr<ID3D12StateObject> pipeline;
+		raiseIfFailed(m_device.handle()->CreateStateObject(&pipelineDesc, IID_PPV_ARGS(&pipeline)), "Unable to create ray tracing pipeline state.");
+
+#ifndef NDEBUG
+		pipeline->SetName(Widen(m_parent->name()).c_str());
+#endif
+		
 		throw;
 //		// Define the pipeline state.
 //		D3D12_RAYTRACING_PIPELINE_STATE_DESC pipelineStateDescription = {};

@@ -546,18 +546,31 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="binding">The binding point for the descriptor.</param>
         /// <param name="elementSize">The size of the descriptor.</param>
         /// <param name="elementSize">The number of descriptors in the descriptor array.</param>
-        explicit DirectX12DescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1);
+        /// <param name="local">Determines if the descriptor is part of the local or global root signature for ray-tracing shaders.</param>
+        explicit DirectX12DescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1, bool local = false);
 
         /// <summary>
         /// Initializes a new DirectX 12 descriptor layout for a static sampler.
         /// </summary>
         /// <param name="staticSampler">The static sampler to initialize the state with.</param>
         /// <param name="binding">The binding point for the descriptor.</param>
-        explicit DirectX12DescriptorLayout(UniquePtr<IDirectX12Sampler>&& staticSampler, UInt32 binding);
+        /// <param name="local">Determines if the descriptor is part of the local or global root signature for ray-tracing shaders.</param>
+        explicit DirectX12DescriptorLayout(UniquePtr<IDirectX12Sampler>&& staticSampler, UInt32 binding, bool local = false);
 
         DirectX12DescriptorLayout(DirectX12DescriptorLayout&&) = delete;
         DirectX12DescriptorLayout(const DirectX12DescriptorLayout&) = delete;
         virtual ~DirectX12DescriptorLayout() noexcept;
+
+        // DirectX 12 descriptor layout.
+    public:
+        /// <summary>
+        /// Returns `true`, if the descriptor belongs to the local root signature of a ray-tracing pipeline or `false` otherwise.
+        /// </summary>
+        /// <remarks>
+        /// Note that this value must not be set to `true` for descriptors that are bound outside of ray-tracing shaders.
+        /// </remarks>
+        /// <returns>`true`, if the descriptor belongs to the local root signature of a ray-tracing pipeline or `false` otherwise.</returns>
+        bool local() const noexcept;
 
         // IDescriptorLayout interface.
     public:

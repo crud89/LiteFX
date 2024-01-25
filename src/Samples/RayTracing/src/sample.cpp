@@ -83,7 +83,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     // NOTE: The hit shader here receives per-invocation data at the descriptor bound to register 0, space/set 1.
     SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
         .withRayGenerationShaderModule("shaders/raytracing_gen." + FileExtensions<TRenderBackend>::SHADER)
-        .withClosestHitShaderModule("shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER, DescriptorBindingPoint { .Register = 0, .Space = 1 })
+        .withClosestHitShaderModule("shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER, DescriptorBindingPoint { .Register = 0, .Space = std::to_underlying(DescriptorSets::GeometryData) })
         .withMissShaderModule("shaders/raytracing_miss." + FileExtensions<TRenderBackend>::SHADER);
 
     // Build a shader record collection and create a ray-tracing pipeline.
