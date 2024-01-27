@@ -59,39 +59,89 @@ public:
 		
 		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(m_program.get()), modules.size());
 
-		// Define the pipeline as a set of state objects.
-		Array<D3D12_STATE_SUBOBJECT> subobjects;
-		Array<Tuple<D3D12_EXPORT_DESC, D3D12_DXIL_LIBRARY_DESC>> shaderModuleSubobjects;
+		// Start by describing the shader modules individually.
+		struct ShaderModuleSubobjectData {
+			D3D12_EXPORT_DESC ExportDesc;
+			WString Name;
+			WString EntryPoint;
+			D3D12_DXIL_LIBRARY_DESC LibraryDesc;
+		};
 
-		// First, describe the shader modules individually.
-		std::ranges::for_each(m_program->modules(), [&](const DirectX12ShaderModule* module) {
-			D3D12_EXPORT_DESC exportDesc = {
-				.Name = Widen(module->fileName()).c_str(),
-				.ExportToRename = Widen(module->entryPoint()).c_str()
+		auto shaderModuleSubobjects = m_program->modules() | std::views::transform([](auto module) {
+			ShaderModuleSubobjectData data = {
+				.Name = Widen(module->fileName()),
+				.EntryPoint = Widen(module->entryPoint())
 			};
 
-			D3D12_DXIL_LIBRARY_DESC libraryDesc = {
+			data.LibraryDesc = {
 				.DXILLibrary = {
 					.pShaderBytecode = module->handle()->GetBufferPointer(),
 					.BytecodeLength = module->handle()->GetBufferSize()
-				},
-				.NumExports = 1,
-				.pExports = &exportDesc
+				}
 			};
 
-			D3D12_STATE_SUBOBJECT moduleSubobject = {
-				.Type = D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY,
-				.pDesc = &libraryDesc
+			return data;
+		}) | std::ranges::to<Array<ShaderModuleSubobjectData>>();
+
+		// Initialize the submodule array with the shader modules first.
+		auto subobjects = shaderModuleSubobjects | std::views::transform([](auto& subobjectData) {
+			// Only setup names and addresses at this point, since before the address may change.
+			subobjectData.ExportDesc.Name = subobjectData.Name.c_str();
+			subobjectData.ExportDesc.ExportToRename = subobjectData.EntryPoint.c_str();
+			subobjectData.LibraryDesc.NumExports = 1;
+			subobjectData.LibraryDesc.pExports = &subobjectData.ExportDesc;
+
+			return D3D12_STATE_SUBOBJECT { .Type = D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY, .pDesc = &subobjectData.LibraryDesc };
+		}) | std::ranges::to<Array<D3D12_STATE_SUBOBJECT>>();
+
+		// Define hit groups from the shader exports.
+		struct HitGroupData {
+			WString Name;
+			WString IntersectionShaderName { };
+			WString AnyHitShaderName { };
+			WString ClosestHitShaderName { };
+			D3D12_HIT_GROUP_DESC HitGroupDesc;
+		};
+
+		auto hitGroupSubobjects = m_shaderRecordCollection.shaderRecords() | 
+			std::views::filter([](const UniquePtr<const IShaderRecord>& record) { return record->type() == ShaderRecordType::HitGroup || record->type() == ShaderRecordType::Intersection; }) |
+			std::views::transform([i = 0](const UniquePtr<const IShaderRecord>& record) mutable {
+				HitGroupData hitGroup { .Name = Widen(std::format("HitGroup_{0}", i++)) };
+
+				if (record->type() == ShaderRecordType::Intersection)
+				{
+					auto intersectionShader = std::get<const IShaderModule*>(record->shaderGroup());
+					hitGroup.HitGroupDesc = D3D12_HIT_GROUP_DESC { .Type = D3D12_HIT_GROUP_TYPE_PROCEDURAL_PRIMITIVE };
+					hitGroup.IntersectionShaderName = Widen(intersectionShader->fileName());
+				}
+				else // if (record->type() == ShaderRecordType::HitGroup)
+				{
+					auto& group = std::get<IShaderRecord::MeshGeometryHitGroup>(record->shaderGroup());
+					hitGroup.HitGroupDesc = D3D12_HIT_GROUP_DESC { .Type = D3D12_HIT_GROUP_TYPE_TRIANGLES };
+
+					if (group.AnyHitShader != nullptr)
+						hitGroup.AnyHitShaderName = Widen(group.AnyHitShader->fileName());
+
+					if (group.ClosestHitShader != nullptr)
+						hitGroup.ClosestHitShaderName = Widen(group.ClosestHitShader->fileName());
+				}
+
+				return hitGroup;
+			}) | std::ranges::to<Array<HitGroupData>>();
+
+		// Next use the shader module exports to describe the shader groups in the shader binding table.
+		subobjects.append_range(hitGroupSubobjects | std::views::transform([](auto& subobjectData) {
+			// Only setup names at this point, since before the address may change.
+			subobjectData.HitGroupDesc.HitGroupExport = subobjectData.Name.c_str();
+			subobjectData.HitGroupDesc.IntersectionShaderImport = subobjectData.IntersectionShaderName.empty() ? nullptr : subobjectData.IntersectionShaderName.c_str();
+			subobjectData.HitGroupDesc.ClosestHitShaderImport = subobjectData.ClosestHitShaderName.empty() ? nullptr : subobjectData.ClosestHitShaderName.c_str();
+			subobjectData.HitGroupDesc.AnyHitShaderImport = subobjectData.AnyHitShaderName.empty() ? nullptr : subobjectData.AnyHitShaderName.c_str();
+
+			return D3D12_STATE_SUBOBJECT {
+				.Type = D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP,
+				.pDesc = &subobjectData.HitGroupDesc
 			};
-
-			subobjects.push_back(moduleSubobject);
-			shaderModuleSubobjects.push_back(std::make_tuple(exportDesc, libraryDesc));
-		});
-
-
-
-		//D3D12_EXPORT_DESC // <- shader module name + entry point.
-		// D3D12_DXIL_LIBRARY_DESC 
+		}));
 
 		// Define pipeline description from sub-objects.
 		D3D12_STATE_OBJECT_DESC pipelineDesc = {
