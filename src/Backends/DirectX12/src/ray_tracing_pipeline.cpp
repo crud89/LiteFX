@@ -1,7 +1,29 @@
 #include <litefx/backends/dx12.hpp>
 #include <litefx/backends/dx12_builders.hpp>
 
+#include <functional>
+
 using namespace LiteFX::Rendering::Backends;
+
+struct LocalDescriptorBindingPoint {
+	D3D12_DESCRIPTOR_RANGE_TYPE Type;
+	DescriptorBindingPoint BindingPoint;
+
+	inline bool operator==(const LocalDescriptorBindingPoint& other) const noexcept {
+		return other.Type == this->Type && other.BindingPoint.Register == this->BindingPoint.Register && other.BindingPoint.Space == this->BindingPoint.Space;
+	}
+};
+
+template <>
+struct std::hash<LocalDescriptorBindingPoint> {
+	std::size_t operator()(const LocalDescriptorBindingPoint& p) const noexcept {
+		std::size_t res = 17;
+		res = res * 31 + std::hash<UInt32>()(p.Type);
+		res = res * 31 + std::hash<UInt32>()(p.BindingPoint.Space);
+		res = res * 31 + std::hash<UInt32>()(p.BindingPoint.Register);
+		return res;
+	}
+};
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -65,12 +87,16 @@ public:
 			WString Name;
 			WString EntryPoint;
 			D3D12_DXIL_LIBRARY_DESC LibraryDesc;
+			ShaderStage Type;
+			const IShaderModule* Module;
 		};
 
 		auto shaderModuleSubobjects = m_program->modules() | std::views::transform([](auto module) {
 			ShaderModuleSubobjectData data = {
 				.Name = Widen(module->fileName()),
-				.EntryPoint = Widen(module->entryPoint())
+				.EntryPoint = Widen(module->entryPoint()),
+				.Type = module->type(),
+				.Module = module
 			};
 
 			data.LibraryDesc = {
@@ -142,6 +168,159 @@ public:
 				.pDesc = &subobjectData.HitGroupDesc
 			};
 		}));
+
+		// Define local root signatures and their associations. 
+		// NOTE: The current architecture does only allow a single payload to be specified to pass to a single descriptor. This simplifies re-using root signatures,
+		//       as we can assume two root signatures are equal, if the space, register and type of their only descriptor are equal.
+		struct RootSignatureAssociation {
+			ComPtr<ID3D12RootSignature> RootSignature;
+			Array<LPCWSTR> ModuleNames;
+			D3D12_LOCAL_ROOT_SIGNATURE StateDesc { };
+			D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION AssocDesc { };
+		};
+
+		// Create and associate all the root signatures.
+		Dictionary<LocalDescriptorBindingPoint, RootSignatureAssociation> rootSignatures;
+
+		std::ranges::for_each(shaderModuleSubobjects, [&](auto& subobject) {
+			// Test if there is a shader-local descriptor.
+			if (!subobject.Module->shaderLocalDescriptor().has_value())
+				return;
+
+			// Get the descriptor set that contains the descriptor and retrieve it's type.
+			LocalDescriptorBindingPoint binding = { .BindingPoint = subobject.Module->shaderLocalDescriptor().value() };
+			auto& descriptorSet = m_layout->descriptorSet(binding.BindingPoint.Space);
+			auto& descriptor = descriptorSet.descriptor(binding.BindingPoint.Register);
+
+			// Check if the descriptor is actually a local one.
+			if (!descriptor.local()) [[unlikely]]
+				throw RuntimeException("The descriptor at a shader-local binding point must also be declared local, since it will be part of the global root signature otherwise.");
+
+			switch (descriptor.descriptorType())
+			{
+				case DescriptorType::ConstantBuffer:    binding.Type = D3D12_DESCRIPTOR_RANGE_TYPE_CBV; break; // descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, range->descriptors(), range->binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
+				case DescriptorType::AccelerationStructure:
+				case DescriptorType::Buffer:
+				case DescriptorType::StructuredBuffer:
+				case DescriptorType::ByteAddressBuffer:
+				case DescriptorType::Texture:           binding.Type = D3D12_DESCRIPTOR_RANGE_TYPE_SRV; break; // descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, range->descriptors(), range->binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
+				case DescriptorType::RWBuffer:
+				case DescriptorType::RWStructuredBuffer:
+				case DescriptorType::RWByteAddressBuffer:
+				case DescriptorType::RWTexture:         binding.Type = D3D12_DESCRIPTOR_RANGE_TYPE_UAV; break; // descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, range->descriptors(), range->binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
+				case DescriptorType::Sampler:			throw RuntimeException("Shader-local samplers are not supported.");
+				case DescriptorType::InputAttachment:   throw RuntimeException("Shader-local input attachments are not supported.");
+			}
+
+			if (!rootSignatures.contains(binding))
+			{
+				// Create a new root signature.
+				CD3DX12_DESCRIPTOR_RANGE1 descriptorRange(binding.Type, 1, binding.BindingPoint.Register, binding.BindingPoint.Space);
+				CD3DX12_ROOT_PARAMETER1 rootParameter;
+				rootParameter.InitAsDescriptorTable(1, &descriptorRange, D3D12_SHADER_VISIBILITY_ALL);
+
+				// Create root signature descriptor.
+				ComPtr<ID3DBlob> signature, error;
+				String errorString = "";
+				CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
+				rootSignatureDesc.Init_1_1(1, &rootParameter, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE);
+				HRESULT hr = ::D3D12SerializeVersionedRootSignature(&rootSignatureDesc, &signature, &error);
+
+				if (error != nullptr)
+					errorString = String(reinterpret_cast<TCHAR*>(error->GetBufferPointer()), error->GetBufferSize());
+
+				raiseIfFailed(hr, "Unable to serialize shader-local root signature: {0}", errorString);
+
+				// Create the root signature.
+				ComPtr<ID3D12RootSignature> rootSignature;
+				raiseIfFailed(m_device.handle()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for shader-local payload.");
+
+				// Add the root signature to the binding associations set.
+				rootSignatures[binding].RootSignature = rootSignature;
+				rootSignatures[binding].StateDesc = {
+					.pLocalRootSignature = rootSignature.Get()
+				};
+			}
+
+			// Add the current module name to the root signature association.
+			rootSignatures[binding].ModuleNames.push_back(subobject.Name.c_str());
+			rootSignatures[binding].AssocDesc.NumExports = static_cast<UInt32>(rootSignatures[binding].ModuleNames.size());
+			rootSignatures[binding].AssocDesc.pExports = rootSignatures[binding].ModuleNames.data();
+		});
+		
+		// Define local root signature associations.
+		// TODO: Check if the subobject association works as inteted.
+		for (auto& rootSignature : rootSignatures | std::views::values)
+		{
+			subobjects.push_back(D3D12_STATE_SUBOBJECT {
+				.Type = D3D12_STATE_SUBOBJECT_TYPE_LOCAL_ROOT_SIGNATURE,
+				.pDesc = &rootSignature.StateDesc
+			});
+
+			rootSignature.AssocDesc.pSubobjectToAssociate = &subobjects.back();
+
+			subobjects.push_back(D3D12_STATE_SUBOBJECT {
+				.Type = D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION,
+				.pDesc = &rootSignature.AssocDesc
+			});
+		}
+
+		throw;
+
+		// Define the payload and attribute sizes.
+		// NOTE: Attributes (hit payloads passed between shaders) are set to the default maximum for now, as we currently have no way to determine it (e.g., from 
+		//       shader reflection) it and the limit is not that wasteful anyway.
+		// TODO: Callable shaders don't actually count towards the payload size, but we include them anyway for now, as we allow putting their payloads into the
+		//       same SBT later.
+		auto payloadSize = std::ranges::max(m_shaderRecordCollection.shaderRecords() | std::views::transform([](auto& record) { return record->payloadSize(); }));
+
+		D3D12_RAYTRACING_SHADER_CONFIG shaderConfig = {
+			.MaxPayloadSizeInBytes = static_cast<UInt32>(payloadSize),
+			.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES
+		};
+
+		subobjects.push_back(D3D12_STATE_SUBOBJECT {
+			.Type = D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_SHADER_CONFIG,
+			.pDesc = &shaderConfig
+		});
+
+		// Associate all shader module exports with the shader config.
+		// NOTE: We could use different configs for different shaders, depending on the payload size, but this would make managing the shader binding table way 
+		//       more involved.
+		auto shaderGroupNames = shaderModuleSubobjects |
+			std::views::filter([](auto& moduleDesc) { return LITEFX_FLAG_IS_SET(ShaderStage::RayGeneration | ShaderStage::Callable | ShaderStage::Miss, moduleDesc.Type); }) |
+			std::views::transform([](auto& moduleDesc) { return moduleDesc.Name.c_str(); }) | std::ranges::to<Array<LPCWSTR>>();
+		
+		shaderGroupNames.append_range(hitGroupSubobjects | std::views::transform([](auto& hitGroup) { return hitGroup.Name.c_str(); }));
+
+		D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION shaderConfigAssoc = {
+			.pSubobjectToAssociate = &subobjects.back(),
+			.NumExports = static_cast<UInt32>(shaderGroupNames.size()),
+			.pExports = shaderGroupNames.data()
+		};
+
+		subobjects.push_back(D3D12_STATE_SUBOBJECT {
+			.Type = D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION,
+			.pDesc = &shaderConfigAssoc
+		});
+
+		// Define ray tracing pipeline config.
+		D3D12_RAYTRACING_PIPELINE_CONFIG pipelineConfig = {
+			.MaxTraceRecursionDepth = m_maxRecursionDepth
+		};
+		
+		subobjects.push_back(D3D12_STATE_SUBOBJECT {
+			.Type = D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG,
+			.pDesc = &pipelineConfig
+		});
+
+		// Finally, add the global root signature.
+		D3D12_GLOBAL_ROOT_SIGNATURE globalRootSignature { .pGlobalRootSignature = std::as_const(*m_layout).handle().Get() };
+
+		subobjects.push_back(D3D12_STATE_SUBOBJECT {
+			.Type = D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE,
+			.pDesc = &globalRootSignature
+		});
 
 		// Define pipeline description from sub-objects.
 		D3D12_STATE_OBJECT_DESC pipelineDesc = {
