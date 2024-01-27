@@ -186,13 +186,16 @@ public:
             });
 
             // Define the root parameter.
-            CD3DX12_ROOT_PARAMETER1 rootParameter = {};
-            rootParameter.InitAsDescriptorTable(rangeSet.size(), rangeSet.data(), static_cast<D3D12_SHADER_VISIBILITY>(shaderStages));
-            descriptorRanges.push_back(std::move(rangeSet));
+            if (!rangeSet.empty())
+            {
+                CD3DX12_ROOT_PARAMETER1 rootParameter = {};
+                rootParameter.InitAsDescriptorTable(rangeSet.size(), rangeSet.data(), static_cast<D3D12_SHADER_VISIBILITY>(shaderStages));
+                descriptorRanges.push_back(std::move(rangeSet));
 
-            // Store the range set.
-            layout->rootParameterIndex() = rootParameterIndex++;
-            descriptorParameters.push_back(rootParameter);
+                // Store the range set.
+                layout->rootParameterIndex() = rootParameterIndex++;
+                descriptorParameters.push_back(rootParameter);
+            }
         });
 
         // Define a static sampler to sample the G-Buffer, if it is not manually defined.
