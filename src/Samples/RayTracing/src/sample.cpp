@@ -211,10 +211,10 @@ void SampleApp::initBuffers(IRenderBackend* backend)
         
     // Create and bind the back buffer resource to the ray-tracing pipeline output. Here we use a 3D texture with three layers (one for each back buffer) and only bind each array slice to the resource later.
     auto& swapChain = m_device->swapChain();
-    auto backBuffers = m_device->factory().createTexture("Back Buffers", swapChain.surfaceFormat(), Size3d(swapChain.renderArea().width(), swapChain.renderArea().height(), swapChain.buffers()), ImageDimensions::DIM_3, 1u, 1u, MultiSamplingLevel::x1, ResourceUsage::AllowWrite | ResourceUsage::TransferSource);
+    auto backBuffers = m_device->factory().createTexture("Back Buffers", swapChain.surfaceFormat(), swapChain.renderArea(), ImageDimensions::DIM_2, 1u, swapChain.buffers(), MultiSamplingLevel::x1, ResourceUsage::AllowWrite | ResourceUsage::TransferSource);
     auto& outputBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::FrameBuffer));
     auto outputBindings = outputBindingsLayout.allocateMultiple(swapChain.buffers(), [&backBuffers](UInt32 descriptorSet) -> Enumerable<DescriptorBinding> {
-        return { DescriptorBinding {.resource = *backBuffers, .firstElement = descriptorSet, .elements = 1 } };
+        return { DescriptorBinding {.resource = *backBuffers, .firstElement = backBuffers->subresourceId(0, descriptorSet, 0), .elements = 1}};
     });
 
     // Bind the material data.
@@ -349,12 +349,17 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     auto renderArea = Size2d(e.width(), e.height());
     m_device->swapChain().reset(surfaceFormat, renderArea, 3);
 
-    // Re-bind swap chain back buffers to ray-tracing pipeline output.
-    for (int i = 0; i < 3; ++i)
+    // Recreate output images and re-bind them to the output descriptors.
+    auto backBuffers = m_device->factory().createTexture("Back Buffers", m_device->swapChain().surfaceFormat(), m_device->swapChain().renderArea(), ImageDimensions::DIM_2, 1u, m_device->swapChain().buffers(), MultiSamplingLevel::x1, ResourceUsage::AllowWrite | ResourceUsage::TransferSource);
+    
+    for (int i = 0; i < m_device->swapChain().buffers(); ++i)
     {
         auto& outputBindings = m_device->state().descriptorSet(fmt::format("Output Bindings {0}", i));
-        outputBindings.update(0, *m_device->swapChain().image(i));
+        outputBindings.update(0, *backBuffers, 0, 0, 1, i, 1);
     }
+
+    m_device->state().release(m_device->state().image("Back Buffers"));
+    m_device->state().add(std::move(backBuffers));
 
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
