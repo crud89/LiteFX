@@ -391,7 +391,31 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sam
 
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12AccelerationStructure& accelerationStructure, UInt32 descriptor) const
 {
-    throw;
+    const auto& layout = m_impl->m_layout.descriptor(binding);
+
+    if (layout.descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
+        throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor.", binding);
+
+    auto buffer = accelerationStructure.buffer();
+
+    if (buffer == nullptr) [[unlikely]]
+        throw InvalidArgumentException("accelerationStructure", "The acceleration structure buffer has not yet been allocated.");
+
+    auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
+    auto descriptorSize = m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, descriptorSize);
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
+        .Format = DXGI_FORMAT_UNKNOWN,
+        .ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
+        .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+        .RaytracingAccelerationStructure = { .Location = buffer->virtualAddress() }
+    };
+
+    m_impl->m_layout.device().handle()->CreateShaderResourceView(nullptr, &bufferView, descriptorHandle);
+    descriptorHandle = descriptorHandle.Offset(descriptorSize);
+
+    m_impl->updateGlobalBuffers(offset, 1);
 }
 
 void DirectX12DescriptorSet::attach(UInt32 binding, const IDirectX12Image& image) const

@@ -164,7 +164,10 @@ public:
 		auto localDataSize = std::ranges::max(m_shaderRecordCollection.shaderRecords() | std::views::filter(filterByGroupType) | std::views::transform([](auto& record) { return record->localDataSize(); }));
 
 		// Compute the record size by aligning the handle and payload sizes.
-		auto recordSize = Math::align<UInt64>(rayTracingProperties.shaderGroupHandleSize + localDataSize, rayTracingProperties.shaderGroupBaseAlignment);
+		auto recordSize = Math::align<UInt64>(rayTracingProperties.shaderGroupHandleSize + localDataSize, rayTracingProperties.shaderGroupHandleAlignment);
+
+		// TODO: Insert empty records at the end of each table so that the table start offsets align with rayTracingProperties.shaderGroupBaseAlignment.
+		throw;
 
 		// Count the shader records that go into the SBT.
 		auto totalRecordCount = std::ranges::distance(m_shaderRecordCollection.shaderRecords() | std::views::filter(filterByGroupType));
@@ -175,7 +178,7 @@ public:
 			std::ranges::to<std::map>();
 
 		// Allocate a buffer for the shader binding table.
-		// NOTE: Updating the SBT to change payloads is currently unsupported. Instead, bind-less resources should be used.
+		// NOTE: Updating the SBT to change shader-local data is currently unsupported. Instead, bind-less resources should be used.
 		auto result = m_device.factory().createBuffer(BufferType::ShaderBindingTable, ResourceHeap::Dynamic, recordSize, totalRecordCount, ResourceUsage::TransferSource);
 
 		// Write each record group by group.

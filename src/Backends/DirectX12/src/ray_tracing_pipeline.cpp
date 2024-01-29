@@ -25,6 +25,8 @@ struct std::hash<LocalDescriptorBindingPoint> {
 	}
 };
 
+constexpr auto HitGroupNameTemplate = L"HitGroup_{0}"sv;
+
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
@@ -40,6 +42,7 @@ private:
 	const ShaderRecordCollection m_shaderRecordCollection;
 	UInt32 m_maxRecursionDepth { 10 }, m_maxPayloadSize{ 0 }, m_maxAttributeSize{ 32 };;
 	const DirectX12Device& m_device;
+	ComPtr<ID3D12StateObject> m_pipelineState;
 
 public:
 	DirectX12RayTracingPipelineImpl(DirectX12RayTracingPipeline* parent, const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, ShaderRecordCollection&& shaderRecords) :
@@ -59,7 +62,7 @@ public:
 	}
 
 public:
-	ComPtr<ID3D12PipelineState> initialize()
+	void initialize()
 	{
 		if (m_program == nullptr) [[unlikely]]
 			throw ArgumentNotInitializedException("shaderProgram", "The shader program must be initialized.");
@@ -137,7 +140,7 @@ public:
 		auto hitGroupSubobjects = m_shaderRecordCollection.shaderRecords() | 
 			std::views::filter([](const UniquePtr<const IShaderRecord>& record) { return record->type() == ShaderRecordType::HitGroup || record->type() == ShaderRecordType::Intersection; }) |
 			std::views::transform([i = 0](const UniquePtr<const IShaderRecord>& record) mutable {
-				HitGroupData hitGroup { .Name = Widen(std::format("HitGroup_{0}", i++)) };
+				HitGroupData hitGroup { .Name = std::format(HitGroupNameTemplate, i++) };
 
 				if (record->type() == ShaderRecordType::Intersection)
 				{
@@ -336,6 +339,144 @@ public:
 #ifndef NDEBUG
 		pipeline->SetName(Widen(m_parent->name()).c_str());
 #endif
+
+		m_pipelineState = pipeline;
+	}
+
+	UniquePtr<IDirectX12Buffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups)
+	{
+		// Query the interface used to obtain the shader identifiers.
+		ComPtr<ID3D12StateObjectProperties> stateProperties;
+		raiseIfFailed(m_pipelineState.As(&stateProperties), "Unable to query ray tracing pipeline state properties.");
+
+		// NOTE: It is assumed that the shader record collection did not change between pipeline creation and SBT allocation (hence its const-ness)!
+		offsets = { };
+
+		// Find the maximum payload size amongst the included shader records.
+		auto filterByGroupType = [groups](auto& record) -> bool {
+			switch (record->type())
+			{
+			case ShaderRecordType::RayGeneration: return LITEFX_FLAG_IS_SET(groups, ShaderBindingGroup::RayGeneration);
+			case ShaderRecordType::Miss:          return LITEFX_FLAG_IS_SET(groups, ShaderBindingGroup::Miss);
+			case ShaderRecordType::Callable:      return LITEFX_FLAG_IS_SET(groups, ShaderBindingGroup::Callable);
+			case ShaderRecordType::Intersection:
+			case ShaderRecordType::HitGroup:      return LITEFX_FLAG_IS_SET(groups, ShaderBindingGroup::HitGroup);
+			default: std::unreachable(); // Must be caught during pipeline creation!
+			}
+		};
+
+		auto localDataSize = std::ranges::max(m_shaderRecordCollection.shaderRecords() | std::views::filter(filterByGroupType) | std::views::transform([](auto& record) { return record->localDataSize(); }));
+
+		// Compute the record size by aligning the handle and payload sizes.
+		auto recordSize = Math::align<UInt64>(D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES + localDataSize, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
+
+		// Insert empty records at the end of each table so that the table start offsets align with rayTracingProperties.shaderGroupBaseAlignment.
+		Dictionary<ShaderBindingGroup, UInt32> alignmentRecords;
+		alignmentRecords[ShaderBindingGroup::RayGeneration] = LITEFX_FLAG_IS_SET(groups, ShaderBindingGroup::RayGeneration) ?
+			(recordSize * std::ranges::count_if(m_shaderRecordCollection.shaderRecords(), [](auto& record) { return LITEFX_FLAG_IS_SET(record->type(), ShaderRecordType::RayGeneration); }) % D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT) / D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT : 0u;
+		alignmentRecords[ShaderBindingGroup::Miss] = LITEFX_FLAG_IS_SET(groups, ShaderBindingGroup::Miss) ? 
+			(recordSize * std::ranges::count_if(m_shaderRecordCollection.shaderRecords(), [](auto& record) { return LITEFX_FLAG_IS_SET(record->type(), ShaderRecordType::Miss); }) % D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT) / D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT : 0u;
+		alignmentRecords[ShaderBindingGroup::Callable] = LITEFX_FLAG_IS_SET(groups, ShaderBindingGroup::Callable) ? 
+			(recordSize * std::ranges::count_if(m_shaderRecordCollection.shaderRecords(), [](auto& record) { return LITEFX_FLAG_IS_SET(record->type(), ShaderRecordType::Callable); }) % D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT) / D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT : 0u;
+		alignmentRecords[ShaderBindingGroup::HitGroup] = LITEFX_FLAG_IS_SET(groups, ShaderBindingGroup::HitGroup) ? 
+			(recordSize * std::ranges::count_if(m_shaderRecordCollection.shaderRecords(), [](auto& record) { return LITEFX_FLAG_IS_SET(record->type(), ShaderRecordType::HitGroup) || LITEFX_FLAG_IS_SET(record->type(), ShaderRecordType::Intersection); }) % D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT) / D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT : 0u;
+		
+		// Count the shader records that go into the SBT.
+		auto totalRecordCount = std::ranges::distance(m_shaderRecordCollection.shaderRecords() | std::views::filter(filterByGroupType)) +
+			alignmentRecords[ShaderBindingGroup::RayGeneration] + alignmentRecords[ShaderBindingGroup::Miss] + alignmentRecords[ShaderBindingGroup::Callable] + alignmentRecords[ShaderBindingGroup::HitGroup];
+
+		// Allocate a buffer for the shader binding table.
+		// NOTE: Updating the SBT to change shader-local data is currently unsupported. Instead, bind-less resources should be used.
+		auto result = m_device.factory().createBuffer(BufferType::ShaderBindingTable, ResourceHeap::Dynamic, recordSize, totalRecordCount, ResourceUsage::TransferSource);
+
+		// Write each record group by group.
+		UInt32 record{ 0 }, hitGroupId{ 0 };
+		Array<Byte> recordData(recordSize, 0x00);
+
+		// Write each shader binding group that should be included.
+		for (auto group : { ShaderBindingGroup::RayGeneration, ShaderBindingGroup::Miss, ShaderBindingGroup::Callable, ShaderBindingGroup::HitGroup })
+		{
+			auto groupFilter = [group](auto& record) -> bool { 
+				switch (group)
+				{
+				case ShaderBindingGroup::RayGeneration: return record->type() == ShaderRecordType::RayGeneration;
+				case ShaderBindingGroup::Miss:          return record->type() == ShaderRecordType::Miss;
+				case ShaderBindingGroup::Callable:      return record->type() == ShaderRecordType::Callable;
+				case ShaderBindingGroup::HitGroup:      return record->type() == ShaderRecordType::HitGroup || record->type() == ShaderRecordType::Intersection;
+				default: std::unreachable(); // Same as above.
+				}
+			};
+
+			auto getRecordIdentifier = [&stateProperties, group, hitGroupIndex = 0](auto& record) mutable -> const void* {
+				switch (group)
+				{
+				case ShaderBindingGroup::RayGeneration:
+				case ShaderBindingGroup::Miss:
+				case ShaderBindingGroup::Callable:
+				{
+					WString identifier = Widen(std::get<const IShaderModule*>(record->shaderGroup())->fileName());
+					return stateProperties->GetShaderIdentifier(identifier.c_str());
+				}
+				case ShaderBindingGroup::HitGroup:
+				{
+					WString identifier = std::format(HitGroupNameTemplate, hitGroupIndex++);
+					return stateProperties->GetShaderIdentifier(identifier.c_str());
+				}
+				default:
+					std::unreachable(); // Same as above.
+				}
+			};
+
+			if (LITEFX_FLAG_IS_SET(groups, group))
+			{
+				// Get the number of shaders in the group.
+				auto filteredRecords = m_shaderRecordCollection.shaderRecords() | std::views::filter(groupFilter);
+				auto recordCount = std::ranges::distance(filteredRecords);
+
+				// Store the group offset and size and obtain the shader identifier.
+				switch (group)
+				{
+				case ShaderBindingGroup::RayGeneration:
+					offsets.RayGenerationGroupOffset = record * recordSize;
+					offsets.RayGenerationGroupSize = recordCount * recordSize;
+					offsets.RayGenerationGroupStride = recordSize;
+					break;
+				case ShaderBindingGroup::Miss:
+					offsets.MissGroupOffset = record * recordSize;
+					offsets.MissGroupSize = recordCount * recordSize;
+					offsets.MissGroupStride = recordSize;
+					break;
+				case ShaderBindingGroup::Callable:
+					offsets.CallableGroupOffset = record * recordSize;
+					offsets.CallableGroupSize = recordCount * recordSize;
+					offsets.CallableGroupStride = recordSize;
+					break;
+				case ShaderBindingGroup::HitGroup:
+					offsets.HitGroupOffset = record * recordSize;
+					offsets.HitGroupSize = recordCount * recordSize;
+					offsets.HitGroupStride = recordSize;
+					break;
+				default:
+					std::unreachable();
+				}
+
+				// Write each record and its payload into the buffer.
+				for (auto& currentRecord : filteredRecords)
+				{
+					// Get the shader group handle for the current record.
+					std::memcpy(recordData.data(), getRecordIdentifier(currentRecord), D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
+
+					// Write the payload and map everything into the buffer.
+					std::memcpy(recordData.data() + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, currentRecord->localData(), currentRecord->localDataSize());
+					result->map(recordData.data(), recordSize, record++);
+				}
+
+				// Increment record counter to address for empty records required to comply with alignment rules.
+				record += alignmentRecords[group];
+			}
+		}
+
+		return result;
 	}
 };
 
@@ -349,7 +490,7 @@ DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(const DirectX12Device& 
 	if (!name.empty())
 		this->name() = name;
 
-	this->handle() = m_impl->initialize();
+	m_impl->initialize();
 }
 
 DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(const DirectX12Device& device, ShaderRecordCollection&& shaderRecords) noexcept :
@@ -389,16 +530,20 @@ UInt32 DirectX12RayTracingPipeline::maxAttributeSize() const noexcept
 	return m_impl->m_maxAttributeSize;
 }
 
+ComPtr<ID3D12StateObject> DirectX12RayTracingPipeline::stateObject() const noexcept
+{
+	return m_impl->m_pipelineState;
+}
+
 UniquePtr<IDirectX12Buffer> DirectX12RayTracingPipeline::allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const noexcept
 {
-	throw;
+	return m_impl->allocateShaderBindingTable(offsets, groups);
 }
 
 void DirectX12RayTracingPipeline::use(const DirectX12CommandBuffer& commandBuffer) const noexcept
 {
-	//commandBuffer.handle()->SetPipelineState(this->handle().Get());
-	//commandBuffer.handle()->SetRayTracingRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
-	throw;
+	commandBuffer.handle()->SetPipelineState1(m_impl->m_pipelineState.Get());
+	commandBuffer.handle()->SetComputeRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
@@ -421,6 +566,6 @@ void DirectX12RayTracingPipelineBuilder::build()
 	instance->m_impl->m_maxRecursionDepth = m_state.maxRecursionDepth;
 	instance->m_impl->m_maxPayloadSize = m_state.maxPayloadSize;
 	instance->m_impl->m_maxAttributeSize = m_state.maxAttributeSize;
-	instance->handle() = instance->m_impl->initialize();
+	instance->m_impl->initialize();
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

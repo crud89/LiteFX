@@ -1239,6 +1239,13 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// Implements a DirectX 12 <see cref="RayTracingPipeline" />.
     /// </summary>
+    /// <remarks>
+    /// Note that the ray tracing pipeline does not set its handle, as it is a different base type from the one used to define ray tracing pipelines. Instead to obtain the handle,
+    /// call <see cref="DirectX12RayTracingPipeline::stateObject()" />.
+    /// 
+    /// At some point it is expected that D3D introduces a unified pipeline architecture based on state objects. At this point, the pipeline state base object will switch to using
+    /// state objects as its handle type and the `stateObject` method above will be deprecated.
+    /// </remarks>
     /// <seealso cref="DirectX12RenderPipeline" />
     /// <seealso cref="DirectX12RayTracingPipelineBuilder" />
     class LITEFX_DIRECTX12_API DirectX12RayTracingPipeline final : public virtual DirectX12PipelineState, public RayTracingPipeline<DirectX12PipelineLayout, DirectX12ShaderProgram> {
@@ -1297,7 +1304,14 @@ namespace LiteFX::Rendering::Backends {
 
         // DirectX12PipelineState interface.
     public:
+        /// <inheritdoc />
         void use(const DirectX12CommandBuffer& commandBuffer) const noexcept override;
+
+        /// <summary>
+        /// Returns the handle of the ray tracing pipeline state object.
+        /// </summary>
+        /// <returns>The handle of the ray tracing pipeline state object.</returns>
+        ComPtr<ID3D12StateObject> stateObject() const noexcept;
     };
 
     /// <summary>
