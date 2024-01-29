@@ -508,7 +508,7 @@ void SampleApp::drawFrame()
     commandBuffer->bind(samplerBindings);
 
     // Draw the object and present the frame by ending the render pass.
-    //commandBuffer->traceRays(m_viewport->getRectangle().width(), m_viewport->getRectangle().height(), 1, m_offsets, shaderBindingTable, &shaderBindingTable, &shaderBindingTable);
+    commandBuffer->traceRays(m_viewport->getRectangle().width(), m_viewport->getRectangle().height(), 1, m_offsets, shaderBindingTable, &shaderBindingTable, &shaderBindingTable);
 
     // Transition the image back into `CopySource` layout.
     barrier = m_device->makeBarrier(PipelineStage::Raytracing, PipelineStage::Transfer);

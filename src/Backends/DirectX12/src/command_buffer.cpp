@@ -525,6 +525,37 @@ void DirectX12CommandBuffer::buildAccelerationStructure(const DirectX12TopLevelA
 
 void DirectX12CommandBuffer::traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IDirectX12Buffer& rayGenerationShaderBindingTable, const IDirectX12Buffer* missShaderBindingTable, const IDirectX12Buffer* hitShaderBindingTable, const IDirectX12Buffer* callableShaderBindingTable) const noexcept
 {
-	throw;
+	D3D12_DISPATCH_RAYS_DESC rayDesc = {
+		.RayGenerationShaderRecord = {
+			.StartAddress = rayGenerationShaderBindingTable.virtualAddress() + offsets.RayGenerationGroupOffset,
+			.SizeInBytes = offsets.RayGenerationGroupSize
+		},
+		.Width = width,
+		.Height = height,
+		.Depth = depth
+	};
+
+	if (missShaderBindingTable != nullptr)
+		rayDesc.MissShaderTable = {
+			.StartAddress = missShaderBindingTable->virtualAddress() + offsets.MissGroupOffset,
+			.SizeInBytes = offsets.MissGroupSize,
+			.StrideInBytes = offsets.MissGroupStride,
+		};
+
+	if (hitShaderBindingTable != nullptr)
+		rayDesc.HitGroupTable = {
+			.StartAddress = hitShaderBindingTable->virtualAddress() + offsets.HitGroupOffset,
+			.SizeInBytes = offsets.HitGroupSize,
+			.StrideInBytes = offsets.HitGroupStride,
+		};
+
+	if (callableShaderBindingTable != nullptr)
+		rayDesc.CallableShaderTable = {
+			.StartAddress = callableShaderBindingTable->virtualAddress() + offsets.CallableGroupOffset,
+			.SizeInBytes = offsets.CallableGroupSize,
+			.StrideInBytes = offsets.CallableGroupStride,
+		};
+
+	this->handle()->DispatchRays(&rayDesc);
 }
 #endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
