@@ -111,7 +111,16 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) cons
 
 	// Buffer barriers.
 	auto bufferBarriers = m_impl->m_bufferBarriers | std::views::transform([this, &syncBefore, &syncAfter](auto& barrier) {
-		return CD3DX12_BUFFER_BARRIER(syncBefore, syncAfter, DX12::getResourceAccess(std::get<0>(barrier)), DX12::getResourceAccess(std::get<1>(barrier)), std::as_const(std::get<2>(barrier)).handle().Get());
+		// Special case: scratch buffers for building acceleration structures are blocked differently between APIs.
+		auto accessBefore = DX12::getResourceAccess(std::get<0>(barrier));
+		auto accessAfter = DX12::getResourceAccess(std::get<1>(barrier));
+
+		if (syncBefore == D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE && accessBefore == D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE)
+			accessBefore = D3D12_BARRIER_ACCESS_UNORDERED_ACCESS;
+		if (syncAfter == D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE && accessAfter == D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE)
+			accessAfter = D3D12_BARRIER_ACCESS_UNORDERED_ACCESS;
+
+		return CD3DX12_BUFFER_BARRIER(syncBefore, syncAfter, accessBefore, accessAfter, std::as_const(std::get<2>(barrier)).handle().Get());
 	}) | std::ranges::to<Array<D3D12_BUFFER_BARRIER>>();
 
 	// Image barriers.
