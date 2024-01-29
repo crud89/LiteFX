@@ -161,10 +161,10 @@ public:
 			}
 		};
 
-		auto payloadSize = std::ranges::max(m_shaderRecordCollection.shaderRecords() | std::views::filter(filterByGroupType) | std::views::transform([](auto& record) { return record->payloadSize(); }));
+		auto localDataSize = std::ranges::max(m_shaderRecordCollection.shaderRecords() | std::views::filter(filterByGroupType) | std::views::transform([](auto& record) { return record->localDataSize(); }));
 
 		// Compute the record size by aligning the handle and payload sizes.
-		auto recordSize = Math::align<UInt64>(rayTracingProperties.shaderGroupHandleSize + payloadSize, rayTracingProperties.shaderGroupBaseAlignment);
+		auto recordSize = Math::align<UInt64>(rayTracingProperties.shaderGroupHandleSize + localDataSize, rayTracingProperties.shaderGroupBaseAlignment);
 
 		// Count the shader records that go into the SBT.
 		auto totalRecordCount = std::ranges::distance(m_shaderRecordCollection.shaderRecords() | std::views::filter(filterByGroupType));
@@ -237,7 +237,7 @@ public:
 					raiseIfFailed(::vkGetRayTracingShaderGroupHandles(m_device.handle(), m_parent->handle(), id, 1, rayTracingProperties.shaderGroupHandleSize, recordData.data()), "Unable to query shader record handle.");
 
 					// Write the payload and map everything into the buffer.
-					std::memcpy(recordData.data() + rayTracingProperties.shaderGroupHandleSize, currentRecord->payloadData(), currentRecord->payloadSize());
+					std::memcpy(recordData.data() + rayTracingProperties.shaderGroupHandleSize, currentRecord->localData(), currentRecord->localDataSize());
 					result->map(recordData.data(), recordSize, record++);
 				}
 			}

@@ -2394,7 +2394,7 @@ namespace LiteFX::Rendering {
         /// For shader modules of types other than ray-tracing, this setting is ignored.
         /// </remarks>
         /// <returns>Returns the binding point for the descriptor that receives shader-local data.</returns>
-        /// <seealso cref="ShaderRecord{{typename TPayload}}" />
+        /// <seealso cref="ShaderRecord{{typename TLocalData}}" />
         virtual const Optional<DescriptorBindingPoint>& shaderLocalDescriptor() const noexcept = 0;
     };
 
@@ -4830,16 +4830,23 @@ namespace LiteFX::Rendering {
         virtual const shader_group_type& shaderGroup() const noexcept = 0;
 
         /// <summary>
-        /// Returns a pointer to the payload of the record.
+        /// Returns a pointer to the shader-local data of the record.
         /// </summary>
-        /// <returns>A pointer to the payload of the record.</returns>
-        virtual const void* payloadData() const noexcept = 0;
+        /// <remarks>
+        /// Shader-local data is a piece of constant data that is available to the shader during invocation. During a ray hit/miss event, the shader record is selected
+        /// based on geometry (<see cref="IBottomLevelAccelerationStructure" />), instance (<see cref="ITopLevelAccelerationStructure" /> and an implementation-specific
+        /// offset. The selected record is then used to load the shader and pass the shader local data to it.
+        /// </remarks>
+        /// <returns>A pointer to the shader-local data of the record.</returns>
+        /// <seealso cref="localDataSize" />
+        virtual const void* localData() const noexcept = 0;
 
         /// <summary>
-        /// Returns the size of the payload.
+        /// Returns the size of the shader-local data of the record.
         /// </summary>
-        /// <returns>The size of the payload.</returns>
-        virtual UInt64 payloadSize() const noexcept = 0;
+        /// <returns>The size of the shader-local data of the record.</returns>
+        /// <seealso cref="localData" />
+        virtual UInt64 localDataSize() const noexcept = 0;
 
     public:
         virtual ~IShaderRecord() noexcept = default;
@@ -4849,30 +4856,30 @@ namespace LiteFX::Rendering {
     /// Defines a generic shader record.
     /// </summary>
     /// <seealso cref="ShaderRecord{{}}" />
-    /// <seealso cref="ShaderRecord{{typename TPayload}}" />
-    template <typename... TPayload>
+    /// <seealso cref="ShaderRecord{{typename TLocalData}}" />
+    template <typename... TLocalData>
     struct ShaderRecord;
 
     /// <summary>
-    /// Denotes a shader record containing a payload.
+    /// Denotes a shader record containing shader-local data.
     /// </summary>
     /// <remarks>
-    /// The <typeparamref name="TPayload" /> defines the data that is passed to a shader's local resource bindings upon invocation. Two types of elements are 
+    /// The <typeparamref name="TLocalData" /> defines the data that is passed to a shader's local resource bindings upon invocation. Two types of elements are 
     /// allowed: buffer references and constants. Buffer references can be obtained by calling <see cref="IBuffer::virtualAddress" /> and are always 8 bytes
     /// long. Constants do not strictly need to follow 8 byte alignment rules, but rather can also be smaller, in which case they should be defined as an
-    /// aligned array, aligned to 8 bytes within the payload.
+    /// aligned array, aligned to 8 bytes within the shader-local data.
     /// </remarks>
     /// <seealso cref="https://github.com/crud89/LiteFX/wiki/Raytracing#local-resource-bindings" />
-    template <typename TPayload> requires (std::alignment_of_v<TPayload> == 8)
-    struct ShaderRecord<TPayload> final : public IShaderRecord {
+    template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+    struct ShaderRecord<TLocalData> final : public IShaderRecord {
     public:
         using shader_group_type = IShaderRecord::shader_group_type;
 
     private:
         /// <summary>
-        /// Stores the payload of the shader record, that gets passed to the shader local data.
+        /// Stores the shader-local data of the shader record, that gets passed to the shader local data.
         /// </summary>
-        TPayload m_payload;
+        TLocalData m_payload;
         
         /// <summary>
         /// Stores the shader group.
@@ -4886,13 +4893,13 @@ namespace LiteFX::Rendering {
         }
 
         /// <inheritdoc />
-        const void* payloadData() const noexcept override {
+        const void* localData() const noexcept override {
             return reinterpret_cast<const void*>(&m_payload);
         }
 
         /// <inheritdoc />
-        UInt64 payloadSize() const noexcept override {
-            return sizeof(TPayload);
+        UInt64 localDataSize() const noexcept override {
+            return sizeof(TLocalData);
         }
 
     public:
@@ -4903,8 +4910,8 @@ namespace LiteFX::Rendering {
         /// Initializes a shader record.
         /// </summary>
         /// <param name="group">The shader group containing the modules to invoke.</param>
-        /// <param name="payload">The payload to pass to the shader's local resource bindings.</param>
-        ShaderRecord(const shader_group_type& group, TPayload payload) noexcept :
+        /// <param name="payload">The shader-local data to pass to the shader's local resource bindings.</param>
+        ShaderRecord(const shader_group_type& group, TLocalData payload) noexcept :
             m_shaderGroup(group), m_payload(payload) { }
 
         /// <summary>
@@ -4945,7 +4952,7 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Denotes a shader record containing no payload.
+    /// Denotes a shader record containing no shader-local data.
     /// </summary>
     template <>
     struct ShaderRecord<> final : public IShaderRecord {
@@ -4965,12 +4972,12 @@ namespace LiteFX::Rendering {
         }
 
         /// <inheritdoc />
-        const void* payloadData() const noexcept override {
+        const void* localData() const noexcept override {
             return nullptr;
         }
 
         /// <inheritdoc />
-        UInt64 payloadSize() const noexcept override {
+        UInt64 localDataSize() const noexcept override {
             return 0_ui64;
         }
 
@@ -5109,23 +5116,23 @@ namespace LiteFX::Rendering {
         /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an 
         /// any and closest hit shader, use <see cref="addMeshGeometryShaderHitGroupRecord" /> instead.
         /// </remarks>
-        /// <typeparam name="TPayload">The type of the shader record payload.</typeparam>
+        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
         /// <param name="shaderName">The name of the shader module.</param>
-        /// <param name="payload">The payload of the shader record.</param>
+        /// <param name="payload">The shader-local data of the shader record.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if no shader module with the provided name was found in the parent shader program.</exception>
-        template <typename TPayload> requires (std::alignment_of_v<TPayload> == 8)
-        inline void addShaderRecord(StringView shaderName, TPayload payload) {
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        inline void addShaderRecord(StringView shaderName, TLocalData payload) {
             auto shaderModule = this->findShaderModule(shaderName);
 
             if (shaderModule == nullptr) [[unlikely]]
                 throw InvalidArgumentException("shaderName", "The parent shader program does not contain a shader named \"{}\".", shaderName);
                 
             if (shaderModule->type() == ShaderStage::AnyHit)
-                this->addShaderRecord(makeUnique<ShaderRecord<TPayload>>(IShaderRecord::MeshGeometryHitGroup{ .AnyHitShader = shaderModule }, payload));
+                this->addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(IShaderRecord::MeshGeometryHitGroup{ .AnyHitShader = shaderModule }, payload));
             else if (shaderModule->type() == ShaderStage::ClosestHit)
-                this->addShaderRecord(makeUnique<ShaderRecord<TPayload>>(IShaderRecord::MeshGeometryHitGroup{ .ClosestHitShader = shaderModule }, payload));
+                this->addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(IShaderRecord::MeshGeometryHitGroup{ .ClosestHitShader = shaderModule }, payload));
             else
-                this->addShaderRecord(makeUnique<ShaderRecord<TPayload>>(shaderModule, payload));
+                this->addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(shaderModule, payload));
         }
 
         /// <summary>
@@ -5146,19 +5153,19 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds a new mesh geometry hit group record based on names of the shader modules.
         /// </summary>
-        /// <typeparam name="TPayload">The type of the shader record payload.</typeparam>
+        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
         /// <param name="anyHitShaderName">The name of the any hit shader module.</param>
         /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
-        /// <param name="payload">The payload of the shader record.</param>
+        /// <param name="payload">The shader-local data of the shader record.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if both provided shader names are empty or not found, the shaders are not of the right type or do not belong to the parent shader program.</exception>
-        template <typename TPayload> requires (std::alignment_of_v<TPayload> == 8)
-        inline void addMeshGeometryShaderHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName, TPayload payload) {
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        inline void addMeshGeometryShaderHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName, TLocalData payload) {
             IShaderRecord::MeshGeometryHitGroup hitGroup = { 
                 .ClosestHitShader = closestHitShaderName.has_value() ? this->findShaderModule(closestHitShaderName.value()) : nullptr,
                 .AnyHitShader = anyHitShaderName.has_value() ? this->findShaderModule(anyHitShaderName.value()) : nullptr
             };
 
-            this->addShaderRecord(makeUnique<ShaderRecord<TPayload>>(hitGroup, payload));
+            this->addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(hitGroup, payload));
         }
 
         /// <summary>
@@ -5172,12 +5179,12 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds a new shader record to the shader record collection.
         /// </summary>
-        /// <typeparam name="TPayload">The type of the shader record payload.</typeparam>
+        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
         /// <param name="shaderGroup">The shader module or hit group.</param>
-        /// <param name="payload">The payload of the shader record.</param>
-        template <typename TPayload> requires (std::alignment_of_v<TPayload> == 8)
-        inline void addShaderRecord(ShaderRecord<TPayload>::shader_group_type shaderGroup, TPayload payload) {
-            this->addShaderRecord(makeUnique<ShaderRecord<TPayload>>(shaderGroup, payload));
+        /// <param name="payload">The shader-local data of the shader record.</param>
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        inline void addShaderRecord(ShaderRecord<TLocalData>::shader_group_type shaderGroup, TLocalData payload) {
+            this->addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(shaderGroup, payload));
         }
 
         /// <summary>
@@ -5201,12 +5208,12 @@ namespace LiteFX::Rendering {
         /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an 
         /// any and closest hit shader, use <see cref="withMeshGeometryShaderHitGroupRecord" /> instead.
         /// </remarks>
-        /// <typeparam name="TPayload">The type of the shader record payload.</typeparam>
+        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
         /// <param name="shaderName"></param>
-        /// <param name="payload">The payload of the shader record.</param>
+        /// <param name="payload">The shader-local data of the shader record.</param>
         /// <returns>A reference to the current shader record collection.</returns>
-        template <typename TPayload> requires (std::alignment_of_v<TPayload> == 8)
-        inline ShaderRecordCollection&& withShaderRecord(StringView shaderName, TPayload payload) {
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        inline ShaderRecordCollection&& withShaderRecord(StringView shaderName, TLocalData payload) {
             this->addShaderRecord(shaderName, payload);
             return std::forward<ShaderRecordCollection>(*this);
         }
@@ -5225,13 +5232,13 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds a new mesh geometry hit group record based on names of the shader modules.
         /// </summary>
-        /// <typeparam name="TPayload">The type of the shader record payload.</typeparam>
+        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
         /// <param name="anyHitShaderName">The name of the any hit shader module.</param>
         /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
-        /// <param name="payload">The payload of the shader record.</param>
+        /// <param name="payload">The shader-local data of the shader record.</param>
         /// <returns>A reference to the current shader record collection.</returns>
-        template <typename TPayload> requires (std::alignment_of_v<TPayload> == 8)
-        inline ShaderRecordCollection&& withMeshGeometryHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName, TPayload payload) {
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        inline ShaderRecordCollection&& withMeshGeometryHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName, TLocalData payload) {
             this->addMeshGeometryShaderHitGroupRecord(anyHitShaderName, closestHitShaderName, payload);
             return std::forward<ShaderRecordCollection>(*this);
         }
@@ -5249,12 +5256,12 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds a new shader record to the shader record collection.
         /// </summary>
-        /// <typeparam name="TPayload">The type of the shader record payload.</typeparam>
+        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
         /// <param name="shaderGroup">The shader module or hit group.</param>
-        /// <param name="payload">The payload of the shader record.</param>
+        /// <param name="payload">The shader-local data of the shader record.</param>
         /// <returns>A reference to the current shader record collection.</returns>
-        template <typename TPayload> requires (std::alignment_of_v<TPayload> == 8)
-        inline ShaderRecordCollection&& withShaderRecord(ShaderRecord<TPayload>::shader_group_type shaderGroup, TPayload payload) {
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        inline ShaderRecordCollection&& withShaderRecord(ShaderRecord<TLocalData>::shader_group_type shaderGroup, TLocalData payload) {
             this->addShaderRecord(shaderGroup, payload);
             return std::forward<ShaderRecordCollection>(*this);
         }
@@ -6257,8 +6264,8 @@ namespace LiteFX::Rendering {
         /// Allocates a buffer that contains the shader binding table containing the shader groups specified by the <paramref name="groups" /> parameter.
         /// </summary>
         /// <remarks>
-        /// The shader binding table consists out of individual shader records, where each record refers to a shader record plus its payload, as specified in the shader record 
-        /// collection that was passed to the ray-tracing pipeline during creation. The size of a record within the shader binding table is determined by the largest payload
+        /// The shader binding table consists out of individual shader records, where each record refers to a shader record plus its local data, as specified in the shader record 
+        /// collection that was passed to the ray-tracing pipeline during creation. The size of a record within the shader binding table is determined by the largest local data
         /// size of all records of the groups to be included. It makes sense to pack multiple records into the same buffer for efficiency, however it may generally be a good
         /// idea to separate groups that require large amount of local shader data into their own buffers to keep the other buffers smaller.
         /// 
