@@ -1245,8 +1245,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="shaderProgram">The shader program used by the pipeline.</param>
         /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
         /// <param name="maxRecursionDepth">The maximum number of ray bounces.</param>
+        /// <param name="maxPayloadSize">The maximum size for ray payloads in the pipeline.</param>
+        /// <param name="maxAttributeSize">The maximum size for ray attributes in the pipeline.</param>
         /// <param name="name">The optional debug name of the render pipeline.</param>
-        explicit VulkanRayTracingPipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth = 10, const String& name = "");
+        explicit VulkanRayTracingPipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth = 10, UInt32 maxPayloadSize = 0, UInt32 maxAttributeSize = 32, const String& name = "");
         VulkanRayTracingPipeline(VulkanRayTracingPipeline&&) noexcept = delete;
         VulkanRayTracingPipeline(const VulkanRayTracingPipeline&) noexcept = delete;
         virtual ~VulkanRayTracingPipeline() noexcept;
@@ -1274,6 +1276,12 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt32 maxRecursionDepth() const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 maxPayloadSize() const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 maxAttributeSize() const noexcept override;
 
         /// <inheritdoc />
         UniquePtr<IVulkanBuffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups = ShaderBindingGroup::All) const noexcept override;

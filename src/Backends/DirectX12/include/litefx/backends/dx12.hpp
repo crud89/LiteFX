@@ -1254,8 +1254,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="shaderProgram">The shader program used by this pipeline.</param>
         /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
         /// <param name="maxRecursionDepth">The maximum number of ray bounces.</param>
+        /// <param name="maxPayloadSize">The maximum size for ray payloads in the pipeline.</param>
+        /// <param name="maxAttributeSize">The maximum size for ray attributes in the pipeline.</param>
         /// <param name="name">The optional debug name of the ray-tracing pipeline.</param>
-        explicit DirectX12RayTracingPipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth = 10, const String& name = "");
+        explicit DirectX12RayTracingPipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth = 10, UInt32 maxPayloadSize = 0, UInt32 maxAttributeSize = 32, const String& name = "");
         DirectX12RayTracingPipeline(DirectX12RayTracingPipeline&&) noexcept = delete;
         DirectX12RayTracingPipeline(const DirectX12RayTracingPipeline&) noexcept = delete;
         virtual ~DirectX12RayTracingPipeline() noexcept;
@@ -1283,6 +1285,12 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt32 maxRecursionDepth() const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 maxPayloadSize() const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 maxAttributeSize() const noexcept override;
 
         /// <inheritdoc />
         UniquePtr<IDirectX12Buffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups = ShaderBindingGroup::All) const noexcept override;

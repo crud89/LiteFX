@@ -97,6 +97,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
             .withShaderRecord("shaders/raytracing_miss." + FileExtensions<TRenderBackend>::SHADER)
             .withMeshGeometryHitGroupRecord(std::nullopt, "shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER, GeometryData { .Index = 0 }))
         .maxBounces(4)
+        .maxPayloadSize(sizeof(Float) * 7)    // See HitInfo in raytracing_common.hlsli
+        .maxAttributeSize(sizeof(Float) * 2)  // See Attributes in raytracing_common.hlsli
         .layout(shaderProgram->reflectPipelineLayout());
 
     // Add the resources to the device state.

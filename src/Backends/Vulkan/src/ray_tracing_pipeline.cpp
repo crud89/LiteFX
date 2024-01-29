@@ -19,12 +19,12 @@ private:
 	SharedPtr<VulkanPipelineLayout> m_layout;
 	SharedPtr<const VulkanShaderProgram> m_program;
 	const ShaderRecordCollection m_shaderRecordCollection;
-	UInt32 m_maxRecursionDepth { 10 };
+	UInt32 m_maxRecursionDepth{ 10 }, m_maxPayloadSize{ 0 }, m_maxAttributeSize{ 32 };
 	const VulkanDevice& m_device;
 
 public:
-	VulkanRayTracingPipelineImpl(VulkanRayTracingPipeline* parent, const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, UInt32 maxRecursionDepth, ShaderRecordCollection&& shaderRecords) :
-		base(parent), m_device(device), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords)), m_maxRecursionDepth(maxRecursionDepth)
+	VulkanRayTracingPipelineImpl(VulkanRayTracingPipeline* parent, const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, ShaderRecordCollection&& shaderRecords) :
+		base(parent), m_device(device), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords)), m_maxRecursionDepth(maxRecursionDepth), m_maxPayloadSize(maxPayloadSize), m_maxAttributeSize(maxAttributeSize)
 	{
 	}
 
@@ -251,8 +251,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth, const String& name) :
-	m_impl(makePimpl<VulkanRayTracingPipelineImpl>(this, device, layout, shaderProgram, maxRecursionDepth, std::move(shaderRecords))), VulkanPipelineState(VK_NULL_HANDLE)
+VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, const String& name) :
+	m_impl(makePimpl<VulkanRayTracingPipelineImpl>(this, device, layout, shaderProgram, maxRecursionDepth, maxPayloadSize, maxAttributeSize, std::move(shaderRecords))), VulkanPipelineState(VK_NULL_HANDLE)
 {
 	if (!name.empty())
 		this->name() = name;
@@ -290,6 +290,16 @@ UInt32 VulkanRayTracingPipeline::maxRecursionDepth() const noexcept
 	return m_impl->m_maxRecursionDepth;
 }
 
+UInt32 VulkanRayTracingPipeline::maxPayloadSize() const noexcept
+{
+	return m_impl->m_maxPayloadSize;
+}
+
+UInt32 VulkanRayTracingPipeline::maxAttributeSize() const noexcept
+{
+	return m_impl->m_maxAttributeSize;
+}
+
 UniquePtr<IVulkanBuffer> VulkanRayTracingPipeline::allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const noexcept
 {
 	return m_impl->allocateShaderBindingTable(offsets, groups);
@@ -324,6 +334,8 @@ void VulkanRayTracingPipelineBuilder::build()
 	auto instance = this->instance();
 	instance->m_impl->m_layout = m_state.pipelineLayout;
 	instance->m_impl->m_maxRecursionDepth = m_state.maxRecursionDepth;
+	instance->m_impl->m_maxPayloadSize = m_state.maxPayloadSize;
+	instance->m_impl->m_maxAttributeSize = m_state.maxAttributeSize;
 	instance->handle() = instance->m_impl->initialize();
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

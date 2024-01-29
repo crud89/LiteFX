@@ -6272,6 +6272,30 @@ namespace LiteFX::Rendering {
         virtual UInt32 maxRecursionDepth() const noexcept = 0;
 
         /// <summary>
+        /// Returns the maximum size of a single ray payload.
+        /// </summary>
+        /// <remarks>
+        /// A ray payload is the data that is passed down the `TraceRay` function call chain. It can be zero, if 
+        /// [Ray Payload Qualifiers](https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#payload-access-qualifiers) are used. Otherwise it must be set to the largest ray
+        /// payload size used in the ray-tracing pipeline. 
+        /// 
+        /// This property can currently not be queried from reflection.
+        /// </remarks>
+        /// <returns>The maximum size of a single ray payload.</returns>
+        virtual UInt32 maxPayloadSize() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the maximum size of a single ray attribute.
+        /// </summary>
+        /// A ray attribute is the data that is passed to a hit shader for a specific event. Different to ray payloads, it only contains the data that describe the event (such as 
+        /// the hit coordinates, etc.).
+        /// 
+        /// This property can currently not be queried from reflection.
+        /// </remarks>
+        /// <returns></returns>
+        virtual UInt32 maxAttributeSize() const noexcept = 0;
+
+        /// <summary>
         /// Allocates a buffer that contains the shader binding table containing the shader groups specified by the <paramref name="groups" /> parameter.
         /// </summary>
         /// <remarks>

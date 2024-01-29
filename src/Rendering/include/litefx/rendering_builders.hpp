@@ -1522,12 +1522,22 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The ray-tracing pipeline layout.
             /// </summary>
-            SharedPtr<pipeline_layout_type> pipelineLayout;
+            SharedPtr<pipeline_layout_type> pipelineLayout { };
 
             /// <summary>
             /// The maximum number of ray bounces in the pipeline.
             /// </summary>
-            UInt32 maxRecursionDepth;
+            UInt32 maxRecursionDepth { 10 };
+
+            /// <summary>
+            /// The maximum size for ray payloads in the pipeline.
+            /// </summary>
+            UInt32 maxPayloadSize { 0 };
+
+            /// <summary>
+            /// The maximum size for ray attributes in the pipeline.
+            /// </summary>
+            UInt32 maxAttributeSize { 32 };
         } m_state;
 
     public:
@@ -1548,6 +1558,26 @@ namespace LiteFX::Rendering {
         template <typename TSelf>
         constexpr inline auto maxBounces(this TSelf&& self, UInt32 maxRecursionDepth) -> TSelf&& {
             self.m_state.maxRecursionDepth = maxRecursionDepth;
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Sets the maximum size for a ray payload in the pipeline. Ignored [Payload Access Qualifiers](https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#payload-access-qualifiers) are used.
+        /// </summary>
+        /// <param name="maxPayloadSize">The maximum size for ray payloads in the pipeline.</param>
+        template <typename TSelf>
+        constexpr inline auto maxPayloadSize(this TSelf&& self, UInt32 maxPayloadSize) -> TSelf&& {
+            self.m_state.maxPayloadSize = maxPayloadSize;
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Sets the maximum size for a ray attribute in the pipeline.
+        /// </summary>
+        /// <param name="maxAttributeSize">The maximum size for ray attributes in the pipeline.</param>
+        template <typename TSelf>
+        constexpr inline auto maxAttributeSize(this TSelf&& self, UInt32 maxAttributeSize) -> TSelf&& {
+            self.m_state.maxAttributeSize = maxAttributeSize;
             return std::forward<TSelf>(self);
         }
     };
