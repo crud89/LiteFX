@@ -160,7 +160,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Build the BLAS and the TLAS. We need to barrier in between both to prevent simultaneous scratch buffer writes.
     commandBuffer->buildAccelerationStructure(*blas, scratchBuffer);
     barrier = m_device->makeBarrier(PipelineStage::AccelerationStructureBuild, PipelineStage::AccelerationStructureBuild);
-    barrier->transition(*scratchBuffer, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderReadWrite);
+    barrier->transition(*scratchBuffer, ResourceAccess::AccelerationStructureWrite, ResourceAccess::AccelerationStructureWrite);
     commandBuffer->barrier(*barrier);
     commandBuffer->buildAccelerationStructure(*tlas, scratchBuffer);
 
@@ -213,8 +213,8 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto& swapChain = m_device->swapChain();
     auto backBuffers = m_device->factory().createTexture("Back Buffers", swapChain.surfaceFormat(), swapChain.renderArea(), ImageDimensions::DIM_2, 1u, swapChain.buffers(), MultiSamplingLevel::x1, ResourceUsage::AllowWrite | ResourceUsage::TransferSource);
     auto& outputBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::FrameBuffer));
-    auto outputBindings = outputBindingsLayout.allocateMultiple(swapChain.buffers(), [&backBuffers](UInt32 descriptorSet) -> Enumerable<DescriptorBinding> {
-        return { DescriptorBinding {.resource = *backBuffers, .firstElement = backBuffers->subresourceId(0, descriptorSet, 0), .elements = 1}};
+    auto outputBindings = outputBindingsLayout.allocateMultiple(swapChain.buffers(), [&backBuffers, i = 0u](UInt32 /*descriptorSet*/) mutable -> Enumerable<DescriptorBinding> {
+        return { DescriptorBinding { .resource = *backBuffers, .firstElement = i++, .elements = 1 } };
     });
 
     // Bind the material data.
@@ -507,7 +507,7 @@ void SampleApp::drawFrame()
     commandBuffer->barrier(*barrier);
 
     // Copy the back buffer into the current swap chain image.
-    commandBuffer->transfer(backBuffers, *m_device->swapChain().image(backBuffer), backBuffers.subresourceId(0, backBuffer, 0), 0, 1);
+    commandBuffer->transfer(backBuffers, *m_device->swapChain().image(backBuffer), backBuffers.subresourceId(0, backBuffer, 0));
 
     // Transition the image back into `Present` layout.
     barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::Resolve);
