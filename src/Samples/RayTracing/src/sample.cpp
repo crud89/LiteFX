@@ -158,8 +158,6 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto scratchBuffer = asShared(std::move(m_device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, scratchBufferSize, 1, ResourceUsage::AllowWrite)));
 
     // Build the BLAS and the TLAS. We need to barrier in between both to prevent simultaneous scratch buffer writes.
-    // NOTE: `ShaderReadWrite` access works here, as the scratch buffer is used as an UAV. Alternatively we could attempt to synchronize the blas/tlas back buffer with `ResourceAccess::AccelerationStructureWrite`,
-    //       but this is currently unsupported, as they only provide constant access to the buffer resource.
     commandBuffer->buildAccelerationStructure(*blas, scratchBuffer);
     barrier = m_device->makeBarrier(PipelineStage::AccelerationStructureBuild, PipelineStage::AccelerationStructureBuild);
     barrier->transition(*scratchBuffer, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderReadWrite);
