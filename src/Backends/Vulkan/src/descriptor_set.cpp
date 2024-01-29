@@ -199,7 +199,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = nullptr,
         .image = texture.handle(),
-        .viewType = Vk::getImageViewType(texture.dimensions(), texture.layers()),
+        .viewType = Vk::getImageViewType(texture.dimensions(), numLayers), // TODO: What if we want to bind an array with one layer only, though?!... `DescriptorLayout` should get an "isArray" property.
         .format = Vk::getFormat(texture.format()),
         .components = VkComponentMapping {
             .r = VK_COMPONENT_SWIZZLE_IDENTITY,
