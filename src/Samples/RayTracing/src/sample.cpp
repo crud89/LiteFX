@@ -244,7 +244,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
 {
     // Calculate the camera view/projection matrix.
-    auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
+    auto aspectRatio = static_cast<Float>(m_device->swapChain().renderArea().width()) / static_cast<Float>(m_device->swapChain().renderArea().height());
     glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;
@@ -298,10 +298,6 @@ void SampleApp::onInit()
         int width, height;
         ::glfwGetFramebufferSize(window, &width, &height);
 
-        // Create viewport and scissors.
-        m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
-        m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
-
         auto adapter = backend->findAdapter(m_adapterId);
 
         if (adapter == nullptr)
@@ -310,7 +306,7 @@ void SampleApp::onInit()
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.
-        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3);
+        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, Size2d(static_cast<Float>(width), static_cast<Float>(height)), 3);
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);
@@ -360,10 +356,6 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
 
     m_device->state().release(m_device->state().image("Back Buffers"));
     m_device->state().add(std::move(backBuffers));
-
-    // Also resize viewport and scissor.
-    m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
-    m_scissor->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
 
     // Also update the camera.
     auto& cameraBuffer = m_device->state().buffer("Camera");
@@ -492,8 +484,6 @@ void SampleApp::drawFrame()
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     commandBuffer->use(geometryPipeline);
-    //commandBuffer->setViewports(m_viewport.get());
-    //commandBuffer->setScissors(m_scissor.get());
 
     // Get the amount of time that has passed since the first frame.
     auto now = std::chrono::high_resolution_clock::now();
@@ -508,7 +498,7 @@ void SampleApp::drawFrame()
     commandBuffer->bind(samplerBindings);
 
     // Draw the object and present the frame by ending the render pass.
-    commandBuffer->traceRays(m_viewport->getRectangle().width(), m_viewport->getRectangle().height(), 1, m_offsets, shaderBindingTable, &shaderBindingTable, &shaderBindingTable);
+    commandBuffer->traceRays(m_device->swapChain().renderArea().width(), m_device->swapChain().renderArea().height(), 1, m_offsets, shaderBindingTable, &shaderBindingTable, &shaderBindingTable);
 
     // Transition the image back into `CopySource` layout.
     barrier = m_device->makeBarrier(PipelineStage::Raytracing, PipelineStage::Transfer);

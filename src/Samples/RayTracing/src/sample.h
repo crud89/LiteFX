@@ -58,16 +58,6 @@ private:
 	SharedPtr<IInputAssembler> m_inputAssembler;
 
 	/// <summary>
-	/// Stores the viewport.
-	/// </summary>
-	SharedPtr<IViewport> m_viewport;
-
-	/// <summary>
-	/// Stores the scissor.
-	/// </summary>
-	SharedPtr<IScissor> m_scissor;
-
-	/// <summary>
 	/// Stores a pointer to the currently active device.
 	/// </summary>
 	IGraphicsDevice* m_device;
