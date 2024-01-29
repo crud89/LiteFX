@@ -3596,14 +3596,6 @@ namespace LiteFX::Rendering {
         /// <returns>The number of samples of the texture.</returns>
         virtual MultiSamplingLevel samples() const noexcept = 0;
 
-        /// <summary>
-        /// Returns the current image layout.
-        /// </summary>
-        /// <param name="subresource">The sub-resource ID for which to return the layout.</param>
-        /// <returns>The current image layout.</returns>
-        /// <seealso cref="subresourceId" />
-        virtual ImageLayout layout(UInt32 subresource = 0) const = 0;
-
         // TODO: getSampler() for combined samplers?
 
     public:

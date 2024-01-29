@@ -16,19 +16,17 @@ private:
 	Format m_format;
 	Size3d m_extent;
 	UInt32 m_elements, m_levels, m_layers, m_planes; 
-	Array<ImageLayout> m_layouts;
 	ImageDimensions m_dimensions;
 	ResourceUsage m_usage;
 	MultiSamplingLevel m_samples;
 	const DirectX12Device& m_device;
 
 public:
-	DirectX12ImageImpl(DirectX12Image* parent, const DirectX12Device& device, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, ImageLayout initialLayout, AllocatorPtr allocator, AllocationPtr&& allocation) :
+	DirectX12ImageImpl(DirectX12Image* parent, const DirectX12Device& device, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation) :
 		base(parent), m_device(device), m_allocator(allocator), m_allocation(std::move(allocation)), m_extent(extent), m_format(format), m_dimensions(dimension), m_levels(levels), m_layers(layers), m_usage(usage), m_samples(samples)
 	{
 		m_planes = ::D3D12GetFormatPlaneCount(device.handle().Get(), DX12::getFormat(format));
 		m_elements = m_planes * m_layers * m_levels;
-		m_layouts.resize(m_elements, initialLayout);
 	}
 };
 
@@ -36,8 +34,8 @@ public:
 // Image Base shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Image::DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, ImageLayout initialState, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
-	m_impl(makePimpl<DirectX12ImageImpl>(this, device, extent, format, dimension, levels, layers, samples, usage, initialState, allocator, std::move(allocation))), ComResource<ID3D12Resource>(nullptr)
+DirectX12Image::DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
+	m_impl(makePimpl<DirectX12ImageImpl>(this, device, extent, format, dimension, levels, layers, samples, usage, allocator, std::move(allocation))), ComResource<ID3D12Resource>(nullptr)
 {
 	this->handle() = std::move(image);
 
@@ -102,22 +100,6 @@ ResourceUsage DirectX12Image::usage() const noexcept
 UInt64 DirectX12Image::virtualAddress() const noexcept
 {
 	return static_cast<UInt64>(this->handle()->GetGPUVirtualAddress());
-}
-
-ImageLayout DirectX12Image::layout(UInt32 subresource) const
-{
-	if (subresource >= m_impl->m_layouts.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("subresource", 0u, static_cast<UInt32>(m_impl->m_layouts.size()), subresource, "The sub-resource with the provided index {0} does not exist.", subresource);
-
-	return m_impl->m_layouts[subresource];
-}
-
-ImageLayout& DirectX12Image::layout(UInt32 subresource)
-{
-	if (subresource >= m_impl->m_layouts.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("subresource", 0u, static_cast<UInt32>(m_impl->m_layouts.size()), subresource, "The sub-resource with the provided index {0} does not exist.", subresource);
-
-	return m_impl->m_layouts[subresource];
 }
 
 size_t DirectX12Image::size(UInt32 level) const noexcept
@@ -194,22 +176,24 @@ const D3D12MA::Allocation* DirectX12Image::allocationInfo() const noexcept
 	return m_impl->m_allocation.get();
 }
 
-UniquePtr<DirectX12Image> DirectX12Image::allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, ImageLayout initialLayout, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
+UniquePtr<DirectX12Image> DirectX12Image::allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
 {
-	return DirectX12Image::allocate("", device, allocator, extent, format, dimension, levels, layers, samples, usage, initialLayout, resourceDesc, allocationDesc);
+	return DirectX12Image::allocate("", device, allocator, extent, format, dimension, levels, layers, samples, usage, resourceDesc, allocationDesc);
 }
 
-UniquePtr<DirectX12Image> DirectX12Image::allocate(const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, ImageLayout initialLayout, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
+UniquePtr<DirectX12Image> DirectX12Image::allocate(const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
 {
 	if (allocator == nullptr) [[unlikely]]
 		throw ArgumentNotInitializedException("allocator", "The allocator must be initialized.");
 
+	bool isDepthStencil = ::hasDepth(format) || ::hasStencil(format);
+
 	ComPtr<ID3D12Resource> resource;
 	D3D12MA::Allocation* allocation;
-	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, DX12::getImageLayout(initialLayout), nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to create image resource.");
+	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, isDepthStencil ? D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ : D3D12_BARRIER_LAYOUT_COMMON, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to create image resource.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}", name.empty() ? fmt::to_string(fmt::ptr(resource.Get())) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples);
 	
-	return makeUnique<DirectX12Image>(device, std::move(resource), extent, format, dimension, levels, layers, samples, usage, initialLayout, allocator, AllocationPtr(allocation), name);
+	return makeUnique<DirectX12Image>(device, std::move(resource), extent, format, dimension, levels, layers, samples, usage, allocator, AllocationPtr(allocation), name);
 }
 
 // ------------------------------------------------------------------------------------------------

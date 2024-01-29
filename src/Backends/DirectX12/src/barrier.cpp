@@ -117,22 +117,12 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) cons
 	// Image barriers.
 	auto imageBarriers = m_impl->m_imageBarriers | std::views::transform([this, &syncBefore, &syncAfter](auto& barrier) {
 		auto& image = std::get<2>(barrier);
-		auto layout = image.layout(image.subresourceId(std::get<5>(barrier), std::get<7>(barrier), std::get<9>(barrier)));
-		auto currentLayout = DX12::getImageLayout(std::get<3>(barrier).value_or(layout));
+		auto currentLayout = DX12::getImageLayout(std::get<3>(barrier).value_or(ImageLayout::Undefined));
 		auto targetLayout = DX12::getImageLayout(std::get<4>(barrier));
 
 		for (auto layer = std::get<7>(barrier); layer < std::get<7>(barrier) + std::get<8>(barrier); layer++)
-		{
 			for (auto level = std::get<5>(barrier); level < std::get<5>(barrier) + std::get<6>(barrier); level++)
-			{
 				auto subresource = image.subresourceId(level, layer, std::get<9>(barrier));
-
-				if (image.layout(subresource) != layout && currentLayout != D3D12_BARRIER_LAYOUT_UNDEFINED) [[unlikely]]
-					throw RuntimeException("All sub-resources in a sub-resource range need to have the same initial layout.");
-				else
-					image.layout(subresource) = std::get<4>(barrier);
-			}
-		}
 
 		return CD3DX12_TEXTURE_BARRIER(syncBefore, syncAfter, DX12::getResourceAccess(std::get<0>(barrier)), DX12::getResourceAccess(std::get<1>(barrier)), currentLayout, targetLayout, std::as_const(image).handle().Get(), 
 			CD3DX12_BARRIER_SUBRESOURCE_RANGE(std::get<5>(barrier), std::get<6>(barrier), std::get<7>(barrier), std::get<8>(barrier), std::get<9>(barrier)));

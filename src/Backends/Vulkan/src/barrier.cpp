@@ -127,22 +127,12 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
 	// Image barriers.
 	auto imageBarriers = m_impl->m_imageBarriers | std::views::transform([this](auto& barrier) {
 		auto& image = std::get<2>(barrier);
-		auto layout = image.layout(image.subresourceId(std::get<5>(barrier), std::get<7>(barrier), std::get<9>(barrier)));
-		auto currentLayout = Vk::getImageLayout(std::get<3>(barrier).value_or(layout));
+		auto currentLayout = Vk::getImageLayout(std::get<3>(barrier).value_or(ImageLayout::Undefined));
 		auto targetLayout = Vk::getImageLayout(std::get<4>(barrier));
 
 		for (auto layer = std::get<7>(barrier); layer < std::get<7>(barrier) + std::get<8>(barrier); layer++)
-		{
 			for (auto level = std::get<5>(barrier); level < std::get<5>(barrier) + std::get<6>(barrier); level++)
-			{
 				auto subresource = image.subresourceId(level, layer, std::get<9>(barrier));
-
-				if (image.layout(subresource) != layout && currentLayout != VK_IMAGE_LAYOUT_UNDEFINED) [[unlikely]]
-					throw RuntimeException("All sub-resources in a sub-resource range need to have the same initial layout.");
-				else
-					image.layout(subresource) = std::get<4>(barrier);
-			}
-		}
         
         return VkImageMemoryBarrier {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,

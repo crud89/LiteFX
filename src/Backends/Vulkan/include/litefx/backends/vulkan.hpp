@@ -149,10 +149,6 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="plane">The sub-resource index to return the image view for.</param>
         /// <returns>The image view for the sub-resource.</returns>
         virtual const VkImageView& imageView(UInt32 plane = 0) const = 0;
-        
-    private:
-        virtual ImageLayout& layout(UInt32 subresource) = 0;
-        virtual ImageLayout layout(UInt32 subresource) const = 0;
     };
 
     /// <summary>

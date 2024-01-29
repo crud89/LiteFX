@@ -22,12 +22,11 @@ private:
 	UInt32 m_elements, m_layers, m_levels, m_planes;
 	ImageDimensions m_dimensions;
 	ResourceUsage m_usage;
-	Array<ImageLayout> m_layouts;
 	MultiSamplingLevel m_samples;
 	const VulkanDevice& m_device;
 
 public:
-	VulkanImageImpl(VulkanImage* parent, const VulkanDevice& device, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, ImageLayout initialLayout, VmaAllocator allocator, VmaAllocation allocation) :
+	VulkanImageImpl(VulkanImage* parent, const VulkanDevice& device, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator, VmaAllocation allocation) :
 		base(parent), m_device(device), m_allocator(allocator), m_allocationInfo(allocation), m_extent(extent), m_format(format), m_dimensions(dimensions), m_levels(levels), m_layers(layers), m_usage(usage), m_samples(samples)
 	{	
 		VkImageViewCreateInfo createInfo = {
@@ -83,7 +82,6 @@ public:
 		//       the proper aspect is selected based on the plane.
 		m_planes = static_cast<UInt32>(m_views.size());
 		m_elements = m_levels * m_layers * m_planes;
-		m_layouts.resize(m_elements, initialLayout);
 	}
 };
 
@@ -91,8 +89,8 @@ public:
 // Image Base shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanImage::VulkanImage(const VulkanDevice& device, VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, ImageLayout initialLayout, VmaAllocator allocator, VmaAllocation allocation, const String& name) :
-	m_impl(makePimpl<VulkanImageImpl>(this, device, extent, format, dimensions, levels, layers, samples, usage, initialLayout, allocator, allocation)), Resource<VkImage>(image)
+VulkanImage::VulkanImage(const VulkanDevice& device, VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator, VmaAllocation allocation, const String& name) :
+	m_impl(makePimpl<VulkanImageImpl>(this, device, extent, format, dimensions, levels, layers, samples, usage, allocator, allocation)), Resource<VkImage>(image)
 {
 	if (!name.empty())
 		this->name() = name;
@@ -164,22 +162,6 @@ UInt64 VulkanImage::virtualAddress() const noexcept
 	LITEFX_WARNING(VULKAN_LOG, "Vulkan does not allow to query virtual addresses of images.");
 
 	return 0ul;
-}
-
-ImageLayout VulkanImage::layout(UInt32 subresource) const
-{
-	if (subresource >= m_impl->m_layouts.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("subresource", 0u, static_cast<UInt32>(m_impl->m_layouts.size()), subresource, "The sub-resource with the provided index {0} does not exist.", subresource);
-
-	return m_impl->m_layouts[subresource];
-}
-
-ImageLayout& VulkanImage::layout(UInt32 subresource)
-{
-	if (subresource >= m_impl->m_layouts.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("subresource", 0u, static_cast<UInt32>(m_impl->m_layouts.size()), subresource, "The sub-resource with the provided index {0} does not exist.", subresource);
-
-	return m_impl->m_layouts[subresource];
 }
 
 size_t VulkanImage::size(UInt32 level) const noexcept
@@ -347,12 +329,12 @@ VkImageView& VulkanImage::imageView(UInt32 plane)
 	return m_impl->m_views[plane];
 }
 
-UniquePtr<VulkanImage> VulkanImage::allocate(const VulkanDevice& device, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, ImageLayout initialLayout, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<VulkanImage> VulkanImage::allocate(const VulkanDevice& device, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
-	return VulkanImage::allocate("", device, extent, format, dimensions, levels, layers, samples, usage, initialLayout, allocator, createInfo, allocationInfo, allocationResult);
+	return VulkanImage::allocate("", device, extent, format, dimensions, levels, layers, samples, usage, allocator, createInfo, allocationInfo, allocationResult);
 }
 
-UniquePtr<VulkanImage> VulkanImage::allocate(const String& name, const VulkanDevice& device, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, ImageLayout initialLayout, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+UniquePtr<VulkanImage> VulkanImage::allocate(const String& name, const VulkanDevice& device, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkImage image;
 	VmaAllocation allocation;
@@ -360,7 +342,7 @@ UniquePtr<VulkanImage> VulkanImage::allocate(const String& name, const VulkanDev
 	raiseIfFailed(::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult), "Unable to allocate texture.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}", name.empty() ? fmt::to_string(fmt::ptr(reinterpret_cast<void*>(image))) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples);
 
-	return makeUnique<VulkanImage>(device, image, extent, format, dimensions, levels, layers, samples, usage, initialLayout, allocator, allocation, name);
+	return makeUnique<VulkanImage>(device, image, extent, format, dimensions, levels, layers, samples, usage, allocator, allocation, name);
 }
 
 // ------------------------------------------------------------------------------------------------

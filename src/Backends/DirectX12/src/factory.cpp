@@ -257,12 +257,12 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const Stri
 	if (::hasDepth(format) || ::hasStencil(format))
 	{
 		resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-		return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, usage, ImageLayout::DepthRead, resourceDesc, allocationDesc);
+		return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, usage, resourceDesc, allocationDesc);
 	}
 	else
 	{
 		resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-		return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, usage, ImageLayout::Common, resourceDesc, allocationDesc);
+		return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, usage, resourceDesc, allocationDesc);
 	}
 }
 
@@ -301,7 +301,7 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String&
 
 	D3D12MA::ALLOCATION_DESC allocationDesc { .HeapType = D3D12_HEAP_TYPE_DEFAULT };
 	
-	return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, depth }, format, dimension, levels, layers, samples, usage, ImageLayout::Common, resourceDesc, allocationDesc);
+	return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, depth }, format, dimension, levels, layers, samples, usage, resourceDesc, allocationDesc);
 }
 
 Enumerable<UniquePtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
