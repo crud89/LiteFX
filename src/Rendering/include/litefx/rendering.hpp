@@ -1212,7 +1212,7 @@ namespace LiteFX::Rendering {
         }
 
         inline Enumerable<UniquePtr<IImage>> getTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage) const override {
-            return this->getTextures(elements, format, size, dimension, layers, levels, samples, usage) | std::views::as_rvalue;
+            return this->createTextures(elements, format, size, dimension, layers, levels, samples, usage) | std::views::as_rvalue;
         }
         
         inline UniquePtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {
