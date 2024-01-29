@@ -72,12 +72,10 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		VkImageAspectFlags aspectMask() const noexcept override;
 		VkImageAspectFlags aspectMask(UInt32 plane) const override;
-		const VkImageView& imageView(UInt32 plane = 0) const override;
 
 	protected:
 		virtual VmaAllocator& allocator() const noexcept;
 		virtual VmaAllocation& allocationInfo() const noexcept;
-		virtual VkImageView& imageView(UInt32 plane = 0);
 
 	public:
 		static UniquePtr<VulkanImage> allocate(const VulkanDevice& device, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);

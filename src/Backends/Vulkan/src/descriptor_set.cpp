@@ -37,7 +37,7 @@ VulkanDescriptorSet::~VulkanDescriptorSet() noexcept
     for (auto& bufferView : m_impl->m_bufferViews)
         ::vkDestroyBufferView(m_impl->m_layout.device().handle(), bufferView.second, nullptr);
 
-    for (auto& imageView: m_impl->m_imageViews)
+    for (auto& imageView : m_impl->m_imageViews)
         ::vkDestroyImageView(m_impl->m_layout.device().handle(), imageView.second, nullptr);
 
     m_impl->m_layout.free(*this);
@@ -217,10 +217,15 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
 
     if (!::hasDepth(texture.format()) && !::hasStencil(texture.format()))
         imageViewDesc.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    else if (::hasDepth(texture.format()))
-        imageViewDesc.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-    else if (::hasStencil(texture.format()))
-        imageViewDesc.subresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
+    else
+    {
+        // TODO: This probably wont work, instead we need separate views here. Maybe we could add a "plane" parameter that addresses the depth/stencil view.
+        if (::hasDepth(texture.format()))
+            imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
+
+        if (::hasStencil(texture.format()))
+            imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+    }
 
     VkImageView imageView;
     raiseIfFailed(::vkCreateImageView(m_impl->m_layout.device().handle(), &imageViewDesc, nullptr, &imageView), "Unable to create image view.");
@@ -288,9 +293,46 @@ void VulkanDescriptorSet::attach(UInt32 binding, const IVulkanImage& image) cons
     if (layout.descriptorType() != DescriptorType::InputAttachment) [[unlikely]]
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a input attachment descriptor.", binding);
 
-    VkDescriptorImageInfo imageInfo{};
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = image.imageView();
+    VkImageViewCreateInfo imageViewDesc = {
+        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext = nullptr,
+        .image = image.handle(),
+        .viewType = Vk::getImageViewType(image.dimensions()),
+        .format = Vk::getFormat(image.format()),
+        .components = VkComponentMapping {
+            .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+            .a = VK_COMPONENT_SWIZZLE_IDENTITY
+        },
+        .subresourceRange = VkImageSubresourceRange {
+            .baseMipLevel = 0,
+            .levelCount = 1,
+            .baseArrayLayer = 0,
+            .layerCount = 1
+        }
+    };
+
+    if (!::hasDepth(image.format()) && !::hasStencil(image.format()))
+        imageViewDesc.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    else
+    {
+        // TODO: This probably wont work, instead we need separate views here. Maybe we could add a "plane" parameter that addresses the depth/stencil view.
+        if (::hasDepth(image.format()))
+            imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
+
+        if (::hasStencil(image.format()))
+            imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+    }
+
+    VkImageView imageView;
+    raiseIfFailed(::vkCreateImageView(m_impl->m_layout.device().handle(), &imageViewDesc, nullptr, &imageView), "Unable to create image view.");
+    m_impl->m_imageViews[binding] = imageView;
+
+    VkDescriptorImageInfo imageInfo = {
+        .imageView = imageView,
+        .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+    };
 
     VkWriteDescriptorSet descriptorWrite{ };
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

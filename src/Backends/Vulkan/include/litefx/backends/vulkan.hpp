@@ -139,13 +139,6 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="plane">The sub-resource identifier to query the aspect mask from.</param>
         /// <returns>The image resource aspect mask.</returns>
         virtual VkImageAspectFlags aspectMask(UInt32 plane) const = 0;
-
-        /// <summary>
-        /// Returns the image view for a sub-resource.
-        /// </summary>
-        /// <param name="plane">The sub-resource index to return the image view for.</param>
-        /// <returns>The image view for the sub-resource.</returns>
-        virtual const VkImageView& imageView(UInt32 plane = 0) const = 0;
     };
 
     /// <summary>

@@ -16,7 +16,6 @@ public:
 private:
 	VmaAllocator m_allocator;
 	VmaAllocation m_allocationInfo;
-	Array<VkImageView> m_views;
 	Format m_format;
 	Size3d m_extent;
 	UInt32 m_elements, m_layers, m_levels, m_planes;
@@ -28,59 +27,13 @@ private:
 public:
 	VulkanImageImpl(VulkanImage* parent, const VulkanDevice& device, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator, VmaAllocation allocation) :
 		base(parent), m_device(device), m_allocator(allocator), m_allocationInfo(allocation), m_extent(extent), m_format(format), m_dimensions(dimensions), m_levels(levels), m_layers(layers), m_usage(usage), m_samples(samples)
-	{	
-		VkImageViewCreateInfo createInfo = {
-			.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-			.pNext = nullptr,
-			.image = m_parent->handle(),
-			.viewType = Vk::getImageViewType(dimensions),
-			.format = Vk::getFormat(m_format),
-			.components = VkComponentMapping {
-				.r = VK_COMPONENT_SWIZZLE_IDENTITY,
-				.g = VK_COMPONENT_SWIZZLE_IDENTITY,
-				.b = VK_COMPONENT_SWIZZLE_IDENTITY,
-				.a = VK_COMPONENT_SWIZZLE_IDENTITY
-			},
-			.subresourceRange = VkImageSubresourceRange {
-				.baseMipLevel = 0,
-				.levelCount = m_levels,
-				.baseArrayLayer = 0,
-				.layerCount = m_layers
-			}
-		};
-
-		if (!::hasDepth(m_format) && !::hasStencil(m_format))
-		{
-			VkImageView imageView;
-			createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			raiseIfFailed(::vkCreateImageView(m_device.handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
-			m_views.push_back(imageView);
-		}
-		else
-		{
-			VkImageView imageView;
-
-			if (::hasDepth(m_format))
-			{
-				createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-				raiseIfFailed(::vkCreateImageView(m_device.handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
-				m_views.push_back(imageView);
-			}
-
-			if (::hasStencil(m_format))
-			{
-				createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
-				raiseIfFailed(::vkCreateImageView(m_device.handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
-				m_views.push_back(imageView);
-			}
-		}
-
+	{
 		// Note: Currently no multi-planar images are supported. Planes have a two-fold meaning in this context. Multi-planar images are images, which have a format with `_2PLANE` or `_3PLANE` in the name, or
 		//       which are listed here: https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#formats-requiring-sampler-ycbcr-conversion.
 		//       More info: https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#VkFormatProperties (See "Multi-planar").
 		//       All those formats are currently not supported. To stay in line with DX12 plane indexing, depth and stencil parts of an depth/stencil image are also separated by planes. Depending on the format,
 		//       the proper aspect is selected based on the plane.
-		m_planes = static_cast<UInt32>(m_views.size());
+		m_planes = ::hasDepth(m_format) && ::hasStencil(m_format) ? 2 : 1;
 		m_elements = m_levels * m_layers * m_planes;
 	}
 };
@@ -98,9 +51,6 @@ VulkanImage::VulkanImage(const VulkanDevice& device, VkImage image, const Size3d
 
 VulkanImage::~VulkanImage() noexcept 
 {
-	for (auto& view : m_impl->m_views)
-		::vkDestroyImageView(m_impl->m_device.handle(), view, nullptr);
-
 	if (m_impl->m_allocator != nullptr && m_impl->m_allocationInfo != nullptr)
 	{
 		::vmaDestroyImage(m_impl->m_allocator, this->handle(), m_impl->m_allocationInfo);
@@ -303,14 +253,6 @@ VkImageAspectFlags VulkanImage::aspectMask(UInt32 plane) const
 	}
 }
 
-const VkImageView& VulkanImage::imageView(UInt32 plane) const
-{
-	if (plane >= m_impl->m_views.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("plane", 0u, static_cast<UInt32>(m_impl->m_views.size()), plane, "The image does not have a plane {0}.", plane);
-
-	return m_impl->m_views[plane];
-}
-
 VmaAllocator& VulkanImage::allocator() const noexcept
 {
 	return m_impl->m_allocator;
@@ -319,14 +261,6 @@ VmaAllocator& VulkanImage::allocator() const noexcept
 VmaAllocation& VulkanImage::allocationInfo() const noexcept
 {
 	return m_impl->m_allocationInfo;
-}
-
-VkImageView& VulkanImage::imageView(UInt32 plane)
-{
-	if (plane >= m_impl->m_views.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("plane", 0u, static_cast<UInt32>(m_impl->m_views.size()), plane, "The image does not have a plane {0}.", plane);
-
-	return m_impl->m_views[plane];
 }
 
 UniquePtr<VulkanImage> VulkanImage::allocate(const VulkanDevice& device, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
