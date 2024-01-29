@@ -158,9 +158,11 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto scratchBuffer = asShared(std::move(m_device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, scratchBufferSize, 1, ResourceUsage::AllowWrite)));
 
     // Build the BLAS and the TLAS. We need to barrier in between both to prevent simultaneous scratch buffer writes.
+    // NOTE: `ShaderReadWrite` access works here, as the scratch buffer is used as an UAV. Alternatively we could attempt to synchronize the blas/tlas back buffer with `ResourceAccess::AccelerationStructureWrite`,
+    //       but this is currently unsupported, as they only provide constant access to the buffer resource.
     commandBuffer->buildAccelerationStructure(*blas, scratchBuffer);
     barrier = m_device->makeBarrier(PipelineStage::AccelerationStructureBuild, PipelineStage::AccelerationStructureBuild);
-    barrier->transition(*scratchBuffer, ResourceAccess::AccelerationStructureWrite, ResourceAccess::AccelerationStructureWrite);
+    barrier->transition(*scratchBuffer, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderReadWrite);
     commandBuffer->barrier(*barrier);
     commandBuffer->buildAccelerationStructure(*tlas, scratchBuffer);
 
@@ -197,8 +199,8 @@ void SampleApp::initBuffers(IRenderBackend* backend)
 
     // Transfer the skybox texture.
     commandBuffer->transfer(asShared(std::move(stagedTexture)), *texture);
-    barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::Raytracing);
-    barrier->transition(*texture, ResourceAccess::TransferWrite, ResourceAccess::ShaderRead, ImageLayout::CopyDestination, ImageLayout::ShaderResource);
+    barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::None);
+    barrier->transition(*texture, ResourceAccess::TransferWrite, ResourceAccess::None, ImageLayout::CopyDestination, ImageLayout::ShaderResource);
     commandBuffer->barrier(*barrier);
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
@@ -209,13 +211,12 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto& samplerBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::Sampler));
     auto samplerBindings = samplerBindingsLayout.allocate({ { .resource = *sampler } });
         
-    // Bind the swap chain back buffers to the ray-tracing pipeline output.
+    // Create and bind the back buffer resource to the ray-tracing pipeline output. Here we use a 3D texture with three layers (one for each back buffer) and only bind each array slice to the resource later.
     auto& swapChain = m_device->swapChain();
+    auto backBuffers = m_device->factory().createTexture("Back Buffers", swapChain.surfaceFormat(), Size3d(swapChain.renderArea().width(), swapChain.renderArea().height(), swapChain.buffers()), ImageDimensions::DIM_2, 1u, 1u, MultiSamplingLevel::x1, ResourceUsage::AllowWrite | ResourceUsage::TransferSource);
     auto& outputBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::FrameBuffer));
-    auto outputBindings = outputBindingsLayout.allocateMultiple(3, {
-        { { .resource = *swapChain.image(0) } },
-        { { .resource = *swapChain.image(1) } },
-        { { .resource = *swapChain.image(2) } }
+    auto outputBindings = outputBindingsLayout.allocateMultiple(swapChain.buffers(), [&backBuffers](UInt32 descriptorSet) -> Enumerable<DescriptorBinding> {
+        return { DescriptorBinding {.resource = *backBuffers, .firstElement = descriptorSet, .elements = 1 } };
     });
 
     // Bind the material data.
@@ -235,6 +236,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_device->state().add(std::move(sampler));
     m_device->state().add(std::move(materialBuffer));
     m_device->state().add(std::move(shaderBindingTable));
+    m_device->state().add(std::move(backBuffers));
     m_device->state().add("Static Data Bindings", std::move(staticDataBindings));
     m_device->state().add("Sampler Bindings", std::move(samplerBindings));
     std::ranges::for_each(outputBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Output Bindings {0}", i++), std::move(binding)); });
@@ -472,6 +474,7 @@ void SampleApp::drawFrame()
     auto& samplerBindings = m_device->state().descriptorSet("Sampler Bindings");
     auto& outputBindings = m_device->state().descriptorSet(fmt::format("Output Bindings {0}", backBuffer));
     auto& shaderBindingTable = m_device->state().buffer("Shader Binding Table");
+    auto& backBuffers = m_device->state().image("Back Buffers");
 
     // Wait for all transfers to finish.
     auto& graphicsQueue = m_device->defaultQueue(QueueType::Graphics);
@@ -481,7 +484,7 @@ void SampleApp::drawFrame()
 
     // Transition back buffer image into read-write state.
     auto barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Raytracing);
-    barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::Undefined, ImageLayout::ReadWrite);
+    barrier->transition(backBuffers, 0, 1, backBuffer, 1, 0, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::Undefined, ImageLayout::ReadWrite);
     commandBuffer->barrier(*barrier);
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
@@ -502,11 +505,20 @@ void SampleApp::drawFrame()
     commandBuffer->bind(samplerBindings);
 
     // Draw the object and present the frame by ending the render pass.
-    commandBuffer->traceRays(m_viewport->getRectangle().width(), m_viewport->getRectangle().height(), 1, m_offsets, shaderBindingTable, &shaderBindingTable, &shaderBindingTable);
+    //commandBuffer->traceRays(m_viewport->getRectangle().width(), m_viewport->getRectangle().height(), 1, m_offsets, shaderBindingTable, &shaderBindingTable, &shaderBindingTable);
+
+    // Transition the image back into `CopySource` layout.
+    barrier = m_device->makeBarrier(PipelineStage::Raytracing, PipelineStage::Transfer);
+    barrier->transition(backBuffers, 0, 1, backBuffer, 1, 0, ResourceAccess::ShaderReadWrite, ResourceAccess::TransferRead, ImageLayout::ReadWrite, ImageLayout::CopySource);
+    barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
+    commandBuffer->barrier(*barrier);
+
+    // Copy the back buffer into the current swap chain image.
+    commandBuffer->transfer(backBuffers, *m_device->swapChain().image(backBuffer), backBuffers.subresourceId(0, backBuffer, 0), 0, 1);
 
     // Transition the image back into `Present` layout.
-    barrier = m_device->makeBarrier(PipelineStage::Raytracing, PipelineStage::Resolve);
-    barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::ShaderReadWrite, ResourceAccess::Common, ImageLayout::ReadWrite, ImageLayout::Present);
+    barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::Resolve);
+    barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::TransferWrite, ResourceAccess::Common, ImageLayout::CopyDestination, ImageLayout::Present);
     commandBuffer->barrier(*barrier);
 
     // Present.

@@ -65,7 +65,7 @@ public:
 		swapChainDesc.Height = static_cast<UInt32>(size.height());
 		swapChainDesc.Format = DX12::getFormat(format);
 		swapChainDesc.Stereo = FALSE;
-		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // NOTE: D3D12 does no longer allow UAV access to back buffers, so binding swap chain images to UAV in compute/ray-tracing shaders does not work.
 		swapChainDesc.BufferCount = std::max<UInt32>(2, frameBuffers);
 		swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
