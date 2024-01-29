@@ -129,10 +129,6 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
 		auto& image = std::get<2>(barrier);
 		auto currentLayout = Vk::getImageLayout(std::get<3>(barrier).value_or(ImageLayout::Undefined));
 		auto targetLayout = Vk::getImageLayout(std::get<4>(barrier));
-
-		for (auto layer = std::get<7>(barrier); layer < std::get<7>(barrier) + std::get<8>(barrier); layer++)
-			for (auto level = std::get<5>(barrier); level < std::get<5>(barrier) + std::get<6>(barrier); level++)
-				auto subresource = image.subresourceId(level, layer, std::get<9>(barrier));
         
         return VkImageMemoryBarrier {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
