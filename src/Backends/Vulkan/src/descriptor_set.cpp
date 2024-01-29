@@ -259,6 +259,9 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStruct
     if (layout.descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor.", binding);
 
+    if (accelerationStructure.buffer() == nullptr || accelerationStructure.handle() == VK_NULL_HANDLE) [[unlikely]]
+        throw InvalidArgumentException("accelerationStructure", "The acceleration structure buffer has not yet been allocated.");
+
     VkWriteDescriptorSetAccelerationStructureKHR accelerationStructureInfo = {
         .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR,
         .accelerationStructureCount = 1,
