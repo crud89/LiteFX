@@ -82,6 +82,9 @@ const IVulkanBuffer* VulkanTopLevelAccelerationStructure::buffer() const noexcep
 
 void VulkanTopLevelAccelerationStructure::allocateBuffer(const VulkanDevice& device)
 {
+#ifndef LITEFX_BUILD_RAY_TRACING_SUPPORT
+    throw RuntimeException("Unable to allocate acceleration structure buffer. Engine was not built with ray-tracing support enabled.");
+#else
     if (m_impl->m_buffer != nullptr) [[unlikely]]
         throw RuntimeException("The buffer for this acceleration structure has already been allocated.");
 
@@ -109,6 +112,7 @@ void VulkanTopLevelAccelerationStructure::allocateBuffer(const VulkanDevice& dev
     };
 
     ::vkCreateAccelerationStructure(device.handle(), &info, nullptr, &this->handle());
+#endif
 }
 
 const Array<Instance>& VulkanTopLevelAccelerationStructure::instances() const noexcept
