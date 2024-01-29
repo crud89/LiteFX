@@ -377,8 +377,8 @@ void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanImage& target, U
 	std::ranges::generate(copyInfos, [&, this, i = 0]() mutable {
 		UInt32 sourceRsc = sourceSubresource + i, sourceLayer = 0, sourceLevel = 0, sourcePlane = 0;
 		UInt32 targetRsc = targetSubresource + i, targetLayer = 0, targetLevel = 0, targetPlane = 0;
-		source.resolveSubresource(sourceRsc, sourceLayer, sourceLevel, sourcePlane);
-		target.resolveSubresource(targetRsc, targetLayer, targetLevel, targetPlane);
+		source.resolveSubresource(sourceRsc, sourcePlane, sourceLayer, sourceLevel);
+		target.resolveSubresource(targetRsc, targetPlane, targetLayer, targetLevel);
 		i++;
 
 		return VkImageCopy {
