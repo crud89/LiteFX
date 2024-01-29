@@ -165,12 +165,21 @@ public:
 
 		// Compute the record size by aligning the handle and payload sizes.
 		auto recordSize = Math::align<UInt64>(rayTracingProperties.shaderGroupHandleSize + localDataSize, rayTracingProperties.shaderGroupHandleAlignment);
-
-		// TODO: Insert empty records at the end of each table so that the table start offsets align with rayTracingProperties.shaderGroupBaseAlignment.
-		throw;
-
+		
+		// Insert empty records at the end of each table so that the table start offsets align with rayTracingProperties.shaderGroupBaseAlignment.
+		Dictionary<ShaderBindingGroup, UInt32> alignmentRecords;
+		alignmentRecords[ShaderBindingGroup::RayGeneration] = LITEFX_FLAG_IS_SET(groups, ShaderBindingGroup::RayGeneration) ?
+			(recordSize * std::ranges::count_if(m_shaderRecordCollection.shaderRecords(), [](auto& record) { return LITEFX_FLAG_IS_SET(record->type(), ShaderRecordType::RayGeneration); }) % rayTracingProperties.shaderGroupBaseAlignment) / rayTracingProperties.shaderGroupHandleAlignment : 0u;
+		alignmentRecords[ShaderBindingGroup::Miss] = LITEFX_FLAG_IS_SET(groups, ShaderBindingGroup::Miss) ? 
+			(recordSize * std::ranges::count_if(m_shaderRecordCollection.shaderRecords(), [](auto& record) { return LITEFX_FLAG_IS_SET(record->type(), ShaderRecordType::Miss); }) % rayTracingProperties.shaderGroupBaseAlignment) / rayTracingProperties.shaderGroupHandleAlignment : 0u;
+		alignmentRecords[ShaderBindingGroup::Callable] = LITEFX_FLAG_IS_SET(groups, ShaderBindingGroup::Callable) ? 
+			(recordSize * std::ranges::count_if(m_shaderRecordCollection.shaderRecords(), [](auto& record) { return LITEFX_FLAG_IS_SET(record->type(), ShaderRecordType::Callable); }) % rayTracingProperties.shaderGroupBaseAlignment) / rayTracingProperties.shaderGroupHandleAlignment : 0u;
+		alignmentRecords[ShaderBindingGroup::HitGroup] = LITEFX_FLAG_IS_SET(groups, ShaderBindingGroup::HitGroup) ? 
+			(recordSize * std::ranges::count_if(m_shaderRecordCollection.shaderRecords(), [](auto& record) { return LITEFX_FLAG_IS_SET(record->type(), ShaderRecordType::HitGroup) || LITEFX_FLAG_IS_SET(record->type(), ShaderRecordType::Intersection); }) % rayTracingProperties.shaderGroupBaseAlignment) / rayTracingProperties.shaderGroupHandleAlignment : 0u;
+		
 		// Count the shader records that go into the SBT.
-		auto totalRecordCount = std::ranges::distance(m_shaderRecordCollection.shaderRecords() | std::views::filter(filterByGroupType));
+		auto totalRecordCount = std::ranges::distance(m_shaderRecordCollection.shaderRecords() | std::views::filter(filterByGroupType)) +
+			alignmentRecords[ShaderBindingGroup::RayGeneration] + alignmentRecords[ShaderBindingGroup::Miss] + alignmentRecords[ShaderBindingGroup::Callable] + alignmentRecords[ShaderBindingGroup::HitGroup];
 
 		// Map the records to their indices.
 		auto shaderRecordIds = m_shaderRecordCollection.shaderRecords() | std::views::enumerate | 
@@ -243,6 +252,9 @@ public:
 					std::memcpy(recordData.data() + rayTracingProperties.shaderGroupHandleSize, currentRecord->localData(), currentRecord->localDataSize());
 					result->map(recordData.data(), recordSize, record++);
 				}
+
+				// Increment record counter to address for empty records required to comply with alignment rules.
+				record += alignmentRecords[group];
 			}
 		}
 

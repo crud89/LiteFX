@@ -370,7 +370,7 @@ public:
 		// Compute the record size by aligning the handle and payload sizes.
 		auto recordSize = Math::align<UInt64>(D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES + localDataSize, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
 
-		// Insert empty records at the end of each table so that the table start offsets align with rayTracingProperties.shaderGroupBaseAlignment.
+		// Insert empty records at the end of each table so that the table start offsets align with D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT.
 		Dictionary<ShaderBindingGroup, UInt32> alignmentRecords;
 		alignmentRecords[ShaderBindingGroup::RayGeneration] = LITEFX_FLAG_IS_SET(groups, ShaderBindingGroup::RayGeneration) ?
 			(recordSize * std::ranges::count_if(m_shaderRecordCollection.shaderRecords(), [](auto& record) { return LITEFX_FLAG_IS_SET(record->type(), ShaderRecordType::RayGeneration); }) % D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT) / D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT : 0u;
