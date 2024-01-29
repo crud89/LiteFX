@@ -4054,9 +4054,20 @@ namespace LiteFX::Rendering {
             Byte Mask : 8 = 0xFF;
 
             /// <summary>
-            /// The index of the hit group shader in the shader binding table.
+            /// An offset added to the address of the shader-local data of the shader record that is invoked for the instance, *after* the <see cref="IBottomLevelAccelerationStructure" /> indexing
+            /// rules have been applied.
             /// </summary>
-            UInt32 HitGroup : 24 = 0;
+            /// <remarks>
+            /// Shader-local data is a piece of constant data that is available to the shader during invocation. During a ray hit/miss event, the shader record is selected based on geometry 
+            /// (<see cref="IBottomLevelAccelerationStructure" />), instance (<see cref="ITopLevelAccelerationStructure" /> and an implementation-specific offset. The selected record is then used 
+            /// to load the shader and pass the shader local data to it.
+            /// 
+            /// The first part of the address is determined from the geometry index within the TLAS and a user-defined multiplier and base index specified in the shader when calling `TraceRay`. After 
+            /// this index is calculated the value of this property is added to it. The result is an offset into the shader-local data for the selected shader record.
+            /// </remarks>
+            /// <seealso cref="https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#addressing-calculations-within-shader-tables" />
+            /// <seealso cref="https://docs.vulkan.org/spec/latest/chapters/raytracing.html#shader-binding-table-indexing-rules" />
+            UInt32 HitGroupOffset : 24 = 0;
 
             /// <summary>
             /// The flags that control the behavior of this instance.
@@ -4085,12 +4096,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="blas">The bottom-level acceleration structure that contains the geometries of the instance.</param>
         /// <param name="id">The instance ID used in shaders to identify the instance.</param>
-        /// <param name="hitGroup">The index of the hit group shader in the shader binding table.</param>
+        /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
         /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <exception cref="RuntimeException">Thrown, if the acceleration structure buffers have already been allocated.</exception>
-        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroup, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) {
-            this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroup = hitGroup, .Flags = flags });
+        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) {
+            this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
         }
         
         /// <summary>
@@ -4099,12 +4110,12 @@ namespace LiteFX::Rendering {
         /// <param name="blas">The bottom-level acceleration structure that contains the geometries of the instance.</param>
         /// <param name="transform">The transformation matrix applied to the instance geometry.</param>
         /// <param name="id">The instance ID used in shaders to identify the instance.</param>
-        /// <param name="hitGroup">The index of the hit group shader in the shader binding table.</param>
+        /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
         /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <exception cref="RuntimeException">Thrown, if the acceleration structure buffers have already been allocated.</exception>
-        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroup, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) {
-            this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroup = hitGroup, .Flags = flags });
+        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) {
+            this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
         }
 
         /// <summary>
@@ -4134,13 +4145,13 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="blas">The bottom-level acceleration structure that contains the geometries of the instance.</param>
         /// <param name="id">The instance ID used in shaders to identify the instance.</param>
-        /// <param name="hitGroup">The index of the hit group shader in the shader binding table.</param>
+        /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
         /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <returns>A reference to the current TLAS.</returns>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroup, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) -> TSelf&& {
-            self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroup = hitGroup, .Flags = flags });
+        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) -> TSelf&& {
+            self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
             return std::forward<TSelf>(self);
         }
 
@@ -4150,13 +4161,13 @@ namespace LiteFX::Rendering {
         /// <param name="blas">The bottom-level acceleration structure that contains the geometries of the instance.</param>
         /// <param name="transform">The transformation matrix applied to the instance geometry.</param>
         /// <param name="id">The instance ID used in shaders to identify the instance.</param>
-        /// <param name="hitGroup">The index of the hit group shader in the shader binding table.</param>
+        /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
         /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <returns>A reference to the current TLAS.</returns>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroup, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) -> TSelf&& {
-            self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroup = hitGroup, .Flags = flags });
+        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) -> TSelf&& {
+            self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
             return std::forward<TSelf>(self);
         }
     };

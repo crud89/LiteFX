@@ -35,7 +35,7 @@ public:
             auto desc = D3D12_RAYTRACING_INSTANCE_DESC {
                 .InstanceID = instance.Id,
                 .InstanceMask = instance.Mask,
-                .InstanceContributionToHitGroupIndex = instance.HitGroup,
+                .InstanceContributionToHitGroupIndex = instance.HitGroupOffset,
                 .Flags = static_cast<UINT>(instance.Flags),
                 .AccelerationStructure = instance.BottomLevelAccelerationStructure->buffer()->virtualAddress()
             };

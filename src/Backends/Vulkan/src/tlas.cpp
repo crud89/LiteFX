@@ -39,7 +39,7 @@ public:
             auto desc = VkAccelerationStructureInstanceKHR {
                 .instanceCustomIndex = instance.Id,
                 .mask = instance.Mask,
-                .instanceShaderBindingTableRecordOffset = instance.HitGroup,
+                .instanceShaderBindingTableRecordOffset = instance.HitGroupOffset,
                 .flags = std::bit_cast<VkGeometryInstanceFlagsKHR>(instance.Flags),
                 .accelerationStructureReference = instance.BottomLevelAccelerationStructure->buffer()->virtualAddress()
             };
