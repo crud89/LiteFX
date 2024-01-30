@@ -90,7 +90,7 @@ void DirectX12TopLevelAccelerationStructure::allocateBuffer(const DirectX12Devic
 
     // Map the instance buffer.
     auto buildInfo = m_impl->buildInfo();
-    m_impl->m_instanceBuffer->map(buildInfo.data(), sizeof(Instance) * m_impl->m_instances.size());
+    m_impl->m_instanceBuffer->map(buildInfo.data(), sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * m_impl->m_instances.size());
 #endif
 }
 

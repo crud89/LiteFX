@@ -101,7 +101,7 @@ void VulkanTopLevelAccelerationStructure::allocateBuffer(const VulkanDevice& dev
 
     // Map the instance buffer.
     auto buildInfo = m_impl->buildInfo();
-    m_impl->m_instanceBuffer->map(buildInfo.data(), sizeof(Instance) * m_impl->m_instances.size());
+    m_impl->m_instanceBuffer->map(buildInfo.data(), sizeof(VkAccelerationStructureInstanceKHR) * m_impl->m_instances.size());
 
     // Create a handle for the acceleration structure.
     VkAccelerationStructureCreateInfoKHR info = {
