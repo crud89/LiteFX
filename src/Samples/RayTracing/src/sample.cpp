@@ -1,11 +1,14 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-// Currently there's only one geometry.
-#define NUM_GEOMETRIES 1
+#include <random>
+
+// Currently there's nine instances of two geometries.
+#define NUM_INSTANCES 9
 
 enum class DescriptorSets : UInt32
 {
@@ -18,13 +21,40 @@ enum class DescriptorSets : UInt32
 
 const Array<Vertex> vertices =
 {
-    { { -0.5f, -0.5f, 0.5f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-    { { 0.5f, 0.5f, 0.5f },   { 0.0f, 1.0f, 0.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-    { { -0.5f, 0.5f, -0.5f }, { 0.0f, 0.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
-    { { 0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } }
+    { { -0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
+    { {  0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
+    { {  0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f } },
+    { {  0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f } },
+    { {  0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, -1.0f, 0.0f }, { 0.0f, 0.0f } },
+    { {  0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, {  1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { {  0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, {  1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { {  0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, {  1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { {  0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, {  1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { -1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f } },
+    { {  0.5f, -0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f } },
+    { { -0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f } },
+    { {  0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f, -1.0f }, { 0.0f, 0.0f } },
+    { { -0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f,  1.0f }, { 0.0f, 0.0f } },
+    { {  0.5f, -0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f,  1.0f }, { 0.0f, 0.0f } },
+    { { -0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f,  1.0f }, { 0.0f, 0.0f } },
+    { {  0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f,  1.0f }, { 0.0f, 0.0f } }
 };
 
-const Array<UInt16> indices = { 0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3 };
+const Array<UInt16> indices = {
+    0, 1, 2, 1, 3, 2,       // Front
+    4, 6, 5, 5, 6, 7,       // Back
+    8, 9, 10, 9, 11, 10,    // Right
+    12, 14, 13, 13, 14, 15, // Left
+    16, 17, 18, 17, 19, 18, // Bottom
+    20, 22, 21, 21, 22, 23  // Top
+};
 
 struct CameraBuffer {
     glm::mat4 ViewProjection;
@@ -33,12 +63,13 @@ struct CameraBuffer {
 } camera;
 
 struct MaterialData {
-    glm::vec4 Color = { 0.4f, 0.3f, 0.6f, 1.0f };
-} materials[NUM_GEOMETRIES];
+    glm::vec4 Color = { 0.1f, 0.1f, 0.1f, 1.0f };
+} materials[NUM_INSTANCES];
 
 struct alignas(8) GeometryData {
     UInt32 Index;
-    UInt32 Padding[3];
+    UInt32 Reflective;
+    UInt32 Padding[2];
 };
 
 template<typename TRenderBackend> requires
@@ -95,9 +126,10 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         shaderProgram->buildShaderRecordCollection()
             .withShaderRecord("shaders/raytracing_gen." + FileExtensions<TRenderBackend>::SHADER)
             .withShaderRecord("shaders/raytracing_miss." + FileExtensions<TRenderBackend>::SHADER)
-            .withMeshGeometryHitGroupRecord(std::nullopt, "shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER, GeometryData { .Index = 0 }))
-        .maxBounces(4)
-        .maxPayloadSize(sizeof(Float) * 7)    // See HitInfo in raytracing_common.hlsli
+            .withMeshGeometryHitGroupRecord(std::nullopt, "shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER, GeometryData { .Index = 0, .Reflective = 0 })  // First geometry hit group for first BLAS.
+            .withMeshGeometryHitGroupRecord(std::nullopt, "shaders/raytracing_hit." + FileExtensions<TRenderBackend>::SHADER, GeometryData { .Index = 1, .Reflective = 1 })) // Second geometry hit group for second BLAS.
+        .maxBounces(16)                       // Important: If changed, the closest hit shader also needs to be updated!
+        .maxPayloadSize(sizeof(Float) * 5)    // See HitInfo in raytracing_common.hlsli
         .maxAttributeSize(sizeof(Float) * 2)  // See Attributes in raytracing_common.hlsli
         .layout(shaderProgram->reflectPipelineLayout());
 
@@ -134,31 +166,51 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     barrier->transition(*indexBuffer, ResourceAccess::TransferWrite, ResourceAccess::Common);
     commandBuffer->barrier(*barrier);
 
-    // Pre-build acceleration structures. We start with 1 bottom-level acceleration structure (BLAS) for our simple geometry and a few top-level acceleration structures (TLAS) for the instances.
-    // NOTE: If there are more meshes/geometries, we would need to increase `NUM_GEOMETRIES`.
-    auto blas = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure()));
-    blas->withTriangleMesh({ asShared(std::move(vertexBuffer)), asShared(std::move(indexBuffer)) });
-    blas->allocateBuffer(*m_device);
+    // Pre-build acceleration structures. We start with 2 bottom-level acceleration structures (BLAS) for our simple geometry and a few top-level acceleration structures (TLAS) for the 
+    // instances. The geometries share one vertex and index buffer.
+    auto vertices = asShared(std::move(vertexBuffer));
+    auto indices = asShared(std::move(indexBuffer));
+    auto opaque = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure()));
+    opaque->withTriangleMesh({ vertices, indices });
+    opaque->allocateBuffer(*m_device);
+    auto reflective = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure()));
+
+    // Add an empty geometry, so that the geometry index of the second one will increase, causing it to get reflective (as the hit group changes). Not the most elegant solution, but
+    // works for demonstration purposes.
+    auto dummyVertexBuffer = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, 1);
+    reflective->withTriangleMesh({ asShared(std::move(dummyVertexBuffer)), SharedPtr<IIndexBuffer>() });
+    reflective->withTriangleMesh({ vertices, indices });
+    reflective->allocateBuffer(*m_device);
+
+    // Orient instances randomly.
+    std::srand(std::time(nullptr));
 
     auto tlas = m_device->factory().createTopLevelAccelerationStructure("TLAS");
-    tlas->withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-2.0f, -2.0f, 0.0f))), 0)
-        .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-2.0f, 0.0f, 0.0f))), 1)
-        .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-2.0f, 2.0f, 0.0f))), 2)
-        .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(0.0f, -2.0f, 0.0f))), 3)
-        .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(0.0f, 0.0f, 0.0f))), 4)
-        .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(0.0f, 2.0f, 0.0f))), 5)
-        .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(2.0f, -2.0f, 0.0f))), 6)
-        .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(2.0f, 0.0f, 0.0f))), 7)
-        .withInstance(blas, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(2.0f, 2.0f, 0.0f))), 8);
+    tlas->withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-3.0f, -3.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 0)
+        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-4.0f, 0.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 1)
+        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-3.0f, 3.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 2)
+        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(0.0f, -4.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 3)
+        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(0.0f, 4.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 4)
+        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(3.0f, -3.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 5)
+        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(4.0f, 0.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 6)
+        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(3.0f, 3.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 7);
 
+    // Add a non-opaque instance.
+    tlas->withInstance(reflective, glm::mat4x3(glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(3.0f))), 8);
+
+    // Allocate a buffer for the TLAS.
     tlas->allocateBuffer(*m_device);
 
     // Create a scratch buffer.
-    auto scratchBufferSize = std::max(blas->requiredScratchMemory(), tlas->requiredScratchMemory());
+    auto scratchBufferSize = std::max(std::max(opaque->requiredScratchMemory(), reflective->requiredScratchMemory()), tlas->requiredScratchMemory());
     auto scratchBuffer = asShared(std::move(m_device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, scratchBufferSize, 1, ResourceUsage::AllowWrite)));
 
     // Build the BLAS and the TLAS. We need to barrier in between both to prevent simultaneous scratch buffer writes.
-    commandBuffer->buildAccelerationStructure(*blas, scratchBuffer);
+    commandBuffer->buildAccelerationStructure(*opaque, scratchBuffer);
+    barrier = m_device->makeBarrier(PipelineStage::AccelerationStructureBuild, PipelineStage::AccelerationStructureBuild);
+    barrier->transition(*scratchBuffer, ResourceAccess::AccelerationStructureWrite, ResourceAccess::AccelerationStructureWrite);
+    commandBuffer->barrier(*barrier);
+    commandBuffer->buildAccelerationStructure(*reflective, scratchBuffer);
     barrier = m_device->makeBarrier(PipelineStage::AccelerationStructureBuild, PipelineStage::AccelerationStructureBuild);
     barrier->transition(*scratchBuffer, ResourceAccess::AccelerationStructureWrite, ResourceAccess::AccelerationStructureWrite);
     commandBuffer->barrier(*barrier);
@@ -217,11 +269,15 @@ void SampleApp::initBuffers(IRenderBackend* backend)
         return { DescriptorBinding { .resource = *backBuffers, .firstElement = i++, .elements = 1 } };
     });
 
+    // Setup random colors for each material. The last one (for the reflective object) can stay the default.
+    for (int i{ 0 }; i < NUM_INSTANCES - 1; ++i)
+        materials[i].Color = glm::vec4(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, 1.0f);
+
     // Bind the material data.
     auto& materialBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::Materials));
-    auto materialBuffer = m_device->factory().createBuffer("Material Buffer", materialBindingsLayout, 0, ResourceHeap::Dynamic, sizeof(MaterialData), NUM_GEOMETRIES);
-    auto materialBindings = materialBindingsLayout.allocate(NUM_GEOMETRIES, { { .resource = *materialBuffer } });
-    materialBuffer->map(reinterpret_cast<const void*>(&materials[0]), sizeof(MaterialData));
+    auto materialBuffer = m_device->factory().createBuffer("Material Buffer", materialBindingsLayout, 0, ResourceHeap::Dynamic, sizeof(MaterialData), NUM_INSTANCES);
+    auto materialBindings = materialBindingsLayout.allocate(NUM_INSTANCES, { { .resource = *materialBuffer } });
+    materialBuffer->map(reinterpret_cast<const void*>(&materials[0]), sizeof(MaterialData) * NUM_INSTANCES);
 
     // End and submit the command buffer and wait for it to finish.
     auto fence = commandBuffer->submit();
