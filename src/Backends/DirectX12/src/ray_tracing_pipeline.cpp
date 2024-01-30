@@ -206,16 +206,16 @@ public:
 
 			switch (descriptor.descriptorType())
 			{
-				case DescriptorType::ConstantBuffer:    binding.Type = D3D12_DESCRIPTOR_RANGE_TYPE_CBV; break; // descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, range->descriptors(), range->binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
+				case DescriptorType::ConstantBuffer:    binding.Type = D3D12_DESCRIPTOR_RANGE_TYPE_CBV; break;
 				case DescriptorType::AccelerationStructure:
 				case DescriptorType::Buffer:
 				case DescriptorType::StructuredBuffer:
 				case DescriptorType::ByteAddressBuffer:
-				case DescriptorType::Texture:           binding.Type = D3D12_DESCRIPTOR_RANGE_TYPE_SRV; break; // descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, range->descriptors(), range->binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
+				case DescriptorType::Texture:           binding.Type = D3D12_DESCRIPTOR_RANGE_TYPE_SRV; break;
 				case DescriptorType::RWBuffer:
 				case DescriptorType::RWStructuredBuffer:
 				case DescriptorType::RWByteAddressBuffer:
-				case DescriptorType::RWTexture:         binding.Type = D3D12_DESCRIPTOR_RANGE_TYPE_UAV; break; // descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, range->descriptors(), range->binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
+				case DescriptorType::RWTexture:         binding.Type = D3D12_DESCRIPTOR_RANGE_TYPE_UAV; break;
 				case DescriptorType::Sampler:			throw RuntimeException("Shader-local samplers are not supported.");
 				case DescriptorType::InputAttachment:   throw RuntimeException("Shader-local input attachments are not supported.");
 			}
@@ -223,9 +223,25 @@ public:
 			if (!rootSignatures.contains(binding))
 			{
 				// Create a new root signature.
-				CD3DX12_DESCRIPTOR_RANGE1 descriptorRange(binding.Type, 1, binding.BindingPoint.Register, binding.BindingPoint.Space);
 				CD3DX12_ROOT_PARAMETER1 rootParameter;
-				rootParameter.InitAsDescriptorTable(1, &descriptorRange, D3D12_SHADER_VISIBILITY_ALL);
+
+				switch (binding.Type)
+				{
+				case D3D12_DESCRIPTOR_RANGE_TYPE_CBV:
+					//rootParameter.InitAsConstantBufferView(binding.BindingPoint.Register, binding.BindingPoint.Space);
+					rootParameter.InitAsConstants(descriptor.elementSize() / 4, binding.BindingPoint.Register, binding.BindingPoint.Space);
+					break;
+				case D3D12_DESCRIPTOR_RANGE_TYPE_SRV:
+					// NOTE: SRVs and UAVs must be passed as GPU-virtual addresses to the shader-local data.
+					rootParameter.InitAsShaderResourceView(binding.BindingPoint.Register, binding.BindingPoint.Space);
+					break;
+				case D3D12_DESCRIPTOR_RANGE_TYPE_UAV:
+					// NOTE: SRVs and UAVs must be passed as GPU-virtual addresses to the shader-local data.
+					rootParameter.InitAsUnorderedAccessView(binding.BindingPoint.Register, binding.BindingPoint.Space);
+					break;
+				default:
+					std::unreachable();
+				}
 
 				// Create root signature descriptor.
 				ComPtr<ID3DBlob> signature, error;
