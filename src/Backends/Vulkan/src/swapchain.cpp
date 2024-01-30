@@ -21,7 +21,8 @@ private:
 	Array<UniquePtr<IVulkanImage>> m_presentImages { };
 	const VulkanDevice& m_device;
 	VkSwapchainKHR m_handle = VK_NULL_HANDLE;
-	VkFence m_waitForImage = VK_NULL_HANDLE;
+	Array<VkFence> m_waitForImage;
+	Array<VkSemaphore> m_waitForWorkload;
 
 	Array<SharedPtr<TimingEvent>> m_timingEvents;
 	Array<UInt64> m_timestamps;
@@ -110,9 +111,23 @@ public:
 		VkSwapchainKHR swapChain;
 		raiseIfFailed(::vkCreateSwapchainKHR(m_device.handle(), &createInfo, nullptr, &swapChain), "Swap chain could not be created.");
 
-		// Initialize the fence used to wait for image access.
+		// Initialize the fences used to wait for image access.
 		VkFenceCreateInfo fenceInfo { .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
-		raiseIfFailed(::vkCreateFence(m_device.handle(), &fenceInfo, nullptr, &m_waitForImage), "Unable to create image acquisition fence.");
+		m_waitForImage.resize(images);
+		std::ranges::generate(m_waitForImage, [&]() {
+			VkFence fence;
+			raiseIfFailed(::vkCreateFence(m_device.handle(), &fenceInfo, nullptr, &fence), "Unable to create image acquisition fence.");
+			return fence;
+		});
+
+		// Initialize the semaphores used to wait for workload completion before present.
+		VkSemaphoreCreateInfo semaphoreInfo { .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
+		m_waitForWorkload.resize(images);
+		std::ranges::generate(m_waitForWorkload, [&]() {
+			VkSemaphore semaphore;
+			raiseIfFailed(::vkCreateSemaphore(m_device.handle(), &semaphoreInfo, nullptr, &semaphore), "Unable to workload synchronization semaphore.");
+			return semaphore;
+		});
 
 		// Create the swap chain images.
 		auto actualRenderArea = Size2d(static_cast<size_t>(createInfo.imageExtent.width), static_cast<size_t>(createInfo.imageExtent.height));
@@ -178,8 +193,9 @@ public:
 		// Destroy the swap chain itself.
 		::vkDestroySwapchainKHR(m_device.handle(), m_handle, nullptr);
 
-		// Destroy the fence used to wait for image acquisition.
-		::vkDestroyFence(m_device.handle(), m_waitForImage, nullptr);
+		// Destroy the fences and semaphores used to wait for image acquisition.
+		std::ranges::for_each(m_waitForImage, [&](VkFence fence) { ::vkDestroyFence(m_device.handle(), fence, nullptr); });
+		std::ranges::for_each(m_waitForWorkload, [&](VkSemaphore semaphore) { ::vkDestroySemaphore(m_device.handle(), semaphore, nullptr); });
 
 		// Destroy state.
 		m_buffers = 0;
@@ -192,9 +208,10 @@ public:
 	{
 		// Queue an image acquisition request, then wait for the fence and reset it for the next iteration. Note how this is similar to the DirectX behavior, where the swap call blocks until the 
 		// image is acquired and ready.
-		raiseIfFailed(::vkAcquireNextImageKHR(m_device.handle(), m_handle, UINT64_MAX, VK_NULL_HANDLE, m_waitForImage, &m_currentImage), "Unable to swap front buffer. Make sure that all previously acquired images are actually presented before acquiring another image.");
-		raiseIfFailed(::vkWaitForFences(m_device.handle(), 1, &m_waitForImage, VK_TRUE, UINT64_MAX), "Unable to wait for image acquisition.");
-		raiseIfFailed(::vkResetFences(m_device.handle(), 1, &m_waitForImage), "Unable to reset image acquisition fence.");
+		auto fence = m_waitForImage[m_currentImage];
+		raiseIfFailed(::vkAcquireNextImageKHR(m_device.handle(), m_handle, UINT64_MAX, VK_NULL_HANDLE, fence, &m_currentImage), "Unable to swap front buffer. Make sure that all previously acquired images are actually presented before acquiring another image.");
+		raiseIfFailed(::vkWaitForFences(m_device.handle(), 1, &fence, VK_TRUE, UINT64_MAX), "Unable to wait for image acquisition.");
+		raiseIfFailed(::vkResetFences(m_device.handle(), 1, &fence), "Unable to reset image acquisition fence.");
 
 		// Query the timing events.
 		// TODO: In rare situations, and only when using this swap chain implementation, the validation layers will complain about query pools not being reseted, when writing time stamps. I could
@@ -225,10 +242,33 @@ public:
 		std::array<VkSwapchainKHR, 1> swapChains = { m_handle };
 		const auto bufferIndex = m_currentImage;
 		const auto& queue = m_device.defaultQueue(QueueType::Graphics);
-		queue.waitFor(fence);
+
+		// Wait for the workload semaphore before performing the actual presentation.
+		auto workloadSemaphore = m_waitForWorkload[bufferIndex];
+		VkPipelineStageFlags synchronizationPoint = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		
+		VkTimelineSemaphoreSubmitInfo workloadFenceInfo = {
+			.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO,
+			.waitSemaphoreValueCount = 1,
+			.pWaitSemaphoreValues = &fence
+		};
+
+		VkSubmitInfo submitInfo = {
+			.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+			.pNext = &workloadFenceInfo,
+			.waitSemaphoreCount = 1,
+			.pWaitSemaphores = &queue.timelineSemaphore(),
+			.pWaitDstStageMask = &synchronizationPoint,
+			.signalSemaphoreCount = 1,
+			.pSignalSemaphores = &workloadSemaphore
+		};
+
+		raiseIfFailed(::vkQueueSubmit(queue.handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit workload semaphore.");
 
 		VkPresentInfoKHR presentInfo = {
 			.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+			.waitSemaphoreCount = 1,
+			.pWaitSemaphores = &workloadSemaphore,
 			.swapchainCount = static_cast<UInt32>(swapChains.size()),
 			.pSwapchains = swapChains.data(),
 			.pImageIndices = &bufferIndex,
