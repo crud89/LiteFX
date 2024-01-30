@@ -177,7 +177,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
 
     // Add an empty geometry, so that the geometry index of the second one will increase, causing it to get reflective (as the hit group changes). Not the most elegant solution, but
     // works for demonstration purposes.
-    auto dummyVertexBuffer = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, 1);
+    auto dummyVertexBuffer = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, 1, ResourceUsage::AccelerationStructureBuildInput);
     reflective->withTriangleMesh({ asShared(std::move(dummyVertexBuffer)), SharedPtr<IIndexBuffer>() });
     reflective->withTriangleMesh({ vertices, indices });
     reflective->allocateBuffer(*m_device);
