@@ -192,7 +192,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& staticDataBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::StaticData));
-    auto cameraBuffer = m_device->factory().createBuffer("Camera", staticDataBindingsLayout, 0, ResourceHeap::Resource);
+    auto cameraBuffer = m_device->factory().createBuffer("Camera", staticDataBindingsLayout, 0, ResourceHeap::Dynamic);
     auto staticDataBindings = staticDataBindingsLayout.allocate({ { .resource = *cameraBuffer }, { .resource = *tlas }, { .resource = *texture } });
 
     // Transfer the skybox texture.
@@ -243,18 +243,25 @@ void SampleApp::initBuffers(IRenderBackend* backend)
 
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
 {
+    // Store the initial time this method has been called first.
+    static auto start = std::chrono::high_resolution_clock::now();
+
+    // Get the amount of time that has passed since the first frame.
+    auto now = std::chrono::high_resolution_clock::now();
+    auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+    time *= 0.5f; // Slow down a bit.
+    auto position = glm::vec3(std::sinf(time), std::cosf(time), 0.3f) * 7.5f;
+
     // Calculate the camera view/projection matrix.
     auto aspectRatio = static_cast<Float>(m_device->swapChain().renderArea().width()) / static_cast<Float>(m_device->swapChain().renderArea().height());
-    glm::mat4 view = glm::lookAt(glm::vec3(1.5f, 1.5f, 1.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 view = glm::lookAt(position, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
     camera.ViewProjection = projection * view;
     camera.InverseView = glm::inverse(view);
     camera.InverseProjection = glm::inverse(projection);
 
-    // Create a staging buffer and use to transfer the new uniform buffer to.
-    auto cameraStagingBuffer = m_device->factory().createBuffer(m_device->state().pipeline("RT Geometry"), std::to_underlying(DescriptorSets::StaticData), 0, ResourceHeap::Staging);
-    cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    commandBuffer.transfer(asShared(std::move(cameraStagingBuffer)), buffer);
+    // Update the camera buffer.
+    buffer.map(reinterpret_cast<const void*>(&camera), sizeof(camera));
 }
 
 void SampleApp::onStartup()
@@ -454,13 +461,8 @@ void SampleApp::handleEvents()
 
 void SampleApp::drawFrame()
 {
-    // Store the initial time this method has been called first.
-    static auto start = std::chrono::high_resolution_clock::now();
-
     // Swap the back buffers for the next frame.
     auto backBuffer = m_device->swapChain().swapBackBuffer();
-
-    // TODO: Clear back buffer (vkCmdClearColorImage, ClearUnorderedAccessViewFloat).
 
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
     auto& geometryPipeline = m_device->state().pipeline("RT Geometry");
@@ -470,12 +472,16 @@ void SampleApp::drawFrame()
     auto& outputBindings = m_device->state().descriptorSet(fmt::format("Output Bindings {0}", backBuffer));
     auto& shaderBindingTable = m_device->state().buffer("Shader Binding Table");
     auto& backBuffers = m_device->state().image("Back Buffers");
+    auto& cameraBuffer = m_device->state().buffer("Camera");
 
     // Wait for all transfers to finish.
     auto& graphicsQueue = m_device->defaultQueue(QueueType::Graphics);
     graphicsQueue.beginDebugRegion("Ray-Tracing");
     graphicsQueue.waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
     auto commandBuffer = graphicsQueue.createCommandBuffer(true);
+
+    // Update the camera.
+    this->updateCamera(*commandBuffer, cameraBuffer);
 
     // Transition back buffer image into read-write state.
     auto barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Raytracing);
@@ -484,12 +490,6 @@ void SampleApp::drawFrame()
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
     commandBuffer->use(geometryPipeline);
-
-    // Get the amount of time that has passed since the first frame.
-    auto now = std::chrono::high_resolution_clock::now();
-    auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
-
-    // TODO: Rotate camera.
 
     // Bind both descriptor sets to the pipeline.
     commandBuffer->bind(staticDataBindings);
