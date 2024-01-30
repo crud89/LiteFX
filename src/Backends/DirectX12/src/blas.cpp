@@ -32,7 +32,7 @@ public:
     {
         return [this]() -> std::generator<D3D12_RAYTRACING_GEOMETRY_DESC> {
             // Build up mesh descriptions.
-            for (UInt32 i{ 0 }; auto& mesh : m_triangleMeshes)
+            for (auto& mesh : m_triangleMeshes)
             {
                 // Find the position attribute.
                 auto attributes = mesh.VertexBuffer->layout().attributes();
@@ -63,7 +63,7 @@ public:
             }
 
             // Build up AABB descriptions.
-            for (UInt32 i{ 0 }; auto& bb : m_boundingBoxes)
+            for (auto& bb : m_boundingBoxes)
             {
                 if (bb.Buffer == nullptr) [[unlikely]]
                     throw RuntimeException("Cannot build bottom-level acceleration structure from uninitialized bounding boxes.");
