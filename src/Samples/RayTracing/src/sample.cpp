@@ -519,6 +519,7 @@ void SampleApp::drawFrame()
 {
     // Swap the back buffers for the next frame.
     auto backBuffer = m_device->swapChain().swapBackBuffer();
+    auto& backBufferImage = *m_device->swapChain().image(backBuffer);
 
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
     auto& geometryPipeline = m_device->state().pipeline("RT Geometry");
@@ -559,15 +560,15 @@ void SampleApp::drawFrame()
     // Transition the image back into `CopySource` layout.
     barrier = m_device->makeBarrier(PipelineStage::Raytracing, PipelineStage::Transfer);
     barrier->transition(backBuffers, 0, 1, backBuffer, 1, 0, ResourceAccess::ShaderReadWrite, ResourceAccess::TransferRead, ImageLayout::ReadWrite, ImageLayout::CopySource);
-    barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
+    barrier->transition(backBufferImage, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
     commandBuffer->barrier(*barrier);
 
     // Copy the back buffer into the current swap chain image.
-    commandBuffer->transfer(backBuffers, *m_device->swapChain().image(backBuffer), backBuffers.subresourceId(0, backBuffer, 0));
+    commandBuffer->transfer(backBuffers, backBufferImage, backBuffers.subresourceId(0, backBuffer, 0));
 
     // Transition the image back into `Present` layout.
     barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::Resolve);
-    barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::TransferWrite, ResourceAccess::Common, ImageLayout::CopyDestination, ImageLayout::Present);
+    barrier->transition(backBufferImage, ResourceAccess::TransferWrite, ResourceAccess::Common, ImageLayout::CopyDestination, ImageLayout::Present);
     commandBuffer->barrier(*barrier);
 
     // Present.
