@@ -176,6 +176,7 @@ private:
         //m_extensions.push_back(VK_KHR_RAY_QUERY_EXTENSION_NAME);
         m_extensions.push_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
         m_extensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
+        m_extensions.push_back(VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME);
 #endif
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
@@ -273,10 +274,16 @@ public:
         //    .rayQuery = true
         //};
 
+        VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR rayTracingMaintenanceFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MAINTENANCE_1_FEATURES_KHR,
+            //.pNext = &rayQueryFeatures,
+            .rayTracingMaintenance1 = true
+        };
+
         VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR,
-            //.pNext = &rayQueryFeatures,
-            .rayTracingPipeline = true
+            .pNext = &rayTracingMaintenanceFeatures,
+            .rayTracingPipeline = true,
         };
 
         VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures = {
