@@ -105,16 +105,17 @@ public:
 			return group;
 		}) | std::ranges::to<Array<VkRayTracingShaderGroupCreateInfoKHR>>();
 
-		// Setup dynamic state.
-		Array<VkDynamicState> dynamicStates { 
-			VkDynamicState::VK_DYNAMIC_STATE_RAY_TRACING_PIPELINE_STACK_SIZE_KHR
-		};
+		//// Setup dynamic state.
+		// NOTE: currently we do not support dynamic stack sizes, as this is not supported in D3D.
+		//Array<VkDynamicState> dynamicStates { 
+		//	VkDynamicState::VK_DYNAMIC_STATE_RAY_TRACING_PIPELINE_STACK_SIZE_KHR
+		//};
 
-		VkPipelineDynamicStateCreateInfo dynamicState = {
-			.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-			.dynamicStateCount = static_cast<UInt32>(dynamicStates.size()),
-			.pDynamicStates = dynamicStates.data()
-		};
+		//VkPipelineDynamicStateCreateInfo dynamicState = {
+		//	.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+		//	.dynamicStateCount = static_cast<UInt32>(dynamicStates.size()),
+		//	.pDynamicStates = dynamicStates.data()
+		//};
 
 		// Setup pipeline.
 		VkRayTracingPipelineCreateInfoKHR pipelineInfo = {
@@ -124,7 +125,7 @@ public:
 			.groupCount = static_cast<UInt32>(shaderGroups.size()),
 			.pGroups = shaderGroups.data(),
 			.maxPipelineRayRecursionDepth = m_maxRecursionDepth,
-			.pDynamicState = &dynamicState,
+			//.pDynamicState = &dynamicState,
 			.layout = std::as_const(*m_layout.get()).handle()
 		};
 
