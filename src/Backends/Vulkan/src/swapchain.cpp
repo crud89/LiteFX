@@ -21,7 +21,7 @@ private:
 	Array<UniquePtr<IVulkanImage>> m_presentImages { };
 	const VulkanDevice& m_device;
 	VkSwapchainKHR m_handle = VK_NULL_HANDLE;
-	Array<VkFence> m_waitForImage;
+	VkFence m_waitForImage;
 	Array<VkSemaphore> m_waitForWorkload;
 
 	Array<SharedPtr<TimingEvent>> m_timingEvents;
@@ -113,12 +113,7 @@ public:
 
 		// Initialize the fences used to wait for image access.
 		VkFenceCreateInfo fenceInfo { .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
-		m_waitForImage.resize(images);
-		std::ranges::generate(m_waitForImage, [&]() {
-			VkFence fence;
-			raiseIfFailed(::vkCreateFence(m_device.handle(), &fenceInfo, nullptr, &fence), "Unable to create image acquisition fence.");
-			return fence;
-		});
+		raiseIfFailed(::vkCreateFence(m_device.handle(), &fenceInfo, nullptr, &m_waitForImage), "Unable to create image acquisition fence.");
 
 		// Initialize the semaphores used to wait for workload completion before present.
 		VkSemaphoreCreateInfo semaphoreInfo { .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
@@ -194,7 +189,7 @@ public:
 		::vkDestroySwapchainKHR(m_device.handle(), m_handle, nullptr);
 
 		// Destroy the fences and semaphores used to wait for image acquisition.
-		std::ranges::for_each(m_waitForImage, [&](VkFence fence) { ::vkDestroyFence(m_device.handle(), fence, nullptr); });
+		::vkDestroyFence(m_device.handle(), m_waitForImage, nullptr);
 		std::ranges::for_each(m_waitForWorkload, [&](VkSemaphore semaphore) { ::vkDestroySemaphore(m_device.handle(), semaphore, nullptr); });
 
 		// Destroy state.
@@ -208,10 +203,9 @@ public:
 	{
 		// Queue an image acquisition request, then wait for the fence and reset it for the next iteration. Note how this is similar to the DirectX behavior, where the swap call blocks until the 
 		// image is acquired and ready.
-		auto fence = m_waitForImage[m_currentImage];
-		raiseIfFailed(::vkAcquireNextImageKHR(m_device.handle(), m_handle, UINT64_MAX, VK_NULL_HANDLE, fence, &m_currentImage), "Unable to swap front buffer. Make sure that all previously acquired images are actually presented before acquiring another image.");
-		raiseIfFailed(::vkWaitForFences(m_device.handle(), 1, &fence, VK_TRUE, UINT64_MAX), "Unable to wait for image acquisition.");
-		raiseIfFailed(::vkResetFences(m_device.handle(), 1, &fence), "Unable to reset image acquisition fence.");
+		raiseIfFailed(::vkAcquireNextImageKHR(m_device.handle(), m_handle, UINT64_MAX, VK_NULL_HANDLE, m_waitForImage, &m_currentImage), "Unable to swap front buffer. Make sure that all previously acquired images are actually presented before acquiring another image.");
+		raiseIfFailed(::vkWaitForFences(m_device.handle(), 1, &m_waitForImage, VK_TRUE, UINT64_MAX), "Unable to wait for image acquisition.");
+		raiseIfFailed(::vkResetFences(m_device.handle(), 1, &m_waitForImage), "Unable to reset image acquisition fence.");
 
 		// Query the timing events.
 		// TODO: In rare situations, and only when using this swap chain implementation, the validation layers will complain about query pools not being reseted, when writing time stamps. I could
@@ -850,7 +844,7 @@ public:
 	void present(UInt64 fence)
 	{
 		// Wait for all commands to finish on the default graphics queue. We assume that this is the last queue that receives (synchronized) workloads, as it is expected to
-		// handle presentation by convention.
+		// handle presentation by convention. Note that this performs a GPU-side wait for the fence and does not block.
 		m_presentQueue->Wait(m_workloadFence.Get(), m_presentFences[m_currentImage] = fence);
 
 		// Copy shared images to back buffers. See `createImages` for details on why we do this.
