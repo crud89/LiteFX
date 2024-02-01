@@ -63,11 +63,6 @@ private:
 	IGraphicsDevice* m_device;
 
 	/// <summary>
-	/// Stores the fence created at application load time.
-	/// </summary>
-	UInt64 m_transferFence = 0;
-
-	/// <summary>
 	/// Stores the offsets, sizes and stride for the shader records in the only shader binding table we're going to create.
 	/// </summary>
 	ShaderBindingTableOffsets m_offsets;
@@ -92,7 +87,7 @@ private:
 	/// <summary>
 	/// Updates the camera buffer. This needs to be done whenever the frame buffer changes, since we need to pass changes in the aspect ratio to the view/projection matrix.
 	/// </summary>
-	void updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const;
+	void updateCamera(IBuffer& buffer) const;
 
 private:
 	void onInit();

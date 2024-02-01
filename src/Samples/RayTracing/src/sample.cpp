@@ -254,7 +254,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     commandBuffer->barrier(*barrier);
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
-    this->updateCamera(*commandBuffer, *cameraBuffer);
+    this->updateCamera(*cameraBuffer);
 
     // Create a sampler for the skybox (note that a static sampler would make more sense here, but let's not care too much, as it's a demo).
     auto sampler = m_device->factory().createSampler();
@@ -297,7 +297,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_device->state().add("Material Bindings", std::move(materialBindings));
 }
 
-void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
+void SampleApp::updateCamera(IBuffer& buffer) const
 {
     // Store the initial time this method has been called first.
     static auto start = std::chrono::high_resolution_clock::now();
@@ -421,10 +421,7 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     m_device->state().add(std::move(backBuffers));
 
     // Also update the camera.
-    auto& cameraBuffer = m_device->state().buffer("Camera");
-    auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
-    this->updateCamera(*commandBuffer, cameraBuffer);
-    m_transferFence = commandBuffer->submit();
+    this->updateCamera(m_device->state().buffer("Camera"));
 }
 
 void SampleApp::keyDown(int key, int scancode, int action, int mods)
@@ -531,14 +528,13 @@ void SampleApp::drawFrame()
     auto& backBuffers = m_device->state().image("Back Buffers");
     auto& cameraBuffer = m_device->state().buffer("Camera");
 
+    // Update the camera.
+    this->updateCamera(cameraBuffer);
+
     // Wait for all transfers to finish.
     auto& graphicsQueue = m_device->defaultQueue(QueueType::Graphics);
     graphicsQueue.beginDebugRegion("Ray-Tracing");
-    graphicsQueue.waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
     auto commandBuffer = graphicsQueue.createCommandBuffer(true);
-
-    // Update the camera.
-    this->updateCamera(*commandBuffer, cameraBuffer);
 
     // Transition back buffer image into read-write state.
     auto barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Raytracing);
