@@ -454,7 +454,7 @@ Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMu
     // Apply the default bindings.
     for (UInt32 set{ 0 }; auto& descriptorSet : descriptorSets)
     {
-        for (UInt32 i{ 0 }; auto& binding : bindingFactory(set))
+        for (UInt32 i{ 0 }; auto& binding : bindingFactory(set++))
         {
             std::visit(type_switch {
                 [](const std::monostate&) {}, // Default: don't bind anything.
