@@ -269,9 +269,6 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void addInstance(const Instance& instance) override;
 
-        /// <inheritdoc />
-        const IVulkanBuffer* instanceBuffer() const noexcept override;
-
     private:
         Array<VkAccelerationStructureInstanceKHR> buildInfo() const noexcept;
 

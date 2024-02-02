@@ -4110,15 +4110,6 @@ namespace LiteFX::Rendering {
             this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
         }
 
-        /// <summary>
-        /// Returns a pointer to a buffer that stores the instance data on the GPU.
-        /// </summary>
-        /// <remarks>
-        /// The buffer is allocated alongside the acceleration structure buffer when calling <see cref="IAccelerationStructure::allocateBuffer" /> and populated when building.
-        /// </remarks>
-        /// <returns>A pointer to a buffer that stores the instance data on the GPU.</returns>
-        virtual const IBuffer* instanceBuffer() const noexcept = 0;
-
     public:
         /// <summary>
         /// Adds an instance to the current TLAS.

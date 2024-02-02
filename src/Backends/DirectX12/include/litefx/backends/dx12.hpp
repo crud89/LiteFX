@@ -260,9 +260,6 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void addInstance(const Instance& instance) override;
 
-        /// <inheritdoc />
-        const IDirectX12Buffer* instanceBuffer() const noexcept;
-
     private:
         Array<D3D12_RAYTRACING_INSTANCE_DESC> buildInfo() const;
 

@@ -14,7 +14,7 @@ public:
 private:
     Array<Instance> m_instances { };
     AccelerationStructureFlags m_flags;
-    UniquePtr<IDirectX12Buffer> m_buffer, m_instanceBuffer;
+    UniquePtr<IDirectX12Buffer> m_buffer;
     UInt64 m_scratchBufferSize { };
 
 public:
@@ -83,11 +83,6 @@ void DirectX12TopLevelAccelerationStructure::allocateBuffer(const DirectX12Devic
 
     // Allocate the buffers.
     m_impl->m_buffer = device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, bufferSize, 1, ResourceUsage::AllowWrite);
-    m_impl->m_instanceBuffer = device.factory().createBuffer(BufferType::Storage, ResourceHeap::Dynamic, sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * m_impl->m_instances.size(), 1, ResourceUsage::AccelerationStructureBuildInput);
-
-    // Map the instance buffer.
-    auto buildInfo = m_impl->buildInfo();
-    m_impl->m_instanceBuffer->map(buildInfo.data(), sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * m_impl->m_instances.size());
 }
 
 const Array<Instance>& DirectX12TopLevelAccelerationStructure::instances() const noexcept
@@ -111,9 +106,4 @@ Array<D3D12_RAYTRACING_INSTANCE_DESC> DirectX12TopLevelAccelerationStructure::bu
 void DirectX12TopLevelAccelerationStructure::makeBuffer(const IGraphicsDevice& device)
 {
     this->allocateBuffer(dynamic_cast<const DirectX12Device&>(device));
-}
-
-const IDirectX12Buffer* DirectX12TopLevelAccelerationStructure::instanceBuffer() const noexcept
-{
-    return m_impl->m_instanceBuffer.get();
 }

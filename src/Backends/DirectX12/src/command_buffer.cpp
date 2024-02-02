@@ -96,6 +96,14 @@ public:
 
 	inline void buildAccelerationStructure(const DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer)
 	{
+		// Create a buffer to store the instance build info.
+		auto buildInfo = tlas.buildInfo();
+		auto instanceBuffer = m_queue.device().factory().createBuffer(BufferType::Storage, ResourceHeap::Dynamic, sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * buildInfo.size(), 1, ResourceUsage::AccelerationStructureBuildInput);
+
+		// Map the instance buffer.
+		instanceBuffer->map(buildInfo.data(), sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * buildInfo.size());
+
+		// Build the TLAS.
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC tlasDesc = {
 			.DestAccelerationStructureData = tlas.buffer()->virtualAddress(),
 			.Inputs = {
@@ -103,7 +111,7 @@ public:
 				.Flags = std::bit_cast<D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS>(tlas.flags()),
 				.NumDescs = static_cast<UInt32>(tlas.instances().size()),
 				.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY,
-				.InstanceDescs = tlas.instanceBuffer()->virtualAddress()
+				.InstanceDescs = instanceBuffer->virtualAddress()
 			},
 			.ScratchAccelerationStructureData = scratchBuffer->virtualAddress()
 		};
@@ -112,6 +120,7 @@ public:
 		m_parent->handle()->BuildRaytracingAccelerationStructure(&tlasDesc, 0, nullptr);
 
 		// Store the scratch buffer.
+		m_sharedResources.push_back(asShared(std::move(instanceBuffer)));
 		m_sharedResources.push_back(scratchBuffer);
 	}
 };

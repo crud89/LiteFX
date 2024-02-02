@@ -97,14 +97,22 @@ public:
 
 	inline void buildAccelerationStructure(const VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer)
 	{
+		// Create a buffer to store the instance data.
+		auto buildInfo = tlas.buildInfo();
+		auto instanceBuffer = m_queue.device().factory().createBuffer(BufferType::Storage, ResourceHeap::Dynamic, sizeof(VkAccelerationStructureInstanceKHR) * buildInfo.size(), 1, ResourceUsage::AccelerationStructureBuildInput);
+
+		// Map the instance buffer.
+		instanceBuffer->map(buildInfo.data(), sizeof(VkAccelerationStructureInstanceKHR) * buildInfo.size());
+
 		VkAccelerationStructureBuildRangeInfoKHR ranges { static_cast<UInt32>(tlas.instances().size()) };
 		auto rangePointer = &ranges;
 
+		// Setup TLAS bindings.
 		VkAccelerationStructureGeometryInstancesDataKHR instanceInfo = {
 			.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR,
 			.arrayOfPointers = false,
 			.data = {
-				.deviceAddress = tlas.instanceBuffer()->virtualAddress()
+				.deviceAddress = instanceBuffer->virtualAddress()
 			}
 		};
 
@@ -130,6 +138,7 @@ public:
 		::vkCmdBuildAccelerationStructures(m_parent->handle(), 1, &inputs, &rangePointer);
 
 		// Store the scratch buffer.
+		m_sharedResources.push_back(asShared(std::move(instanceBuffer)));
 		m_sharedResources.push_back(scratchBuffer);
 	}
 };

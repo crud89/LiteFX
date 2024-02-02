@@ -216,8 +216,6 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     commandBuffer->barrier(*barrier);
     commandBuffer->buildAccelerationStructure(*tlas, scratchBuffer);
 
-    // TODO: The TLAS allocates an instance buffer that we could release after building the acceleration structure, if we do not need it for future updates.
-
     // Create a shader binding table from the pipeline and transfer it into a GPU buffer (not necessarily required for such a small SBT, but for demonstration purposes).
     auto& geometryPipeline = dynamic_cast<IRayTracingPipeline&>(m_device->state().pipeline("RT Geometry"));
     auto stagingSBT = geometryPipeline.allocateShaderBindingTable(m_offsets);
