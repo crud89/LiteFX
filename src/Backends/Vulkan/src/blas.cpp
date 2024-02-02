@@ -4,7 +4,6 @@ using namespace LiteFX::Rendering::Backends;
 using TriangleMesh  = IBottomLevelAccelerationStructure::TriangleMesh;
 using BoundingBoxes = IBottomLevelAccelerationStructure::BoundingBoxes;
 
-extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure;
 extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure;
 
 // ------------------------------------------------------------------------------------------------
@@ -19,8 +18,8 @@ private:
     Array<TriangleMesh>  m_triangleMeshes { };
     Array<BoundingBoxes> m_boundingBoxes  { };
     AccelerationStructureFlags m_flags;
-    UniquePtr<IVulkanBuffer> m_buffer;
-    UInt64 m_scratchBufferSize { };
+    SharedPtr<const IVulkanBuffer> m_buffer;
+    UInt64 m_offset { };
     const VulkanDevice* m_device { nullptr };
 
 public:
@@ -114,40 +113,75 @@ AccelerationStructureFlags VulkanBottomLevelAccelerationStructure::flags() const
     return m_impl->m_flags;
 }
 
-UInt64 VulkanBottomLevelAccelerationStructure::requiredScratchMemory() const noexcept
+SharedPtr<const IVulkanBuffer> VulkanBottomLevelAccelerationStructure::buffer() const noexcept
 {
-    return m_impl->m_scratchBufferSize;
+    return m_impl->m_buffer;
 }
 
-const IVulkanBuffer* VulkanBottomLevelAccelerationStructure::buffer() const noexcept
+UInt64 VulkanBottomLevelAccelerationStructure::offset() const noexcept
 {
-    return m_impl->m_buffer.get();
+    return m_impl->m_offset;
 }
 
-void VulkanBottomLevelAccelerationStructure::allocateBuffer(const VulkanDevice& device)
+void VulkanBottomLevelAccelerationStructure::build(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer, SharedPtr<const IVulkanBuffer> buffer, UInt64 offset, UInt64 maxSize)
 {
-    if (m_impl->m_buffer != nullptr) [[unlikely]]
-        throw RuntimeException("The buffer for this acceleration structure has already been allocated.");
+    // Validate the arguments.
+    UInt64 requiredMemory, requiredScratchMemory;
+    auto& device = static_cast<const VulkanQueue&>(commandBuffer.queue()).device();
+    device.computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory);
 
-    // Store the device.
-    m_impl->m_device = &device;
+    if (scratchBuffer != nullptr && scratchBuffer->size() < requiredScratchMemory)
+        throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer does not contain enough memory to build the acceleration structure (contained memory: {0} bytes, required memory: {1} bytes).", scratchBuffer->size(), requiredScratchMemory);
+    else if (scratchBuffer == nullptr)
+        scratchBuffer = device.factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
 
-    // Compute buffer sizes.
-    UInt64 bufferSize{ };
-    device.computeAccelerationStructureSizes(*this, bufferSize, m_impl->m_scratchBufferSize);
+    if (buffer == nullptr)
+        buffer = m_impl->m_buffer && m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
+    else if (maxSize < requiredMemory) [[unlikely]]
+        throw ArgumentOutOfRangeException("maxSize", 0ull, maxSize, requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
+    else if (buffer->size() < offset + requiredMemory) [[unlikely]]
+        throw ArgumentOutOfRangeException("buffer", 0ull, buffer->size(), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
 
-    // Allocate the buffer.
-    m_impl->m_buffer = device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, bufferSize, 1, ResourceUsage::AllowWrite);
+    // Perform the build.
+    commandBuffer.buildAccelerationStructure(*this, scratchBuffer, *buffer, offset);
 
-    // Create a handle for the acceleration structure.
-    VkAccelerationStructureCreateInfoKHR info = {
-        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
-        .buffer = std::as_const(*m_impl->m_buffer).handle(),
-        .size = m_impl->m_buffer->alignedElementSize(),
-        .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR
-    };
+    // Store the buffer and the offset.
+    m_impl->m_offset = offset;
+    m_impl->m_buffer = buffer;
+}
 
-    ::vkCreateAccelerationStructure(device.handle(), &info, nullptr, &this->handle());
+void VulkanBottomLevelAccelerationStructure::update(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer, SharedPtr<const IVulkanBuffer> buffer, UInt64 offset, UInt64 maxSize)
+{
+    // Validate the state.
+    if (m_impl->m_buffer == nullptr) [[unlikely]]
+        throw RuntimeException("The acceleration structure must have been built before it can be updated.");
+
+    if (!LITEFX_FLAG_IS_SET(m_impl->m_flags, AccelerationStructureFlags::AllowUpdate)) [[unlikely]]
+        throw RuntimeException("The acceleration structure does not allow updates. Specify `AccelerationStructureFlags::AllowUpdate` during creation.");
+
+    // Validate the arguments and create the buffers if required.
+    UInt64 requiredMemory, requiredScratchMemory;
+    auto& device = static_cast<const VulkanQueue&>(commandBuffer.queue()).device();
+    device.computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory);
+
+    if (scratchBuffer != nullptr && scratchBuffer->size() < requiredScratchMemory)
+        throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer does not contain enough memory to update the acceleration structure (contained memory: {0} bytes, required memory: {1} bytes).", scratchBuffer->size(), requiredScratchMemory);
+    else if (scratchBuffer == nullptr)
+        scratchBuffer = device.factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
+
+    if (buffer == nullptr)
+        buffer = m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
+    else if (maxSize < requiredMemory) [[unlikely]]
+        throw ArgumentOutOfRangeException("maxSize", 0ull, maxSize, requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
+    else if (buffer->size() < offset + requiredMemory) [[unlikely]]
+        throw ArgumentOutOfRangeException("buffer", 0ull, buffer->size(), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
+
+    // Perform the update.
+    commandBuffer.updateAccelerationStructure(*this, scratchBuffer, *buffer, offset);
+
+    // Store the buffer and the offset.
+    m_impl->m_offset = offset;
+    m_impl->m_buffer = buffer;
 }
 
 const Array<TriangleMesh>& VulkanBottomLevelAccelerationStructure::triangleMeshes() const noexcept
@@ -182,12 +216,59 @@ void VulkanBottomLevelAccelerationStructure::addBoundingBox(const BoundingBoxes&
     m_impl->m_boundingBoxes.push_back(aabb);
 }
 
+void VulkanBottomLevelAccelerationStructure::clear() noexcept
+{
+    m_impl->m_boundingBoxes.clear();
+    m_impl->m_triangleMeshes.clear();
+}
+
+bool VulkanBottomLevelAccelerationStructure::remove(const TriangleMesh& mesh) noexcept
+{
+    if (auto match = std::ranges::find_if(m_impl->m_triangleMeshes, [&mesh](const auto& e) { return std::addressof(e) == std::addressof(mesh); }); match != m_impl->m_triangleMeshes.end())
+    {
+        m_impl->m_triangleMeshes.erase(match);
+        return true;
+    }
+
+    return false;
+}
+
+bool VulkanBottomLevelAccelerationStructure::remove(const BoundingBoxes& aabb) noexcept
+{
+    if (auto match = std::ranges::find_if(m_impl->m_boundingBoxes, [&aabb](const auto& e) { return std::addressof(e) == std::addressof(aabb); }); match != m_impl->m_boundingBoxes.end())
+    {
+        m_impl->m_boundingBoxes.erase(match);
+        return true;
+    }
+
+    return false;
+}
+
 Array<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> VulkanBottomLevelAccelerationStructure::buildInfo() const
 {
     return m_impl->build();
 }
 
-void VulkanBottomLevelAccelerationStructure::makeBuffer(const IGraphicsDevice& device)
+void VulkanBottomLevelAccelerationStructure::updateState(const VulkanDevice* device, VkAccelerationStructureKHR handle) noexcept
 {
-    this->allocateBuffer(dynamic_cast<const VulkanDevice&>(device));
+    if (this->handle() != VK_NULL_HANDLE)
+        ::vkDestroyAccelerationStructure(m_impl->m_device->handle(), handle, nullptr);
+
+    m_impl->m_device = device;
+    this->handle() = handle;
+}
+
+SharedPtr<const IBuffer> VulkanBottomLevelAccelerationStructure::getBuffer() const noexcept
+{
+    return std::static_pointer_cast<const IBuffer>(m_impl->m_buffer);
+}
+
+void VulkanBottomLevelAccelerationStructure::doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize)
+{
+    this->build(dynamic_cast<const VulkanCommandBuffer&>(commandBuffer), std::dynamic_pointer_cast<const IVulkanBuffer>(scratchBuffer), std::dynamic_pointer_cast<const IVulkanBuffer>(buffer), offset, maxSize);
+}
+
+void VulkanBottomLevelAccelerationStructure::doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize)
+{
+    this->update(dynamic_cast<const VulkanCommandBuffer&>(commandBuffer), std::dynamic_pointer_cast<const IVulkanBuffer>(scratchBuffer), std::dynamic_pointer_cast<const IVulkanBuffer>(buffer), offset, maxSize);
 }

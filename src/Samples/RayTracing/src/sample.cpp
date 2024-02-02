@@ -172,15 +172,19 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto indices = asShared(std::move(indexBuffer));
     auto opaque = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure()));
     opaque->withTriangleMesh({ vertices, indices });
-    opaque->allocateBuffer(*m_device);
-    auto reflective = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure()));
 
-    // Add an empty geometry, so that the geometry index of the second one will increase, causing it to get reflective (as the hit group changes). Not the most elegant solution, but
-    // works for demonstration purposes.
+    // Add an empty geometry, so that the geometry index of the second one will increase, causing it to get reflective (as the hit group changes). Not the most elegant solution, but works 
+    // for demonstration purposes.
+    auto reflective = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure()));
     auto dummyVertexBuffer = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, 1, ResourceUsage::AccelerationStructureBuildInput);
     reflective->withTriangleMesh({ asShared(std::move(dummyVertexBuffer)), SharedPtr<IIndexBuffer>() });
     reflective->withTriangleMesh({ vertices, indices });
-    reflective->allocateBuffer(*m_device);
+
+    // Allocate a single buffer for all bottom-level acceleration structures.
+    UInt64 opaqueSize, opaqueScratchSize, reflectiveSize, reflectiveScratchSize;
+    m_device->computeAccelerationStructureSizes(*opaque, opaqueSize, opaqueScratchSize);
+    m_device->computeAccelerationStructureSizes(*reflective, reflectiveSize, reflectiveScratchSize);
+    auto blasBuffer = asShared(std::move(m_device->factory().createBuffer("BLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, opaqueSize + reflectiveSize, 1u, ResourceUsage::AllowWrite)));
 
     // Orient instances randomly.
     std::srand(std::time(nullptr));
@@ -195,26 +199,25 @@ void SampleApp::initBuffers(IRenderBackend* backend)
         .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(4.0f, 0.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 6)
         .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(3.0f, 3.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 7);
 
-    // Add a non-opaque instance.
+    // Add the reflective instance.
     tlas->withInstance(reflective, glm::mat4x3(glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(3.0f))), 8);
 
-    // Allocate a buffer for the TLAS.
-    tlas->allocateBuffer(*m_device);
-
     // Create a scratch buffer.
-    auto scratchBufferSize = std::max(std::max(opaque->requiredScratchMemory(), reflective->requiredScratchMemory()), tlas->requiredScratchMemory());
+    UInt64 tlasSize, tlasScratchSize;
+    m_device->computeAccelerationStructureSizes(*tlas, tlasSize, tlasScratchSize);
+    auto scratchBufferSize = std::max(std::max(opaqueScratchSize, reflectiveScratchSize), tlasScratchSize);
     auto scratchBuffer = asShared(std::move(m_device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, scratchBufferSize, 1, ResourceUsage::AllowWrite)));
 
     // Build the BLAS and the TLAS. We need to barrier in between both to prevent simultaneous scratch buffer writes.
-    commandBuffer->buildAccelerationStructure(*opaque, scratchBuffer);
+    opaque->build(*commandBuffer, scratchBuffer, blasBuffer, 0, opaqueSize);
     barrier = m_device->makeBarrier(PipelineStage::AccelerationStructureBuild, PipelineStage::AccelerationStructureBuild);
     barrier->transition(*scratchBuffer, ResourceAccess::AccelerationStructureWrite, ResourceAccess::AccelerationStructureWrite);
     commandBuffer->barrier(*barrier);
-    commandBuffer->buildAccelerationStructure(*reflective, scratchBuffer);
+    reflective->build(*commandBuffer, scratchBuffer, blasBuffer, opaqueSize, reflectiveSize);
     barrier = m_device->makeBarrier(PipelineStage::AccelerationStructureBuild, PipelineStage::AccelerationStructureBuild);
     barrier->transition(*scratchBuffer, ResourceAccess::AccelerationStructureWrite, ResourceAccess::AccelerationStructureWrite);
     commandBuffer->barrier(*barrier);
-    commandBuffer->buildAccelerationStructure(*tlas, scratchBuffer);
+    tlas->build(*commandBuffer, scratchBuffer);
 
     // Create a shader binding table from the pipeline and transfer it into a GPU buffer (not necessarily required for such a small SBT, but for demonstration purposes).
     auto& geometryPipeline = dynamic_cast<IRayTracingPipeline&>(m_device->state().pipeline("RT Geometry"));

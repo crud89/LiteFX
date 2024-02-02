@@ -2,7 +2,9 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure;
 extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructures;
+extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure;
 extern PFN_vkCmdTraceRaysKHR vkCmdTraceRays;
 
 // ------------------------------------------------------------------------------------------------
@@ -69,8 +71,27 @@ public:
 		return buffer;
 	}
 
-	inline void buildAccelerationStructure(const VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer)
+	inline void buildAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset, bool update)
 	{
+		if (scratchBuffer == nullptr) [[unlikely]]
+			throw ArgumentNotInitializedException("scratchBuffer");
+
+		// Create new acceleration structure handle.
+		auto& device = m_queue.device();
+		UInt64 size, scratchSize;
+		device.computeAccelerationStructureSizes(blas, size, scratchSize);
+		VkAccelerationStructureKHR handle;
+
+		VkAccelerationStructureCreateInfoKHR info = {
+			.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
+			.buffer = buffer.handle(),
+			.offset = offset,
+			.size = size,
+			.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR
+		};
+
+		::vkCreateAccelerationStructure(device.handle(), &info, nullptr, &handle);
+
 		auto buildInfo = blas.buildInfo();
 		auto descriptions = buildInfo | std::views::values | std::ranges::to<Array<VkAccelerationStructureGeometryKHR>>();
 		auto ranges = buildInfo | std::views::keys |
@@ -83,7 +104,8 @@ public:
 			.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
 			.flags = std::bit_cast<VkBuildAccelerationStructureFlagsKHR>(blas.flags()),
 			.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
-			.dstAccelerationStructure = blas.handle(),
+			.srcAccelerationStructure = update ? blas.handle() : 0ull,
+			.dstAccelerationStructure = handle,
 			.geometryCount = static_cast<UInt32>(descriptions.size()),
 			.pGeometries = descriptions.data(),
 			.scratchData = scratchBuffer->virtualAddress()
@@ -91,21 +113,43 @@ public:
 
 		::vkCmdBuildAccelerationStructures(m_parent->handle(), 1, &inputs, &rangePointer);
 
+		// Store the acceleration structure handle.
+		blas.updateState(&device, handle);
+
 		// Store the scratch buffer.
 		m_sharedResources.push_back(scratchBuffer);
 	}
 
-	inline void buildAccelerationStructure(const VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer)
+	inline void buildAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset, bool update)
 	{
+		if (scratchBuffer == nullptr) [[unlikely]]
+			throw ArgumentNotInitializedException("scratchBuffer");
+
 		// Create a buffer to store the instance data.
+		auto& device = m_queue.device();
 		auto buildInfo = tlas.buildInfo();
-		auto instanceBuffer = m_queue.device().factory().createBuffer(BufferType::Storage, ResourceHeap::Dynamic, sizeof(VkAccelerationStructureInstanceKHR) * buildInfo.size(), 1, ResourceUsage::AccelerationStructureBuildInput);
+		auto instanceBuffer = device.factory().createBuffer(BufferType::Storage, ResourceHeap::Dynamic, sizeof(VkAccelerationStructureInstanceKHR) * buildInfo.size(), 1, ResourceUsage::AccelerationStructureBuildInput);
 
 		// Map the instance buffer.
 		instanceBuffer->map(buildInfo.data(), sizeof(VkAccelerationStructureInstanceKHR) * buildInfo.size());
 
 		VkAccelerationStructureBuildRangeInfoKHR ranges { static_cast<UInt32>(tlas.instances().size()) };
 		auto rangePointer = &ranges;
+
+		// Create new acceleration structure handle.
+		UInt64 size, scratchSize;
+		device.computeAccelerationStructureSizes(tlas, size, scratchSize);
+		VkAccelerationStructureKHR handle;
+
+		VkAccelerationStructureCreateInfoKHR info = {
+			.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
+			.buffer = buffer.handle(),
+			.offset = offset,
+			.size = size,
+			.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR
+		};
+
+		::vkCreateAccelerationStructure(device.handle(), &info, nullptr, &handle);
 
 		// Setup TLAS bindings.
 		VkAccelerationStructureGeometryInstancesDataKHR instanceInfo = {
@@ -129,13 +173,17 @@ public:
 			.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR,
 			.flags = std::bit_cast<VkBuildAccelerationStructureFlagsKHR>(tlas.flags()),
 			.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
-			.dstAccelerationStructure = tlas.handle(),
+			.srcAccelerationStructure = update ? tlas.handle() : 0ull,
+			.dstAccelerationStructure = handle,
 			.geometryCount = 1u,
 			.pGeometries = &geometryInfo,
 			.scratchData = scratchBuffer->virtualAddress()
 		};
 
 		::vkCmdBuildAccelerationStructures(m_parent->handle(), 1, &inputs, &rangePointer);
+
+		// Store the acceleration structure handle.
+		tlas.updateState(&device, handle);
 
 		// Store the scratch buffer.
 		m_sharedResources.push_back(asShared(std::move(instanceBuffer)));
@@ -157,6 +205,11 @@ VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, bool begin, b
 }
 
 VulkanCommandBuffer::~VulkanCommandBuffer() noexcept = default;
+
+const ICommandQueue& VulkanCommandBuffer::queue() const noexcept
+{
+	return m_impl->m_queue;
+}
 
 void VulkanCommandBuffer::begin() const
 {
@@ -548,66 +601,24 @@ void VulkanCommandBuffer::releaseSharedState() const
 	m_impl->m_sharedResources.clear();
 }
 
-// TODO: Add overload that supports updates (updates set `SourceAccelerationStructureData`).
-
-void VulkanCommandBuffer::buildAccelerationStructure(const VulkanBottomLevelAccelerationStructure& blas) const
+void VulkanCommandBuffer::buildAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
 {
-	// Validate the provided acceleration structure.
-	if (blas.buffer() == nullptr) [[unlikely]]
-		throw InvalidArgumentException("blas", "No buffer has been allocated for the provided acceleration structure.");
-
-	// Allocate scratch buffer.
-	auto scratchBuffer = m_impl->m_queue.device().factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, blas.requiredScratchMemory(), 1, ResourceUsage::AllowWrite);
-
-	// Build the acceleration structure.
-	m_impl->buildAccelerationStructure(blas, asShared(std::move(scratchBuffer)));
+	m_impl->buildAccelerationStructure(blas, scratchBuffer, buffer, offset, false);
 }
 
-void VulkanCommandBuffer::buildAccelerationStructure(const VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer) const
+void VulkanCommandBuffer::buildAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
 {
-	// Validate the provided acceleration structure.
-	if (blas.buffer() == nullptr) [[unlikely]]
-		throw InvalidArgumentException("blas", "No buffer has been allocated for the provided acceleration structure.");
-
-	// Validate the provided scratch buffer.
-	if (!scratchBuffer->writable()) [[unlikely]]
-		throw InvalidArgumentException("scratchBuffer", "The scratch buffer must be writable.");
-
-	if (scratchBuffer->alignedElementSize() < blas.requiredScratchMemory()) [[unlikely]]
-		throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer is too small to build up the acceleration structure. At least {0} bytes are required, but only {1} are available.", blas.requiredScratchMemory(), scratchBuffer->alignedElementSize());
-
-	// Create the acceleration structure.
-	m_impl->buildAccelerationStructure(blas, scratchBuffer);
+	m_impl->buildAccelerationStructure(tlas, scratchBuffer, buffer, offset, false);
 }
 
-void VulkanCommandBuffer::buildAccelerationStructure(const VulkanTopLevelAccelerationStructure& tlas) const
+void VulkanCommandBuffer::updateAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
 {
-	// Validate the provided acceleration structure.
-	if (tlas.buffer() == nullptr) [[unlikely]]
-		throw InvalidArgumentException("tlas", "No buffer has been allocated for the provided acceleration structure.");
-
-	// Allocate scratch buffer.
-	auto scratchBuffer = m_impl->m_queue.device().factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, tlas.requiredScratchMemory(), 1, ResourceUsage::AllowWrite);
-
-	// Build the acceleration structure.
-	m_impl->buildAccelerationStructure(tlas, asShared(std::move(scratchBuffer)));
+	m_impl->buildAccelerationStructure(blas, scratchBuffer, buffer, offset, true);
 }
 
-void VulkanCommandBuffer::buildAccelerationStructure(const VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer) const
+void VulkanCommandBuffer::updateAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
 {
-	// Validate the provided acceleration structure.
-	if (tlas.buffer() == nullptr) [[unlikely]]
-		throw InvalidArgumentException("tlas", "No buffer has been allocated for the provided acceleration structure.");
-
-	// Validate the provided scratch buffer.
-	if (!scratchBuffer->writable()) [[unlikely]]
-		throw InvalidArgumentException("scratchBuffer", "The scratch buffer must be writable.");
-
-	if (scratchBuffer->alignedElementSize() < tlas.requiredScratchMemory()) [[unlikely]]
-		throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer is too small to build up the acceleration structure. At least {0} bytes are required, but only {1} are available.", tlas.requiredScratchMemory(), scratchBuffer->alignedElementSize());
-
-	// Create the acceleration structure.
-	m_impl->buildAccelerationStructure(tlas, scratchBuffer);
+	m_impl->buildAccelerationStructure(tlas, scratchBuffer, buffer, offset, true);
 }
 
 void VulkanCommandBuffer::traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IVulkanBuffer& rayGenerationShaderBindingTable, const IVulkanBuffer* missShaderBindingTable, const IVulkanBuffer* hitShaderBindingTable, const IVulkanBuffer* callableShaderBindingTable) const noexcept

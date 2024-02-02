@@ -164,7 +164,8 @@ namespace LiteFX::Rendering::Backends {
         friend class DirectX12Device;
         friend class DirectX12CommandBuffer;
 
-        using IAccelerationStructure::allocateBuffer;
+        using IAccelerationStructure::build;
+        using IAccelerationStructure::update;
 
     public:
         /// <summary>
@@ -185,13 +186,16 @@ namespace LiteFX::Rendering::Backends {
         AccelerationStructureFlags flags() const noexcept override;
 
         /// <inheritdoc />
-        UInt64 requiredScratchMemory() const noexcept override;
+        SharedPtr<const IDirectX12Buffer> buffer() const noexcept;
 
         /// <inheritdoc />
-        const IDirectX12Buffer* buffer() const noexcept;
+        void build(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer = nullptr, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
-        void allocateBuffer(const DirectX12Device& device);
+        void update(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer = nullptr, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+
+        /// <inheritdoc />
+        UInt64 offset() const noexcept override;
 
         // IBottomLevelAccelerationStructure interface.
     public:
@@ -206,12 +210,23 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void addBoundingBox(const BoundingBoxes& aabb) override;
+        
+        /// <inheritdoc />
+        virtual void clear() noexcept override;
+
+        /// <inheritdoc />
+        virtual bool remove(const TriangleMesh& mesh) noexcept override;
+
+        /// <inheritdoc />
+        virtual bool remove(const BoundingBoxes& aabb) noexcept override;
 
     private:
         Array<D3D12_RAYTRACING_GEOMETRY_DESC> buildInfo() const;
 
     private:
-        inline void makeBuffer(const IGraphicsDevice& device) override;
+        virtual SharedPtr<const IBuffer> getBuffer() const noexcept override;
+        virtual void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        virtual void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
     };
 
     /// <summary>
@@ -223,7 +238,8 @@ namespace LiteFX::Rendering::Backends {
         friend class DirectX12Device;
         friend class DirectX12CommandBuffer;
 
-        using IAccelerationStructure::allocateBuffer;
+        using IAccelerationStructure::build;
+        using IAccelerationStructure::update;
 
     public:
         /// <summary>
@@ -244,13 +260,16 @@ namespace LiteFX::Rendering::Backends {
         AccelerationStructureFlags flags() const noexcept override;
 
         /// <inheritdoc />
-        UInt64 requiredScratchMemory() const noexcept override;
+        SharedPtr<const IDirectX12Buffer> buffer() const noexcept;
 
         /// <inheritdoc />
-        const IDirectX12Buffer* buffer() const noexcept;
+        void build(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer = nullptr, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
-        void allocateBuffer(const DirectX12Device& device);
+        void update(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer = nullptr, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+
+        /// <inheritdoc />
+        UInt64 offset() const noexcept override;
 
         // ITopLevelAccelerationStructure interface.
     public:
@@ -260,11 +279,19 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void addInstance(const Instance& instance) override;
 
+        /// <inheritdoc />
+        virtual void clear() noexcept override;
+
+        /// <inheritdoc />
+        virtual bool remove(const Instance& instance) noexcept override;
+
     private:
         Array<D3D12_RAYTRACING_INSTANCE_DESC> buildInfo() const;
 
     private:
-        inline void makeBuffer(const IGraphicsDevice& device) override;
+        virtual SharedPtr<const IBuffer> getBuffer() const noexcept override;
+        virtual void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        virtual void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
     };
 
     /// <summary>
@@ -971,6 +998,7 @@ namespace LiteFX::Rendering::Backends {
         using base_type::use;
         using base_type::pushConstants;
         using base_type::buildAccelerationStructure;
+        using base_type::updateAccelerationStructure;
 
     private:
         /// <summary>
@@ -999,6 +1027,9 @@ namespace LiteFX::Rendering::Backends {
 
         // CommandBuffer interface.
     public:
+        /// <inheritdoc />
+        const ICommandQueue& queue() const noexcept override;
+
         /// <inheritdoc />
         void begin() const override;
 
@@ -1099,16 +1130,16 @@ namespace LiteFX::Rendering::Backends {
         void execute(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(const DirectX12BottomLevelAccelerationStructure& blas) const override;
+        void buildAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(const DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer) const override;
+        void buildAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(const DirectX12TopLevelAccelerationStructure& tlas) const override;
+        void updateAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(const DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer) const override;
+        void updateAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
 
         /// <inheritdoc />
         void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IDirectX12Buffer& rayGenerationShaderBindingTable, const IDirectX12Buffer* missShaderBindingTable, const IDirectX12Buffer* hitShaderBindingTable, const IDirectX12Buffer* callableShaderBindingTable) const noexcept override;

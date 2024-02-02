@@ -173,7 +173,8 @@ namespace LiteFX::Rendering::Backends {
         friend class VulkanDevice;
         friend class VulkanCommandBuffer;
 
-        using IAccelerationStructure::allocateBuffer;
+        using IAccelerationStructure::build;
+        using IAccelerationStructure::update;
 
     public:
         /// <summary>
@@ -194,13 +195,16 @@ namespace LiteFX::Rendering::Backends {
         AccelerationStructureFlags flags() const noexcept override;
 
         /// <inheritdoc />
-        UInt64 requiredScratchMemory() const noexcept override;
+        SharedPtr<const IVulkanBuffer> buffer() const noexcept;
 
         /// <inheritdoc />
-        const IVulkanBuffer* buffer() const noexcept;
+        void build(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer = nullptr, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
-        void allocateBuffer(const VulkanDevice& device);
+        void update(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer = nullptr, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+
+        /// <inheritdoc />
+        UInt64 offset() const noexcept override;
 
         // IBottomLevelAccelerationStructure interface.
     public:
@@ -216,11 +220,23 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void addBoundingBox(const BoundingBoxes& aabb) override;
 
-    private:
-        Array<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> buildInfo() const;
+        /// <inheritdoc />
+        virtual void clear() noexcept override;
+
+        /// <inheritdoc />
+        virtual bool remove(const TriangleMesh& mesh) noexcept override;
+
+        /// <inheritdoc />
+        virtual bool remove(const BoundingBoxes& aabb) noexcept override;
 
     private:
-        inline void makeBuffer(const IGraphicsDevice& device) override;
+        Array<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> buildInfo() const;
+        void updateState(const VulkanDevice* device, VkAccelerationStructureKHR handle) noexcept;
+
+    private:
+        virtual SharedPtr<const IBuffer> getBuffer() const noexcept override;
+        virtual void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        virtual void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
     };
 
     /// <summary>
@@ -232,7 +248,8 @@ namespace LiteFX::Rendering::Backends {
         friend class VulkanDevice;
         friend class VulkanCommandBuffer;
 
-        using IAccelerationStructure::allocateBuffer;
+        using IAccelerationStructure::build;
+        using IAccelerationStructure::update;
 
     public:
         /// <summary>
@@ -253,13 +270,16 @@ namespace LiteFX::Rendering::Backends {
         AccelerationStructureFlags flags() const noexcept override;
 
         /// <inheritdoc />
-        UInt64 requiredScratchMemory() const noexcept override;
+        SharedPtr<const IVulkanBuffer> buffer() const noexcept;
 
         /// <inheritdoc />
-        const IVulkanBuffer* buffer() const noexcept;
+        void build(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer = nullptr, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
-        void allocateBuffer(const VulkanDevice& device);
+        void update(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer = nullptr, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+
+        /// <inheritdoc />
+        UInt64 offset() const noexcept override;
 
         // ITopLevelAccelerationStructure interface.
     public:
@@ -269,11 +289,20 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void addInstance(const Instance& instance) override;
 
-    private:
-        Array<VkAccelerationStructureInstanceKHR> buildInfo() const noexcept;
+        /// <inheritdoc />
+        virtual void clear() noexcept override;
+
+        /// <inheritdoc />
+        virtual bool remove(const Instance& mesh) noexcept override;
 
     private:
-        inline void makeBuffer(const IGraphicsDevice& device) override;
+        Array<VkAccelerationStructureInstanceKHR> buildInfo() const noexcept;
+        void updateState(const VulkanDevice* device, VkAccelerationStructureKHR handle) noexcept;
+
+    private:
+        virtual SharedPtr<const IBuffer> getBuffer() const noexcept override;
+        virtual void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        virtual void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
     };
 
     /// <summary>
@@ -939,6 +968,7 @@ namespace LiteFX::Rendering::Backends {
         using base_type::use;
         using base_type::pushConstants;
         using base_type::buildAccelerationStructure;
+        using base_type::updateAccelerationStructure;
 
     private:
         /// <summary>
@@ -976,6 +1006,9 @@ namespace LiteFX::Rendering::Backends {
 
         // CommandBuffer interface.
     public:
+        /// <inheritdoc />
+        const ICommandQueue& queue() const noexcept override;
+
         /// <inheritdoc />
         void begin() const override;
 
@@ -1077,16 +1110,16 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        void buildAccelerationStructure(const VulkanBottomLevelAccelerationStructure& blas) const override;
+        void buildAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(const VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer) const override;
+        void buildAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(const VulkanTopLevelAccelerationStructure& tlas) const override;
+        void updateAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(const VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer) const override;
+        void updateAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
 
         /// <inheritdoc />
         void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IVulkanBuffer& rayGenerationShaderBindingTable, const IVulkanBuffer* missShaderBindingTable, const IVulkanBuffer* hitShaderBindingTable, const IVulkanBuffer* callableShaderBindingTable) const noexcept override;

@@ -487,6 +487,7 @@ namespace LiteFX::Rendering {
         std::derived_from<TTLAS, ITopLevelAccelerationStructure>
     class CommandBuffer : public ICommandBuffer {
     public:
+        using ICommandBuffer::queue;
         using ICommandBuffer::dispatch;
         using ICommandBuffer::dispatchMesh;
         using ICommandBuffer::draw;
@@ -498,6 +499,7 @@ namespace LiteFX::Rendering {
         using ICommandBuffer::use;
         using ICommandBuffer::pushConstants;
         using ICommandBuffer::buildAccelerationStructure;
+        using ICommandBuffer::updateAccelerationStructure;
 
     public:
         using command_buffer_type = TCommandBuffer;
@@ -600,16 +602,16 @@ namespace LiteFX::Rendering {
         virtual void execute(Enumerable<SharedPtr<const command_buffer_type>> commandBuffers) const = 0;
 
         /// <inheritdoc />
-        virtual void buildAccelerationStructure(const bottom_level_acceleration_structure_type& blas) const = 0;
+        virtual void buildAccelerationStructure(bottom_level_acceleration_structure_type& blas, const SharedPtr<const buffer_type> scratchBuffer, const buffer_type& buffer, UInt64 offset = 0) const = 0;
 
         /// <inheritdoc />
-        virtual void buildAccelerationStructure(const bottom_level_acceleration_structure_type& blas, const SharedPtr<const buffer_type> scratchBuffer) const = 0;
+        virtual void buildAccelerationStructure(top_level_acceleration_structure_type& tlas, const SharedPtr<const buffer_type> scratchBuffer, const buffer_type& buffer, UInt64 offset = 0) const = 0;
 
         /// <inheritdoc />
-        virtual void buildAccelerationStructure(const top_level_acceleration_structure_type& tlas) const = 0;
+        virtual void updateAccelerationStructure(bottom_level_acceleration_structure_type& blas, const SharedPtr<const buffer_type> scratchBuffer, const buffer_type& buffer, UInt64 offset = 0) const = 0;
 
         /// <inheritdoc />
-        virtual void buildAccelerationStructure(const top_level_acceleration_structure_type& tlas, const SharedPtr<const buffer_type> scratchBuffer) const = 0;
+        virtual void updateAccelerationStructure(top_level_acceleration_structure_type& tlas, const SharedPtr<const buffer_type> scratchBuffer, const buffer_type& buffer, UInt64 offset = 0) const = 0;
 
         // TODO: Add copy commands to support compaction and serialization.
 
@@ -706,20 +708,20 @@ namespace LiteFX::Rendering {
             return this->execute(commandBuffers | std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }));
         }
 
-        void cmdBuildAccelerationStructure(const IBottomLevelAccelerationStructure& blas) const override {
-            this->buildAccelerationStructure(dynamic_cast<const bottom_level_acceleration_structure_type&>(blas));
+        void cmdBuildAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
+            this->buildAccelerationStructure(dynamic_cast<bottom_level_acceleration_structure_type&>(blas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer), dynamic_cast<const buffer_type&>(buffer), offset);
         }
 
-        void cmdBuildAccelerationStructure(const IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer) const override {
-            this->buildAccelerationStructure(dynamic_cast<const bottom_level_acceleration_structure_type&>(blas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer));
+        void cmdBuildAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
+            this->buildAccelerationStructure(dynamic_cast<top_level_acceleration_structure_type&>(tlas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer), dynamic_cast<const buffer_type&>(buffer), offset);
         }
 
-        void cmdBuildAccelerationStructure(const ITopLevelAccelerationStructure& tlas) const override {
-            this->buildAccelerationStructure(dynamic_cast<const top_level_acceleration_structure_type&>(tlas));
+        void cmdUpdateAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
+            this->updateAccelerationStructure(dynamic_cast<bottom_level_acceleration_structure_type&>(blas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer), dynamic_cast<const buffer_type&>(buffer), offset);
         }
-
-        void cmdBuildAccelerationStructure(const ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer) const override {
-            this->buildAccelerationStructure(dynamic_cast<const top_level_acceleration_structure_type&>(tlas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer));
+        
+        void cmdUpdateAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
+            this->updateAccelerationStructure(dynamic_cast<top_level_acceleration_structure_type&>(tlas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer), dynamic_cast<const buffer_type&>(buffer), offset);
         }
 
         void cmdTraceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable, const IBuffer* hitShaderBindingTable, const IBuffer* callableShaderBindingTable) const noexcept override {

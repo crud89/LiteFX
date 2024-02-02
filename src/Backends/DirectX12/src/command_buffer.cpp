@@ -71,12 +71,15 @@ public:
 			m_queue.device().bindGlobalDescriptorHeaps(*m_parent);
 	}
 
-	inline void buildAccelerationStructure(const DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer)
+	inline void buildAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)
 	{
+		if (scratchBuffer == nullptr) [[unlikely]]
+			throw ArgumentNotInitializedException("scratchBuffer");
+
 		auto descriptions = blas.buildInfo();
 
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC blasDesc = {
-			.DestAccelerationStructureData = blas.buffer()->virtualAddress(),
+			.DestAccelerationStructureData = buffer.virtualAddress() + offset,
 			.Inputs = {
 				.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL,
 				.Flags = std::bit_cast<D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS>(blas.flags()),
@@ -84,6 +87,7 @@ public:
 				.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY,
 				.pGeometryDescs = descriptions.data()
 			},
+			.SourceAccelerationStructureData = update ? blas.buffer()->virtualAddress() : 0ull,
 			.ScratchAccelerationStructureData = scratchBuffer->virtualAddress()
 		};
 
@@ -94,8 +98,11 @@ public:
 		m_sharedResources.push_back(scratchBuffer);
 	}
 
-	inline void buildAccelerationStructure(const DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer)
+	inline void buildAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)
 	{
+		if (scratchBuffer == nullptr) [[unlikely]]
+			throw ArgumentNotInitializedException("scratchBuffer");
+
 		// Create a buffer to store the instance build info.
 		auto buildInfo = tlas.buildInfo();
 		auto instanceBuffer = m_queue.device().factory().createBuffer(BufferType::Storage, ResourceHeap::Dynamic, sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * buildInfo.size(), 1, ResourceUsage::AccelerationStructureBuildInput);
@@ -105,7 +112,7 @@ public:
 
 		// Build the TLAS.
 		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC tlasDesc = {
-			.DestAccelerationStructureData = tlas.buffer()->virtualAddress(),
+			.DestAccelerationStructureData = buffer.virtualAddress() + offset,
 			.Inputs = {
 				.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL,
 				.Flags = std::bit_cast<D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS>(tlas.flags()),
@@ -113,6 +120,7 @@ public:
 				.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY,
 				.InstanceDescs = instanceBuffer->virtualAddress()
 			},
+			.SourceAccelerationStructureData = update ? tlas.buffer()->virtualAddress() : 0ull,
 			.ScratchAccelerationStructureData = scratchBuffer->virtualAddress()
 		};
 
@@ -139,6 +147,11 @@ DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, bool
 }
 
 DirectX12CommandBuffer::~DirectX12CommandBuffer() noexcept = default;
+
+const ICommandQueue& DirectX12CommandBuffer::queue() const noexcept
+{
+	return m_impl->m_queue;
+}
 
 void DirectX12CommandBuffer::begin() const
 {
@@ -464,66 +477,24 @@ void DirectX12CommandBuffer::releaseSharedState() const
 	m_impl->m_sharedResources.clear();
 }
 
-// TODO: Add overload that supports updates (updates set `SourceAccelerationStructureData`).
-
-void DirectX12CommandBuffer::buildAccelerationStructure(const DirectX12BottomLevelAccelerationStructure& blas) const
+void DirectX12CommandBuffer::buildAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
 {
-	// Validate the provided acceleration structure.
-	if (blas.buffer() == nullptr) [[unlikely]]
-		throw InvalidArgumentException("blas", "No buffer has been allocated for the provided acceleration structure.");
-
-	// Allocate scratch buffer.
-	auto scratchBuffer = m_impl->m_queue.device().factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, blas.requiredScratchMemory(), 1, ResourceUsage::AllowWrite);
-
-	// Build the acceleration structure.
-	m_impl->buildAccelerationStructure(blas, asShared(std::move(scratchBuffer)));
+	m_impl->buildAccelerationStructure(blas, scratchBuffer, buffer, offset, false);
 }
 
-void DirectX12CommandBuffer::buildAccelerationStructure(const DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer) const
+void DirectX12CommandBuffer::buildAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
 {
-	// Validate the provided acceleration structure.
-	if (blas.buffer() == nullptr) [[unlikely]]
-		throw InvalidArgumentException("blas", "No buffer has been allocated for the provided acceleration structure.");
-
-	// Validate the provided scratch buffer.
-	if (!scratchBuffer->writable()) [[unlikely]]
-		throw InvalidArgumentException("scratchBuffer", "The scratch buffer must be writable.");
-
-	if (scratchBuffer->alignedElementSize() < blas.requiredScratchMemory()) [[unlikely]]
-		throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer is too small to build up the acceleration structure. At least {0} bytes are required, but only {1} are available.", blas.requiredScratchMemory(), scratchBuffer->alignedElementSize());
-
-	// Create the acceleration structure.
-	m_impl->buildAccelerationStructure(blas, scratchBuffer);
+	m_impl->buildAccelerationStructure(tlas, scratchBuffer, buffer, offset, false);
 }
 
-void DirectX12CommandBuffer::buildAccelerationStructure(const DirectX12TopLevelAccelerationStructure& tlas) const
+void DirectX12CommandBuffer::updateAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
 {
-	// Validate the provided acceleration structure.
-	if (tlas.buffer() == nullptr) [[unlikely]]
-		throw InvalidArgumentException("tlas", "No buffer has been allocated for the provided acceleration structure.");
-
-	// Allocate scratch buffer.
-	auto scratchBuffer = m_impl->m_queue.device().factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, tlas.requiredScratchMemory(), 1, ResourceUsage::AllowWrite);
-
-	// Build the acceleration structure.
-	m_impl->buildAccelerationStructure(tlas, asShared(std::move(scratchBuffer)));
+	m_impl->buildAccelerationStructure(blas, scratchBuffer, buffer, offset, true);
 }
 
-void DirectX12CommandBuffer::buildAccelerationStructure(const DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer) const
+void DirectX12CommandBuffer::updateAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
 {
-	// Validate the provided acceleration structure.
-	if (tlas.buffer() == nullptr) [[unlikely]]
-		throw InvalidArgumentException("tlas", "No buffer has been allocated for the provided acceleration structure.");
-
-	// Validate the provided scratch buffer.
-	if (!scratchBuffer->writable()) [[unlikely]]
-		throw InvalidArgumentException("scratchBuffer", "The scratch buffer must be writable.");
-
-	if (scratchBuffer->alignedElementSize() < tlas.requiredScratchMemory()) [[unlikely]]
-		throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer is too small to build up the acceleration structure. At least {0} bytes are required, but only {1} are available.", tlas.requiredScratchMemory(), scratchBuffer->alignedElementSize());
-
-	// Create the acceleration structure.
-	m_impl->buildAccelerationStructure(tlas, scratchBuffer);
+	m_impl->buildAccelerationStructure(tlas, scratchBuffer, buffer, offset, true);
 }
 
 void DirectX12CommandBuffer::traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IDirectX12Buffer& rayGenerationShaderBindingTable, const IDirectX12Buffer* missShaderBindingTable, const IDirectX12Buffer* hitShaderBindingTable, const IDirectX12Buffer* callableShaderBindingTable) const noexcept

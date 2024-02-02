@@ -3747,32 +3747,90 @@ namespace LiteFX::Rendering {
         virtual AccelerationStructureFlags flags() const noexcept = 0;
 
         /// <summary>
-        /// Returns the amount of memory required to build the acceleration structure.
-        /// </summary>
-        /// <returns>The amount of memory required to build the acceleration structure.</returns>
-        virtual UInt64 requiredScratchMemory() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the buffer that stores the acceleration structure after building.
-        /// </summary>
-        /// <returns>The buffer that stores the acceleration structure after building and `nullptr` before building.</returns>
-        virtual const IBuffer* buffer() const noexcept = 0;
-
-        /// <summary>
-        /// Allocates the buffer that is used to store the acceleration structure on the GPU.
+        /// Performs a complete build of the acceleration structure.
         /// </summary>
         /// <remarks>
-        /// Allocating buffers for an acceleration structure makes it immutable. Attempting to add any geometry/instance data to the acceleration structure afterwards will
-        /// raise an exception.
+        /// This method builds or rebuilds the entire acceleration structure. If called without any further arguments beside <paramref name="commandBuffer" />, a new buffer and scratch buffer will be allocated
+        /// from the <see cref="IGraphicsDevice" /> that created the command buffer. Alternatively, it is possible to provide a pre-allocated buffer in the <paramref name="buffer" /> parameter. This allows to
+        /// re-use memory from another acceleration structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling <see cref="buffer" />) and 
+        /// destroy it afterwards, which enables re-use scenarios for example for caching. Alterantively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory 
+        /// consumption. This is done by also providing the <paramref name="offset" /> and <paramref name="maxSize" /> parameters to address a range within the buffer itself, the acceleration structure may be 
+        /// written into. Note that the pointer passed to the <see cref="buffer" /> parameter must have been initialized with the <see cref="BufferType::AccelerationStructure" /> buffer type and must be 
+        /// writable (<see cref="ResourceUsage::AllowWrite" />).
+        /// 
+        /// By providing a <see cref="scratchBuffer" />, it is possible to re-use temporary memory while building. This can lower memory consumption when building multiple acceleration structures. However, this
+        /// also requires proper barriers to be executed between two build commands, as they are not allowed to access the same scratch memory simultaneously. Note that the pointer passed to the
+        /// <see cref="scratchBuffer" /> parameter must have been initialized on the <see cref="ResourceHeap::Resource" /> heap and must be writable (<see cref="ResourceUsage::AllowWrite" />).
+        /// 
+        /// After a successful build, the buffer pointer is stored by the acceleration structure and can be accessed by calling <see cref="buffer" /> on it.
         /// </remarks>
-        /// <param name="device">The device to create the acceleration structure with.</param>
-        /// <exception cref="RuntimeException">Thrown, if the buffer for this acceleration structure has already been allocated.</exception>
-        inline void allocateBuffer(const IGraphicsDevice& device) {
-            this->makeBuffer(device);
+        /// <param name="commandBuffer">The command buffer used to record the acceleration structure build commands.</param>
+        /// <param name="scratchBuffer">The scratch buffer used during the acceleration structure build, or `nullptr` if a temporary buffer should be created.</param>
+        /// <param name="buffer">The buffer that stores the acceleration structure after building, or `nullptr` if a new buffer should be created.</param>
+        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure should be stored. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
+        /// <param name="maxSize">The maximum available size within <paramref name="buffer" /> at <paramref name="offset" />. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="scratchBuffer" /> is not `nullptr` and does not contain enough scratch memory to build the acceleration structure.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and the range provided by <paramref name="offset" /> and <paramref name="maxSize" /> is not fully contained by the buffer.</exception>
+        /// <seealso cref="update" />
+        inline void build(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer = nullptr, SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0) {
+            this->doBuild(commandBuffer, scratchBuffer, buffer, offset, maxSize);
         }
 
+        /// <summary>
+        /// Performs an update the the acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// Updating an acceleration structure works similar to performing a build, but may be faster compared to a full re-build. Note that in order to support updates, the acceleration structure must have been
+        /// created with the <see cref=AccelerationStructureFlags::AllowUpdate" /> flag provided. Note that this flag may cause the acceleration structure build times and memory consumption to increase and may 
+        /// lower the ray-tracing performance.
+        /// 
+        /// If no arguments beside <paramref name="commandBuffer" /> are provided, the acceleration structure may re-use the same backing memory used for building, if the buffer holds enough space to contain it.
+        /// Otherwise, a new buffer will be allocated. Alternatively, it is possible to provide a pre-allocated buffer in the <paramref name="buffer" /> parameter. This allows to re-use memory from another 
+        /// acceleration structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling <see cref="buffer" />) and destroy it afterwards, which 
+        /// enables re-use scenarios for example for caching. Alterantively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory consumption. This is done by also 
+        /// providing the <paramref name="offset" /> and <paramref name="maxSize" /> parameters to address a range within the buffer itself, the acceleration structure may be written into. Note that the pointer 
+        /// passed to the <see cref="buffer" /> parameter must have been initialized with the <see cref="BufferType::AccelerationStructure" /> buffer type and must be writable 
+        /// (<see cref="ResourceUsage::AllowWrite" />).
+        /// 
+        /// By providing a <see cref="scratchBuffer" />, it is possible to re-use temporary memory while building. This can lower memory consumption when building multiple acceleration structures. However, this
+        /// also requires proper barriers to be executed between two build commands, as they are not allowed to access the same scratch memory simultaneously. Note that the pointer passed to the
+        /// <see cref="scratchBuffer" /> parameter must have been initialized on the <see cref="ResourceHeap::Resource" /> heap and must be writable (<see cref="ResourceUsage::AllowWrite" />).
+        /// 
+        /// After a successful update, the buffer pointer is stored by the acceleration structure and can be accessed by calling <see cref="buffer" /> on it.
+        /// </remarks>
+        /// <param name="commandBuffer">The command buffer used to record the acceleration structure build commands.</param>
+        /// <param name="scratchBuffer">The scratch buffer used during the acceleration structure build, or `nullptr` if a temporary buffer should be created.</param>
+        /// <param name="buffer">The buffer that stores the acceleration structure after updating, or `nullptr` if a new buffer should be created.</param>
+        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure should be stored. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
+        /// <param name="maxSize">The maximum available size within <paramref name="buffer" /> at <paramref name="offset" />. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure backing buffer is not initialized, indicating the acceleration structure has not yet been built.</exception>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="scratchBuffer" /> is not `nullptr` and does not contain enough scratch memory to build the acceleration structure.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and the range provided by <paramref name="offset" /> and <paramref name="maxSize" /> is not fully contained by the buffer.</exception>
+        /// <seealso cref="build" />
+        inline void update(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer = nullptr, SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0) {
+            this->doUpdate(commandBuffer, scratchBuffer, buffer, offset, maxSize);
+        }
+
+        /// <summary>
+        /// Returns the acceleration structure backing buffer, that stores its last build.
+        /// </summary>
+        /// <returns>The acceleration structure backing buffer, that stores its last build.</returns>
+        /// <seealso cref="offset" />
+        inline SharedPtr<const IBuffer> buffer() const noexcept {
+            return this->getBuffer();
+        }
+
+        /// <summary>
+        /// Returns the offset into <see cref="buffer" /> at which the acceleration structure is stored.
+        /// </summary>
+        /// <returns>The offset into <see cref="buffer" /> at which the acceleration structure is stored.</returns>
+        /// <seealso cref="buffer" />
+        virtual UInt64 offset() const noexcept = 0;
+
     private:
-        virtual void makeBuffer(const IGraphicsDevice& device) = 0;
+        virtual SharedPtr<const IBuffer> getBuffer() const noexcept = 0;
+        virtual void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) = 0;
+        virtual void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) = 0;
     };
 
     /// <summary>
@@ -3925,7 +3983,7 @@ namespace LiteFX::Rendering {
         /// Adds a triangle mesh to the BLAS.
         /// </summary>
         /// <param name="mesh">The triangle mesh to add to the BLAS.</param>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes, or if the acceleration structure buffers have already been allocated.</exception>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes.</exception>
         virtual void addTriangleMesh(const TriangleMesh& mesh) = 0;
 
         /// <summary>
@@ -3935,7 +3993,7 @@ namespace LiteFX::Rendering {
         /// <param name="indexBuffer">The index buffer that stores the mesh indices.</param>
         /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
         /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes, or if the acceleration structure buffers have already been allocated.</exception>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes.</exception>
         inline void addTriangleMesh(SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) {
             this->addTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer, flags));
         }
@@ -3950,7 +4008,7 @@ namespace LiteFX::Rendering {
         /// Adds a buffer containing axis-aligned bounding boxes to the BLAS.
         /// </summary>
         /// <param name="aabbs">The bounding boxes to add to the BLAS.</param>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes, or if the acceleration structure buffers have already been allocated.</exception>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes.</exception>
         virtual void addBoundingBox(const BoundingBoxes& aabbs) = 0;
 
         /// <summary>
@@ -3958,10 +4016,29 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="buffer">A buffer containing the bounding box definitions.</param>
         /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes, or if the acceleration structure buffers have already been allocated.</exception>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes.</exception>
         inline void addBoundingBox(SharedPtr<const IBuffer> buffer, GeometryFlags flags = GeometryFlags::None) {
             this->addBoundingBox(BoundingBoxes { .Buffer = buffer, .Flags = flags });
         }
+
+        /// <summary>
+        /// Clears all bounding boxes and triangle meshes from the acceleration structure.
+        /// </summary>
+        virtual void clear() noexcept = 0;
+
+        /// <summary>
+        /// Removes a triangle mesh from the acceleration structure.
+        /// </summary>
+        /// <param name="mesh">The triangle mesh to remove from the acceleration structure.</param>
+        /// <returns>`true`, if the triangle mesh was removed, otherwise `false`.</returns>
+        virtual bool remove(const TriangleMesh& mesh) noexcept = 0;
+
+        /// <summary>
+        /// Removes a bounding box set from the acceleration structure.
+        /// </summary>
+        /// <param name="aabb">The bounding box set to remove from the acceleration structure.</param>
+        /// <returns>`true`, if the bounding box set was removed, otherwise `false`.</returns>
+        virtual bool remove(const BoundingBoxes& aabb) noexcept = 0;
 
     public:
         /// <summary>
@@ -3969,7 +4046,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="mesh">The triangle mesh to add to the BLAS.</param>
         /// <returns>A reference to the current BLAS.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes, or if the acceleration structure buffers have already been allocated.</exception>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes.</exception>
         template <typename TSelf>
         inline auto withTriangleMesh(this TSelf&& self, const TriangleMesh& mesh) -> TSelf&& {
             self.addTriangleMesh(mesh);
@@ -3984,7 +4061,7 @@ namespace LiteFX::Rendering {
         /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
         /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
         /// <returns>A reference to the current BLAS.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes, or if the acceleration structure buffers have already been allocated.</exception>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes.</exception>
         template <typename TSelf>
         inline auto withTriangleMesh(this TSelf&& self, SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) -> TSelf&& {
             return self.withTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer, flags));
@@ -3995,7 +4072,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="aabb">The bounding box buffer to add to the BLAS.</param>
         /// <returns>A reference to the current BLAS.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes, or if the acceleration structure buffers have already been allocated.</exception>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes.</exception>
         template <typename TSelf>
         inline auto withBoundingBox(this TSelf&& self, const BoundingBoxes& aabb) -> TSelf&& {
             self.addBoundingBox(aabb);
@@ -4008,7 +4085,7 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">A buffer containing the bounding box definitions.</param>
         /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
         /// <returns>A reference to the current BLAS.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes, or if the acceleration structure buffers have already been allocated.</exception>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes.</exception>
         template <typename TSelf>
         inline auto withBoundingBox(this TSelf&& self, SharedPtr<const IBuffer> buffer, GeometryFlags flags = GeometryFlags::None) -> TSelf&& {
             return self.withBoundingBox(BoundingBoxes { .Buffer = buffer, .Flags = flags });
@@ -4091,8 +4168,7 @@ namespace LiteFX::Rendering {
         /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
         /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
         /// <param name="flags">The flags that control the behavior of the instance.</param>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure buffers have already been allocated.</exception>
-        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) {
+        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept {
             this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
         }
         
@@ -4105,10 +4181,21 @@ namespace LiteFX::Rendering {
         /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
         /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
         /// <param name="flags">The flags that control the behavior of the instance.</param>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure buffers have already been allocated.</exception>
-        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) {
+        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept {
             this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
         }
+
+        /// <summary>
+        /// Clears all instances from the acceleration structure.
+        /// </summary>
+        virtual void clear() noexcept = 0;
+
+        /// <summary>
+        /// Removes an instance from the acceleration structure.
+        /// </summary>
+        /// <param name="instance">The instance to remove from the acceleration structure.</param>
+        /// <returns>`true`, if the instance has been removed, otherwise `false`.</returns>
+        virtual bool remove(const Instance& instance) noexcept = 0;
 
     public:
         /// <summary>
@@ -4116,9 +4203,8 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="instance">The instance to add to the TLAS.</param>
         /// <returns>A reference to the current TLAS.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the acceleration structure buffers have already been allocated.</exception>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, const Instance& instance) -> TSelf&& {
+        inline auto withInstance(this TSelf&& self, const Instance& instance) noexcept -> TSelf&& {
             self.addInstance(instance);
             return std::forward<TSelf>(self);
         }
@@ -4133,7 +4219,7 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <returns>A reference to the current TLAS.</returns>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) -> TSelf&& {
+        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& {
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
             return std::forward<TSelf>(self);
         }
@@ -4149,7 +4235,7 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <returns>A reference to the current TLAS.</returns>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) -> TSelf&& {
+        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& {
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
             return std::forward<TSelf>(self);
         }
@@ -5522,6 +5608,12 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// Gets a reference to the command queue that this command buffer was allocated from.
+        /// </summary>
+        /// <returns>A reference to the command queue that this command buffer was allocated from.</returns>
+        virtual const ICommandQueue& queue() const noexcept = 0;
+
+        /// <summary>
         /// Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <see cref="CommandQueue" />.
         /// </summary>
         /// <remarks>
@@ -6100,64 +6192,64 @@ namespace LiteFX::Rendering {
         /// Builds a bottom-level acceleration structure.
         /// </summary>
         /// <remarks>
-        /// This overload creates a temporary scratch buffer for building up the acceleration structure. It might be more efficient to re-use scratch buffer memory, in which case another overload
-        /// of this method is available.
-        /// 
-        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
-        /// </remarks>
-        /// <param name="blas">The bottom-level acceleration structure to build.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if no buffer has been allocated for the provided acceleration structure has.</exception>
-        inline void buildAccelerationStructure(const IBottomLevelAccelerationStructure& blas) const {
-            this->cmdBuildAccelerationStructure(blas);
-        }
-
-        /// <summary>
-        /// Builds a bottom-level acceleration structure.
-        /// </summary>
-        /// <remarks>
-        /// This overload uses an existing scratch buffer to build up the acceleration structure. Note that it is required to manually synchronize write access to the scratch buffer. Two building
-        /// commands must not use the same scratch buffer at the same time.
-        /// 
         /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
         /// </remarks>
         /// <param name="blas">The bottom-level acceleration structure to build.</param>
         /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration structure.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if no buffer has been allocated for the provided acceleration structure has.</exception>
-        /// <exception cref="InvalidArgumentException">Thrown, if the provided scratch buffer is not writable or does not contain enough memory.</exception>
-        inline void buildAccelerationStructure(const IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer) const {
-            this->cmdBuildAccelerationStructure(blas, scratchBuffer);
+        /// <param name="buffer">The buffer that contains the acceleration structure after the build.</param>
+        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
+        /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
+        /// <seealso creF="IAccelerationStructure::build" />
+        inline void buildAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
+            this->cmdBuildAccelerationStructure(blas, scratchBuffer, buffer, offset);
         }
 
         /// <summary>
         /// Builds a top-level acceleration structure.
         /// </summary>
         /// <remarks>
-        /// This overload creates a temporary scratch buffer for building up the acceleration structure. It might be more efficient to re-use scratch buffer memory, in which case another overload
-        /// of this method is available.
-        /// 
-        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
-        /// </remarks>
-        /// <param name="tlas">The top-level acceleration structure to build.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if no buffer has been allocated for the provided acceleration structure has.</exception>
-        inline void buildAccelerationStructure(const ITopLevelAccelerationStructure& tlas) const {
-            this->cmdBuildAccelerationStructure(tlas);
-        }
-
-        /// <summary>
-        /// Builds a top-level acceleration structure.
-        /// </summary>
-        /// <remarks>
-        /// This overload uses an existing scratch buffer to build up the acceleration structure. Note that it is required to manually synchronize write access to the scratch buffer. Two building
-        /// commands must not use the same scratch buffer at the same time.
-        /// 
         /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
         /// </remarks>
         /// <param name="tlas">The top-level acceleration structure to build.</param>
         /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration structure.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if no buffer has been allocated for the provided acceleration structure has.</exception>
-        /// <exception cref="InvalidArgumentException">Thrown, if the provided scratch buffer is not writable or does not contain enough memory.</exception>
-        inline void buildAccelerationStructure(const ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer) const {
-            this->cmdBuildAccelerationStructure(tlas, scratchBuffer);
+        /// <param name="buffer">The buffer that contains the acceleration structure after the build.</param>
+        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
+        /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
+        /// <seealso creF="IAccelerationStructure::build" />
+        inline void buildAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
+            this->cmdBuildAccelerationStructure(tlas, scratchBuffer, buffer, offset);
+        }
+
+        /// <summary>
+        /// Updates a bottom-level acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="blas">The bottom-level acceleration structure to build.</param>
+        /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration structure.</param>
+        /// <param name="buffer">The buffer that contains the acceleration structure after the build.</param>
+        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
+        /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
+        /// <seealso creF="IAccelerationStructure::build" />
+        inline void updateAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
+            this->cmdUpdateAccelerationStructure(blas, scratchBuffer, buffer, offset);
+        }
+
+        /// <summary>
+        /// Updates a top-level acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="tlas">The top-level acceleration structure to build.</param>
+        /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration structure.</param>
+        /// <param name="buffer">The buffer that contains the acceleration structure after the build.</param>
+        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
+        /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
+        /// <seealso creF="IAccelerationStructure::build" />
+        inline void updateAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
+            this->cmdUpdateAccelerationStructure(tlas, scratchBuffer, buffer, offset);
         }
 
     private:
@@ -6182,10 +6274,10 @@ namespace LiteFX::Rendering {
         virtual void cmdDrawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const = 0;
         virtual void cmdExecute(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
         virtual void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffer) const = 0;
-        virtual void cmdBuildAccelerationStructure(const IBottomLevelAccelerationStructure& blas) const = 0;
-        virtual void cmdBuildAccelerationStructure(const IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer) const = 0;
-        virtual void cmdBuildAccelerationStructure(const ITopLevelAccelerationStructure& tlas) const = 0;
-        virtual void cmdBuildAccelerationStructure(const ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer) const = 0;
+        virtual void cmdBuildAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
+        virtual void cmdBuildAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
+        virtual void cmdUpdateAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
+        virtual void cmdUpdateAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
         virtual void cmdTraceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable, const IBuffer* hitShaderBindingTable, const IBuffer* callableShaderBindingTable) const noexcept = 0;
 
         /// <summary>

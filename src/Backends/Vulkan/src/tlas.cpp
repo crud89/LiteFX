@@ -3,7 +3,6 @@
 using namespace LiteFX::Rendering::Backends;
 using Instance = ITopLevelAccelerationStructure::Instance;
 
-extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure;
 extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure;
 
 // ------------------------------------------------------------------------------------------------
@@ -17,8 +16,8 @@ public:
 private:
     Array<Instance> m_instances { };
     AccelerationStructureFlags m_flags;
-    UniquePtr<IVulkanBuffer> m_buffer;
-    UInt64 m_scratchBufferSize { };
+    SharedPtr<const IVulkanBuffer> m_buffer;
+    UInt64 m_offset { };
     const VulkanDevice* m_device { nullptr };
 
 public:
@@ -33,15 +32,14 @@ public:
     Array<VkAccelerationStructureInstanceKHR> buildInfo() const
     {
         return m_instances | std::views::transform([](const Instance& instance) { 
-            if (instance.BottomLevelAccelerationStructure->buffer() == nullptr) [[unlikely]]
-                throw RuntimeException("The bottom-level acceleration structure for at least one instance has not yet been built.");
+            const auto& blasBuffer = instance.BottomLevelAccelerationStructure->buffer();
 
             auto desc = VkAccelerationStructureInstanceKHR {
                 .instanceCustomIndex = instance.Id,
                 .mask = instance.Mask,
                 .instanceShaderBindingTableRecordOffset = instance.HitGroupOffset,
                 .flags = std::bit_cast<VkGeometryInstanceFlagsKHR>(instance.Flags),
-                .accelerationStructureReference = instance.BottomLevelAccelerationStructure->buffer()->virtualAddress()
+                .accelerationStructureReference = blasBuffer == nullptr ? 0ull : blasBuffer->virtualAddress() + instance.BottomLevelAccelerationStructure->offset()
             };
 
             std::memcpy(desc.transform.matrix, instance.Transform.elements(), sizeof(Float) * 12);
@@ -70,40 +68,75 @@ AccelerationStructureFlags VulkanTopLevelAccelerationStructure::flags() const no
     return m_impl->m_flags;
 }
 
-UInt64 VulkanTopLevelAccelerationStructure::requiredScratchMemory() const noexcept 
+SharedPtr<const IVulkanBuffer> VulkanTopLevelAccelerationStructure::buffer() const noexcept
 {
-    return m_impl->m_scratchBufferSize;
+    return m_impl->m_buffer;
 }
 
-const IVulkanBuffer* VulkanTopLevelAccelerationStructure::buffer() const noexcept
+UInt64 VulkanTopLevelAccelerationStructure::offset() const noexcept
 {
-    return m_impl->m_buffer.get();
+    return m_impl->m_offset;
 }
 
-void VulkanTopLevelAccelerationStructure::allocateBuffer(const VulkanDevice& device)
+void VulkanTopLevelAccelerationStructure::build(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer, SharedPtr<const IVulkanBuffer> buffer, UInt64 offset, UInt64 maxSize)
 {
-    if (m_impl->m_buffer != nullptr) [[unlikely]]
-        throw RuntimeException("The buffer for this acceleration structure has already been allocated.");
+    // Validate the arguments.
+    UInt64 requiredMemory, requiredScratchMemory;
+    auto& device = static_cast<const VulkanQueue&>(commandBuffer.queue()).device();
+    device.computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory);
+    
+    if (scratchBuffer != nullptr && scratchBuffer->size() < requiredScratchMemory)
+        throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer does not contain enough memory to build the acceleration structure (contained memory: {0} bytes, required memory: {1} bytes).", scratchBuffer->size(), requiredScratchMemory);
+    else if (scratchBuffer == nullptr)
+        scratchBuffer = device.factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
 
-    // Store the device.
-    m_impl->m_device = &device;
+    if (buffer == nullptr)
+        buffer = m_impl->m_buffer != nullptr && m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
+    else if (maxSize < requiredMemory) [[unlikely]]
+        throw ArgumentOutOfRangeException("maxSize", 0ull, maxSize, requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
+    else if (buffer->size() < offset + requiredMemory) [[unlikely]]
+        throw ArgumentOutOfRangeException("buffer", 0ull, buffer->size(), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
 
-    // Compute buffer sizes.
-    UInt64 bufferSize{ };
-    device.computeAccelerationStructureSizes(*this, bufferSize, m_impl->m_scratchBufferSize);
+    // Perform the build.
+    commandBuffer.buildAccelerationStructure(*this, scratchBuffer, *buffer, offset);
 
-    // Allocate the buffers.
-    m_impl->m_buffer = device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, bufferSize, 1, ResourceUsage::AllowWrite);
+    // Store the buffer and the offset.
+    m_impl->m_offset = offset;
+    m_impl->m_buffer = buffer;
+}
 
-    // Create a handle for the acceleration structure.
-    VkAccelerationStructureCreateInfoKHR info = {
-        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
-        .buffer = std::as_const(*m_impl->m_buffer).handle(),
-        .size = m_impl->m_buffer->alignedElementSize(),
-        .type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR
-    };
+void VulkanTopLevelAccelerationStructure::update(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer, SharedPtr<const IVulkanBuffer> buffer, UInt64 offset, UInt64 maxSize)
+{
+    // Validate the state.
+    if (m_impl->m_buffer == nullptr) [[unlikely]]
+        throw RuntimeException("The acceleration structure must have been built before it can be updated.");
 
-    ::vkCreateAccelerationStructure(device.handle(), &info, nullptr, &this->handle());
+    if (!LITEFX_FLAG_IS_SET(m_impl->m_flags, AccelerationStructureFlags::AllowUpdate)) [[unlikely]]
+        throw RuntimeException("The acceleration structure does not allow updates. Specify `AccelerationStructureFlags::AllowUpdate` during creation.");
+
+    // Validate the arguments and create the buffers if required.
+    UInt64 requiredMemory, requiredScratchMemory;
+    auto& device = static_cast<const VulkanQueue&>(commandBuffer.queue()).device();
+    device.computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory);
+
+    if (scratchBuffer != nullptr && scratchBuffer->size() < requiredScratchMemory)
+        throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer does not contain enough memory to update the acceleration structure (contained memory: {0} bytes, required memory: {1} bytes).", scratchBuffer->size(), requiredScratchMemory);
+    else if (scratchBuffer == nullptr)
+        scratchBuffer = device.factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
+
+    if (buffer == nullptr)
+        buffer = m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
+    else if (maxSize < requiredMemory) [[unlikely]]
+        throw ArgumentOutOfRangeException("maxSize", 0ull, maxSize, requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
+    else if (buffer->size() < offset + requiredMemory) [[unlikely]]
+        throw ArgumentOutOfRangeException("buffer", 0ull, buffer->size(), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
+
+    // Perform the update.
+    commandBuffer.updateAccelerationStructure(*this, scratchBuffer, *buffer, offset);
+
+    // Store the buffer and the offset.
+    m_impl->m_offset = offset;
+    m_impl->m_buffer = buffer;
 }
 
 const Array<Instance>& VulkanTopLevelAccelerationStructure::instances() const noexcept
@@ -119,12 +152,47 @@ void VulkanTopLevelAccelerationStructure::addInstance(const Instance& instance)
     m_impl->m_instances.push_back(instance);
 }
 
+void VulkanTopLevelAccelerationStructure::clear() noexcept
+{
+    m_impl->m_instances.clear();
+}
+
+bool VulkanTopLevelAccelerationStructure::remove(const Instance& instance) noexcept
+{
+    if (auto match = std::ranges::find_if(m_impl->m_instances, [&instance](const auto& e) { return std::addressof(e) == std::addressof(instance); }); match != m_impl->m_instances.end())
+    {
+        m_impl->m_instances.erase(match);
+        return true;
+    }
+
+    return false;
+}
+
 Array<VkAccelerationStructureInstanceKHR> VulkanTopLevelAccelerationStructure::buildInfo() const noexcept
 {
     return m_impl->buildInfo();
 }
 
-void VulkanTopLevelAccelerationStructure::makeBuffer(const IGraphicsDevice& device)
+void VulkanTopLevelAccelerationStructure::updateState(const VulkanDevice* device, VkAccelerationStructureKHR handle) noexcept
 {
-    this->allocateBuffer(dynamic_cast<const VulkanDevice&>(device));
+    if (this->handle() != VK_NULL_HANDLE)
+        ::vkDestroyAccelerationStructure(m_impl->m_device->handle(), handle, nullptr);
+
+    m_impl->m_device = device;
+    this->handle() = handle;
+}
+
+SharedPtr<const IBuffer> VulkanTopLevelAccelerationStructure::getBuffer() const noexcept
+{
+    return std::static_pointer_cast<const IBuffer>(m_impl->m_buffer);
+}
+
+void VulkanTopLevelAccelerationStructure::doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize)
+{
+    this->build(dynamic_cast<const VulkanCommandBuffer&>(commandBuffer), std::dynamic_pointer_cast<const IVulkanBuffer>(scratchBuffer), std::dynamic_pointer_cast<const IVulkanBuffer>(buffer), offset, maxSize);
+}
+
+void VulkanTopLevelAccelerationStructure::doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize)
+{
+    this->update(dynamic_cast<const VulkanCommandBuffer&>(commandBuffer), std::dynamic_pointer_cast<const IVulkanBuffer>(scratchBuffer), std::dynamic_pointer_cast<const IVulkanBuffer>(buffer), offset, maxSize);
 }
