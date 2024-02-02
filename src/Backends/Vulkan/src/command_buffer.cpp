@@ -79,7 +79,7 @@ public:
 		// Create new acceleration structure handle.
 		auto& device = m_queue.device();
 		UInt64 size, scratchSize;
-		device.computeAccelerationStructureSizes(blas, size, scratchSize);
+		device.computeAccelerationStructureSizes(blas, size, scratchSize, update);
 		VkAccelerationStructureKHR handle;
 
 		VkAccelerationStructureCreateInfoKHR info = {
@@ -103,7 +103,7 @@ public:
 			.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
 			.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
 			.flags = std::bit_cast<VkBuildAccelerationStructureFlagsKHR>(blas.flags()),
-			.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
+			.mode = update ? VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR : VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
 			.srcAccelerationStructure = update ? blas.handle() : 0ull,
 			.dstAccelerationStructure = handle,
 			.geometryCount = static_cast<UInt32>(descriptions.size()),
@@ -138,7 +138,7 @@ public:
 
 		// Create new acceleration structure handle.
 		UInt64 size, scratchSize;
-		device.computeAccelerationStructureSizes(tlas, size, scratchSize);
+		device.computeAccelerationStructureSizes(tlas, size, scratchSize, update);
 		VkAccelerationStructureKHR handle;
 
 		VkAccelerationStructureCreateInfoKHR info = {
@@ -172,7 +172,7 @@ public:
 			.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
 			.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR,
 			.flags = std::bit_cast<VkBuildAccelerationStructureFlagsKHR>(tlas.flags()),
-			.mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
+			.mode = update ? VK_BUILD_ACCELERATION_STRUCTURE_MODE_UPDATE_KHR : VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
 			.srcAccelerationStructure = update ? tlas.handle() : 0ull,
 			.dstAccelerationStructure = handle,
 			.geometryCount = 1u,

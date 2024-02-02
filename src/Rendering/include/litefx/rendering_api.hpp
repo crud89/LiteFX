@@ -1764,7 +1764,7 @@ namespace LiteFX::Rendering {
     /// Controls how a geometry that is part of a bottom-level acceleration structure (BLAS) behaves during ray-tracing.
     /// </summary>
     /// <seealso cref="IBottomLevelAccelerationStructure" />
-    enum class GeometryFlags {
+    enum class LITEFX_RENDERING_API GeometryFlags {
         /// <summary>
         /// Implies no restrictions on the geometry.
         /// </summary>
@@ -1786,7 +1786,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <seealso cref="IBottomLevelAccelerationStructure" />
     /// <seealso cref="ITopLevelAccelerationStructure" />
-    enum class AccelerationStructureFlags {
+    enum class LITEFX_RENDERING_API AccelerationStructureFlags {
         /// <summary>
         /// Use default options for building the acceleration structure.
         /// </summary>
@@ -1825,9 +1825,12 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// 
+    /// Controls how an instance within a <see cref="ITopLevelAccelerationStructure" /> behaves during ray-tracing.
     /// </summary>
-    enum class InstanceFlags {
+    enum class LITEFX_RENDERING_API InstanceFlags {
+        /// <summary>
+        /// The instance uses default behavior.
+        /// </summary>
         None = 0x00,
 
         /// <summary>
@@ -3753,7 +3756,7 @@ namespace LiteFX::Rendering {
         /// This method builds or rebuilds the entire acceleration structure. If called without any further arguments beside <paramref name="commandBuffer" />, a new buffer and scratch buffer will be allocated
         /// from the <see cref="IGraphicsDevice" /> that created the command buffer. Alternatively, it is possible to provide a pre-allocated buffer in the <paramref name="buffer" /> parameter. This allows to
         /// re-use memory from another acceleration structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling <see cref="buffer" />) and 
-        /// destroy it afterwards, which enables re-use scenarios for example for caching. Alterantively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory 
+        /// destroy it afterwards, which enables re-use scenarios for example for caching. Alternatively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory 
         /// consumption. This is done by also providing the <paramref name="offset" /> and <paramref name="maxSize" /> parameters to address a range within the buffer itself, the acceleration structure may be 
         /// written into. Note that the pointer passed to the <see cref="buffer" /> parameter must have been initialized with the <see cref="BufferType::AccelerationStructure" /> buffer type and must be 
         /// writable (<see cref="ResourceUsage::AllowWrite" />).
@@ -3777,7 +3780,7 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Performs an update the the acceleration structure.
+        /// Performs an update on the acceleration structure.
         /// </summary>
         /// <remarks>
         /// Updating an acceleration structure works similar to performing a build, but may be faster compared to a full re-build. Note that in order to support updates, the acceleration structure must have been
@@ -3787,7 +3790,7 @@ namespace LiteFX::Rendering {
         /// If no arguments beside <paramref name="commandBuffer" /> are provided, the acceleration structure may re-use the same backing memory used for building, if the buffer holds enough space to contain it.
         /// Otherwise, a new buffer will be allocated. Alternatively, it is possible to provide a pre-allocated buffer in the <paramref name="buffer" /> parameter. This allows to re-use memory from another 
         /// acceleration structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling <see cref="buffer" />) and destroy it afterwards, which 
-        /// enables re-use scenarios for example for caching. Alterantively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory consumption. This is done by also 
+        /// enables re-use scenarios for example for caching. Alternatively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory consumption. This is done by also 
         /// providing the <paramref name="offset" /> and <paramref name="maxSize" /> parameters to address a range within the buffer itself, the acceleration structure may be written into. Note that the pointer 
         /// passed to the <see cref="buffer" /> parameter must have been initialized with the <see cref="BufferType::AccelerationStructure" /> buffer type and must be writable 
         /// (<see cref="ResourceUsage::AllowWrite" />).
@@ -6199,7 +6202,7 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">The buffer that contains the acceleration structure after the build.</param>
         /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
         /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
-        /// <seealso creF="IAccelerationStructure::build" />
+        /// <seealso cref="IAccelerationStructure::build" />
         inline void buildAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
             this->cmdBuildAccelerationStructure(blas, scratchBuffer, buffer, offset);
         }
@@ -6215,7 +6218,7 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">The buffer that contains the acceleration structure after the build.</param>
         /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
         /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
-        /// <seealso creF="IAccelerationStructure::build" />
+        /// <seealso cref="IAccelerationStructure::build" />
         inline void buildAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
             this->cmdBuildAccelerationStructure(tlas, scratchBuffer, buffer, offset);
         }
@@ -6231,7 +6234,7 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">The buffer that contains the acceleration structure after the build.</param>
         /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
         /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
-        /// <seealso creF="IAccelerationStructure::build" />
+        /// <seealso cref="IAccelerationStructure::build" />
         inline void updateAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
             this->cmdUpdateAccelerationStructure(blas, scratchBuffer, buffer, offset);
         }
@@ -6247,7 +6250,7 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">The buffer that contains the acceleration structure after the build.</param>
         /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
         /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
-        /// <seealso creF="IAccelerationStructure::build" />
+        /// <seealso cref="IAccelerationStructure::build" />
         inline void updateAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
             this->cmdUpdateAccelerationStructure(tlas, scratchBuffer, buffer, offset);
         }
@@ -7740,8 +7743,9 @@ namespace LiteFX::Rendering {
         /// <param name="blas">The bottom-level acceleration structure to compute the memory requirements for.</param>
         /// <param name="bufferSize">The size of the acceleration structure buffer.</param>
         /// <param name="scratchSize">The size of the scratch memory buffer.</param>
-        inline void computeAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize) const {
-            this->getAccelerationStructureSizes(blas, bufferSize, scratchSize);
+        /// <param name="forUpdate">If set to `true`, <paramref name="scratchSize" /> will contain the amount of scratch memory required for an update.</param>
+        inline void computeAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const {
+            this->getAccelerationStructureSizes(blas, bufferSize, scratchSize, forUpdate);
         }
 
         /// <summary>
@@ -7757,13 +7761,14 @@ namespace LiteFX::Rendering {
         /// <param name="tlas">The top-level acceleration structure to compute the memory requirements for.</param>
         /// <param name="bufferSize">The size of the acceleration structure buffer.</param>
         /// <param name="scratchSize">The size of the scratch memory buffer.</param>
-        inline void computeAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize) const {
-            this->getAccelerationStructureSizes(tlas, bufferSize, scratchSize);
+        /// <param name="forUpdate">If set to `true`, <paramref name="scratchSize" /> will contain the amount of scratch memory required for an update.</param>
+        inline void computeAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const {
+            this->getAccelerationStructureSizes(tlas, bufferSize, scratchSize, forUpdate);
         }
 
     private:
-        virtual void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize) const = 0;
-        virtual void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize) const = 0;
+        virtual void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
+        virtual void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
 
     public:
         /// <summary>

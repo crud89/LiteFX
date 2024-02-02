@@ -685,7 +685,7 @@ void VulkanDevice::wait() const
     raiseIfFailed(::vkDeviceWaitIdle(this->handle()), "Unable to wait for the device.");
 }
 
-void VulkanDevice::computeAccelerationStructureSizes(const VulkanBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize) const
+void VulkanDevice::computeAccelerationStructureSizes(const VulkanBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const
 {
     auto buildInfo = blas.buildInfo();
     auto descriptions = buildInfo | std::views::values | std::ranges::to<Array<VkAccelerationStructureGeometryKHR>>();
@@ -704,14 +704,18 @@ void VulkanDevice::computeAccelerationStructureSizes(const VulkanBottomLevelAcce
         .pGeometries = descriptions.data()
     };
 
-    // Get the prebuild info and align the buffer sizes.
+    // Get the pre-build info and align the buffer sizes.
     const auto alignment = this->adapter().limits().minUniformBufferOffsetAlignment;
     ::vkGetAccelerationStructureBuildSizes(this->handle(), VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR, &inputs, sizes.data(), &prebuildInfo);
     bufferSize = (prebuildInfo.accelerationStructureSize + alignment - 1) & ~(alignment - 1);
-    scratchSize = (prebuildInfo.buildScratchSize + alignment - 1) & ~(alignment - 1);
+
+    if (forUpdate)
+        scratchSize = (prebuildInfo.updateScratchSize + alignment - 1) & ~(alignment - 1);
+    else
+        scratchSize = (prebuildInfo.buildScratchSize + alignment - 1) & ~(alignment - 1);
 }
 
-void VulkanDevice::computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize) const
+void VulkanDevice::computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const
 {
     auto instances = tlas.buildInfo();
     auto instanceCount = static_cast<UInt32>(instances.size());
@@ -745,9 +749,13 @@ void VulkanDevice::computeAccelerationStructureSizes(const VulkanTopLevelAcceler
         .pGeometries = &geometryInfo
     };
 
-    // Get the prebuild info and align the buffer sizes.
+    // Get the pre-build info and align the buffer sizes.
     const auto alignment = this->adapter().limits().minUniformBufferOffsetAlignment;
     ::vkGetAccelerationStructureBuildSizes(this->handle(), VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR, &inputs, &instanceCount, &prebuildInfo);
     bufferSize = (prebuildInfo.accelerationStructureSize + alignment - 1) & ~(alignment - 1);
-    scratchSize = (prebuildInfo.buildScratchSize + alignment - 1) & ~(alignment - 1);
+
+    if (forUpdate)
+        scratchSize = (prebuildInfo.updateScratchSize + alignment - 1) & ~(alignment - 1);
+    else
+        scratchSize = (prebuildInfo.buildScratchSize + alignment - 1) & ~(alignment - 1);
 }

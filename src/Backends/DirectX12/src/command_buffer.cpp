@@ -91,6 +91,9 @@ public:
 			.ScratchAccelerationStructureData = scratchBuffer->virtualAddress()
 		};
 
+		if (update)
+			blasDesc.Inputs.Flags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PERFORM_UPDATE;
+
 		// Build the acceleration structure.
 		m_parent->handle()->BuildRaytracingAccelerationStructure(&blasDesc, 0, nullptr);
 
@@ -123,6 +126,9 @@ public:
 			.SourceAccelerationStructureData = update ? tlas.buffer()->virtualAddress() : 0ull,
 			.ScratchAccelerationStructureData = scratchBuffer->virtualAddress()
 		};
+
+		if (update)
+			tlasDesc.Inputs.Flags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PERFORM_UPDATE;
 
 		// Build the acceleration structure.
 		m_parent->handle()->BuildRaytracingAccelerationStructure(&tlasDesc, 0, nullptr);

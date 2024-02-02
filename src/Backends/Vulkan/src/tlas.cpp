@@ -117,7 +117,7 @@ void VulkanTopLevelAccelerationStructure::update(const VulkanCommandBuffer& comm
     // Validate the arguments and create the buffers if required.
     UInt64 requiredMemory, requiredScratchMemory;
     auto& device = static_cast<const VulkanQueue&>(commandBuffer.queue()).device();
-    device.computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory);
+    device.computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory, true);
 
     if (scratchBuffer != nullptr && scratchBuffer->size() < requiredScratchMemory)
         throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer does not contain enough memory to update the acceleration structure (contained memory: {0} bytes, required memory: {1} bytes).", scratchBuffer->size(), requiredScratchMemory);
