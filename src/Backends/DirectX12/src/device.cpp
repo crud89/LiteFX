@@ -89,7 +89,7 @@ private:
 #endif
 
 private:
-	bool checkRequiredExtensions(ID3D12Device10* device)
+	void checkRequiredExtensions(ID3D12Device10* device, const GraphicsDeviceFeatures& features)
 	{
 		D3D12_FEATURE_DATA_D3D12_OPTIONS5 options5 {};
 		D3D12_FEATURE_DATA_D3D12_OPTIONS7 options7 {};
@@ -98,30 +98,24 @@ private:
 		raiseIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS7, &options7, sizeof(options7)), "Unable to query device extensions.");
 		raiseIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &options12, sizeof(options12)), "Unable to query device extensions.");
 		
-		return
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
-			options5.RaytracingTier >= D3D12_RAYTRACING_TIER_1_0 &&
-#endif
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
-			options7.MeshShaderTier >= D3D12_MESH_SHADER_TIER_1 &&
-#endif
-			options12.EnhancedBarriersSupported;
+		if (features.RayTracing && options5.RaytracingTier < D3D12_RAYTRACING_TIER_1_0)
+			throw RuntimeException("The device does not support hardware ray-tracing.");
+		if (features.RayQueries && options5.RaytracingTier < D3D12_RAYTRACING_TIER_1_1)
+			throw RuntimeException("The device does not support ray-queries and inline ray-tracing.");
+		if (features.MeshShaders && options7.MeshShaderTier < D3D12_MESH_SHADER_TIER_1)
+			throw RuntimeException("The device does not support mesh shaders.");
 	}
 
 public:
 	[[nodiscard]]
-	ComPtr<ID3D12Device10> initialize()
+	ComPtr<ID3D12Device10> initialize(const GraphicsDeviceFeatures& features)
 	{
 		ComPtr<ID3D12Device10> device;
 		HRESULT hr;
 
-		// NOTE: At some point we might require feature level 12.2, which implies support for mesh shader tier 1, ray tracing tier 1.1 and shader model 6.5 
-		//       (see: https://microsoft.github.io/DirectX-Specs/d3d/D3D12_FeatureLevel12_2.html#capabilities).
-		//raiseIfFailed(::D3D12CreateDevice(m_adapter.handle().Get(), D3D_FEATURE_LEVEL_12_2, IID_PPV_ARGS(&device)), "Unable to create DirectX 12 device.");
-		raiseIfFailed(::D3D12CreateDevice(m_adapter.handle().Get(), D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&device)), "Unable to create DirectX 12 device.");
-
-		if (!this->checkRequiredExtensions(device.Get()))
-			throw RuntimeException("Not all required extensions are supported by this device. A driver update may resolve this problem.");
+		// Require feature level 12.1 and express optional features of higher feature levels as device features.
+		raiseIfFailed(::D3D12CreateDevice(m_adapter.handle().Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&device)), "Unable to create DirectX 12 device.");
+		this->checkRequiredExtensions(device.Get(), features);
 
 #ifndef NDEBUG
 		// Try to query an info queue to forward log messages.
@@ -265,12 +259,12 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface) :
-	DirectX12Device(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3)
+DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, GraphicsDeviceFeatures features) :
+	DirectX12Device(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3, features)
 {
 }
 
-DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, UInt32 globalBufferHeapSize, UInt32 globalSamplerHeapSize) :
+DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, GraphicsDeviceFeatures features, UInt32 globalBufferHeapSize, UInt32 globalSamplerHeapSize) :
 	ComResource<ID3D12Device10>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, std::move(surface), backend, globalBufferHeapSize, globalSamplerHeapSize))
 {
 	LITEFX_DEBUG(DIRECTX12_LOG, "Creating DirectX 12 device {{ Surface: {0}, Adapter: {1} }}...", fmt::ptr(&surface), adapter.deviceId());
@@ -284,7 +278,7 @@ DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX1
 	LITEFX_DEBUG(DIRECTX12_LOG, "Sampler Heap Size: {0}", globalSamplerHeapSize);
 	LITEFX_DEBUG(DIRECTX12_LOG, "--------------------------------------------------------------------------");
 
-	this->handle() = m_impl->initialize();
+	this->handle() = m_impl->initialize(features);
 	m_impl->createQueues();
 	m_impl->createFactory();
 	m_impl->createSwapChain(format, frameBufferSize, frameBuffers);
@@ -482,7 +476,6 @@ DirectX12ComputePipelineBuilder DirectX12Device::buildComputePipeline(const Stri
 	return DirectX12ComputePipelineBuilder(*this, name);
 }
 
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
 DirectX12RayTracingPipelineBuilder DirectX12Device::buildRayTracingPipeline(ShaderRecordCollection&& shaderRecords) const
 {
 	return this->buildRayTracingPipeline("", std::move(shaderRecords));
@@ -492,7 +485,6 @@ DirectX12RayTracingPipelineBuilder DirectX12Device::buildRayTracingPipeline(cons
 {
 	return DirectX12RayTracingPipelineBuilder(*this, std::move(shaderRecords), name);
 }
-#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
 
 DirectX12PipelineLayoutBuilder DirectX12Device::buildPipelineLayout() const
 {
@@ -648,7 +640,6 @@ void DirectX12Device::wait() const
 	});
 }
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 void DirectX12Device::computeAccelerationStructureSizes(const DirectX12BottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize) const 
 {
 	auto descriptions = blas.buildInfo();
@@ -685,4 +676,3 @@ void DirectX12Device::computeAccelerationStructureSizes(const DirectX12TopLevelA
 	bufferSize = (prebuildInfo.ResultDataMaxSizeInBytes + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
 	scratchSize = (prebuildInfo.ScratchDataSizeInBytes  + D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1) & ~(D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT - 1);
 }
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)

@@ -5286,8 +5286,8 @@ namespace LiteFX::Rendering {
     /// </item>
     /// <item>
     /// <description>
-    /// **Mesh shading:** If mesh shader support is enabled (through the compiler flag `LITEFX_BUILD_MESH_SHADER_SUPPORT`), a mesh shading program can contain at maximum one 
-    /// module of the following stages: *Task*, *Mesh*, *Fragment*. A mesh and fragment shader are required for a mesh shading program.
+    /// **Mesh shading:** If mesh shader support is enabled (through the device feature <see cref="GraphicsDeviceFeatures::MeshShaders" />), a mesh shading program can contain 
+    /// at maximum one module of the following stages: *Task*, *Mesh*, *Fragment*. A mesh and fragment shader are required for a mesh shading program.
     /// </description>
     /// </item>
     /// <item>
@@ -5297,9 +5297,10 @@ namespace LiteFX::Rendering {
     /// </item>
     /// <item>
     /// <description>
-    /// **Ray-tracing:** If ray tracing support is enabled (through the compiler flag `LITEFX_BUILD_RAY_TRACING_SUPPORT`), a ray tracing program can contain modules of the
-    /// following stages: *Ray Generation*, *Any Hit*, *Closest Hit*, *Intersection*, *Miss*, *Callable*. There must be exactly one *Ray Generation* module. All other modules
-    /// can occur multiple times. To build a ray tracing pipeline, all shaders should be added to a single shader program, which is then passed to the pipeline during creation.
+    /// **Ray-tracing:** If ray tracing support is enabled (through the device feature <see cref="GraphicsDeviceFeatures::RayTracing" />), a ray tracing program can contain 
+    /// modules of the following stages: *Ray Generation*, *Any Hit*, *Closest Hit*, *Intersection*, *Miss*, *Callable*. There must be exactly one *Ray Generation* module. All 
+    /// other modules can occur multiple times. To build a ray tracing pipeline, all shaders should be added to a single shader program, which is then passed to the pipeline 
+    /// during creation.
     /// </description>
     /// </item>
     /// </list>
@@ -5907,28 +5908,34 @@ namespace LiteFX::Rendering {
             this->dispatch({ x,y, z });
         }
         
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         /// <summary>
         /// Executes a mesh shader pipeline.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::MeshShaders" /> feature is enabled.
+        /// </remarks>
         /// <param name="threadCount">The number of threads per dimension.</param>
         virtual void dispatchMesh(const Vector3u& threadCount) const noexcept = 0;
 
         /// <summary>
         /// Executes a mesh shader pipeline.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::MeshShaders" /> feature is enabled.
+        /// </remarks>
         /// <param name="x">The number of threads along the x dimension.</param>
         /// <param name="y">The number of threads along the y dimension.</param>
         /// <param name="z">The number of threads along the z dimension.</param>
         inline void dispatchMesh(UInt32 x, UInt32 y, UInt32 z) const noexcept {
             this->dispatchMesh({ x, y, z });
         }
-#endif
 
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
         /// <summary>
         /// Executes a query on a ray-tracing pipeline.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="width">The width of the ray-tracing query.</param>
         /// <param name="height">The height of the ray-tracing query.</param>
         /// <param name="depth">The depth of the ray-tracing query.</param>
@@ -5944,6 +5951,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Executes a query on a ray-tracing pipeline.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="dimensions">The dimensions of the ray-tracing query.</param>
         /// <param name="offsets">The offsets, sizes and strides for each shader binding table.</param>
         /// <param name="rayGenerationShaderBindingTable">The shader binding table that contains the ray generation shader.</param>
@@ -5953,7 +5963,6 @@ namespace LiteFX::Rendering {
         inline void traceRays(const Vector3u& dimensions, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable = nullptr, const IBuffer* hitShaderBindingTable = nullptr, const IBuffer* callableShaderBindingTable = nullptr) const noexcept {
             this->traceRays(dimensions.x(), dimensions.y(), dimensions.z(), offsets, rayGenerationShaderBindingTable, missShaderBindingTable, hitShaderBindingTable, callableShaderBindingTable);
         }
-#endif
 
         /// <summary>
         /// Draws a number of vertices from the currently bound vertex buffer.
@@ -6096,13 +6105,14 @@ namespace LiteFX::Rendering {
             this->cmdExecute(commandBuffers);
         }
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
         /// <summary>
         /// Builds a bottom-level acceleration structure.
         /// </summary>
         /// <remarks>
         /// This overload creates a temporary scratch buffer for building up the acceleration structure. It might be more efficient to re-use scratch buffer memory, in which case another overload
         /// of this method is available.
+        /// 
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
         /// </remarks>
         /// <param name="blas">The bottom-level acceleration structure to build.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if no buffer has been allocated for the provided acceleration structure has.</exception>
@@ -6116,6 +6126,8 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// This overload uses an existing scratch buffer to build up the acceleration structure. Note that it is required to manually synchronize write access to the scratch buffer. Two building
         /// commands must not use the same scratch buffer at the same time.
+        /// 
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
         /// </remarks>
         /// <param name="blas">The bottom-level acceleration structure to build.</param>
         /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration structure.</param>
@@ -6131,6 +6143,8 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// This overload creates a temporary scratch buffer for building up the acceleration structure. It might be more efficient to re-use scratch buffer memory, in which case another overload
         /// of this method is available.
+        /// 
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
         /// </remarks>
         /// <param name="tlas">The top-level acceleration structure to build.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if no buffer has been allocated for the provided acceleration structure has.</exception>
@@ -6144,6 +6158,8 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// This overload uses an existing scratch buffer to build up the acceleration structure. Note that it is required to manually synchronize write access to the scratch buffer. Two building
         /// commands must not use the same scratch buffer at the same time.
+        /// 
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
         /// </remarks>
         /// <param name="tlas">The top-level acceleration structure to build.</param>
         /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration structure.</param>
@@ -6152,7 +6168,6 @@ namespace LiteFX::Rendering {
         inline void buildAccelerationStructure(const ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer) const {
             this->cmdBuildAccelerationStructure(tlas, scratchBuffer);
         }
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
     private:
         virtual void cmdBarrier(const IBarrier& barrier) const noexcept = 0;
@@ -6176,14 +6191,11 @@ namespace LiteFX::Rendering {
         virtual void cmdDrawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const = 0;
         virtual void cmdExecute(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
         virtual void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffer) const = 0;
-
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
         virtual void cmdBuildAccelerationStructure(const IBottomLevelAccelerationStructure& blas) const = 0;
         virtual void cmdBuildAccelerationStructure(const IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer) const = 0;
         virtual void cmdBuildAccelerationStructure(const ITopLevelAccelerationStructure& tlas) const = 0;
         virtual void cmdBuildAccelerationStructure(const ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer) const = 0;
         virtual void cmdTraceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable, const IBuffer* hitShaderBindingTable, const IBuffer* callableShaderBindingTable) const noexcept = 0;
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
         /// <summary>
         /// Called by the parent command queue to signal that the command buffer should release it's shared state.
@@ -7420,10 +7432,12 @@ namespace LiteFX::Rendering {
             return this->getSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
         /// <summary>
         /// Creates a bottom-level acceleration structure.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="flags">The flags that define how the acceleration structure is built.</param>
         /// <returns>The bottom-level acceleration structure instance.</returns>
         /// <seealso cref="IBottomLevelAccelerationStructure" />
@@ -7434,6 +7448,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Creates a bottom-level acceleration structure.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="name">The name of the acceleration structure resource.</param>
         /// <param name="flags">The flags that define how the acceleration structure is built.</param>
         /// <returns>The bottom-level acceleration structure instance.</returns>
@@ -7445,6 +7462,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Creates a top-level acceleration structure.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="flags">The flags that define how the acceleration structure is built.</param>
         /// <returns>The top-level acceleration structure instance.</returns>
         /// <seealso cref="ITopLevelAccelerationStructure" />
@@ -7455,6 +7475,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Creates a top-level acceleration structure.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="name">The name of the acceleration structure resource.</param>
         /// <param name="flags">The flags that define how the acceleration structure is built.</param>
         /// <returns>The top-level acceleration structure instance.</returns>
@@ -7462,7 +7485,6 @@ namespace LiteFX::Rendering {
         inline UniquePtr<ITopLevelAccelerationStructure> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const {
             return this->getTlas(name, flags);
         }
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
     private:
         virtual UniquePtr<IBuffer> getBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const = 0;
@@ -7479,11 +7501,36 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
         virtual UniquePtr<ISampler> getSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
         virtual Enumerable<UniquePtr<ISampler>> getSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
-        
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
         virtual UniquePtr<IBottomLevelAccelerationStructure> getBlas(StringView name, AccelerationStructureFlags flags) const = 0;
         virtual UniquePtr<ITopLevelAccelerationStructure> getTlas(StringView name, AccelerationStructureFlags flags) const = 0;
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
+    };
+
+    /// <summary>
+    /// Describes optional features that can be supported by a device.
+    /// </summary>
+    /// <remarks>
+    /// Device features are evaluated when creating a <see cref="IGraphicsDevice" />. If a feature is not supported by the device, an exception is raised.
+    /// 
+    /// Note that feature support is not strictly enforced by the engine. For example, if you are calling any feature-related API, the call may succeed even if the feature is not enabled, if the GPU 
+    /// supports it. Graphics API validation may warn about it and the same program may fail on GPUs that do not support this feature. Enabling a feature through the settings in this structure makes
+    /// the device check for support creation, resulting in a clear fail path, if a required extension is not supported by the system hardware.
+    /// </remarks>
+    struct LITEFX_RENDERING_API GraphicsDeviceFeatures {
+    public:
+        /// <summary>
+        /// Enables or disables mesh shader support.
+        /// </summary>
+        bool MeshShaders { false };
+
+        /// <summary>
+        /// Enables or disables ray-tracing support.
+        /// </summary>
+        bool RayTracing { false };
+
+        /// <summary>
+        /// Enables or disables ray query and inline ray-tracing support.
+        /// </summary>
+        bool RayQueries { false };
     };
 
     /// <summary>
@@ -7597,8 +7644,6 @@ namespace LiteFX::Rendering {
         /// <seealso cref="TimingEvent" />
         virtual double ticksPerMillisecond() const noexcept = 0;
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-    public:
         /// <summary>
         /// Computes the required amount of device memory for an <see cref="IBottomLevelAccelerationStructure" />.
         /// </summary>
@@ -7606,6 +7651,8 @@ namespace LiteFX::Rendering {
         /// Acceleration structures are built on the GPU, which requires additional memory called *scratch memory*. When creating an acceleration structure (AS), you have to 
         /// provide a temporary buffer containing the scratch memory, alongside the actual buffer that stores the AS itself. This method can be used to pre-compute the buffer
         /// sizes for both buffers.
+        /// 
+        /// This method is only supported, if the <see cref="GraphicsDeviceFeatures::RayTracing" /> feature is enabled.
         /// </remarks>
         /// <param name="blas">The bottom-level acceleration structure to compute the memory requirements for.</param>
         /// <param name="bufferSize">The size of the acceleration structure buffer.</param>
@@ -7621,6 +7668,8 @@ namespace LiteFX::Rendering {
         /// Acceleration structures are built on the GPU, which requires additional memory called *scratch memory*. When creating an acceleration structure (AS), you have to 
         /// provide a temporary buffer containing the scratch memory, alongside the actual buffer that stores the AS itself. This method can be used to pre-compute the buffer
         /// sizes for both buffers.
+        /// 
+        /// This method is only supported, if the <see cref="GraphicsDeviceFeatures::RayTracing" /> feature is enabled.
         /// </remarks>
         /// <param name="tlas">The top-level acceleration structure to compute the memory requirements for.</param>
         /// <param name="bufferSize">The size of the acceleration structure buffer.</param>
@@ -7632,7 +7681,6 @@ namespace LiteFX::Rendering {
     private:
         virtual void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize) const = 0;
         virtual void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize) const = 0;
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
     public:
         /// <summary>

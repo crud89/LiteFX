@@ -488,9 +488,7 @@ namespace LiteFX::Rendering {
     class CommandBuffer : public ICommandBuffer {
     public:
         using ICommandBuffer::dispatch;
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         using ICommandBuffer::dispatchMesh;
-#endif
         using ICommandBuffer::draw;
         using ICommandBuffer::drawIndexed;
         using ICommandBuffer::barrier;
@@ -499,9 +497,7 @@ namespace LiteFX::Rendering {
         using ICommandBuffer::bind;
         using ICommandBuffer::use;
         using ICommandBuffer::pushConstants;
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
         using ICommandBuffer::buildAccelerationStructure;
-#endif
 
     public:
         using command_buffer_type = TCommandBuffer;
@@ -603,8 +599,6 @@ namespace LiteFX::Rendering {
         /// <inheritdoc />
         virtual void execute(Enumerable<SharedPtr<const command_buffer_type>> commandBuffers) const = 0;
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-    public:
         /// <inheritdoc />
         virtual void buildAccelerationStructure(const bottom_level_acceleration_structure_type& blas) const = 0;
 
@@ -626,7 +620,6 @@ namespace LiteFX::Rendering {
         inline void traceRays(const Vector3u& dimensions, const ShaderBindingTableOffsets& offsets, const buffer_type& rayGenerationShaderBindingTable, const buffer_type* missShaderBindingTable, const buffer_type* hitShaderBindingTable, const buffer_type* callableShaderBindingTable) const noexcept {
             this->traceRays(dimensions.x(), dimensions.y(), dimensions.z(), offsets, rayGenerationShaderBindingTable, missShaderBindingTable, hitShaderBindingTable, callableShaderBindingTable);
         }
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
     private:
         inline void cmdBarrier(const IBarrier& barrier) const noexcept override {
@@ -713,7 +706,6 @@ namespace LiteFX::Rendering {
             return this->execute(commandBuffers | std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }));
         }
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
         void cmdBuildAccelerationStructure(const IBottomLevelAccelerationStructure& blas) const override {
             this->buildAccelerationStructure(dynamic_cast<const bottom_level_acceleration_structure_type&>(blas));
         }
@@ -733,7 +725,6 @@ namespace LiteFX::Rendering {
         void cmdTraceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable, const IBuffer* hitShaderBindingTable, const IBuffer* callableShaderBindingTable) const noexcept override {
             this->traceRays(width, height, depth, offsets, dynamic_cast<const buffer_type&>(rayGenerationShaderBindingTable), dynamic_cast<const buffer_type*>(missShaderBindingTable), dynamic_cast<const buffer_type*>(hitShaderBindingTable), dynamic_cast<const buffer_type*>(callableShaderBindingTable));
         }
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     };
 
     /// <summary>
@@ -1152,7 +1143,6 @@ namespace LiteFX::Rendering {
         /// <inheritdoc />
         virtual Enumerable<UniquePtr<TSampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const = 0;
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
         /// <inheritdoc />
         inline UniquePtr<TBLAS> createBottomLevelAccelerationStructure(AccelerationStructureFlags flags) const {
             return this->createBottomLevelAccelerationStructure("", flags);
@@ -1168,7 +1158,6 @@ namespace LiteFX::Rendering {
 
         /// <inheritdoc />
         virtual UniquePtr<TTLAS> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const = 0;
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
     private:
         inline UniquePtr<IBuffer> getBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const override {
@@ -1227,7 +1216,6 @@ namespace LiteFX::Rendering {
             return this->createSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy) | std::views::as_rvalue;
         }
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
         inline UniquePtr<IBottomLevelAccelerationStructure> getBlas(StringView name, AccelerationStructureFlags flags) const override {
             return this->createBottomLevelAccelerationStructure(name, flags);
         }
@@ -1235,7 +1223,6 @@ namespace LiteFX::Rendering {
         inline UniquePtr<ITopLevelAccelerationStructure> getTlas(StringView name, AccelerationStructureFlags flags) const override {
             return this->createTopLevelAccelerationStructure(name, flags);
         }
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     };
 
     /// <summary>
@@ -1334,7 +1321,6 @@ namespace LiteFX::Rendering {
             return this->createQueue(type, priority);
         }
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     public:
         /// <inheritdoc />
         virtual void computeAccelerationStructureSizes(const bottom_level_acceleration_structure_type& blas, UInt64& bufferSize, UInt64& scratchSize) const = 0;
@@ -1350,7 +1336,6 @@ namespace LiteFX::Rendering {
         inline void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize) const {
             this->computeAccelerationStructureSizes(dynamic_cast<const top_level_acceleration_structure_type&>(tlas), bufferSize, scratchSize);
         }
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:
@@ -1403,10 +1388,12 @@ namespace LiteFX::Rendering {
         /// <returns>An instance of a builder that is used to create a new render pipeline.</returns>
         [[nodiscard]] virtual render_pipeline_builder_type buildRenderPipeline(const render_pass_type& renderPass, const String& name) const = 0;
 
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
         /// <summary>
         /// Returns a builder for a <see cref="RayTracingPipeline" />.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
         /// <returns>An instance of a builder that is used to create a new ray-tracing pipeline.</returns>
         [[nodiscard]] virtual ray_tracing_pipeline_builder_type buildRayTracingPipeline(ShaderRecordCollection&& shaderRecords) const = 0;
@@ -1414,11 +1401,13 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Returns a builder for a <see cref="RayTracingPipeline" />.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="name">The name of the ray-tracing pipeline.</param>
         /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
         /// <returns>An instance of a builder that is used to create a new ray-tracing pipeline.</returns>
         [[nodiscard]] virtual ray_tracing_pipeline_builder_type buildRayTracingPipeline(const String& name, ShaderRecordCollection&& shaderRecords) const = 0;
-#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
 
         /// <summary>
         /// Returns a builder for a <see cref="PipelineLayout" />.

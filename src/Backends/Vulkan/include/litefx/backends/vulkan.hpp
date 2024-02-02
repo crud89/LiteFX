@@ -932,9 +932,7 @@ namespace LiteFX::Rendering::Backends {
     public:
         using base_type = CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>;
         using base_type::dispatch;
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         using base_type::dispatchMesh;
-#endif
         using base_type::draw;
         using base_type::drawIndexed;
         using base_type::barrier;
@@ -943,9 +941,7 @@ namespace LiteFX::Rendering::Backends {
         using base_type::bind;
         using base_type::use;
         using base_type::pushConstants;
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
         using base_type::buildAccelerationStructure;
-#endif
 
     private:
         /// <summary>
@@ -1061,10 +1057,8 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void dispatch(const Vector3u& threadCount) const noexcept override;
 
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         /// <inheritdoc />
         void dispatchMesh(const Vector3u& threadCount) const noexcept override;
-#endif
 
         /// <inheritdoc />
         void draw(UInt32 vertices, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const noexcept override;
@@ -1084,7 +1078,6 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const override;
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     public:
         /// <inheritdoc />
         void buildAccelerationStructure(const VulkanBottomLevelAccelerationStructure& blas) const override;
@@ -1100,7 +1093,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IVulkanBuffer& rayGenerationShaderBindingTable, const IVulkanBuffer* missShaderBindingTable, const IVulkanBuffer* hitShaderBindingTable, const IVulkanBuffer* callableShaderBindingTable) const noexcept override;
-#endif
 
     private:
         void releaseSharedState() const override;
@@ -1785,13 +1777,11 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         Enumerable<UniquePtr<IVulkanSampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
         /// <inheritdoc />
         virtual UniquePtr<VulkanBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
 
         /// <inheritdoc />
         virtual UniquePtr<VulkanTopLevelAccelerationStructure> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     };
 
     /// <summary>
@@ -1807,8 +1797,9 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="backend">The backend from which the device is created.</param>
         /// <param name="adapter">The adapter the device uses for drawing.</param>
         /// <param name="surface">The surface, the device should draw to.</param>
+        /// <param name="features">The features that should be supported by this device.</param>
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
-        explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Span<String> extensions = { });
+        explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { });
 
         /// <summary>
         /// Creates a new device instance.
@@ -1819,8 +1810,9 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="format">The initial surface format, device uses for drawing.</param>
         /// <param name="frameBufferSize">The initial size of the frame buffers.</param>
         /// <param name="frameBuffers">The initial number of frame buffers.</param>
+        /// <param name="features">The features that should be supported by this device.</param>
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
-        explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, Span<String> extensions = { });
+        explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, GraphicsDeviceFeatures features = { }, Span<String> extensions = { });
 
         VulkanDevice(const VulkanDevice&) = delete;
         VulkanDevice(VulkanDevice&&) = delete;
@@ -1891,14 +1883,11 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void wait() const override;
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-    public:
         /// <inheritdoc />
         void computeAccelerationStructureSizes(const VulkanBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize) const override;
 
         /// <inheritdoc />
         void computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize) const override;
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:
@@ -1917,13 +1906,11 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         [[nodiscard]] VulkanComputePipelineBuilder buildComputePipeline(const String& name) const override;
 
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
         /// <inheritdoc />
         [[nodiscard]] VulkanRayTracingPipelineBuilder buildRayTracingPipeline(ShaderRecordCollection&& shaderRecords) const override;
 
         /// <inheritdoc />
         [[nodiscard]] VulkanRayTracingPipelineBuilder buildRayTracingPipeline(const String& name, ShaderRecordCollection&& shaderRecords) const override;
-#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
         
         /// <inheritdoc />
         [[nodiscard]] VulkanPipelineLayoutBuilder buildPipelineLayout() const override;

@@ -964,9 +964,7 @@ namespace LiteFX::Rendering::Backends {
     public:
         using base_type = CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>;
         using base_type::dispatch;
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         using base_type::dispatchMesh;
-#endif
         using base_type::draw;
         using base_type::drawIndexed;
         using base_type::barrier;
@@ -975,9 +973,7 @@ namespace LiteFX::Rendering::Backends {
         using base_type::bind;
         using base_type::use;
         using base_type::pushConstants;
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
         using base_type::buildAccelerationStructure;
-#endif
 
     private:
         /// <summary>
@@ -1084,10 +1080,8 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void dispatch(const Vector3u& threadCount) const noexcept override;
 
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         /// <inheritdoc />
         void dispatchMesh (const Vector3u& threadCount) const noexcept override;
-#endif
 
         /// <inheritdoc />
         void draw(UInt32 vertices, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const noexcept override;
@@ -1107,8 +1101,6 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void execute(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const override;
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-    public:
         /// <inheritdoc />
         void buildAccelerationStructure(const DirectX12BottomLevelAccelerationStructure& blas) const override;
 
@@ -1123,7 +1115,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IDirectX12Buffer& rayGenerationShaderBindingTable, const IDirectX12Buffer* missShaderBindingTable, const IDirectX12Buffer* hitShaderBindingTable, const IDirectX12Buffer* callableShaderBindingTable) const noexcept override;
-#endif
 
     private:
         void releaseSharedState() const override;
@@ -1834,13 +1825,11 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         Enumerable<UniquePtr<IDirectX12Sampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
         /// <inheritdoc />
         virtual UniquePtr<DirectX12BottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
 
         /// <inheritdoc />
         virtual UniquePtr<DirectX12TopLevelAccelerationStructure> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
     };
 
     /// <summary>
@@ -1856,7 +1845,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="backend">The backend from which the device got created.</param>
         /// <param name="adapter">The adapter the device uses for drawing.</param>
         /// <param name="surface">The surface, the device should draw to.</param>
-        explicit DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface);
+        /// <param name="features">The features that should be supported by this device.</param>
+        explicit DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, GraphicsDeviceFeatures features = {});
 
         /// <summary>
         /// Creates a new device instance.
@@ -1867,9 +1857,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="format">The initial surface format, device uses for drawing.</param>
         /// <param name="frameBufferSize">The initial size of the frame buffers.</param>
         /// <param name="frameBuffers">The initial number of frame buffers.</param>
+        /// <param name="features">The features that should be supported by this device.</param>
         /// <param name="globalBufferHeapSize">The size of the global heap for constant buffers, shader resources and images.</param>
         /// <param name="globalSamplerHeapSize">The size of the global heap for samplers.</param>
-        explicit DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, UInt32 globalBufferHeapSize = 524287, UInt32 globalSamplerHeapSize = 2048);
+        explicit DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, GraphicsDeviceFeatures features = {}, UInt32 globalBufferHeapSize = 524287, UInt32 globalSamplerHeapSize = 2048);
 
         DirectX12Device(const DirectX12Device&) = delete;
         DirectX12Device(DirectX12Device&&) = delete;
@@ -2001,14 +1992,11 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void wait() const override;
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-    public:
         /// <inheritdoc />
         void computeAccelerationStructureSizes(const DirectX12BottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize) const override;
 
         /// <inheritdoc />
         void computeAccelerationStructureSizes(const DirectX12TopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize) const override;
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:
@@ -2027,13 +2015,11 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         [[nodiscard]] DirectX12ComputePipelineBuilder buildComputePipeline(const String& name) const override;
 
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
         /// <inheritdoc />
         [[nodiscard]] DirectX12RayTracingPipelineBuilder buildRayTracingPipeline(ShaderRecordCollection&& shaderRecords) const override;
 
         /// <inheritdoc />
         [[nodiscard]] DirectX12RayTracingPipelineBuilder buildRayTracingPipeline(const String& name, ShaderRecordCollection&& shaderRecords) const override;
-#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
         
         /// <inheritdoc />
         [[nodiscard]] DirectX12PipelineLayoutBuilder buildPipelineLayout() const override;

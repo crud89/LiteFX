@@ -71,7 +71,6 @@ public:
 			m_queue.device().bindGlobalDescriptorHeaps(*m_parent);
 	}
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 	inline void buildAccelerationStructure(const DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer)
 	{
 		auto descriptions = blas.buildInfo();
@@ -115,7 +114,6 @@ public:
 		// Store the scratch buffer.
 		m_sharedResources.push_back(scratchBuffer);
 	}
-#endif
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -414,12 +412,10 @@ void DirectX12CommandBuffer::dispatch(const Vector3u& threadCount) const noexcep
 	this->handle()->Dispatch(threadCount.x(), threadCount.y(), threadCount.z());
 }
 
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
 void DirectX12CommandBuffer::dispatchMesh(const Vector3u& threadCount) const noexcept
 {
 	this->handle()->DispatchMesh(threadCount.x(), threadCount.y(), threadCount.z());
 }
-#endif
 
 void DirectX12CommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const noexcept
 {
@@ -458,8 +454,6 @@ void DirectX12CommandBuffer::releaseSharedState() const
 {
 	m_impl->m_sharedResources.clear();
 }
-
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
 // TODO: Add overload that supports updates (updates set `SourceAccelerationStructureData`).
 
@@ -558,4 +552,3 @@ void DirectX12CommandBuffer::traceRays(UInt32 width, UInt32 height, UInt32 depth
 
 	this->handle()->DispatchRays(&rayDesc);
 }
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)

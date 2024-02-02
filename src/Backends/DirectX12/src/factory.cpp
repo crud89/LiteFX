@@ -56,15 +56,8 @@ UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String&
 	if ((type == BufferType::Vertex || type == BufferType::Index || type == BufferType::Uniform) && LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite)) [[unlikely]]
 		throw InvalidArgumentException("usage", "Invalid resource usage has been specified: vertex, index and uniform/constant buffers cannot be written to.");
 
-	if (type == BufferType::AccelerationStructure)
-	{
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-		if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput)) [[unlikely]]
-			throw InvalidArgumentException("usage", "Invalid resource usage has been specified: acceleration structures cannot be used as build inputs for other acceleration structures.");
-#else
-		throw InvalidArgumentException("type", "Acceleration structures can only be created if the engine was build with ray tracing support.");
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-	}
+	if (type == BufferType::AccelerationStructure && LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput)) [[unlikely]]
+		throw InvalidArgumentException("usage", "Invalid resource usage has been specified: acceleration structures cannot be used as build inputs for other acceleration structures.");
 
 	// Set heap-default usages.
 	if (heap == ResourceHeap::Staging && !LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferSource))
@@ -330,7 +323,6 @@ Enumerable<UniquePtr<IDirectX12Sampler>> DirectX12GraphicsFactory::createSampler
 	}() | std::views::as_rvalue;
 }
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 UniquePtr<DirectX12BottomLevelAccelerationStructure> DirectX12GraphicsFactory::createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const
 {
 	return makeUnique<DirectX12BottomLevelAccelerationStructure>(flags, name);
@@ -340,4 +332,3 @@ UniquePtr<DirectX12TopLevelAccelerationStructure> DirectX12GraphicsFactory::crea
 {
 	return makeUnique<DirectX12TopLevelAccelerationStructure>(flags, name);
 }
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)

@@ -60,15 +60,8 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 	if ((type == BufferType::Vertex || type == BufferType::Index || type == BufferType::Uniform) && LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite)) [[unlikely]]
 		throw InvalidArgumentException("usage", "Invalid resource usage has been specified: vertex, index and uniform/constant buffers cannot be written to.");
 
-	if (type == BufferType::AccelerationStructure)
-	{
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-		if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput)) [[unlikely]]
-			throw InvalidArgumentException("usage", "Invalid resource usage has been specified: acceleration structures cannot be used as build inputs for other acceleration structures.");
-#else
-		throw InvalidArgumentException("type", "Acceleration structures can only be created if the engine was build with ray tracing support.");
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-	}
+	if (type == BufferType::AccelerationStructure && LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput)) [[unlikely]]
+		throw InvalidArgumentException("usage", "Invalid resource usage has been specified: acceleration structures cannot be used as build inputs for other acceleration structures.");
 
 	// Set heap-default usages.
 	if (heap == ResourceHeap::Staging && !LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferSource))
@@ -126,11 +119,8 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 		usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferDestination))
 		usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput))
 		usageFlags |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
 	bufferInfo.usage = usageFlags;
 
@@ -189,11 +179,8 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 		usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferDestination))
 		usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput))
 		usageFlags |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
 	bufferInfo.usage = usageFlags;
 
@@ -252,11 +239,8 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 		usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferDestination))
 		usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput))
 		usageFlags |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
 	bufferInfo.usage = usageFlags;
 
@@ -462,7 +446,6 @@ Enumerable<UniquePtr<IVulkanSampler>> VulkanGraphicsFactory::createSamplers(UInt
 	}() | std::views::as_rvalue;
 }
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 UniquePtr<VulkanBottomLevelAccelerationStructure> VulkanGraphicsFactory::createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const
 {
 	return makeUnique<VulkanBottomLevelAccelerationStructure>(flags, name);
@@ -472,4 +455,3 @@ UniquePtr<VulkanTopLevelAccelerationStructure> VulkanGraphicsFactory::createTopL
 {
 	return makeUnique<VulkanTopLevelAccelerationStructure>(flags, name);
 }
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)

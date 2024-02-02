@@ -130,7 +130,7 @@ private:
 #endif
 
 public:
-    VulkanDeviceImpl(VulkanDevice* parent, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Span<String> extensions) :
+    VulkanDeviceImpl(VulkanDevice* parent, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const GraphicsDeviceFeatures& features, Span<String> extensions) :
         base(parent), m_adapter(adapter), m_surface(std::move(surface))
     {
         if (m_surface == nullptr)
@@ -138,7 +138,7 @@ public:
 
         m_extensions.assign(std::begin(extensions), std::end(extensions));
 
-        this->defineMandatoryExtensions();
+        this->defineMandatoryExtensions(features);
         this->loadQueueFamilies();
     }
 
@@ -158,7 +158,7 @@ public:
     }
 
 private:
-    void defineMandatoryExtensions() noexcept
+    void defineMandatoryExtensions(const GraphicsDeviceFeatures& features) noexcept
     {
         // NOTE: If an extension is not supported, update the graphics driver to the most recent one. You can lookup extension support for individual drivers here:
         // https://vulkan.gpuinfo.org/listdevicescoverage.php?extension=VK_KHR_present_wait (replace the extension name to adjust the filter).
@@ -166,18 +166,20 @@ private:
         // Required to query image and buffer requirements.
         m_extensions.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
 
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         // Required for mesh shading.
-        m_extensions.push_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
-#endif
+        if (features.MeshShaders)
+            m_extensions.push_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
 
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
-        m_extensions.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
-        //m_extensions.push_back(VK_KHR_RAY_QUERY_EXTENSION_NAME);
-        m_extensions.push_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
-        m_extensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
-        m_extensions.push_back(VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME);
-#endif
+        if (features.RayTracing)
+        {
+            m_extensions.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
+            m_extensions.push_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
+            m_extensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
+            m_extensions.push_back(VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME);
+        }
+
+        if (features.RayQueries)
+            m_extensions.push_back(VK_KHR_RAY_QUERY_EXTENSION_NAME);
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
         // Interop swap chain requires external memory access.
@@ -241,7 +243,7 @@ public:
             std::ranges::to<Array<QueueFamily>>();
     }
 
-    VkDevice initialize()
+    VkDevice initialize(const GraphicsDeviceFeatures& features)
     {
         if (!m_adapter.validateDeviceExtensions(m_extensions))
             throw InvalidArgumentException("extensions", "Some required device extensions are not supported by the system.");
@@ -268,52 +270,42 @@ public:
             }) | std::ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
         // Enable raytracing features.
-#if   defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-        //VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures = {
-        //    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR,
-        //    .rayQuery = true
-        //};
+        VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR,
+            .rayQuery = features.RayQueries
+        };
 
         VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR rayTracingMaintenanceFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MAINTENANCE_1_FEATURES_KHR,
-            //.pNext = &rayQueryFeatures,
-            .rayTracingMaintenance1 = true
+            .pNext = &rayQueryFeatures,
+            .rayTracingMaintenance1 = features.RayTracing
         };
 
         VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR,
             .pNext = &rayTracingMaintenanceFeatures,
-            .rayTracingPipeline = true,
+            .rayTracingPipeline = features.RayTracing
         };
 
         VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR,
             .pNext = &rayTracingPipelineFeatures,
-            .accelerationStructure = true,
-            .descriptorBindingAccelerationStructureUpdateAfterBind = true
+            .accelerationStructure = features.RayTracing,
+            .descriptorBindingAccelerationStructureUpdateAfterBind = features.RayTracing
         };
-#endif
 
         // Enable task and mesh shaders.
-#if   defined(LITEFX_BUILD_MESH_SHADER_SUPPORT)
         VkPhysicalDeviceMeshShaderFeaturesEXT meshShaderFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT,
-#if   defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
             .pNext = &accelerationStructureFeatures,
-#endif
-            .taskShader = true,
-            .meshShader = true
+            .taskShader = features.MeshShaders,
+            .meshShader = features.MeshShaders
         };
-#endif
 
         // Allow geometry and tessellation shader stages.
         VkPhysicalDeviceFeatures2 deviceFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-#if   defined(LITEFX_BUILD_MESH_SHADER_SUPPORT)
             .pNext = &meshShaderFeatures,
-#elif defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
-            .pNext = &accelerationStructureFeatures,
-#endif
             .features = {
                 .geometryShader = true,
                 .tessellationShader = true,
@@ -378,8 +370,6 @@ public:
         };
 
         // Create the device.
-        // NOTE: This can time-out under very mysterious circumstances, in which case the event log shows a TDR error. Unfortunately, the only way I found
-        //       to fix this is rebooting the entire system.
         VkDevice device;
         raiseIfFailed(::vkCreateDevice(m_adapter.handle(), &createInfo, nullptr, &device), "Unable to create Vulkan device.");
 
@@ -388,33 +378,32 @@ public:
         debugMarkerSetObjectName = reinterpret_cast<PFN_vkDebugMarkerSetObjectNameEXT>(::vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectNameEXT"));
 #endif
 
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
-        if (vkCmdDrawMeshTasks == nullptr)
+        if (features.MeshShaders && vkCmdDrawMeshTasks == nullptr)
             vkCmdDrawMeshTasks = reinterpret_cast<PFN_vkCmdDrawMeshTasksEXT>(::vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksEXT"));
-#endif
 
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
-        if (vkGetAccelerationStructureBuildSizes == nullptr)
-            vkGetAccelerationStructureBuildSizes = reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(::vkGetDeviceProcAddr(device, "vkGetAccelerationStructureBuildSizesKHR"));
+        if (features.RayTracing)
+        {
+            if (vkGetAccelerationStructureBuildSizes == nullptr)
+                vkGetAccelerationStructureBuildSizes = reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(::vkGetDeviceProcAddr(device, "vkGetAccelerationStructureBuildSizesKHR"));
 
-        if (vkCreateAccelerationStructure == nullptr)
-            vkCreateAccelerationStructure = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCreateAccelerationStructureKHR"));
+            if (vkCreateAccelerationStructure == nullptr)
+                vkCreateAccelerationStructure = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCreateAccelerationStructureKHR"));
 
-        if (vkDestroyAccelerationStructure == nullptr)
-            vkDestroyAccelerationStructure = reinterpret_cast<PFN_vkDestroyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkDestroyAccelerationStructureKHR"));
+            if (vkDestroyAccelerationStructure == nullptr)
+                vkDestroyAccelerationStructure = reinterpret_cast<PFN_vkDestroyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkDestroyAccelerationStructureKHR"));
 
-        if (vkCmdBuildAccelerationStructures == nullptr)
-            vkCmdBuildAccelerationStructures = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(::vkGetDeviceProcAddr(device, "vkCmdBuildAccelerationStructuresKHR"));
+            if (vkCmdBuildAccelerationStructures == nullptr)
+                vkCmdBuildAccelerationStructures = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(::vkGetDeviceProcAddr(device, "vkCmdBuildAccelerationStructuresKHR"));
 
-        if (vkCreateRayTracingPipelines == nullptr)
-            vkCreateRayTracingPipelines = reinterpret_cast<PFN_vkCreateRayTracingPipelinesKHR>(::vkGetDeviceProcAddr(device, "vkCreateRayTracingPipelinesKHR"));
+            if (vkCreateRayTracingPipelines == nullptr)
+                vkCreateRayTracingPipelines = reinterpret_cast<PFN_vkCreateRayTracingPipelinesKHR>(::vkGetDeviceProcAddr(device, "vkCreateRayTracingPipelinesKHR"));
 
-        if (vkGetRayTracingShaderGroupHandles == nullptr)
-            vkGetRayTracingShaderGroupHandles = reinterpret_cast<PFN_vkGetRayTracingShaderGroupHandlesKHR>(::vkGetDeviceProcAddr(device, "vkGetRayTracingShaderGroupHandlesKHR"));
+            if (vkGetRayTracingShaderGroupHandles == nullptr)
+                vkGetRayTracingShaderGroupHandles = reinterpret_cast<PFN_vkGetRayTracingShaderGroupHandlesKHR>(::vkGetDeviceProcAddr(device, "vkGetRayTracingShaderGroupHandlesKHR"));
 
-        if (vkCmdTraceRays == nullptr)
-            vkCmdTraceRays = reinterpret_cast<PFN_vkCmdTraceRaysKHR>(::vkGetDeviceProcAddr(device, "vkCmdTraceRaysKHR"));
-#endif
+            if (vkCmdTraceRays == nullptr)
+                vkCmdTraceRays = reinterpret_cast<PFN_vkCmdTraceRaysKHR>(::vkGetDeviceProcAddr(device, "vkCmdTraceRaysKHR"));
+        }
 
         return device;
     }
@@ -480,13 +469,13 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDevice::VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Span<String> extensions) :
-    VulkanDevice(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3, extensions)
+VulkanDevice::VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features, Span<String> extensions) :
+    VulkanDevice(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3, features, extensions)
 {
 }
 
-VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, Span<String> extensions) :
-    Resource<VkDevice>(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, std::move(surface), extensions))
+VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, GraphicsDeviceFeatures features, Span<String> extensions) :
+    Resource<VkDevice>(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, std::move(surface), features, extensions))
 {
     LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", fmt::ptr(reinterpret_cast<const void*>(m_impl->m_surface.get())), adapter.deviceId(), Join(this->enabledExtensions(), ", "));
     LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
@@ -502,7 +491,7 @@ VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphic
     if (extensions.size() > 0)
         LITEFX_INFO(VULKAN_LOG, "Enabled validation layers: {0}", Join(extensions, ", "));
 
-    this->handle() = m_impl->initialize();
+    this->handle() = m_impl->initialize(features);
     m_impl->initializeDefaultQueues();
     m_impl->createFactory();
     m_impl->createSwapChain(format, frameBufferSize, frameBuffers);
@@ -574,7 +563,6 @@ VulkanComputePipelineBuilder VulkanDevice::buildComputePipeline(const String& na
     return VulkanComputePipelineBuilder(*this, name);
 }
 
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
 VulkanRayTracingPipelineBuilder VulkanDevice::buildRayTracingPipeline(ShaderRecordCollection&& shaderRecords) const
 {
     return this->buildRayTracingPipeline("", std::move(shaderRecords));
@@ -584,7 +572,6 @@ VulkanRayTracingPipelineBuilder VulkanDevice::buildRayTracingPipeline(const Stri
 {
     return VulkanRayTracingPipelineBuilder(*this, std::move(shaderRecords), name);
 }
-#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
 
 VulkanPipelineLayoutBuilder VulkanDevice::buildPipelineLayout() const
 {
@@ -698,7 +685,6 @@ void VulkanDevice::wait() const
     raiseIfFailed(::vkDeviceWaitIdle(this->handle()), "Unable to wait for the device.");
 }
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 void VulkanDevice::computeAccelerationStructureSizes(const VulkanBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize) const
 {
     auto buildInfo = blas.buildInfo();
@@ -765,4 +751,3 @@ void VulkanDevice::computeAccelerationStructureSizes(const VulkanTopLevelAcceler
     bufferSize = (prebuildInfo.accelerationStructureSize + alignment - 1) & ~(alignment - 1);
     scratchSize = (prebuildInfo.buildScratchSize + alignment - 1) & ~(alignment - 1);
 }
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)

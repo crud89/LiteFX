@@ -74,9 +74,6 @@ const IDirectX12Buffer* DirectX12TopLevelAccelerationStructure::buffer() const n
 
 void DirectX12TopLevelAccelerationStructure::allocateBuffer(const DirectX12Device& device)
 {
-#ifndef LITEFX_BUILD_RAY_TRACING_SUPPORT
-    throw RuntimeException("Unable to allocate acceleration structure buffer. Engine was not built with ray-tracing support enabled.");
-#else
     if (m_impl->m_buffer != nullptr) [[unlikely]]
         throw RuntimeException("The buffer for this acceleration structure has already been allocated.");
 
@@ -91,7 +88,6 @@ void DirectX12TopLevelAccelerationStructure::allocateBuffer(const DirectX12Devic
     // Map the instance buffer.
     auto buildInfo = m_impl->buildInfo();
     m_impl->m_instanceBuffer->map(buildInfo.data(), sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * m_impl->m_instances.size());
-#endif
 }
 
 const Array<Instance>& DirectX12TopLevelAccelerationStructure::instances() const noexcept

@@ -445,11 +445,12 @@ namespace LiteFX::Rendering {
             return std::forward<TSelf>(self.withShaderModule(ShaderStage::Vertex, stream, name, entryPoint));
         }
 
-
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         /// <summary>
         /// Adds a task shader module to the program.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::MeshShaders" /> feature is enabled.
+        /// </remarks>
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
@@ -459,6 +460,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds a task shader module to the program.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::MeshShaders" /> feature is enabled.
+        /// </remarks>
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
@@ -470,6 +474,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds a mesh shader module to the program.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::MeshShaders" /> feature is enabled.
+        /// </remarks>
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
@@ -480,6 +487,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds a mesh shader module to the program.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::MeshShaders" /> feature is enabled.
+        /// </remarks>
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
@@ -487,7 +497,6 @@ namespace LiteFX::Rendering {
         constexpr inline [[nodiscard]] auto withMeshShaderModule(this TSelf&& self, std::istream& stream, const String& name, const String& entryPoint = "main") -> TSelf&& {
             return std::forward<TSelf>(self.withShaderModule(ShaderStage::Mesh, stream, name, entryPoint));
         }
-#endif // LITEFX_BUILD_MESH_SHADER_SUPPORT
 
         /// <summary>
         /// Adds a tessellation control shader module to the program.
@@ -594,10 +603,12 @@ namespace LiteFX::Rendering {
             return std::forward<TSelf>(self.withShaderModule(ShaderStage::Compute, stream, name, entryPoint));
         }
 
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
         /// <summary>
         /// Adds a ray generation shader module to the program.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
@@ -609,6 +620,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds a ray generation shader module to the program.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
         /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
@@ -621,6 +635,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds a miss shader module to the program.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
@@ -632,6 +649,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds a miss shader module to the program.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
         /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
@@ -644,6 +664,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds a callable shader module to the program.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
@@ -655,6 +678,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds a callable shader module to the program.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
         /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
@@ -667,6 +693,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds an intersection hit shader module to the program.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
         template<typename TSelf>
@@ -677,6 +706,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds an intersection hit shader module to the program.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
         /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
@@ -689,6 +721,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds an any hit shader module to the program.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
@@ -700,6 +735,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds an any hit shader module to the program.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
         /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
@@ -712,6 +750,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds a closest hit shader module to the program.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="fileName">The file name of the module.</param>
         /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
         /// <param name="entryPoint">The name of the entry point for the module.</param>
@@ -723,6 +764,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds a closest hit shader module to the program.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="stream">The file stream of the module.</param>
         /// <param name="name">The file name of the module.</param>
         /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data.</param>
@@ -731,7 +775,6 @@ namespace LiteFX::Rendering {
         constexpr inline [[nodiscard]] auto withClosestHitShaderModule(this TSelf&& self, std::istream& stream, const String& name, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt, const String& entryPoint = "main") -> TSelf&& {
             return std::forward<TSelf>(self.withShaderModule(ShaderStage::ClosestHit, stream, name, entryPoint, shaderLocalDescriptor));
         }
-#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
     };
 
     /// <summary>
@@ -1109,17 +1152,18 @@ namespace LiteFX::Rendering {
             return std::forward<TSelf>(self);
         }
 
-#ifdef LITEFX_BUILD_RAY_TRACING_SUPPORT
         /// <summary>
         /// Adds a ray-tracing acceleration structure.
         /// </summary>
+        /// <remarks>
+        /// This method is only supported, if the <see cref="GraphicsDeviceFeatures::RayTracing" /> feature is enabled.
+        /// </remarks>
         /// <param name="binding">The binding point or register index of the descriptor.</param>
         template <typename TSelf>
         constexpr inline [[nodiscard]] auto withAccelerationStructure(this TSelf&& self, UInt32 binding) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(DescriptorType::AccelerationStructure, binding, 0)));
             return std::forward<TSelf>(self);
         }
-#endif // LITEFX_BUILD_RAY_TRACING_SUPPORT
 
         /// <summary>
         /// Adds a sampler descriptor.

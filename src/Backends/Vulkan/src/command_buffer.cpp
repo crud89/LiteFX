@@ -69,7 +69,6 @@ public:
 		return buffer;
 	}
 
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 	inline void buildAccelerationStructure(const VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer)
 	{
 		auto buildInfo = blas.buildInfo();
@@ -133,7 +132,6 @@ public:
 		// Store the scratch buffer.
 		m_sharedResources.push_back(scratchBuffer);
 	}
-#endif
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -494,12 +492,10 @@ void VulkanCommandBuffer::dispatch(const Vector3u& threadCount) const noexcept
 	::vkCmdDispatch(this->handle(), threadCount.x(), threadCount.y(), threadCount.z());
 }
 
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
 void VulkanCommandBuffer::dispatchMesh(const Vector3u& threadCount) const noexcept
 {
 	::vkCmdDrawMeshTasks(this->handle(), threadCount.x(), threadCount.y(), threadCount.z());
 }
-#endif
 
 void VulkanCommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const noexcept
 {
@@ -542,8 +538,6 @@ void VulkanCommandBuffer::releaseSharedState() const
 {
 	m_impl->m_sharedResources.clear();
 }
-
-#if defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
 
 // TODO: Add overload that supports updates (updates set `SourceAccelerationStructureData`).
 
@@ -640,4 +634,3 @@ void VulkanCommandBuffer::traceRays(UInt32 width, UInt32 height, UInt32 depth, c
 
 	::vkCmdTraceRays(this->handle(), &raygen, &miss, &hit, &callable, width, height, depth);
 }
-#endif // defined(LITEFX_BUILD_RAY_TRACING_SUPPORT)
