@@ -166,6 +166,7 @@ namespace LiteFX::Rendering::Backends {
 
         using IAccelerationStructure::build;
         using IAccelerationStructure::update;
+        using IBottomLevelAccelerationStructure::copy;
 
     public:
         /// <summary>
@@ -195,7 +196,13 @@ namespace LiteFX::Rendering::Backends {
         void update(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer = nullptr, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
+        void copy(const DirectX12CommandBuffer& commandBuffer, DirectX12BottomLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
+
+        /// <inheritdoc />
         UInt64 offset() const noexcept override;
+
+        /// <inheritdoc />
+        UInt64 size() const noexcept override;
 
         // IBottomLevelAccelerationStructure interface.
     public:
@@ -224,9 +231,10 @@ namespace LiteFX::Rendering::Backends {
         Array<D3D12_RAYTRACING_GEOMETRY_DESC> buildInfo() const;
 
     private:
-        virtual SharedPtr<const IBuffer> getBuffer() const noexcept override;
-        virtual void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
-        virtual void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        SharedPtr<const IBuffer> getBuffer() const noexcept override;
+        void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        void doCopy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const override;
     };
 
     /// <summary>
@@ -240,6 +248,7 @@ namespace LiteFX::Rendering::Backends {
 
         using IAccelerationStructure::build;
         using IAccelerationStructure::update;
+        using ITopLevelAccelerationStructure::copy;
 
     public:
         /// <summary>
@@ -269,7 +278,13 @@ namespace LiteFX::Rendering::Backends {
         void update(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer = nullptr, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
+        void copy(const DirectX12CommandBuffer& commandBuffer, DirectX12TopLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
+
+        /// <inheritdoc />
         UInt64 offset() const noexcept override;
+
+        /// <inheritdoc />
+        UInt64 size() const noexcept override;
 
         // ITopLevelAccelerationStructure interface.
     public:
@@ -289,9 +304,10 @@ namespace LiteFX::Rendering::Backends {
         Array<D3D12_RAYTRACING_INSTANCE_DESC> buildInfo() const;
 
     private:
-        virtual SharedPtr<const IBuffer> getBuffer() const noexcept override;
-        virtual void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
-        virtual void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        SharedPtr<const IBuffer> getBuffer() const noexcept override;
+        void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        void doCopy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const override;
     };
 
     /// <summary>
@@ -999,6 +1015,7 @@ namespace LiteFX::Rendering::Backends {
         using base_type::pushConstants;
         using base_type::buildAccelerationStructure;
         using base_type::updateAccelerationStructure;
+        using base_type::copyAccelerationStructure;
 
     private:
         /// <summary>
@@ -1140,6 +1157,12 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void updateAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
+
+        /// <inheritdoc />
+        void copyAccelerationStructure(const DirectX12BottomLevelAccelerationStructure& from, const DirectX12BottomLevelAccelerationStructure& to, bool compress = false) const noexcept override;
+
+        /// <inheritdoc />
+        void copyAccelerationStructure(const DirectX12TopLevelAccelerationStructure& from, const DirectX12TopLevelAccelerationStructure& to, bool compress = false) const noexcept override;
 
         /// <inheritdoc />
         void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IDirectX12Buffer& rayGenerationShaderBindingTable, const IDirectX12Buffer* missShaderBindingTable, const IDirectX12Buffer* hitShaderBindingTable, const IDirectX12Buffer* callableShaderBindingTable) const noexcept override;

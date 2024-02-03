@@ -3,7 +3,9 @@
 using namespace LiteFX::Rendering::Backends;
 using Instance = ITopLevelAccelerationStructure::Instance;
 
+extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure;
 extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure;
+extern PFN_vkCmdWriteAccelerationStructuresPropertiesKHR vkCmdWriteAccelerationStructuresProperties;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -17,8 +19,9 @@ private:
     Array<Instance> m_instances { };
     AccelerationStructureFlags m_flags;
     SharedPtr<const IVulkanBuffer> m_buffer;
-    UInt64 m_offset { };
+    UInt64 m_offset { }, m_size { };
     const VulkanDevice* m_device { nullptr };
+    VkQueryPool m_queryPool { VK_NULL_HANDLE };
 
 public:
     VulkanTopLevelAccelerationStructureImpl(VulkanTopLevelAccelerationStructure* parent, AccelerationStructureFlags flags) :
@@ -61,6 +64,9 @@ VulkanTopLevelAccelerationStructure::~VulkanTopLevelAccelerationStructure() noex
 {
     if (this->handle() != VK_NULL_HANDLE)
         ::vkDestroyAccelerationStructure(m_impl->m_device->handle(), this->handle(), nullptr);
+
+    if (m_impl->m_queryPool != VK_NULL_HANDLE)
+        ::vkDestroyQueryPool(m_impl->m_device->handle(), m_impl->m_queryPool, nullptr);
 }
 
 AccelerationStructureFlags VulkanTopLevelAccelerationStructure::flags() const noexcept
@@ -76,6 +82,18 @@ SharedPtr<const IVulkanBuffer> VulkanTopLevelAccelerationStructure::buffer() con
 UInt64 VulkanTopLevelAccelerationStructure::offset() const noexcept
 {
     return m_impl->m_offset;
+}
+
+UInt64 VulkanTopLevelAccelerationStructure::size() const noexcept
+{
+    UInt64 size = m_impl->m_size;
+    VkResult res = VK_SUCCESS;
+
+    // If compaction is enabled and the query pool is defined, check if there are query results.
+    if (LITEFX_FLAG_IS_SET(m_impl->m_flags, AccelerationStructureFlags::AllowCompaction) && m_impl->m_queryPool != VK_NULL_HANDLE)
+        res = ::vkGetQueryPoolResults(m_impl->m_device->handle(), m_impl->m_queryPool, 0, 1, sizeof(UInt64), &size, 0, VkQueryResultFlagBits::VK_QUERY_RESULT_64_BIT);
+
+    return size;
 }
 
 void VulkanTopLevelAccelerationStructure::build(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer, SharedPtr<const IVulkanBuffer> buffer, UInt64 offset, UInt64 maxSize)
@@ -96,6 +114,23 @@ void VulkanTopLevelAccelerationStructure::build(const VulkanCommandBuffer& comma
         throw ArgumentOutOfRangeException("maxSize", 0ull, maxSize, requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("buffer", 0ull, buffer->size(), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
+        
+    // If the acceleration structure allows for compaction, create a query pool in order to query the compacted size later.
+    if (LITEFX_FLAG_IS_SET(m_impl->m_flags, AccelerationStructureFlags::AllowCompaction))
+    {
+        if (m_impl->m_queryPool == VK_NULL_HANDLE)
+        {
+            VkQueryPoolCreateInfo queryPoolInfo = {
+                .sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
+                .queryType = VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_KHR,
+                .queryCount = 1
+            };
+
+            raiseIfFailed(::vkCreateQueryPool(device.handle(), &queryPoolInfo, nullptr, &m_impl->m_queryPool), "Unable to create query pool for compaction size queries.");
+        }
+
+        ::vkResetQueryPool(device.handle(), m_impl->m_queryPool, 0, 1);
+    }
 
     // Perform the build.
     commandBuffer.buildAccelerationStructure(*this, scratchBuffer, *buffer, offset);
@@ -103,6 +138,16 @@ void VulkanTopLevelAccelerationStructure::build(const VulkanCommandBuffer& comma
     // Store the buffer and the offset.
     m_impl->m_offset = offset;
     m_impl->m_buffer = buffer;
+    m_impl->m_size = requiredMemory;
+
+    // Write out the acceleration structure properties to make the compacted size available.
+    if (LITEFX_FLAG_IS_SET(m_impl->m_flags, AccelerationStructureFlags::AllowCompaction))
+    {
+        auto barrier = device.makeBarrier(PipelineStage::AccelerationStructureBuild, PipelineStage::AccelerationStructureBuild);
+        barrier->transition(*m_impl->m_buffer, ResourceAccess::AccelerationStructureWrite, ResourceAccess::AccelerationStructureRead);
+        commandBuffer.barrier(*barrier);
+        ::vkCmdWriteAccelerationStructuresProperties(commandBuffer.handle(), 1, &this->handle(), VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_KHR, m_impl->m_queryPool, 0);
+    }
 }
 
 void VulkanTopLevelAccelerationStructure::update(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer, SharedPtr<const IVulkanBuffer> buffer, UInt64 offset, UInt64 maxSize)
@@ -131,12 +176,105 @@ void VulkanTopLevelAccelerationStructure::update(const VulkanCommandBuffer& comm
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("buffer", 0ull, buffer->size(), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
 
+    // If the acceleration structure allows for compaction, reset the query pool.
+    if (LITEFX_FLAG_IS_SET(m_impl->m_flags, AccelerationStructureFlags::AllowCompaction))
+        ::vkResetQueryPool(device.handle(), m_impl->m_queryPool, 0, 1);
+
     // Perform the update.
     commandBuffer.updateAccelerationStructure(*this, scratchBuffer, *buffer, offset);
 
     // Store the buffer and the offset.
     m_impl->m_offset = offset;
     m_impl->m_buffer = buffer;
+    m_impl->m_size = requiredMemory;
+
+    // Write out the acceleration structure properties to make the compacted size available.
+    if (LITEFX_FLAG_IS_SET(m_impl->m_flags, AccelerationStructureFlags::AllowCompaction))
+    {
+        auto barrier = device.makeBarrier(PipelineStage::AccelerationStructureBuild, PipelineStage::AccelerationStructureBuild);
+        barrier->transition(*m_impl->m_buffer, ResourceAccess::AccelerationStructureWrite, ResourceAccess::AccelerationStructureRead);
+        commandBuffer.barrier(*barrier);
+        ::vkCmdWriteAccelerationStructuresProperties(commandBuffer.handle(), 1, &this->handle(), VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_KHR, m_impl->m_queryPool, 0);
+    }
+}
+
+void VulkanTopLevelAccelerationStructure::copy(const VulkanCommandBuffer& commandBuffer, VulkanTopLevelAccelerationStructure& destination, bool compress, SharedPtr<const IVulkanBuffer> buffer, UInt64 offset, bool copyBuildInfo) const
+{
+    // Validate the state.
+    if (m_impl->m_buffer == nullptr) [[unlikely]]
+        throw RuntimeException("The acceleration structure must have been built before it can be updated.");
+
+    if (compress && !LITEFX_FLAG_IS_SET(m_impl->m_flags, AccelerationStructureFlags::AllowCompaction)) [[unlikely]]
+        throw RuntimeException("The acceleration structure does not allow compaction. Specify `AccelerationStructureFlags::AllowCompaction` during creation.");
+
+    // Query the compacted size, if compression is required, or use the device for requests as usual if not.
+    std::array<UInt64, 2> requiredMemory;
+    auto& device = static_cast<const VulkanQueue&>(commandBuffer.queue()).device();
+
+    if (!LITEFX_FLAG_IS_SET(m_impl->m_flags, AccelerationStructureFlags::AllowCompaction))
+        device.computeAccelerationStructureSizes(*this, requiredMemory[0], requiredMemory[1], true);
+    else
+        raiseIfFailed(::vkGetQueryPoolResults(device.handle(), m_impl->m_queryPool, 0, 1, sizeof(UInt64), &requiredMemory, 0, VkQueryResultFlagBits::VK_QUERY_RESULT_64_BIT), "Unable to query for compressed acceleration structure size.");
+
+    // Validate the input arguments.
+    if (buffer == nullptr)
+        buffer = destination.m_impl->m_buffer->size() >= requiredMemory[0] ? destination.m_impl->m_buffer : device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory[0], 1, ResourceUsage::AllowWrite);
+    else if (buffer->size() < offset + requiredMemory[0]) [[unlikely]]
+        throw ArgumentOutOfRangeException("buffer", 0ull, buffer->size(), offset + requiredMemory[0], "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
+
+    // Create or reset query pool on destination, if required. 
+    if (LITEFX_FLAG_IS_SET(destination.flags(), AccelerationStructureFlags::AllowCompaction))
+    {
+        // TODO: This will cause issues when copying between devices, but this is currently not supported anyway.
+        if (destination.m_impl->m_queryPool == VK_NULL_HANDLE)
+        {
+            VkQueryPoolCreateInfo queryPoolInfo = {
+                .sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
+                .queryType = VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_KHR,
+                .queryCount = 1
+            };
+
+            raiseIfFailed(::vkCreateQueryPool(device.handle(), &queryPoolInfo, nullptr, &destination.m_impl->m_queryPool), "Unable to create query pool for compaction size queries.");
+        }
+
+        ::vkResetQueryPool(device.handle(), destination.m_impl->m_queryPool, 0, 1);
+    }
+
+    // (Re-)create the destination handle, if the buffer changed.
+    if (destination.handle() != VK_NULL_HANDLE)
+        ::vkDestroyAccelerationStructure(device.handle(), destination.handle(), nullptr);
+
+    VkAccelerationStructureCreateInfoKHR info = {
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
+        .buffer = buffer->handle(),
+        .offset = offset,
+        .size = requiredMemory[0],
+        .type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR
+    };
+
+    raiseIfFailed(::vkCreateAccelerationStructure(device.handle(), &info, nullptr, &destination.handle()), "Unable to update destination acceleration structure handle.");
+
+    // Store the buffer and the offset.
+    destination.m_impl->m_offset = offset;
+    destination.m_impl->m_buffer = buffer;
+    destination.m_impl->m_size = requiredMemory[0];
+    destination.m_impl->m_device = m_impl->m_device;
+
+    // Perform the update.
+    commandBuffer.copyAccelerationStructure(*this, destination, compress);
+
+    // Write out the acceleration structure properties to make the compacted size available.
+    if (LITEFX_FLAG_IS_SET(destination.flags(), AccelerationStructureFlags::AllowCompaction))
+    {
+        auto barrier = device.makeBarrier(PipelineStage::AccelerationStructureCopy, PipelineStage::AccelerationStructureCopy);
+        barrier->transition(*destination.m_impl->m_buffer, ResourceAccess::AccelerationStructureWrite, ResourceAccess::AccelerationStructureRead);
+        commandBuffer.barrier(*barrier);
+        ::vkCmdWriteAccelerationStructuresProperties(commandBuffer.handle(), 1, &destination.handle(), VK_QUERY_TYPE_ACCELERATION_STRUCTURE_COMPACTED_SIZE_KHR, destination.m_impl->m_queryPool, 0);
+    }
+
+    // Copy build data, if requested.
+    if (copyBuildInfo)
+        destination.m_impl->m_instances = m_impl->m_instances;
 }
 
 const Array<Instance>& VulkanTopLevelAccelerationStructure::instances() const noexcept
@@ -195,4 +333,9 @@ void VulkanTopLevelAccelerationStructure::doBuild(const ICommandBuffer& commandB
 void VulkanTopLevelAccelerationStructure::doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize)
 {
     this->update(dynamic_cast<const VulkanCommandBuffer&>(commandBuffer), std::dynamic_pointer_cast<const IVulkanBuffer>(scratchBuffer), std::dynamic_pointer_cast<const IVulkanBuffer>(buffer), offset, maxSize);
+}
+
+void VulkanTopLevelAccelerationStructure::doCopy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const
+{
+    this->copy(dynamic_cast<const VulkanCommandBuffer&>(commandBuffer), dynamic_cast<VulkanTopLevelAccelerationStructure&>(destination), compress, std::dynamic_pointer_cast<const IVulkanBuffer>(buffer), offset, copyBuildInfo);
 }

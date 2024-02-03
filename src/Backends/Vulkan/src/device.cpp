@@ -9,6 +9,8 @@ extern PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBui
 extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure { nullptr };
 extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure { nullptr };
 extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructures { nullptr };
+extern PFN_vkCmdCopyAccelerationStructureKHR vkCmdCopyAccelerationStructure { nullptr };
+extern PFN_vkCmdWriteAccelerationStructuresPropertiesKHR vkCmdWriteAccelerationStructuresProperties { nullptr };
 extern PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelines { nullptr };
 extern PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandles { nullptr };
 extern PFN_vkCmdTraceRaysKHR vkCmdTraceRays { nullptr };
@@ -395,8 +397,14 @@ public:
             if (vkCmdBuildAccelerationStructures == nullptr)
                 vkCmdBuildAccelerationStructures = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(::vkGetDeviceProcAddr(device, "vkCmdBuildAccelerationStructuresKHR"));
 
+            if (vkCmdCopyAccelerationStructure == nullptr)
+                vkCmdCopyAccelerationStructure = reinterpret_cast<PFN_vkCmdCopyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCmdCopyAccelerationStructureKHR"));
+
             if (vkCreateRayTracingPipelines == nullptr)
                 vkCreateRayTracingPipelines = reinterpret_cast<PFN_vkCreateRayTracingPipelinesKHR>(::vkGetDeviceProcAddr(device, "vkCreateRayTracingPipelinesKHR"));
+
+            if (vkCmdWriteAccelerationStructuresProperties == nullptr)
+                vkCmdWriteAccelerationStructuresProperties = reinterpret_cast<PFN_vkCmdWriteAccelerationStructuresPropertiesKHR>(::vkGetDeviceProcAddr(device, "vkCmdWriteAccelerationStructuresPropertiesKHR"));
 
             if (vkGetRayTracingShaderGroupHandles == nullptr)
                 vkGetRayTracingShaderGroupHandles = reinterpret_cast<PFN_vkGetRayTracingShaderGroupHandlesKHR>(::vkGetDeviceProcAddr(device, "vkGetRayTracingShaderGroupHandlesKHR"));

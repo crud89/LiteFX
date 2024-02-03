@@ -170,17 +170,18 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // instances. The geometries share one vertex and index buffer.
     auto vertices = asShared(std::move(vertexBuffer));
     auto indices = asShared(std::move(indexBuffer));
-    auto opaque = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure()));
+    auto opaque = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure(AccelerationStructureFlags::AllowCompaction | AccelerationStructureFlags::MinimizeMemory)));
     opaque->withTriangleMesh({ vertices, indices });
 
     // Add an empty geometry, so that the geometry index of the second one will increase, causing it to get reflective (as the hit group changes). Not the most elegant solution, but works 
     // for demonstration purposes.
-    auto reflective = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure()));
+    auto reflective = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure(AccelerationStructureFlags::AllowCompaction | AccelerationStructureFlags::MinimizeMemory)));
     auto dummyVertexBuffer = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, 1, ResourceUsage::AccelerationStructureBuildInput);
     reflective->withTriangleMesh({ asShared(std::move(dummyVertexBuffer)), SharedPtr<IIndexBuffer>() });
     reflective->withTriangleMesh({ vertices, indices });
 
     // Allocate a single buffer for all bottom-level acceleration structures.
+    // NOTE: We can use the sizes as offsets here directly, as they are already properly aligned when requested from the device.
     UInt64 opaqueSize, opaqueScratchSize, reflectiveSize, reflectiveScratchSize;
     m_device->computeAccelerationStructureSizes(*opaque, opaqueSize, opaqueScratchSize);
     m_device->computeAccelerationStructureSizes(*reflective, reflectiveSize, reflectiveScratchSize);
@@ -189,7 +190,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Orient instances randomly.
     std::srand(std::time(nullptr));
 
-    auto tlas = m_device->factory().createTopLevelAccelerationStructure("TLAS");
+    auto tlas = m_device->factory().createTopLevelAccelerationStructure("TLAS", AccelerationStructureFlags::AllowCompaction | AccelerationStructureFlags::MinimizeMemory);
     tlas->withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-3.0f, -3.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 0)
         .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-4.0f, 0.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 1)
         .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-3.0f, 3.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 2)
@@ -242,20 +243,11 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto stagedTexture = m_device->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, texture->size(0));
     stagedTexture->map(imageData.get(), texture->size(0), 0);
 
-    // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
-    // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
-    auto& staticDataBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::StaticData));
-    auto cameraBuffer = m_device->factory().createBuffer("Camera", staticDataBindingsLayout, 0, ResourceHeap::Dynamic);
-    auto staticDataBindings = staticDataBindingsLayout.allocate({ { .resource = *cameraBuffer }, { .resource = *tlas }, { .resource = *texture } });
-
     // Transfer the skybox texture.
     commandBuffer->transfer(asShared(std::move(stagedTexture)), *texture);
     barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::None);
     barrier->transition(*texture, ResourceAccess::TransferWrite, ResourceAccess::None, ImageLayout::CopyDestination, ImageLayout::ShaderResource);
     commandBuffer->barrier(*barrier);
-
-    // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
-    this->updateCamera(*cameraBuffer);
 
     // Create a sampler for the skybox (note that a static sampler would make more sense here, but let's not care too much, as it's a demo).
     auto sampler = m_device->factory().createSampler();
@@ -283,16 +275,59 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // End and submit the command buffer and wait for it to finish.
     auto fence = commandBuffer->submit();
     m_device->defaultQueue(QueueType::Graphics).waitFor(fence);
+
+    // Compact the acceleration structures and setup static bindings.
+    {
+        // Get compacted sizes to allocate enough memory in one single buffer.
+        auto opaqueCompactedSize = Math::align<UInt64>(opaque->size(), 256);
+        auto reflectiveCompactedSize = Math::align<UInt64>(reflective->size(), 256);
+        auto tlasCompactedSize = Math::align<UInt64>(tlas->size(), 256);
+        auto overallSize = opaqueCompactedSize + reflectiveCompactedSize + tlasCompactedSize;
+
+        // Allocate one buffer for all acceleration structures and allocate them individually.
+        auto accelerationStructureBuffer = asShared(std::move(m_device->factory().createBuffer("Acceleration Structures", BufferType::AccelerationStructure, ResourceHeap::Resource, overallSize, 1u)));
+        auto compactedOpaque = m_device->factory().createBottomLevelAccelerationStructure("Opaque BLAS");
+        auto compactedReflective = m_device->factory().createBottomLevelAccelerationStructure("Reflective BLAS");
+        auto compactedTlas = m_device->factory().createTopLevelAccelerationStructure("TLAS");
+
+        // Create a new command buffer to record compaction commands.
+        commandBuffer = m_device->defaultQueue(QueueType::Graphics).createCommandBuffer(true);
+
+        // Copy and compress the acceleration structures individually. This will copy the acceleration structures into one buffer as follows: [ tlas, opaque, reflective ]. Building info will not
+        // be copied and updates are not supported.
+        opaque->copy(*commandBuffer, *compactedOpaque, true, accelerationStructureBuffer, tlasCompactedSize);
+        reflective->copy(*commandBuffer, *compactedReflective, true, accelerationStructureBuffer, tlasCompactedSize + opaqueCompactedSize);
+        tlas->copy(*commandBuffer, *compactedTlas, true, accelerationStructureBuffer);
+
+        // Submit the command buffer.
+        fence = commandBuffer->submit();
+
+        // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
+        // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
+        auto& staticDataBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::StaticData));
+        auto cameraBuffer = m_device->factory().createBuffer("Camera", staticDataBindingsLayout, 0, ResourceHeap::Dynamic);
+        auto staticDataBindings = staticDataBindingsLayout.allocate({ { .resource = *cameraBuffer }, { .resource = *compactedTlas }, { .resource = *texture } });
+
+        // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
+        this->updateCamera(*cameraBuffer);
+
+        // Store compacted acceleration structure and static bindings.
+        m_device->state().add(std::move(compactedOpaque));
+        m_device->state().add(std::move(compactedReflective));
+        m_device->state().add(std::move(compactedTlas));
+        m_device->state().add(std::move(cameraBuffer));
+        m_device->state().add("Static Data Bindings", std::move(staticDataBindings));
+    }
+
+    // Wait for the second fence.
+    m_device->defaultQueue(QueueType::Graphics).waitFor(fence);
     
     // Add everything to the state.
-    m_device->state().add(std::move(tlas)); // No need to store the BLAS, as it is contained in the TLAS.
-    m_device->state().add(std::move(cameraBuffer));
     m_device->state().add(std::move(texture));
     m_device->state().add(std::move(sampler));
     m_device->state().add(std::move(materialBuffer));
     m_device->state().add(std::move(shaderBindingTable));
     m_device->state().add(std::move(backBuffers));
-    m_device->state().add("Static Data Bindings", std::move(staticDataBindings));
     m_device->state().add("Sampler Bindings", std::move(samplerBindings));
     std::ranges::for_each(outputBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Output Bindings {0}", i++), std::move(binding)); });
     m_device->state().add("Material Bindings", std::move(materialBindings));

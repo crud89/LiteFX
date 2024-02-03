@@ -175,6 +175,7 @@ namespace LiteFX::Rendering::Backends {
 
         using IAccelerationStructure::build;
         using IAccelerationStructure::update;
+        using IBottomLevelAccelerationStructure::copy;
 
     public:
         /// <summary>
@@ -204,7 +205,13 @@ namespace LiteFX::Rendering::Backends {
         void update(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer = nullptr, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
+        void copy(const VulkanCommandBuffer& commandBuffer, VulkanBottomLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
+
+        /// <inheritdoc />
         UInt64 offset() const noexcept override;
+
+        /// <inheritdoc />
+        UInt64 size() const noexcept override;
 
         // IBottomLevelAccelerationStructure interface.
     public:
@@ -234,9 +241,10 @@ namespace LiteFX::Rendering::Backends {
         void updateState(const VulkanDevice* device, VkAccelerationStructureKHR handle) noexcept;
 
     private:
-        virtual SharedPtr<const IBuffer> getBuffer() const noexcept override;
-        virtual void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
-        virtual void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        SharedPtr<const IBuffer> getBuffer() const noexcept override;
+        void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        void doCopy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const override;
     };
 
     /// <summary>
@@ -250,6 +258,7 @@ namespace LiteFX::Rendering::Backends {
 
         using IAccelerationStructure::build;
         using IAccelerationStructure::update;
+        using ITopLevelAccelerationStructure::copy;
 
     public:
         /// <summary>
@@ -279,7 +288,13 @@ namespace LiteFX::Rendering::Backends {
         void update(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer = nullptr, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
+        void copy(const VulkanCommandBuffer& commandBuffer, VulkanTopLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
+
+        /// <inheritdoc />
         UInt64 offset() const noexcept override;
+
+        /// <inheritdoc />
+        UInt64 size() const noexcept override;
 
         // ITopLevelAccelerationStructure interface.
     public:
@@ -300,9 +315,10 @@ namespace LiteFX::Rendering::Backends {
         void updateState(const VulkanDevice* device, VkAccelerationStructureKHR handle) noexcept;
 
     private:
-        virtual SharedPtr<const IBuffer> getBuffer() const noexcept override;
-        virtual void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
-        virtual void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        SharedPtr<const IBuffer> getBuffer() const noexcept override;
+        void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        void doCopy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const override;
     };
 
     /// <summary>
@@ -969,6 +985,7 @@ namespace LiteFX::Rendering::Backends {
         using base_type::pushConstants;
         using base_type::buildAccelerationStructure;
         using base_type::updateAccelerationStructure;
+        using base_type::copyAccelerationStructure;
 
     private:
         /// <summary>
@@ -1108,7 +1125,6 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const override;
 
-    public:
         /// <inheritdoc />
         void buildAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
 
@@ -1120,6 +1136,12 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void updateAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
+
+        /// <inheritdoc />
+        void copyAccelerationStructure(const VulkanBottomLevelAccelerationStructure& from, const VulkanBottomLevelAccelerationStructure& to, bool compress = false) const noexcept override;
+
+        /// <inheritdoc />
+        void copyAccelerationStructure(const VulkanTopLevelAccelerationStructure& from, const VulkanTopLevelAccelerationStructure& to, bool compress = false) const noexcept override;
 
         /// <inheritdoc />
         void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IVulkanBuffer& rayGenerationShaderBindingTable, const IVulkanBuffer* missShaderBindingTable, const IVulkanBuffer* hitShaderBindingTable, const IVulkanBuffer* callableShaderBindingTable) const noexcept override;

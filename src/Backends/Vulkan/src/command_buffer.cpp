@@ -4,6 +4,7 @@ using namespace LiteFX::Rendering::Backends;
 
 extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure;
 extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructures;
+extern PFN_vkCmdCopyAccelerationStructureKHR vkCmdCopyAccelerationStructure;
 extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure;
 extern PFN_vkCmdTraceRaysKHR vkCmdTraceRays;
 
@@ -90,7 +91,7 @@ public:
 			.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR
 		};
 
-		::vkCreateAccelerationStructure(device.handle(), &info, nullptr, &handle);
+		raiseIfFailed(::vkCreateAccelerationStructure(device.handle(), &info, nullptr, &handle), "Unable to update acceleration structure handle.");
 
 		auto buildInfo = blas.buildInfo();
 		auto descriptions = buildInfo | std::views::values | std::ranges::to<Array<VkAccelerationStructureGeometryKHR>>();
@@ -149,7 +150,7 @@ public:
 			.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR
 		};
 
-		::vkCreateAccelerationStructure(device.handle(), &info, nullptr, &handle);
+		raiseIfFailed(::vkCreateAccelerationStructure(device.handle(), &info, nullptr, &handle), "Unable to update acceleration structure handle.");
 
 		// Setup TLAS bindings.
 		VkAccelerationStructureGeometryInstancesDataKHR instanceInfo = {
@@ -619,6 +620,30 @@ void VulkanCommandBuffer::updateAccelerationStructure(VulkanBottomLevelAccelerat
 void VulkanCommandBuffer::updateAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
 {
 	m_impl->buildAccelerationStructure(tlas, scratchBuffer, buffer, offset, true);
+}
+
+void VulkanCommandBuffer::copyAccelerationStructure(const VulkanBottomLevelAccelerationStructure& from, const VulkanBottomLevelAccelerationStructure& to, bool compress) const noexcept
+{
+	VkCopyAccelerationStructureInfoKHR copyInfo = {
+		.sType = VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_INFO_KHR,
+		.src = from.handle(),
+		.dst = to.handle(),
+		.mode = compress ? VK_COPY_ACCELERATION_STRUCTURE_MODE_COMPACT_KHR : VK_COPY_ACCELERATION_STRUCTURE_MODE_CLONE_KHR
+	};
+
+	::vkCmdCopyAccelerationStructure(this->handle(), &copyInfo);
+}
+
+void VulkanCommandBuffer::copyAccelerationStructure(const VulkanTopLevelAccelerationStructure& from, const VulkanTopLevelAccelerationStructure& to, bool compress) const noexcept
+{
+	VkCopyAccelerationStructureInfoKHR copyInfo = {
+		.sType = VK_STRUCTURE_TYPE_COPY_ACCELERATION_STRUCTURE_INFO_KHR,
+		.src = from.handle(),
+		.dst = to.handle(),
+		.mode = compress ? VK_COPY_ACCELERATION_STRUCTURE_MODE_COMPACT_KHR : VK_COPY_ACCELERATION_STRUCTURE_MODE_CLONE_KHR
+	};
+
+	::vkCmdCopyAccelerationStructure(this->handle(), &copyInfo);
 }
 
 void VulkanCommandBuffer::traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IVulkanBuffer& rayGenerationShaderBindingTable, const IVulkanBuffer* missShaderBindingTable, const IVulkanBuffer* hitShaderBindingTable, const IVulkanBuffer* callableShaderBindingTable) const noexcept

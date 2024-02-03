@@ -500,6 +500,7 @@ namespace LiteFX::Rendering {
         using ICommandBuffer::pushConstants;
         using ICommandBuffer::buildAccelerationStructure;
         using ICommandBuffer::updateAccelerationStructure;
+        using ICommandBuffer::copyAccelerationStructure;
 
     public:
         using command_buffer_type = TCommandBuffer;
@@ -613,7 +614,11 @@ namespace LiteFX::Rendering {
         /// <inheritdoc />
         virtual void updateAccelerationStructure(top_level_acceleration_structure_type& tlas, const SharedPtr<const buffer_type> scratchBuffer, const buffer_type& buffer, UInt64 offset = 0) const = 0;
 
-        // TODO: Add copy commands to support compaction and serialization.
+        /// <inheritdoc />
+        virtual void copyAccelerationStructure(const bottom_level_acceleration_structure_type& from, const bottom_level_acceleration_structure_type& to, bool compress = false) const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual void copyAccelerationStructure(const top_level_acceleration_structure_type& from, const top_level_acceleration_structure_type& to, bool compress = false) const noexcept = 0;
 
         /// <inheritdoc />
         virtual void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const buffer_type& rayGenerationShaderBindingTable, const buffer_type* missShaderBindingTable, const buffer_type* hitShaderBindingTable, const buffer_type* callableShaderBindingTable) const noexcept = 0;
@@ -722,6 +727,14 @@ namespace LiteFX::Rendering {
         
         void cmdUpdateAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
             this->updateAccelerationStructure(dynamic_cast<top_level_acceleration_structure_type&>(tlas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer), dynamic_cast<const buffer_type&>(buffer), offset);
+        }
+
+        void cmdCopyAccelerationStructure(const IBottomLevelAccelerationStructure& from, const IBottomLevelAccelerationStructure& to, bool compress) const noexcept override {
+            this->copyAccelerationStructure(dynamic_cast<const bottom_level_acceleration_structure_type&>(from), dynamic_cast<const bottom_level_acceleration_structure_type&>(to), compress);
+        }
+
+        void cmdCopyAccelerationStructure(const ITopLevelAccelerationStructure& from, const ITopLevelAccelerationStructure& to, bool compress) const noexcept override {
+            this->copyAccelerationStructure(dynamic_cast<const top_level_acceleration_structure_type&>(from), dynamic_cast<const top_level_acceleration_structure_type&>(to), compress);
         }
 
         void cmdTraceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable, const IBuffer* hitShaderBindingTable, const IBuffer* callableShaderBindingTable) const noexcept override {

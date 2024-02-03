@@ -3770,9 +3770,10 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffer">The command buffer used to record the acceleration structure build commands.</param>
         /// <param name="scratchBuffer">The scratch buffer used during the acceleration structure build, or `nullptr` if a temporary buffer should be created.</param>
         /// <param name="buffer">The buffer that stores the acceleration structure after building, or `nullptr` if a new buffer should be created.</param>
-        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure should be stored. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
+        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure should be stored. Must be a multiple of 256. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
         /// <param name="maxSize">The maximum available size within <paramref name="buffer" /> at <paramref name="offset" />. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="scratchBuffer" /> is not `nullptr` and does not contain enough scratch memory to build the acceleration structure.</exception>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and the range provided by <paramref name="offset" /> and <paramref name="maxSize" /> is not fully contained by the buffer.</exception>
         /// <seealso cref="update" />
         inline void build(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer = nullptr, SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0) {
@@ -3804,10 +3805,11 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffer">The command buffer used to record the acceleration structure build commands.</param>
         /// <param name="scratchBuffer">The scratch buffer used during the acceleration structure build, or `nullptr` if a temporary buffer should be created.</param>
         /// <param name="buffer">The buffer that stores the acceleration structure after updating, or `nullptr` if a new buffer should be created.</param>
-        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure should be stored. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
+        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure should be stored. Must be a multiple of 256. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
         /// <param name="maxSize">The maximum available size within <paramref name="buffer" /> at <paramref name="offset" />. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
         /// <exception cref="RuntimeException">Thrown, if the acceleration structure backing buffer is not initialized, indicating the acceleration structure has not yet been built.</exception>
         /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="scratchBuffer" /> is not `nullptr` and does not contain enough scratch memory to build the acceleration structure.</exception>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and the range provided by <paramref name="offset" /> and <paramref name="maxSize" /> is not fully contained by the buffer.</exception>
         /// <seealso cref="build" />
         inline void update(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer = nullptr, SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0) {
@@ -3819,6 +3821,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The acceleration structure backing buffer, that stores its last build.</returns>
         /// <seealso cref="offset" />
+        /// <seealso cref="size" />
         inline SharedPtr<const IBuffer> buffer() const noexcept {
             return this->getBuffer();
         }
@@ -3829,6 +3832,22 @@ namespace LiteFX::Rendering {
         /// <returns>The offset into <see cref="buffer" /> at which the acceleration structure is stored.</returns>
         /// <seealso cref="buffer" />
         virtual UInt64 offset() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the amount of memory in bytes inside <see cref="buffer" /> that store the acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// Note that this may be different to the value specified during build, as the actual size may be smaller (but can never be larger) after building. If you want to reduce the memory footprint, you can use 
+        /// this amount of memory for a compacted buffer and copy the acceleration structure using a copy command. In order to acquire the actual size required by the acceleration structure, the system needs to
+        /// wait for the last build or update process to finish. Before that, this property will return the memory requirements as pre-computed by the device. To make sure that the build has finished, you need to
+        /// manually wait for the fence acquired by submitting the command buffer that builds or updates the acceleration structure. Afterwards this method will return the actual size required to store the 
+        /// acceleration structure.
+        ///  
+        /// If the acceleration structure has not yet been built or is invalidated, this property returns `0`.
+        /// </remarks>
+        /// <returns>The amount of memory in bytes inside <see cref="buffer" /> that store the acceleration structure.</returns>
+        /// <seealso cref="buffer" />
+        virtual UInt64 size() const noexcept = 0;
 
     private:
         virtual SharedPtr<const IBuffer> getBuffer() const noexcept = 0;
@@ -4043,6 +4062,44 @@ namespace LiteFX::Rendering {
         /// <returns>`true`, if the bounding box set was removed, otherwise `false`.</returns>
         virtual bool remove(const BoundingBoxes& aabb) noexcept = 0;
 
+        /// <summary>
+        /// Copies the acceleration structure into the acceleration structure provided by <paramref name="destination" />.
+        /// </summary>
+        /// <remarks>
+        /// This method copies the acceleration structure into another one, which is especially useful for compression. If called without any arguments besides <paramref name="commandBuffer" /> and
+        /// <paramref name="destination" />, the method will create a clone of the current acceleration structure, including any build info (i.e., triangle mesh or bounding box data). If the destination
+        /// acceleration structure already contains a buffer and the buffer contains enough memory to store the copy, it will be re-used and its contents will be overwritten. Otherwise, a new buffer with enough
+        /// memory to store the copy will be allocated.
+        /// 
+        /// If the <paramref name="compress" /> option is set to `true`, the copy will be compressed. Note that this is only possible, if the acceleration structure was created with the 
+        /// <see cref="AccelerationStructureFlags::AllowCompaction" /> flag enabled. Note that compression requires a query for the size of the compressed data, which can only be determined *after* the 
+        /// acceleration structure was built or updated. This implies that a copy command that is used for compression is not valid on the same command buffer that did also record the build or update commands
+        /// for it. You have to use a fence to wait for the build to finish before attempting a compression.
+        /// 
+        /// It is possible to provide a buffer for the destination acceleration structure to use after copying. This buffer can be set by providing the <paramref name="buffer" /> parameter. This allows to
+        /// re-use memory from another acceleration structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling <see cref="buffer" />) and 
+        /// destroy it afterwards, which enables re-use scenarios for example for caching. Alternatively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory 
+        /// consumption. This is done by also providing the <paramref name="offset" /> parameter to address where the copy should be stored. Note that the pointer passed to the <see cref="buffer" /> parameter 
+        /// must have been initialized with the <see cref="BufferType::AccelerationStructure" /> buffer type and must be writable (<see cref="ResourceUsage::AllowWrite" />).
+        /// 
+        /// To reduce memory consumption, the build info (i.e., triangle mesh and bounding box data) is not copied to the destination acceleration structure by default. However, this also implies that further
+        /// updates to it are inconvenient, requiring to manually copy the data in an additional pass. To also include build data in the copy, the <paramref name="copyBuildInfo" /> setting can be set to `true`.
+        /// 
+        /// After a successful copy, the buffer pointer is stored by the acceleration structure <paramref name="destination" /> and can be accessed by calling <see cref="buffer" /> on it.
+        /// </remarks>
+        /// <param name="commandBuffer">The command buffer used to record the acceleration structure copy commands.</param>
+        /// <param name="destination">The acceleration structure to copy the current one into.</param>
+        /// <param name="compress">If `true`, the acceleration structure data will be compressed.</param>
+        /// <param name="buffer">If not `nullptr`, the destination acceleration structure will be written into the provided buffer. Otherwise a new buffer is allocated, or the existing one is used depending on the available size.</param>
+        /// <param name="offset">The offset at which to store the copy within <paramref name="buffer" />. Must be a multiple of 256. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
+        /// <param name="copyBuildInfo">If `true`, the mesh data or bounding box data is copied into the acceleration structure.</param>
+        /// <excetpion cref="InvalidArgumentException">Thrown, if <paramref name="compress" /> is set to `true`, but the current acceleration structure has not been created with the <see cref="AccelerationStructureFlags::AllowCompaction" /> flag.</exception>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and does not fully contain the required memory to store the copy, starting at <paramref name="offset" />.</exception>
+        inline void copy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const {
+            this->doCopy(commandBuffer, destination, compress, buffer, offset, copyBuildInfo);
+        }
+
     public:
         /// <summary>
         /// Adds a triangle mesh to the BLAS.
@@ -4093,6 +4150,9 @@ namespace LiteFX::Rendering {
         inline auto withBoundingBox(this TSelf&& self, SharedPtr<const IBuffer> buffer, GeometryFlags flags = GeometryFlags::None) -> TSelf&& {
             return self.withBoundingBox(BoundingBoxes { .Buffer = buffer, .Flags = flags });
         }
+
+    private:
+        virtual void doCopy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const = 0;
     };
 
     /// <summary>
@@ -4200,6 +4260,44 @@ namespace LiteFX::Rendering {
         /// <returns>`true`, if the instance has been removed, otherwise `false`.</returns>
         virtual bool remove(const Instance& instance) noexcept = 0;
 
+        /// <summary>
+        /// Copies the acceleration structure into the acceleration structure provided by <paramref name="destination" />.
+        /// </summary>
+        /// <remarks>
+        /// This method copies the acceleration structure into another one, which is especially useful for compression. If called without any arguments besides <paramref name="commandBuffer" /> and
+        /// <paramref name="destination" />, the method will create a clone of the current acceleration structure, including any build info (i.e., triangle mesh or bounding box data). If the destination
+        /// acceleration structure already contains a buffer and the buffer contains enough memory to store the copy, it will be re-used and its contents will be overwritten. Otherwise, a new buffer with enough
+        /// memory to store the copy will be allocated.
+        /// 
+        /// If the <paramref name="compress" /> option is set to `true`, the copy will be compressed. Note that this is only possible, if the acceleration structure was created with the 
+        /// <see cref="AccelerationStructureFlags::AllowCompaction" /> flag enabled. Note that compression requires a query for the size of the compressed data, which can only be determined *after* the 
+        /// acceleration structure was built or updated. This implies that a copy command that is used for compression is not valid on the same command buffer that did also record the build or update commands
+        /// for it. You have to use a fence to wait for the build to finish before attempting a compression.
+        /// 
+        /// It is possible to provide a buffer for the destination acceleration structure to use after copying. This buffer can be set by providing the <paramref name="buffer" /> parameter. This allows to
+        /// re-use memory from another acceleration structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling <see cref="buffer" />) and 
+        /// destroy it afterwards, which enables re-use scenarios for example for caching. Alternatively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory 
+        /// consumption. This is done by also providing the <paramref name="offset" /> parameter to address where the copy should be stored. Note that the pointer passed to the <see cref="buffer" /> parameter 
+        /// must have been initialized with the <see cref="BufferType::AccelerationStructure" /> buffer type and must be writable (<see cref="ResourceUsage::AllowWrite" />).
+        /// 
+        /// To reduce memory consumption, the build info (i.e., triangle mesh and bounding box data) is not copied to the destination acceleration structure by default. However, this also implies that further
+        /// updates to it are inconvenient, requiring to manually copy the data in an additional pass. To also include build data in the copy, the <paramref name="copyBuildInfo" /> setting can be set to `true`.
+        /// 
+        /// After a successful copy, the buffer pointer is stored by the acceleration structure <paramref name="destination" /> and can be accessed by calling <see cref="buffer" /> on it.
+        /// </remarks>
+        /// <param name="commandBuffer">The command buffer used to record the acceleration structure copy commands.</param>
+        /// <param name="destination">The acceleration structure to copy the current one into.</param>
+        /// <param name="compress">If `true`, the acceleration structure data will be compressed.</param>
+        /// <param name="buffer">If not `nullptr`, the destination acceleration structure will be written into the provided buffer. Otherwise a new buffer is allocated, or the existing one is used depending on the available size.</param>
+        /// <param name="offset">The offset at which to store the copy within <paramref name="buffer" />. Must be a multiple of 256. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
+        /// <param name="copyBuildInfo">If `true`, the mesh data or bounding box data is copied into the acceleration structure.</param>
+        /// <excetpion cref="InvalidArgumentException">Thrown, if <paramref name="compress" /> is set to `true`, but the current acceleration structure has not been created with the <see cref="AccelerationStructureFlags::AllowCompaction" /> flag.</exception>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and does not fully contain the required memory to store the copy, starting at <paramref name="offset" />.</exception>
+        inline void copy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const {
+            this->doCopy(commandBuffer, destination, compress, buffer, offset, copyBuildInfo);
+        }
+
     public:
         /// <summary>
         /// Adds an instance to the current TLAS.
@@ -4242,6 +4340,9 @@ namespace LiteFX::Rendering {
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
             return std::forward<TSelf>(self);
         }
+
+    private:
+        virtual void doCopy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const = 0;
     };
 
     /// <summary>
@@ -6255,6 +6356,40 @@ namespace LiteFX::Rendering {
             this->cmdUpdateAccelerationStructure(tlas, scratchBuffer, buffer, offset);
         }
 
+        /// <summary>
+        /// Copies the acceleration structure <paramref name="from" /> into the acceleration structure <paramref name="to" />.
+        /// </summary>
+        /// <remarks>
+        /// Prefer calling <see cref="IBottomLevelAccelerationStructure::copy" /> over directly issuing copy commands on a command buffer, as this will make sure that the destination buffer will 
+        /// be properly allocated and contains enough memory to store the copy. Only issue copies on the command buffer directly, if you want to retain the destination buffer and know for certain,
+        /// that it contains a sufficient amount of memory.
+        /// 
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="from">The source acceleration structure to copy from.</param>
+        /// <param name="to">The destination acceleration structure to copy to.</param>
+        /// <param name="compress">If set to `true`, the acceleration structure will be compressed.</param>
+        inline void copyAccelerationStructure(const IBottomLevelAccelerationStructure& from, const IBottomLevelAccelerationStructure& to, bool compress = false) const noexcept {
+            this->cmdCopyAccelerationStructure(from, to, compress);
+        }
+
+        /// <summary>
+        /// Copies the acceleration structure <paramref name="from" /> into the acceleration structure <paramref name="to" />.
+        /// </summary>
+        /// <remarks>
+        /// Prefer calling <see cref="ITopLevelAccelerationStructure::copy" /> over directly issuing copy commands on a command buffer, as this will make sure that the destination buffer will be 
+        /// properly allocated and contains enough memory to store the copy. Only issue copies on the command buffer directly, if you want to retain the destination buffer and know for certain,
+        /// that it contains a sufficient amount of memory.
+        /// 
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="from">The source acceleration structure to copy from.</param>
+        /// <param name="to">The destination acceleration structure to copy to.</param>
+        /// <param name="compress">If set to `true`, the acceleration structure will be compressed.</param>
+        inline void copyAccelerationStructure(const ITopLevelAccelerationStructure& from, const ITopLevelAccelerationStructure& to, bool compress = false) const noexcept {
+            this->cmdCopyAccelerationStructure(from, to, compress);
+        }
+
     private:
         virtual void cmdBarrier(const IBarrier& barrier) const noexcept = 0;
         virtual void cmdGenerateMipMaps(IImage& image) noexcept = 0;
@@ -6281,6 +6416,8 @@ namespace LiteFX::Rendering {
         virtual void cmdBuildAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
         virtual void cmdUpdateAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
         virtual void cmdUpdateAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
+        virtual void cmdCopyAccelerationStructure(const IBottomLevelAccelerationStructure& from, const IBottomLevelAccelerationStructure& to, bool compress) const noexcept = 0;
+        virtual void cmdCopyAccelerationStructure(const ITopLevelAccelerationStructure& from, const ITopLevelAccelerationStructure& to, bool compress) const noexcept = 0;
         virtual void cmdTraceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable, const IBuffer* hitShaderBindingTable, const IBuffer* callableShaderBindingTable) const noexcept = 0;
 
         /// <summary>
@@ -6394,7 +6531,7 @@ namespace LiteFX::Rendering {
         /// size of all records of the groups to be included. It makes sense to pack multiple records into the same buffer for efficiency, however it may generally be a good
         /// idea to separate groups that require large amount of local shader data into their own buffers to keep the other buffers smaller.
         /// 
-        /// The shader binding table is created on the default resource heap (<see cref="ResourceHeap::Dynamic" />). However, for best performance, consider transfering it to a
+        /// The shader binding table is created on the default resource heap (<see cref="ResourceHeap::Dynamic" />). However, for best performance, consider transferring it to a
         /// buffer on the GPU resource heap (<see cref="ResourceHeap::Resource" />) afterwards.
         /// </remarks>
         /// <param name="offsets">A reference to a structure that receives the offsets and sizes to the groups within the shader binding table.</param>
