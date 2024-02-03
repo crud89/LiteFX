@@ -173,15 +173,17 @@ private:
             m_extensions.push_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
 
         if (features.RayTracing)
-        {
             m_extensions.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
+
+        if (features.RayQueries)
+            m_extensions.push_back(VK_KHR_RAY_QUERY_EXTENSION_NAME);
+
+        if (features.RayTracing || features.RayQueries)
+        {
             m_extensions.push_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
             m_extensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
             m_extensions.push_back(VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME);
         }
-
-        if (features.RayQueries)
-            m_extensions.push_back(VK_KHR_RAY_QUERY_EXTENSION_NAME);
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
         // Interop swap chain requires external memory access.
@@ -271,7 +273,7 @@ public:
                 };
             }) | std::ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
-        // Enable raytracing features.
+        // Enable ray-tracing features.
         VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR,
             .rayQuery = features.RayQueries
@@ -280,7 +282,8 @@ public:
         VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR rayTracingMaintenanceFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MAINTENANCE_1_FEATURES_KHR,
             .pNext = &rayQueryFeatures,
-            .rayTracingMaintenance1 = features.RayTracing
+            .rayTracingMaintenance1 = features.RayTracing || features.RayQueries,
+            .rayTracingPipelineTraceRaysIndirect2 = features.RayQueries
         };
 
         VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures = {
@@ -292,8 +295,8 @@ public:
         VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR,
             .pNext = &rayTracingPipelineFeatures,
-            .accelerationStructure = features.RayTracing,
-            .descriptorBindingAccelerationStructureUpdateAfterBind = features.RayTracing
+            .accelerationStructure = features.RayTracing || features.RayQueries,
+            .descriptorBindingAccelerationStructureUpdateAfterBind = features.RayTracing || features.RayQueries
         };
 
         // Enable task and mesh shaders.
@@ -400,17 +403,38 @@ public:
             if (vkCmdCopyAccelerationStructure == nullptr)
                 vkCmdCopyAccelerationStructure = reinterpret_cast<PFN_vkCmdCopyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCmdCopyAccelerationStructureKHR"));
 
-            if (vkCreateRayTracingPipelines == nullptr)
-                vkCreateRayTracingPipelines = reinterpret_cast<PFN_vkCreateRayTracingPipelinesKHR>(::vkGetDeviceProcAddr(device, "vkCreateRayTracingPipelinesKHR"));
-
             if (vkCmdWriteAccelerationStructuresProperties == nullptr)
                 vkCmdWriteAccelerationStructuresProperties = reinterpret_cast<PFN_vkCmdWriteAccelerationStructuresPropertiesKHR>(::vkGetDeviceProcAddr(device, "vkCmdWriteAccelerationStructuresPropertiesKHR"));
+
+            if (vkCreateRayTracingPipelines == nullptr)
+                vkCreateRayTracingPipelines = reinterpret_cast<PFN_vkCreateRayTracingPipelinesKHR>(::vkGetDeviceProcAddr(device, "vkCreateRayTracingPipelinesKHR"));
 
             if (vkGetRayTracingShaderGroupHandles == nullptr)
                 vkGetRayTracingShaderGroupHandles = reinterpret_cast<PFN_vkGetRayTracingShaderGroupHandlesKHR>(::vkGetDeviceProcAddr(device, "vkGetRayTracingShaderGroupHandlesKHR"));
 
             if (vkCmdTraceRays == nullptr)
                 vkCmdTraceRays = reinterpret_cast<PFN_vkCmdTraceRaysKHR>(::vkGetDeviceProcAddr(device, "vkCmdTraceRaysKHR"));
+        }
+
+        if (features.RayQueries)
+        {
+            if (vkGetAccelerationStructureBuildSizes == nullptr)
+                vkGetAccelerationStructureBuildSizes = reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(::vkGetDeviceProcAddr(device, "vkGetAccelerationStructureBuildSizesKHR"));
+
+            if (vkCreateAccelerationStructure == nullptr)
+                vkCreateAccelerationStructure = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCreateAccelerationStructureKHR"));
+
+            if (vkDestroyAccelerationStructure == nullptr)
+                vkDestroyAccelerationStructure = reinterpret_cast<PFN_vkDestroyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkDestroyAccelerationStructureKHR"));
+
+            if (vkCmdBuildAccelerationStructures == nullptr)
+                vkCmdBuildAccelerationStructures = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(::vkGetDeviceProcAddr(device, "vkCmdBuildAccelerationStructuresKHR"));
+
+            if (vkCmdCopyAccelerationStructure == nullptr)
+                vkCmdCopyAccelerationStructure = reinterpret_cast<PFN_vkCmdCopyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCmdCopyAccelerationStructureKHR"));
+
+            if (vkCmdWriteAccelerationStructuresProperties == nullptr)
+                vkCmdWriteAccelerationStructuresProperties = reinterpret_cast<PFN_vkCmdWriteAccelerationStructuresPropertiesKHR>(::vkGetDeviceProcAddr(device, "vkCmdWriteAccelerationStructuresPropertiesKHR"));
         }
 
         return device;
