@@ -178,7 +178,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto reflective = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure(AccelerationStructureFlags::AllowCompaction | AccelerationStructureFlags::MinimizeMemory)));
     auto dummyVertexBuffer = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, 1, ResourceUsage::AccelerationStructureBuildInput);
     reflective->withTriangleMesh({ asShared(std::move(dummyVertexBuffer)), SharedPtr<IIndexBuffer>() });
-    reflective->withTriangleMesh({ vertices, indices });
+    reflective->withTriangleMesh({ vertices, indices, nullptr, GeometryFlags::Opaque });
 
     // Allocate a single buffer for all bottom-level acceleration structures.
     // NOTE: We can use the sizes as offsets here directly, as they are already properly aligned when requested from the device.
