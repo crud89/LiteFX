@@ -241,6 +241,7 @@ struct LITEFX_RENDERING_API fmt::formatter<DescriptorType> : formatter<string_vi
 		case ByteAddressBuffer: name = "ByteAddressBuffer"; break;
 		case RWByteAddressBuffer: name = "RWByteAddressBuffer"; break;
 		case InputAttachment: name = "Input Attachment"; break;
+		case AccelerationStructure: name = "Acceleration Structure"; break;
 		}
 		return formatter<string_view>::format(name, ctx);
 	}
@@ -253,24 +254,53 @@ struct LITEFX_RENDERING_API fmt::formatter<BufferType> : formatter<string_view> 
 		string_view name = "Invalid";
 		switch (t) {
 		using enum BufferType;
-		case Index:      name = "Index";   break;
-		case Vertex:     name = "Vertex";  break;
-		case Uniform:    name = "Uniform"; break;
-		case Storage:    name = "Storage"; break;
-		case Texel:      name = "Texel";   break;
-		case Other:      name = "Other";   break;
+		case Index:                 name = "Index"; break;
+		case Vertex:                name = "Vertex"; break;
+		case Uniform:               name = "Uniform"; break;
+		case Storage:               name = "Storage"; break;
+		case Texel:                 name = "Texel"; break;
+		case AccelerationStructure: name = "Acceleration Structure"; break;
+		case ShaderBindingTable:    name = "Shader Binding Table"; break;
+		case Other:                 name = "Other"; break;
 		}
 		return formatter<string_view>::format(name, ctx);
 	}
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<BufferUsage> : formatter<string_view> {
+struct LITEFX_RENDERING_API fmt::formatter<ResourceUsage> : formatter<string_view> {
 	template <typename FormatContext>
-	auto format(BufferUsage t, FormatContext& ctx) {
+	auto format(ResourceUsage t, FormatContext& ctx) {
+		Array<String> names;
+
+		if (t == ResourceUsage::None)
+			names.push_back("None");
+		else if (t == ResourceUsage::Default)
+			names.push_back("Default");
+		else
+		{
+			if ((t & ResourceUsage::AllowWrite) == ResourceUsage::AllowWrite)
+				names.push_back("AllowWrite");
+			if ((t & ResourceUsage::TransferSource) == ResourceUsage::TransferSource)
+				names.push_back("TransferSource");
+			if ((t & ResourceUsage::TransferDestination) == ResourceUsage::TransferDestination)
+				names.push_back("TransferDestination");
+			if ((t & ResourceUsage::AccelerationStructureBuildInput) == ResourceUsage::AccelerationStructureBuildInput)
+				names.push_back("AccelerationStructureBuildInput");
+		}
+
+		String name = Join(names, " | ");
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<ResourceHeap> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(ResourceHeap t, FormatContext& ctx) {
 		string_view name = "Invalid";
 		switch (t) {
-		using enum BufferUsage;
+		using enum ResourceHeap;
 		case Staging:  name = "Staging";  break;
 		case Resource: name = "Resource"; break;
 		case Dynamic:  name = "Dynamic";  break;
@@ -302,6 +332,10 @@ struct LITEFX_RENDERING_API fmt::formatter<ShaderStage> : formatter<string_view>
 
 		if (t == ShaderStage::Other)
 			names.push_back("Other");
+		else if (t == ShaderStage::MeshPipeline)
+			names.push_back("Mesh Shading");
+		if (t == ShaderStage::RayTracingPipeline)
+			names.push_back("Ray Tracing");
 		else
 		{
 			if ((t & ShaderStage::Vertex) == ShaderStage::Vertex)
@@ -320,6 +354,18 @@ struct LITEFX_RENDERING_API fmt::formatter<ShaderStage> : formatter<string_view>
 				names.push_back("Mesh");
 			if ((t & ShaderStage::Task) == ShaderStage::Task)
 				names.push_back("Task");
+			if ((t & ShaderStage::RayGeneration) == ShaderStage::RayGeneration)
+				names.push_back("Ray Generation");
+			if ((t & ShaderStage::AnyHit) == ShaderStage::AnyHit)
+				names.push_back("Any Hit");
+			if ((t & ShaderStage::ClosestHit) == ShaderStage::ClosestHit)
+				names.push_back("Closest Hit");
+			if ((t & ShaderStage::Intersection) == ShaderStage::Intersection)
+				names.push_back("Intersection");
+			if ((t & ShaderStage::Miss) == ShaderStage::Miss)
+				names.push_back("Miss");
+			if ((t & ShaderStage::Callable) == ShaderStage::Callable)
+				names.push_back("Callable");
 		}
 
 		String name = Join(names, " | ");
@@ -558,6 +604,79 @@ struct LITEFX_RENDERING_API fmt::formatter<AttributeSemantic> : formatter<string
 		default: name = "Unknown"; break;
 		}
 
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<GeometryFlags> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(GeometryFlags t, FormatContext& ctx) {
+		Array<String> names;
+
+		if (t == GeometryFlags::None)
+			names.push_back("None");
+		else
+		{
+			if ((t & GeometryFlags::Opaque) == GeometryFlags::Opaque)
+				names.push_back("Opaque");
+			if ((t & GeometryFlags::OneShotAnyHit) == GeometryFlags::OneShotAnyHit)
+				names.push_back("OneShotAnyHit");
+		}
+
+		String name = Join(names, " | ");
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<AccelerationStructureFlags> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(AccelerationStructureFlags t, FormatContext& ctx) {
+		Array<String> names;
+
+		if (t == AccelerationStructureFlags::None)
+			names.push_back("None");
+		else
+		{
+			if ((t & AccelerationStructureFlags::AllowUpdate) == AccelerationStructureFlags::AllowUpdate)
+				names.push_back("AllowUpdate");
+			if ((t & AccelerationStructureFlags::AllowCompaction) == AccelerationStructureFlags::AllowCompaction)
+				names.push_back("AllowCompaction");
+			if ((t & AccelerationStructureFlags::PreferFastTrace) == AccelerationStructureFlags::AllowCompaction)
+				names.push_back("PreferFastTrace");
+			if ((t & AccelerationStructureFlags::PreferFastBuild) == AccelerationStructureFlags::PreferFastBuild)
+				names.push_back("PreferFastBuild");
+			if ((t & AccelerationStructureFlags::MinimizeMemory) == AccelerationStructureFlags::MinimizeMemory)
+				names.push_back("MinimizeMemory");
+		}
+
+		String name = Join(names, " | ");
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API fmt::formatter<InstanceFlags> : formatter<string_view> {
+	template <typename FormatContext>
+	auto format(InstanceFlags t, FormatContext& ctx) {
+		Array<String> names;
+
+		if (t == InstanceFlags::None)
+			names.push_back("None");
+		else
+		{
+			if ((t & InstanceFlags::DisableCull) == InstanceFlags::DisableCull)
+				names.push_back("DisableCull");
+			if ((t & InstanceFlags::FlipWinding) == InstanceFlags::FlipWinding)
+				names.push_back("FlipWinding");
+			if ((t & InstanceFlags::ForceOpaque) == InstanceFlags::ForceOpaque)
+				names.push_back("ForceOpaque");
+			if ((t & InstanceFlags::ForceNonOpaque) == InstanceFlags::ForceNonOpaque)
+				names.push_back("ForceNonOpaque");
+		}
+
+		String name = Join(names, " | ");
 		return formatter<string_view>::format(name, ctx);
 	}
 };

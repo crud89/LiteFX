@@ -25,6 +25,8 @@ public:
 		allocatorInfo.physicalDevice = device.adapter().handle();
 		allocatorInfo.instance = device.surface().instance();
 		allocatorInfo.device = device.handle();
+		allocatorInfo.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_3;
 
 		raiseIfFailed(::vmaCreateAllocator(&allocatorInfo, &m_allocator), "Unable to create Vulkan memory allocator.");
 	}
@@ -47,15 +49,29 @@ VulkanGraphicsFactory::VulkanGraphicsFactory(const VulkanDevice& device) :
 
 VulkanGraphicsFactory::~VulkanGraphicsFactory() noexcept = default;
 
-UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const
+UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const
 {
-	return this->createBuffer("", type, usage, elementSize, elements, allowWrite);
+	return this->createBuffer("", type, heap, elementSize, elements, usage);
 }
 
-UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const
+UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const
 {
+	// Validate inputs.
+	if ((type == BufferType::Vertex || type == BufferType::Index || type == BufferType::Uniform) && LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite)) [[unlikely]]
+		throw InvalidArgumentException("usage", "Invalid resource usage has been specified: vertex, index and uniform/constant buffers cannot be written to.");
+
+	if (type == BufferType::AccelerationStructure && LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput)) [[unlikely]]
+		throw InvalidArgumentException("usage", "Invalid resource usage has been specified: acceleration structures cannot be used as build inputs for other acceleration structures.");
+
+	// Set heap-default usages.
+	if (heap == ResourceHeap::Staging && !LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferSource))
+		usage |= ResourceUsage::TransferSource;
+	else if (heap == ResourceHeap::Readback && !LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferDestination))
+		usage |= ResourceUsage::TransferDestination;
+	
+	// Create the buffer.
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-	VkBufferUsageFlags usageFlags = {};
+	VkBufferUsageFlags usageFlags = { VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT };
 
 	size_t alignedSize = static_cast<size_t>(elementSize);
 	size_t alignment = 0;
@@ -77,12 +93,20 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 		alignment = m_impl->m_device.adapter().limits().minStorageBufferOffsetAlignment;
 		break;
 	case BufferType::Texel:
-		if (allowWrite)
+		if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite))
 			usageFlags |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
 		else
 			usageFlags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
 
 		alignment = m_impl->m_device.adapter().limits().minTexelBufferOffsetAlignment;
+		break;
+	case BufferType::AccelerationStructure:
+		usageFlags |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR;
+		alignment = m_impl->m_device.adapter().limits().minUniformBufferOffsetAlignment;
+		break;
+	case BufferType::ShaderBindingTable:
+		usageFlags |= VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR;
+		alignment = m_impl->m_device.adapter().limits().minStorageBufferOffsetAlignment;
 		break;
 	}
 
@@ -91,23 +115,24 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 
 	bufferInfo.size = alignedSize * static_cast<size_t>(elements);
 
-	switch (usage)
-	{
-	case BufferUsage::Staging: usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  break;
-	case BufferUsage::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
-	}
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferSource))
+		usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferDestination))
+		usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput))
+		usageFlags |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
 
 	bufferInfo.usage = usageFlags;
 
 	// Deduct the allocation usage from the buffer usage scenario.
 	VmaAllocationCreateInfo allocInfo = {};
 
-	switch (usage)
+	switch (heap)
 	{
-	case BufferUsage::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
-	case BufferUsage::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
-	case BufferUsage::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
-	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	case ResourceHeap::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
+	case ResourceHeap::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
+	case ResourceHeap::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
+	case ResourceHeap::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
@@ -118,7 +143,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
-	buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, allowWrite, m_impl->m_allocator, bufferInfo, allocInfo);
+	buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, usage, m_impl->m_device, m_impl->m_allocator, bufferInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())
@@ -128,35 +153,46 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 	return buffer;
 }
 
-UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const
+UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
 {
-	return this->createVertexBuffer("", layout, usage, elements);
+	return this->createVertexBuffer("", layout, heap, elements, usage);
 }
 
-UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const
+UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
 {
+	// Validate usage.
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite)) [[unlikely]]
+		throw InvalidArgumentException("usage", "Invalid resource usage has been specified: vertex buffers cannot be written to.");
+
+	// Set heap-default usages.
+	if (heap == ResourceHeap::Staging && !LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferSource))
+		usage |= ResourceUsage::TransferSource;
+	else if (heap == ResourceHeap::Readback && !LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferDestination))
+		usage |= ResourceUsage::TransferDestination;
+
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = layout.elementSize() * elements;
 
-	VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
 
-	switch (usage)
-	{
-	case BufferUsage::Staging: usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  break;
-	case BufferUsage::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
-	}
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferSource))
+		usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferDestination))
+		usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput))
+		usageFlags |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
 
 	bufferInfo.usage = usageFlags;
 
 	// Deduct the allocation usage from the buffer usage scenario.
 	VmaAllocationCreateInfo allocInfo = {};
 
-	switch (usage)
+	switch (heap)
 	{
-	case BufferUsage::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
-	case BufferUsage::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
-	case BufferUsage::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
-	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	case ResourceHeap::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
+	case ResourceHeap::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
+	case ResourceHeap::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
+	case ResourceHeap::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
@@ -167,7 +203,7 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
-	buffer = VulkanVertexBuffer::allocate(name, layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	buffer = VulkanVertexBuffer::allocate(name, layout, elements, usage, m_impl->m_device, m_impl->m_allocator, bufferInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())
@@ -177,35 +213,46 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 	return buffer;
 }
 
-UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const
+UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
 {
-	return this->createIndexBuffer("", layout, usage, elements);
+	return this->createIndexBuffer("", layout, heap, elements, usage);
 }
 
-UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const
+UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
 {
+	// Validate usage.
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite)) [[unlikely]]
+		throw InvalidArgumentException("usage", "Invalid resource usage has been specified: index buffers cannot be written to.");
+
+	// Set heap-default usages.
+	if (heap == ResourceHeap::Staging && !LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferSource))
+		usage |= ResourceUsage::TransferSource;
+	else if (heap == ResourceHeap::Readback && !LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferDestination))
+		usage |= ResourceUsage::TransferDestination;
+
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	bufferInfo.size = layout.elementSize() * elements;
 
-	VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+	VkBufferUsageFlags usageFlags = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
 
-	switch (usage)
-	{
-	case BufferUsage::Staging: usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;  break;
-	case BufferUsage::Resource: usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT; break;
-	}
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferSource))
+		usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferDestination))
+		usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput))
+		usageFlags |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
 
 	bufferInfo.usage = usageFlags;
 
 	// Deduct the allocation usage from the buffer usage scenario.
 	VmaAllocationCreateInfo allocInfo = {};
 
-	switch (usage)
+	switch (heap)
 	{
-	case BufferUsage::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
-	case BufferUsage::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
-	case BufferUsage::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
-	case BufferUsage::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	case ResourceHeap::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
+	case ResourceHeap::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
+	case ResourceHeap::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
+	case ResourceHeap::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
 	}
 
 	// NOTE: Resource sharing between queue families leaves room for optimization. Currently we simply allow concurrent access by all queue families, so that the driver
@@ -219,7 +266,7 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
-	buffer = VulkanIndexBuffer::allocate(name, layout, elements, m_impl->m_allocator, bufferInfo, allocInfo);
+	buffer = VulkanIndexBuffer::allocate(name, layout, elements, usage, m_impl->m_device, m_impl->m_allocator, bufferInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())
@@ -236,6 +283,13 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const RenderTarg
 
 UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const
 {
+	// Setup default usage.
+	ResourceUsage usage = ResourceUsage::TransferSource;
+
+	if (target.allowStorage())
+		usage |= ResourceUsage::TransferDestination | ResourceUsage::AllowWrite;
+
+	// Setup image.
 	const auto format = target.format();
 	const auto width = std::max<UInt32>(1, size.width());
 	const auto height = std::max<UInt32>(1, size.height());
@@ -257,13 +311,14 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& na
 	if (target.attachment())
 		imageInfo.usage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
 	else
-		imageInfo.usage |= VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+		imageInfo.usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
 
 	if (target.allowStorage())
 		imageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
 
-	// Present targets should also allow copying.
-	if (target.allowStorage())
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferSource))
+		imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferDestination))
 		imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
@@ -283,9 +338,9 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& na
 	UniquePtr<IVulkanImage> image;
 
 	if (::hasDepth(format)) [[unlikely]]
-		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ImageLayout::DepthRead, m_impl->m_allocator, imageInfo, allocInfo);
+		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, usage, m_impl->m_allocator, imageInfo, allocInfo);
 	else
-		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, false, ImageLayout::Common, m_impl->m_allocator, imageInfo, allocInfo);
+		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, usage, m_impl->m_allocator, imageInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())
@@ -295,13 +350,17 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& na
 	return image;
 }
 
-UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const
+UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
 {
-	return this->createTexture("", format, size, dimension, levels, layers, samples, allowWrite);
+	return this->createTexture("", format, size, dimension, levels, layers, samples, usage);
 }
 
-UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const
+UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
 {
+	// Validate usage flags
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput)) [[unlikely]]
+		throw InvalidArgumentException("usage", "Invalid resource usage has been specified: image resources cannot be used as build inputs for other acceleration structures.");
+
 	if (dimension == ImageDimensions::CUBE && layers != 6) [[unlikely]]
 		throw ArgumentOutOfRangeException("layers", 6u, 6u, layers, "A cube map must be defined with 6 layers, but {0} are provided.", layers);
 
@@ -324,11 +383,15 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
 	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	imageInfo.samples = Vk::getSamples(samples);
-	imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
 	
-	if (allowWrite)
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite))
 		imageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
-	
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferSource))
+		imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferDestination))
+		imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+
 	if (::hasDepth(format) || ::hasStencil(format))
 		imageInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
@@ -340,7 +403,7 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	auto image = VulkanImage::allocate(name, m_impl->m_device, { width, height, depth }, format, dimension, levels, layers, samples, allowWrite, ImageLayout::Undefined, m_impl->m_allocator, imageInfo, allocInfo);
+	auto image = VulkanImage::allocate(name, m_impl->m_device, { width, height, depth }, format, dimension, levels, layers, samples, usage, m_impl->m_allocator, imageInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())
@@ -350,11 +413,11 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	return image;
 }
 
-Enumerable<UniquePtr<IVulkanImage>> VulkanGraphicsFactory::createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const
+Enumerable<UniquePtr<IVulkanImage>> VulkanGraphicsFactory::createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
 {
 	return [&, this]() -> std::generator<UniquePtr<IVulkanImage>> {
 		for (UInt32 i = 0; i < elements; ++i)
-			co_yield this->createTexture(format, size, dimension, levels, layers, samples, allowWrite);
+			co_yield this->createTexture(format, size, dimension, levels, layers, samples, usage);
 	}() | std::views::as_rvalue;
 }
 
@@ -381,4 +444,14 @@ Enumerable<UniquePtr<IVulkanSampler>> VulkanGraphicsFactory::createSamplers(UInt
 		for (UInt32 i = 0; i < elements; ++i)
 			co_yield this->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
 	}() | std::views::as_rvalue;
+}
+
+UniquePtr<VulkanBottomLevelAccelerationStructure> VulkanGraphicsFactory::createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const
+{
+	return makeUnique<VulkanBottomLevelAccelerationStructure>(flags, name);
+}
+
+UniquePtr<VulkanTopLevelAccelerationStructure> VulkanGraphicsFactory::createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const
+{
+	return makeUnique<VulkanTopLevelAccelerationStructure>(flags, name);
 }

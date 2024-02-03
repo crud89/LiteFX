@@ -4,6 +4,17 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks { nullptr };
+extern PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizes { nullptr };
+extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure { nullptr };
+extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure { nullptr };
+extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructures { nullptr };
+extern PFN_vkCmdCopyAccelerationStructureKHR vkCmdCopyAccelerationStructure { nullptr };
+extern PFN_vkCmdWriteAccelerationStructuresPropertiesKHR vkCmdWriteAccelerationStructuresProperties { nullptr };
+extern PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelines { nullptr };
+extern PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandles { nullptr };
+extern PFN_vkCmdTraceRaysKHR vkCmdTraceRays { nullptr };
+
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
@@ -121,7 +132,7 @@ private:
 #endif
 
 public:
-    VulkanDeviceImpl(VulkanDevice* parent, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Span<String> extensions) :
+    VulkanDeviceImpl(VulkanDevice* parent, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const GraphicsDeviceFeatures& features, Span<String> extensions) :
         base(parent), m_adapter(adapter), m_surface(std::move(surface))
     {
         if (m_surface == nullptr)
@@ -129,7 +140,7 @@ public:
 
         m_extensions.assign(std::begin(extensions), std::end(extensions));
 
-        this->defineMandatoryExtensions();
+        this->defineMandatoryExtensions(features);
         this->loadQueueFamilies();
     }
 
@@ -149,7 +160,7 @@ public:
     }
 
 private:
-    void defineMandatoryExtensions() noexcept
+    void defineMandatoryExtensions(const GraphicsDeviceFeatures& features) noexcept
     {
         // NOTE: If an extension is not supported, update the graphics driver to the most recent one. You can lookup extension support for individual drivers here:
         // https://vulkan.gpuinfo.org/listdevicescoverage.php?extension=VK_KHR_present_wait (replace the extension name to adjust the filter).
@@ -157,10 +168,22 @@ private:
         // Required to query image and buffer requirements.
         m_extensions.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
 
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         // Required for mesh shading.
-        m_extensions.push_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
-#endif
+        if (features.MeshShaders)
+            m_extensions.push_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
+
+        if (features.RayTracing)
+            m_extensions.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
+
+        if (features.RayQueries)
+            m_extensions.push_back(VK_KHR_RAY_QUERY_EXTENSION_NAME);
+
+        if (features.RayTracing || features.RayQueries)
+        {
+            m_extensions.push_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
+            m_extensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
+            m_extensions.push_back(VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME);
+        }
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
         // Interop swap chain requires external memory access.
@@ -224,7 +247,7 @@ public:
             std::ranges::to<Array<QueueFamily>>();
     }
 
-    VkDevice initialize()
+    VkDevice initialize(const GraphicsDeviceFeatures& features)
     {
         if (!m_adapter.validateDeviceExtensions(m_extensions))
             throw InvalidArgumentException("extensions", "Some required device extensions are not supported by the system.");
@@ -250,21 +273,44 @@ public:
                 };
             }) | std::ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
+        // Enable ray-tracing features.
+        VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR,
+            .rayQuery = features.RayQueries
+        };
+
+        VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR rayTracingMaintenanceFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MAINTENANCE_1_FEATURES_KHR,
+            .pNext = &rayQueryFeatures,
+            .rayTracingMaintenance1 = features.RayTracing || features.RayQueries,
+            .rayTracingPipelineTraceRaysIndirect2 = features.RayQueries
+        };
+
+        VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR,
+            .pNext = &rayTracingMaintenanceFeatures,
+            .rayTracingPipeline = features.RayTracing
+        };
+
+        VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR,
+            .pNext = &rayTracingPipelineFeatures,
+            .accelerationStructure = features.RayTracing || features.RayQueries,
+            .descriptorBindingAccelerationStructureUpdateAfterBind = features.RayTracing || features.RayQueries
+        };
+
         // Enable task and mesh shaders.
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         VkPhysicalDeviceMeshShaderFeaturesEXT meshShaderFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT,
-            .taskShader = true,
-            .meshShader = true
+            .pNext = &accelerationStructureFeatures,
+            .taskShader = features.MeshShaders,
+            .meshShader = features.MeshShaders
         };
-#endif
 
         // Allow geometry and tessellation shader stages.
         VkPhysicalDeviceFeatures2 deviceFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
             .pNext = &meshShaderFeatures,
-#endif
             .features = {
                 .geometryShader = true,
                 .tessellationShader = true,
@@ -307,7 +353,8 @@ public:
             .runtimeDescriptorArray = true,
             .separateDepthStencilLayouts = true,
             .hostQueryReset = true,
-            .timelineSemaphore = true
+            .timelineSemaphore = true,
+            .bufferDeviceAddress = true
         };
 
         // Enable extended dynamic state.
@@ -328,14 +375,67 @@ public:
         };
 
         // Create the device.
-        // NOTE: This can time-out under very mysterious circumstances, in which case the event log shows a TDR error. Unfortunately, the only way I found
-        //       to fix this is rebooting the entire system.
         VkDevice device;
         raiseIfFailed(::vkCreateDevice(m_adapter.handle(), &createInfo, nullptr, &device), "Unable to create Vulkan device.");
 
+        // Load extension methods.
 #ifndef NDEBUG
         debugMarkerSetObjectName = reinterpret_cast<PFN_vkDebugMarkerSetObjectNameEXT>(::vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectNameEXT"));
 #endif
+
+        if (features.MeshShaders && vkCmdDrawMeshTasks == nullptr)
+            vkCmdDrawMeshTasks = reinterpret_cast<PFN_vkCmdDrawMeshTasksEXT>(::vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksEXT"));
+
+        if (features.RayTracing)
+        {
+            if (vkGetAccelerationStructureBuildSizes == nullptr)
+                vkGetAccelerationStructureBuildSizes = reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(::vkGetDeviceProcAddr(device, "vkGetAccelerationStructureBuildSizesKHR"));
+
+            if (vkCreateAccelerationStructure == nullptr)
+                vkCreateAccelerationStructure = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCreateAccelerationStructureKHR"));
+
+            if (vkDestroyAccelerationStructure == nullptr)
+                vkDestroyAccelerationStructure = reinterpret_cast<PFN_vkDestroyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkDestroyAccelerationStructureKHR"));
+
+            if (vkCmdBuildAccelerationStructures == nullptr)
+                vkCmdBuildAccelerationStructures = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(::vkGetDeviceProcAddr(device, "vkCmdBuildAccelerationStructuresKHR"));
+
+            if (vkCmdCopyAccelerationStructure == nullptr)
+                vkCmdCopyAccelerationStructure = reinterpret_cast<PFN_vkCmdCopyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCmdCopyAccelerationStructureKHR"));
+
+            if (vkCmdWriteAccelerationStructuresProperties == nullptr)
+                vkCmdWriteAccelerationStructuresProperties = reinterpret_cast<PFN_vkCmdWriteAccelerationStructuresPropertiesKHR>(::vkGetDeviceProcAddr(device, "vkCmdWriteAccelerationStructuresPropertiesKHR"));
+
+            if (vkCreateRayTracingPipelines == nullptr)
+                vkCreateRayTracingPipelines = reinterpret_cast<PFN_vkCreateRayTracingPipelinesKHR>(::vkGetDeviceProcAddr(device, "vkCreateRayTracingPipelinesKHR"));
+
+            if (vkGetRayTracingShaderGroupHandles == nullptr)
+                vkGetRayTracingShaderGroupHandles = reinterpret_cast<PFN_vkGetRayTracingShaderGroupHandlesKHR>(::vkGetDeviceProcAddr(device, "vkGetRayTracingShaderGroupHandlesKHR"));
+
+            if (vkCmdTraceRays == nullptr)
+                vkCmdTraceRays = reinterpret_cast<PFN_vkCmdTraceRaysKHR>(::vkGetDeviceProcAddr(device, "vkCmdTraceRaysKHR"));
+        }
+
+        if (features.RayQueries)
+        {
+            if (vkGetAccelerationStructureBuildSizes == nullptr)
+                vkGetAccelerationStructureBuildSizes = reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(::vkGetDeviceProcAddr(device, "vkGetAccelerationStructureBuildSizesKHR"));
+
+            if (vkCreateAccelerationStructure == nullptr)
+                vkCreateAccelerationStructure = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCreateAccelerationStructureKHR"));
+
+            if (vkDestroyAccelerationStructure == nullptr)
+                vkDestroyAccelerationStructure = reinterpret_cast<PFN_vkDestroyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkDestroyAccelerationStructureKHR"));
+
+            if (vkCmdBuildAccelerationStructures == nullptr)
+                vkCmdBuildAccelerationStructures = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(::vkGetDeviceProcAddr(device, "vkCmdBuildAccelerationStructuresKHR"));
+
+            if (vkCmdCopyAccelerationStructure == nullptr)
+                vkCmdCopyAccelerationStructure = reinterpret_cast<PFN_vkCmdCopyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCmdCopyAccelerationStructureKHR"));
+
+            if (vkCmdWriteAccelerationStructuresProperties == nullptr)
+                vkCmdWriteAccelerationStructuresProperties = reinterpret_cast<PFN_vkCmdWriteAccelerationStructuresPropertiesKHR>(::vkGetDeviceProcAddr(device, "vkCmdWriteAccelerationStructuresPropertiesKHR"));
+        }
 
         return device;
     }
@@ -401,13 +501,13 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDevice::VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Span<String> extensions) :
-    VulkanDevice(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3, extensions)
+VulkanDevice::VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features, Span<String> extensions) :
+    VulkanDevice(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3, features, extensions)
 {
 }
 
-VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, Span<String> extensions) :
-    Resource<VkDevice>(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, std::move(surface), extensions))
+VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, GraphicsDeviceFeatures features, Span<String> extensions) :
+    Resource<VkDevice>(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, std::move(surface), features, extensions))
 {
     LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", fmt::ptr(reinterpret_cast<const void*>(m_impl->m_surface.get())), adapter.deviceId(), Join(this->enabledExtensions(), ", "));
     LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
@@ -423,7 +523,7 @@ VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphic
     if (extensions.size() > 0)
         LITEFX_INFO(VULKAN_LOG, "Enabled validation layers: {0}", Join(extensions, ", "));
 
-    this->handle() = m_impl->initialize();
+    this->handle() = m_impl->initialize(features);
     m_impl->initializeDefaultQueues();
     m_impl->createFactory();
     m_impl->createSwapChain(format, frameBufferSize, frameBuffers);
@@ -493,6 +593,16 @@ VulkanRenderPipelineBuilder VulkanDevice::buildRenderPipeline(const VulkanRender
 VulkanComputePipelineBuilder VulkanDevice::buildComputePipeline(const String& name) const
 {
     return VulkanComputePipelineBuilder(*this, name);
+}
+
+VulkanRayTracingPipelineBuilder VulkanDevice::buildRayTracingPipeline(ShaderRecordCollection&& shaderRecords) const
+{
+    return this->buildRayTracingPipeline("", std::move(shaderRecords));
+}
+
+VulkanRayTracingPipelineBuilder VulkanDevice::buildRayTracingPipeline(const String& name, ShaderRecordCollection&& shaderRecords) const
+{
+    return VulkanRayTracingPipelineBuilder(*this, std::move(shaderRecords), name);
 }
 
 VulkanPipelineLayoutBuilder VulkanDevice::buildPipelineLayout() const
@@ -605,4 +715,79 @@ double VulkanDevice::ticksPerMillisecond() const noexcept
 void VulkanDevice::wait() const
 {
     raiseIfFailed(::vkDeviceWaitIdle(this->handle()), "Unable to wait for the device.");
+}
+
+void VulkanDevice::computeAccelerationStructureSizes(const VulkanBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const
+{
+    auto buildInfo = blas.buildInfo();
+    auto descriptions = buildInfo | std::views::values | std::ranges::to<Array<VkAccelerationStructureGeometryKHR>>();
+    auto sizes = buildInfo | std::views::keys | std::ranges::to<Array<UInt32>>();
+
+    VkAccelerationStructureBuildSizesInfoKHR prebuildInfo = { 
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR 
+    };
+
+    VkAccelerationStructureBuildGeometryInfoKHR inputs = {
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
+        .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR,
+        .flags = std::bit_cast<VkBuildAccelerationStructureFlagsKHR>(blas.flags()),
+        .mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
+        .geometryCount = static_cast<UInt32>(descriptions.size()),
+        .pGeometries = descriptions.data()
+    };
+
+    // Get the pre-build info and align the buffer sizes.
+    const auto alignment = this->adapter().limits().minUniformBufferOffsetAlignment;
+    ::vkGetAccelerationStructureBuildSizes(this->handle(), VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR, &inputs, sizes.data(), &prebuildInfo);
+    bufferSize = (prebuildInfo.accelerationStructureSize + alignment - 1) & ~(alignment - 1);
+
+    if (forUpdate)
+        scratchSize = (prebuildInfo.updateScratchSize + alignment - 1) & ~(alignment - 1);
+    else
+        scratchSize = (prebuildInfo.buildScratchSize + alignment - 1) & ~(alignment - 1);
+}
+
+void VulkanDevice::computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const
+{
+    auto instances = tlas.buildInfo();
+    auto instanceCount = static_cast<UInt32>(instances.size());
+
+    VkAccelerationStructureGeometryInstancesDataKHR instanceInfo = {
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_INSTANCES_DATA_KHR,
+        .arrayOfPointers = false,
+        .data = {
+            .hostAddress = instances.data()
+        }
+    };
+
+    VkAccelerationStructureGeometryKHR geometryInfo = {
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_KHR,
+        .geometryType = VK_GEOMETRY_TYPE_INSTANCES_KHR,
+        .geometry = {
+            .instances = instanceInfo
+        }
+    };
+
+    VkAccelerationStructureBuildSizesInfoKHR prebuildInfo = { 
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR 
+    };
+
+    VkAccelerationStructureBuildGeometryInfoKHR inputs = {
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_GEOMETRY_INFO_KHR,
+        .type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR,
+        .flags = std::bit_cast<VkBuildAccelerationStructureFlagsKHR>(tlas.flags()),
+        .mode = VK_BUILD_ACCELERATION_STRUCTURE_MODE_BUILD_KHR,
+        .geometryCount = 1u,
+        .pGeometries = &geometryInfo
+    };
+
+    // Get the pre-build info and align the buffer sizes.
+    const auto alignment = this->adapter().limits().minUniformBufferOffsetAlignment;
+    ::vkGetAccelerationStructureBuildSizes(this->handle(), VK_ACCELERATION_STRUCTURE_BUILD_TYPE_DEVICE_KHR, &inputs, &instanceCount, &prebuildInfo);
+    bufferSize = (prebuildInfo.accelerationStructureSize + alignment - 1) & ~(alignment - 1);
+
+    if (forUpdate)
+        scratchSize = (prebuildInfo.updateScratchSize + alignment - 1) & ~(alignment - 1);
+    else
+        scratchSize = (prebuildInfo.buildScratchSize + alignment - 1) & ~(alignment - 1);
 }

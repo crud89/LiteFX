@@ -60,6 +60,7 @@ namespace LiteFX::Rendering::Backends {
     class DirectX12PipelineState;
     class DirectX12RenderPipeline;
     class DirectX12ComputePipeline;
+    class DirectX12RayTracingPipeline;
     class DirectX12FrameBuffer;
     class DirectX12RenderPass;
     class DirectX12InputAttachmentMapping;
@@ -75,6 +76,9 @@ namespace LiteFX::Rendering::Backends {
     class IDirectX12IndexBuffer;
     class IDirectX12Image;
     class IDirectX12Sampler;
+    class IDirectX12AccelerationStructure;
+    class DirectX12BottomLevelAccelerationStructure;
+    class DirectX12TopLevelAccelerationStructure;
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     // Builder declarations.
@@ -87,6 +91,7 @@ namespace LiteFX::Rendering::Backends {
     class DirectX12RasterizerBuilder;
     class DirectX12RenderPipelineBuilder;
     class DirectX12ComputePipelineBuilder;
+    class DirectX12RayTracingPipelineBuilder;
     class DirectX12RenderPassBuilder;
     class DirectX12BarrierBuilder;
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
@@ -289,7 +294,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="result">The error code returned by the operation.</param>
         explicit DX12PlatformException(HRESULT result) noexcept :
-            m_code(result), m_error(result), RuntimeException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), m_error.ErrorMessage()) { }
+            m_code(result), m_error(result), RuntimeException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), _com_error(result).ErrorMessage()) { }
 
         /// <summary>
         /// Initializes a new exception.
@@ -297,7 +302,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="result">The error code returned by the operation.</param>
         /// <param name="message">The error message.</param>
         explicit DX12PlatformException(HRESULT result, StringView message) noexcept :
-            m_code(result), m_error(result), RuntimeException("{2} {1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), m_error.ErrorMessage(), message) { }
+            m_code(result), m_error(result), RuntimeException("{2} {1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), _com_error(result).ErrorMessage(), message) { }
 
         /// <summary>
         /// Initializes a new exception.

@@ -35,20 +35,21 @@ public:
         // Since Vulkan does not know spaces, descriptor sets are mapped to their indices based on the order they are defined. Hence we need to sort the descriptor set layouts accordingly.
         std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<VulkanDescriptorSetLayout>& a, const UniquePtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
 
-        // Find unused and duplicate descriptor sets.
+        // Find unused and duplicate descriptor sets. Initialize with all the set indices up until the first set index is reached.
         Array<UInt32> emptySets;
 
-        for (UInt32 i{ 0 }; Tuple spaces : m_descriptorSetLayouts | std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout->space(); }) | std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
+        if (!m_descriptorSetLayouts.empty())
+            emptySets.append_range(std::views::iota(0u, m_descriptorSetLayouts.front()->space()));
+
+        for (Tuple spaces : m_descriptorSetLayouts | std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout->space(); }) | std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
         {
             auto [a, b] = spaces;
 
             if (a == b) [[unlikely]]
                 throw InvalidArgumentException("descriptorSetLayouts", "Two layouts defined for the same descriptor set {}. Each descriptor set must use it's own space.", a);
-            
-            while (i != a)
-                emptySets.push_back(i);
 
-            ++i;
+            // Fill space until we reached the last descriptor set.
+            emptySets.append_range(std::views::iota(a + 1, b));
         }
 
         // Add empty sets.

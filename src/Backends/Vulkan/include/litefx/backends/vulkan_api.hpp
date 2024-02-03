@@ -47,6 +47,7 @@ namespace LiteFX::Rendering::Backends {
     class VulkanPipelineState;
     class VulkanRenderPipeline;
     class VulkanComputePipeline;
+    class VulkanRayTracingPipeline;
     class VulkanFrameBuffer;
     class VulkanRenderPass;
     class VulkanInputAttachmentMapping;
@@ -62,6 +63,9 @@ namespace LiteFX::Rendering::Backends {
     class IVulkanIndexBuffer;
     class IVulkanImage;
     class IVulkanSampler;
+    class IVulkanAccelerationStructure;
+    class VulkanBottomLevelAccelerationStructure;
+    class VulkanTopLevelAccelerationStructure;
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     // Builder declarations.
@@ -74,6 +78,7 @@ namespace LiteFX::Rendering::Backends {
     class VulkanRasterizerBuilder;
     class VulkanRenderPipelineBuilder;
     class VulkanComputePipelineBuilder;
+    class VulkanRayTracingPipelineBuilder;
     class VulkanRenderPassBuilder;
     class VulkanBarrierBuilder;
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
@@ -186,12 +191,12 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkPipelineStageFlags LITEFX_VULKAN_API getPipelineStage(PipelineStage pipelineStage);
+        constexpr inline VkPipelineStageFlags2 LITEFX_VULKAN_API getPipelineStage(PipelineStage pipelineStage);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkAccessFlags LITEFX_VULKAN_API getResourceAccess(ResourceAccess resourceAccess);
+        constexpr inline VkAccessFlags2 LITEFX_VULKAN_API getResourceAccess(ResourceAccess resourceAccess);
 
         /// <summary>
         /// 

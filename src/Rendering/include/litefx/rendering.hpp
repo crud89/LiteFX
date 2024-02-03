@@ -26,46 +26,46 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        constexpr inline virtual void transition(buffer_type& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
+        constexpr inline virtual void transition(const buffer_type& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
 
         /// <inheritdoc />
-        constexpr inline virtual void transition(buffer_type& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
+        constexpr inline virtual void transition(const buffer_type& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
 
         /// <inheritdoc />
-        constexpr inline virtual void transition(image_type& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
+        constexpr inline virtual void transition(const image_type& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
 
         /// <inheritdoc />
-        constexpr inline virtual void transition(image_type& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
+        constexpr inline virtual void transition(const image_type& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
 
         /// <inheritdoc />
-        constexpr inline virtual void transition(image_type& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
+        constexpr inline virtual void transition(const image_type& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
 
         /// <inheritdoc />
-        constexpr inline virtual void transition(image_type& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
+        constexpr inline virtual void transition(const image_type& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
 
     private:
-        constexpr inline void doTransition(IBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) override {
-            this->transition(dynamic_cast<buffer_type&>(buffer), accessBefore, accessAfter);
+        constexpr inline void doTransition(const IBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) override {
+            this->transition(dynamic_cast<const buffer_type&>(buffer), accessBefore, accessAfter);
         }
 
-        constexpr inline void doTransition(IBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) override {
-            this->transition(dynamic_cast<buffer_type&>(buffer), element, accessBefore, accessAfter);
+        constexpr inline void doTransition(const IBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) override {
+            this->transition(dynamic_cast<const buffer_type&>(buffer), element, accessBefore, accessAfter);
         }
 
-        constexpr inline void doTransition(IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override {
-            this->transition(dynamic_cast<image_type&>(image), accessBefore, accessAfter, layout);
+        constexpr inline void doTransition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override {
+            this->transition(dynamic_cast<const image_type&>(image), accessBefore, accessAfter, layout);
         }
 
-        constexpr inline void doTransition(IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override {
-            this->transition(dynamic_cast<image_type&>(image), accessBefore, accessAfter, fromLayout, toLayout);
+        constexpr inline void doTransition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override {
+            this->transition(dynamic_cast<const image_type&>(image), accessBefore, accessAfter, fromLayout, toLayout);
         }
 
-        constexpr inline void doTransition(IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override {
-            this->transition(dynamic_cast<image_type&>(image), level, levels, layer, layers, plane, accessBefore, accessAfter, layout);
+        constexpr inline void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override {
+            this->transition(dynamic_cast<const image_type&>(image), level, levels, layer, layers, plane, accessBefore, accessAfter, layout);
         }
 
-        constexpr inline void doTransition(IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override {
-            this->transition(dynamic_cast<image_type&>(image), level, levels, layer, layers, plane, accessBefore, accessAfter, fromLayout, toLayout);
+        constexpr inline void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override {
+            this->transition(dynamic_cast<const image_type&>(image), level, levels, layer, layers, plane, accessBefore, accessAfter, fromLayout, toLayout);
         }
     };
 
@@ -83,7 +83,7 @@ namespace LiteFX::Rendering {
     /// 
     /// From a CPU perspective, think of a descriptor set as an array of pointers to different buffers (i.e. descriptors) for the shader. A descriptor can be bound to a set by 
     /// calling <see cref="DescriptorSet::update" />. Note that this does not automatically ensure, that the buffer memory is visible for the GPU. Instead, a buffer may also 
-    /// require a transfer into GPU visible memory, depending on the <see cref="BufferUsage" />. However, as long as a descriptor within a set is mapped to a buffer, modifying 
+    /// require a transfer into GPU visible memory, depending on the <see cref="ResourceHeap" />. However, as long as a descriptor within a set is mapped to a buffer, modifying 
     /// this buffer also reflects the change to the shader, without requiring to update the descriptor, similarly to how modifying the object behind a pointer does not require 
     /// the pointer to change.
     /// 
@@ -133,11 +133,13 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TBuffer">The type of the buffer interface. Must inherit from <see cref="IBuffer"/>.</typeparam>
     /// <typeparam name="TImage">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TSampler">The type of the sampler interface. Must inherit from <see cref="ISampler"/>.</typeparam>
+    /// <typeparam name="TAccelerationStructure">The type of the acceleration structure interface. Must inherit from <see cref="IAccelerationStructure"/>.</typeparam>
     /// <seealso cref="DescriptorSetLayout" />
-    template <typename TBuffer, typename TImage, typename TSampler> requires
+    template <typename TBuffer, typename TImage, typename TSampler, typename TAccelerationStructure> requires
         std::derived_from<TBuffer, IBuffer> &&
         std::derived_from<TSampler, ISampler> &&
-        std::derived_from<TImage, IImage>
+        std::derived_from<TImage, IImage> &&
+        std::derived_from<TAccelerationStructure, IAccelerationStructure>
     class DescriptorSet : public IDescriptorSet {
     public:
         using IDescriptorSet::attach;
@@ -146,6 +148,7 @@ namespace LiteFX::Rendering {
         using buffer_type = TBuffer;
         using sampler_type = TSampler;
         using image_type = TImage;
+        using acceleration_structure_type = TAccelerationStructure;
 
     public:
         virtual ~DescriptorSet() noexcept = default;
@@ -161,6 +164,9 @@ namespace LiteFX::Rendering {
         virtual void update(UInt32 binding, const sampler_type& sampler, UInt32 descriptor = 0) const = 0;
 
         /// <inheritdoc />
+        virtual void update(UInt32 binding, const acceleration_structure_type& accelerationStructure, UInt32 descriptor = 0) const = 0;
+
+        /// <inheritdoc />
         virtual void attach(UInt32 binding, const image_type& image) const = 0;
 
     private:
@@ -168,15 +174,19 @@ namespace LiteFX::Rendering {
             this->update(binding, dynamic_cast<const buffer_type&>(buffer), bufferElement, elements, firstDescriptor);
         }
 
-        void doUpdate(UInt32 binding, const IImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const  override {
+        void doUpdate(UInt32 binding, const IImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const override {
             this->update(binding, dynamic_cast<const image_type&>(texture), descriptor, firstLevel, levels, firstLayer, layers);
         }
 
-        void doUpdate(UInt32 binding, const ISampler& sampler, UInt32 descriptor) const  override {
+        void doUpdate(UInt32 binding, const ISampler& sampler, UInt32 descriptor) const override {
             this->update(binding, dynamic_cast<const sampler_type&>(sampler), descriptor);
         }
 
-        void doAttach(UInt32 binding, const IImage& image) const  override {
+        void doUpdate(UInt32 binding, const IAccelerationStructure& accelerationStructure, UInt32 descriptor) const override {
+            this->update(binding, dynamic_cast<const acceleration_structure_type&>(accelerationStructure), descriptor);
+        }
+
+        void doAttach(UInt32 binding, const IImage& image) const override {
             this->attach(binding, dynamic_cast<const image_type&>(image));
         }
     };
@@ -195,7 +205,7 @@ namespace LiteFX::Rendering {
     /// <seealso cref="DescriptorSet" />
     template <typename TDescriptorLayout, typename TDescriptorSet> requires
         meta::implements<TDescriptorLayout, IDescriptorLayout> &&
-        meta::implements<TDescriptorSet, DescriptorSet<typename TDescriptorSet::buffer_type, typename TDescriptorSet::image_type, typename TDescriptorSet::sampler_type>>
+        meta::implements<TDescriptorSet, DescriptorSet<typename TDescriptorSet::buffer_type, typename TDescriptorSet::image_type, typename TDescriptorSet::sampler_type, typename TDescriptorSet::acceleration_structure_type>>
     class DescriptorSetLayout : public IDescriptorSetLayout {
     public:
         using IDescriptorSetLayout::free;
@@ -323,7 +333,7 @@ namespace LiteFX::Rendering {
     };
     
     /// <summary>
-    /// Represents a the layout of a <see cref="RenderPipeline" /> or a <see cref="ComputePipeline" />.
+    /// Represents a the layout of a <see cref="RenderPipeline" />, <see cref="ComputePipeline" /> or <see cref="RayTracingPipeline" />.
     /// </summary>
     /// <typeparam name="TDescriptorSetLayout">The type of the descriptor set layout. Must implement <see cref="DescriptorSetLayout"/>.</typeparam>
     /// <typeparam name="TPushConstantsLayout">The type of the push constants layout. Must implement <see cref="PushConstantsLayout"/>.</typeparam>
@@ -467,16 +477,19 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TImage">The generic image type. Must implement <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TBarrier">The barrier type. Must implement <see cref="Barrier"/>.</typeparam>
     /// <typeparam name="TPipeline">The common pipeline interface type. Must be derived from <see cref="Pipeline"/>.</typeparam>
-    template <typename TCommandBuffer, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline> requires
+    /// <typeparam name="TBLAS">The type of the bottom-level acceleration structure. Must implement <see cref="IBottomLevelAccelerationStructure" />.</typeparam>
+    /// <typeparam name="TTLAS">The type of the top-level acceleration structure. Must implement <see cref="ITopLevelAccelerationStructure" />.</typeparam>
+    template <typename TCommandBuffer, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TBarrier, typename TPipeline, typename TBLAS, typename TTLAS> requires
         meta::implements<TBarrier, Barrier<TBuffer, TImage>> &&
         //std::derived_from<TCommandBuffer, ICommandBuffer> &&
-        std::derived_from<TPipeline, Pipeline<typename TPipeline::pipeline_layout_type, typename TPipeline::shader_program_type>>
+        std::derived_from<TPipeline, Pipeline<typename TPipeline::pipeline_layout_type, typename TPipeline::shader_program_type>> &&
+        std::derived_from<TBLAS, IBottomLevelAccelerationStructure> &&
+        std::derived_from<TTLAS, ITopLevelAccelerationStructure>
     class CommandBuffer : public ICommandBuffer {
     public:
+        using ICommandBuffer::queue;
         using ICommandBuffer::dispatch;
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         using ICommandBuffer::dispatchMesh;
-#endif
         using ICommandBuffer::draw;
         using ICommandBuffer::drawIndexed;
         using ICommandBuffer::barrier;
@@ -485,6 +498,19 @@ namespace LiteFX::Rendering {
         using ICommandBuffer::bind;
         using ICommandBuffer::use;
         using ICommandBuffer::pushConstants;
+        using ICommandBuffer::buildAccelerationStructure;
+        using ICommandBuffer::updateAccelerationStructure;
+        using ICommandBuffer::copyAccelerationStructure;
+
+    public:
+        using command_buffer_type = TCommandBuffer;
+        using buffer_type = TBuffer;
+        using vertex_buffer_type = TVertexBuffer;
+        using index_buffer_type = TIndexBuffer;
+        using image_type = TImage;
+        using barrier_type = TBarrier;
+        using bottom_level_acceleration_structure_type = TBLAS;
+        using top_level_acceleration_structure_type = TTLAS;
 
     public:
         using command_buffer_type = TCommandBuffer;
@@ -576,6 +602,32 @@ namespace LiteFX::Rendering {
         /// <inheritdoc />
         virtual void execute(Enumerable<SharedPtr<const command_buffer_type>> commandBuffers) const = 0;
 
+        /// <inheritdoc />
+        virtual void buildAccelerationStructure(bottom_level_acceleration_structure_type& blas, const SharedPtr<const buffer_type> scratchBuffer, const buffer_type& buffer, UInt64 offset = 0) const = 0;
+
+        /// <inheritdoc />
+        virtual void buildAccelerationStructure(top_level_acceleration_structure_type& tlas, const SharedPtr<const buffer_type> scratchBuffer, const buffer_type& buffer, UInt64 offset = 0) const = 0;
+
+        /// <inheritdoc />
+        virtual void updateAccelerationStructure(bottom_level_acceleration_structure_type& blas, const SharedPtr<const buffer_type> scratchBuffer, const buffer_type& buffer, UInt64 offset = 0) const = 0;
+
+        /// <inheritdoc />
+        virtual void updateAccelerationStructure(top_level_acceleration_structure_type& tlas, const SharedPtr<const buffer_type> scratchBuffer, const buffer_type& buffer, UInt64 offset = 0) const = 0;
+
+        /// <inheritdoc />
+        virtual void copyAccelerationStructure(const bottom_level_acceleration_structure_type& from, const bottom_level_acceleration_structure_type& to, bool compress = false) const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual void copyAccelerationStructure(const top_level_acceleration_structure_type& from, const top_level_acceleration_structure_type& to, bool compress = false) const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const buffer_type& rayGenerationShaderBindingTable, const buffer_type* missShaderBindingTable, const buffer_type* hitShaderBindingTable, const buffer_type* callableShaderBindingTable) const noexcept = 0;
+
+        /// <inheritdoc />
+        inline void traceRays(const Vector3u& dimensions, const ShaderBindingTableOffsets& offsets, const buffer_type& rayGenerationShaderBindingTable, const buffer_type* missShaderBindingTable, const buffer_type* hitShaderBindingTable, const buffer_type* callableShaderBindingTable) const noexcept {
+            this->traceRays(dimensions.x(), dimensions.y(), dimensions.z(), offsets, rayGenerationShaderBindingTable, missShaderBindingTable, hitShaderBindingTable, callableShaderBindingTable);
+        }
+
     private:
         inline void cmdBarrier(const IBarrier& barrier) const noexcept override {
             this->barrier(dynamic_cast<const barrier_type&>(barrier));
@@ -660,6 +712,34 @@ namespace LiteFX::Rendering {
         inline void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const override {
             return this->execute(commandBuffers | std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }));
         }
+
+        void cmdBuildAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
+            this->buildAccelerationStructure(dynamic_cast<bottom_level_acceleration_structure_type&>(blas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer), dynamic_cast<const buffer_type&>(buffer), offset);
+        }
+
+        void cmdBuildAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
+            this->buildAccelerationStructure(dynamic_cast<top_level_acceleration_structure_type&>(tlas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer), dynamic_cast<const buffer_type&>(buffer), offset);
+        }
+
+        void cmdUpdateAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
+            this->updateAccelerationStructure(dynamic_cast<bottom_level_acceleration_structure_type&>(blas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer), dynamic_cast<const buffer_type&>(buffer), offset);
+        }
+        
+        void cmdUpdateAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
+            this->updateAccelerationStructure(dynamic_cast<top_level_acceleration_structure_type&>(tlas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer), dynamic_cast<const buffer_type&>(buffer), offset);
+        }
+
+        void cmdCopyAccelerationStructure(const IBottomLevelAccelerationStructure& from, const IBottomLevelAccelerationStructure& to, bool compress) const noexcept override {
+            this->copyAccelerationStructure(dynamic_cast<const bottom_level_acceleration_structure_type&>(from), dynamic_cast<const bottom_level_acceleration_structure_type&>(to), compress);
+        }
+
+        void cmdCopyAccelerationStructure(const ITopLevelAccelerationStructure& from, const ITopLevelAccelerationStructure& to, bool compress) const noexcept override {
+            this->copyAccelerationStructure(dynamic_cast<const top_level_acceleration_structure_type&>(from), dynamic_cast<const top_level_acceleration_structure_type&>(to), compress);
+        }
+
+        void cmdTraceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable, const IBuffer* hitShaderBindingTable, const IBuffer* callableShaderBindingTable) const noexcept override {
+            this->traceRays(width, height, depth, offsets, dynamic_cast<const buffer_type&>(rayGenerationShaderBindingTable), dynamic_cast<const buffer_type*>(missShaderBindingTable), dynamic_cast<const buffer_type*>(hitShaderBindingTable), dynamic_cast<const buffer_type*>(callableShaderBindingTable));
+        }
     };
 
     /// <summary>
@@ -711,12 +791,42 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Represents a ray-tracing <see cref="Pipeline" />.
+    /// </summary>
+    /// <typeparam name="TPipelineLayout">The type of the render pipeline layout. Must implement <see cref="PipelineLayout"/>.</typeparam>
+    /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
+    /// <seealso cref="RayTracingPipelineBuilder" />
+    template <typename TPipelineLayout, typename TShaderProgram>
+    class RayTracingPipeline : public IRayTracingPipeline, public Pipeline<TPipelineLayout, TShaderProgram> {
+    public:
+        using base_type = Pipeline<TPipelineLayout, TShaderProgram>;
+        using descriptor_set_layout_type = base_type::pipeline_layout_type::descriptor_set_layout_type;
+        using descriptor_set_type = descriptor_set_layout_type::descriptor_set_type;
+        using descriptor_layout_type = descriptor_set_layout_type::descriptor_layout_type;
+        using buffer_type = descriptor_set_type::buffer_type;
+        using image_type = descriptor_set_type::image_type;
+        using sampler_type = descriptor_set_type::sampler_type;
+
+    public:
+        virtual ~RayTracingPipeline() noexcept = default;
+
+    public:
+        /// <inheritdoc />
+        virtual UniquePtr<buffer_type> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups = ShaderBindingGroup::All) const noexcept = 0;
+
+    private:
+        inline UniquePtr<IBuffer> getShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const noexcept override {
+            return this->allocateShaderBindingTable(offsets, groups);
+        }
+    };
+
+    /// <summary>
     /// Stores the images for the output attachments for a back buffer of a <see cref="RenderPass" />, as well as a <see cref="CommandBuffer" /> instance, that records draw commands.
     /// </summary>
     /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
     /// <seealso cref="RenderTarget" />
     template <typename TCommandBuffer> requires
-        meta::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type>>
+        meta::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type, typename TCommandBuffer::bottom_level_acceleration_structure_type, typename TCommandBuffer::top_level_acceleration_structure_type>>
     class FrameBuffer : public IFrameBuffer {
     public:
         using command_buffer_type = TCommandBuffer;
@@ -916,7 +1026,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TCommandBuffer">The type of the command buffer for this queue. Must implement <see cref="CommandBuffer"/>.</typeparam>
     template <typename TCommandBuffer> requires
-        meta::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type>>
+        meta::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type, typename TCommandBuffer::bottom_level_acceleration_structure_type, typename TCommandBuffer::top_level_acceleration_structure_type>>
     class CommandQueue : public ICommandQueue {
     public:
         using ICommandQueue::submit;
@@ -969,13 +1079,17 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TImage">The type of the image. Must inherit from <see cref="IImage"/>.</typeparam>
     /// <typeparam name="TBuffer">The type of the buffer. Must inherit from <see cref="IBuffer"/>.</typeparam>
     /// <typeparam name="TSampler">The type of the sampler. Must inherit from <see cref="ISampler"/>.</typeparam>
-    template <typename TDescriptorLayout, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TSampler> requires
+    /// <typeparam name="TBLAS">The type of the bottom-level acceleration structure. Must implement <see cref="IBottomLevelAccelerationStructure" />.</typeparam>
+    /// <typeparam name="TTLAS">The type of the top-level acceleration structure. Must implement <see cref="ITopLevelAccelerationStructure" />.</typeparam>
+    template <typename TDescriptorLayout, typename TBuffer, typename TVertexBuffer, typename TIndexBuffer, typename TImage, typename TSampler, typename TBLAS, typename TTLAS> requires
         meta::implements<TDescriptorLayout, IDescriptorLayout> &&
         std::derived_from<TVertexBuffer, VertexBuffer<typename TVertexBuffer::vertex_buffer_layout_type>> &&
         std::derived_from<TIndexBuffer, IndexBuffer<typename TIndexBuffer::index_buffer_layout_type>> &&
         std::derived_from<TImage, IImage> &&
         std::derived_from<TBuffer, IBuffer> &&
-        std::derived_from<TSampler, ISampler>
+        std::derived_from<TSampler, ISampler> &&
+        std::derived_from<TBLAS, IBottomLevelAccelerationStructure> &&
+        std::derived_from<TTLAS, ITopLevelAccelerationStructure>
     class GraphicsFactory : public IGraphicsFactory {
     public:
         using IGraphicsFactory::createBuffer;
@@ -995,28 +1109,30 @@ namespace LiteFX::Rendering {
         using buffer_type = TBuffer;
         using image_type = TImage;
         using sampler_type = TSampler;
+        using bottom_level_acceleration_structure_type = TBLAS;
+        using top_level_acceleration_structure_type = TTLAS;
 
     public:
         virtual ~GraphicsFactory() noexcept = default;
 
     public:
         /// <inheritdoc />
-        virtual UniquePtr<TBuffer> createBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const = 0;
+        virtual UniquePtr<TBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const = 0;
         
         /// <inheritdoc />
-        virtual UniquePtr<TBuffer> createBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const = 0;
+        virtual UniquePtr<TBuffer> createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const vertex_buffer_layout_type& layout, BufferUsage usage, UInt32 elements = 1) const = 0;
+        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const vertex_buffer_layout_type& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const String& name, const vertex_buffer_layout_type& layout, BufferUsage usage, UInt32 elements = 1) const = 0;
+        virtual UniquePtr<TVertexBuffer> createVertexBuffer(const String& name, const vertex_buffer_layout_type& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const index_buffer_layout_type& layout, BufferUsage usage, UInt32 elements) const = 0;
+        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const index_buffer_layout_type& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const String& name, const index_buffer_layout_type& layout, BufferUsage usage, UInt32 elements) const = 0;
+        virtual UniquePtr<TIndexBuffer> createIndexBuffer(const String& name, const index_buffer_layout_type& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const = 0;
 
         /// <inheritdoc />
         virtual UniquePtr<TImage> createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const = 0;
@@ -1025,13 +1141,13 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<TImage> createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const = 0;
+        virtual UniquePtr<TImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<TImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const = 0;
+        virtual UniquePtr<TImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<UniquePtr<TImage>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const = 0;
+        virtual Enumerable<UniquePtr<TImage>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const = 0;
 
         /// <inheritdoc />
         virtual UniquePtr<TSampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const = 0;
@@ -1042,29 +1158,45 @@ namespace LiteFX::Rendering {
         /// <inheritdoc />
         virtual Enumerable<UniquePtr<TSampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const = 0;
 
+        /// <inheritdoc />
+        inline UniquePtr<TBLAS> createBottomLevelAccelerationStructure(AccelerationStructureFlags flags) const {
+            return this->createBottomLevelAccelerationStructure("", flags);
+        }
+
+        /// <inheritdoc />
+        virtual UniquePtr<TBLAS> createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const = 0;
+
+        /// <inheritdoc />
+        inline UniquePtr<TTLAS> createTopLevelAccelerationStructure(AccelerationStructureFlags flags) const {
+            return this->createTopLevelAccelerationStructure("", flags);
+        }
+
+        /// <inheritdoc />
+        virtual UniquePtr<TTLAS> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const = 0;
+
     private:
-        inline UniquePtr<IBuffer> getBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const override {
-            return this->createBuffer(type, usage, elementSize, elements, allowWrite);
+        inline UniquePtr<IBuffer> getBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const override {
+            return this->createBuffer(type, heap, elementSize, elements, usage);
         }
 
-        inline UniquePtr<IBuffer> getBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements, bool allowWrite) const override {
-            return this->createBuffer(name, type, usage, elementSize, elements, allowWrite);
+        inline UniquePtr<IBuffer> getBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const override {
+            return this->createBuffer(name, type, heap, elementSize, elements, usage);
         }
 
-        inline UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override {
-            return this->createVertexBuffer(dynamic_cast<const vertex_buffer_layout_type&>(layout), usage, elements);
+        inline UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const override {
+            return this->createVertexBuffer(dynamic_cast<const vertex_buffer_layout_type&>(layout), heap, elements, usage);
         }
 
-        inline UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override {
-            return this->createVertexBuffer(name, dynamic_cast<const vertex_buffer_layout_type&>(layout), usage, elements);
+        inline UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const override {
+            return this->createVertexBuffer(name, dynamic_cast<const vertex_buffer_layout_type&>(layout), heap, elements, usage);
         }
         
-        inline UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override {
-            return this->createIndexBuffer(dynamic_cast<const index_buffer_layout_type&>(layout), usage, elements);
+        inline UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const override {
+            return this->createIndexBuffer(dynamic_cast<const index_buffer_layout_type&>(layout), heap, elements, usage);
         }
 
-        inline UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override {
-            return this->createIndexBuffer(name, dynamic_cast<const index_buffer_layout_type&>(layout), usage, elements);
+        inline UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const override {
+            return this->createIndexBuffer(name, dynamic_cast<const index_buffer_layout_type&>(layout), heap, elements, usage);
         }
 
         inline UniquePtr<IImage> getAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const override {
@@ -1075,16 +1207,16 @@ namespace LiteFX::Rendering {
             return this->createAttachment(name, target, size, samples);
         }
         
-        inline UniquePtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const override {
-            return this->createTexture(format, size, dimension, levels, layers, samples, allowWrite);
+        inline UniquePtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const override {
+            return this->createTexture(format, size, dimension, levels, layers, samples, usage);
         }
 
-        inline UniquePtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, bool allowWrite) const override {
-            return this->createTexture(name, format, size, dimension, levels, layers, samples, allowWrite);
+        inline UniquePtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const override {
+            return this->createTexture(name, format, size, dimension, levels, layers, samples, usage);
         }
 
-        inline Enumerable<UniquePtr<IImage>> getTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, bool allowWrite) const override {
-            return this->getTextures(elements, format, size, dimension, layers, levels, samples, allowWrite) | std::views::as_rvalue;
+        inline Enumerable<UniquePtr<IImage>> getTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage) const override {
+            return this->createTextures(elements, format, size, dimension, layers, levels, samples, usage) | std::views::as_rvalue;
         }
         
         inline UniquePtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {
@@ -1097,6 +1229,14 @@ namespace LiteFX::Rendering {
         
         inline Enumerable<UniquePtr<ISampler>> getSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {
             return this->createSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy) | std::views::as_rvalue;
+        }
+
+        inline UniquePtr<IBottomLevelAccelerationStructure> getBlas(StringView name, AccelerationStructureFlags flags) const override {
+            return this->createBottomLevelAccelerationStructure(name, flags);
+        }
+
+        inline UniquePtr<ITopLevelAccelerationStructure> getTlas(StringView name, AccelerationStructureFlags flags) const override {
+            return this->createTopLevelAccelerationStructure(name, flags);
         }
     };
 
@@ -1115,15 +1255,17 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="CommandQueue" />.</typeparam>
     /// <typeparam name="TRenderPass">The type of the render pass. Must implement <see cref="RenderPass" />.</typeparam>
     /// <typeparam name="TComputePipeline">The type of the compute pipeline. Must implement <see cref="ComputePipeline" />.</typeparam>
+    /// <typeparam name="TRayTracingPipeline">The type of the ray-tracing pipeline. Must implement <see cref="RayTracingPipeline" />.</typeparam>
     /// <typeparam name="TBarrier">The type of the memory barrier. Must implement <see cref="Barrier" />.</typeparam>
-    template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TComputePipeline, typename TBarrier> requires
+    template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TComputePipeline, typename TRayTracingPipeline, typename TBarrier> requires
         meta::implements<TSurface, ISurface> &&
         meta::implements<TGraphicsAdapter, IGraphicsAdapter> &&
         meta::implements<TSwapChain, SwapChain<typename TFactory::image_type, typename TRenderPass::frame_buffer_type>> &&
         meta::implements<TCommandQueue, CommandQueue<typename TCommandQueue::command_buffer_type>> &&
-        meta::implements<TFactory, GraphicsFactory<typename TFactory::descriptor_layout_type, typename TFactory::buffer_type, typename TFactory::vertex_buffer_type, typename TFactory::index_buffer_type, typename TFactory::image_type, typename TFactory::sampler_type>> &&
+        meta::implements<TFactory, GraphicsFactory<typename TFactory::descriptor_layout_type, typename TFactory::buffer_type, typename TFactory::vertex_buffer_type, typename TFactory::index_buffer_type, typename TFactory::image_type, typename TFactory::sampler_type, typename TFactory::bottom_level_acceleration_structure_type, typename TFactory::top_level_acceleration_structure_type>> &&
         meta::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, TCommandQueue, typename TRenderPass::frame_buffer_type, typename TRenderPass::input_attachment_mapping_type>> &&
         meta::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>> &&
+        meta::implements<TRayTracingPipeline, RayTracingPipeline<typename TRayTracingPipeline::pipeline_layout_type, typename TRayTracingPipeline::shader_program_type>> &&
         meta::implements<TBarrier, Barrier<typename TFactory::buffer_type, typename TFactory::image_type>>
     class GraphicsDevice : public IGraphicsDevice {
     public:
@@ -1140,10 +1282,13 @@ namespace LiteFX::Rendering {
         using buffer_type = factory_type::buffer_type;
         using image_type = factory_type::image_type;
         using sampler_type = factory_type::sampler_type;
+        using bottom_level_acceleration_structure_type = factory_type::bottom_level_acceleration_structure_type;
+        using top_level_acceleration_structure_type = factory_type::top_level_acceleration_structure_type;
         using render_pass_type = TRenderPass;
         using frame_buffer_type = render_pass_type::frame_buffer_type;
         using render_pipeline_type = render_pass_type::render_pipeline_type;
         using compute_pipeline_type = TComputePipeline;
+        using ray_tracing_pipeline_type = TRayTracingPipeline;
         using pipeline_layout_type = render_pipeline_type::pipeline_layout_type;
         using shader_program_type = render_pipeline_type::shader_program_type;
         using input_assembler_type = render_pipeline_type::input_assembler_type;
@@ -1191,11 +1336,28 @@ namespace LiteFX::Rendering {
             return this->createQueue(type, priority);
         }
 
+    public:
+        /// <inheritdoc />
+        virtual void computeAccelerationStructureSizes(const bottom_level_acceleration_structure_type& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const = 0;
+
+        /// <inheritdoc />
+        virtual void computeAccelerationStructureSizes(const top_level_acceleration_structure_type& tlas, UInt64 & bufferSize, UInt64 & scratchSize, bool forUpdate = false) const = 0;
+
+    private:
+        inline void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const {
+            this->computeAccelerationStructureSizes(dynamic_cast<const bottom_level_acceleration_structure_type&>(blas), bufferSize, scratchSize, forUpdate);
+        }
+
+        inline void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const {
+            this->computeAccelerationStructureSizes(dynamic_cast<const top_level_acceleration_structure_type&>(tlas), bufferSize, scratchSize, forUpdate);
+        }
+
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:
         using render_pass_builder_type = render_pass_type::builder_type;
         using render_pipeline_builder_type = render_pipeline_type::builder_type;
         using compute_pipeline_builder_type = compute_pipeline_type::builder_type;
+        using ray_tracing_pipeline_builder_type = ray_tracing_pipeline_type::builder_type;
         using pipeline_layout_builder_type = pipeline_layout_type::builder_type;
         using input_assembler_builder_type = input_assembler_type::builder_type;
         using rasterizer_builder_type = rasterizer_type::builder_type;
@@ -1242,6 +1404,27 @@ namespace LiteFX::Rendering {
         [[nodiscard]] virtual render_pipeline_builder_type buildRenderPipeline(const render_pass_type& renderPass, const String& name) const = 0;
 
         /// <summary>
+        /// Returns a builder for a <see cref="RayTracingPipeline" />.
+        /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
+        /// <returns>An instance of a builder that is used to create a new ray-tracing pipeline.</returns>
+        [[nodiscard]] virtual ray_tracing_pipeline_builder_type buildRayTracingPipeline(ShaderRecordCollection&& shaderRecords) const = 0;
+
+        /// <summary>
+        /// Returns a builder for a <see cref="RayTracingPipeline" />.
+        /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="name">The name of the ray-tracing pipeline.</param>
+        /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
+        /// <returns>An instance of a builder that is used to create a new ray-tracing pipeline.</returns>
+        [[nodiscard]] virtual ray_tracing_pipeline_builder_type buildRayTracingPipeline(const String& name, ShaderRecordCollection&& shaderRecords) const = 0;
+
+        /// <summary>
         /// Returns a builder for a <see cref="PipelineLayout" />.
         /// </summary>
         /// <returns>An instance of a builder that is used to create a new pipeline layout.</returns>
@@ -1278,7 +1461,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="GraphicsDevice" />.</typeparam>
     template <typename TGraphicsDevice> requires
-        meta::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::compute_pipeline_type, typename TGraphicsDevice::barrier_type>>
+        meta::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::compute_pipeline_type, typename TGraphicsDevice::ray_tracing_pipeline_type, typename TGraphicsDevice::barrier_type>>
     class RenderBackend : public IRenderBackend {
     public:
         using device_type = TGraphicsDevice;
@@ -1300,6 +1483,7 @@ namespace LiteFX::Rendering {
         using pipeline_layout_type = device_type::pipeline_layout_type;
         using render_pipeline_type = device_type::render_pipeline_type;
         using compute_pipeline_type = device_type::compute_pipeline_type;
+        using ray_tracing_pipeline_type = device_type::ray_tracing_pipeline_type;
         using shader_program_type = device_type::shader_program_type;
         using input_assembler_type = device_type::input_assembler_type;
         using rasterizer_type = device_type::rasterizer_type;

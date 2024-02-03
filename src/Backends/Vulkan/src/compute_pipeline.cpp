@@ -65,7 +65,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice& device, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, const String& name) :
+VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, const String& name) :
 	m_impl(makePimpl<VulkanComputePipelineImpl>(this, device, layout, shaderProgram)), VulkanPipelineState(VK_NULL_HANDLE)
 {
 	if (!name.empty())

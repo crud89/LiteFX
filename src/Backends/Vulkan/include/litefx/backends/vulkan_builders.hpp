@@ -63,10 +63,10 @@ namespace LiteFX::Rendering::Backends {
 		// ShaderProgramBuilder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline UniquePtr<VulkanShaderModule> makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint) override;
+		constexpr inline UniquePtr<VulkanShaderModule> makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) override;
 
 		/// <inheritdoc />
-		constexpr inline UniquePtr<VulkanShaderModule> makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint) override;
+		constexpr inline UniquePtr<VulkanShaderModule> makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) override;
 	};
 
 	/// <summary>
@@ -140,7 +140,7 @@ namespace LiteFX::Rendering::Backends {
 		template <typename TSelf>
 		constexpr inline auto indexType(this TSelf&& self, IndexType type) -> TSelf&& {
 			self.use(makeUnique<VulkanIndexBufferLayout>(type));
-			return self;
+			return std::forward<TSelf>(self);
 		}
 	};
 
@@ -290,6 +290,29 @@ namespace LiteFX::Rendering::Backends {
 		VulkanComputePipelineBuilder(VulkanComputePipelineBuilder&&) = delete;
 		VulkanComputePipelineBuilder(const VulkanComputePipelineBuilder&) = delete;
 		constexpr inline virtual ~VulkanComputePipelineBuilder() noexcept;
+
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		inline void build() override;
+	};
+
+	/// <summary>
+	/// Builds a Vulkan <see cref="RayTracingPipeline" />.
+	/// </summary>
+	/// <seealso cref="VulkanRayTracingPipeline" />
+	class LITEFX_VULKAN_API [[nodiscard]] VulkanRayTracingPipelineBuilder final : public RayTracingPipelineBuilder<VulkanRayTracingPipeline> {
+	public:
+		/// <summary>
+		/// Initializes a Vulkan ray-tracing pipeline builder.
+		/// </summary>
+		/// <param name="device">The parent device</param>
+        /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
+		/// <param name="name">A debug name for the ray-tracing pipeline.</param>
+		constexpr inline explicit VulkanRayTracingPipelineBuilder(const VulkanDevice& device, ShaderRecordCollection&& shaderRecords, const String& name = "");
+		VulkanRayTracingPipelineBuilder(VulkanRayTracingPipelineBuilder&&) = delete;
+		VulkanRayTracingPipelineBuilder(const VulkanRayTracingPipelineBuilder&) = delete;
+		constexpr inline virtual ~VulkanRayTracingPipelineBuilder() noexcept;
 
 		// Builder interface.
 	public:

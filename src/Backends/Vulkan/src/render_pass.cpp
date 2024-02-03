@@ -64,11 +64,11 @@ public:
     VkRenderPass initialize()
     {
         // Setup the attachments.
-        Array<VkAttachmentDescription> attachments;
-        Array<VkAttachmentReference> inputAttachments;
-        Array<VkAttachmentReference> outputAttachments; // Contains all output attachments, except the depth/stencil target.
-        Optional<VkAttachmentReference> depthTarget, presentTarget;
-        Optional<VkAttachmentDescription> presentResolveAttachment;
+        Array<VkAttachmentDescription2> attachments;
+        Array<VkAttachmentReference2> inputAttachments;
+        Array<VkAttachmentReference2> outputAttachments; // Contains all output attachments, except the depth/stencil target.
+        Optional<VkAttachmentReference2> depthTarget, presentTarget;
+        Optional<VkAttachmentDescription2> presentResolveAttachment;
 
         // Map input attachments.
         std::ranges::for_each(m_inputAttachments, [&, i = 0](const VulkanInputAttachmentMapping& inputAttachment) mutable {
@@ -77,42 +77,56 @@ public:
             if (inputAttachment.location() != currentIndex) [[unlikely]]
                 throw InvalidArgumentException("inputAttachments", "No input attachment is mapped to location {0}. The locations must be within a contiguous domain.", currentIndex);
 
-            VkAttachmentDescription attachment{};
-            attachment.format = Vk::getFormat(inputAttachment.renderTarget().format());
-            attachment.samples = Vk::getSamples(inputAttachment.inputAttachmentSource()->multiSamplingLevel());
-            attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-            attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-            attachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            VkAttachmentDescription2 attachment = {
+                .sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2,
+                .format = Vk::getFormat(inputAttachment.renderTarget().format()),
+                .samples = Vk::getSamples(inputAttachment.inputAttachmentSource()->multiSamplingLevel()),
+                .loadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+                .storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_LOAD,
+                .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE
+            };
             
             // Add a clear value, so that the indexing stays valid.
-            m_clearValues.push_back(VkClearValue{ });
+            m_clearValues.push_back(VkClearValue { });
 
             switch (inputAttachment.renderTarget().type()) 
             {
-            case RenderTargetType::Present: [[unlikely]]
-                throw InvalidArgumentException("inputAttachments", "The render pass input attachment at location {0} maps to a present render target, which can not be used as input attachment.", currentIndex);
             case RenderTargetType::Color:
+            {
                 attachment.initialLayout = inputAttachment.renderTarget().attachment() ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL;
                 attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-                inputAttachments.push_back({ static_cast<UInt32>(currentIndex), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
+                inputAttachments.push_back({
+                    .sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2,
+                    .attachment = static_cast<UInt32>(currentIndex),
+                    .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT
+                });
+
                 attachments.push_back(attachment);
                 break;
+            }
             case RenderTargetType::DepthStencil:
+            {
+                VkImageAspectFlags aspectMask { };
+
                 if (::hasDepth(inputAttachment.renderTarget().format()) && ::hasStencil(inputAttachment.renderTarget().format())) [[likely]]
                 {
                     attachment.initialLayout = inputAttachment.renderTarget().attachment() ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
                     attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                    aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
                 }
                 else if (::hasDepth(inputAttachment.renderTarget().format()))
                 {
                     attachment.initialLayout = inputAttachment.renderTarget().attachment() ? VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
                     attachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
+                    aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
                 }
                 else if (::hasStencil(inputAttachment.renderTarget().format()))
                 {
                     attachment.initialLayout = inputAttachment.renderTarget().attachment() ? VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL;
                     attachment.finalLayout = VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL;
+                    aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
                 }
                 else [[unlikely]]
                 {
@@ -120,9 +134,18 @@ public:
                     attachment.initialLayout = attachment.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
                 }
 
-                inputAttachments.push_back({ static_cast<UInt32>(currentIndex), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });
+                inputAttachments.push_back({
+                    .sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2,
+                    .attachment = static_cast<UInt32>(currentIndex), 
+                    .layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                    .aspectMask = aspectMask
+                });
+
                 attachments.push_back(attachment);
                 break;
+            }
+            case RenderTargetType::Present: [[unlikely]]
+                throw InvalidArgumentException("inputAttachments", "The render pass input attachment at location {0} maps to a present render target, which can not be used as input attachment.", currentIndex);
             }
         });
 
@@ -139,13 +162,15 @@ public:
                 throw InvalidArgumentException("renderTargets", "The present target at location {0} cannot be mapped. Another present target is already bound to location {1} and only one is allowed.", renderTarget.location(), presentTarget->attachment);
             else [[likely]]
             {
-                VkAttachmentDescription attachment{};
-                attachment.format = Vk::getFormat(renderTarget.format());
-                attachment.samples = Vk::getSamples(m_samples);
-                attachment.loadOp = renderTarget.clearBuffer() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                attachment.stencilLoadOp = renderTarget.clearStencil() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                attachment.storeOp = renderTarget.isVolatile() ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE;
-                attachment.stencilStoreOp = renderTarget.isVolatile() ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE;
+                VkAttachmentDescription2 attachment = {
+                    .sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2,
+                    .format = Vk::getFormat(renderTarget.format()),
+                    .samples = Vk::getSamples(m_samples),
+                    .loadOp = renderTarget.clearBuffer() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                    .storeOp = renderTarget.isVolatile() ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE,
+                    .stencilLoadOp = renderTarget.clearStencil() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                    .stencilStoreOp = renderTarget.isVolatile() ? VK_ATTACHMENT_STORE_OP_DONT_CARE : VK_ATTACHMENT_STORE_OP_STORE
+                };
 
                 // Add a clear values (even if it's unused).
                 if (renderTarget.clearBuffer() || renderTarget.clearStencil())
@@ -156,17 +181,37 @@ public:
                 switch (renderTarget.type())
                 {
                 case RenderTargetType::Color:
+                {
                     attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
                     attachment.finalLayout = renderTarget.attachment() ? VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_GENERAL;
-                    outputAttachments.push_back({ static_cast<UInt32>(currentIndex + inputAttachments.size()), attachment.finalLayout });
+                    outputAttachments.push_back({
+                        .sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2,
+                        .attachment = static_cast<UInt32>(currentIndex + inputAttachments.size()),
+                        .layout = attachment.finalLayout,
+                        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT
+                    });
+
                     break;
+                }
                 case RenderTargetType::DepthStencil:
+                {
+                    VkImageAspectFlags aspectMask { };
+
                     if (::hasDepth(renderTarget.format()) || ::hasStencil(renderTarget.format())) [[likely]]
+                    {
                         attachment.finalLayout = renderTarget.attachment() ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+                        aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+                    }
                     else if (::hasDepth(renderTarget.format()))
+                    {
                         attachment.finalLayout = renderTarget.attachment() ? VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+                        aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+                    }
                     else if (::hasStencil(renderTarget.format()))
+                    {
                         attachment.finalLayout = renderTarget.attachment() ? VK_IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL;
+                        aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
+                    }
                     else [[unlikely]]
                     {
                         LITEFX_WARNING(VULKAN_LOG, "The depth/stencil render target at location {0} does not have a valid depth/stencil format ({1}). Falling back to VK_IMAGE_LAYOUT_GENERAL.", currentIndex, renderTarget.format());
@@ -174,40 +219,59 @@ public:
                     }
 
                     attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                    depthTarget = VkAttachmentReference{ static_cast<UInt32>(currentIndex + inputAttachments.size()), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+                    depthTarget = VkAttachmentReference2 { 
+                        .sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2,
+                        .attachment = static_cast<UInt32>(currentIndex + inputAttachments.size()), 
+                        .layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+                        .aspectMask = aspectMask 
+                    };
+
                     break;
+                }
                 case RenderTargetType::Present:
+                {
                     attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
                     // If we have a multi-sampled present attachment, we also need to attach a resolve attachment for it.
                     if (m_samples == MultiSamplingLevel::x1)
+                    {
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
                         attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 #else
                         attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 #endif
+                    }
                     else
                     {
                         attachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-                        presentResolveAttachment = VkAttachmentDescription{};
-                        presentResolveAttachment->format = attachment.format;
-                        presentResolveAttachment->samples = VK_SAMPLE_COUNT_1_BIT;
-                        presentResolveAttachment->loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                        presentResolveAttachment->storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-                        presentResolveAttachment->stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                        presentResolveAttachment->stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-                        presentResolveAttachment->initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                        presentResolveAttachment = VkAttachmentDescription2 {
+                            .sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2,
+                            .format = attachment.format,
+                            .samples = VK_SAMPLE_COUNT_1_BIT,
+                            .loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+                            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
-                        presentResolveAttachment->finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                            .finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
 #else
-                        presentResolveAttachment->finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+                            .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
 #endif
+                        };
                     }
 
-                    presentTarget = VkAttachmentReference { static_cast<UInt32>(currentIndex + inputAttachments.size()), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+                    presentTarget = VkAttachmentReference2 { 
+                        .sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2,
+                        .attachment = static_cast<UInt32>(currentIndex + inputAttachments.size()), 
+                        .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT
+                    };
+
                     outputAttachments.push_back(presentTarget.value());
                     break;
+                }
                 }
 
                 attachments.push_back(attachment);
@@ -215,17 +279,23 @@ public:
         });
 
         // Setup the sub-pass.
-        VkSubpassDescription subPass{};
-        subPass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        subPass.colorAttachmentCount = static_cast<UInt32>(outputAttachments.size());
-        subPass.pColorAttachments = outputAttachments.data();
-        subPass.pDepthStencilAttachment = depthTarget.has_value() ? &depthTarget.value() : nullptr;
-        subPass.inputAttachmentCount = static_cast<UInt32>(inputAttachments.size());
-        subPass.pInputAttachments = inputAttachments.data();
-        subPass.pResolveAttachments = nullptr;
+        VkSubpassDescription2 subPass = {
+            .sType = VK_STRUCTURE_TYPE_SUBPASS_DESCRIPTION_2,
+            .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+            .inputAttachmentCount = static_cast<UInt32>(inputAttachments.size()),
+            .pInputAttachments = inputAttachments.data(),
+            .colorAttachmentCount = static_cast<UInt32>(outputAttachments.size()),
+            .pColorAttachments = outputAttachments.data(),
+            .pDepthStencilAttachment = depthTarget.has_value() ? &depthTarget.value() : nullptr
+        };
 
         // Add the resolve attachment.
-        VkAttachmentReference presentResolveReference = { static_cast<UInt32>(attachments.size()), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };
+        VkAttachmentReference2 presentResolveReference = { 
+            .sType = VK_STRUCTURE_TYPE_ATTACHMENT_REFERENCE_2,
+            .attachment = static_cast<UInt32>(attachments.size()), 
+            .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT
+        };
 
         if (presentResolveAttachment.has_value())
         {
@@ -234,33 +304,34 @@ public:
         }
 
         // Define an external sub-pass dependency, if there are input attachments to synchronize with.
-        Array<VkSubpassDependency> dependencies;
+        Array<VkSubpassDependency2> dependencies;
 
         if (!m_inputAttachments.empty())
         {
-            VkSubpassDependency dependency{};
-            dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-            dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-            dependency.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-            dependency.dstSubpass = 0;
-            dependency.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-            dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-            dependencies.push_back(dependency);
+            dependencies.push_back({
+                .srcSubpass = VK_SUBPASS_EXTERNAL,
+                .dstSubpass = 0,
+                .srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT,
+                .dstStageMask = VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT,
+                .srcAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+                .dstAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_2_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT
+            });
         }
 
         // Setup render pass state.
-        VkRenderPassCreateInfo renderPassState{};
-        renderPassState.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        renderPassState.attachmentCount = static_cast<UInt32>(attachments.size());
-        renderPassState.pAttachments = attachments.data();
-        renderPassState.subpassCount = 1;
-        renderPassState.pSubpasses = &subPass;
-        renderPassState.dependencyCount = static_cast<UInt32>(dependencies.size());
-        renderPassState.pDependencies = dependencies.data();
+        VkRenderPassCreateInfo2 renderPassState = {
+            .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO_2,
+            .attachmentCount = static_cast<UInt32>(attachments.size()),
+            .pAttachments = attachments.data(),
+            .subpassCount = 1,
+            .pSubpasses = &subPass,
+            .dependencyCount = static_cast<UInt32>(dependencies.size()),
+            .pDependencies = dependencies.data()
+        };
 
         // Create the render pass.
         VkRenderPass renderPass;
-        raiseIfFailed(::vkCreateRenderPass(m_device.handle(), &renderPassState, nullptr, &renderPass), "Unable to create render pass.");
+        raiseIfFailed(::vkCreateRenderPass2(m_device.handle(), &renderPassState, nullptr, &renderPass), "Unable to create render pass.");
 
 #ifndef NDEBUG
         m_device.setDebugName(*reinterpret_cast<const UInt64*>(&renderPass), VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT, m_parent->name());

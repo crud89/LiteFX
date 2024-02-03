@@ -18,6 +18,7 @@ private:
     Dictionary<String, UniquePtr<IIndexBuffer>> m_indexBuffers;
     Dictionary<String, UniquePtr<IImage>> m_images;
     Dictionary<String, UniquePtr<ISampler>> m_samplers;
+    Dictionary<String, UniquePtr<IAccelerationStructure>> m_accelerationStructures;
     Dictionary<String, UniquePtr<IDescriptorSet>> m_descriptorSets;
 
 public:
@@ -76,6 +77,11 @@ void DeviceState::clear()
         pair.second = nullptr;
 
     m_impl->m_samplers.clear();
+
+    for (auto& pair : m_impl->m_accelerationStructures)
+        pair.second = nullptr;
+
+    m_impl->m_accelerationStructures.clear();
 
     // Clear pipelines.
     for (auto& pair : m_impl->m_pipelines)
@@ -202,6 +208,22 @@ void DeviceState::add(const String& id, UniquePtr<ISampler>&& sampler)
     m_impl->m_samplers.insert(std::make_pair(id, std::move(sampler)));
 }
 
+void DeviceState::add(UniquePtr<IAccelerationStructure>&& accelerationStructure)
+{
+    this->add(accelerationStructure->name(), std::move(accelerationStructure));
+}
+
+void DeviceState::add(const String& id, UniquePtr<IAccelerationStructure>&& accelerationStructure)
+{
+    if (accelerationStructure == nullptr) [[unlikely]]
+        throw InvalidArgumentException("accelerationStructure", "The acceleration structure must be initialized.");
+
+    if (m_impl->m_samplers.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("id", "Another acceleration structure with the identifier \"{0}\" has already been registered in the device state.", id);
+
+    m_impl->m_accelerationStructures.insert(std::make_pair(id, std::move(accelerationStructure)));
+}
+
 void DeviceState::add(const String& id, UniquePtr<IDescriptorSet>&& descriptorSet)
 {
     if (descriptorSet == nullptr) [[unlikely]]
@@ -267,6 +289,14 @@ ISampler& DeviceState::sampler(const String& id) const
         throw InvalidArgumentException("id", "No samplers with the identifier \"{0}\" has been registered in the device state.", id);
 
     return *m_impl->m_samplers[id];
+}
+
+IAccelerationStructure& DeviceState::accelerationStructure(const String& id) const
+{
+    if (!m_impl->m_accelerationStructures.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("id", "No acceleration structure with the identifier \"{0}\" has been registered in the device state.", id);
+
+    return *m_impl->m_accelerationStructures[id];
 }
 
 IDescriptorSet& DeviceState::descriptorSet(const String& id) const

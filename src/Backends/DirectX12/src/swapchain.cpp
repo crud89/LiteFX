@@ -65,7 +65,7 @@ public:
 		swapChainDesc.Height = static_cast<UInt32>(size.height());
 		swapChainDesc.Format = DX12::getFormat(format);
 		swapChainDesc.Stereo = FALSE;
-		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT; // NOTE: D3D12 does no longer allow UAV access to back buffers, so binding swap chain images to UAV in compute/ray-tracing shaders does not work.
 		swapChainDesc.BufferCount = std::max<UInt32>(2, frameBuffers);
 		swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
@@ -84,7 +84,7 @@ public:
 		std::ranges::generate(m_presentImages, [this, &size, &format, &swapChain, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed(swapChain->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
-			return makeUnique<DirectX12Image>(m_device, std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ImageLayout::Present);
+			return makeUnique<DirectX12Image>(m_device, std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
 		});
 
 		// Disable Alt+Enter shortcut for fullscreen-toggle.
@@ -120,7 +120,7 @@ public:
 		std::ranges::generate(m_presentImages, [this, &size, &format, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed(m_parent->handle()->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
-			return makeUnique<DirectX12Image>(m_device, std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ImageLayout::Present);
+			return makeUnique<DirectX12Image>(m_device, std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
 		});
 
 		m_format = format;
@@ -159,7 +159,7 @@ public:
 
 		// Create a readback buffer for each heap.
 		m_timingQueryReadbackBuffers.resize(m_buffers);
-		std::ranges::generate(m_timingQueryReadbackBuffers, [this, &timingEvents]() { return m_device.factory().createBuffer(BufferType::Other, BufferUsage::Readback, sizeof(UInt64) * timingEvents.size()); });
+		std::ranges::generate(m_timingQueryReadbackBuffers, [this, &timingEvents]() { return m_device.factory().createBuffer(BufferType::Other, ResourceHeap::Readback, sizeof(UInt64) * timingEvents.size()); });
 
 		// Store the event and resize the time stamp collection.
 		m_timingEvents = timingEvents;

@@ -321,7 +321,7 @@ void DirectX12RenderPass::begin(UInt32 buffer)
         auto& image = const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location()));
 
         if (renderTarget.type() == RenderTargetType::DepthStencil)
-            depthStencilBarrier.transition(image, ResourceAccess::DepthStencilRead, ResourceAccess::DepthStencilWrite, ImageLayout::DepthWrite);
+            depthStencilBarrier.transition(image, ResourceAccess::DepthStencilRead, ResourceAccess::DepthStencilWrite, ImageLayout::DepthRead, ImageLayout::DepthWrite);
         else //if (!renderTarget.multiQueueAccess())
             renderTargetBarrier.transition(image, ResourceAccess::None, ResourceAccess::RenderTarget, ImageLayout::Undefined, ImageLayout::RenderTarget);
         //else  // Resources with simultaneous access enabled don't need to be transitioned.
@@ -382,16 +382,16 @@ UInt64 DirectX12RenderPass::end() const
         {
         default:
         case RenderTargetType::Color:
-            renderTargetBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::ShaderRead, renderTarget.attachment() ? ImageLayout::ShaderResource : ImageLayout::Common);
+            renderTargetBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::ShaderRead, ImageLayout::RenderTarget, renderTarget.attachment() ? ImageLayout::ShaderResource : ImageLayout::Common);
             break;
         case RenderTargetType::DepthStencil:
-            depthStencilBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::DepthStencilWrite, ResourceAccess::DepthStencilRead, ImageLayout::DepthRead);
+            depthStencilBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::DepthStencilWrite, ResourceAccess::DepthStencilRead, ImageLayout::DepthWrite, ImageLayout::DepthRead);
             break;
         case RenderTargetType::Present:
             if (requiresResolve)
-                resolveBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::ResolveRead, ImageLayout::ResolveSource);
+                resolveBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::ResolveRead, ImageLayout::RenderTarget, ImageLayout::ResolveSource);
             else
-                presentBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::None, ImageLayout::Present);
+                presentBarrier.transition(const_cast<IDirectX12Image&>(frameBuffer->image(renderTarget.location())), ResourceAccess::RenderTarget, ResourceAccess::None, ImageLayout::RenderTarget, ImageLayout::Present);
 
             break;
         }
@@ -406,7 +406,7 @@ UInt64 DirectX12RenderPass::end() const
 
     if (requiresResolve)
     {
-        resolveBarrier.transition(const_cast<IDirectX12Image&>(*backBufferImage), ResourceAccess::Common, ResourceAccess::ResolveWrite, ImageLayout::ResolveDestination);
+        resolveBarrier.transition(const_cast<IDirectX12Image&>(*backBufferImage), ResourceAccess::Common, ResourceAccess::ResolveWrite, ImageLayout::Common, ImageLayout::ResolveDestination);
         endCommandBuffer->barrier(resolveBarrier);
     }
 
@@ -418,8 +418,8 @@ UInt64 DirectX12RenderPass::end() const
 
         // Transition the present target back to the present state.
         DirectX12Barrier presentBarrier(PipelineStage::Resolve, PipelineStage::Resolve);
-        presentBarrier.transition(const_cast<IDirectX12Image&>(*backBufferImage), ResourceAccess::ResolveWrite, ResourceAccess::Common, ImageLayout::Present);
-        presentBarrier.transition(const_cast<IDirectX12Image&>(*multiSampledImage), ResourceAccess::ResolveRead, ResourceAccess::Common, ImageLayout::Common);
+        presentBarrier.transition(const_cast<IDirectX12Image&>(*backBufferImage), ResourceAccess::ResolveWrite, ResourceAccess::Common, ImageLayout::ResolveDestination, ImageLayout::Present);
+        presentBarrier.transition(const_cast<IDirectX12Image&>(*multiSampledImage), ResourceAccess::ResolveRead, ResourceAccess::Common, ImageLayout::ResolveSource, ImageLayout::Common);
         endCommandBuffer->barrier(presentBarrier);
     }
 

@@ -21,7 +21,8 @@ private:
 	Array<UniquePtr<IVulkanImage>> m_presentImages { };
 	const VulkanDevice& m_device;
 	VkSwapchainKHR m_handle = VK_NULL_HANDLE;
-	VkFence m_waitForImage = VK_NULL_HANDLE;
+	VkFence m_waitForImage;
+	Array<VkSemaphore> m_waitForWorkload;
 
 	Array<SharedPtr<TimingEvent>> m_timingEvents;
 	Array<UInt64> m_timestamps;
@@ -88,8 +89,8 @@ public:
 		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		createInfo.clipped = VK_TRUE;
 		createInfo.oldSwapchain = VK_NULL_HANDLE;
-		createInfo.imageExtent.height = std::max<UInt32>(1, std::clamp(static_cast<UInt32>(renderArea.height()), deviceCaps.minImageExtent.height, deviceCaps.maxImageExtent.height));
-		createInfo.imageExtent.width = std::max<UInt32>(1, std::clamp(static_cast<UInt32>(renderArea.width()), deviceCaps.minImageExtent.width, deviceCaps.maxImageExtent.width));
+		createInfo.imageExtent.height = std::max<UInt32>(1u, std::clamp(static_cast<UInt32>(renderArea.height()), deviceCaps.minImageExtent.height, deviceCaps.maxImageExtent.height));
+		createInfo.imageExtent.width = std::max<UInt32>(1u, std::clamp(static_cast<UInt32>(renderArea.width()), deviceCaps.minImageExtent.width, deviceCaps.maxImageExtent.width));
 
 		// Set the present mode to VK_PRESENT_MODE_MAILBOX_KHR, since it offers best performance without tearing. For VSync use VK_PRESENT_MODE_FIFO_KHR, which is also the only one guaranteed to be available.
 		createInfo.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
@@ -110,9 +111,18 @@ public:
 		VkSwapchainKHR swapChain;
 		raiseIfFailed(::vkCreateSwapchainKHR(m_device.handle(), &createInfo, nullptr, &swapChain), "Swap chain could not be created.");
 
-		// Initialize the fence used to wait for image access.
+		// Initialize the fences used to wait for image access.
 		VkFenceCreateInfo fenceInfo { .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
 		raiseIfFailed(::vkCreateFence(m_device.handle(), &fenceInfo, nullptr, &m_waitForImage), "Unable to create image acquisition fence.");
+
+		// Initialize the semaphores used to wait for workload completion before present.
+		VkSemaphoreCreateInfo semaphoreInfo { .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
+		m_waitForWorkload.resize(images);
+		std::ranges::generate(m_waitForWorkload, [&]() {
+			VkSemaphore semaphore;
+			raiseIfFailed(::vkCreateSemaphore(m_device.handle(), &semaphoreInfo, nullptr, &semaphore), "Unable to workload synchronization semaphore.");
+			return semaphore;
+		});
 
 		// Create the swap chain images.
 		auto actualRenderArea = Size2d(static_cast<size_t>(createInfo.imageExtent.width), static_cast<size_t>(createInfo.imageExtent.height));
@@ -120,7 +130,7 @@ public:
 		::vkGetSwapchainImagesKHR(m_device.handle(), swapChain, &images, imageChain.data());
 
 		m_presentImages = imageChain |
-			std::views::transform([this, &actualRenderArea, &selectedFormat](const VkImage& image) { return makeUnique<VulkanImage>(m_device, image, Size3d{ actualRenderArea.width(), actualRenderArea.height(), 1 }, selectedFormat, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ImageLayout::Present); }) |
+			std::views::transform([this, &actualRenderArea, &selectedFormat](const VkImage& image) { return makeUnique<VulkanImage>(m_device, image, Size3d{ actualRenderArea.width(), actualRenderArea.height(), 1 }, selectedFormat, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination); }) |
 			std::ranges::to<Array<UniquePtr<IVulkanImage>>>();
 
 		// Store state variables.
@@ -178,8 +188,9 @@ public:
 		// Destroy the swap chain itself.
 		::vkDestroySwapchainKHR(m_device.handle(), m_handle, nullptr);
 
-		// Destroy the fence used to wait for image acquisition.
+		// Destroy the fences and semaphores used to wait for image acquisition.
 		::vkDestroyFence(m_device.handle(), m_waitForImage, nullptr);
+		std::ranges::for_each(m_waitForWorkload, [&](VkSemaphore semaphore) { ::vkDestroySemaphore(m_device.handle(), semaphore, nullptr); });
 
 		// Destroy state.
 		m_buffers = 0;
@@ -225,10 +236,33 @@ public:
 		std::array<VkSwapchainKHR, 1> swapChains = { m_handle };
 		const auto bufferIndex = m_currentImage;
 		const auto& queue = m_device.defaultQueue(QueueType::Graphics);
-		queue.waitFor(fence);
+
+		// Wait for the workload semaphore before performing the actual presentation.
+		auto workloadSemaphore = m_waitForWorkload[bufferIndex];
+		VkPipelineStageFlags synchronizationPoint = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		
+		VkTimelineSemaphoreSubmitInfo workloadFenceInfo = {
+			.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO,
+			.waitSemaphoreValueCount = 1,
+			.pWaitSemaphoreValues = &fence
+		};
+
+		VkSubmitInfo submitInfo = {
+			.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+			.pNext = &workloadFenceInfo,
+			.waitSemaphoreCount = 1,
+			.pWaitSemaphores = &queue.timelineSemaphore(),
+			.pWaitDstStageMask = &synchronizationPoint,
+			.signalSemaphoreCount = 1,
+			.pSignalSemaphores = &workloadSemaphore
+		};
+
+		raiseIfFailed(::vkQueueSubmit(queue.handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit workload semaphore.");
 
 		VkPresentInfoKHR presentInfo = {
 			.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+			.waitSemaphoreCount = 1,
+			.pWaitSemaphores = &workloadSemaphore,
 			.swapchainCount = static_cast<UInt32>(swapChains.size()),
 			.pSwapchains = swapChains.data(),
 			.pImageIndices = &bufferIndex,
@@ -404,8 +438,8 @@ public:
 
 		// Fix the render area, if required.
 		Size2d extent(
-			std::clamp(static_cast<UInt32>(renderArea.width()), deviceCaps.minImageExtent.width, deviceCaps.maxImageExtent.width),
-			std::clamp(static_cast<UInt32>(renderArea.height()), deviceCaps.minImageExtent.height, deviceCaps.maxImageExtent.height));
+			std::max(1u, std::clamp(static_cast<UInt32>(renderArea.width()), deviceCaps.minImageExtent.width, deviceCaps.maxImageExtent.width)), 
+			std::max(1u, std::clamp(static_cast<UInt32>(renderArea.height()), deviceCaps.minImageExtent.height, deviceCaps.maxImageExtent.height)));
 
 		[[unlikely]] if (extent.height() != static_cast<UInt32>(renderArea.height()) || extent.width() != static_cast<UInt32>(renderArea.width()))
 			LITEFX_INFO(VULKAN_LOG, "The render area has been adjusted to {0}x{1} Px (was {2}x{3} Px).", extent.height(), extent.width(), static_cast<UInt32>(renderArea.height()), static_cast<UInt32>(renderArea.width()));
@@ -555,7 +589,9 @@ public:
 			LITEFX_INFO(VULKAN_LOG, "The number of buffers has been adjusted from {0} to {1}.", buffers, images);
 
 		// Fix the render area, if required.
-		Size2d extent(std::clamp(static_cast<UInt32>(renderArea.width()), deviceCaps.minImageExtent.width, deviceCaps.maxImageExtent.width), std::clamp(static_cast<UInt32>(renderArea.height()), deviceCaps.minImageExtent.height, deviceCaps.maxImageExtent.height));
+		Size2d extent(
+			std::max(1u, std::clamp(static_cast<UInt32>(renderArea.width()), deviceCaps.minImageExtent.width, deviceCaps.maxImageExtent.width)), 
+			std::max(1u, std::clamp(static_cast<UInt32>(renderArea.height()), deviceCaps.minImageExtent.height, deviceCaps.maxImageExtent.height)));
 
 		[[unlikely]] if (extent.height() != static_cast<UInt32>(renderArea.height()) || extent.width() != static_cast<UInt32>(renderArea.width()))
 			LITEFX_INFO(VULKAN_LOG, "The render area has been adjusted to {0}x{1} Px (was {2}x{3} Px).", extent.height(), extent.width(), static_cast<UInt32>(renderArea.height()), static_cast<UInt32>(renderArea.width()));
@@ -700,7 +736,7 @@ public:
 			m_imageResources[image].handle = resourceHandle;
 			m_imageResources[image].image = std::move(resource);
 
-			return makeUnique<VulkanImage>(m_device, backBuffer, Size3d { imageInfo.extent.width, imageInfo.extent.height, imageInfo.extent.depth }, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, false, ImageLayout::Present);
+			return makeUnique<VulkanImage>(m_device, backBuffer, Size3d { imageInfo.extent.width, imageInfo.extent.height, imageInfo.extent.depth }, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
 		});
 
 		// Store state variables.
@@ -808,7 +844,7 @@ public:
 	void present(UInt64 fence)
 	{
 		// Wait for all commands to finish on the default graphics queue. We assume that this is the last queue that receives (synchronized) workloads, as it is expected to
-		// handle presentation by convention.
+		// handle presentation by convention. Note that this performs a GPU-side wait for the fence and does not block.
 		m_presentQueue->Wait(m_workloadFence.Get(), m_presentFences[m_currentImage] = fence);
 
 		// Copy shared images to back buffers. See `createImages` for details on why we do this.

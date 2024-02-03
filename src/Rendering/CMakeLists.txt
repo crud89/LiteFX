@@ -26,6 +26,7 @@ SET(RENDERING_SOURCES
     "src/state_resource.cpp"
     "src/device_state.cpp"
     "src/timing_event.cpp"
+    "src/shader_record_collection.cpp"
 )
 
 # Add shared library project.

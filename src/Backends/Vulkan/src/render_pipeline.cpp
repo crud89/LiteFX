@@ -34,8 +34,44 @@ public:
 public:
 	VkPipeline initialize()
 	{
-		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline \"{1}\" for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_parent->name());
+		// Get the shader modules.
+		auto modules = m_program->modules();
+
+		// Setup dynamic state.
+		Array<VkDynamicState> dynamicStates { 
+			VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT, 
+			VkDynamicState::VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT, 
+			VkDynamicState::VK_DYNAMIC_STATE_LINE_WIDTH, 
+			VkDynamicState::VK_DYNAMIC_STATE_BLEND_CONSTANTS,
+			VkDynamicState::VK_DYNAMIC_STATE_STENCIL_REFERENCE
+		};
 		
+		VkPipelineDynamicStateCreateInfo dynamicState = {};
+		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+		dynamicState.pDynamicStates = dynamicStates.data();
+		dynamicState.dynamicStateCount = static_cast<UInt32>(dynamicStates.size());
+
+		// Setup shader stages.
+		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(reinterpret_cast<const void*>(m_program.get())), modules.size());
+
+		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
+			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
+			std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
+
+		// Setup the pipeline.
+		auto pipeline = this->initializeGraphicsPipeline(dynamicState, shaderStages);
+
+#ifndef NDEBUG
+		m_renderPass.device().setDebugName(*reinterpret_cast<const UInt64*>(&pipeline), VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, m_parent->name());
+#endif
+
+		return pipeline;
+	}
+
+	VkPipeline initializeGraphicsPipeline(const VkPipelineDynamicStateCreateInfo& dynamicState, const LiteFX::Array<VkPipelineShaderStageCreateInfo>& shaderStages)
+	{
+		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline \"{1}\" for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_parent->name());
+
 		// Get the device.
 		const auto& device = m_renderPass.device();
 
@@ -55,21 +91,18 @@ public:
 		rasterizerState.depthBiasSlopeFactor = rasterizer.depthStencilState().depthBias().SlopeFactor;
 
 		LITEFX_TRACE(VULKAN_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3} }}", rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth());
-		
+
 		if (rasterizer.depthStencilState().depthBias().Enable)
 			LITEFX_TRACE(VULKAN_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer.depthStencilState().depthBias().Clamp, rasterizer.depthStencilState().depthBias().ConstantFactor, rasterizer.depthStencilState().depthBias().SlopeFactor);
 		else
 			LITEFX_TRACE(VULKAN_LOG, "\tRasterizer depth bias disabled.");
 
 		// Setup input assembler state.
-		VkPipelineVertexInputStateCreateInfo inputState = {};
-		inputState.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-		VkPipelineInputAssemblyStateCreateInfo inputAssembly = {};
-		inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-
+		VkPipelineVertexInputStateCreateInfo inputState = { .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
+		VkPipelineInputAssemblyStateCreateInfo inputAssembly = { .sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
 		Array<VkVertexInputBindingDescription> vertexInputBindings;
 		Array<VkVertexInputAttributeDescription> vertexInputAttributes;
-		
+
 		LITEFX_TRACE(VULKAN_LOG, "Input assembler state: {{ PrimitiveTopology: {0} }}", m_inputAssembler->topology());
 
 		// Set primitive topology.
@@ -114,22 +147,7 @@ public:
 		inputState.pVertexAttributeDescriptions = vertexInputAttributes.data();
 
 		// Setup viewport state (still required, even if all viewports and scissors are dynamic).
-		VkPipelineViewportStateCreateInfo viewportState = {};
-		viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-
-		// Setup dynamic state.
-		Array<VkDynamicState> dynamicStates { 
-			VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT_WITH_COUNT, 
-			VkDynamicState::VK_DYNAMIC_STATE_SCISSOR_WITH_COUNT, 
-			VkDynamicState::VK_DYNAMIC_STATE_LINE_WIDTH, 
-			VkDynamicState::VK_DYNAMIC_STATE_BLEND_CONSTANTS,
-			VkDynamicState::VK_DYNAMIC_STATE_STENCIL_REFERENCE
-		};
-		
-		VkPipelineDynamicStateCreateInfo dynamicState = {};
-		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-		dynamicState.pDynamicStates = dynamicStates.data();
-		dynamicState.dynamicStateCount = static_cast<UInt32>(dynamicStates.size());
+		VkPipelineViewportStateCreateInfo viewportState = { .sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
 
 		// Setup multisampling state.
 		VkPipelineMultisampleStateCreateInfo multisampling = {};
@@ -187,40 +205,26 @@ public:
 		depthStencilState.back.passOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilPassOp);
 		depthStencilState.back.depthFailOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.DepthFailOp);
 
-		// Setup shader stages.
-		auto modules = m_program->modules();
-		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(reinterpret_cast<const void*>(m_program.get())), modules.size());
-
-		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
-			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
-			std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
-
 		// Setup pipeline state.
-		VkGraphicsPipelineCreateInfo pipelineInfo = {};
-		pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-		pipelineInfo.pVertexInputState = &inputState;
-		pipelineInfo.pInputAssemblyState = &inputAssembly;
-		pipelineInfo.pViewportState = &viewportState;
-		pipelineInfo.pRasterizationState = &rasterizerState;
-		pipelineInfo.pMultisampleState = &multisampling;
-		pipelineInfo.pColorBlendState = &colorBlending;
-		pipelineInfo.pDepthStencilState = &depthStencilState;
-		pipelineInfo.pDynamicState = &dynamicState;
-		pipelineInfo.layout = std::as_const(*m_layout.get()).handle();
-		pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-		pipelineInfo.stageCount = modules.size();
-		pipelineInfo.pStages = shaderStages.data();
-
-		// Setup render pass state.
-		pipelineInfo.renderPass = m_renderPass.handle();
-		pipelineInfo.subpass = 0;
+		VkGraphicsPipelineCreateInfo pipelineInfo = {
+			.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+			.stageCount = static_cast<UInt32>(shaderStages.size()),
+			.pStages = shaderStages.data(),
+			.pVertexInputState = &inputState,
+			.pInputAssemblyState = &inputAssembly,
+			.pViewportState = &viewportState,
+			.pRasterizationState = &rasterizerState,
+			.pMultisampleState = &multisampling,
+			.pDepthStencilState = &depthStencilState,
+			.pColorBlendState = &colorBlending,
+			.pDynamicState = &dynamicState,
+			.layout = std::as_const(*m_layout.get()).handle(),
+			.renderPass = m_renderPass.handle(),
+			.subpass = 0
+		};
 
 		VkPipeline pipeline;
 		raiseIfFailed(::vkCreateGraphicsPipelines(m_renderPass.device().handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
-
-#ifndef NDEBUG
-		m_renderPass.device().setDebugName(*reinterpret_cast<const UInt64*>(&pipeline), VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, m_parent->name());
-#endif
 
 		return pipeline;
 	}

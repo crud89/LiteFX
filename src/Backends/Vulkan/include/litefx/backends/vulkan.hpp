@@ -124,9 +124,6 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="IVulkanSampler" />
     class LITEFX_VULKAN_API IVulkanImage : public virtual IImage, public virtual IResource<VkImage> {
     public:
-        friend class VulkanBarrier;
-
-    public:
         virtual ~IVulkanImage() noexcept = default;
 
     public:
@@ -142,17 +139,6 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="plane">The sub-resource identifier to query the aspect mask from.</param>
         /// <returns>The image resource aspect mask.</returns>
         virtual VkImageAspectFlags aspectMask(UInt32 plane) const = 0;
-
-        /// <summary>
-        /// Returns the image view for a sub-resource.
-        /// </summary>
-        /// <param name="plane">The sub-resource index to return the image view for.</param>
-        /// <returns>The image view for the sub-resource.</returns>
-        virtual const VkImageView& imageView(UInt32 plane = 0) const = 0;
-        
-    private:
-        virtual ImageLayout& layout(UInt32 subresource) = 0;
-        virtual ImageLayout layout(UInt32 subresource) const = 0;
     };
 
     /// <summary>
@@ -165,6 +151,174 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API IVulkanSampler : public virtual ISampler, public virtual IResource<VkSampler> {
     public:
         virtual ~IVulkanSampler() noexcept = default;
+    };
+
+    /// <summary>
+    /// Represents the base interface for a Vulkan acceleration structure implementation.
+    /// </summary>
+    /// <seealso cref="VulkanDescriptorSet" />
+    /// <seealso cref="VulkanBottomLevelAccelerationStructure" />
+    /// <seealso cref="VulkanTopevelAccelerationStructure" />
+    class LITEFX_VULKAN_API IVulkanAccelerationStructure : public virtual IAccelerationStructure, public virtual IResource<VkAccelerationStructureKHR> {
+    public:
+        virtual ~IVulkanAccelerationStructure() noexcept = default;
+    };
+
+    /// <summary>
+    /// Implements a Vulkan bottom-level acceleration structure (BLAS).
+    /// </summary>
+    /// <seealso cref="VulkanTopLevelAccelerationStructure" />
+    class LITEFX_VULKAN_API VulkanBottomLevelAccelerationStructure final : public IBottomLevelAccelerationStructure, public virtual IVulkanAccelerationStructure, public virtual StateResource, public virtual Resource<VkAccelerationStructureKHR> {
+        LITEFX_IMPLEMENTATION(VulkanBottomLevelAccelerationStructureImpl);
+        friend class VulkanDevice;
+        friend class VulkanCommandBuffer;
+
+        using IAccelerationStructure::build;
+        using IAccelerationStructure::update;
+        using IBottomLevelAccelerationStructure::copy;
+
+    public:
+        /// <summary>
+        /// Initializes a new Vulkan bottom-level acceleration structure (BLAS).
+        /// </summary>
+        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
+        /// <param name="name">The name of the acceleration structure resource.</param>
+        /// <exception cref="InvalidArgumentException">Thrown if the provided <paramref name="flags" /> contain an unsupported combination of flags.</exception>
+        /// <seealso cref="AccelerationStructureFlags" />
+        explicit VulkanBottomLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None, StringView name = "");
+        VulkanBottomLevelAccelerationStructure(const VulkanBottomLevelAccelerationStructure&) = delete;
+        VulkanBottomLevelAccelerationStructure(VulkanBottomLevelAccelerationStructure&&) = delete;
+        virtual ~VulkanBottomLevelAccelerationStructure() noexcept;
+
+        // IAccelerationStructure interface.
+    public:
+        /// <inheritdoc />
+        AccelerationStructureFlags flags() const noexcept override;
+
+        /// <inheritdoc />
+        SharedPtr<const IVulkanBuffer> buffer() const noexcept;
+
+        /// <inheritdoc />
+        void build(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer = nullptr, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+
+        /// <inheritdoc />
+        void update(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer = nullptr, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+
+        /// <inheritdoc />
+        void copy(const VulkanCommandBuffer& commandBuffer, VulkanBottomLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
+
+        /// <inheritdoc />
+        UInt64 offset() const noexcept override;
+
+        /// <inheritdoc />
+        UInt64 size() const noexcept override;
+
+        // IBottomLevelAccelerationStructure interface.
+    public:
+        /// <inheritdoc />
+        const Array<TriangleMesh>& triangleMeshes() const noexcept override;
+
+        /// <inheritdoc />
+        void addTriangleMesh(const TriangleMesh& mesh) override;
+
+        /// <inheritdoc />
+        const Array<BoundingBoxes>& boundingBoxes() const noexcept override;
+
+        /// <inheritdoc />
+        void addBoundingBox(const BoundingBoxes& aabb) override;
+
+        /// <inheritdoc />
+        virtual void clear() noexcept override;
+
+        /// <inheritdoc />
+        virtual bool remove(const TriangleMesh& mesh) noexcept override;
+
+        /// <inheritdoc />
+        virtual bool remove(const BoundingBoxes& aabb) noexcept override;
+
+    private:
+        Array<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> buildInfo() const;
+        void updateState(const VulkanDevice* device, VkAccelerationStructureKHR handle) noexcept;
+
+    private:
+        SharedPtr<const IBuffer> getBuffer() const noexcept override;
+        void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        void doCopy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const override;
+    };
+
+    /// <summary>
+    /// Implements a Vulkan top-level acceleration structure (TLAS).
+    /// </summary>
+    /// <seealso cref="VulkanBottomLevelAccelerationStructure" />
+    class LITEFX_VULKAN_API VulkanTopLevelAccelerationStructure final : public ITopLevelAccelerationStructure, public virtual IVulkanAccelerationStructure, public virtual StateResource, public virtual Resource<VkAccelerationStructureKHR> {
+        LITEFX_IMPLEMENTATION(VulkanTopLevelAccelerationStructureImpl);
+        friend class VulkanDevice;
+        friend class VulkanCommandBuffer;
+
+        using IAccelerationStructure::build;
+        using IAccelerationStructure::update;
+        using ITopLevelAccelerationStructure::copy;
+
+    public:
+        /// <summary>
+        /// Initializes a new Vulkan top-level acceleration structure (BLAS).
+        /// </summary>
+        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
+        /// <param name="name">The name of the acceleration structure resource.</param>
+        /// <exception cref="InvalidArgumentException">Thrown if the provided <paramref name="flags" /> contain an unsupported combination of flags.</exception>
+        /// <seealso cref="AccelerationStructureFlags" />
+        explicit VulkanTopLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None, StringView name = "");
+        VulkanTopLevelAccelerationStructure(const VulkanTopLevelAccelerationStructure&) = delete;
+        VulkanTopLevelAccelerationStructure(VulkanTopLevelAccelerationStructure&&) = delete;
+        virtual ~VulkanTopLevelAccelerationStructure() noexcept;
+
+        // IAccelerationStructure interface.
+    public:
+        /// <inheritdoc />
+        AccelerationStructureFlags flags() const noexcept override;
+
+        /// <inheritdoc />
+        SharedPtr<const IVulkanBuffer> buffer() const noexcept;
+
+        /// <inheritdoc />
+        void build(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer = nullptr, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+
+        /// <inheritdoc />
+        void update(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer = nullptr, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+
+        /// <inheritdoc />
+        void copy(const VulkanCommandBuffer& commandBuffer, VulkanTopLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
+
+        /// <inheritdoc />
+        UInt64 offset() const noexcept override;
+
+        /// <inheritdoc />
+        UInt64 size() const noexcept override;
+
+        // ITopLevelAccelerationStructure interface.
+    public:
+        /// <inheritdoc />
+        const Array<Instance>& instances() const noexcept override;
+
+        /// <inheritdoc />
+        void addInstance(const Instance& instance) override;
+
+        /// <inheritdoc />
+        virtual void clear() noexcept override;
+
+        /// <inheritdoc />
+        virtual bool remove(const Instance& mesh) noexcept override;
+
+    private:
+        Array<VkAccelerationStructureInstanceKHR> buildInfo() const noexcept;
+        void updateState(const VulkanDevice* device, VkAccelerationStructureKHR handle) noexcept;
+
+    private:
+        SharedPtr<const IBuffer> getBuffer() const noexcept override;
+        void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
+        void doCopy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const override;
     };
 
     /// <summary>
@@ -210,22 +364,22 @@ namespace LiteFX::Rendering::Backends {
         constexpr inline void wait(ResourceAccess accessBefore, ResourceAccess accessAfter) noexcept override;
 
         /// <inheritdoc />
-        constexpr inline void transition(IVulkanBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) override;
+        constexpr inline void transition(const IVulkanBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) override;
 
         /// <inheritdoc />
-        constexpr inline void transition(IVulkanBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) override;
+        constexpr inline void transition(const IVulkanBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) override;
 
         /// <inheritdoc />
-        constexpr inline void transition(IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override;
+        constexpr inline void transition(const IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override;
 
         /// <inheritdoc />
-        constexpr inline void transition(IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override;
+        constexpr inline void transition(const IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override;
 
         /// <inheritdoc />
-        constexpr inline void transition(IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override;
+        constexpr inline void transition(const IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override;
 
         /// <inheritdoc />
-        constexpr inline void transition(IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override;
+        constexpr inline void transition(const IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override;
 
     public:
         /// <summary>
@@ -253,7 +407,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="type">The shader stage, this module is used in.</param>
         /// <param name="fileName">The file name of the module source.</param>
         /// <param name="entryPoint">The name of the module entry point.</param>
-        explicit VulkanShaderModule(const VulkanDevice& device, ShaderStage type, const String& fileName, const String& entryPoint = "main");
+        /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data for ray-tracing shaders.</param>
+        explicit VulkanShaderModule(const VulkanDevice& device, ShaderStage type, const String& fileName, const String& entryPoint = "main", const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt);
 
         /// <summary>
         /// Initializes a new Vulkan shader module.
@@ -263,7 +418,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="stream">The file stream of the module source.</param>
         /// <param name="name">The file name of the module source.</param>
         /// <param name="entryPoint">The name of the module entry point.</param>
-        explicit VulkanShaderModule(const VulkanDevice& device, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint = "main");
+        /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data for ray-tracing shaders.</param>
+        explicit VulkanShaderModule(const VulkanDevice& device, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint = "main", const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt);
         VulkanShaderModule(const VulkanShaderModule&) noexcept = delete;
         VulkanShaderModule(VulkanShaderModule&&) noexcept = delete;
         virtual ~VulkanShaderModule() noexcept;
@@ -278,6 +434,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         ShaderStage type() const noexcept override;
+
+        /// <inheritdoc />
+        const Optional<DescriptorBindingPoint>& shaderLocalDescriptor() const noexcept override;
 
     public:
         /// <summary>
@@ -303,23 +462,33 @@ namespace LiteFX::Rendering::Backends {
         LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl);
         LITEFX_BUILDER(VulkanShaderProgramBuilder);
 
-    public:
+    private:
         /// <summary>
         /// Initializes a new Vulkan shader program.
         /// </summary>
         /// <param name="device">The parent device of the shader program.</param>
         /// <param name="modules">The shader modules used by the shader program.</param>
         explicit VulkanShaderProgram(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules);
-        VulkanShaderProgram(VulkanShaderProgram&&) noexcept = delete;
-        VulkanShaderProgram(const VulkanShaderProgram&) noexcept = delete;
-        virtual ~VulkanShaderProgram() noexcept;
 
-    private:
         /// <summary>
         /// Initializes a new Vulkan shader program.
         /// </summary>
         /// <param name="device">The parent device of the shader program.</param>
         explicit VulkanShaderProgram(const VulkanDevice& device) noexcept;
+
+        // Factory method.
+    public:
+        /// <summary>
+        /// Initializes a new Vulkan shader program.
+        /// </summary>
+        /// <param name="device">The parent device of the shader program.</param>
+        /// <param name="modules">The shader modules used by the shader program.</param>
+        static SharedPtr<VulkanShaderProgram> create(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules);
+
+    public:
+        VulkanShaderProgram(VulkanShaderProgram&&) noexcept = delete;
+        VulkanShaderProgram(const VulkanShaderProgram&) noexcept = delete;
+        virtual ~VulkanShaderProgram() noexcept;
 
     public:
         /// <inheritdoc />
@@ -338,11 +507,11 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a Vulkan <see cref="DescriptorSet" />.
     /// </summary>
     /// <seealso cref="VulkanDescriptorSetLayout" />
-    class LITEFX_VULKAN_API VulkanDescriptorSet final : public DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler>, public Resource<VkDescriptorSet> {
+    class LITEFX_VULKAN_API VulkanDescriptorSet final : public DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler, IVulkanAccelerationStructure>, public Resource<VkDescriptorSet> {
         LITEFX_IMPLEMENTATION(VulkanDescriptorSetImpl);
 
     public:
-        using base_type = DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler>;
+        using base_type = DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler, IVulkanAccelerationStructure>;
         using base_type::update;
         using base_type::attach;
 
@@ -373,6 +542,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void update(UInt32 binding, const IVulkanSampler& sampler, UInt32 descriptor = 0) const override;
+
+        /// <inheritdoc />
+        void update(UInt32 binding, const IVulkanAccelerationStructure& accelerationStructure, UInt32 descriptor = 0) const override;
 
         /// <inheritdoc />
         void attach(UInt32 binding, const IVulkanImage& image) const override;
@@ -793,18 +965,16 @@ namespace LiteFX::Rendering::Backends {
     };
 
     /// <summary>
-    /// Records commands for a <see cref="VulkanCommandQueue" />
+    /// Records commands for a <see cref="VulkanQueue" />
     /// </summary>
     /// <seealso cref="VulkanQueue" />
-    class LITEFX_VULKAN_API VulkanCommandBuffer final : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>, public Resource<VkCommandBuffer>, public std::enable_shared_from_this<VulkanCommandBuffer> {
+    class LITEFX_VULKAN_API VulkanCommandBuffer final : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>, public Resource<VkCommandBuffer>, public std::enable_shared_from_this<VulkanCommandBuffer> {
         LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
 
     public:
-        using base_type = CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState>;
+        using base_type = CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>;
         using base_type::dispatch;
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         using base_type::dispatchMesh;
-#endif
         using base_type::draw;
         using base_type::drawIndexed;
         using base_type::barrier;
@@ -813,6 +983,9 @@ namespace LiteFX::Rendering::Backends {
         using base_type::bind;
         using base_type::use;
         using base_type::pushConstants;
+        using base_type::buildAccelerationStructure;
+        using base_type::updateAccelerationStructure;
+        using base_type::copyAccelerationStructure;
 
     private:
         /// <summary>
@@ -850,6 +1023,9 @@ namespace LiteFX::Rendering::Backends {
 
         // CommandBuffer interface.
     public:
+        /// <inheritdoc />
+        const ICommandQueue& queue() const noexcept override;
+
         /// <inheritdoc />
         void begin() const override;
 
@@ -928,10 +1104,8 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void dispatch(const Vector3u& threadCount) const noexcept override;
 
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
         /// <inheritdoc />
         void dispatchMesh(const Vector3u& threadCount) const noexcept override;
-#endif
 
         /// <inheritdoc />
         void draw(UInt32 vertices, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const noexcept override;
@@ -950,6 +1124,27 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const override;
+
+        /// <inheritdoc />
+        void buildAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
+
+        /// <inheritdoc />
+        void buildAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
+
+        /// <inheritdoc />
+        void updateAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
+
+        /// <inheritdoc />
+        void updateAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
+
+        /// <inheritdoc />
+        void copyAccelerationStructure(const VulkanBottomLevelAccelerationStructure& from, const VulkanBottomLevelAccelerationStructure& to, bool compress = false) const noexcept override;
+
+        /// <inheritdoc />
+        void copyAccelerationStructure(const VulkanTopLevelAccelerationStructure& from, const VulkanTopLevelAccelerationStructure& to, bool compress = false) const noexcept override;
+
+        /// <inheritdoc />
+        void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IVulkanBuffer& rayGenerationShaderBindingTable, const IVulkanBuffer* missShaderBindingTable, const IVulkanBuffer* hitShaderBindingTable, const IVulkanBuffer* callableShaderBindingTable) const noexcept override;
 
     private:
         void releaseSharedState() const override;
@@ -1030,10 +1225,10 @@ namespace LiteFX::Rendering::Backends {
         /// Initializes a new Vulkan compute pipeline.
         /// </summary>
         /// <param name="device">The parent device.</param>
-        /// <param name="shaderProgram">The shader program used by the pipeline.</param>
         /// <param name="layout">The layout of the pipeline.</param>
+        /// <param name="shaderProgram">The shader program used by the pipeline.</param>
         /// <param name="name">The optional debug name of the render pipeline.</param>
-        explicit VulkanComputePipeline(const VulkanDevice& device, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, const String& name = "");
+        explicit VulkanComputePipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, const String& name = "");
         VulkanComputePipeline(VulkanComputePipeline&&) noexcept = delete;
         VulkanComputePipeline(const VulkanComputePipeline&) noexcept = delete;
         virtual ~VulkanComputePipeline() noexcept;
@@ -1052,6 +1247,74 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         SharedPtr<const VulkanPipelineLayout> layout() const noexcept override;
+
+        // VulkanPipelineState interface.
+    public:
+        /// <inheritdoc />
+        void use(const VulkanCommandBuffer& commandBuffer) const noexcept override;
+
+        /// <inheritdoc />
+        void bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept override;
+    };
+    
+    /// <summary>
+    /// Implements a Vulkan <see cref="RayTracingPipeline" />.
+    /// </summary>
+    /// <seealso cref="VulkanRenderPipeline" />
+    /// <seealso cref="VulkanRayTracingPipelineBuilder" />
+    class LITEFX_VULKAN_API VulkanRayTracingPipeline final : public RayTracingPipeline<VulkanPipelineLayout, VulkanShaderProgram>, public VulkanPipelineState {
+        LITEFX_IMPLEMENTATION(VulkanRayTracingPipelineImpl);
+        LITEFX_BUILDER(VulkanRayTracingPipelineBuilder);
+
+    public:
+        /// <summary>
+        /// Initializes a new Vulkan ray-tracing pipeline.
+        /// </summary>
+        /// <param name="device">The parent device.</param>
+        /// <param name="layout">The layout of the pipeline.</param>
+        /// <param name="shaderProgram">The shader program used by the pipeline.</param>
+        /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
+        /// <param name="maxRecursionDepth">The maximum number of ray bounces.</param>
+        /// <param name="maxPayloadSize">The maximum size for ray payloads in the pipeline.</param>
+        /// <param name="maxAttributeSize">The maximum size for ray attributes in the pipeline.</param>
+        /// <param name="name">The optional debug name of the render pipeline.</param>
+        explicit VulkanRayTracingPipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth = 10, UInt32 maxPayloadSize = 0, UInt32 maxAttributeSize = 32, const String& name = "");
+        VulkanRayTracingPipeline(VulkanRayTracingPipeline&&) noexcept = delete;
+        VulkanRayTracingPipeline(const VulkanRayTracingPipeline&) noexcept = delete;
+        virtual ~VulkanRayTracingPipeline() noexcept;
+
+    private:
+        /// <summary>
+        /// Initializes a new Vulkan ray-tracing pipeline.
+        /// </summary>
+        /// <param name="device">The parent device.</param>
+        /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
+        VulkanRayTracingPipeline(const VulkanDevice& device, ShaderRecordCollection&& shaderRecords) noexcept;
+
+        // Pipeline interface.
+    public:
+        /// <inheritdoc />
+        SharedPtr<const VulkanShaderProgram> program() const noexcept override;
+
+        /// <inheritdoc />
+        SharedPtr<const VulkanPipelineLayout> layout() const noexcept override;
+
+        // RayTracingPipeline interface.
+    public:
+        /// <inheritdoc />
+        const ShaderRecordCollection& shaderRecords() const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 maxRecursionDepth() const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 maxPayloadSize() const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 maxAttributeSize() const noexcept override;
+
+        /// <inheritdoc />
+        UniquePtr<IVulkanBuffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups = ShaderBindingGroup::All) const noexcept override;
 
         // VulkanPipelineState interface.
     public:
@@ -1499,11 +1762,11 @@ namespace LiteFX::Rendering::Backends {
     /// <remarks>
     /// Internally this factory implementation is based on <a href="https://gpuopen.com/vulkan-memory-allocator/" target="_blank">Vulkan Memory Allocator</a>.
     /// </remarks>
-    class LITEFX_VULKAN_API VulkanGraphicsFactory final : public GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler> {
+    class LITEFX_VULKAN_API VulkanGraphicsFactory final : public GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure> {
         LITEFX_IMPLEMENTATION(VulkanGraphicsFactoryImpl);
 
     public:
-        using base_type = GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler>;
+        using base_type = GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>;
         using base_type::createBuffer;
         using base_type::createVertexBuffer;
         using base_type::createIndexBuffer;
@@ -1525,22 +1788,22 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        UniquePtr<IVulkanBuffer> createBuffer(BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
+        UniquePtr<IVulkanBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanBuffer> createBuffer(const String& name, BufferType type, BufferUsage usage, size_t elementSize, UInt32 elements = 1, bool allowWrite = false) const override;
+        UniquePtr<IVulkanBuffer> createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const VulkanVertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const override;
+        UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, BufferUsage usage, UInt32 elements = 1) const override;
+        UniquePtr<IVulkanVertexBuffer> createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const VulkanIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override;
+        UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, BufferUsage usage, UInt32 elements) const override;
+        UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
         UniquePtr<IVulkanImage> createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
@@ -1549,13 +1812,13 @@ namespace LiteFX::Rendering::Backends {
         UniquePtr<IVulkanImage> createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;
+        UniquePtr<IVulkanImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;
+        UniquePtr<IVulkanImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        Enumerable<UniquePtr<IVulkanImage>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool allowWrite = false) const override;
+        Enumerable<UniquePtr<IVulkanImage>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
         UniquePtr<IVulkanSampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
@@ -1565,12 +1828,18 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         Enumerable<UniquePtr<IVulkanSampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
+
+        /// <inheritdoc />
+        virtual UniquePtr<VulkanBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
+
+        /// <inheritdoc />
+        virtual UniquePtr<VulkanTopLevelAccelerationStructure> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
     };
 
     /// <summary>
     /// Implements a Vulkan graphics device.
     /// </summary>
-    class LITEFX_VULKAN_API VulkanDevice final : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanComputePipeline, VulkanBarrier>, public Resource<VkDevice> {
+    class LITEFX_VULKAN_API VulkanDevice final : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanComputePipeline, VulkanRayTracingPipeline, VulkanBarrier>, public Resource<VkDevice> {
         LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
     public:
@@ -1580,8 +1849,9 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="backend">The backend from which the device is created.</param>
         /// <param name="adapter">The adapter the device uses for drawing.</param>
         /// <param name="surface">The surface, the device should draw to.</param>
+        /// <param name="features">The features that should be supported by this device.</param>
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
-        explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Span<String> extensions = { });
+        explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { });
 
         /// <summary>
         /// Creates a new device instance.
@@ -1592,8 +1862,9 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="format">The initial surface format, device uses for drawing.</param>
         /// <param name="frameBufferSize">The initial size of the frame buffers.</param>
         /// <param name="frameBuffers">The initial number of frame buffers.</param>
+        /// <param name="features">The features that should be supported by this device.</param>
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
-        explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, Span<String> extensions = { });
+        explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, GraphicsDeviceFeatures features = { }, Span<String> extensions = { });
 
         VulkanDevice(const VulkanDevice&) = delete;
         VulkanDevice(VulkanDevice&&) = delete;
@@ -1664,6 +1935,12 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         void wait() const override;
 
+        /// <inheritdoc />
+        void computeAccelerationStructureSizes(const VulkanBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
+
+        /// <inheritdoc />
+        void computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
+
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:
         /// <inheritdoc />
@@ -1680,6 +1957,12 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         [[nodiscard]] VulkanComputePipelineBuilder buildComputePipeline(const String& name) const override;
+
+        /// <inheritdoc />
+        [[nodiscard]] VulkanRayTracingPipelineBuilder buildRayTracingPipeline(ShaderRecordCollection&& shaderRecords) const override;
+
+        /// <inheritdoc />
+        [[nodiscard]] VulkanRayTracingPipelineBuilder buildRayTracingPipeline(const String& name, ShaderRecordCollection&& shaderRecords) const override;
         
         /// <inheritdoc />
         [[nodiscard]] VulkanPipelineLayoutBuilder buildPipelineLayout() const override;

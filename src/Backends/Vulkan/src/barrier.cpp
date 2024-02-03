@@ -4,8 +4,8 @@
 using namespace LiteFX::Rendering::Backends;
 
 using GlobalBarrier = Tuple<ResourceAccess, ResourceAccess>;
-using BufferBarrier = Tuple<ResourceAccess, ResourceAccess, IVulkanBuffer&, UInt32>;
-using ImageBarrier = Tuple<ResourceAccess, ResourceAccess, IVulkanImage&, Optional<ImageLayout>, ImageLayout, UInt32, UInt32, UInt32, UInt32, UInt32>;
+using BufferBarrier = Tuple<ResourceAccess, ResourceAccess, const IVulkanBuffer&, UInt32>;
+using ImageBarrier = Tuple<ResourceAccess, ResourceAccess, const IVulkanImage&, Optional<ImageLayout>, ImageLayout, UInt32, UInt32, UInt32, UInt32, UInt32>;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -69,84 +69,78 @@ constexpr void VulkanBarrier::wait(ResourceAccess accessBefore, ResourceAccess a
     m_impl->m_globalBarriers.push_back({ accessBefore, accessAfter });
 }
 
-constexpr void VulkanBarrier::transition(IVulkanBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter)
+constexpr void VulkanBarrier::transition(const IVulkanBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter)
 {
     m_impl->m_bufferBarriers.push_back({ accessBefore, accessAfter, buffer, std::numeric_limits<UInt32>::max() });
 }
 
-constexpr void VulkanBarrier::transition(IVulkanBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter)
+constexpr void VulkanBarrier::transition(const IVulkanBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter)
 {
     m_impl->m_bufferBarriers.push_back({ accessBefore, accessAfter, buffer, element });
 }
 
-constexpr void VulkanBarrier::transition(IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout)
+constexpr void VulkanBarrier::transition(const IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout)
 {
     m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, std::nullopt, layout, 0, image.levels(), 0, image.layers(), 0 });
 }
 
-constexpr void VulkanBarrier::transition(IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout)
+constexpr void VulkanBarrier::transition(const IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout)
 {
     m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, fromLayout, toLayout, 0, image.levels(), 0, image.layers(), 0 });
 }
 
-constexpr void VulkanBarrier::transition(IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout)
+constexpr void VulkanBarrier::transition(const IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout)
 {
     m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, std::nullopt, layout, level, levels, layer, layers, plane });
 }
 
-constexpr void VulkanBarrier::transition(IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout)
+constexpr void VulkanBarrier::transition(const IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout)
 {
     m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, fromLayout, toLayout, level, levels, layer, layers, plane });
 }
 
 void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noexcept
-{    
+{
+    auto syncBefore = Vk::getPipelineStage(m_impl->m_syncBefore);
+    auto syncAfter = Vk::getPipelineStage(m_impl->m_syncAfter);
+
 	// Global barriers.
-	auto globalBarriers = m_impl->m_globalBarriers | std::views::transform([this](auto& barrier) { 
-        return VkMemoryBarrier {
-            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER,
+	auto globalBarriers = m_impl->m_globalBarriers | std::views::transform([syncBefore, syncAfter](auto& barrier) { 
+        return VkMemoryBarrier2 {
+            .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2,
+            .srcStageMask = syncBefore,
             .srcAccessMask = Vk::getResourceAccess(std::get<0>(barrier)),
+            .dstStageMask = syncAfter,
             .dstAccessMask = Vk::getResourceAccess(std::get<1>(barrier))
         };
-	}) | std::ranges::to<Array<VkMemoryBarrier>>();
+	}) | std::ranges::to<Array<VkMemoryBarrier2>>();
 
 	// Buffer barriers.
-	auto bufferBarriers = m_impl->m_bufferBarriers | std::views::transform([this](auto& barrier) {
-        return VkBufferMemoryBarrier {
-            .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER,
+	auto bufferBarriers = m_impl->m_bufferBarriers | std::views::transform([syncBefore, syncAfter](auto& barrier) {
+        return VkBufferMemoryBarrier2 {
+            .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2,
+            .srcStageMask = syncBefore,
             .srcAccessMask = Vk::getResourceAccess(std::get<0>(barrier)),
+            .dstStageMask = syncAfter,
             .dstAccessMask = Vk::getResourceAccess(std::get<1>(barrier)),
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .buffer = std::as_const(std::get<2>(barrier)).handle(),
-            .offset = 0,
             .size = std::get<2>(barrier).size()
         };
-	}) | std::ranges::to<Array<VkBufferMemoryBarrier>>();
+	}) | std::ranges::to<Array<VkBufferMemoryBarrier2>>();
 
 	// Image barriers.
-	auto imageBarriers = m_impl->m_imageBarriers | std::views::transform([this](auto& barrier) {
+	auto imageBarriers = m_impl->m_imageBarriers | std::views::transform([syncBefore, syncAfter](auto& barrier) {
 		auto& image = std::get<2>(barrier);
-		auto layout = image.layout(image.subresourceId(std::get<5>(barrier), std::get<7>(barrier), std::get<9>(barrier)));
-		auto currentLayout = Vk::getImageLayout(std::get<3>(barrier).value_or(layout));
+		auto currentLayout = Vk::getImageLayout(std::get<3>(barrier).value_or(ImageLayout::Undefined));
 		auto targetLayout = Vk::getImageLayout(std::get<4>(barrier));
-
-		for (auto layer = std::get<7>(barrier); layer < std::get<7>(barrier) + std::get<8>(barrier); layer++)
-		{
-			for (auto level = std::get<5>(barrier); level < std::get<5>(barrier) + std::get<6>(barrier); level++)
-			{
-				auto subresource = image.subresourceId(level, layer, std::get<9>(barrier));
-
-				if (image.layout(subresource) != layout && currentLayout != VK_IMAGE_LAYOUT_UNDEFINED) [[unlikely]]
-					throw RuntimeException("All sub-resources in a sub-resource range need to have the same initial layout.");
-				else
-					image.layout(subresource) = std::get<4>(barrier);
-			}
-		}
         
-        return VkImageMemoryBarrier {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+        return VkImageMemoryBarrier2 {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+            .srcStageMask = syncBefore,
             .srcAccessMask = Vk::getResourceAccess(std::get<0>(barrier)),
+            .dstStageMask = syncAfter,
             .dstAccessMask = Vk::getResourceAccess(std::get<1>(barrier)),
             .oldLayout = currentLayout,
             .newLayout = targetLayout,
@@ -161,12 +155,23 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
                 .layerCount = std::get<8>(barrier)
             }
         };
-	}) | std::ranges::to<Array<VkImageMemoryBarrier>>();
+	}) | std::ranges::to<Array<VkImageMemoryBarrier2>>();
 
     // Execute the barriers.
     if (!globalBarriers.empty() || !bufferBarriers.empty() || !imageBarriers.empty())
-        ::vkCmdPipelineBarrier(commandBuffer.handle(), Vk::getPipelineStage(m_impl->m_syncBefore), Vk::getPipelineStage(m_impl->m_syncAfter), 0,
-            globalBarriers.size(), globalBarriers.data(), bufferBarriers.size(), bufferBarriers.data(), imageBarriers.size(), imageBarriers.data());
+    {
+        VkDependencyInfo barriers = {
+            .sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+            .memoryBarrierCount = static_cast<UInt32>(globalBarriers.size()),
+            .pMemoryBarriers = globalBarriers.data(),
+            .bufferMemoryBarrierCount = static_cast<UInt32>(bufferBarriers.size()),
+            .pBufferMemoryBarriers = bufferBarriers.data(),
+            .imageMemoryBarrierCount = static_cast<UInt32>(imageBarriers.size()),
+            .pImageMemoryBarriers = imageBarriers.data()
+        };
+
+        ::vkCmdPipelineBarrier2(commandBuffer.handle(), &barriers);
+    }
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

@@ -80,6 +80,18 @@ public:
             shaderStages |= VK_SHADER_STAGE_TASK_BIT_EXT;
         if ((m_stages & ShaderStage::Mesh) == ShaderStage::Mesh)
             shaderStages |= VK_SHADER_STAGE_MESH_BIT_EXT;
+        if ((m_stages & ShaderStage::RayGeneration) == ShaderStage::RayGeneration)
+            shaderStages |= VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+        if ((m_stages & ShaderStage::Miss) == ShaderStage::Miss)
+            shaderStages |= VK_SHADER_STAGE_MISS_BIT_KHR;
+        if ((m_stages & ShaderStage::Callable) == ShaderStage::Callable)
+            shaderStages |= VK_SHADER_STAGE_CALLABLE_BIT_KHR;
+        if ((m_stages & ShaderStage::ClosestHit) == ShaderStage::ClosestHit)
+            shaderStages |= VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+        if ((m_stages & ShaderStage::AnyHit) == ShaderStage::AnyHit)
+            shaderStages |= VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+        if ((m_stages & ShaderStage::Intersection) == ShaderStage::Intersection)
+            shaderStages |= VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
 
         // Parse descriptor set layouts.
         Array<VkDescriptorSetLayoutBinding> bindings;
@@ -103,17 +115,18 @@ public:
 
             switch (type)
             {
-            case DescriptorType::ConstantBuffer:     binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;       break;
+            case DescriptorType::ConstantBuffer:        binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;       break;
             case DescriptorType::ByteAddressBuffer:
             case DescriptorType::RWByteAddressBuffer:
             case DescriptorType::StructuredBuffer:
-            case DescriptorType::RWStructuredBuffer: binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;       break;
-            case DescriptorType::RWTexture:          binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;        break;
-            case DescriptorType::Texture:            binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;        break;
-            case DescriptorType::RWBuffer:           binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER; break;
-            case DescriptorType::Buffer:             binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER; break;
-            case DescriptorType::InputAttachment:    binding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;     break;
-            case DescriptorType::Sampler:            binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;              break;
+            case DescriptorType::RWStructuredBuffer:    binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;       break;
+            case DescriptorType::RWTexture:             binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;        break;
+            case DescriptorType::Texture:               binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;        break;
+            case DescriptorType::RWBuffer:              binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER; break;
+            case DescriptorType::Buffer:                binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER; break;
+            case DescriptorType::InputAttachment:       binding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;     break;
+            case DescriptorType::Sampler:               binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;              break;
+            case DescriptorType::AccelerationStructure: binding.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR; break;
             default: LITEFX_WARNING(VULKAN_LOG, "The descriptor type is unsupported. Binding will be skipped.");       return;
             }
 
@@ -353,7 +366,8 @@ UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(UInt32 descri
             [](const std::monostate&) { }, // Default: don't bind anything.
             [&descriptorSet, &binding, i](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
             [&descriptorSet, &binding, i](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
-            [&descriptorSet, &binding, i](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
+            [&descriptorSet, &binding, i](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
+            [&descriptorSet, &binding, i](const IAccelerationStructure& accelerationStructure) { descriptorSet->update(binding.binding.value_or(i), accelerationStructure, binding.firstDescriptor); }
         }, binding.resource);
 
         ++i;
@@ -404,7 +418,8 @@ Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMu
                 [](const std::monostate&) {}, // Default: don't bind anything.
                 [descriptorSet, &binding, i](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
                 [descriptorSet, &binding, i](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
-                [descriptorSet, &binding, i](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
+                [descriptorSet, &binding, i](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
+                [descriptorSet, &binding, i](const IAccelerationStructure& accelerationStructure) { descriptorSet->update(binding.binding.value_or(i), accelerationStructure, binding.firstDescriptor); }
             }, binding.resource);
 
             ++i;
@@ -439,13 +454,14 @@ Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMu
     // Apply the default bindings.
     for (UInt32 set{ 0 }; auto& descriptorSet : descriptorSets)
     {
-        for (UInt32 i{ 0 }; auto& binding : bindingFactory(set))
+        for (UInt32 i{ 0 }; auto& binding : bindingFactory(set++))
         {
             std::visit(type_switch {
                 [](const std::monostate&) {}, // Default: don't bind anything.
                 [&descriptorSet, &binding, i](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
                 [&descriptorSet, &binding, i](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
-                [&descriptorSet, &binding, i](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
+                [&descriptorSet, &binding, i](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
+                [&descriptorSet, &binding, i](const IAccelerationStructure& accelerationStructure) { descriptorSet->update(binding.binding.value_or(i), accelerationStructure, binding.firstDescriptor); }
             }, binding.resource);
 
             ++i;
