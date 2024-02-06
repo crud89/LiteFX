@@ -293,6 +293,14 @@ void VulkanDescriptorSet::attach(UInt32 binding, const IVulkanImage& image) cons
     if (layout.descriptorType() != DescriptorType::InputAttachment) [[unlikely]]
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a input attachment descriptor.", binding);
 
+    // Remove the image view, if there is one bound to the current descriptor.
+    if (m_impl->m_imageViews.contains(binding))
+    {
+        ::vkDestroyImageView(m_impl->m_layout.device().handle(), m_impl->m_imageViews[binding], nullptr);
+        m_impl->m_imageViews.erase(binding);
+    }
+
+    // Create a new image view the attachment.
     VkImageViewCreateInfo imageViewDesc = {
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = nullptr,
