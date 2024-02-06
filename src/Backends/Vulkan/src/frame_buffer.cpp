@@ -91,7 +91,7 @@ public:
 
         // Retrieve the image views for the input and output attachments. Start with the input attachments.
         // NOTE: We assume, that the parent render pass provides the attachments in an sorted manner.
-        std::ranges::for_each(m_renderPass.inputAttachments(), [&, i = 0](const VulkanInputAttachmentMapping& inputAttachment) mutable {
+        std::ranges::for_each(m_renderPass.inputAttachments(), [&, i = 0](const VulkanRenderPassDependency& inputAttachment) mutable {
             if (inputAttachment.location() != i) [[unlikely]]
                 LITEFX_WARNING(VULKAN_LOG, "Remapped input attachment from location {0} to location {1}. Please make sure that the input attachments are sorted within the render pass and do not have any gaps in their location mappings.", inputAttachment.location(), i);
 

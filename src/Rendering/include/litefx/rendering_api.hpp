@@ -6659,9 +6659,9 @@ namespace LiteFX::Rendering {
     /// This interface is implemented by a <see cref="RenderPass" /> to return the frame buffer for a given back buffer. It is called by a <see cref="FrameBuffer" /> 
     /// during initialization or re-creation, in order to resolve input attachment dependencies.
     /// </remarks>
-    class IInputAttachmentMappingSource {
+    class IRenderPassDependencySource {
     public:
-        virtual ~IInputAttachmentMappingSource() noexcept = default;
+        virtual ~IRenderPassDependencySource() noexcept = default;
 
     public:
         /// <summary>
@@ -6676,7 +6676,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// The interface for a render pass.
     /// </summary>
-    class LITEFX_RENDERING_API IRenderPass : public virtual IInputAttachmentMappingSource, public virtual IStateResource {
+    class LITEFX_RENDERING_API IRenderPass : public virtual IRenderPassDependencySource, public virtual IStateResource {
     public:
         /// <summary>
         /// Event arguments that are published to subscribers when a render pass is beginning.
@@ -6777,7 +6777,7 @@ namespace LiteFX::Rendering {
         /// Returns the input attachment the render pass is consuming.
         /// </summary>
         /// <returns>An array of input attachment mappings, that are mapped to the render pass.</returns>
-        //virtual Span<const IInputAttachmentMapping> inputAttachments() const noexcept = 0;
+        //virtual Span<const IRenderPassDependency> inputAttachments() const noexcept = 0;
 
         /// <summary>
         /// Returns the number of samples, the render targets are sampled with.

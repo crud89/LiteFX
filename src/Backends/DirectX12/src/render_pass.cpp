@@ -17,7 +17,7 @@ public:
 private:
     Array<UniquePtr<DirectX12RenderPipeline>> m_pipelines;
     Array<RenderTarget> m_renderTargets;
-    Array<DirectX12InputAttachmentMapping> m_inputAttachments;
+    Array<DirectX12RenderPassDependency> m_inputAttachments;
     Array<UniquePtr<DirectX12FrameBuffer>> m_frameBuffers;
     Array<SharedPtr<DirectX12CommandBuffer>> m_beginCommandBuffers, m_endCommandBuffers;
     DirectX12FrameBuffer* m_activeFrameBuffer = nullptr;
@@ -31,7 +31,7 @@ private:
     String m_name;
 
 public:
-    DirectX12RenderPassImpl(DirectX12RenderPass* parent, const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, MultiSamplingLevel samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
+    DirectX12RenderPassImpl(DirectX12RenderPass* parent, const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, MultiSamplingLevel samples, Span<DirectX12RenderPassDependency> inputAttachments) :
         base(parent), m_device(device), m_multiSamplingLevel(samples), m_queue(&queue)
     {
         this->mapRenderTargets(renderTargets);
@@ -70,11 +70,11 @@ public:
             throw InvalidArgumentException("renderTargets", "A render pass with a present target must be executed on the default graphics queue.");
     }
 
-    void mapInputAttachments(Span<DirectX12InputAttachmentMapping> inputAttachments)
+    void mapInputAttachments(Span<DirectX12RenderPassDependency> inputAttachments)
     {
         m_inputAttachments.assign(std::begin(inputAttachments), std::end(inputAttachments));
-        //std::ranges::sort(m_inputAttachments, [this](const DirectX12InputAttachmentMapping& a, const DirectX12InputAttachmentMapping& b) { return a.location() < b.location(); });
-        std::sort(std::begin(m_inputAttachments), std::end(m_inputAttachments), [](const DirectX12InputAttachmentMapping& a, const DirectX12InputAttachmentMapping& b) { return a.location() < b.location(); });
+        //std::ranges::sort(m_inputAttachments, [this](const DirectX12RenderPassDependency& a, const DirectX12RenderPassDependency& b) { return a.location() < b.location(); });
+        std::sort(std::begin(m_inputAttachments), std::end(m_inputAttachments), [](const DirectX12RenderPassDependency& a, const DirectX12RenderPassDependency& b) { return a.location() < b.location(); });
     }
 
     void initRenderTargetViews(UInt32 backBuffer)
@@ -190,23 +190,23 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12RenderPassDependency> inputAttachments) :
     DirectX12RenderPass(device, device.defaultQueue(QueueType::Graphics), renderTargets, commandBuffers, samples, inputAttachments)
 {
 }
 
-DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12RenderPassDependency> inputAttachments) :
     DirectX12RenderPass(device, name, device.defaultQueue(QueueType::Graphics), renderTargets, commandBuffers, samples, inputAttachments)
 {
 }
 
-DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12RenderPassDependency> inputAttachments) :
     m_impl(makePimpl<DirectX12RenderPassImpl>(this, device, queue, renderTargets, samples, inputAttachments))
 {
     m_impl->initializeFrameBuffers(commandBuffers);
 }
 
-DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12InputAttachmentMapping> inputAttachments) :
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12RenderPassDependency> inputAttachments) :
     DirectX12RenderPass(device, queue, renderTargets, commandBuffers, samples, inputAttachments)
 {
     if (!name.empty())
@@ -282,7 +282,7 @@ bool DirectX12RenderPass::hasPresentTarget() const noexcept
     return m_impl->m_presentTarget != nullptr;
 }
 
-Span<const DirectX12InputAttachmentMapping> DirectX12RenderPass::inputAttachments() const noexcept
+Span<const DirectX12RenderPassDependency> DirectX12RenderPass::inputAttachments() const noexcept
 {
     return m_impl->m_inputAttachments;
 }
@@ -476,7 +476,7 @@ void DirectX12RenderPass::updateAttachments(const DirectX12DescriptorSet& descri
 {
     const auto backBuffer = m_impl->m_backBuffer;
 
-    std::ranges::for_each(m_impl->m_inputAttachments, [&descriptorSet, &backBuffer](const DirectX12InputAttachmentMapping& inputAttachment) {
+    std::ranges::for_each(m_impl->m_inputAttachments, [&descriptorSet, &backBuffer](const DirectX12RenderPassDependency& inputAttachment) {
 #ifndef NDEBUG
         if (inputAttachment.inputAttachmentSource() == nullptr)
             throw RuntimeException("No source render pass has been specified for the input attachment mapped to location {0}.", inputAttachment.location());
@@ -528,8 +528,8 @@ void DirectX12RenderPassBuilder::build()
     instance->m_impl->initializeFrameBuffers(m_state.commandBufferCount);
 }
 
-DirectX12InputAttachmentMapping DirectX12RenderPassBuilder::makeInputAttachment(UInt32 inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget)
+DirectX12RenderPassDependency DirectX12RenderPassBuilder::makeInputAttachment(UInt32 inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget)
 {
-    return DirectX12InputAttachmentMapping(renderPass, renderTarget, inputLocation);
+    return DirectX12RenderPassDependency(renderPass, renderTarget, inputLocation);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

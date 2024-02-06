@@ -1450,12 +1450,12 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a DirectX 12 render pass.
     /// </summary>
     /// <seealso cref="DirectX12RenderPassBuilder" />
-    class LITEFX_DIRECTX12_API DirectX12RenderPass final : public RenderPass<DirectX12RenderPipeline, DirectX12Queue, DirectX12FrameBuffer, DirectX12InputAttachmentMapping> {
+    class LITEFX_DIRECTX12_API DirectX12RenderPass final : public RenderPass<DirectX12RenderPipeline, DirectX12Queue, DirectX12FrameBuffer, DirectX12RenderPassDependency> {
         LITEFX_IMPLEMENTATION(DirectX12RenderPassImpl);
         LITEFX_BUILDER(DirectX12RenderPassBuilder);
 
     public:
-        using base_type = RenderPass<DirectX12RenderPipeline, DirectX12Queue, DirectX12FrameBuffer, DirectX12InputAttachmentMapping>;
+        using base_type = RenderPass<DirectX12RenderPipeline, DirectX12Queue, DirectX12FrameBuffer, DirectX12RenderPassDependency>;
         using base_type::updateAttachments;
 
     public:
@@ -1467,7 +1467,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="renderTargets">The render targets that are output by the render pass.</param>
         /// <param name="samples">The number of samples for the render targets in this render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
-        explicit DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12InputAttachmentMapping> inputAttachments = { });
+        explicit DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12RenderPassDependency> inputAttachments = { });
 
         /// <summary>
         /// Creates and initializes a new DirectX 12 render pass instance that executes on the default graphics queue.
@@ -1478,7 +1478,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="renderTargets">The render targets that are output by the render pass.</param>
         /// <param name="samples">The number of samples for the render targets in this render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
-        explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12InputAttachmentMapping> inputAttachments = { });
+        explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12RenderPassDependency> inputAttachments = { });
         
         /// <summary>
         /// Creates and initializes a new DirectX 12 render pass instance.
@@ -1489,7 +1489,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="renderTargets">The render targets that are output by the render pass.</param>
         /// <param name="samples">The number of samples for the render targets in this render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
-        explicit DirectX12RenderPass(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12InputAttachmentMapping> inputAttachments = { });
+        explicit DirectX12RenderPass(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12RenderPassDependency> inputAttachments = { });
 
         /// <summary>
         /// Creates and initializes a new DirectX 12 render pass instance.
@@ -1501,7 +1501,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="renderTargets">The render targets that are output by the render pass.</param>
         /// <param name="samples">The number of samples for the render targets in this render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
-        explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12InputAttachmentMapping> inputAttachments = { });
+        explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12RenderPassDependency> inputAttachments = { });
 
         DirectX12RenderPass(const DirectX12RenderPass&) = delete;
         DirectX12RenderPass(DirectX12RenderPass&&) = delete;
@@ -1519,7 +1519,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="name">The name of the render pass state resource.</param>
         explicit DirectX12RenderPass(const DirectX12Device& device, const String& name = "") noexcept;
 
-        // InputAttachmentMappingSource interface.
+        // RenderPassDependencySource interface.
     public:
         /// <inheritdoc />
         const DirectX12FrameBuffer& frameBuffer(UInt32 buffer) const override;
@@ -1554,7 +1554,7 @@ namespace LiteFX::Rendering::Backends {
         bool hasPresentTarget() const noexcept override;
 
         /// <inheritdoc />
-        Span<const DirectX12InputAttachmentMapping> inputAttachments() const noexcept override;
+        Span<const DirectX12RenderPassDependency> inputAttachments() const noexcept override;
 
         /// <inheritdoc />
         MultiSamplingLevel multiSamplingLevel() const noexcept override;
@@ -1577,18 +1577,18 @@ namespace LiteFX::Rendering::Backends {
     };
 
     /// <summary>
-    /// Implements a <see cref="IInputAttachmentMapping" />.
+    /// Implements a <see cref="IRenderPassDependency" />.
     /// </summary>
     /// <seealso cref="DirectX12RenderPass" />
     /// <seealso cref="DirectX12RenderPassBuilder" />
-    class LITEFX_DIRECTX12_API DirectX12InputAttachmentMapping final : public IInputAttachmentMapping<DirectX12RenderPass> {
-        LITEFX_IMPLEMENTATION(DirectX12InputAttachmentMappingImpl);
+    class LITEFX_DIRECTX12_API DirectX12RenderPassDependency final : public IRenderPassDependency<DirectX12RenderPass> {
+        LITEFX_IMPLEMENTATION(DirectX12RenderPassDependencyImpl);
 
     public:
         /// <summary>
         /// Creates a new DirectX 12 input attachment mapping.
         /// </summary>
-        DirectX12InputAttachmentMapping() noexcept;
+        DirectX12RenderPassDependency() noexcept;
 
         /// <summary>
         /// Creates a new DirectX 12 input attachment mapping.
@@ -1596,30 +1596,30 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="renderPass">The render pass to fetch the input attachment from.</param>
         /// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
         /// <param name="location">The location to bind the input attachment to.</param>
-        DirectX12InputAttachmentMapping(const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget, UInt32 location);
+        DirectX12RenderPassDependency(const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget, UInt32 location);
 
         /// <summary>
         /// Copies another input attachment mapping.
         /// </summary>
-        DirectX12InputAttachmentMapping(const DirectX12InputAttachmentMapping&) noexcept;
+        DirectX12RenderPassDependency(const DirectX12RenderPassDependency&) noexcept;
 
         /// <summary>
         /// Takes over another input attachment mapping.
         /// </summary>
-        DirectX12InputAttachmentMapping(DirectX12InputAttachmentMapping&&) noexcept;
+        DirectX12RenderPassDependency(DirectX12RenderPassDependency&&) noexcept;
 
-        virtual ~DirectX12InputAttachmentMapping() noexcept;
+        virtual ~DirectX12RenderPassDependency() noexcept;
 
     public:
         /// <summary>
         /// Copies another input attachment mapping.
         /// </summary>
-        inline DirectX12InputAttachmentMapping& operator=(const DirectX12InputAttachmentMapping&) noexcept;
+        inline DirectX12RenderPassDependency& operator=(const DirectX12RenderPassDependency&) noexcept;
 
         /// <summary>
         /// Takes over another input attachment mapping.
         /// </summary>
-        inline DirectX12InputAttachmentMapping& operator=(DirectX12InputAttachmentMapping&&) noexcept;
+        inline DirectX12RenderPassDependency& operator=(DirectX12RenderPassDependency&&) noexcept;
 
     public:
         /// <inheritdoc />

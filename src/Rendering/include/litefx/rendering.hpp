@@ -868,12 +868,12 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
     template <typename TFrameBuffer> requires
         meta::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>>
-    class InputAttachmentMappingSource : public IInputAttachmentMappingSource {
+    class RenderPassDependencySource : public IRenderPassDependencySource {
     public:
         using frame_buffer_type = TFrameBuffer;
 
     public:
-        virtual ~InputAttachmentMappingSource() noexcept = default;
+        virtual ~RenderPassDependencySource() noexcept = default;
 
     public:
         /// <inheritdoc />
@@ -883,22 +883,22 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Represents a mapping between a set of <see cref="IRenderTarget" /> instances and the input attachments of a <see cref="RenderPass" />.
     /// </summary>
-    /// <typeparam name="TInputAttachmentMappingSource">The type of the input attachment mapping source. Must implement <see cref="InputAttachmentMappingSource" />.</typeparam>
-    template <typename TInputAttachmentMappingSource> requires
-        meta::implements<TInputAttachmentMappingSource, InputAttachmentMappingSource<typename TInputAttachmentMappingSource::frame_buffer_type>>
-    class IInputAttachmentMapping {
+    /// <typeparam name="TRenderPassDependencySource">The type of the input attachment mapping source. Must implement <see cref="RenderPassDependencySource" />.</typeparam>
+    template <typename TRenderPassDependencySource> requires
+        meta::implements<TRenderPassDependencySource, RenderPassDependencySource<typename TRenderPassDependencySource::frame_buffer_type>>
+    class IRenderPassDependency {
     public:
-        using input_attachment_mapping_source_type = TInputAttachmentMappingSource;
+        using render_pass_dependency_source_type = TRenderPassDependencySource;
 
     public:
-        virtual ~IInputAttachmentMapping() noexcept = default;
+        virtual ~IRenderPassDependency() noexcept = default;
 
     public:
         /// <summary>
         /// Returns the source of the input attachment render target.
         /// </summary>
         /// <returns>The source of the input attachment render target.</returns>
-        virtual const input_attachment_mapping_source_type* inputAttachmentSource() const noexcept = 0;
+        virtual const render_pass_dependency_source_type* inputAttachmentSource() const noexcept = 0;
 
         /// <summary>
         /// Returns a reference of the render target that is mapped to the input attachment.
@@ -927,20 +927,20 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="RenderPipeline" />.</typeparam>
     /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="CommandQueue" />.</typeparam>
     /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
-    /// <typeparam name="TInputAttachmentMapping">The type of the input attachment mapping. Must implement <see cref="IInputAttachmentMapping" />.</typeparam>
-    template <typename TRenderPipeline, typename TCommandQueue, typename TFrameBuffer, typename TInputAttachmentMapping> requires
+    /// <typeparam name="TRenderPassDependency">The type of the input attachment mapping. Must implement <see cref="IRenderPassDependency" />.</typeparam>
+    template <typename TRenderPipeline, typename TCommandQueue, typename TFrameBuffer, typename TRenderPassDependency> requires
         meta::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>> &&
         /*meta::implements<TCommandQueue, CommandQueue<typename TFrameBuffer::command_buffer_type>> &&*/
         meta::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>> /*&&
-        meta::implements<TInputAttachmentMapping, IInputAttachmentMapping<TDerived>>*/
-    class RenderPass : public virtual StateResource, public IRenderPass, public InputAttachmentMappingSource<TFrameBuffer> {
+        meta::implements<TRenderPassDependency, IRenderPassDependency<TDerived>>*/
+    class RenderPass : public virtual StateResource, public IRenderPass, public RenderPassDependencySource<TFrameBuffer> {
     public:
         using IRenderPass::updateAttachments;
 
         using command_queue_type = TCommandQueue;
         using frame_buffer_type = TFrameBuffer;
         using render_pipeline_type = TRenderPipeline;
-        using input_attachment_mapping_type = TInputAttachmentMapping;
+        using render_pass_dependency_type = TRenderPassDependency;
         using pipeline_layout_type = render_pipeline_type::pipeline_layout_type;
         using descriptor_set_layout_type = pipeline_layout_type::descriptor_set_layout_type;
         using descriptor_set_type = descriptor_set_layout_type::descriptor_set_type;
@@ -962,7 +962,7 @@ namespace LiteFX::Rendering {
         virtual Enumerable<const render_pipeline_type*> pipelines() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual Span<const input_attachment_mapping_type> inputAttachments() const noexcept = 0;
+        virtual Span<const render_pass_dependency_type> inputAttachments() const noexcept = 0;
 
         /// <inheritdoc />
         virtual void updateAttachments(const descriptor_set_type& descriptorSet) const = 0;
@@ -1263,7 +1263,7 @@ namespace LiteFX::Rendering {
         meta::implements<TSwapChain, SwapChain<typename TFactory::image_type, typename TRenderPass::frame_buffer_type>> &&
         meta::implements<TCommandQueue, CommandQueue<typename TCommandQueue::command_buffer_type>> &&
         meta::implements<TFactory, GraphicsFactory<typename TFactory::descriptor_layout_type, typename TFactory::buffer_type, typename TFactory::vertex_buffer_type, typename TFactory::index_buffer_type, typename TFactory::image_type, typename TFactory::sampler_type, typename TFactory::bottom_level_acceleration_structure_type, typename TFactory::top_level_acceleration_structure_type>> &&
-        meta::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, TCommandQueue, typename TRenderPass::frame_buffer_type, typename TRenderPass::input_attachment_mapping_type>> &&
+        meta::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, TCommandQueue, typename TRenderPass::frame_buffer_type, typename TRenderPass::render_pass_dependency_type>> &&
         meta::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>> &&
         meta::implements<TRayTracingPipeline, RayTracingPipeline<typename TRayTracingPipeline::pipeline_layout_type, typename TRayTracingPipeline::shader_program_type>> &&
         meta::implements<TBarrier, Barrier<typename TFactory::buffer_type, typename TFactory::image_type>>

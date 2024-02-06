@@ -369,7 +369,7 @@ namespace LiteFX::Rendering::Backends {
 		// RenderPassBuilder interface.
 	protected:
 		/// <inheritdoc />
-		inline DirectX12InputAttachmentMapping makeInputAttachment(UInt32 inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget) override;
+		inline DirectX12RenderPassDependency makeInputAttachment(UInt32 inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget) override;
 	};
 
 }
