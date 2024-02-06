@@ -82,6 +82,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .renderTarget("G-Buffer Depth/Stencil", 1, RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear | RenderTargetFlags::ClearStencil | RenderTargetFlags::Attachment, { 1.f, 0.f, 0.f, 0.f });
     
     UniquePtr<RenderPass> lightingPass = device->buildRenderPass("Lighting Pass")
+        .inputAttachmentSamplerBinding(DescriptorBindingPoint { .Register = 0, .Space = 1 })
         .inputAttachment(0, *geometryPass, 0)  // Map color attachment from geometry pass render target 0 to location 0.
         .inputAttachment(1, *geometryPass, 1)  // Map depth/stencil attachment from geometry pass render target 1 to location 1.
         .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })

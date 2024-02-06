@@ -1670,6 +1670,11 @@ namespace LiteFX::Rendering {
             /// The command queue, the render pass will execute on.
             /// </summary>
             const command_queue_type* commandQueue{ nullptr };
+
+            /// <summary>
+            /// The binding point for input attachment samplers, if required.
+            /// </summary>
+            DescriptorBindingPoint inputAttachmentSamplerBinding{ };
         } m_state;
 
         /// <summary>
@@ -1847,6 +1852,16 @@ namespace LiteFX::Rendering {
         template <typename TSelf>
         constexpr inline auto inputAttachment(this TSelf&& self, UInt32 inputLocation, const render_pass_type& renderPass, RenderTarget renderTarget) -> TSelf&& {
             self.inputAttachment(static_cast<RenderPassBuilder&>(self).makeInputAttachment(inputLocation, renderPass, renderTarget));
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Specifies where to bind the sampler for input attachments, if one is required.
+        /// </summary>
+        /// <param name="bindingPoint">The register and space of the descriptor to bind the input attachment sampler to.</param>
+        template <typename TSelf>
+        constexpr inline auto inputAttachmentSamplerBinding(this TSelf&& self, const DescriptorBindingPoint& bindingPoint) -> TSelf&& {
+            self.m_state.inputAttachmentSamplerBinding = bindingPoint;
             return std::forward<TSelf>(self);
         }
     };
