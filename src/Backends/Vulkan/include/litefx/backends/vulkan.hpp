@@ -577,8 +577,14 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="staticSampler">The static sampler to initialize the state with.</param>
         /// <param name="binding">The binding point for the descriptor.</param>
+        explicit VulkanDescriptorLayout(UniquePtr<IVulkanSampler>&& staticSampler, UInt32 binding);
+
+        /// <summary>
+        /// Initializes a new Vulkan descriptor layout for an input attachment.
+        /// </summary>
+        /// <param name="binding">The binding point for the descriptor.</param>
         /// <param name="inputAttachmentIndex">If <paramref name="type" /> equals <see cref="DescriptorType::InputAttachment" /> this value specifies the index of the input attachment. Otherwise, the value is ignored.</param>
-        explicit VulkanDescriptorLayout(UniquePtr<IVulkanSampler>&& staticSampler, UInt32 binding, UInt32 inputAttachmentIndex = 0);
+        explicit VulkanDescriptorLayout(UInt32 binding, UInt32 inputAttachmentIndex);
 
         VulkanDescriptorLayout(VulkanDescriptorLayout&&) = delete;
         VulkanDescriptorLayout(const VulkanDescriptorLayout&) = delete;

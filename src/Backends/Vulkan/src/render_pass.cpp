@@ -77,9 +77,6 @@ public:
         std::ranges::for_each(m_inputAttachments, [&, i = 0](const VulkanRenderPassDependency& inputAttachment) mutable {
             UInt32 currentIndex = i++;
 
-            if (inputAttachment.location() != currentIndex) [[unlikely]]
-                throw InvalidArgumentException("inputAttachments", "No input attachment is mapped to location {0}. The locations must be within a contiguous domain.", currentIndex);
-
             VkAttachmentDescription2 attachment = {
                 .sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2,
                 .format = Vk::getFormat(inputAttachment.renderTarget().format()),

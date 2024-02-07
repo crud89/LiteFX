@@ -31,7 +31,7 @@ VulkanRenderPassDependency::VulkanRenderPassDependency(const VulkanRenderPass& r
 {
 }
 
-VulkanRenderPassDependency::VulkanRenderPassDependency(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, UInt32 bindingRegister, UInt32 spaces) :
+VulkanRenderPassDependency::VulkanRenderPassDependency(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, UInt32 bindingRegister, UInt32 space) :
     m_impl(makePimpl<VulkanRenderPassDependencyImpl>(this, &renderPass, renderTarget, DescriptorBindingPoint { .Register = bindingRegister, .Space = space }))
 {
 }
