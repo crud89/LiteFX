@@ -1675,6 +1675,11 @@ namespace LiteFX::Rendering {
             /// The binding point for input attachment samplers, if required.
             /// </summary>
             DescriptorBindingPoint inputAttachmentSamplerBinding{ };
+
+            /// <summary>
+            /// If `std::nullopt`, the render area is acquired from the parent device swap chain, otherwise the value of this property gets used.
+            /// </summary>
+            Optional<Size2d> renderArea{ std::nullopt };
         } m_state;
 
         /// <summary>
@@ -1862,6 +1867,16 @@ namespace LiteFX::Rendering {
         template <typename TSelf>
         constexpr inline auto inputAttachmentSamplerBinding(this TSelf&& self, const DescriptorBindingPoint& bindingPoint) -> TSelf&& {
             self.m_state.inputAttachmentSamplerBinding = bindingPoint;
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Sets the render area on the render pass.
+        /// </summary>
+        /// <param name="renderArea">The render area to use for the render pass.</param>
+        template <typename TSelf>
+        constexpr inline auto renderArea(this TSelf&& self, const Size2d& renderArea) -> TSelf&& {
+            self.m_state.renderArea = renderArea;
             return std::forward<TSelf>(self);
         }
     };

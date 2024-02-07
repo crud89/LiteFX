@@ -1566,7 +1566,12 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         MultiSamplingLevel multiSamplingLevel() const noexcept override;
 
-    public:
+        /// <inheritdoc />
+        Size2d renderArea() const noexcept override;
+
+        /// <inheritdoc />
+        bool usesSwapChainRenderArea() const noexcept override;
+
         /// <inheritdoc />
         void begin(UInt32 buffer) override;
 
@@ -1575,6 +1580,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void resizeRenderArea(const Size2d& renderArea) override;
+
+        /// <inheritdoc />
+        void resizeWithSwapChain(bool enable) noexcept override;
 
         /// <inheritdoc />
         void changeMultiSamplingLevel(MultiSamplingLevel samples) override;

@@ -6794,6 +6794,28 @@ namespace LiteFX::Rendering {
         /// <returns>The number of samples, the render targets are sampled with.</returns>
         virtual MultiSamplingLevel multiSamplingLevel() const noexcept = 0;
 
+        /// <summary>
+        /// Returns the render area of the render pass.
+        /// </summary>
+        /// <returns>The render area of the render pass.</returns>
+        /// <seealso cref="resizeRenderArea" />
+        virtual Size2d renderArea() const noexcept = 0;
+
+        /// <summary>
+        /// Returns `true`, if the render area is taken from the parent device swap chain.
+        /// </summary>
+        /// <remarks>
+        /// A render pass can either have it's own render area, or use the render area dictated by the swap chain, in which case this method returns `true`. If the swap
+        /// chain render area is used, render passes are automatically resized if the swap chain gets reseted.
+        /// 
+        /// Note that the number of back buffers is always taken from the swap chain, as each frame in flight requires its own back buffers, that do not overlap, as they 
+        /// might be executed in parallel.
+        /// </remarks>
+        /// <returns>`true`, if the render area is taken from the parent device swap chain.</returns>
+        /// <seealso cref="renderArea" />
+        /// <seealso cref="resizeWithSwapChain" />
+        virtual bool usesSwapChainRenderArea() const noexcept = 0;
+
     public:
         /// <summary>
         /// Invoked, when the render pass is beginning.
@@ -6824,10 +6846,25 @@ namespace LiteFX::Rendering {
         virtual UInt64 end() const = 0;
 
         /// <summary>
-        /// Resets the frame buffers of the render pass.
+        /// Resizes the render area of the render pass and disables automatic resizing if the swap chain render area changes.
         /// </summary>
         /// <param name="renderArea">The size of the render area, the frame buffers will be resized to.</param>
+        /// <seealso cref="renderArea" />
+        /// <seealso cref="usesSwapChainRenderArea" />
+        /// <seealso cref="resizeWithSwapChain" />
         virtual void resizeRenderArea(const Size2d& renderArea) = 0;
+
+        /// <summary>
+        /// Enables or disables automatic resizing based on the swap chain render area.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="enable" /> is set to true, the render area will be resized based on the swap chain render area and future reset events on the swap chain
+        /// will also resize the render pass. Otherwise, the render area will remain and the render pass will no longer be resized automatically, if the swap chain gets
+        /// resized.
+        /// </remarks>
+        /// <param name="enable">`true` to resize the render area and listen for swap chain resize events in the future.</param>
+        /// <seealso cref="followsSwapChainRenderArea" />
+        virtual void resizeWithSwapChain(bool enable) noexcept = 0;
 
         /// <summary>
         /// Changes the multi sampling level of the render pass.
