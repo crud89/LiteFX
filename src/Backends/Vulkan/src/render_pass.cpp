@@ -56,7 +56,6 @@ public:
     void mapInputAttachments(Span<VulkanRenderPassDependency> inputAttachments)
     {
         m_inputAttachments.assign(std::begin(inputAttachments), std::end(inputAttachments));
-        std::ranges::sort(m_inputAttachments, [this](const auto& a, const auto& b) { return a.location() < b.location(); });
     }
 
 public:

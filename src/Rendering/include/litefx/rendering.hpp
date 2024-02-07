@@ -907,14 +907,10 @@ namespace LiteFX::Rendering {
         virtual const RenderTarget& renderTarget() const noexcept = 0;
 
         /// <summary>
-        /// Returns the location of the input attachment, the render target will be bound to.
+        /// Returns the binding point for the input attachment binding.
         /// </summary>
-        /// <remarks>
-        /// The locations of all input attachments for a frame buffer must be within a continuous domain, starting at <c>0</c>. A frame buffer validates the locations
-        /// when it is initialized and will raise an exception, if a location is either not mapped or assigned multiple times.
-        /// </remarks>
-        /// <returns>The location of the input attachment, the render target will be bound to.</returns>
-        virtual UInt32 location() const noexcept = 0;
+        /// <returns>The binding point for the input attachment binding.</returns>
+        virtual const DescriptorBindingPoint& binding() const noexcept = 0;
     };
 
     /// <summary>

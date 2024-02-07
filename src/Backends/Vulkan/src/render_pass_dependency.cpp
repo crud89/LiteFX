@@ -13,11 +13,11 @@ public:
 private:
     const VulkanRenderPass* m_renderPass;
     RenderTarget m_renderTarget;
-    UInt32 m_location;
+    DescriptorBindingPoint m_bindingPoint;
 
 public:
-    VulkanRenderPassDependencyImpl(VulkanRenderPassDependency* parent, const VulkanRenderPass* renderPass, const RenderTarget& renderTarget, UInt32 location) :
-        base(parent), m_renderPass(renderPass), m_location(location), m_renderTarget(renderTarget)
+    VulkanRenderPassDependencyImpl(VulkanRenderPassDependency* parent, const VulkanRenderPass* renderPass, const RenderTarget& renderTarget, DescriptorBindingPoint binding) :
+        base(parent), m_renderPass(renderPass), m_bindingPoint(binding), m_renderTarget(renderTarget)
     {
     }
 };
@@ -26,23 +26,23 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPassDependency::VulkanRenderPassDependency() noexcept :
-    m_impl(makePimpl<VulkanRenderPassDependencyImpl>(this, nullptr, RenderTarget {}, 0))
+VulkanRenderPassDependency::VulkanRenderPassDependency(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, DescriptorBindingPoint binding) :
+    m_impl(makePimpl<VulkanRenderPassDependencyImpl>(this, &renderPass, renderTarget, binding))
 {
 }
 
-VulkanRenderPassDependency::VulkanRenderPassDependency(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, UInt32 location) :
-    m_impl(makePimpl<VulkanRenderPassDependencyImpl>(this, &renderPass, renderTarget, location))
+VulkanRenderPassDependency::VulkanRenderPassDependency(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, UInt32 bindingRegister, UInt32 spaces) :
+    m_impl(makePimpl<VulkanRenderPassDependencyImpl>(this, &renderPass, renderTarget, DescriptorBindingPoint { .Register = bindingRegister, .Space = space }))
 {
 }
 
 VulkanRenderPassDependency::VulkanRenderPassDependency(const VulkanRenderPassDependency& _other) noexcept :
-    m_impl(makePimpl<VulkanRenderPassDependencyImpl>(this, _other.m_impl->m_renderPass, _other.m_impl->m_renderTarget, _other.m_impl->m_location))
+    m_impl(makePimpl<VulkanRenderPassDependencyImpl>(this, _other.m_impl->m_renderPass, _other.m_impl->m_renderTarget, _other.m_impl->m_bindingPoint))
 {
 }
 
 VulkanRenderPassDependency::VulkanRenderPassDependency(VulkanRenderPassDependency&& _other) noexcept :
-    m_impl(makePimpl<VulkanRenderPassDependencyImpl>(this, std::move(_other.m_impl->m_renderPass), std::move(_other.m_impl->m_renderTarget), std::move(_other.m_impl->m_location)))
+    m_impl(makePimpl<VulkanRenderPassDependencyImpl>(this, std::move(_other.m_impl->m_renderPass), std::move(_other.m_impl->m_renderTarget), std::move(_other.m_impl->m_bindingPoint)))
 {
 }
 
@@ -52,7 +52,7 @@ VulkanRenderPassDependency& VulkanRenderPassDependency::operator=(const VulkanRe
 {
     m_impl->m_renderPass = _other.m_impl->m_renderPass;
     m_impl->m_renderTarget = _other.m_impl->m_renderTarget;
-    m_impl->m_location = _other.m_impl->m_location;
+    m_impl->m_bindingPoint = _other.m_impl->m_bindingPoint;
 
     return *this;
 }
@@ -61,7 +61,7 @@ VulkanRenderPassDependency& VulkanRenderPassDependency::operator=(VulkanRenderPa
 {
     m_impl->m_renderPass = std::move(_other.m_impl->m_renderPass);
     m_impl->m_renderTarget = std::move(_other.m_impl->m_renderTarget);
-    m_impl->m_location = std::move(_other.m_impl->m_location);
+    m_impl->m_bindingPoint = std::move(_other.m_impl->m_bindingPoint);
 
     return *this;
 }
@@ -71,9 +71,9 @@ const VulkanRenderPass* VulkanRenderPassDependency::inputAttachmentSource() cons
     return m_impl->m_renderPass;
 }
 
-UInt32 VulkanRenderPassDependency::location() const noexcept
+const DescriptorBindingPoint& VulkanRenderPassDependency::binding() const noexcept
 {
-    return m_impl->m_location;
+    return m_impl->m_bindingPoint;
 }
 
 const RenderTarget& VulkanRenderPassDependency::renderTarget() const noexcept

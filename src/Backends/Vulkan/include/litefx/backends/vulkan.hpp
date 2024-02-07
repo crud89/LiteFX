@@ -1538,15 +1538,19 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// Creates a new Vulkan input attachment mapping.
         /// </summary>
-        VulkanRenderPassDependency() noexcept;
+        /// <param name="renderPass">The render pass to fetch the input attachment from.</param>
+        /// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
+        /// <param name="binding">The binding point to bind the input attachment to.</param>
+        VulkanRenderPassDependency(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, DescriptorBindingPoint binding);
 
         /// <summary>
         /// Creates a new Vulkan input attachment mapping.
         /// </summary>
         /// <param name="renderPass">The render pass to fetch the input attachment from.</param>
         /// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
-        /// <param name="location">The location to bind the input attachment to.</param>
-        VulkanRenderPassDependency(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, UInt32 location);
+        /// <param name="bindingRegister">The register to bind the input attachment to.</param>
+        /// <param name="space">The space to bind the input attachment to.</param>
+        VulkanRenderPassDependency(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, UInt32 bindingRegister, UInt32 space);
 
         /// <summary>
         /// Copies another input attachment mapping.
@@ -1579,7 +1583,7 @@ namespace LiteFX::Rendering::Backends {
         const RenderTarget& renderTarget() const noexcept override;
 
         /// <inheritdoc />
-        UInt32 location() const noexcept override;
+        const DescriptorBindingPoint& binding() const noexcept override;
     };
 
     /// <summary>

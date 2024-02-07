@@ -13,11 +13,11 @@ public:
 private:
     const DirectX12RenderPass* m_renderPass;
     RenderTarget m_renderTarget;
-    UInt32 m_location;
+    DescriptorBindingPoint m_bindingPoint;
 
 public:
-    DirectX12RenderPassDependencyImpl(DirectX12RenderPassDependency* parent, const DirectX12RenderPass* renderPass, const RenderTarget& renderTarget, UInt32 location) :
-        base(parent), m_renderPass(renderPass), m_location(location), m_renderTarget(renderTarget)
+    DirectX12RenderPassDependencyImpl(DirectX12RenderPassDependency* parent, const DirectX12RenderPass* renderPass, const RenderTarget& renderTarget, DescriptorBindingPoint bindingPoint) :
+        base(parent), m_renderPass(renderPass), m_bindingPoint(bindingPoint), m_renderTarget(renderTarget)
     {
     }
 };
@@ -26,23 +26,23 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPassDependency::DirectX12RenderPassDependency() noexcept :
-    m_impl(makePimpl<DirectX12RenderPassDependencyImpl>(this, nullptr, RenderTarget {}, 0))
+DirectX12RenderPassDependency::DirectX12RenderPassDependency(const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget, DescriptorBindingPoint binding) :
+    m_impl(makePimpl<DirectX12RenderPassDependencyImpl>(this, &renderPass, renderTarget, binding))
 {
 }
 
-DirectX12RenderPassDependency::DirectX12RenderPassDependency(const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget, UInt32 location) :
-    m_impl(makePimpl<DirectX12RenderPassDependencyImpl>(this, &renderPass, renderTarget, location))
+DirectX12RenderPassDependency::DirectX12RenderPassDependency(const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget, UInt32 bindingRegister, UInt32 space) :
+    m_impl(makePimpl<DirectX12RenderPassDependencyImpl>(this, &renderPass, renderTarget, DescriptorBindingPoint { .Register = bindingRegister, .Space = space }))
 {
 }
 
 DirectX12RenderPassDependency::DirectX12RenderPassDependency(const DirectX12RenderPassDependency& _other) noexcept :
-    m_impl(makePimpl<DirectX12RenderPassDependencyImpl>(this, _other.m_impl->m_renderPass, _other.m_impl->m_renderTarget, _other.m_impl->m_location))
+    m_impl(makePimpl<DirectX12RenderPassDependencyImpl>(this, _other.m_impl->m_renderPass, _other.m_impl->m_renderTarget, _other.m_impl->m_bindingPoint))
 {
 }
 
 DirectX12RenderPassDependency::DirectX12RenderPassDependency(DirectX12RenderPassDependency&& _other) noexcept :
-    m_impl(makePimpl<DirectX12RenderPassDependencyImpl>(this, std::move(_other.m_impl->m_renderPass), std::move(_other.m_impl->m_renderTarget), std::move(_other.m_impl->m_location)))
+    m_impl(makePimpl<DirectX12RenderPassDependencyImpl>(this, std::move(_other.m_impl->m_renderPass), std::move(_other.m_impl->m_renderTarget), std::move(_other.m_impl->m_bindingPoint)))
 {
 }
 
@@ -52,7 +52,7 @@ DirectX12RenderPassDependency& DirectX12RenderPassDependency::operator=(const Di
 {
     m_impl->m_renderPass = _other.m_impl->m_renderPass;
     m_impl->m_renderTarget = _other.m_impl->m_renderTarget;
-    m_impl->m_location = _other.m_impl->m_location;
+    m_impl->m_bindingPoint = _other.m_impl->m_bindingPoint;
 
     return *this;
 }
@@ -61,7 +61,7 @@ DirectX12RenderPassDependency& DirectX12RenderPassDependency::operator=(DirectX1
 {
     m_impl->m_renderPass = std::move(_other.m_impl->m_renderPass);
     m_impl->m_renderTarget = std::move(_other.m_impl->m_renderTarget);
-    m_impl->m_location = std::move(_other.m_impl->m_location);
+    m_impl->m_bindingPoint = std::move(_other.m_impl->m_bindingPoint);
 
     return *this;
 }
@@ -71,9 +71,9 @@ const DirectX12RenderPass* DirectX12RenderPassDependency::inputAttachmentSource(
     return m_impl->m_renderPass;
 }
 
-UInt32 DirectX12RenderPassDependency::location() const noexcept
+const DescriptorBindingPoint& DirectX12RenderPassDependency::binding() const noexcept
 {
-    return m_impl->m_location;
+    return m_impl->m_bindingPoint;
 }
 
 const RenderTarget& DirectX12RenderPassDependency::renderTarget() const noexcept

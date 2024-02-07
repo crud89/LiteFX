@@ -73,7 +73,6 @@ public:
     void mapInputAttachments(Span<DirectX12RenderPassDependency> inputAttachments)
     {
         m_inputAttachments.assign(std::begin(inputAttachments), std::end(inputAttachments));
-        std::ranges::sort(m_inputAttachments, [this](const auto& a, const auto& b) { return a.location() < b.location(); });
     }
 
     void initRenderTargetViews(UInt32 backBuffer)
