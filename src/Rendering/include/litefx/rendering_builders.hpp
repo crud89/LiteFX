@@ -1685,11 +1685,11 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Creates a new input attachment mapping between a render target of a specified render pass and an input location of the render pass that is currently built.
         /// </summary>
-        /// <param name="inputLocation">The input location of the mapped render target.</param>
+        /// <param name="binding">The descriptor binding on which to bind the mapped render target.</param>
         /// <param name="renderPass">The render pass that produces the render target.</param>
         /// <param name="renderTarget">The render target of the render pass.</param>
         /// <returns>The input attachment mapping that describes the relation between the earlier render pass render target and the input location.</returns>
-        virtual inline render_pass_dependency_type makeInputAttachment(UInt32 inputLocation, const render_pass_type& renderPass, const RenderTarget& renderTarget) = 0;
+        virtual inline render_pass_dependency_type makeInputAttachment(DescriptorBindingPoint binding, const render_pass_type& renderPass, const RenderTarget& renderTarget) = 0;
 
     public:
         /// <summary>
@@ -1839,24 +1839,24 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Adds an input attachment to the render pass.
         /// </summary>
-        /// <param name="inputLocation">The location from which the input attachment gets accessed.</param>
+        /// <param name="binding">The descriptor binding on which to bind the mapped render target.</param>
         /// <param name="renderPass">The render pass, the input attachment is created from.</param>
         /// <param name="outputLocation">The location to which the input attachment is written by <paramref name="renderPass" />.</param>
         template <typename TSelf>
-        constexpr inline auto inputAttachment(this TSelf&& self, UInt32 inputLocation, const render_pass_type& renderPass, UInt32 outputLocation) -> TSelf&& {
-            self.inputAttachment(static_cast<RenderPassBuilder&>(self).makeInputAttachment(inputLocation, renderPass, renderPass.renderTarget(outputLocation)));
+        constexpr inline auto inputAttachment(this TSelf&& self, DescriptorBindingPoint binding, const render_pass_type& renderPass, UInt32 outputLocation) -> TSelf&& {
+            self.inputAttachment(static_cast<RenderPassBuilder&>(self).makeInputAttachment(binding, renderPass, renderPass.renderTarget(outputLocation)));
             return std::forward<TSelf>(self);
         }
 
         /// <summary>
         /// Adds an input attachment to the render pass.
         /// </summary>
-        /// <param name="inputLocation">The location from which the input attachment gets accessed.</param>
+        /// <param name="binding">The descriptor binding on which to bind the mapped render target.</param>
         /// <param name="renderPass">The render pass, the input attachment is created from.</param>
         /// <param name="renderTarget">The render target that is bound as input attachment.</param>
         template <typename TSelf>
-        constexpr inline auto inputAttachment(this TSelf&& self, UInt32 inputLocation, const render_pass_type& renderPass, RenderTarget renderTarget) -> TSelf&& {
-            self.inputAttachment(static_cast<RenderPassBuilder&>(self).makeInputAttachment(inputLocation, renderPass, renderTarget));
+        constexpr inline auto inputAttachment(this TSelf&& self, DescriptorBindingPoint binding, const render_pass_type& renderPass, RenderTarget renderTarget) -> TSelf&& {
+            self.inputAttachment(static_cast<RenderPassBuilder&>(self).makeInputAttachment(binding, renderPass, renderTarget));
             return std::forward<TSelf>(self);
         }
 

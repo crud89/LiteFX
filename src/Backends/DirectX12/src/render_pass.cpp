@@ -595,8 +595,8 @@ void DirectX12RenderPassBuilder::build()
     instance->m_impl->initializeFrameBuffers(m_state.commandBufferCount);
 }
 
-DirectX12RenderPassDependency DirectX12RenderPassBuilder::makeInputAttachment(UInt32 inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget)
+DirectX12RenderPassDependency DirectX12RenderPassBuilder::makeInputAttachment(DescriptorBindingPoint binding, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget)
 {
-    return DirectX12RenderPassDependency(renderPass, renderTarget, inputLocation);
+    return DirectX12RenderPassDependency(renderPass, renderTarget, binding);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

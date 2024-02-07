@@ -695,8 +695,8 @@ void VulkanRenderPassBuilder::build()
     instance->m_impl->m_inputAttachmentSamplerBinding = m_state.inputAttachmentSamplerBinding;
 }
 
-VulkanRenderPassDependency VulkanRenderPassBuilder::makeInputAttachment(UInt32 inputLocation, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget)
+VulkanRenderPassDependency VulkanRenderPassBuilder::makeInputAttachment(DescriptorBindingPoint binding, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget)
 {
-    return VulkanRenderPassDependency(renderPass, renderTarget, inputLocation);
+    return VulkanRenderPassDependency(renderPass, renderTarget, binding);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
