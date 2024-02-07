@@ -482,6 +482,12 @@ namespace LiteFX {
 		/// <returns>The pointer to the managed implementation instance.</returns>
 		constexpr inline pImpl* release() noexcept { m_ptr.release(); }
 
+		/// <summary>
+		/// Returns a pointer to the managed implementation instance.
+		/// </summary>
+		/// <returns>A pointer to the managed implementation instance.</returns>
+		constexpr inline pImpl* get() const noexcept { return m_ptr.get(); }
+
 	public:
 		/// <summary>
 		/// Returns a reference to the managed implementation instance.
