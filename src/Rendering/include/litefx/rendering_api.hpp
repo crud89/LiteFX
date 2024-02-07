@@ -6749,6 +6749,26 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// Invoked, when the render pass is beginning.
+        /// </summary>
+        /// <seealso cref="begin" />
+        mutable Event<BeginRenderPassEventArgs> beginning;
+
+        /// <summary>
+        /// Invoked, when the render pass is ending.
+        /// </summary>
+        /// <seealso cref="end" />
+        mutable Event<EventArgs> ending;
+
+        /// <summary>
+        /// Invoked, if the render area or the number of frame buffers has changed.
+        /// </summary>
+        /// <seealso cref="resizeRenderArea" />
+        /// <seealso cref="resizeWithSwapChain" />
+        mutable Event<ResetEventArgs> reseted;
+
+    public:
+        /// <summary>
         /// Returns the current frame buffer from of the render pass.
         /// </summary>
         /// <remarks>
@@ -6757,7 +6777,15 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="buffer">The index of the frame buffer.</param>
         /// <returns>A back buffer used by the render pass.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the render pass has not started.</exception>
         virtual const IFrameBuffer& activeFrameBuffer() const = 0;
+
+        /// <summary>
+        /// Returns the currently active back buffer.
+        /// </summary>
+        /// <returns>The currently active back buffer.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the render pass has not started.</exception>
+        virtual UInt32 activeBackBuffer() const = 0;
 
         /// <summary>
         /// Returns the command queue, the render pass is executing on.
@@ -6852,26 +6880,6 @@ namespace LiteFX::Rendering {
         /// <seealso cref="renderArea" />
         /// <seealso cref="resizeWithSwapChain" />
         virtual bool usesSwapChainRenderArea() const noexcept = 0;
-
-    public:
-        /// <summary>
-        /// Invoked, when the render pass is beginning.
-        /// </summary>
-        /// <seealso cref="begin" />
-        mutable Event<BeginRenderPassEventArgs> beginning;
-
-        /// <summary>
-        /// Invoked, when the render pass is ending.
-        /// </summary>
-        /// <seealso cref="end" />
-        mutable Event<EventArgs> ending;
-
-        /// <summary>
-        /// Invoked, if the render area or the number of frame buffers has changed.
-        /// </summary>
-        /// <seealso cref="resizeRenderArea" />
-        /// <seealso cref="resizeWithSwapChain" />
-        mutable Event<ResetEventArgs> reseted;
 
         /// <summary>
         /// Begins the render pass.

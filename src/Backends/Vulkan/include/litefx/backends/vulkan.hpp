@@ -1501,6 +1501,9 @@ namespace LiteFX::Rendering::Backends {
         const VulkanFrameBuffer& activeFrameBuffer() const override;
 
         /// <inheritdoc />
+        UInt32 activeBackBuffer() const override;
+
+        /// <inheritdoc />
         const VulkanQueue& commandQueue() const noexcept override;
 
         /// <inheritdoc />

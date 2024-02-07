@@ -284,10 +284,18 @@ const DirectX12FrameBuffer& DirectX12RenderPass::frameBuffer(UInt32 buffer) cons
 
 const DirectX12FrameBuffer& DirectX12RenderPass::activeFrameBuffer() const
 {
-    if (m_impl->m_activeFrameBuffer == nullptr)
+    if (m_impl->m_activeFrameBuffer == nullptr) [[unlikely]]
         throw RuntimeException("No frame buffer is active, since the render pass has not begun.");
 
     return *m_impl->m_activeFrameBuffer;
+}
+
+UInt32 DirectX12RenderPass::activeBackBuffer() const
+{
+    if (m_impl->m_activeFrameBuffer == nullptr) [[unlikely]]
+        throw RuntimeException("No back buffer is active, since the render pass has not begun.");
+
+    return m_impl->m_backBuffer;
 }
 
 const DirectX12Queue& DirectX12RenderPass::commandQueue() const noexcept 

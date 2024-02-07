@@ -468,10 +468,18 @@ const VulkanDevice& VulkanRenderPass::device() const noexcept
 
 const VulkanFrameBuffer& VulkanRenderPass::activeFrameBuffer() const
 {
-    if (m_impl->m_activeFrameBuffer == nullptr)
+    if (m_impl->m_activeFrameBuffer == nullptr) [[unlikely]]
         throw RuntimeException("No frame buffer is active, since the render pass has not begun.");
 
     return *m_impl->m_activeFrameBuffer;
+}
+
+UInt32 VulkanRenderPass::activeBackBuffer() const
+{
+    if (m_impl->m_activeFrameBuffer == nullptr) [[unlikely]]
+        throw RuntimeException("No back buffer is active, since the render pass has not begun.");
+
+    return m_impl->m_backBuffer;
 }
 
 const VulkanQueue& VulkanRenderPass::commandQueue() const noexcept

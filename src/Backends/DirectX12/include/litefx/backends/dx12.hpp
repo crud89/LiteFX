@@ -1539,6 +1539,9 @@ namespace LiteFX::Rendering::Backends {
         const DirectX12FrameBuffer& activeFrameBuffer() const override;
 
         /// <inheritdoc />
+        UInt32 activeBackBuffer() const override;
+
+        /// <inheritdoc />
         const DirectX12Queue& commandQueue() const noexcept override;
 
         /// <inheritdoc />
