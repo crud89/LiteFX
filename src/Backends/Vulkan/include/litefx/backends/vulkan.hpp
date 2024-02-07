@@ -577,7 +577,8 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="staticSampler">The static sampler to initialize the state with.</param>
         /// <param name="binding">The binding point for the descriptor.</param>
-        explicit VulkanDescriptorLayout(UniquePtr<IVulkanSampler>&& staticSampler, UInt32 binding);
+        /// <param name="inputAttachmentIndex">If <paramref name="type" /> equals <see cref="DescriptorType::InputAttachment" /> this value specifies the index of the input attachment. Otherwise, the value is ignored.</param>
+        explicit VulkanDescriptorLayout(UniquePtr<IVulkanSampler>&& staticSampler, UInt32 binding, UInt32 inputAttachmentIndex = 0);
 
         VulkanDescriptorLayout(VulkanDescriptorLayout&&) = delete;
         VulkanDescriptorLayout(const VulkanDescriptorLayout&) = delete;
@@ -604,6 +605,18 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         BufferType type() const noexcept override;
+
+        // VulkanDescriptorLayout
+    public:
+        /// <summary>
+        /// The index of the input attachment mapped to this descriptor.
+        /// </summary>
+        /// <remarks>
+        /// If <see cref="descriptorType" /> returns <see cref="DescriptorType::InputAttachment" /> this value refers to the index of the input attachment within a set of input 
+        /// attachments of a <see cref="VulkanRenderPass" />. Otherwise, the value is ignored.
+        /// </remarks>
+        /// <returns>The index of the input attachment mapped to this descriptor.</returns>
+        UInt32 inputAttachmentIndex() const noexcept;
     };
 
     /// <summary>

@@ -12,14 +12,14 @@ public:
 
 private:
     size_t m_elementSize;
-    UInt32 m_binding, m_descriptors;
+    UInt32 m_binding, m_descriptors, m_inputAttachmentIndex;
     DescriptorType m_descriptorType;
     BufferType m_bufferType;
     UniquePtr<IVulkanSampler> m_staticSampler;
 
 public:
-    VulkanDescriptorLayoutImpl(VulkanDescriptorLayout* parent, DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors) :
-        base(parent), m_descriptorType(type), m_binding(binding), m_elementSize(elementSize), m_descriptors(descriptors)
+    VulkanDescriptorLayoutImpl(VulkanDescriptorLayout* parent, DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors, UInt32 inputAttachmentIndex) :
+        base(parent), m_descriptorType(type), m_binding(binding), m_elementSize(elementSize), m_descriptors(descriptors), m_inputAttachmentIndex(inputAttachmentIndex)
     {
         switch (m_descriptorType)
         {
@@ -45,8 +45,8 @@ public:
         }
     }
 
-    VulkanDescriptorLayoutImpl(VulkanDescriptorLayout* parent, UniquePtr<IVulkanSampler>&& staticSampler, UInt32 binding) :
-        VulkanDescriptorLayoutImpl(parent, DescriptorType::Sampler, binding, 0, 1)
+    VulkanDescriptorLayoutImpl(VulkanDescriptorLayout* parent, UniquePtr<IVulkanSampler>&& staticSampler, UInt32 binding, UInt32 inputAttachmentIndex) :
+        VulkanDescriptorLayoutImpl(parent, DescriptorType::Sampler, binding, 0, 1, inputAttachmentIndex)
     {
         if (staticSampler == nullptr)
             throw ArgumentNotInitializedException("staticSampler", "The static sampler must be initialized.");
@@ -64,8 +64,8 @@ VulkanDescriptorLayout::VulkanDescriptorLayout(DescriptorType type, UInt32 bindi
 {
 }
 
-VulkanDescriptorLayout::VulkanDescriptorLayout(UniquePtr<IVulkanSampler>&& staticSampler, UInt32 binding) :
-    m_impl(makePimpl<VulkanDescriptorLayoutImpl>(this, std::move(staticSampler), binding))
+VulkanDescriptorLayout::VulkanDescriptorLayout(UniquePtr<IVulkanSampler>&& staticSampler, UInt32 binding, UInt32 inputAttachmentIndex) :
+    m_impl(makePimpl<VulkanDescriptorLayoutImpl>(this, std::move(staticSampler), binding, inputAttachmentIndex))
 {
 }
 
@@ -99,4 +99,9 @@ DescriptorType VulkanDescriptorLayout::descriptorType() const noexcept
 const IVulkanSampler* VulkanDescriptorLayout::staticSampler() const noexcept
 {
     return m_impl->m_staticSampler.get();
+}
+
+UInt32 VulkanDescriptorLayout::inputAttachmentIndex() const noexcept
+{
+    return m_impl->m_inputAttachmentIndex;
 }
