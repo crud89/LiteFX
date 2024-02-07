@@ -1574,7 +1574,7 @@ namespace LiteFX::Rendering::Backends {
         UInt64 end() const override;
 
         /// <inheritdoc />
-        void resizeFrameBuffers(const Size2d& renderArea) override;
+        void resizeRenderArea(const Size2d& renderArea) override;
 
         /// <inheritdoc />
         void changeMultiSamplingLevel(MultiSamplingLevel samples) override;

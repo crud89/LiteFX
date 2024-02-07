@@ -564,7 +564,7 @@ UInt64 VulkanRenderPass::end() const
     return frameBuffer->lastFence();
 }
 
-void VulkanRenderPass::resizeFrameBuffers(const Size2d& renderArea)
+void VulkanRenderPass::resizeRenderArea(const Size2d& renderArea)
 {
     // Check if we're currently running.
     if (m_impl->m_activeFrameBuffer != nullptr) [[unlikely]]

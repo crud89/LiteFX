@@ -6827,7 +6827,7 @@ namespace LiteFX::Rendering {
         /// Resets the frame buffers of the render pass.
         /// </summary>
         /// <param name="renderArea">The size of the render area, the frame buffers will be resized to.</param>
-        virtual void resizeFrameBuffers(const Size2d& renderArea) = 0;
+        virtual void resizeRenderArea(const Size2d& renderArea) = 0;
 
         /// <summary>
         /// Changes the multi sampling level of the render pass.

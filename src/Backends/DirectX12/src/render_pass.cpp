@@ -456,7 +456,7 @@ UInt64 DirectX12RenderPass::end() const
     return fence;
 }
 
-void DirectX12RenderPass::resizeFrameBuffers(const Size2d& renderArea)
+void DirectX12RenderPass::resizeRenderArea(const Size2d& renderArea)
 {
     // Check if we're currently running.
     if (m_impl->m_activeFrameBuffer != nullptr)
