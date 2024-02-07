@@ -308,7 +308,8 @@ public:
 
         if (!m_inputAttachments.empty())
         {
-            dependencies.push_back({
+            dependencies.push_back(VkSubpassDependency2 {
+                .sType = VK_STRUCTURE_TYPE_SUBPASS_DEPENDENCY_2,
                 .srcSubpass = VK_SUBPASS_EXTERNAL,
                 .dstSubpass = 0,
                 .srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT,

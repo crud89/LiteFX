@@ -318,6 +318,7 @@ void DirectX12SwapChain::addTimingEvent(SharedPtr<TimingEvent> timingEvent)
 void DirectX12SwapChain::reset(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers)
 {
 	m_impl->reset(surfaceFormat, renderArea, buffers);
+	this->reseted(this, { surfaceFormat, renderArea, buffers });
 }
 
 UInt32 DirectX12SwapChain::swapBackBuffer() const
