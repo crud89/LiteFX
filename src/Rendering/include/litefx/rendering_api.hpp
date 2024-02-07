@@ -6878,18 +6878,9 @@ namespace LiteFX::Rendering {
         /// <exception cref="InvalidArgumentException">Thrown, if one or more of the render targets have a format, that does not support the provided multi-sampling level.</exception>
         virtual void changeMultiSamplingLevel(MultiSamplingLevel samples) = 0;
 
-        /// <summary>
-        /// Resolves the input attachments mapped to the render pass and updates them on the descriptor set provided with <see cref="descriptorSet" />.
-        /// </summary>
-        /// <param name="descriptorSet">The descriptor set to update the input attachments on.</param>
-        inline void updateAttachments(const IDescriptorSet& descriptorSet) const {
-            this->setAttachments(descriptorSet);
-        }
-
     private:
         virtual Enumerable<const IFrameBuffer*> getFrameBuffers() const noexcept = 0;
         virtual Enumerable<const IRenderPipeline*> getPipelines() const noexcept = 0;
-        virtual void setAttachments(const IDescriptorSet& descriptorSet) const = 0;
         virtual const ICommandQueue& getCommandQueue() const noexcept = 0;
     };
 

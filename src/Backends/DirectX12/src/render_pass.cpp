@@ -551,20 +551,6 @@ void DirectX12RenderPass::changeMultiSamplingLevel(MultiSamplingLevel samples)
     std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<DirectX12FrameBuffer>& frameBuffer) { frameBuffer->resize(frameBuffer->size()); });
 }
 
-void DirectX12RenderPass::updateAttachments(const DirectX12DescriptorSet& descriptorSet) const
-{
-    const auto backBuffer = m_impl->m_backBuffer;
-
-    std::ranges::for_each(m_impl->m_inputAttachments, [&descriptorSet, &backBuffer](const DirectX12RenderPassDependency& inputAttachment) {
-#ifndef NDEBUG
-        if (inputAttachment.inputAttachmentSource() == nullptr)
-            throw RuntimeException("No source render pass has been specified for the input attachment mapped to location {0}.", inputAttachment.location());
-#endif
-
-        descriptorSet.attach(inputAttachment.location(), inputAttachment.inputAttachmentSource()->frameBuffer(backBuffer).image(inputAttachment.renderTarget().location()));
-    });
-}
-
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder shared interface.

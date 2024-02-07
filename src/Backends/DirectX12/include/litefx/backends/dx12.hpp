@@ -1456,7 +1456,6 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         using base_type = RenderPass<DirectX12RenderPipeline, DirectX12Queue, DirectX12FrameBuffer, DirectX12RenderPassDependency>;
-        using base_type::updateAttachments;
 
     public:
         /// <summary>
@@ -1586,9 +1585,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void changeMultiSamplingLevel(MultiSamplingLevel samples) override;
-
-        /// <inheritdoc />
-        void updateAttachments(const DirectX12DescriptorSet& descriptorSet) const override;
     };
 
     /// <summary>

@@ -960,9 +960,6 @@ namespace LiteFX::Rendering {
         /// <inheritdoc />
         virtual Span<const render_pass_dependency_type> inputAttachments() const noexcept = 0;
 
-        /// <inheritdoc />
-        virtual void updateAttachments(const descriptor_set_type& descriptorSet) const = 0;
-
     private:
         inline Enumerable<const IFrameBuffer*> getFrameBuffers() const noexcept override {
             return this->frameBuffers();
@@ -970,10 +967,6 @@ namespace LiteFX::Rendering {
 
         inline Enumerable<const IRenderPipeline*> getPipelines() const noexcept override {
             return this->pipelines();
-        }
-
-        inline void setAttachments(const IDescriptorSet& descriptorSet) const override {
-            this->updateAttachments(dynamic_cast<const descriptor_set_type&>(descriptorSet));
         }
 
         inline const ICommandQueue& getCommandQueue() const noexcept override {

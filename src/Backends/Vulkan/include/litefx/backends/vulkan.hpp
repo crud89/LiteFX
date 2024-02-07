@@ -1399,7 +1399,6 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         using base_type = RenderPass<VulkanRenderPipeline, VulkanQueue, VulkanFrameBuffer, VulkanRenderPassDependency>;
-        using base_type::updateAttachments;
 
     public:
         /// <summary>
@@ -1529,9 +1528,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void changeMultiSamplingLevel(MultiSamplingLevel samples) override;
-
-        /// <inheritdoc />
-        void updateAttachments(const VulkanDescriptorSet& descriptorSet) const override;
     };
 
     /// <summary>
