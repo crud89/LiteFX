@@ -1537,7 +1537,7 @@ namespace LiteFX::Rendering::Backends {
         void resizeRenderArea(const Size2d& renderArea) override;
 
         /// <inheritdoc />
-        void resizeWithSwapChain(bool enable) noexcept override;
+        void resizeWithSwapChain(bool enable) override;
 
         /// <inheritdoc />
         void changeMultiSamplingLevel(MultiSamplingLevel samples) override;

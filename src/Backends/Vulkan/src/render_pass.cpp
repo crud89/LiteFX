@@ -386,7 +386,7 @@ public:
         });
     }
 
-    void onSwapChainReset(const void* swapChain, const ISwapChain::SwapChainResetEventArgs& eventArgs)
+    void onSwapChainReset(const void* swapChain, const ISwapChain::ResetEventArgs& eventArgs)
     {
         if (m_frameBuffers.size() != eventArgs.buffers())
         {
@@ -396,6 +396,9 @@ public:
 
             // Re-initialize frame buffers.
             this->initializeFrameBuffers(m_commandBuffers, m_renderArea);
+
+            // Raise reset event.
+            m_parent->reseted.invoke(m_parent, ResetEventArgs(eventArgs.buffers(), m_renderArea.value_or(eventArgs.renderArea())));
         }
         else if (m_renderArea == std::nullopt)
         {
@@ -407,6 +410,9 @@ public:
     void resizeFrameBuffers(const Size2d& renderArea)
     {
         std::ranges::for_each(m_frameBuffers, [&](UniquePtr<VulkanFrameBuffer>& frameBuffer) { frameBuffer->resize(renderArea); });
+
+        // Raise reset event.
+        m_parent->reseted.invoke(m_parent, ResetEventArgs(static_cast<UInt32>(m_frameBuffers.size()), renderArea));
     }
 };
 
@@ -615,7 +621,7 @@ void VulkanRenderPass::resizeRenderArea(const Size2d& renderArea)
     m_impl->m_renderArea = renderArea;
 }
 
-void VulkanRenderPass::resizeWithSwapChain(bool enable) noexcept
+void VulkanRenderPass::resizeWithSwapChain(bool enable)
 {
     // Check if we're currently running.
     if (m_impl->m_activeFrameBuffer != nullptr) [[unlikely]]

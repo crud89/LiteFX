@@ -6707,6 +6707,43 @@ namespace LiteFX::Rendering {
             }
         };
 
+        /// <summary>
+        /// Event arguments that are published to subscribers when a render pass has been reset.
+        /// </summary>
+        struct ResetEventArgs : public EventArgs {
+        private:
+            UInt32 m_frameBuffers;
+            Size2d m_renderArea;
+
+        public:
+            ResetEventArgs(UInt32 frameBuffers, Size2d renderArea) : 
+                EventArgs(), m_frameBuffers(frameBuffers), m_renderArea(renderArea) { }
+            ResetEventArgs(const ResetEventArgs&) = default;
+            ResetEventArgs(ResetEventArgs&&) = default;
+            virtual ~ResetEventArgs() noexcept = default;
+
+        public:
+            ResetEventArgs& operator=(const ResetEventArgs&) = default;
+            ResetEventArgs& operator=(ResetEventArgs&&) = default;
+
+        public:
+            /// <summary>
+            /// Returns the new number of frame buffers withing the render pass.
+            /// </summary>
+            /// <returns>The new number of frame buffers withing the render pass.</returns>
+            inline UInt32 frameBuffers() const noexcept {
+                return m_frameBuffers;
+            }
+
+            /// <summary>
+            /// Returns the new render area of the render pass.
+            /// </summary>
+            /// <returns>The new render area of the render pass.</returns>
+            inline const Size2d& renderArea() const noexcept {
+                return m_renderArea;
+            }
+        };
+
     public:
         virtual ~IRenderPass() noexcept = default;
 
@@ -6830,6 +6867,13 @@ namespace LiteFX::Rendering {
         mutable Event<EventArgs> ending;
 
         /// <summary>
+        /// Invoked, if the render area or the number of frame buffers has changed.
+        /// </summary>
+        /// <seealso cref="resizeRenderArea" />
+        /// <seealso cref="resizeWithSwapChain" />
+        mutable Event<ResetEventArgs> reseted;
+
+        /// <summary>
         /// Begins the render pass.
         /// </summary>
         /// <param name="buffer">The back buffer to use. Typically this is the same as the value returned from <see cref="ISwapChain::swapBackBuffer" />.</param>
@@ -6852,6 +6896,7 @@ namespace LiteFX::Rendering {
         /// <seealso cref="renderArea" />
         /// <seealso cref="usesSwapChainRenderArea" />
         /// <seealso cref="resizeWithSwapChain" />
+        /// <exception cref="RuntimeException">Thrown, if the render pass is currently active.</exception>
         virtual void resizeRenderArea(const Size2d& renderArea) = 0;
 
         /// <summary>
@@ -6864,7 +6909,8 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="enable">`true` to resize the render area and listen for swap chain resize events in the future.</param>
         /// <seealso cref="followsSwapChainRenderArea" />
-        virtual void resizeWithSwapChain(bool enable) noexcept = 0;
+        /// <exception cref="RuntimeException">Thrown, if the render pass is currently active.</exception>
+        virtual void resizeWithSwapChain(bool enable) = 0;
 
         /// <summary>
         /// Changes the multi sampling level of the render pass.
@@ -6892,22 +6938,22 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Event arguments for a <see cref="ISwapChain::reseted" /> event.
         /// </summary>
-        struct SwapChainResetEventArgs : public EventArgs {
+        struct ResetEventArgs : public EventArgs {
         private:
             Format m_surfaceFormat;
             const Size2d& m_renderArea;
             UInt32 m_buffers;
 
         public:
-            SwapChainResetEventArgs(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers) :
+            ResetEventArgs(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers) :
                 EventArgs(), m_surfaceFormat(surfaceFormat), m_renderArea(renderArea), m_buffers(buffers) { }
-            SwapChainResetEventArgs(const SwapChainResetEventArgs&) = default;
-            SwapChainResetEventArgs(SwapChainResetEventArgs&&) = default;
-            virtual ~SwapChainResetEventArgs() noexcept = default;
+            ResetEventArgs(const ResetEventArgs&) = default;
+            ResetEventArgs(ResetEventArgs&&) = default;
+            virtual ~ResetEventArgs() noexcept = default;
 
         public:
-            SwapChainResetEventArgs& operator=(const SwapChainResetEventArgs&) = default;
-            SwapChainResetEventArgs& operator=(SwapChainResetEventArgs&&) = default;
+            ResetEventArgs& operator=(const ResetEventArgs&) = default;
+            ResetEventArgs& operator=(ResetEventArgs&&) = default;
 
         public:
             /// <summary>
@@ -7050,7 +7096,7 @@ namespace LiteFX::Rendering {
         /// Invoked, after the swap chain has been reseted.
         /// </summary>
         /// <seealso cref="reset" />
-       mutable Event<SwapChainResetEventArgs> reseted;
+       mutable Event<ResetEventArgs> reseted;
 
         /// <summary>
         /// Returns an array of supported formats, that can be drawn to the surface.

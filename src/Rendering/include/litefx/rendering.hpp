@@ -931,8 +931,6 @@ namespace LiteFX::Rendering {
         meta::implements<TRenderPassDependency, IRenderPassDependency<TDerived>>*/
     class RenderPass : public virtual StateResource, public IRenderPass, public RenderPassDependencySource<TFrameBuffer> {
     public:
-        using IRenderPass::updateAttachments;
-
         using command_queue_type = TCommandQueue;
         using frame_buffer_type = TFrameBuffer;
         using render_pipeline_type = TRenderPipeline;
