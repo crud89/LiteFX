@@ -456,7 +456,7 @@ void SampleApp::drawFrame()
 
         // After post-processing, transition the image back into a state where it can be copied from.
         barrier = m_device->makeBarrier(PipelineStage::Compute, PipelineStage::None);
-        barrier->transition(image, ResourceAccess::ShaderReadWrite, ResourceAccess::None, ImageLayout::CopySource);
+        barrier->transition(image, ResourceAccess::ShaderReadWrite, ResourceAccess::None, ImageLayout::ReadWrite, ImageLayout::CopySource);
         commandBuffer->barrier(*barrier);
 
         // Submit the command buffer.
