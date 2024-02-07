@@ -1,11 +1,11 @@
 #pragma pack_matrix(row_major)
 
-// For DXIL we need to define a root signature, in order for shader reflection to properly pick up the push constants.
+// For DXIL we need to define a root signature, in order for shader reflection to properly pick up the static sampler.
 #define ROOT_SIGNATURE \
     "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
     "SRV(t0, space = 0, flags = DATA_STATIC_WHILE_SET_AT_EXECUTE), " \
     "SRV(t1, space = 0, flags = DATA_STATIC_WHILE_SET_AT_EXECUTE), " \
-    "StaticSampler(s2, filter = FILTER_MIN_MAG_MIP_LINEAR)"
+    "StaticSampler(s0, space = 1, filter = FILTER_MIN_MAG_MIP_LINEAR)"
 
 struct VertexData 
 {

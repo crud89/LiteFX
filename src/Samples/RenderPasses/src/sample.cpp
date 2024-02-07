@@ -75,16 +75,14 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
 
     // Create a geometry and lighting render passes.
-    // NOTE: For Vulkan, input attachments need to be in a continuous range, starting at index 0.
-    // NOTE: RenderTargetFlags::Attachment is not required 
     UniquePtr<RenderPass> geometryPass = device->buildRenderPass("Geometry Pass")
         .renderTarget("G-Buffer Color", 0, RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear | RenderTargetFlags::Attachment, { 0.1f, 0.1f, 0.1f, 1.f })
         .renderTarget("G-Buffer Depth/Stencil", 1, RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear | RenderTargetFlags::ClearStencil | RenderTargetFlags::Attachment, { 1.f, 0.f, 0.f, 0.f });
     
     UniquePtr<RenderPass> lightingPass = device->buildRenderPass("Lighting Pass")
         .inputAttachmentSamplerBinding(DescriptorBindingPoint { .Register = 0, .Space = 1 })
-        .inputAttachment(0, *geometryPass, 0)  // Map color attachment from geometry pass render target 0 to location 0.
-        .inputAttachment(1, *geometryPass, 1)  // Map depth/stencil attachment from geometry pass render target 1 to location 1.
+        .inputAttachment(DescriptorBindingPoint { .Register = 0, .Space = 0 }, *geometryPass, 0)  // Map color attachment from geometry pass render target 0.
+        .inputAttachment(DescriptorBindingPoint { .Register = 1, .Space = 0 }, *geometryPass, 1)  // Map depth/stencil attachment from geometry pass render target 1.
         .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
         .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear | RenderTargetFlags::ClearStencil, { 1.f, 0.f, 0.f, 0.f });
 
@@ -179,10 +177,6 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto viewPlaneIndexBuffer = m_device->factory().createIndexBuffer("View Plane Indices", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, viewPlaneIndices.size());
     commandBuffer->transfer(asShared(std::move(stagedViewPlaneIndices)), *viewPlaneIndexBuffer, 0, 0, viewPlaneIndices.size());
 
-    // Create the G-Buffer bindings.
-    auto& lightingPipeline = m_device->state().pipeline("Lighting");
-    auto gBufferBindings = lightingPipeline.layout()->descriptorSet(0).allocateMultiple(3);
-
     // End and submit the command buffer.
     m_transferFence = commandBuffer->submit();
 
@@ -195,7 +189,6 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_device->state().add(std::move(transformBuffer));
     m_device->state().add("Camera Bindings", std::move(cameraBindings));
     std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Transform Bindings {0}", i++), std::move(binding)); });
-    std::ranges::for_each(gBufferBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("G-Buffer {0}", i++), std::move(binding)); });
 }
 
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
@@ -300,12 +293,6 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     auto surfaceFormat = m_device->swapChain().surfaceFormat();
     auto renderArea = Size2d(e.width(), e.height());
     m_device->swapChain().reset(surfaceFormat, renderArea, 3);
-
-    // NOTE: Important to do this in order, since dependencies (i.e. input attachments) are re-created and might be mapped to images that do no longer exist when a dependency
-    //       gets re-created. This is hard to detect, since some frame buffers can have a constant size, that does not change with the render area and do not need to be 
-    //       re-created. We should either think of a clever implicit dependency management for this, or at least document this behavior!
-    m_device->state().renderPass("Geometry Pass").resizeRenderArea(renderArea);
-    m_device->state().renderPass("Lighting Pass").resizeRenderArea(renderArea);
 
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
@@ -459,7 +446,6 @@ void SampleApp::drawFrame()
         // Query state.
         auto& lightingPass = m_device->state().renderPass("Lighting Pass");
         auto& lightingPipeline = m_device->state().pipeline("Lighting");
-        auto& gBufferBinding = m_device->state().descriptorSet(fmt::format("G-Buffer {0}", backBuffer));
         auto& viewPlaneVertexBuffer = m_device->state().vertexBuffer("View Plane Vertices");
         auto& viewPlaneIndexBuffer = m_device->state().indexBuffer("View Plane Indices");
 
@@ -470,13 +456,9 @@ void SampleApp::drawFrame()
         commandBuffer->setViewports(m_viewport.get());
         commandBuffer->setScissors(m_scissor.get());
 
-        // Bind the G-Buffer.
-        lightingPass.updateAttachments(gBufferBinding);
-
         // Draw the view plane.
         commandBuffer->bind(viewPlaneVertexBuffer);
         commandBuffer->bind(viewPlaneIndexBuffer);
-        commandBuffer->bind(gBufferBinding, lightingPipeline);
         commandBuffer->drawIndexed(viewPlaneIndexBuffer.elements());
 
         // End the lighting pass.
