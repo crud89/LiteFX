@@ -1087,7 +1087,19 @@ namespace LiteFX::Rendering::Backends {
         void transfer(IDirectX12Buffer& source, IDirectX12Buffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
+        void transfer(const void* const data, size_t size, IDirectX12Buffer& target, UInt32 targetElement = 0, UInt32 elements = 1) const override;
+
+        /// <inheritdoc />
+        void transfer(Span<const void* const> data, size_t elementSize, IDirectX12Buffer& target, UInt32 firstElement = 0) const override;
+
+        /// <inheritdoc />
         void transfer(IDirectX12Buffer& source, IDirectX12Image& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
+
+        /// <inheritdoc />
+        void transfer(const void* const data, size_t size, IDirectX12Image& target, UInt32 subresource = 0) const override;
+
+        /// <inheritdoc />
+        void transfer(Span<const void* const> data, size_t elementSize, IDirectX12Image& target, UInt32 firstSubresource = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
         void transfer(IDirectX12Image& source, IDirectX12Image& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;

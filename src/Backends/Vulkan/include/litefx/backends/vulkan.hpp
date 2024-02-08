@@ -1066,7 +1066,19 @@ namespace LiteFX::Rendering::Backends {
         void transfer(IVulkanBuffer& source, IVulkanBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
-        void transfer(IVulkanBuffer& source, IVulkanImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
+        void transfer(const void* const data, size_t size, IVulkanBuffer& target, UInt32 targetElement = 0, UInt32 elements = 1) const override;
+
+        /// <inheritdoc />
+        void transfer(Span<const void* const> data, size_t elementSize, IVulkanBuffer& target, UInt32 firstElement = 0) const override;
+
+        /// <inheritdoc />
+        void transfer(IVulkanBuffer& source, IVulkanImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 subresources = 1) const override;
+
+        /// <inheritdoc />
+        void transfer(const void* const data, size_t size, IVulkanImage& target, UInt32 subresource = 0) const override;
+
+        /// <inheritdoc />
+        void transfer(Span<const void* const> data, size_t elementSize, IVulkanImage& target, UInt32 firstSubresource = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
         void transfer(IVulkanImage& source, IVulkanImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;

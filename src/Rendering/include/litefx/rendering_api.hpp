@@ -3397,7 +3397,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="data">The data blocks to map.</param>
         /// <param name="size">The size of each data block within <paramref name="data" />.</param>
-        /// <param name="firsElement">The first element of the array to map.</param>
+        /// <param name="firstElement">The first element of the array to map.</param>
         virtual void map(Span<const void* const> data, size_t elementSize, UInt32 firstElement = 0) = 0;
 
         /// <summary>
@@ -3414,7 +3414,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="data">The data blocks to map.</param>
         /// <param name="size">The size of each data block within <paramref name="data" />.</param>
-        /// <param name="firsElement">The first element of the array to map.</param>
+        /// <param name="firstElement">The first element of the array to map.</param>
         /// <param name="write">If `true`, <paramref name="data" /> is copied into the internal memory. If `false` the internal memory is copied into <paramref name="data" />.</param>
         virtual void map(Span<void*> data, size_t elementSize, UInt32 firstElement = 0, bool write = true) = 0;
     };
@@ -5816,6 +5816,39 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
+        /// Performs a buffer-to-buffer transfer from a temporary buffer into <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// This method creates a temporary buffer and maps <paramref name="data" /> into it, before transferring it into <paramref name="target" />. A reference of the temporary buffer is stored 
+        /// until the parent command queue finished using the command buffer. At this point, the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this
+        /// is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been executed. 
+        /// </remarks>
+        /// <param name="data">The address that marks the beginning of the data to map.</param>
+        /// <param name="size">The number of bytes to map.</param>
+        /// <param name="target">The target buffer to transfer data to.</param>
+        /// <param name="targetElement">The array element to map the data to.</param>
+        /// <param name="elements">The number of elements to copy.</param>
+        inline void transfer(const void* const data, size_t size, IBuffer& target, UInt32 targetElement = 0, UInt32 elements = 1) const {
+            this->cmdTransfer(data, size, target, targetElement, elements);
+        }
+
+        /// <summary>
+        /// Performs a buffer-to-buffer transfer from a temporary buffer into <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// This method creates a temporary buffer and maps <paramref name="data" /> into it, before transferring it into <paramref name="target" />. A reference of the temporary buffer is stored 
+        /// until the parent command queue finished using the command buffer. At this point, the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this
+        /// is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been executed. 
+        /// </remarks>
+        /// <param name="data">The addresses that mark the beginning of the element data to map.</param>
+        /// <param name="elementSize">The number of bytes to map for each element.</param>
+        /// <param name="target">The target buffer to transfer data to.</param>
+        /// <param name="targetElement">The first array element to transfer the data to.</param>
+        inline void transfer(Span<const void* const> data, size_t elementSize, IBuffer& target, UInt32 targetElement = 0) const {
+            this->cmdTransfer(data, elementSize, target, targetElement);
+        }
+
+        /// <summary>
         /// Performs a buffer-to-image transfer from <paramref name="source" /> to <paramref name="target" />.
         /// </summary>
         /// <remarks>
@@ -5898,6 +5931,40 @@ namespace LiteFX::Rendering {
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
         inline void transfer(SharedPtr<IBuffer> source, IImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, firstSubresource, elements);
+        }
+
+        /// <summary>
+        /// Performs a buffer-to-buffer transfer from a temporary buffer into <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// This method creates a temporary buffer and maps <paramref name="data" /> into it, before transferring it into <paramref name="target" />. A reference of the temporary buffer is stored 
+        /// until the parent command queue finished using the command buffer. At this point, the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this
+        /// is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been executed. 
+        /// </remarks>
+        /// <param name="data">The address that marks the beginning of the data to map.</param>
+        /// <param name="size">The number of bytes to map.</param>
+        /// <param name="target">The target buffer to transfer data to.</param>
+        /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
+        /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
+        inline void transfer(const void* const data, size_t size, IImage& target, UInt32 subresource = 0) const {
+            this->cmdTransfer(data, size, target, subresource);
+        }
+
+        /// <summary>
+        /// Performs a buffer-to-buffer transfer from a temporary buffer into <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// This method creates a temporary buffer and maps <paramref name="data" /> into it, before transferring it into <paramref name="target" />. A reference of the temporary buffer is stored 
+        /// until the parent command queue finished using the command buffer. At this point, the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this
+        /// is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been executed. 
+        /// </remarks>
+        /// <param name="data">The addresses that mark the beginning of the element data to map.</param>
+        /// <param name="elementSize">The number of bytes to map for each element.</param>
+        /// <param name="target">The target buffer to transfer data to.</param>
+        /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
+        /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
+        inline void transfer(Span<const void* const> data, size_t elementSize, IImage& target, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
+            this->cmdTransfer(data, elementSize, target, firstSubresource, elements);
         }
 
         /// <summary>
@@ -6401,6 +6468,10 @@ namespace LiteFX::Rendering {
         virtual void cmdTransfer(SharedPtr<IBuffer> source, IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const = 0;
         virtual void cmdTransfer(SharedPtr<IImage> source, IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const = 0;
         virtual void cmdTransfer(SharedPtr<IImage> source, IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const = 0;
+        virtual void cmdTransfer(const void* const data, size_t size, IBuffer& target, UInt32 targetElement, UInt32 elements) const = 0;
+        virtual void cmdTransfer(Span<const void* const> data, size_t elementSize, IBuffer& target, UInt32 targetElement) const = 0;
+        virtual void cmdTransfer(const void* const data, size_t size, IImage& target, UInt32 subresource) const = 0;
+        virtual void cmdTransfer(Span<const void* const> data, size_t elementSize, IImage& target, UInt32 firstSubresource, UInt32 elements) const = 0;
         virtual void cmdUse(const IPipeline& pipeline) const noexcept = 0;
         virtual void cmdBind(const IDescriptorSet& descriptorSet) const = 0;
         virtual void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept = 0;

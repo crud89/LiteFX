@@ -117,9 +117,7 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffe
     camera.ViewProjection = projection * view;
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
-    auto cameraStagingBuffer = m_device->factory().createBuffer(m_device->state().pipeline("Geometry"), DescriptorSets::Constant, 0, ResourceHeap::Staging);
-    cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    commandBuffer.transfer(asShared(std::move(cameraStagingBuffer)), buffer);
+    commandBuffer.transfer(reinterpret_cast<const void*>(&camera), sizeof(camera), buffer);
 }
 
 void SampleApp::onStartup()
