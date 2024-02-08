@@ -180,6 +180,10 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
         break;
+    case DescriptorType::InputAttachment:
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
+        break;
     default: [[unlikely]]
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a texture descriptor.", binding);
     }
@@ -282,74 +286,6 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStruct
         .descriptorCount = 1,
         .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
     };
-
-    ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
-}
-
-void VulkanDescriptorSet::attach(UInt32 binding, const IVulkanImage& image) const
-{
-    const auto& layout = m_impl->m_layout.descriptor(binding);
-
-    if (layout.descriptorType() != DescriptorType::InputAttachment) [[unlikely]]
-        throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a input attachment descriptor.", binding);
-
-    // Remove the image view, if there is one bound to the current descriptor.
-    if (m_impl->m_imageViews.contains(binding))
-    {
-        ::vkDestroyImageView(m_impl->m_layout.device().handle(), m_impl->m_imageViews[binding], nullptr);
-        m_impl->m_imageViews.erase(binding);
-    }
-
-    // Create a new image view the attachment.
-    VkImageViewCreateInfo imageViewDesc = {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .pNext = nullptr,
-        .image = image.handle(),
-        .viewType = Vk::getImageViewType(image.dimensions()),
-        .format = Vk::getFormat(image.format()),
-        .components = VkComponentMapping {
-            .r = VK_COMPONENT_SWIZZLE_IDENTITY,
-            .g = VK_COMPONENT_SWIZZLE_IDENTITY,
-            .b = VK_COMPONENT_SWIZZLE_IDENTITY,
-            .a = VK_COMPONENT_SWIZZLE_IDENTITY
-        },
-        .subresourceRange = VkImageSubresourceRange {
-            .baseMipLevel = 0,
-            .levelCount = 1,
-            .baseArrayLayer = 0,
-            .layerCount = 1
-        }
-    };
-
-    if (!::hasDepth(image.format()) && !::hasStencil(image.format()))
-        imageViewDesc.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    else
-    {
-        // TODO: This probably wont work, instead we need separate views here. Maybe we could add a "plane" parameter that addresses the depth/stencil view.
-        if (::hasDepth(image.format()))
-            imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
-
-        if (::hasStencil(image.format()))
-            imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
-    }
-
-    VkImageView imageView;
-    raiseIfFailed(::vkCreateImageView(m_impl->m_layout.device().handle(), &imageViewDesc, nullptr, &imageView), "Unable to create image view.");
-    m_impl->m_imageViews[binding] = imageView;
-
-    VkDescriptorImageInfo imageInfo = {
-        .imageView = imageView,
-        .imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-    };
-
-    VkWriteDescriptorSet descriptorWrite{ };
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-    descriptorWrite.dstSet = this->handle();
-    descriptorWrite.dstBinding = binding;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pImageInfo = &imageInfo;
 
     ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
 }

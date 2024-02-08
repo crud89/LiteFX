@@ -513,7 +513,6 @@ namespace LiteFX::Rendering::Backends {
     public:
         using base_type = DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler, IVulkanAccelerationStructure>;
         using base_type::update;
-        using base_type::attach;
 
     public:
         /// <summary>
@@ -545,9 +544,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void update(UInt32 binding, const IVulkanAccelerationStructure& accelerationStructure, UInt32 descriptor = 0) const override;
-
-        /// <inheritdoc />
-        void attach(UInt32 binding, const IVulkanImage& image) const override;
     };
 
     /// <summary>

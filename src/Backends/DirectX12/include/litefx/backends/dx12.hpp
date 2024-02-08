@@ -497,7 +497,6 @@ namespace LiteFX::Rendering::Backends {
     public:
         using base_type = DescriptorSet<IDirectX12Buffer, IDirectX12Image, IDirectX12Sampler, IDirectX12AccelerationStructure>;
         using base_type::update;
-        using base_type::attach;
 
     public:
         /// <summary>
@@ -530,9 +529,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void update(UInt32 binding, const IDirectX12AccelerationStructure& accelerationStructure, UInt32 descriptor = 0) const override;
-
-        /// <inheritdoc />
-        void attach(UInt32 binding, const IDirectX12Image& image) const override;
 
     public:
         /// <summary>

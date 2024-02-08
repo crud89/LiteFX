@@ -119,7 +119,7 @@ namespace LiteFX::Rendering {
     ///     with a buffer write in an earlier frame, this method provides the most efficient approach. However, it may be hard or impossible to determine the ideal size of 
     ///     the ring-buffer upfront.
     ///     </description>
-    ///   </item>
+    ///   </itemattach
     /// </list>
     /// 
     /// Note that samplers, textures and input attachments currently do not support array binding, since they are typically only updated once or require pipeline 
@@ -142,7 +142,6 @@ namespace LiteFX::Rendering {
         std::derived_from<TAccelerationStructure, IAccelerationStructure>
     class DescriptorSet : public IDescriptorSet {
     public:
-        using IDescriptorSet::attach;
         using IDescriptorSet::update;
 
         using buffer_type = TBuffer;
@@ -166,9 +165,6 @@ namespace LiteFX::Rendering {
         /// <inheritdoc />
         virtual void update(UInt32 binding, const acceleration_structure_type& accelerationStructure, UInt32 descriptor = 0) const = 0;
 
-        /// <inheritdoc />
-        virtual void attach(UInt32 binding, const image_type& image) const = 0;
-
     private:
         void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const override {
             this->update(binding, dynamic_cast<const buffer_type&>(buffer), bufferElement, elements, firstDescriptor);
@@ -184,10 +180,6 @@ namespace LiteFX::Rendering {
 
         void doUpdate(UInt32 binding, const IAccelerationStructure& accelerationStructure, UInt32 descriptor) const override {
             this->update(binding, dynamic_cast<const acceleration_structure_type&>(accelerationStructure), descriptor);
-        }
-
-        void doAttach(UInt32 binding, const IImage& image) const override {
-            this->attach(binding, dynamic_cast<const image_type&>(image));
         }
     };
 

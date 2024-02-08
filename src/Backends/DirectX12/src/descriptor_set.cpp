@@ -231,12 +231,26 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
     const UInt32 numLevels = levels == 0 ? texture.levels() - firstLevel : levels;
     const UInt32 numLayers = layers == 0 ? texture.layers() - firstLayer : layers;
 
-    if (descriptorLayout.descriptorType() == DescriptorType::Texture)
+    if (descriptorLayout.descriptorType() == DescriptorType::Texture || descriptorLayout.descriptorType() == DescriptorType::InputAttachment)
     {
         D3D12_SHADER_RESOURCE_VIEW_DESC textureView = {
             .Format = DX12::getFormat(texture.format()),
             .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
         };
+
+        // Handle depth images.
+        if (::hasDepth(texture.format()))
+        {
+            switch (texture.format())
+            {
+            case Format::D16_UNORM:             textureView.Format = DXGI_FORMAT_R16_UNORM; break;
+            case Format::D32_SFLOAT:            textureView.Format = DXGI_FORMAT_R32_FLOAT; break;
+            case Format::D24_UNORM_S8_UINT:     textureView.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; break;
+            case Format::D32_SFLOAT_S8_UINT:    textureView.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; break;
+            //case Format::D16_UNORM_S8_UINT: ??
+            //case Format::X8_D24_UNORM: ??
+            }
+        }
 
         switch (texture.dimensions())
         {
@@ -415,37 +429,6 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Acceleration
     m_impl->m_layout.device().handle()->CreateShaderResourceView(nullptr, &bufferView, descriptorHandle);
     descriptorHandle = descriptorHandle.Offset(descriptorSize);
 
-    m_impl->updateGlobalBuffers(offset, 1);
-}
-
-void DirectX12DescriptorSet::attach(UInt32 binding, const IDirectX12Image& image) const
-{
-    auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
-
-    D3D12_SHADER_RESOURCE_VIEW_DESC inputAttachmentView = {
-        .Format = DX12::getFormat(image.format()),
-        .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
-        .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-        .Texture2D = { .MostDetailedMip = 0, .MipLevels = 1, .PlaneSlice = 0, .ResourceMinLODClamp = 0 },
-    };
-
-    // DSV needs special care.
-    // TODO: Support stencil targets, which require a separate view.
-    if (::hasDepth(image.format()))
-    {
-        switch (image.format())
-        {
-        case Format::D16_UNORM:             inputAttachmentView.Format = DXGI_FORMAT_R16_UNORM; break;
-        case Format::D32_SFLOAT:            inputAttachmentView.Format = DXGI_FORMAT_R32_FLOAT; break;
-        case Format::D24_UNORM_S8_UINT:     inputAttachmentView.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; break;
-        case Format::D32_SFLOAT_S8_UINT:    inputAttachmentView.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; break;
-        //case Format::D16_UNORM_S8_UINT: ??
-        //case Format::X8_D24_UNORM: ??
-        }
-    }
-
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-    m_impl->m_layout.device().handle()->CreateShaderResourceView(image.handle().Get(), &inputAttachmentView, descriptorHandle);
     m_impl->updateGlobalBuffers(offset, 1);
 }
 

@@ -394,12 +394,10 @@ public:
 					if (binding->layout().space() == dependency.binding().Space)
 					{
 						// Attach the image from the right frame buffer to the descriptor set.
-						binding->attach(dependency.binding().Register, dependency.inputAttachmentSource()->frameBuffer(backBuffer++).image(dependency.renderTarget().location()));
+						binding->update(dependency.binding().Register, dependency.inputAttachmentSource()->frameBuffer(backBuffer++).image(dependency.renderTarget().location()));
 						break;
 					}
 				}
-
-				// We should never reach here.
 			}
 		});
 	}

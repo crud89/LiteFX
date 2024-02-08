@@ -4586,21 +4586,11 @@ namespace LiteFX::Rendering {
             this->doUpdate(binding, accelerationStructure, descriptor);
         }
 
-        /// <summary>
-        /// Attaches an image as an input attachment to a descriptor bound at <paramref cref="binding" />.
-        /// </summary>
-        /// <param name="binding">The input attachment binding point.</param>
-        /// <param name="image">The image to bind to the input attachment descriptor.</param>
-        void attach(UInt32 binding, const IImage& image) const {
-            this->doAttach(binding, image);
-        }
-
     private:
         virtual void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const = 0;
         virtual void doUpdate(UInt32 binding, const IImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const = 0;
         virtual void doUpdate(UInt32 binding, const ISampler& sampler, UInt32 descriptor) const = 0;
         virtual void doUpdate(UInt32 binding, const IAccelerationStructure& accelerationStructure, UInt32 descriptor) const = 0;
-        virtual void doAttach(UInt32 binding, const IImage& image) const = 0;
     };
 
     /// <summary>
