@@ -1674,7 +1674,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The binding point for input attachment samplers, if required.
             /// </summary>
-            DescriptorBindingPoint inputAttachmentSamplerBinding{ };
+            Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding{ std::nullopt };
 
             /// <summary>
             /// If `std::nullopt`, the render area is acquired from the parent device swap chain, otherwise the value of this property gets used.

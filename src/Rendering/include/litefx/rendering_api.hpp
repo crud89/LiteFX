@@ -6841,7 +6841,7 @@ namespace LiteFX::Rendering {
         /// Note that in Vulkan this is ignored, as render pass inputs are mapped to sub-pass inputs directly, which do not need to be sampled.
         /// </remarks>
         /// <returns>The binding point for input attachment samplers.</returns>
-        virtual const DescriptorBindingPoint& inputAttachmentSamplerBinding() const noexcept = 0;
+        virtual const Optional<DescriptorBindingPoint>& inputAttachmentSamplerBinding() const noexcept = 0;
 
         /// <summary>
         /// Returns the number of samples, the render targets are sampled with.

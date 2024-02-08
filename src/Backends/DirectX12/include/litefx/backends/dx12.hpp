@@ -1463,7 +1463,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="samples">The number of samples for the render targets in this render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
-        explicit DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12RenderPassDependency> inputAttachments = { }, DescriptorBindingPoint inputAttachmentSamplerBinding = { });
+        explicit DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt);
 
         /// <summary>
         /// Creates and initializes a new DirectX 12 render pass instance that executes on the default graphics queue.
@@ -1475,7 +1475,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="samples">The number of samples for the render targets in this render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
-        explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12RenderPassDependency> inputAttachments = { }, DescriptorBindingPoint inputAttachmentSamplerBinding = { });
+        explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt);
         
         /// <summary>
         /// Creates and initializes a new DirectX 12 render pass instance.
@@ -1487,7 +1487,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="samples">The number of samples for the render targets in this render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
-        explicit DirectX12RenderPass(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12RenderPassDependency> inputAttachments = { }, DescriptorBindingPoint inputAttachmentSamplerBinding = { });
+        explicit DirectX12RenderPass(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt);
 
         /// <summary>
         /// Creates and initializes a new DirectX 12 render pass instance.
@@ -1500,7 +1500,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="samples">The number of samples for the render targets in this render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
-        explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12RenderPassDependency> inputAttachments = { }, DescriptorBindingPoint inputAttachmentSamplerBinding = { });
+        explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<DirectX12RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt);
 
         DirectX12RenderPass(const DirectX12RenderPass&) = delete;
         DirectX12RenderPass(DirectX12RenderPass&&) = delete;
@@ -1559,7 +1559,7 @@ namespace LiteFX::Rendering::Backends {
         Span<const DirectX12RenderPassDependency> inputAttachments() const noexcept override;
 
         /// <inheritdoc />
-        const DescriptorBindingPoint& inputAttachmentSamplerBinding() const noexcept override;
+        const Optional<DescriptorBindingPoint>& inputAttachmentSamplerBinding() const noexcept override;
 
         /// <inheritdoc />
         MultiSamplingLevel multiSamplingLevel() const noexcept override;

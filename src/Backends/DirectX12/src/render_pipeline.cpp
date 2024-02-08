@@ -24,6 +24,7 @@ private:
 	UInt64 m_renderPassResetEventToken;
 	Dictionary<const DirectX12RenderPass*, UInt64> m_dependencyResetEventTokens;
 	Array<Array<UniquePtr<DirectX12DescriptorSet>>> m_inputAttachmentBindings;
+	UniquePtr<IDirectX12Sampler> m_inputAttachmentSampler;
 
 public:
 	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, bool alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer) :
@@ -360,6 +361,25 @@ public:
 			}
 		}
 
+		// Don't forget the sampler.
+		if (m_renderPass.inputAttachmentSamplerBinding().has_value())
+		{
+			auto& samplerBinding = m_renderPass.inputAttachmentSamplerBinding().value();
+			auto layouts = m_layout->descriptorSets();
+
+			if (auto samplerSet = std::ranges::find_if(layouts, [&](auto set) { return set->space() == samplerBinding.Space; }); samplerSet != layouts.end())
+			{
+				if (descriptorsPerSet.contains(samplerBinding.Space)) [[unlikely]]
+					throw RuntimeException("The input attachment sampler is defined in a descriptor set that contains input attachment descriptors. Samplers must be defined within their own space.");
+
+				// Create the sampler.
+				m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
+
+				// Store the descriptor so it gets bound.
+				descriptorsPerSet[samplerBinding.Space].push_back(samplerBinding.Register);
+			}
+		}
+
 		// Allocate the input attachment bindings.
 		this->allocateInputAttachmentBindings(descriptorsPerSet | std::views::keys);
 
@@ -400,6 +420,22 @@ public:
 				}
 			}
 		});
+
+		// If there's a sampler, bind it too.
+		if (m_renderPass.inputAttachmentSamplerBinding().has_value())
+		{
+			for (UInt32 backBuffer{ 0 }; auto & bindings : m_inputAttachmentBindings)
+			{
+				for (auto& binding : bindings)
+				{
+					if (binding->layout().space() == m_renderPass.inputAttachmentSamplerBinding().value().Space)
+					{
+						binding->update(m_renderPass.inputAttachmentSamplerBinding().value().Register, *m_inputAttachmentSampler);
+						break;
+					}
+				}
+			}
+		}
 	}
 
 	void onRenderPassReset(const void* sender, const IRenderPass::ResetEventArgs& eventArgs)
@@ -414,6 +450,10 @@ public:
 			auto descriptorSets = m_renderPass.inputAttachments() | std::views::transform([](auto& dependency) { return dependency.binding().Space; }) | std::ranges::to<Array<UInt32>>();
 			std::ranges::sort(descriptorSets);
 			descriptorSets = std::ranges::unique(descriptorSets) | std::ranges::to<Array<UInt32>>();
+			
+			// If there is a sampler defined, also add it to the sets.
+			if (m_inputAttachmentSampler != nullptr)
+				descriptorSets.push_back(m_renderPass.inputAttachmentSamplerBinding().value().Space);
 
 			// Re-allocate the descriptor sets.
 			this->allocateInputAttachmentBindings(descriptorSets);

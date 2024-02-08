@@ -26,7 +26,7 @@ private:
     const RenderTarget* m_depthStencilTarget = nullptr;
     MultiSamplingLevel m_multiSamplingLevel{ MultiSamplingLevel::x1 };
     Array<RenderPassContext> m_contexts;
-    DescriptorBindingPoint m_inputAttachmentSamplerBinding{ };
+    Optional<DescriptorBindingPoint> m_inputAttachmentSamplerBinding{ };
     const DirectX12Device& m_device;
     const DirectX12Queue* m_queue;
     String m_name;
@@ -34,7 +34,7 @@ private:
     UInt64 m_swapChainResetEventToken;
 
 public:
-    DirectX12RenderPassImpl(DirectX12RenderPass* parent, const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, MultiSamplingLevel samples, Span<DirectX12RenderPassDependency> inputAttachments, DescriptorBindingPoint inputAttachmentSamplerBinding) :
+    DirectX12RenderPassImpl(DirectX12RenderPass* parent, const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, MultiSamplingLevel samples, Span<DirectX12RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding) :
         base(parent), m_device(device), m_multiSamplingLevel(samples), m_queue(&queue), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding)
     {
         this->mapRenderTargets(renderTargets);
@@ -231,23 +231,23 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12RenderPassDependency> inputAttachments, DescriptorBindingPoint inputAttachmentSamplerBinding) :
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding) :
     DirectX12RenderPass(device, device.defaultQueue(QueueType::Graphics), renderTargets, commandBuffers, samples, inputAttachments, inputAttachmentSamplerBinding)
 {
 }
 
-DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12RenderPassDependency> inputAttachments, DescriptorBindingPoint inputAttachmentSamplerBinding) :
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding) :
     DirectX12RenderPass(device, name, device.defaultQueue(QueueType::Graphics), renderTargets, commandBuffers, samples, inputAttachments, inputAttachmentSamplerBinding)
 {
 }
 
-DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12RenderPassDependency> inputAttachments, DescriptorBindingPoint inputAttachmentSamplerBinding) :
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding) :
     m_impl(makePimpl<DirectX12RenderPassImpl>(this, device, queue, renderTargets, samples, inputAttachments, inputAttachmentSamplerBinding))
 {
     m_impl->initializeFrameBuffers(commandBuffers);
 }
 
-DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12RenderPassDependency> inputAttachments, DescriptorBindingPoint inputAttachmentSamplerBinding) :
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<DirectX12RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding) :
     DirectX12RenderPass(device, queue, renderTargets, commandBuffers, samples, inputAttachments, inputAttachmentSamplerBinding)
 {
     if (!name.empty())
@@ -336,7 +336,7 @@ Span<const DirectX12RenderPassDependency> DirectX12RenderPass::inputAttachments(
     return m_impl->m_inputAttachments;
 }
 
-const DescriptorBindingPoint& DirectX12RenderPass::inputAttachmentSamplerBinding() const noexcept 
+const Optional<DescriptorBindingPoint>& DirectX12RenderPass::inputAttachmentSamplerBinding() const noexcept 
 {
     return m_impl->m_inputAttachmentSamplerBinding;
 }

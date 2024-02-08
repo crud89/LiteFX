@@ -22,7 +22,7 @@ private:
     SharedPtr<const VulkanCommandBuffer> m_activeCommandBuffer;
     Array<VkClearValue> m_clearValues;
     UInt32 m_backBuffer{ 0 }, m_commandBuffers{ 0 };
-    DescriptorBindingPoint m_inputAttachmentSamplerBinding{ };
+    Optional<DescriptorBindingPoint> m_inputAttachmentSamplerBinding{ };
     MultiSamplingLevel m_samples;
     const VulkanDevice& m_device;
     const VulkanQueue* m_queue;
@@ -30,7 +30,7 @@ private:
     UInt64 m_swapChainResetEventToken;
 
 public:
-    VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, MultiSamplingLevel samples, Span<VulkanRenderPassDependency> inputAttachments, DescriptorBindingPoint inputAttachmentSamplerBinding) :
+    VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, MultiSamplingLevel samples, Span<VulkanRenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding) :
         base(parent), m_samples(samples), m_device(device), m_queue(&queue), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding)
     {
         this->mapRenderTargets(renderTargets);
@@ -418,24 +418,24 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanRenderPassDependency> inputAttachments, DescriptorBindingPoint inputAttachmentSamplerBinding) :
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanRenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding) :
     VulkanRenderPass(device, device.defaultQueue(QueueType::Graphics), renderTargets, commandBuffers, samples, inputAttachments, inputAttachmentSamplerBinding)
 {
 }
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanRenderPassDependency> inputAttachments, DescriptorBindingPoint inputAttachmentSamplerBinding) :
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanRenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding) :
     VulkanRenderPass(device, name, device.defaultQueue(QueueType::Graphics), renderTargets, commandBuffers, samples, inputAttachments, inputAttachmentSamplerBinding)
 {
 }
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanRenderPassDependency> inputAttachments, DescriptorBindingPoint inputAttachmentSamplerBinding) :
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanRenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding) :
     m_impl(makePimpl<VulkanRenderPassImpl>(this, device, queue, renderTargets, samples, inputAttachments, inputAttachmentSamplerBinding)), Resource<VkRenderPass>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
     m_impl->initializeFrameBuffers(commandBuffers);
 }
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanRenderPassDependency> inputAttachments, DescriptorBindingPoint inputAttachmentSamplerBinding) :
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanRenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding) :
     VulkanRenderPass(device, queue, renderTargets, commandBuffers, samples, inputAttachments, inputAttachmentSamplerBinding)
 {
     if (!name.empty())
@@ -536,7 +536,7 @@ bool VulkanRenderPass::usesSwapChainRenderArea() const noexcept
     return !m_impl->m_renderArea.has_value();
 }
 
-const DescriptorBindingPoint& VulkanRenderPass::inputAttachmentSamplerBinding() const noexcept
+const Optional<DescriptorBindingPoint>& VulkanRenderPass::inputAttachmentSamplerBinding() const noexcept
 {
     return m_impl->m_inputAttachmentSamplerBinding;
 }
