@@ -93,13 +93,7 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
 
 # Link against D3D12 to enable flip-model swap chains.
 IF(LITEFX_BUILD_DIRECTX_12_BACKEND)
-    FIND_PACKAGE(directx-headers CONFIG REQUIRED)
-    FIND_PACKAGE(directx-agility-sdk CONFIG REQUIRED)
-
-    TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-        PUBLIC Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi d3dcompiler
-        PRIVATE LiteFX.Backends.DirectX12 Microsoft::DirectXAgilitySDK
-    )
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC LiteFX.Backends.DirectX12)
 ENDIF(LITEFX_BUILD_DIRECTX_12_BACKEND)
 
 

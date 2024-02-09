@@ -102,8 +102,8 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi dxcompiler
-    PRIVATE unofficial::d3d12-memory-allocator Microsoft::WinPixEventRuntime Microsoft::DirectXAgilitySDK
+    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi dxcompiler Microsoft::DirectXAgilitySDK
+    PRIVATE unofficial::d3d12-memory-allocator Microsoft::WinPixEventRuntime
 )
 
 # Add shader modules.
