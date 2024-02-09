@@ -313,6 +313,11 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 	}
 }
 
+UniquePtr<DirectX12Barrier> DirectX12CommandBuffer::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept
+{
+	return m_impl->m_queue.device().makeBarrier(syncBefore, syncAfter);
+}
+
 void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier) const noexcept
 {
 	barrier.execute(*this);
@@ -327,6 +332,27 @@ void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Buffer
 		throw ArgumentOutOfRangeException("targetElement", "The target buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, targetElement);
 
 	this->handle()->CopyBufferRegion(std::as_const(target).handle().Get(), targetElement * target.alignedElementSize(), std::as_const(source).handle().Get(), sourceElement * source.alignedElementSize(), elements * source.alignedElementSize());
+}
+
+void DirectX12CommandBuffer::transfer(const void* const data, size_t size, IDirectX12Buffer& target, UInt32 targetElement, UInt32 elements) const
+{
+	auto alignment = target.elementAlignment();
+	auto elementSize = target.elementSize();
+	auto alignedSize = target.alignedElementSize();
+
+	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements)));
+	stagingBuffer->map(data, size, 0);
+
+	this->transfer(stagingBuffer, target, 0, targetElement, elements);
+}
+
+void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t elementSize, IDirectX12Buffer& target, UInt32 firstElement) const
+{
+	auto elements = static_cast<UInt32>(data.size());
+	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements)));
+	stagingBuffer->map(data, elementSize, 0);
+
+	this->transfer(stagingBuffer, target, 0, firstElement, elements);
 }
 
 void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Image& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
@@ -346,6 +372,23 @@ void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Image&
 		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(), footprint), targetLocation(std::as_const(target).handle().Get(), firstSubresource + sr);
 		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
 	}
+}
+
+void DirectX12CommandBuffer::transfer(const void* const data, size_t size, IDirectX12Image& target, UInt32 subresource) const
+{
+	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, size)));
+	stagingBuffer->map(data, size, 0);
+
+	this->transfer(stagingBuffer, target, 0, subresource, 1);
+}
+
+void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t elementSize, IDirectX12Image& target, UInt32 firstSubresource, UInt32 subresources) const
+{
+	auto elements = static_cast<UInt32>(data.size());
+	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, elementSize, elements)));
+	stagingBuffer->map(data, elementSize, 0);
+
+	this->transfer(stagingBuffer, target, 0, firstSubresource, subresources);
 }
 
 void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Image& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
@@ -420,9 +463,22 @@ void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet) c
 		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
 }
 
+void DirectX12CommandBuffer::bind(Span<const DirectX12DescriptorSet*> descriptorSets) const
+{
+	if (m_impl->m_lastPipeline) [[likely]]
+		std::ranges::for_each(descriptorSets | std::views::filter([](auto descriptorSet) { return descriptorSet != nullptr; }), [this](auto descriptorSet) { m_impl->m_queue.device().bindDescriptorSet(*this, *descriptorSet, *m_impl->m_lastPipeline); });
+	else
+		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
+}
+
 void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept
 {
 	m_impl->m_queue.device().bindDescriptorSet(*this, descriptorSet, pipeline);
+}
+
+void DirectX12CommandBuffer::bind(Span<const DirectX12DescriptorSet*> descriptorSets, const DirectX12PipelineState& pipeline) const noexcept
+{
+	std::ranges::for_each(descriptorSets | std::views::filter([](auto descriptorSet) { return descriptorSet != nullptr; }), [this](auto descriptorSet) { m_impl->m_queue.device().bindDescriptorSet(*this, *descriptorSet, *m_impl->m_lastPipeline); });
 }
 
 void DirectX12CommandBuffer::bind(const IDirectX12VertexBuffer& buffer) const noexcept 

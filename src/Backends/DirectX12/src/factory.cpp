@@ -68,13 +68,20 @@ UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String&
 	// Constant buffers are aligned to 256 byte chunks. All other buffers can be aligned to a multiple of 4 bytes (`sizeof(DWORD)`). The actual amount of memory allocated 
 	// is then defined as the smallest multiple of 64kb, that's greater or equal to `resourceDesc.Width` below. For more info, see:
 	// https://docs.microsoft.com/en-us/windows/win32/api/d3d12/nf-d3d12-id3d12device-getresourceallocationinfo#remarks.
-	size_t elementAlignment = type == BufferType::Uniform ? D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT : sizeof(DWORD);
+	size_t elementAlignment = 0;
+
+	switch (type)
+	{
+	case BufferType::Uniform: elementAlignment = D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT; break;
+	case BufferType::Vertex:
+	case BufferType::Index:   elementAlignment = 0; break;
+	default:                  elementAlignment = sizeof(DWORD); break;
+	}
 
 	D3D12_RESOURCE_DESC1 resourceDesc { };
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 	resourceDesc.Alignment = 0;
-	//resourceDesc.Width = layout.elementSize() * elements;
-	resourceDesc.Width = elements * ((elementSize + elementAlignment - 1) & ~(elementAlignment - 1));	// Align elements to 256 bytes.
+	resourceDesc.Width = elements * (elementAlignment > 0 ? Math::align(elementSize, elementAlignment) : elementSize);
 	resourceDesc.Height = 1;
 	resourceDesc.DepthOrArraySize = 1;
 	resourceDesc.MipLevels = 1;

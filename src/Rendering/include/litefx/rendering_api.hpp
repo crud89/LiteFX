@@ -3397,7 +3397,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="data">The data blocks to map.</param>
         /// <param name="size">The size of each data block within <paramref name="data" />.</param>
-        /// <param name="firsElement">The first element of the array to map.</param>
+        /// <param name="firstElement">The first element of the array to map.</param>
         virtual void map(Span<const void* const> data, size_t elementSize, UInt32 firstElement = 0) = 0;
 
         /// <summary>
@@ -3414,7 +3414,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="data">The data blocks to map.</param>
         /// <param name="size">The size of each data block within <paramref name="data" />.</param>
-        /// <param name="firsElement">The first element of the array to map.</param>
+        /// <param name="firstElement">The first element of the array to map.</param>
         /// <param name="write">If `true`, <paramref name="data" /> is copied into the internal memory. If `false` the internal memory is copied into <paramref name="data" />.</param>
         virtual void map(Span<void*> data, size_t elementSize, UInt32 firstElement = 0, bool write = true) = 0;
     };
@@ -5734,6 +5734,16 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// Creates a new barrier instance.
+        /// </summary>
+        /// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
+        /// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
+        /// <returns>The instance of the barrier.</returns>
+        inline [[nodiscard]] UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
+            return this->getBarrier(syncBefore, syncAfter);
+        }
+
+        /// <summary>
         /// Executes the transitions that have been added to <paramref name="barrier" />.
         /// </summary>
         /// <remarks>
@@ -5803,6 +5813,39 @@ namespace LiteFX::Rendering {
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
         inline void transfer(SharedPtr<IBuffer> source, IBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, targetElement, elements);
+        }
+
+        /// <summary>
+        /// Performs a buffer-to-buffer transfer from a temporary buffer into <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// This method creates a temporary buffer and maps <paramref name="data" /> into it, before transferring it into <paramref name="target" />. A reference of the temporary buffer is stored 
+        /// until the parent command queue finished using the command buffer. At this point, the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this
+        /// is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been executed. 
+        /// </remarks>
+        /// <param name="data">The address that marks the beginning of the data to map.</param>
+        /// <param name="size">The number of bytes to map.</param>
+        /// <param name="target">The target buffer to transfer data to.</param>
+        /// <param name="targetElement">The array element to map the data to.</param>
+        /// <param name="elements">The number of elements to copy.</param>
+        inline void transfer(const void* const data, size_t size, IBuffer& target, UInt32 targetElement = 0, UInt32 elements = 1) const {
+            this->cmdTransfer(data, size, target, targetElement, elements);
+        }
+
+        /// <summary>
+        /// Performs a buffer-to-buffer transfer from a temporary buffer into <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// This method creates a temporary buffer and maps <paramref name="data" /> into it, before transferring it into <paramref name="target" />. A reference of the temporary buffer is stored 
+        /// until the parent command queue finished using the command buffer. At this point, the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this
+        /// is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been executed. 
+        /// </remarks>
+        /// <param name="data">The addresses that mark the beginning of the element data to map.</param>
+        /// <param name="elementSize">The number of bytes to map for each element.</param>
+        /// <param name="target">The target buffer to transfer data to.</param>
+        /// <param name="targetElement">The first array element to transfer the data to.</param>
+        inline void transfer(Span<const void* const> data, size_t elementSize, IBuffer& target, UInt32 targetElement = 0) const {
+            this->cmdTransfer(data, elementSize, target, targetElement);
         }
 
         /// <summary>
@@ -5888,6 +5931,40 @@ namespace LiteFX::Rendering {
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
         inline void transfer(SharedPtr<IBuffer> source, IImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, firstSubresource, elements);
+        }
+
+        /// <summary>
+        /// Performs a buffer-to-buffer transfer from a temporary buffer into <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// This method creates a temporary buffer and maps <paramref name="data" /> into it, before transferring it into <paramref name="target" />. A reference of the temporary buffer is stored 
+        /// until the parent command queue finished using the command buffer. At this point, the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this
+        /// is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been executed. 
+        /// </remarks>
+        /// <param name="data">The address that marks the beginning of the data to map.</param>
+        /// <param name="size">The number of bytes to map.</param>
+        /// <param name="target">The target buffer to transfer data to.</param>
+        /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
+        /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
+        inline void transfer(const void* const data, size_t size, IImage& target, UInt32 subresource = 0) const {
+            this->cmdTransfer(data, size, target, subresource);
+        }
+
+        /// <summary>
+        /// Performs a buffer-to-buffer transfer from a temporary buffer into <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// This method creates a temporary buffer and maps <paramref name="data" /> into it, before transferring it into <paramref name="target" />. A reference of the temporary buffer is stored 
+        /// until the parent command queue finished using the command buffer. At this point, the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this
+        /// is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been executed. 
+        /// </remarks>
+        /// <param name="data">The addresses that mark the beginning of the element data to map.</param>
+        /// <param name="elementSize">The number of bytes to map for each element.</param>
+        /// <param name="target">The target buffer to transfer data to.</param>
+        /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
+        /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
+        inline void transfer(Span<const void* const> data, size_t elementSize, IImage& target, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
+            this->cmdTransfer(data, elementSize, target, firstSubresource, elements);
         }
 
         /// <summary>
@@ -6029,8 +6106,54 @@ namespace LiteFX::Rendering {
         /// <param name="descriptorSet">The descriptor set to bind.</param>
         /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
         /// <seealso cref="use" />
-        void bind(const IDescriptorSet& descriptorSet) const {
+        inline void bind(const IDescriptorSet& descriptorSet) const {
             this->cmdBind(descriptorSet);
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <typeparam name="T">The type of the descriptor sets.</typeparam>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
+        template <typename TSelf, typename T>
+        inline void bind(this const TSelf& self, std::initializer_list<const T*> descriptorSets) requires
+            std::derived_from<T, IDescriptorSet>
+        {
+            // NOTE: In the future we might be able to remove this method, if P2447R4 is added to the language.
+            Array<const T*> sets = descriptorSets;
+            self.bind(Span<const T*>(sets));
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
+        template <typename TSelf>
+        inline void bind(this const TSelf& self, std::ranges::input_range auto&& descriptorSets) requires 
+            std::derived_from<std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>, IDescriptorSet>
+        {
+            using descriptor_set_type = std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>;
+            auto sets = descriptorSets | std::ranges::to<Array<const descriptor_set_type*>>();
+            self.bind(Span<const descriptor_set_type*>(sets));
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        inline void bind(Span<const IDescriptorSet*> descriptorSets) const noexcept {
+            this->cmdBind(descriptorSets);
         }
 
         /// <summary>
@@ -6040,6 +6163,53 @@ namespace LiteFX::Rendering {
         /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
         inline void bind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept {
             this->cmdBind(descriptorSet, pipeline);
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <typeparam name="T">The type of the descriptor sets.</typeparam>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
+        /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
+        template <typename TSelf, typename T>
+        inline void bind(this const TSelf& self, std::initializer_list<const T*> descriptorSets, const typename TSelf::pipeline_type& pipeline) noexcept
+        {
+            // NOTE: In the future we might be able to remove this method, if P2447R4 is added to the language.
+            Array<const T*> sets = descriptorSets;
+            self.bind(Span<const T*>(sets), pipeline);
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the provided pipeline.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
+        template <typename TSelf>
+        inline void bind(this const TSelf& self, std::ranges::input_range auto&& descriptorSets, const typename TSelf::pipeline_type& pipeline) noexcept requires 
+            std::derived_from<std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>, IDescriptorSet>
+        {
+            using descriptor_set_type = std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>;
+            auto sets = descriptorSets | std::ranges::to<Array<const descriptor_set_type*>>();
+            self.bind(Span<const descriptor_set_type*>(sets), pipeline);
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the provided pipeline.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
+        inline void bind(Span<const IDescriptorSet*> descriptorSets, const IPipeline& pipeline) const noexcept {
+            this->cmdBind(descriptorSets, pipeline);
         }
 
         /// <summary>
@@ -6380,7 +6550,14 @@ namespace LiteFX::Rendering {
             this->cmdCopyAccelerationStructure(from, to, compress);
         }
 
+    protected:
+        /// <summary>
+        /// Called by the parent command queue to signal that the command buffer should release it's shared state.
+        /// </summary>
+        virtual void releaseSharedState() const = 0;
+
     private:
+        virtual UniquePtr<IBarrier> getBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
         virtual void cmdBarrier(const IBarrier& barrier) const noexcept = 0;
         virtual void cmdGenerateMipMaps(IImage& image) noexcept = 0;
         virtual void cmdTransfer(IBuffer& source, IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const = 0;
@@ -6391,9 +6568,15 @@ namespace LiteFX::Rendering {
         virtual void cmdTransfer(SharedPtr<IBuffer> source, IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const = 0;
         virtual void cmdTransfer(SharedPtr<IImage> source, IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const = 0;
         virtual void cmdTransfer(SharedPtr<IImage> source, IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const = 0;
+        virtual void cmdTransfer(const void* const data, size_t size, IBuffer& target, UInt32 targetElement, UInt32 elements) const = 0;
+        virtual void cmdTransfer(Span<const void* const> data, size_t elementSize, IBuffer& target, UInt32 targetElement) const = 0;
+        virtual void cmdTransfer(const void* const data, size_t size, IImage& target, UInt32 subresource) const = 0;
+        virtual void cmdTransfer(Span<const void* const> data, size_t elementSize, IImage& target, UInt32 firstSubresource, UInt32 elements) const = 0;
         virtual void cmdUse(const IPipeline& pipeline) const noexcept = 0;
         virtual void cmdBind(const IDescriptorSet& descriptorSet) const = 0;
+        virtual void cmdBind(Span<const IDescriptorSet*> descriptorSets) const = 0;
         virtual void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept = 0;
+        virtual void cmdBind(Span<const IDescriptorSet*> descriptorSets, const IPipeline& pipeline) const noexcept = 0;
         virtual void cmdBind(const IVertexBuffer& buffer) const noexcept = 0;
         virtual void cmdBind(const IIndexBuffer& buffer) const noexcept = 0;
         virtual void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept = 0;
@@ -6410,10 +6593,6 @@ namespace LiteFX::Rendering {
         virtual void cmdCopyAccelerationStructure(const ITopLevelAccelerationStructure& from, const ITopLevelAccelerationStructure& to, bool compress) const noexcept = 0;
         virtual void cmdTraceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable, const IBuffer* hitShaderBindingTable, const IBuffer* callableShaderBindingTable) const noexcept = 0;
 
-        /// <summary>
-        /// Called by the parent command queue to signal that the command buffer should release it's shared state.
-        /// </summary>
-        virtual void releaseSharedState() const = 0;
     };
 
     /// <summary>

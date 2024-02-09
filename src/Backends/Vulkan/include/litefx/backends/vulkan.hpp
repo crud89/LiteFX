@@ -975,8 +975,8 @@ namespace LiteFX::Rendering::Backends {
         /// Binds a descriptor set on a command buffer.
         /// </summary>
         /// <param name="commandBuffer">The command buffer to issue the bind command on.</param>
-        /// <param name="descriptorSet">The descriptor set to bind.</param>
-        virtual void bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept = 0;
+        /// <param name="descriptorSets">The descriptor sets to bind.</param>
+        virtual void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const noexcept = 0;
     };
 
     /// <summary>
@@ -1075,13 +1075,28 @@ namespace LiteFX::Rendering::Backends {
         void generateMipMaps(IVulkanImage& image) noexcept override;
 
         /// <inheritdoc />
+        UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
+
+        /// <inheritdoc />
         void barrier(const VulkanBarrier& barrier) const noexcept override;
 
         /// <inheritdoc />
         void transfer(IVulkanBuffer& source, IVulkanBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
-        void transfer(IVulkanBuffer& source, IVulkanImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
+        void transfer(const void* const data, size_t size, IVulkanBuffer& target, UInt32 targetElement = 0, UInt32 elements = 1) const override;
+
+        /// <inheritdoc />
+        void transfer(Span<const void* const> data, size_t elementSize, IVulkanBuffer& target, UInt32 firstElement = 0) const override;
+
+        /// <inheritdoc />
+        void transfer(IVulkanBuffer& source, IVulkanImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 subresources = 1) const override;
+
+        /// <inheritdoc />
+        void transfer(const void* const data, size_t size, IVulkanImage& target, UInt32 subresource = 0) const override;
+
+        /// <inheritdoc />
+        void transfer(Span<const void* const> data, size_t elementSize, IVulkanImage& target, UInt32 firstSubresource = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
         void transfer(IVulkanImage& source, IVulkanImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
@@ -1107,8 +1122,14 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		void bind(const VulkanDescriptorSet& descriptorSet) const override;
 
+        /// <inheritdoc />
+        void bind(Span<const VulkanDescriptorSet*> descriptorSets) const override;
+
 		/// <inheritdoc />
 		void bind(const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept override;
+
+        /// <inheritdoc />
+        void bind(Span<const VulkanDescriptorSet*> descriptorSets, const VulkanPipelineState& pipeline) const noexcept override;
 
         /// <inheritdoc />
         void bind(const IVulkanVertexBuffer& buffer) const noexcept override;
@@ -1223,7 +1244,7 @@ namespace LiteFX::Rendering::Backends {
         void use(const VulkanCommandBuffer& commandBuffer) const noexcept override;
 
         /// <inheritdoc />
-        void bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept override;
+        void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const noexcept override;
     };
 
     /// <summary>
@@ -1269,7 +1290,7 @@ namespace LiteFX::Rendering::Backends {
         void use(const VulkanCommandBuffer& commandBuffer) const noexcept override;
 
         /// <inheritdoc />
-        void bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept override;
+        void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const noexcept override;
     };
     
     /// <summary>
@@ -1337,7 +1358,7 @@ namespace LiteFX::Rendering::Backends {
         void use(const VulkanCommandBuffer& commandBuffer) const noexcept override;
 
         /// <inheritdoc />
-        void bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept override;
+        void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const noexcept override;
     };
 
     /// <summary>
