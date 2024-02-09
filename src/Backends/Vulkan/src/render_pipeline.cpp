@@ -19,19 +19,41 @@ private:
 	SharedPtr<VulkanRasterizer> m_rasterizer;
 	bool m_alphaToCoverage{ false };
 	const VulkanRenderPass& m_renderPass;
+	UInt64 m_renderPassResetEventToken;
+	Dictionary<const VulkanRenderPass*, UInt64> m_dependencyResetEventTokens;
+	Array<Array<UniquePtr<VulkanDescriptorSet>>> m_inputAttachmentBindings;
+
 
 public:
 	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass, bool alphaToCoverage, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer) :
 		base(parent), m_renderPass(renderPass), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer)
 	{
+		this->initializeEventHandlers();
 	}
 
 	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass) :
 		base(parent), m_renderPass(renderPass)
 	{
+		this->initializeEventHandlers();
 	}
 
 public:
+	void initializeEventHandlers()
+	{
+		// Listen to parent render pass reset event, in case the number of frame buffers changes.
+		m_renderPassResetEventToken = m_renderPass.reseted.add(std::bind(&VulkanRenderPipelineImpl::onRenderPassReset, this, std::placeholders::_1, std::placeholders::_2));
+
+		// Listen to the parent render pass dependency reset events, in case their render area changes, in which case we have to reset the input attachment bindings.
+		std::ranges::for_each(m_renderPass.inputAttachments(), [&](const VulkanRenderPassDependency& dependency) {
+			if (!m_dependencyResetEventTokens.contains(dependency.inputAttachmentSource()))
+			{
+				// Register listener and add the source to the pass list.
+				auto pass = dependency.inputAttachmentSource();
+				m_dependencyResetEventTokens[pass] = pass->reseted.add(std::bind(&VulkanRenderPipelineImpl::onDependencyReset, this, std::placeholders::_1, std::placeholders::_2));
+			}
+		});
+	}
+
 	VkPipeline initialize()
 	{
 		// Get the shader modules.
@@ -64,8 +86,12 @@ public:
 #ifndef NDEBUG
 		m_renderPass.device().setDebugName(*reinterpret_cast<const UInt64*>(&pipeline), VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, m_parent->name());
 #endif
+		// Setup input attachment bindings.
+		this->initializeInputAttachmentBindings();
 
+		// Return the pipeline instance.
 		return pipeline;
+
 	}
 
 	VkPipeline initializeGraphicsPipeline(const VkPipelineDynamicStateCreateInfo& dynamicState, const LiteFX::Array<VkPipelineShaderStageCreateInfo>& shaderStages)
@@ -228,6 +254,104 @@ public:
 
 		return pipeline;
 	}
+
+	void initializeInputAttachmentBindings()
+	{
+		// Find out how many descriptor sets there are within the input attachments and which descriptors are bound.
+		Dictionary<UInt32, Array<UInt32>> descriptorsPerSet;
+		std::ranges::for_each(m_renderPass.inputAttachments(), [&descriptorsPerSet](auto& dependency) { descriptorsPerSet[dependency.binding().Space].push_back(dependency.binding().Register); });
+
+		// Validate the descriptor sets, so that no descriptors are bound twice all descriptor sets are fully bound.
+		for (auto& [set, descriptors] : descriptorsPerSet)
+		{
+			// Sort and check if there are duplicates.
+			std::ranges::sort(descriptors);
+
+			if (std::ranges::adjacent_find(descriptors) != descriptors.end()) [[unlikely]]
+				throw RuntimeException("The descriptor set {0} has input attachment mappings that point to the same descriptor.", set);
+
+			// Check if all descriptors in the set are mapped.
+			auto& layout = m_layout->descriptorSet(set);
+
+			for (auto& descriptor : layout.descriptors())
+			{
+				if (std::ranges::find(descriptors, descriptor->binding()) == descriptors.end()) [[unlikely]]
+				{
+					LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} is not fully mapped by the provided input attachments for the render pass.", set);
+					break;
+				}
+			}
+		}
+
+		// Allocate the input attachment bindings.
+		this->allocateInputAttachmentBindings(descriptorsPerSet | std::views::keys);
+
+		// Bind all input attachments.
+		this->bindInputAttachments();
+	}
+
+	void allocateInputAttachmentBindings(const std::ranges::input_range auto& descriptorSets) requires 
+		std::is_convertible_v<std::ranges::range_value_t<decltype(descriptorSets)>, UInt32>
+	{
+		// Allocate the bindings array.
+		auto backBuffers = m_renderPass.frameBuffers().size();
+		m_inputAttachmentBindings.resize(backBuffers);
+
+		// Initialize the descriptor set bindings.
+		std::ranges::for_each(m_inputAttachmentBindings, [this, &descriptorSets](auto& inputBindings) {
+			// Allocate each descriptor set.
+			for (UInt32 descriptorSet : descriptorSets)
+				inputBindings.push_back(std::move(m_layout->descriptorSet(descriptorSet).allocate()));
+		});
+	}
+
+	void bindInputAttachments()
+	{
+		// Iterate the dependencies and update the binding for each one on every back buffer descriptor set.
+		std::ranges::for_each(m_renderPass.inputAttachments(), [this](const VulkanRenderPassDependency& dependency) {
+			// Find the input attachment for the binding.
+			for (UInt32 backBuffer{ 0 }; auto& bindings : m_inputAttachmentBindings)
+			{
+				for (auto& binding : bindings)
+				{
+					if (binding->layout().space() == dependency.binding().Space)
+					{
+						// Attach the image from the right frame buffer to the descriptor set.
+						binding->update(dependency.binding().Register, dependency.inputAttachmentSource()->frameBuffer(backBuffer++).image(dependency.renderTarget().location()));
+						break;
+					}
+				}
+			}
+		});
+	}
+
+	void onRenderPassReset(const void* sender, const IRenderPass::ResetEventArgs& eventArgs)
+	{
+		// If frame buffer count changed, reset number of descriptor sets and re-bind them.
+		if (eventArgs.frameBuffers() != static_cast<UInt32>(m_inputAttachmentBindings.size())) [[unlikely]]
+		{
+			// First, clear all the descriptor sets.
+			m_inputAttachmentBindings.clear();
+
+			// Get all descriptor sets that bind input attachments.
+			auto descriptorSets = m_renderPass.inputAttachments() | std::views::transform([](auto& dependency) { return dependency.binding().Space; }) | std::ranges::to<Array<UInt32>>();
+			std::ranges::sort(descriptorSets);
+			descriptorSets = std::ranges::unique(descriptorSets) | std::ranges::to<Array<UInt32>>();
+
+			// Re-allocate the descriptor sets.
+			this->allocateInputAttachmentBindings(descriptorSets);
+
+			// Bind all input attachments.
+			this->bindInputAttachments();
+		}
+	}
+
+	void onDependencyReset(const void* sender, const IRenderPass::ResetEventArgs& eventArgs)
+	{
+		// Re-bind all input attachments, but not if the frame buffer count has changed (this is handled if the parent render pass back buffer count is changed).
+		if (eventArgs.frameBuffers() == static_cast<UInt32>(m_inputAttachmentBindings.size())) [[likely]]
+			this->bindInputAttachments();
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -286,6 +410,10 @@ void VulkanRenderPipeline::use(const VulkanCommandBuffer& commandBuffer) const n
 
 	// Set the line width (in case it has been changed). Currently we do not expose an command buffer interface for this, since this is mostly unsupported anyway and has no D3D12 counter-part.
 	::vkCmdSetLineWidth(commandBuffer.handle(), std::as_const(*m_impl->m_rasterizer).lineWidth());
+
+	// Bind all the input attachments for the parent render pass.
+	auto descriptorSets = m_impl->m_inputAttachmentBindings[m_impl->m_renderPass.activeBackBuffer()] | std::views::transform([](auto& set) { return set.get(); }) | std::ranges::to<Array<const VulkanDescriptorSet*>>();
+	this->bind(commandBuffer, descriptorSets);
 }
 
 void VulkanRenderPipeline::bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const noexcept

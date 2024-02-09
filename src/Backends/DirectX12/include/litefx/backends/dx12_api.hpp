@@ -63,7 +63,7 @@ namespace LiteFX::Rendering::Backends {
     class DirectX12RayTracingPipeline;
     class DirectX12FrameBuffer;
     class DirectX12RenderPass;
-    class DirectX12InputAttachmentMapping;
+    class DirectX12RenderPassDependency;
     class DirectX12SwapChain;
     class DirectX12Queue;
     class DirectX12GraphicsFactory;

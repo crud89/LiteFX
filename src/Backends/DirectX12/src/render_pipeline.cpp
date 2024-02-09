@@ -21,19 +21,48 @@ private:
 	UInt32 m_stencilRef{ 0 };
 	bool m_alphaToCoverage{ false };
 	const DirectX12RenderPass& m_renderPass;
+	UInt64 m_renderPassResetEventToken;
+	Dictionary<const DirectX12RenderPass*, UInt64> m_dependencyResetEventTokens;
+	Array<Array<UniquePtr<DirectX12DescriptorSet>>> m_inputAttachmentBindings;
+	UniquePtr<IDirectX12Sampler> m_inputAttachmentSampler;
 
 public:
 	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, bool alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer) :
 		base(parent), m_renderPass(renderPass), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer)
 	{
+		this->initializeEventHandlers();
 	}
 
 	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass) :
 		base(parent), m_renderPass(renderPass)
 	{
+		this->initializeEventHandlers();
+	}
+
+	~DirectX12RenderPipelineImpl()
+	{
+		// NOTE: This assumes, that the pipeline is destroyed before all render passes.
+		m_renderPass.reseted.remove(m_renderPassResetEventToken);
+		std::ranges::for_each(m_dependencyResetEventTokens, [](auto& pair) { pair.first->reseted.remove(pair.second); });
 	}
 
 public:
+	void initializeEventHandlers()
+	{
+		// Listen to parent render pass reset event, in case the number of frame buffers changes.
+		m_renderPassResetEventToken = m_renderPass.reseted.add(std::bind(&DirectX12RenderPipelineImpl::onRenderPassReset, this, std::placeholders::_1, std::placeholders::_2));
+
+		// Listen to the parent render pass dependency reset events, in case their render area changes, in which case we have to reset the input attachment bindings.
+		std::ranges::for_each(m_renderPass.inputAttachments(), [&](const DirectX12RenderPassDependency& dependency) {
+			if (!m_dependencyResetEventTokens.contains(dependency.inputAttachmentSource()))
+			{
+				// Register listener and add the source to the pass list.
+				auto pass = dependency.inputAttachmentSource();
+				m_dependencyResetEventTokens[pass] = pass->reseted.add(std::bind(&DirectX12RenderPipelineImpl::onDependencyReset, this, std::placeholders::_1, std::placeholders::_2));
+			}
+		});
+	}
+
 	ComPtr<ID3D12PipelineState> initialize()
 	{
 		LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline \"{1}\" for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_parent->name());
@@ -170,11 +199,15 @@ public:
 		blendState.AlphaToCoverageEnable = m_alphaToCoverage;
 		blendState.IndependentBlendEnable = TRUE;
 
+		// Setup input attachment bindings.
+		this->initializeInputAttachmentBindings();
+
 		// Initialize the remainder depending on the pipeline type.
 		if (hasMeshShaders)
 			return this->initializeMeshPipeline(blendState, rasterizerState, depthStencilState, topologyType, renderTargets, rtvFormats, dsvFormat, multisamplingState);
 		else
 			return this->initializeGraphicsPipeline(blendState, rasterizerState, depthStencilState, inputLayout, topologyType, renderTargets, rtvFormats, dsvFormat, multisamplingState);
+
 	}
 
 	ComPtr<ID3D12PipelineState> initializeMeshPipeline(const D3D12_BLEND_DESC& blendState, const D3D12_RASTERIZER_DESC& rasterizerState, const D3D12_DEPTH_STENCIL_DESC& depthStencilState, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, UINT renderTargets, const std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>& renderTargetFormats, DXGI_FORMAT depthStencilFormat, const DXGI_SAMPLE_DESC& multisamplingState)
@@ -299,6 +332,143 @@ public:
 
 		return pipelineState;
 	}
+
+	void initializeInputAttachmentBindings()
+	{
+		// Find out how many descriptor sets there are within the input attachments and which descriptors are bound.
+		Dictionary<UInt32, Array<UInt32>> descriptorsPerSet;
+		std::ranges::for_each(m_renderPass.inputAttachments(), [&descriptorsPerSet](auto& dependency) { descriptorsPerSet[dependency.binding().Space].push_back(dependency.binding().Register); });
+
+		// Validate the descriptor sets, so that no descriptors are bound twice all descriptor sets are fully bound.
+		for (auto& [set, descriptors] : descriptorsPerSet)
+		{
+			// Sort and check if there are duplicates.
+			std::ranges::sort(descriptors);
+
+			if (std::ranges::adjacent_find(descriptors) != descriptors.end()) [[unlikely]]
+				throw RuntimeException("The descriptor set {0} has input attachment mappings that point to the same descriptor.", set);
+
+			// Check if all descriptors in the set are mapped.
+			auto& layout = m_layout->descriptorSet(set);
+
+			for (auto& descriptor : layout.descriptors())
+			{
+				if (std::ranges::find(descriptors, descriptor->binding()) == descriptors.end()) [[unlikely]]
+				{
+					LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} is not fully mapped by the provided input attachments for the render pass.", set);
+					break;
+				}
+			}
+		}
+
+		// Don't forget the sampler.
+		if (m_renderPass.inputAttachmentSamplerBinding().has_value())
+		{
+			auto& samplerBinding = m_renderPass.inputAttachmentSamplerBinding().value();
+			auto layouts = m_layout->descriptorSets();
+
+			if (auto samplerSet = std::ranges::find_if(layouts, [&](auto set) { return set->space() == samplerBinding.Space; }); samplerSet != layouts.end())
+			{
+				if (descriptorsPerSet.contains(samplerBinding.Space)) [[unlikely]]
+					throw RuntimeException("The input attachment sampler is defined in a descriptor set that contains input attachment descriptors. Samplers must be defined within their own space.");
+
+				// Create the sampler.
+				m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
+
+				// Store the descriptor so it gets bound.
+				descriptorsPerSet[samplerBinding.Space].push_back(samplerBinding.Register);
+			}
+		}
+
+		// Allocate the input attachment bindings.
+		this->allocateInputAttachmentBindings(descriptorsPerSet | std::views::keys);
+
+		// Bind all input attachments.
+		this->bindInputAttachments();
+	}
+
+	void allocateInputAttachmentBindings(const std::ranges::input_range auto& descriptorSets) requires 
+		std::is_convertible_v<std::ranges::range_value_t<decltype(descriptorSets)>, UInt32>
+	{
+		// Allocate the bindings array.
+		auto backBuffers = m_renderPass.frameBuffers().size();
+		m_inputAttachmentBindings.resize(backBuffers);
+
+		// Initialize the descriptor set bindings.
+		std::ranges::for_each(m_inputAttachmentBindings, [this, &descriptorSets](auto& inputBindings) {
+			// Allocate each descriptor set.
+			for (UInt32 descriptorSet : descriptorSets)
+				inputBindings.push_back(std::move(m_layout->descriptorSet(descriptorSet).allocate()));
+		});
+	}
+
+	void bindInputAttachments()
+	{
+		// Iterate the dependencies and update the binding for each one on every back buffer descriptor set.
+		std::ranges::for_each(m_renderPass.inputAttachments(), [this](const DirectX12RenderPassDependency& dependency) {
+			// Find the input attachment for the binding.
+			for (UInt32 backBuffer{ 0 }; auto& bindings : m_inputAttachmentBindings)
+			{
+				for (auto& binding : bindings)
+				{
+					if (binding->layout().space() == dependency.binding().Space)
+					{
+						// Attach the image from the right frame buffer to the descriptor set.
+						binding->update(dependency.binding().Register, dependency.inputAttachmentSource()->frameBuffer(backBuffer++).image(dependency.renderTarget().location()));
+						break;
+					}
+				}
+			}
+		});
+
+		// If there's a sampler, bind it too.
+		if (m_renderPass.inputAttachmentSamplerBinding().has_value())
+		{
+			for (UInt32 backBuffer{ 0 }; auto & bindings : m_inputAttachmentBindings)
+			{
+				for (auto& binding : bindings)
+				{
+					if (binding->layout().space() == m_renderPass.inputAttachmentSamplerBinding().value().Space)
+					{
+						binding->update(m_renderPass.inputAttachmentSamplerBinding().value().Register, *m_inputAttachmentSampler);
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	void onRenderPassReset(const void* sender, const IRenderPass::ResetEventArgs& eventArgs)
+	{
+		// If frame buffer count changed, reset number of descriptor sets and re-bind them.
+		if (eventArgs.frameBuffers() != static_cast<UInt32>(m_inputAttachmentBindings.size())) [[unlikely]]
+		{
+			// First, clear all the descriptor sets.
+			m_inputAttachmentBindings.clear();
+
+			// Get all descriptor sets that bind input attachments.
+			auto descriptorSets = m_renderPass.inputAttachments() | std::views::transform([](auto& dependency) { return dependency.binding().Space; }) | std::ranges::to<Array<UInt32>>();
+			std::ranges::sort(descriptorSets);
+			descriptorSets = std::ranges::unique(descriptorSets) | std::ranges::to<Array<UInt32>>();
+			
+			// If there is a sampler defined, also add it to the sets.
+			if (m_inputAttachmentSampler != nullptr)
+				descriptorSets.push_back(m_renderPass.inputAttachmentSamplerBinding().value().Space);
+
+			// Re-allocate the descriptor sets.
+			this->allocateInputAttachmentBindings(descriptorSets);
+
+			// Bind all input attachments.
+			this->bindInputAttachments();
+		}
+	}
+
+	void onDependencyReset(const void* sender, const IRenderPass::ResetEventArgs& eventArgs)
+	{
+		// Re-bind all input attachments, but not if the frame buffer count has changed (this is handled if the parent render pass back buffer count is changed).
+		if (eventArgs.frameBuffers() == static_cast<UInt32>(m_inputAttachmentBindings.size())) [[likely]]
+			this->bindInputAttachments();
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -353,6 +523,9 @@ void DirectX12RenderPipeline::use(const DirectX12CommandBuffer& commandBuffer) c
 	commandBuffer.handle()->SetPipelineState(this->handle().Get());
 	commandBuffer.handle()->SetGraphicsRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
 	commandBuffer.handle()->IASetPrimitiveTopology(DX12::getPrimitiveTopology(m_impl->m_inputAssembler->topology()));
+
+	// Bind all the input attachments for the parent render pass.
+	commandBuffer.bind(m_impl->m_inputAttachmentBindings[m_impl->m_renderPass.activeBackBuffer()] | std::views::transform([](auto& set) { return set.get(); }));
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

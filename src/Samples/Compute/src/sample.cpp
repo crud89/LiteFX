@@ -258,11 +258,6 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     auto renderArea = Size2d(e.width(), e.height());
     m_device->swapChain().reset(surfaceFormat, renderArea, 3);
     
-    // NOTE: Important to do this in order, since dependencies (i.e. input attachments) are re-created and might be mapped to images that do no longer exist when a dependency
-    //       gets re-created. This is hard to detect, since some frame buffers can have a constant size, that does not change with the render area and do not need to be 
-    //       re-created. We should either think of a clever implicit dependency management for this, or at least document this behavior!
-    m_device->state().renderPass("Opaque").resizeFrameBuffers(renderArea);
-    
     // Update the post-processing bindings that reference the "opaque" frame buffer.
     auto opaqueFrameBuffers = m_device->state().renderPass("Opaque").frameBuffers();
     

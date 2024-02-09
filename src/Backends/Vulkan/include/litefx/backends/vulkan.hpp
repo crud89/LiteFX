@@ -513,7 +513,6 @@ namespace LiteFX::Rendering::Backends {
     public:
         using base_type = DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler, IVulkanAccelerationStructure>;
         using base_type::update;
-        using base_type::attach;
 
     public:
         /// <summary>
@@ -545,9 +544,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void update(UInt32 binding, const IVulkanAccelerationStructure& accelerationStructure, UInt32 descriptor = 0) const override;
-
-        /// <inheritdoc />
-        void attach(UInt32 binding, const IVulkanImage& image) const override;
     };
 
     /// <summary>
@@ -579,6 +575,13 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="binding">The binding point for the descriptor.</param>
         explicit VulkanDescriptorLayout(UniquePtr<IVulkanSampler>&& staticSampler, UInt32 binding);
 
+        /// <summary>
+        /// Initializes a new Vulkan descriptor layout for an input attachment.
+        /// </summary>
+        /// <param name="binding">The binding point for the descriptor.</param>
+        /// <param name="inputAttachmentIndex">If <paramref name="type" /> equals <see cref="DescriptorType::InputAttachment" /> this value specifies the index of the input attachment. Otherwise, the value is ignored.</param>
+        explicit VulkanDescriptorLayout(UInt32 binding, UInt32 inputAttachmentIndex);
+
         VulkanDescriptorLayout(VulkanDescriptorLayout&&) = delete;
         VulkanDescriptorLayout(const VulkanDescriptorLayout&) = delete;
         virtual ~VulkanDescriptorLayout() noexcept;
@@ -604,6 +607,18 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         BufferType type() const noexcept override;
+
+        // VulkanDescriptorLayout
+    public:
+        /// <summary>
+        /// The index of the input attachment mapped to this descriptor.
+        /// </summary>
+        /// <remarks>
+        /// If <see cref="descriptorType" /> returns <see cref="DescriptorType::InputAttachment" /> this value refers to the index of the input attachment within a set of input 
+        /// attachments of a <see cref="VulkanRenderPass" />. Otherwise, the value is ignored.
+        /// </remarks>
+        /// <returns>The index of the input attachment mapped to this descriptor.</returns>
+        UInt32 inputAttachmentIndex() const noexcept;
     };
 
     /// <summary>
@@ -1414,13 +1429,12 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a Vulkan render pass.
     /// </summary>
     /// <seealso cref="VulkanRenderPassBuilder" />
-    class LITEFX_VULKAN_API VulkanRenderPass final : public RenderPass<VulkanRenderPipeline, VulkanQueue, VulkanFrameBuffer, VulkanInputAttachmentMapping>, public Resource<VkRenderPass> {
+    class LITEFX_VULKAN_API VulkanRenderPass final : public RenderPass<VulkanRenderPipeline, VulkanQueue, VulkanFrameBuffer, VulkanRenderPassDependency>, public Resource<VkRenderPass> {
         LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
         LITEFX_BUILDER(VulkanRenderPassBuilder);
 
     public:
-        using base_type = RenderPass<VulkanRenderPipeline, VulkanQueue, VulkanFrameBuffer, VulkanInputAttachmentMapping>;
-        using base_type::updateAttachments;
+        using base_type = RenderPass<VulkanRenderPipeline, VulkanQueue, VulkanFrameBuffer, VulkanRenderPassDependency>;
 
     public:
         /// <summary>
@@ -1431,7 +1445,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="renderTargets">The render targets that are output by the render pass.</param>
         /// <param name="samples">The number of samples for the render targets in this render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
-        explicit VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
+        /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
+        explicit VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanRenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt);
 
         /// <summary>
         /// Creates and initializes a new Vulkan render pass instance that executes on the default graphics queue.
@@ -1442,7 +1457,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="renderTargets">The render targets that are output by the render pass.</param>
         /// <param name="samples">The number of samples for the render targets in this render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
-        explicit VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
+        /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
+        explicit VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanRenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt);
         
         /// <summary>
         /// Creates and initializes a new Vulkan render pass instance.
@@ -1453,7 +1469,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="renderTargets">The render targets that are output by the render pass.</param>
         /// <param name="samples">The number of samples for the render targets in this render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
-        explicit VulkanRenderPass(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
+        /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
+        explicit VulkanRenderPass(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanRenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt);
 
         /// <summary>
         /// Creates and initializes a new Vulkan render pass instance.
@@ -1465,7 +1482,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="renderTargets">The render targets that are output by the render pass.</param>
         /// <param name="samples">The number of samples for the render targets in this render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
-        explicit VulkanRenderPass(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanInputAttachmentMapping> inputAttachments = { });
+        /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
+        explicit VulkanRenderPass(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanRenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt);
 
         VulkanRenderPass(const VulkanRenderPass&) = delete;
         VulkanRenderPass(VulkanRenderPass&&) = delete;
@@ -1483,7 +1501,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="name">The name of the render pass state resource.</param>
         explicit VulkanRenderPass(const VulkanDevice& device, const String& name = "") noexcept;
 
-        // InputAttachmentMappingSource interface.
+        // RenderPassDependencySource interface.
     public:
         /// <inheritdoc />
         const VulkanFrameBuffer& frameBuffer(UInt32 buffer) const override;
@@ -1498,6 +1516,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         const VulkanFrameBuffer& activeFrameBuffer() const override;
+
+        /// <inheritdoc />
+        UInt32 activeBackBuffer() const override;
 
         /// <inheritdoc />
         const VulkanQueue& commandQueue() const noexcept override;
@@ -1518,12 +1539,20 @@ namespace LiteFX::Rendering::Backends {
         bool hasPresentTarget() const noexcept override;
 
         /// <inheritdoc />
-        Span<const VulkanInputAttachmentMapping> inputAttachments() const noexcept override;
+        Span<const VulkanRenderPassDependency> inputAttachments() const noexcept override;
+        
+        /// <inheritdoc />
+        const Optional<DescriptorBindingPoint>& inputAttachmentSamplerBinding() const noexcept override;
+
+        /// <inheritdoc />
+        Size2d renderArea() const noexcept override;
+
+        /// <inheritdoc />
+        bool usesSwapChainRenderArea() const noexcept override;
 
         /// <inheritdoc />
         MultiSamplingLevel multiSamplingLevel() const noexcept override;
 
-    public:
         /// <inheritdoc />
         void begin(UInt32 buffer) override;
         
@@ -1531,59 +1560,63 @@ namespace LiteFX::Rendering::Backends {
         UInt64 end() const override;
 
         /// <inheritdoc />
-        void resizeFrameBuffers(const Size2d& renderArea) override;
+        void resizeRenderArea(const Size2d& renderArea) override;
+
+        /// <inheritdoc />
+        void resizeWithSwapChain(bool enable) override;
 
         /// <inheritdoc />
         void changeMultiSamplingLevel(MultiSamplingLevel samples) override;
-
-        /// <inheritdoc />
-        void updateAttachments(const VulkanDescriptorSet& descriptorSet) const override;
     };
 
     /// <summary>
-    /// Implements a <see cref="IInputAttachmentMapping" />.
+    /// Implements a <see cref="IRenderPassDependency" />.
     /// </summary>
     /// <seealso cref="VulkanRenderPass" />
     /// <seealso cref="VulkanRenderPassBuilder" />
-    class LITEFX_VULKAN_API VulkanInputAttachmentMapping final : public IInputAttachmentMapping<VulkanRenderPass> {
-        LITEFX_IMPLEMENTATION(VulkanInputAttachmentMappingImpl);
+    class LITEFX_VULKAN_API VulkanRenderPassDependency final : public IRenderPassDependency<VulkanRenderPass> {
+        LITEFX_IMPLEMENTATION(VulkanRenderPassDependencyImpl);
 
     public:
         /// <summary>
         /// Creates a new Vulkan input attachment mapping.
         /// </summary>
-        VulkanInputAttachmentMapping() noexcept;
+        /// <param name="renderPass">The render pass to fetch the input attachment from.</param>
+        /// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
+        /// <param name="binding">The binding point to bind the input attachment to.</param>
+        VulkanRenderPassDependency(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, DescriptorBindingPoint binding);
 
         /// <summary>
         /// Creates a new Vulkan input attachment mapping.
         /// </summary>
         /// <param name="renderPass">The render pass to fetch the input attachment from.</param>
         /// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
-        /// <param name="location">The location to bind the input attachment to.</param>
-        VulkanInputAttachmentMapping(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, UInt32 location);
+        /// <param name="bindingRegister">The register to bind the input attachment to.</param>
+        /// <param name="space">The space to bind the input attachment to.</param>
+        VulkanRenderPassDependency(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, UInt32 bindingRegister, UInt32 space);
 
         /// <summary>
         /// Copies another input attachment mapping.
         /// </summary>
-        VulkanInputAttachmentMapping(const VulkanInputAttachmentMapping&) noexcept;
+        VulkanRenderPassDependency(const VulkanRenderPassDependency&) noexcept;
 
         /// <summary>
         /// Takes over another input attachment mapping.
         /// </summary>
-        VulkanInputAttachmentMapping(VulkanInputAttachmentMapping&&) noexcept;
+        VulkanRenderPassDependency(VulkanRenderPassDependency&&) noexcept;
 
-        virtual ~VulkanInputAttachmentMapping() noexcept;
+        virtual ~VulkanRenderPassDependency() noexcept;
 
     public:
         /// <summary>
         /// Copies another input attachment mapping.
         /// </summary>
-        inline VulkanInputAttachmentMapping& operator=(const VulkanInputAttachmentMapping&) noexcept;
+        inline VulkanRenderPassDependency& operator=(const VulkanRenderPassDependency&) noexcept;
 
         /// <summary>
         /// Takes over another input attachment mapping.
         /// </summary>
-        inline VulkanInputAttachmentMapping& operator=(VulkanInputAttachmentMapping&&) noexcept;
+        inline VulkanRenderPassDependency& operator=(VulkanRenderPassDependency&&) noexcept;
 
     public:
         /// <inheritdoc />
@@ -1593,7 +1626,7 @@ namespace LiteFX::Rendering::Backends {
         const RenderTarget& renderTarget() const noexcept override;
 
         /// <inheritdoc />
-        UInt32 location() const noexcept override;
+        const DescriptorBindingPoint& binding() const noexcept override;
     };
 
     /// <summary>

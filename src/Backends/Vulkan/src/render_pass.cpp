@@ -15,36 +15,41 @@ public:
 private:
     Array<UniquePtr<VulkanRenderPipeline>> m_pipelines;
     Array<RenderTarget> m_renderTargets;
-    Array<VulkanInputAttachmentMapping> m_inputAttachments;
+    Array<VulkanRenderPassDependency> m_inputAttachments;
     Array<UniquePtr<VulkanFrameBuffer>> m_frameBuffers;
     Array<SharedPtr<VulkanCommandBuffer>> m_primaryCommandBuffers;
     VulkanFrameBuffer* m_activeFrameBuffer = nullptr;
     SharedPtr<const VulkanCommandBuffer> m_activeCommandBuffer;
     Array<VkClearValue> m_clearValues;
-    UInt32 m_backBuffer{ 0 };
+    UInt32 m_backBuffer{ 0 }, m_commandBuffers{ 0 };
+    Optional<DescriptorBindingPoint> m_inputAttachmentSamplerBinding{ };
     MultiSamplingLevel m_samples;
     const VulkanDevice& m_device;
     const VulkanQueue* m_queue;
+    Optional<Size2d> m_renderArea;
+    UInt64 m_swapChainResetEventToken;
 
 public:
-    VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, MultiSamplingLevel samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
-        base(parent), m_samples(samples), m_device(device), m_queue(&queue)
+    VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, MultiSamplingLevel samples, Span<VulkanRenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding) :
+        base(parent), m_samples(samples), m_device(device), m_queue(&queue), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding)
     {
         this->mapRenderTargets(renderTargets);
         this->mapInputAttachments(inputAttachments);
+
+        m_swapChainResetEventToken = m_device.swapChain().reseted.add(std::bind(&VulkanRenderPassImpl::onSwapChainReset, this, std::placeholders::_1, std::placeholders::_2));
     }
 
     VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanDevice& device) :
         base(parent), m_device(device), m_queue(&device.defaultQueue(QueueType::Graphics))
     {
+        m_swapChainResetEventToken = m_device.swapChain().reseted.add(std::bind(&VulkanRenderPassImpl::onSwapChainReset, this, std::placeholders::_1, std::placeholders::_2));
     }
 
 public:
     void mapRenderTargets(Span<RenderTarget> renderTargets)
     {
         m_renderTargets.assign(std::begin(renderTargets), std::end(renderTargets));
-        //std::ranges::sort(m_renderTargets, [this](const RenderTarget& a, const RenderTarget& b) { return a.location() < b.location(); });
-        std::sort(std::begin(m_renderTargets), std::end(m_renderTargets), [](const RenderTarget& a, const RenderTarget& b) { return a.location() < b.location(); });
+        std::ranges::sort(m_renderTargets, [this](const auto& a, const auto& b) { return a.location() < b.location(); });
 
         // TODO: If there is a present target, we need to check if the provided queue can actually present on the surface. Currently, 
         //       we simply check if the queue is the same as the swap chain queue (which is the default graphics queue).
@@ -53,11 +58,9 @@ public:
             throw InvalidArgumentException("renderTargets", "A render pass with a present target must be executed on the default graphics queue.");
     }
 
-    void mapInputAttachments(Span<VulkanInputAttachmentMapping> inputAttachments)
+    void mapInputAttachments(Span<VulkanRenderPassDependency> inputAttachments)
     {
         m_inputAttachments.assign(std::begin(inputAttachments), std::end(inputAttachments));
-        //std::ranges::sort(m_inputAttachments, [this](const VulkanInputAttachmentMapping& a, const VulkanInputAttachmentMapping& b) { return a.location() < b.location(); });
-        std::sort(std::begin(m_inputAttachments), std::end(m_inputAttachments), [](const VulkanInputAttachmentMapping& a, const VulkanInputAttachmentMapping& b) { return a.location() < b.location(); });
     }
 
 public:
@@ -71,11 +74,8 @@ public:
         Optional<VkAttachmentDescription2> presentResolveAttachment;
 
         // Map input attachments.
-        std::ranges::for_each(m_inputAttachments, [&, i = 0](const VulkanInputAttachmentMapping& inputAttachment) mutable {
+        std::ranges::for_each(m_inputAttachments, [&, i = 0](const VulkanRenderPassDependency& inputAttachment) mutable {
             UInt32 currentIndex = i++;
-
-            if (inputAttachment.location() != currentIndex) [[unlikely]]
-                throw InvalidArgumentException("inputAttachments", "No input attachment is mapped to location {0}. The locations must be within a contiguous domain.", currentIndex);
 
             VkAttachmentDescription2 attachment = {
                 .sType = VK_STRUCTURE_TYPE_ATTACHMENT_DESCRIPTION_2,
@@ -308,7 +308,8 @@ public:
 
         if (!m_inputAttachments.empty())
         {
-            dependencies.push_back({
+            dependencies.push_back(VkSubpassDependency2 {
+                .sType = VK_STRUCTURE_TYPE_SUBPASS_DEPENDENCY_2,
                 .srcSubpass = VK_SUBPASS_EXTERNAL,
                 .dstSubpass = 0,
                 .srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_2_LATE_FRAGMENT_TESTS_BIT,
@@ -340,12 +341,12 @@ public:
         return renderPass;
     }
 
-    void initializeFrameBuffers(UInt32 commandBuffers)
+    void initializeFrameBuffers(UInt32 commandBuffers, Optional<Size2d> renderArea = std::nullopt)
     {
         // Initialize the frame buffers.
         this->m_frameBuffers.resize(this->m_device.swapChain().buffers());
-        std::ranges::generate(this->m_frameBuffers, [this, &commandBuffers, i = 0]() mutable { 
-            auto frameBuffer = makeUnique<VulkanFrameBuffer>(*m_parent, i++, this->m_device.swapChain().renderArea(), commandBuffers);
+        std::ranges::generate(this->m_frameBuffers, [&, i = 0]() mutable { 
+            auto frameBuffer = makeUnique<VulkanFrameBuffer>(*m_parent, i++, renderArea.value_or(m_device.swapChain().renderArea()), commandBuffers);
 
 #ifndef NDEBUG
             m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*frameBuffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT, fmt::format("Framebuffer {0}-{1}", m_parent->name(), i));
@@ -382,31 +383,60 @@ public:
             return commandBuffer;
         });
     }
+
+    void onSwapChainReset(const void* swapChain, const ISwapChain::ResetEventArgs& eventArgs)
+    {
+        if (m_frameBuffers.size() != eventArgs.buffers())
+        {
+            // Clear current resources.
+            m_primaryCommandBuffers.clear();
+            m_frameBuffers.clear();
+
+            // Re-initialize frame buffers.
+            this->initializeFrameBuffers(m_commandBuffers, m_renderArea);
+
+            // Raise reset event.
+            m_parent->reseted.invoke(m_parent, ResetEventArgs(eventArgs.buffers(), m_renderArea.value_or(eventArgs.renderArea())));
+        }
+        else if (m_renderArea == std::nullopt)
+        {
+            // Resize frame buffers.
+            this->resizeFrameBuffers(eventArgs.renderArea());
+        }
+    }
+
+    void resizeFrameBuffers(const Size2d& renderArea)
+    {
+        std::ranges::for_each(m_frameBuffers, [&](UniquePtr<VulkanFrameBuffer>& frameBuffer) { frameBuffer->resize(renderArea); });
+
+        // Raise reset event.
+        m_parent->reseted.invoke(m_parent, ResetEventArgs(static_cast<UInt32>(m_frameBuffers.size()), renderArea));
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
-    VulkanRenderPass(device, device.defaultQueue(QueueType::Graphics), renderTargets, commandBuffers, samples, inputAttachments)
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanRenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding) :
+    VulkanRenderPass(device, device.defaultQueue(QueueType::Graphics), renderTargets, commandBuffers, samples, inputAttachments, inputAttachmentSamplerBinding)
 {
 }
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
-    VulkanRenderPass(device, name, device.defaultQueue(QueueType::Graphics), renderTargets, commandBuffers, samples, inputAttachments)
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanRenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding) :
+    VulkanRenderPass(device, name, device.defaultQueue(QueueType::Graphics), renderTargets, commandBuffers, samples, inputAttachments, inputAttachmentSamplerBinding)
 {
 }
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
-    m_impl(makePimpl<VulkanRenderPassImpl>(this, device, queue, renderTargets, samples, inputAttachments)), Resource<VkRenderPass>(VK_NULL_HANDLE)
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanRenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding) :
+    m_impl(makePimpl<VulkanRenderPassImpl>(this, device, queue, renderTargets, samples, inputAttachments, inputAttachmentSamplerBinding)), Resource<VkRenderPass>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize();
     m_impl->initializeFrameBuffers(commandBuffers);
 }
 
-VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanInputAttachmentMapping> inputAttachments) :
-    VulkanRenderPass(device, queue, renderTargets, commandBuffers, samples, inputAttachments)
+VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers, MultiSamplingLevel samples, Span<VulkanRenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding) :
+    VulkanRenderPass(device, queue, renderTargets, commandBuffers, samples, inputAttachments, inputAttachmentSamplerBinding)
 {
     if (!name.empty())
         this->name() = name;
@@ -439,10 +469,18 @@ const VulkanDevice& VulkanRenderPass::device() const noexcept
 
 const VulkanFrameBuffer& VulkanRenderPass::activeFrameBuffer() const
 {
-    if (m_impl->m_activeFrameBuffer == nullptr)
+    if (m_impl->m_activeFrameBuffer == nullptr) [[unlikely]]
         throw RuntimeException("No frame buffer is active, since the render pass has not begun.");
 
     return *m_impl->m_activeFrameBuffer;
+}
+
+UInt32 VulkanRenderPass::activeBackBuffer() const
+{
+    if (m_impl->m_activeFrameBuffer == nullptr) [[unlikely]]
+        throw RuntimeException("No back buffer is active, since the render pass has not begun.");
+
+    return m_impl->m_backBuffer;
 }
 
 const VulkanQueue& VulkanRenderPass::commandQueue() const noexcept
@@ -478,7 +516,7 @@ bool VulkanRenderPass::hasPresentTarget() const noexcept
     return std::ranges::any_of(m_impl->m_renderTargets, [](const auto& renderTarget) { return renderTarget.type() == RenderTargetType::Present; });
 }
 
-Span<const VulkanInputAttachmentMapping> VulkanRenderPass::inputAttachments() const noexcept
+Span<const VulkanRenderPassDependency> VulkanRenderPass::inputAttachments() const noexcept
 {
     return m_impl->m_inputAttachments;
 }
@@ -486,6 +524,21 @@ Span<const VulkanInputAttachmentMapping> VulkanRenderPass::inputAttachments() co
 MultiSamplingLevel VulkanRenderPass::multiSamplingLevel() const noexcept
 {
     return m_impl->m_samples;
+}
+
+Size2d VulkanRenderPass::renderArea() const noexcept
+{
+    return m_impl->m_renderArea.value_or(m_impl->m_device.swapChain().renderArea());
+}
+
+bool VulkanRenderPass::usesSwapChainRenderArea() const noexcept
+{
+    return !m_impl->m_renderArea.has_value();
+}
+
+const Optional<DescriptorBindingPoint>& VulkanRenderPass::inputAttachmentSamplerBinding() const noexcept
+{
+    return m_impl->m_inputAttachmentSamplerBinding;
 }
 
 void VulkanRenderPass::begin(UInt32 buffer)
@@ -561,13 +614,42 @@ UInt64 VulkanRenderPass::end() const
     return frameBuffer->lastFence();
 }
 
-void VulkanRenderPass::resizeFrameBuffers(const Size2d& renderArea)
+void VulkanRenderPass::resizeRenderArea(const Size2d& renderArea)
 {
     // Check if we're currently running.
     if (m_impl->m_activeFrameBuffer != nullptr) [[unlikely]]
         throw RuntimeException("Unable to reset the frame buffers while the render pass is running. End the render pass first.");
 
-    std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<VulkanFrameBuffer>& frameBuffer) { frameBuffer->resize(renderArea); });
+    // Resize the frame buffers.
+    m_impl->resizeFrameBuffers(renderArea);
+
+    // Store the render area.
+    m_impl->m_renderArea = renderArea;
+}
+
+void VulkanRenderPass::resizeWithSwapChain(bool enable)
+{
+    // Check if we're currently running.
+    if (m_impl->m_activeFrameBuffer != nullptr) [[unlikely]]
+        throw RuntimeException("Unable to reset the frame buffers while the render pass is running. End the render pass first.");
+
+    if (enable && m_impl->m_renderArea != std::nullopt)
+    {
+        // Get swap chain render area and compare it to current render area. Resize the render area if they are different.
+        auto& swapChain = m_impl->m_device.swapChain();
+        auto renderArea = swapChain.renderArea();
+
+        if (renderArea.width() != m_impl->m_renderArea.value().width() || renderArea.height() != m_impl->m_renderArea.value().height())
+            m_impl->resizeFrameBuffers(renderArea);
+
+        // Remove explicit render area from implementation.
+        m_impl->m_renderArea = std::nullopt;
+    }
+    else if (!enable && m_impl->m_renderArea == std::nullopt)
+    {
+        // Remove explicit render area from implementation.
+        m_impl->m_renderArea = std::nullopt;
+    }
 }
 
 void VulkanRenderPass::changeMultiSamplingLevel(MultiSamplingLevel samples)
@@ -578,20 +660,6 @@ void VulkanRenderPass::changeMultiSamplingLevel(MultiSamplingLevel samples)
 
     m_impl->m_samples = samples;
     std::ranges::for_each(m_impl->m_frameBuffers, [&](UniquePtr<VulkanFrameBuffer>& frameBuffer) { frameBuffer->resize(frameBuffer->size()); });
-}
-
-void VulkanRenderPass::updateAttachments(const VulkanDescriptorSet& descriptorSet) const
-{
-    const auto backBuffer = m_impl->m_backBuffer;
-
-    std::ranges::for_each(m_impl->m_inputAttachments, [&descriptorSet, &backBuffer](const VulkanInputAttachmentMapping& inputAttachment) {
-#ifndef NDEBUG
-        if (inputAttachment.inputAttachmentSource() == nullptr) [[unlikely]]
-            throw RuntimeException("No source render pass has been specified for the input attachment mapped to location {0}.", inputAttachment.location());
-#endif
-
-        descriptorSet.attach(inputAttachment.location(), inputAttachment.inputAttachmentSource()->frameBuffer(backBuffer).image(inputAttachment.renderTarget().location()));
-    });
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
@@ -633,12 +701,14 @@ void VulkanRenderPassBuilder::build()
     instance->m_impl->mapRenderTargets(m_state.renderTargets);
     instance->m_impl->mapInputAttachments(m_state.inputAttachments);
     instance->m_impl->m_samples = m_state.multiSamplingLevel;
+    instance->m_impl->m_renderArea = m_state.renderArea;
     instance->handle() = instance->m_impl->initialize();
     instance->m_impl->initializeFrameBuffers(m_state.commandBufferCount);
+    instance->m_impl->m_inputAttachmentSamplerBinding = m_state.inputAttachmentSamplerBinding;
 }
 
-VulkanInputAttachmentMapping VulkanRenderPassBuilder::makeInputAttachment(UInt32 inputLocation, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget)
+VulkanRenderPassDependency VulkanRenderPassBuilder::makeInputAttachment(DescriptorBindingPoint binding, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget)
 {
-    return VulkanInputAttachmentMapping(renderPass, renderTarget, inputLocation);
+    return VulkanRenderPassDependency(renderPass, renderTarget, binding);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

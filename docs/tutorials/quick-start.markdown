@@ -659,11 +659,10 @@ auto surfaceFormat = m_device->swapChain().surfaceFormat();
 auto renderArea = Size2d(width, height);
 ```
 
-Again, we first wait for the device to finish all submitted work. This ensures that we do not destroy any back buffers, that might be still used by command buffers that are yet to be executed. Next we request the surface format from the current swap chain and initialize the new render area extent. We then can go ahead and re-create the swap chain, which causes the back buffers to be re-allocated with the new size and format. Furthermore, we can resize the frame buffers of our render pass. Note that you have to decide whether or not you want to do this, because you might have a render pass, that renders into a target that is deliberately at a different size than the swap chain back buffer. However, you almost certainly want to at least resize the frame buffer of the render pass that writes your present target.
+Again, we first wait for the device to finish all submitted work. This ensures that we do not destroy any back buffers, that might be still used by command buffers that are yet to be executed. Next we request the surface format from the current swap chain and initialize the new render area extent. We then can go ahead and re-create the swap chain, which causes the back buffers to be re-allocated with the new size and format.
 
 ```cxx
 m_device->swapChain().reset(surfaceFormat, renderArea, 3);
-m_renderPass->resizeFrameBuffers(renderArea);
 ```
 
 We then also resize the viewport and scissor rectangles, so that the image is drawn over the whole area of our resized window:

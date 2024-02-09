@@ -4586,21 +4586,11 @@ namespace LiteFX::Rendering {
             this->doUpdate(binding, accelerationStructure, descriptor);
         }
 
-        /// <summary>
-        /// Attaches an image as an input attachment to a descriptor bound at <paramref cref="binding" />.
-        /// </summary>
-        /// <param name="binding">The input attachment binding point.</param>
-        /// <param name="image">The image to bind to the input attachment descriptor.</param>
-        void attach(UInt32 binding, const IImage& image) const {
-            this->doAttach(binding, image);
-        }
-
     private:
         virtual void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const = 0;
         virtual void doUpdate(UInt32 binding, const IImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const = 0;
         virtual void doUpdate(UInt32 binding, const ISampler& sampler, UInt32 descriptor) const = 0;
         virtual void doUpdate(UInt32 binding, const IAccelerationStructure& accelerationStructure, UInt32 descriptor) const = 0;
-        virtual void doAttach(UInt32 binding, const IImage& image) const = 0;
     };
 
     /// <summary>
@@ -6838,9 +6828,9 @@ namespace LiteFX::Rendering {
     /// This interface is implemented by a <see cref="RenderPass" /> to return the frame buffer for a given back buffer. It is called by a <see cref="FrameBuffer" /> 
     /// during initialization or re-creation, in order to resolve input attachment dependencies.
     /// </remarks>
-    class IInputAttachmentMappingSource {
+    class IRenderPassDependencySource {
     public:
-        virtual ~IInputAttachmentMappingSource() noexcept = default;
+        virtual ~IRenderPassDependencySource() noexcept = default;
 
     public:
         /// <summary>
@@ -6855,7 +6845,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// The interface for a render pass.
     /// </summary>
-    class LITEFX_RENDERING_API IRenderPass : public virtual IInputAttachmentMappingSource, public virtual IStateResource {
+    class LITEFX_RENDERING_API IRenderPass : public virtual IRenderPassDependencySource, public virtual IStateResource {
     public:
         /// <summary>
         /// Event arguments that are published to subscribers when a render pass is beginning.
@@ -6886,8 +6876,65 @@ namespace LiteFX::Rendering {
             }
         };
 
+        /// <summary>
+        /// Event arguments that are published to subscribers when a render pass has been reset.
+        /// </summary>
+        struct ResetEventArgs : public EventArgs {
+        private:
+            UInt32 m_frameBuffers;
+            Size2d m_renderArea;
+
+        public:
+            ResetEventArgs(UInt32 frameBuffers, Size2d renderArea) : 
+                EventArgs(), m_frameBuffers(frameBuffers), m_renderArea(renderArea) { }
+            ResetEventArgs(const ResetEventArgs&) = default;
+            ResetEventArgs(ResetEventArgs&&) = default;
+            virtual ~ResetEventArgs() noexcept = default;
+
+        public:
+            ResetEventArgs& operator=(const ResetEventArgs&) = default;
+            ResetEventArgs& operator=(ResetEventArgs&&) = default;
+
+        public:
+            /// <summary>
+            /// Returns the new number of frame buffers withing the render pass.
+            /// </summary>
+            /// <returns>The new number of frame buffers withing the render pass.</returns>
+            inline UInt32 frameBuffers() const noexcept {
+                return m_frameBuffers;
+            }
+
+            /// <summary>
+            /// Returns the new render area of the render pass.
+            /// </summary>
+            /// <returns>The new render area of the render pass.</returns>
+            inline const Size2d& renderArea() const noexcept {
+                return m_renderArea;
+            }
+        };
+
     public:
         virtual ~IRenderPass() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Invoked, when the render pass is beginning.
+        /// </summary>
+        /// <seealso cref="begin" />
+        mutable Event<BeginRenderPassEventArgs> beginning;
+
+        /// <summary>
+        /// Invoked, when the render pass is ending.
+        /// </summary>
+        /// <seealso cref="end" />
+        mutable Event<EventArgs> ending;
+
+        /// <summary>
+        /// Invoked, if the render area or the number of frame buffers has changed.
+        /// </summary>
+        /// <seealso cref="resizeRenderArea" />
+        /// <seealso cref="resizeWithSwapChain" />
+        mutable Event<ResetEventArgs> reseted;
 
     public:
         /// <summary>
@@ -6899,7 +6946,15 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="buffer">The index of the frame buffer.</param>
         /// <returns>A back buffer used by the render pass.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the render pass has not started.</exception>
         virtual const IFrameBuffer& activeFrameBuffer() const = 0;
+
+        /// <summary>
+        /// Returns the currently active back buffer.
+        /// </summary>
+        /// <returns>The currently active back buffer.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the render pass has not started.</exception>
+        virtual UInt32 activeBackBuffer() const = 0;
 
         /// <summary>
         /// Returns the command queue, the render pass is executing on.
@@ -6956,7 +7011,16 @@ namespace LiteFX::Rendering {
         /// Returns the input attachment the render pass is consuming.
         /// </summary>
         /// <returns>An array of input attachment mappings, that are mapped to the render pass.</returns>
-        //virtual Span<const IInputAttachmentMapping> inputAttachments() const noexcept = 0;
+        //virtual Span<const IRenderPassDependency> inputAttachments() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the binding point for input attachment samplers.
+        /// </summary>
+        /// <remarks>
+        /// Note that in Vulkan this is ignored, as render pass inputs are mapped to sub-pass inputs directly, which do not need to be sampled.
+        /// </remarks>
+        /// <returns>The binding point for input attachment samplers.</returns>
+        virtual const Optional<DescriptorBindingPoint>& inputAttachmentSamplerBinding() const noexcept = 0;
 
         /// <summary>
         /// Returns the number of samples, the render targets are sampled with.
@@ -6964,18 +7028,27 @@ namespace LiteFX::Rendering {
         /// <returns>The number of samples, the render targets are sampled with.</returns>
         virtual MultiSamplingLevel multiSamplingLevel() const noexcept = 0;
 
-    public:
         /// <summary>
-        /// Invoked, when the render pass is beginning.
+        /// Returns the render area of the render pass.
         /// </summary>
-        /// <seealso cref="begin" />
-        mutable Event<BeginRenderPassEventArgs> beginning;
+        /// <returns>The render area of the render pass.</returns>
+        /// <seealso cref="resizeRenderArea" />
+        virtual Size2d renderArea() const noexcept = 0;
 
         /// <summary>
-        /// Invoked, when the render pass is ending.
+        /// Returns `true`, if the render area is taken from the parent device swap chain.
         /// </summary>
-        /// <seealso cref="end" />
-        mutable Event<EventArgs> ending;
+        /// <remarks>
+        /// A render pass can either have it's own render area, or use the render area dictated by the swap chain, in which case this method returns `true`. If the swap
+        /// chain render area is used, render passes are automatically resized if the swap chain gets reseted.
+        /// 
+        /// Note that the number of back buffers is always taken from the swap chain, as each frame in flight requires its own back buffers, that do not overlap, as they 
+        /// might be executed in parallel.
+        /// </remarks>
+        /// <returns>`true`, if the render area is taken from the parent device swap chain.</returns>
+        /// <seealso cref="renderArea" />
+        /// <seealso cref="resizeWithSwapChain" />
+        virtual bool usesSwapChainRenderArea() const noexcept = 0;
 
         /// <summary>
         /// Begins the render pass.
@@ -6994,10 +7067,27 @@ namespace LiteFX::Rendering {
         virtual UInt64 end() const = 0;
 
         /// <summary>
-        /// Resets the frame buffers of the render pass.
+        /// Resizes the render area of the render pass and disables automatic resizing if the swap chain render area changes.
         /// </summary>
         /// <param name="renderArea">The size of the render area, the frame buffers will be resized to.</param>
-        virtual void resizeFrameBuffers(const Size2d& renderArea) = 0;
+        /// <seealso cref="renderArea" />
+        /// <seealso cref="usesSwapChainRenderArea" />
+        /// <seealso cref="resizeWithSwapChain" />
+        /// <exception cref="RuntimeException">Thrown, if the render pass is currently active.</exception>
+        virtual void resizeRenderArea(const Size2d& renderArea) = 0;
+
+        /// <summary>
+        /// Enables or disables automatic resizing based on the swap chain render area.
+        /// </summary>
+        /// <remarks>
+        /// If <paramref name="enable" /> is set to true, the render area will be resized based on the swap chain render area and future reset events on the swap chain
+        /// will also resize the render pass. Otherwise, the render area will remain and the render pass will no longer be resized automatically, if the swap chain gets
+        /// resized.
+        /// </remarks>
+        /// <param name="enable">`true` to resize the render area and listen for swap chain resize events in the future.</param>
+        /// <seealso cref="followsSwapChainRenderArea" />
+        /// <exception cref="RuntimeException">Thrown, if the render pass is currently active.</exception>
+        virtual void resizeWithSwapChain(bool enable) = 0;
 
         /// <summary>
         /// Changes the multi sampling level of the render pass.
@@ -7011,18 +7101,9 @@ namespace LiteFX::Rendering {
         /// <exception cref="InvalidArgumentException">Thrown, if one or more of the render targets have a format, that does not support the provided multi-sampling level.</exception>
         virtual void changeMultiSamplingLevel(MultiSamplingLevel samples) = 0;
 
-        /// <summary>
-        /// Resolves the input attachments mapped to the render pass and updates them on the descriptor set provided with <see cref="descriptorSet" />.
-        /// </summary>
-        /// <param name="descriptorSet">The descriptor set to update the input attachments on.</param>
-        inline void updateAttachments(const IDescriptorSet& descriptorSet) const {
-            this->setAttachments(descriptorSet);
-        }
-
     private:
         virtual Enumerable<const IFrameBuffer*> getFrameBuffers() const noexcept = 0;
         virtual Enumerable<const IRenderPipeline*> getPipelines() const noexcept = 0;
-        virtual void setAttachments(const IDescriptorSet& descriptorSet) const = 0;
         virtual const ICommandQueue& getCommandQueue() const noexcept = 0;
     };
 
@@ -7034,22 +7115,22 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Event arguments for a <see cref="ISwapChain::reseted" /> event.
         /// </summary>
-        struct SwapChainResetEventArgs : public EventArgs {
+        struct ResetEventArgs : public EventArgs {
         private:
             Format m_surfaceFormat;
             const Size2d& m_renderArea;
             UInt32 m_buffers;
 
         public:
-            SwapChainResetEventArgs(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers) :
+            ResetEventArgs(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers) :
                 EventArgs(), m_surfaceFormat(surfaceFormat), m_renderArea(renderArea), m_buffers(buffers) { }
-            SwapChainResetEventArgs(const SwapChainResetEventArgs&) = default;
-            SwapChainResetEventArgs(SwapChainResetEventArgs&&) = default;
-            virtual ~SwapChainResetEventArgs() noexcept = default;
+            ResetEventArgs(const ResetEventArgs&) = default;
+            ResetEventArgs(ResetEventArgs&&) = default;
+            virtual ~ResetEventArgs() noexcept = default;
 
         public:
-            SwapChainResetEventArgs& operator=(const SwapChainResetEventArgs&) = default;
-            SwapChainResetEventArgs& operator=(SwapChainResetEventArgs&&) = default;
+            ResetEventArgs& operator=(const ResetEventArgs&) = default;
+            ResetEventArgs& operator=(ResetEventArgs&&) = default;
 
         public:
             /// <summary>
@@ -7192,7 +7273,7 @@ namespace LiteFX::Rendering {
         /// Invoked, after the swap chain has been reseted.
         /// </summary>
         /// <seealso cref="reset" />
-       mutable Event<SwapChainResetEventArgs> reseted;
+       mutable Event<ResetEventArgs> reseted;
 
         /// <summary>
         /// Returns an array of supported formats, that can be drawn to the surface.

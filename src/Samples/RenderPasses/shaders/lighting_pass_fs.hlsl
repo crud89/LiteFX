@@ -13,12 +13,15 @@ struct FragmentData
 };
 
 #ifdef SPIRV
-[[vk::input_attachment_index(0)]] SubpassInput<float4> gDiffuse;
-[[vk::input_attachment_index(1)]] SubpassInput<float>  gDepth;
+// NOTE: vk::input_attachment_index refers to the index of the render pass dependency in the order they have been added to the render pass whilst building or defining it.
+[[vk::input_attachment_index(0)]] 
+SubpassInput<float4> gDiffuse : register(t0, space0);
+[[vk::input_attachment_index(1)]] 
+SubpassInput<float>  gDepth   : register(t1, space0);
 #elif DXIL
-Texture2D gDiffuse : register(t0, space0);
-Texture2D gDepth : register(t1, space0);
-SamplerState gBuffer : register(s2);
+Texture2D gDiffuse   : register(t0, space0);
+Texture2D gDepth     : register(t1, space0);
+SamplerState gBuffer : register(s0, space1);
 #endif
 
 FragmentData main(VertexData input)

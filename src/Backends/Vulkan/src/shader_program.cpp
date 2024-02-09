@@ -65,6 +65,7 @@ private:
         UInt32 location;
         UInt32 elementSize;
         UInt32 elements;
+        UInt32 inputAttachmentIndex;
         DescriptorType type;
 
         bool equals(const DescriptorInfo& rhs)
@@ -239,6 +240,7 @@ public:
 
                     // Filter the descriptor type.
                     DescriptorType type;
+                    UInt32 inputAttachmentIndex = 0;
 
                     switch (descriptor->descriptor_type)
                     {
@@ -246,11 +248,11 @@ public:
                     case SPV_REFLECT_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:     throw RuntimeException("The shader exposes a combined image samplers, which is currently not supported.");
                     case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
                     case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:     throw RuntimeException("The shader exposes a dynamic buffer, which is currently not supported.");
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:           type = DescriptorType::InputAttachment; inputAttachmentIndex = descriptor->input_attachment_index; break;
                     case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLER:                    type = DescriptorType::Sampler; break;
                     case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE:              type = DescriptorType::Texture; break;
                     case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_IMAGE:              type = DescriptorType::RWTexture; break;
                     case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER:             type = DescriptorType::ConstantBuffer; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:           type = DescriptorType::InputAttachment; break;
                     case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:       type = DescriptorType::Buffer; break;
                     case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:       type = DescriptorType::RWBuffer; break;
                     case SPV_REFLECT_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR: type = DescriptorType::AccelerationStructure; break;
@@ -301,11 +303,11 @@ public:
                             descriptors *= descriptor->array.dims[i];
 
                     // Create the descriptor layout.
-                    return DescriptorInfo{ .location = descriptor->binding, .elementSize = descriptor->block.padded_size, .elements = descriptors, .type = type };
+                    return DescriptorInfo{ .location = descriptor->binding, .elementSize = descriptor->block.padded_size, .elements = descriptors, .inputAttachmentIndex = inputAttachmentIndex, .type = type };
                 });
 
                 if (!descriptorSetLayouts.contains(descriptorSet->set))
-                    descriptorSetLayouts.insert(std::make_pair(descriptorSet->set, DescriptorSetInfo{ .space = descriptorSet->set, .stage = shaderModule->type(), .descriptors = descriptors}));
+                    descriptorSetLayouts.insert(std::make_pair(descriptorSet->set, DescriptorSetInfo{ .space = descriptorSet->set, .stage = shaderModule->type(), .descriptors = descriptors }));
                 else
                 {
                     // If the set already exists in another stage, merge it.
@@ -346,7 +348,9 @@ public:
                 // Create the descriptor layouts.
                 auto descriptorLayouts = [&descriptorSet]() -> std::generator<UniquePtr<VulkanDescriptorLayout>> {
                     for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor)
-                        co_yield makeUnique<VulkanDescriptorLayout>(descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements);
+                        co_yield descriptor->type == DescriptorType::InputAttachment ?
+                            makeUnique<VulkanDescriptorLayout>(descriptor->type, descriptor->location, descriptor->inputAttachmentIndex) :
+                            makeUnique<VulkanDescriptorLayout>(descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements);
                 }() | std::views::as_rvalue;
 
                 co_yield makeUnique<VulkanDescriptorSetLayout>(m_device, std::move(descriptorLayouts), descriptorSet.space, descriptorSet.stage);
