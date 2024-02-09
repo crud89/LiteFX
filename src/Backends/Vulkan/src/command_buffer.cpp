@@ -373,6 +373,11 @@ void VulkanCommandBuffer::generateMipMaps(IVulkanImage& image) noexcept
 	this->barrier(endBarrier);
 }
 
+UniquePtr<VulkanBarrier> VulkanCommandBuffer::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept
+{
+	return m_impl->m_queue.device().makeBarrier(syncBefore, syncAfter);
+}
+
 void VulkanCommandBuffer::barrier(const VulkanBarrier& barrier) const noexcept
 {
 	barrier.execute(*this);

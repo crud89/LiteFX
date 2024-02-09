@@ -1081,6 +1081,9 @@ namespace LiteFX::Rendering::Backends {
         void generateMipMaps(IDirectX12Image& image) noexcept override;
 
         /// <inheritdoc />
+        UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
+
+        /// <inheritdoc />
         void barrier(const DirectX12Barrier& barrier) const noexcept override;
 
         /// <inheritdoc />

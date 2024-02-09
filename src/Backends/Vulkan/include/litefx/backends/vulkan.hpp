@@ -1060,6 +1060,9 @@ namespace LiteFX::Rendering::Backends {
         void generateMipMaps(IVulkanImage& image) noexcept override;
 
         /// <inheritdoc />
+        UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
+
+        /// <inheritdoc />
         void barrier(const VulkanBarrier& barrier) const noexcept override;
 
         /// <inheritdoc />

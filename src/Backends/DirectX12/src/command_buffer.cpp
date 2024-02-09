@@ -313,6 +313,11 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 	}
 }
 
+UniquePtr<DirectX12Barrier> DirectX12CommandBuffer::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept
+{
+	return m_impl->m_queue.device().makeBarrier(syncBefore, syncAfter);
+}
+
 void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier) const noexcept
 {
 	barrier.execute(*this);

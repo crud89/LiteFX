@@ -5744,6 +5744,16 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// Creates a new barrier instance.
+        /// </summary>
+        /// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
+        /// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
+        /// <returns>The instance of the barrier.</returns>
+        inline [[nodiscard]] UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
+            return this->getBarrier(syncBefore, syncAfter);
+        }
+
+        /// <summary>
         /// Executes the transitions that have been added to <paramref name="barrier" />.
         /// </summary>
         /// <remarks>
@@ -6557,6 +6567,7 @@ namespace LiteFX::Rendering {
         virtual void releaseSharedState() const = 0;
 
     private:
+        virtual UniquePtr<IBarrier> getBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
         virtual void cmdBarrier(const IBarrier& barrier) const noexcept = 0;
         virtual void cmdGenerateMipMaps(IImage& image) noexcept = 0;
         virtual void cmdTransfer(IBuffer& source, IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const = 0;

@@ -530,6 +530,9 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
+        virtual UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
+
+        /// <inheritdoc />
         virtual void barrier(const barrier_type& barrier) const noexcept = 0;
 
         /// <inheritdoc />
@@ -647,6 +650,10 @@ namespace LiteFX::Rendering {
         }
 
     private:
+        inline UniquePtr<IBarrier> getBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
+            return this->makeBarrier(syncBefore, syncAfter);
+        }
+
         inline void cmdBarrier(const IBarrier& barrier) const noexcept override {
             this->barrier(dynamic_cast<const barrier_type&>(barrier));
         }
