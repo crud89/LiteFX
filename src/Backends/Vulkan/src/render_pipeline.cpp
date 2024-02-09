@@ -412,7 +412,8 @@ void VulkanRenderPipeline::use(const VulkanCommandBuffer& commandBuffer) const n
 	::vkCmdSetLineWidth(commandBuffer.handle(), std::as_const(*m_impl->m_rasterizer).lineWidth());
 
 	// Bind all the input attachments for the parent render pass.
-	std::ranges::for_each(m_impl->m_inputAttachmentBindings[m_impl->m_renderPass.activeBackBuffer()], [this, &commandBuffer](const auto& descriptorSet) { commandBuffer.bind(*descriptorSet, *this); });
+	auto descriptorSets = m_impl->m_inputAttachmentBindings[m_impl->m_renderPass.activeBackBuffer()] | std::views::transform([](auto& set) { return set.get(); }) | std::ranges::to<Array<const VulkanDescriptorSet*>>();
+	this->bind(commandBuffer, descriptorSets);
 }
 
 void VulkanRenderPipeline::bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const noexcept

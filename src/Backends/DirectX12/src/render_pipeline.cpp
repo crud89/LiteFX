@@ -525,7 +525,7 @@ void DirectX12RenderPipeline::use(const DirectX12CommandBuffer& commandBuffer) c
 	commandBuffer.handle()->IASetPrimitiveTopology(DX12::getPrimitiveTopology(m_impl->m_inputAssembler->topology()));
 
 	// Bind all the input attachments for the parent render pass.
-	std::ranges::for_each(m_impl->m_inputAttachmentBindings[m_impl->m_renderPass.activeBackBuffer()], [this, &commandBuffer](const auto& descriptorSet) { commandBuffer.bind(*descriptorSet, *this); });
+	commandBuffer.bind(m_impl->m_inputAttachmentBindings[m_impl->m_renderPass.activeBackBuffer()] | std::views::transform([](auto& set) { return set.get(); }));
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
