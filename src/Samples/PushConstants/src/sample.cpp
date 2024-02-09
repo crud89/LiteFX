@@ -385,7 +385,7 @@ void SampleApp::drawFrame()
     auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
     // Bind both descriptor sets to the pipeline.
-    commandBuffer->bind(cameraBindings, geometryPipeline);
+    commandBuffer->bind(cameraBindings);
 
     // Bind the vertex and index buffers.
     commandBuffer->bind(vertexBuffer);

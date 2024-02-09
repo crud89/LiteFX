@@ -562,15 +562,31 @@ void VulkanCommandBuffer::use(const VulkanPipelineState& pipeline) const noexcep
 
 void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet) const
 {
+	auto set = &descriptorSet;
+
 	if (m_impl->m_lastPipeline) [[likely]]
-		m_impl->m_lastPipeline->bind(*this, descriptorSet);
+		m_impl->m_lastPipeline->bind(*this, { std::addressof(set), 1});
+	else
+		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
+}
+
+void VulkanCommandBuffer::bind(Span<const VulkanDescriptorSet*> descriptorSets) const
+{
+	if (m_impl->m_lastPipeline) [[likely]]
+		m_impl->m_lastPipeline->bind(*this, descriptorSets);
 	else
 		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
 }
 
 void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept
 {
-	pipeline.bind(*this, descriptorSet);
+	auto set = &descriptorSet;
+	pipeline.bind(*this, { std::addressof(set), 1 });
+}
+
+void VulkanCommandBuffer::bind(Span<const VulkanDescriptorSet*> descriptorSets, const VulkanPipelineState& pipeline) const noexcept
+{
+	pipeline.bind(*this, descriptorSets);
 }
 
 void VulkanCommandBuffer::bind(const IVulkanVertexBuffer& buffer) const noexcept

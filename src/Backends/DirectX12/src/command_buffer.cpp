@@ -458,9 +458,22 @@ void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet) c
 		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
 }
 
+void DirectX12CommandBuffer::bind(Span<const DirectX12DescriptorSet*> descriptorSets) const
+{
+	if (m_impl->m_lastPipeline) [[likely]]
+		std::ranges::for_each(descriptorSets | std::views::filter([](auto descriptorSet) { return descriptorSet != nullptr; }), [this](auto descriptorSet) { m_impl->m_queue.device().bindDescriptorSet(*this, *descriptorSet, *m_impl->m_lastPipeline); });
+	else
+		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
+}
+
 void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept
 {
 	m_impl->m_queue.device().bindDescriptorSet(*this, descriptorSet, pipeline);
+}
+
+void DirectX12CommandBuffer::bind(Span<const DirectX12DescriptorSet*> descriptorSets, const DirectX12PipelineState& pipeline) const noexcept
+{
+	std::ranges::for_each(descriptorSets | std::views::filter([](auto descriptorSet) { return descriptorSet != nullptr; }), [this](auto descriptorSet) { m_impl->m_queue.device().bindDescriptorSet(*this, *descriptorSet, *m_impl->m_lastPipeline); });
 }
 
 void DirectX12CommandBuffer::bind(const IDirectX12VertexBuffer& buffer) const noexcept 

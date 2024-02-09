@@ -1125,8 +1125,14 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		void bind(const DirectX12DescriptorSet& descriptorSet) const override;
 
+        /// <inheritdoc />
+        void bind(Span<const DirectX12DescriptorSet*> descriptorSets) const override;
+
+        /// <inheritdoc />
+        void bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept override;
+
 		/// <inheritdoc />
-		void bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept override;
+		void bind(Span<const DirectX12DescriptorSet*> descriptorSets, const DirectX12PipelineState& pipeline) const noexcept override;
 
         /// <inheritdoc />
         void bind(const IDirectX12VertexBuffer& buffer) const noexcept override;

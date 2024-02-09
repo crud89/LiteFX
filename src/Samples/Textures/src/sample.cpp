@@ -411,6 +411,14 @@ void SampleApp::handleEvents()
     ::glfwPollEvents();
 }
 
+inline auto test(std::ranges::input_range auto&& descriptorSets) requires
+    std::derived_from<std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>, IDescriptorSet>
+{
+    using descriptor_set_type = std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>;
+    auto sets = descriptorSets | std::ranges::to<Array<const descriptor_set_type*>>();
+    return sets;
+}
+
 void SampleApp::drawFrame()
 {
     // Store the initial time this method has been called first.
@@ -448,9 +456,7 @@ void SampleApp::drawFrame()
     transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
     // Bind both descriptor sets to the pipeline.
-    commandBuffer->bind(staticBindings, geometryPipeline);
-    commandBuffer->bind(samplerBindings, geometryPipeline);
-    commandBuffer->bind(transformBindings, geometryPipeline);
+    commandBuffer->bind({ &staticBindings, &samplerBindings, &transformBindings });
 
     // Bind the vertex and index buffers.
     commandBuffer->bind(vertexBuffer);

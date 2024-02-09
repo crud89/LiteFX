@@ -6106,8 +6106,54 @@ namespace LiteFX::Rendering {
         /// <param name="descriptorSet">The descriptor set to bind.</param>
         /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
         /// <seealso cref="use" />
-        void bind(const IDescriptorSet& descriptorSet) const {
+        inline void bind(const IDescriptorSet& descriptorSet) const {
             this->cmdBind(descriptorSet);
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <typeparam name="T">The type of the descriptor sets.</typeparam>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
+        template <typename TSelf, typename T>
+        inline void bind(this const TSelf& self, std::initializer_list<const T*> descriptorSets) requires
+            std::derived_from<T, IDescriptorSet>
+        {
+            // NOTE: In the future we might be able to remove this method, if P2447R4 is added to the language.
+            Array<const T*> sets = descriptorSets;
+            self.bind(Span<const T*>(sets));
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
+        template <typename TSelf>
+        inline void bind(this const TSelf& self, std::ranges::input_range auto&& descriptorSets) requires 
+            std::derived_from<std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>, IDescriptorSet>
+        {
+            using descriptor_set_type = std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>;
+            auto sets = descriptorSets | std::ranges::to<Array<const descriptor_set_type*>>();
+            self.bind(Span<const descriptor_set_type*>(sets));
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        inline void bind(Span<const IDescriptorSet*> descriptorSets) const noexcept {
+            this->cmdBind(descriptorSets);
         }
 
         /// <summary>
@@ -6117,6 +6163,53 @@ namespace LiteFX::Rendering {
         /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
         inline void bind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept {
             this->cmdBind(descriptorSet, pipeline);
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <typeparam name="T">The type of the descriptor sets.</typeparam>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
+        /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
+        template <typename TSelf, typename T>
+        inline void bind(this const TSelf& self, std::initializer_list<const T*> descriptorSets, const typename TSelf::pipeline_type& pipeline) noexcept
+        {
+            // NOTE: In the future we might be able to remove this method, if P2447R4 is added to the language.
+            Array<const T*> sets = descriptorSets;
+            self.bind(Span<const T*>(sets), pipeline);
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the provided pipeline.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
+        template <typename TSelf>
+        inline void bind(this const TSelf& self, std::ranges::input_range auto&& descriptorSets, const typename TSelf::pipeline_type& pipeline) noexcept requires 
+            std::derived_from<std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>, IDescriptorSet>
+        {
+            using descriptor_set_type = std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>;
+            auto sets = descriptorSets | std::ranges::to<Array<const descriptor_set_type*>>();
+            self.bind(Span<const descriptor_set_type*>(sets), pipeline);
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the provided pipeline.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
+        inline void bind(Span<const IDescriptorSet*> descriptorSets, const IPipeline& pipeline) const noexcept {
+            this->cmdBind(descriptorSets, pipeline);
         }
 
         /// <summary>
@@ -6457,6 +6550,12 @@ namespace LiteFX::Rendering {
             this->cmdCopyAccelerationStructure(from, to, compress);
         }
 
+    protected:
+        /// <summary>
+        /// Called by the parent command queue to signal that the command buffer should release it's shared state.
+        /// </summary>
+        virtual void releaseSharedState() const = 0;
+
     private:
         virtual void cmdBarrier(const IBarrier& barrier) const noexcept = 0;
         virtual void cmdGenerateMipMaps(IImage& image) noexcept = 0;
@@ -6474,7 +6573,9 @@ namespace LiteFX::Rendering {
         virtual void cmdTransfer(Span<const void* const> data, size_t elementSize, IImage& target, UInt32 firstSubresource, UInt32 elements) const = 0;
         virtual void cmdUse(const IPipeline& pipeline) const noexcept = 0;
         virtual void cmdBind(const IDescriptorSet& descriptorSet) const = 0;
+        virtual void cmdBind(Span<const IDescriptorSet*> descriptorSets) const = 0;
         virtual void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept = 0;
+        virtual void cmdBind(Span<const IDescriptorSet*> descriptorSets, const IPipeline& pipeline) const noexcept = 0;
         virtual void cmdBind(const IVertexBuffer& buffer) const noexcept = 0;
         virtual void cmdBind(const IIndexBuffer& buffer) const noexcept = 0;
         virtual void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept = 0;
@@ -6491,10 +6592,6 @@ namespace LiteFX::Rendering {
         virtual void cmdCopyAccelerationStructure(const ITopLevelAccelerationStructure& from, const ITopLevelAccelerationStructure& to, bool compress) const noexcept = 0;
         virtual void cmdTraceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable, const IBuffer* hitShaderBindingTable, const IBuffer* callableShaderBindingTable) const noexcept = 0;
 
-        /// <summary>
-        /// Called by the parent command queue to signal that the command buffer should release it's shared state.
-        /// </summary>
-        virtual void releaseSharedState() const = 0;
     };
 
     /// <summary>

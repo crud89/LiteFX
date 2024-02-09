@@ -542,9 +542,7 @@ void SampleApp::drawFrame()
     this->updateCamera(cameraBuffer);
 
     // Bind all descriptor sets to the pipeline.
-    commandBuffer->bind(staticDataBindings);
-    commandBuffer->bind(materialBindings);
-    commandBuffer->bind(samplerBindings);
+    commandBuffer->bind({ &staticDataBindings, &materialBindings, &samplerBindings });
 
     // Draw the screen quad and present the frame by ending the render pass. The screen quad is a single triangle that gets clipped.
     commandBuffer->draw(3);

@@ -350,8 +350,7 @@ void SampleApp::drawFrame()
     transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
     // Bind both descriptor sets to the pipeline.
-    commandBuffer->bind(cameraBindings);
-    commandBuffer->bind(transformBindings);
+    commandBuffer->bind({ &cameraBindings, &transformBindings });
 
     // Draw the object and present the frame by ending the render pass.
     commandBuffer->dispatchMesh(4, 1, 1); // This will create 4 faces.

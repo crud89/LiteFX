@@ -578,7 +578,13 @@ namespace LiteFX::Rendering {
         virtual void bind(const descriptor_set_type& descriptorSet) const = 0;
 
         /// <inheritdoc />
+        virtual void bind(Span<const descriptor_set_type*> descriptorSets) const = 0;
+
+        /// <inheritdoc />
         virtual void bind(const descriptor_set_type& descriptorSet, const pipeline_type& pipeline) const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual void bind(Span<const descriptor_set_type*> descriptorSets, const pipeline_type& pipeline) const noexcept = 0;
 
         /// <inheritdoc />
         virtual void bind(const vertex_buffer_type& buffer) const noexcept = 0;
@@ -705,8 +711,18 @@ namespace LiteFX::Rendering {
             this->bind(dynamic_cast<const descriptor_set_type&>(descriptorSet));
         }
 
+        inline void cmdBind(Span<const IDescriptorSet*> descriptorSets) const override {
+            auto sets = descriptorSets | std::views::transform([](auto set) { return dynamic_cast<const descriptor_set_type*>(set); }) | std::ranges::to<Array<const descriptor_set_type*>>();
+            this->bind(Span<const descriptor_set_type*>(sets));
+        }
+
         inline void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept override {
             this->bind(dynamic_cast<const descriptor_set_type&>(descriptorSet), dynamic_cast<const pipeline_type&>(pipeline));
+        }
+
+        inline void cmdBind(Span<const IDescriptorSet*> descriptorSets, const IPipeline& pipeline) const noexcept override {
+            auto sets = descriptorSets | std::views::transform([](auto set) { return dynamic_cast<const descriptor_set_type*>(set); }) | std::ranges::to<Array<const descriptor_set_type*>>();
+            this->bind(Span<const descriptor_set_type*>(sets), dynamic_cast<const pipeline_type&>(pipeline));
         }
         
         inline void cmdBind(const IVertexBuffer& buffer) const noexcept override {

@@ -569,10 +569,7 @@ void SampleApp::drawFrame()
     commandBuffer->use(geometryPipeline);
 
     // Bind both descriptor sets to the pipeline.
-    commandBuffer->bind(staticDataBindings);
-    commandBuffer->bind(outputBindings);
-    commandBuffer->bind(materialBindings);
-    commandBuffer->bind(samplerBindings);
+    commandBuffer->bind({ &outputBindings, &staticDataBindings, &materialBindings, &samplerBindings });
 
     // Draw the object and present the frame by ending the render pass.
     commandBuffer->traceRays(m_device->swapChain().renderArea().width(), m_device->swapChain().renderArea().height(), 1, m_offsets, shaderBindingTable, &shaderBindingTable, &shaderBindingTable);

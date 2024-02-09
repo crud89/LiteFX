@@ -378,8 +378,7 @@ void SampleApp::drawFrame()
     transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
     // Bind both descriptor sets to the pipeline.
-    commandBuffer->bind(cameraBindings);
-    commandBuffer->bind(transformBindings);
+    commandBuffer->bind({ &cameraBindings, &transformBindings });
 
     // Bind the vertex and index buffers.
     commandBuffer->bind(vertexBuffer);
