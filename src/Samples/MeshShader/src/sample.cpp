@@ -117,9 +117,7 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffe
     camera.ViewProjection = projection * view;
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
-    auto cameraStagingBuffer = m_device->factory().createBuffer(m_device->state().pipeline("Geometry"), DescriptorSets::Constant, 0, ResourceHeap::Staging);
-    cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    commandBuffer.transfer(asShared(std::move(cameraStagingBuffer)), buffer);
+    commandBuffer.transfer(reinterpret_cast<const void*>(&camera), sizeof(camera), buffer);
 }
 
 void SampleApp::onStartup()
@@ -352,8 +350,7 @@ void SampleApp::drawFrame()
     transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
     // Bind both descriptor sets to the pipeline.
-    commandBuffer->bind(cameraBindings);
-    commandBuffer->bind(transformBindings);
+    commandBuffer->bind({ &cameraBindings, &transformBindings });
 
     // Draw the object and present the frame by ending the render pass.
     commandBuffer->dispatchMesh(4, 1, 1); // This will create 4 faces.

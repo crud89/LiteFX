@@ -137,23 +137,13 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Get a command buffer. Note that we use the graphics queue here, as it also supports transfers, but additionally allows us to build acceleration structures.
     auto commandBuffer = m_device->defaultQueue(QueueType::Graphics).createCommandBuffer(true);
 
-    // Create the staging buffer.
-    // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
-    //       whole buffer.
-    auto stagedVertices = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Staging, vertices.size());
-    stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
+    // Create the vertex buffer and transfer the staging buffer into it.
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, vertices.size());
+    commandBuffer->transfer(vertices.data(), vertices.size() * sizeof(::Vertex), *vertexBuffer, 0, vertices.size());
 
-    // Create the actual vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, vertices.size(), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
-    commandBuffer->transfer(asShared(std::move(stagedVertices)), *vertexBuffer, 0, 0, vertices.size());
-
-    // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
-    auto stagedIndices = m_device->factory().createIndexBuffer(*m_inputAssembler->indexBufferLayout(), ResourceHeap::Staging, indices.size());
-    stagedIndices->map(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), 0);
-
-    // Create the actual index buffer and transfer the staging buffer into it.
-    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, indices.size(), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
-    commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
+    // Create the index buffer and transfer the staging buffer into it.
+    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, indices.size());
+    commandBuffer->transfer(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), *indexBuffer, 0, indices.size());
 
     // Before building the acceleration structures the GPU needs to wait for the transfer to finish.
     auto barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::AccelerationStructureBuild);
@@ -229,11 +219,9 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Transfer);
     barrier->transition(*texture, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
     commandBuffer->barrier(*barrier);
-    auto stagedTexture = m_device->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, texture->size(0));
-    stagedTexture->map(imageData.get(), texture->size(0), 0);
 
     // Transfer the skybox texture.
-    commandBuffer->transfer(asShared(std::move(stagedTexture)), *texture);
+    commandBuffer->transfer(imageData.get(), texture->size(0), *texture);
     barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::None);
     barrier->transition(*texture, ResourceAccess::TransferWrite, ResourceAccess::None, ImageLayout::CopyDestination, ImageLayout::ShaderResource);
     commandBuffer->barrier(*barrier);
@@ -554,9 +542,7 @@ void SampleApp::drawFrame()
     this->updateCamera(cameraBuffer);
 
     // Bind all descriptor sets to the pipeline.
-    commandBuffer->bind(staticDataBindings);
-    commandBuffer->bind(materialBindings);
-    commandBuffer->bind(samplerBindings);
+    commandBuffer->bind({ &staticDataBindings, &materialBindings, &samplerBindings });
 
     // Draw the screen quad and present the frame by ending the render pass. The screen quad is a single triangle that gets clipped.
     commandBuffer->draw(3);

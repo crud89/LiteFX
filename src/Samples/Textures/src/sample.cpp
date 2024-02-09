@@ -114,10 +114,6 @@ void loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampler
     //       in the backend using a compute shader, that needs to write back to the texture.
     texture = device.factory().createTexture("Texture", Format::R8G8B8A8_UNORM, Size2d(width, height), ImageDimensions::DIM_2, 6, 1, MultiSamplingLevel::x1, ResourceUsage::AllowWrite | ResourceUsage::TransferDestination | ResourceUsage::TransferSource);
 
-    // Create a staging buffer for the first mip-map of the texture.
-    auto stagedTexture = device.factory().createBuffer(BufferType::Other, ResourceHeap::Staging, texture->size(0));
-    stagedTexture->map(imageData.get(), texture->size(0), 0);
-
     // Transfer the texture using the graphics queue (since we want to be able to generate mip maps, which is done on the graphics queue in Vulkan and a compute-capable queue in D3D12).
     auto commandBuffer = device.defaultQueue(QueueType::Graphics).createCommandBuffer(true);
     UniquePtr<TBarrier> barrier = device.buildBarrier()
@@ -125,7 +121,7 @@ void loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampler
         .blockAccessTo(*texture, ResourceAccess::TransferWrite).transitionLayout(ImageLayout::CopyDestination).whenFinishedWith(ResourceAccess::None);
 
     commandBuffer->barrier(*barrier);
-    commandBuffer->transfer(asShared(std::move(stagedTexture)), *texture);
+    commandBuffer->transfer(imageData.get(), texture->size(0), *texture);
 
     // Generate the rest of the mip maps.
     commandBuffer->generateMipMaps(*texture);
@@ -152,23 +148,13 @@ UInt64 initBuffers(SampleApp& app, TDevice& device, SharedPtr<IInputAssembler> i
     // Get a command buffer
     auto commandBuffer = device.defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 
-    // Create the staging buffer.
-    // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
-    //       whole buffer.
-    auto stagedVertices = device.factory().createVertexBuffer(*inputAssembler->vertexBufferLayout(0), ResourceHeap::Staging, vertices.size());
-    stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
-
-    // Create the actual vertex buffer and transfer the staging buffer into it.
+    // Create the vertex buffer and transfer the staging buffer into it.
     auto vertexBuffer = device.factory().createVertexBuffer("Vertex Buffer", *inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, vertices.size());
-    commandBuffer->transfer(asShared(std::move(stagedVertices)), *vertexBuffer, 0, 0, vertices.size());
+    commandBuffer->transfer(vertices.data(), vertices.size() * sizeof(::Vertex), *vertexBuffer, 0, vertices.size());
 
-    // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
-    auto stagedIndices = device.factory().createIndexBuffer(*inputAssembler->indexBufferLayout(), ResourceHeap::Staging, indices.size());
-    stagedIndices->map(indices.data(), indices.size() * inputAssembler->indexBufferLayout()->elementSize(), 0);
-
-    // Create the actual index buffer and transfer the staging buffer into it.
+    // Create the index buffer and transfer the staging buffer into it.
     auto indexBuffer = device.factory().createIndexBuffer("Index Buffer", *inputAssembler->indexBufferLayout(), ResourceHeap::Resource, indices.size());
-    commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
+    commandBuffer->transfer(indices.data(), indices.size() * inputAssembler->indexBufferLayout()->elementSize(), *indexBuffer, 0, indices.size());
     
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
@@ -225,9 +211,7 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffe
     camera.ViewProjection = projection * view;
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
-    auto cameraStagingBuffer = m_device->factory().createBuffer(m_device->state().pipeline("Geometry"), DescriptorSets::Constant, 0, ResourceHeap::Staging);
-    cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    commandBuffer.transfer(asShared(std::move(cameraStagingBuffer)), buffer);
+    commandBuffer.transfer(reinterpret_cast<const void*>(&camera), sizeof(camera), buffer);
 }
 
 void SampleApp::onStartup()
@@ -427,6 +411,14 @@ void SampleApp::handleEvents()
     ::glfwPollEvents();
 }
 
+inline auto test(std::ranges::input_range auto&& descriptorSets) requires
+    std::derived_from<std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>, IDescriptorSet>
+{
+    using descriptor_set_type = std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>;
+    auto sets = descriptorSets | std::ranges::to<Array<const descriptor_set_type*>>();
+    return sets;
+}
+
 void SampleApp::drawFrame()
 {
     // Store the initial time this method has been called first.
@@ -464,9 +456,7 @@ void SampleApp::drawFrame()
     transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
     // Bind both descriptor sets to the pipeline.
-    commandBuffer->bind(staticBindings, geometryPipeline);
-    commandBuffer->bind(samplerBindings, geometryPipeline);
-    commandBuffer->bind(transformBindings, geometryPipeline);
+    commandBuffer->bind({ &staticBindings, &samplerBindings, &transformBindings });
 
     // Bind the vertex and index buffers.
     commandBuffer->bind(vertexBuffer);

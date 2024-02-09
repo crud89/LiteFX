@@ -530,6 +530,9 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
+        virtual UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
+
+        /// <inheritdoc />
         virtual void barrier(const barrier_type& barrier) const noexcept = 0;
 
         /// <inheritdoc />
@@ -539,7 +542,19 @@ namespace LiteFX::Rendering {
         virtual void transfer(buffer_type& source, buffer_type& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const = 0;
 
         /// <inheritdoc />
+        virtual void transfer(const void* const data, size_t size, buffer_type& target, UInt32 targetElement = 0, UInt32 elements = 1) const = 0;
+
+        /// <inheritdoc />
+        virtual void transfer(Span<const void* const> data, size_t elementSize, buffer_type& target, UInt32 firstElement = 0) const = 0;
+
+        /// <inheritdoc />
         virtual void transfer(buffer_type& source, image_type& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const = 0;
+
+        /// <inheritdoc />
+        virtual void transfer(const void* const data, size_t size, image_type& target, UInt32 subresource = 0) const = 0;
+
+        /// <inheritdoc />
+        virtual void transfer(Span<const void* const> data, size_t elementSize, image_type& target, UInt32 firstSubresource = 0, UInt32 subresources = 1) const = 0;
 
         /// <inheritdoc />
         virtual void transfer(image_type& source, image_type& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const = 0;
@@ -566,7 +581,13 @@ namespace LiteFX::Rendering {
         virtual void bind(const descriptor_set_type& descriptorSet) const = 0;
 
         /// <inheritdoc />
+        virtual void bind(Span<const descriptor_set_type*> descriptorSets) const = 0;
+
+        /// <inheritdoc />
         virtual void bind(const descriptor_set_type& descriptorSet, const pipeline_type& pipeline) const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual void bind(Span<const descriptor_set_type*> descriptorSets, const pipeline_type& pipeline) const noexcept = 0;
 
         /// <inheritdoc />
         virtual void bind(const vertex_buffer_type& buffer) const noexcept = 0;
@@ -629,6 +650,10 @@ namespace LiteFX::Rendering {
         }
 
     private:
+        inline UniquePtr<IBarrier> getBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
+            return this->makeBarrier(syncBefore, syncAfter);
+        }
+
         inline void cmdBarrier(const IBarrier& barrier) const noexcept override {
             this->barrier(dynamic_cast<const barrier_type&>(barrier));
         }
@@ -669,6 +694,22 @@ namespace LiteFX::Rendering {
             this->transfer(std::dynamic_pointer_cast<image_type>(source), dynamic_cast<buffer_type&>(target), firstSubresource, targetElement, subresources);
         }
 
+        inline void cmdTransfer(const void* const data, size_t size, IBuffer& target, UInt32 targetElement, UInt32 elements) const override {
+            this->transfer(data, size, dynamic_cast<buffer_type&>(target), targetElement, elements);
+        }
+
+        inline void cmdTransfer(Span<const void* const> data, size_t elementSize, IBuffer& target, UInt32 targetElement) const override {
+            this->transfer(data, elementSize, dynamic_cast<buffer_type&>(target), targetElement);
+        }
+
+        inline void cmdTransfer(const void* const data, size_t size, IImage& target, UInt32 subresource) const override {
+            this->transfer(data, size, dynamic_cast<image_type&>(target), subresource);
+        }
+
+        inline void cmdTransfer(Span<const void* const> data, size_t elementSize, IImage& target, UInt32 firstSubresource, UInt32 elements) const override {
+            this->transfer(data, elementSize, dynamic_cast<image_type&>(target), firstSubresource, elements);
+        }
+
         inline void cmdUse(const IPipeline& pipeline) const noexcept override {
             this->use(dynamic_cast<const pipeline_type&>(pipeline));
         }
@@ -677,8 +718,18 @@ namespace LiteFX::Rendering {
             this->bind(dynamic_cast<const descriptor_set_type&>(descriptorSet));
         }
 
+        inline void cmdBind(Span<const IDescriptorSet*> descriptorSets) const override {
+            auto sets = descriptorSets | std::views::transform([](auto set) { return dynamic_cast<const descriptor_set_type*>(set); }) | std::ranges::to<Array<const descriptor_set_type*>>();
+            this->bind(Span<const descriptor_set_type*>(sets));
+        }
+
         inline void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept override {
             this->bind(dynamic_cast<const descriptor_set_type&>(descriptorSet), dynamic_cast<const pipeline_type&>(pipeline));
+        }
+
+        inline void cmdBind(Span<const IDescriptorSet*> descriptorSets, const IPipeline& pipeline) const noexcept override {
+            auto sets = descriptorSets | std::views::transform([](auto set) { return dynamic_cast<const descriptor_set_type*>(set); }) | std::ranges::to<Array<const descriptor_set_type*>>();
+            this->bind(Span<const descriptor_set_type*>(sets), dynamic_cast<const pipeline_type&>(pipeline));
         }
         
         inline void cmdBind(const IVertexBuffer& buffer) const noexcept override {

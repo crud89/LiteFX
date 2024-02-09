@@ -1081,13 +1081,28 @@ namespace LiteFX::Rendering::Backends {
         void generateMipMaps(IDirectX12Image& image) noexcept override;
 
         /// <inheritdoc />
+        UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
+
+        /// <inheritdoc />
         void barrier(const DirectX12Barrier& barrier) const noexcept override;
 
         /// <inheritdoc />
         void transfer(IDirectX12Buffer& source, IDirectX12Buffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
+        void transfer(const void* const data, size_t size, IDirectX12Buffer& target, UInt32 targetElement = 0, UInt32 elements = 1) const override;
+
+        /// <inheritdoc />
+        void transfer(Span<const void* const> data, size_t elementSize, IDirectX12Buffer& target, UInt32 firstElement = 0) const override;
+
+        /// <inheritdoc />
         void transfer(IDirectX12Buffer& source, IDirectX12Image& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
+
+        /// <inheritdoc />
+        void transfer(const void* const data, size_t size, IDirectX12Image& target, UInt32 subresource = 0) const override;
+
+        /// <inheritdoc />
+        void transfer(Span<const void* const> data, size_t elementSize, IDirectX12Image& target, UInt32 firstSubresource = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
         void transfer(IDirectX12Image& source, IDirectX12Image& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
@@ -1113,8 +1128,14 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		void bind(const DirectX12DescriptorSet& descriptorSet) const override;
 
+        /// <inheritdoc />
+        void bind(Span<const DirectX12DescriptorSet*> descriptorSets) const override;
+
+        /// <inheritdoc />
+        void bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept override;
+
 		/// <inheritdoc />
-		void bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept override;
+		void bind(Span<const DirectX12DescriptorSet*> descriptorSets, const DirectX12PipelineState& pipeline) const noexcept override;
 
         /// <inheritdoc />
         void bind(const IDirectX12VertexBuffer& buffer) const noexcept override;

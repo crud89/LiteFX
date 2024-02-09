@@ -373,6 +373,11 @@ void VulkanCommandBuffer::generateMipMaps(IVulkanImage& image) noexcept
 	this->barrier(endBarrier);
 }
 
+UniquePtr<VulkanBarrier> VulkanCommandBuffer::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept
+{
+	return m_impl->m_queue.device().makeBarrier(syncBefore, syncAfter);
+}
+
 void VulkanCommandBuffer::barrier(const VulkanBarrier& barrier) const noexcept
 {
 	barrier.execute(*this);
@@ -393,6 +398,23 @@ void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanBuffer& target,
 	};
 
 	::vkCmdCopyBuffer(this->handle(), std::as_const(source).handle(), std::as_const(target).handle(), 1, &copyInfo);
+}
+
+void VulkanCommandBuffer::transfer(const void* const data, size_t size, IVulkanBuffer& target, UInt32 targetElement, UInt32 elements) const
+{
+	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements)));
+	stagingBuffer->map(data, size, 0);
+
+	this->transfer(stagingBuffer, target, 0, targetElement, elements);
+}
+
+void VulkanCommandBuffer::transfer(Span<const void* const> data, size_t elementSize, IVulkanBuffer& target, UInt32 firstElement) const
+{
+	auto elements = static_cast<UInt32>(data.size());
+	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements)));
+	stagingBuffer->map(data, elementSize, 0);
+
+	this->transfer(stagingBuffer, target, 0, firstElement, elements);
 }
 
 void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
@@ -424,6 +446,23 @@ void VulkanCommandBuffer::transfer(IVulkanBuffer& source, IVulkanImage& target, 
 	});
 
 	::vkCmdCopyBufferToImage(this->handle(), std::as_const(source).handle(), std::as_const(target).handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<UInt32>(copyInfos.size()), copyInfos.data());
+}
+
+void VulkanCommandBuffer::transfer(const void* const data, size_t size, IVulkanImage& target, UInt32 subresource) const
+{
+	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, size)));
+	stagingBuffer->map(data, size, 0);
+
+	this->transfer(stagingBuffer, target, 0, subresource, 1);
+}
+
+void VulkanCommandBuffer::transfer(Span<const void* const> data, size_t elementSize, IVulkanImage& target, UInt32 firstSubresource, UInt32 subresources) const
+{
+	auto elements = static_cast<UInt32>(data.size());
+	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, elementSize, elements)));
+	stagingBuffer->map(data, elementSize, 0);
+
+	this->transfer(stagingBuffer, target, 0, firstSubresource, subresources);
 }
 
 void VulkanCommandBuffer::transfer(IVulkanImage& source, IVulkanImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
@@ -528,15 +567,31 @@ void VulkanCommandBuffer::use(const VulkanPipelineState& pipeline) const noexcep
 
 void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet) const
 {
+	auto set = &descriptorSet;
+
 	if (m_impl->m_lastPipeline) [[likely]]
-		m_impl->m_lastPipeline->bind(*this, descriptorSet);
+		m_impl->m_lastPipeline->bind(*this, { std::addressof(set), 1});
+	else
+		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
+}
+
+void VulkanCommandBuffer::bind(Span<const VulkanDescriptorSet*> descriptorSets) const
+{
+	if (m_impl->m_lastPipeline) [[likely]]
+		m_impl->m_lastPipeline->bind(*this, descriptorSets);
 	else
 		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
 }
 
 void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept
 {
-	pipeline.bind(*this, descriptorSet);
+	auto set = &descriptorSet;
+	pipeline.bind(*this, { std::addressof(set), 1 });
+}
+
+void VulkanCommandBuffer::bind(Span<const VulkanDescriptorSet*> descriptorSets, const VulkanPipelineState& pipeline) const noexcept
+{
+	pipeline.bind(*this, descriptorSets);
 }
 
 void VulkanCommandBuffer::bind(const IVulkanVertexBuffer& buffer) const noexcept
