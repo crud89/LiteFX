@@ -324,15 +324,15 @@ namespace LiteFX::Math {
 		/// <summary>
 		/// Converts the matrix into a multi-dimensional view over the elements.
 		/// </summary>
-		constexpr inline auto operator std::mdspan<const scalar_type, std::extents<std::size_t, mat_rows, mat_cols, std::layout_right>>() const noexcept {
-			return std::mdspan<const scalar_type, std::extents<std::size_t, mat_rows, mat_cols, std::layout_right>>(m_elements.data());
+		constexpr inline operator std::mdspan<const scalar_type, std::extents<std::size_t, mat_rows, mat_cols>>() const noexcept {
+			return std::mdspan<const scalar_type, std::extents<std::size_t, mat_rows, mat_cols>>(m_elements.data());
 		}
 
 		/// <summary>
 		/// Converts the matrix into a multi-dimensional view over the elements.
 		/// </summary>
-		constexpr inline auto operator std::mdspan<scalar_type, std::extents<std::size_t, mat_rows, mat_cols, std::layout_right>>() noexcept {
-			return std::mdspan<scalar_type, std::extents<std::size_t, mat_rows, mat_cols, std::layout_right>>(m_elements.data());
+		constexpr inline operator std::mdspan<scalar_type, std::extents<std::size_t, mat_rows, mat_cols>>() noexcept {
+			return std::mdspan<scalar_type, std::extents<std::size_t, mat_rows, mat_cols>>(m_elements.data());
 		}
 #endif
 
