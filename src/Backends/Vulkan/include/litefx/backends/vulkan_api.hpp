@@ -359,9 +359,12 @@ namespace LiteFX::Rendering::Backends {
         explicit VulkanPlatformException(VkResult result, StringView format, TArgs&&... args) noexcept :
             VulkanPlatformException(fmt::vformat(format, fmt::make_format_args(args...)), result) { }
 
-        VulkanPlatformException(const VulkanPlatformException&) = delete;
-        VulkanPlatformException(VulkanPlatformException&&) = delete;
+        VulkanPlatformException(const VulkanPlatformException&) = default;
+        VulkanPlatformException(VulkanPlatformException&&) = default;
         virtual ~VulkanPlatformException() noexcept = default;
+
+        VulkanPlatformException& operator=(const VulkanPlatformException&) = default;
+        VulkanPlatformException& operator=(VulkanPlatformException&&) = default;
 
     public:
         /// <summary>

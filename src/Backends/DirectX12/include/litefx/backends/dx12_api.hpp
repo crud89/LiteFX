@@ -314,9 +314,12 @@ namespace LiteFX::Rendering::Backends {
         explicit DX12PlatformException(HRESULT result, StringView format, TArgs&&... args) noexcept :
             DX12PlatformException(result, fmt::vformat(format, fmt::make_format_args(args...))) { }
 
-        DX12PlatformException(const DX12PlatformException&) = delete;
-        DX12PlatformException(DX12PlatformException&&) = delete;
+        DX12PlatformException(const DX12PlatformException&) = default;
+        DX12PlatformException(DX12PlatformException&&) = default;
         virtual ~DX12PlatformException() noexcept = default;
+
+        DX12PlatformException& operator=(const DX12PlatformException&) = default;
+        DX12PlatformException& operator=(DX12PlatformException&&) = default;
 
     public:
         /// <summary>

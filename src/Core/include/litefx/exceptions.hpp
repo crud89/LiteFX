@@ -31,9 +31,12 @@ namespace LiteFX {
 			std::exception(message.c_str()), m_location(location), m_trace(trace) { }
 
 	public:
-		Exception(const Exception&) = delete;
-		Exception(Exception&&) = delete;
+		Exception(const Exception&) = default;
+		Exception(Exception&&) = default;
 		virtual ~Exception() noexcept = default;
+
+		Exception& operator=(const Exception&) = default;
+		Exception& operator=(Exception&&) = default;
 
 	public:
 		/// <summary>
@@ -86,9 +89,12 @@ namespace LiteFX {
 		explicit InvalidArgumentException(std::string_view argument, std::string_view format, TArgs&&... args) noexcept :
 			Exception(fmt::format("Invalid argument provided: {}. {}", argument, fmt::vformat(format, fmt::make_format_args(args...))), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
 
-		InvalidArgumentException(const InvalidArgumentException&) = delete;
-		InvalidArgumentException(InvalidArgumentException&&) = delete;
+		InvalidArgumentException(const InvalidArgumentException&) = default;
+		InvalidArgumentException(InvalidArgumentException&&) = default;
 		virtual ~InvalidArgumentException() noexcept = default;
+
+		InvalidArgumentException& operator=(const InvalidArgumentException&) = default;
+		InvalidArgumentException& operator=(InvalidArgumentException&&) = default;
 
 	public:
 		/// <summary>
@@ -160,9 +166,12 @@ namespace LiteFX {
 		explicit ArgumentOutOfRangeException(std::string_view argument, T fromIncluse, T toExclusive, T value, std::string_view format, TArgs&&... args) noexcept :
 			Exception(fmt::format("Argument was out of range: {} (valid range is [{}, {}) but actual value was {}). {}", argument, fromIncluse, toExclusive, value, fmt::vformat(format, fmt::make_format_args(args...))), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
 
-		ArgumentOutOfRangeException(const ArgumentOutOfRangeException&) = delete;
-		ArgumentOutOfRangeException(ArgumentOutOfRangeException&&) = delete;
+		ArgumentOutOfRangeException(const ArgumentOutOfRangeException&) = default;
+		ArgumentOutOfRangeException(ArgumentOutOfRangeException&&) = default;
 		virtual ~ArgumentOutOfRangeException() noexcept = default;
+
+		ArgumentOutOfRangeException& operator=(const ArgumentOutOfRangeException&) = default;
+		ArgumentOutOfRangeException& operator=(ArgumentOutOfRangeException&&) = default;
 
 	public:
 		/// <summary>
@@ -207,9 +216,12 @@ namespace LiteFX {
 		explicit ArgumentNotInitializedException(std::string_view argument, std::string_view format, TArgs&&... args) noexcept :
 			Exception(fmt::format("Argument was not initialized: {}. {}", argument, fmt::vformat(format, fmt::make_format_args(args...))), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
 
-		ArgumentNotInitializedException(const ArgumentNotInitializedException&) = delete;
-		ArgumentNotInitializedException(ArgumentNotInitializedException&&) = delete;
+		ArgumentNotInitializedException(const ArgumentNotInitializedException&) = default;
+		ArgumentNotInitializedException(ArgumentNotInitializedException&&) = default;
 		virtual ~ArgumentNotInitializedException() noexcept = default;
+
+		ArgumentNotInitializedException& operator=(const ArgumentNotInitializedException&) = default;
+		ArgumentNotInitializedException& operator=(ArgumentNotInitializedException&&) = default;
 
 	public:
 		/// <summary>
@@ -248,8 +260,11 @@ namespace LiteFX {
 		explicit RuntimeException(std::string_view format, TArgs&&... args) noexcept :
 			Exception(fmt::format("The operation could not be executed: {}", fmt::vformat(format, fmt::make_format_args(args...))), std::source_location::current(), std::stacktrace::current()) { }
 
-		RuntimeException(const RuntimeException&) = delete;
-		RuntimeException(RuntimeException&&) = delete;
+		RuntimeException(const RuntimeException&) = default;
+		RuntimeException(RuntimeException&&) = default;
 		virtual ~RuntimeException() noexcept = default;
+
+		RuntimeException& operator=(const RuntimeException&) = default;
+		RuntimeException& operator=(RuntimeException&&) = default;
 	};
 };
