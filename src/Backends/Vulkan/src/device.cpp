@@ -679,6 +679,11 @@ UniquePtr<VulkanBarrier> VulkanDevice::makeBarrier(PipelineStage syncBefore, Pip
     return makeUnique<VulkanBarrier>(syncBefore, syncAfter);
 }
 
+UniquePtr<VulkanFrameBuffer> VulkanDevice::makeFrameBuffer(const Size2d& renderArea) const noexcept
+{
+    return makeUnique<VulkanFrameBuffer>(*this, renderArea);
+}
+
 MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(Format format) const noexcept
 {
     auto limits = m_impl->m_adapter.limits();

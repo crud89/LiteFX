@@ -886,10 +886,7 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<const command_buffer_type> commandBuffer(UInt32 index) const = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<image_type*> images() const noexcept = 0;
-
-        /// <inheritdoc />
-        virtual image_type& image(UInt32 location) const = 0;
+        virtual Enumerable<const image_type*> images() const noexcept = 0;
 
     private:
         inline SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept override {
@@ -900,7 +897,7 @@ namespace LiteFX::Rendering {
             return this->commandBuffers();
         }
 
-        inline Enumerable<IImage*> getImages() const noexcept override {
+        inline Enumerable<const IImage*> getImages() const noexcept override {
             return this->images();
         }
     };
@@ -1351,11 +1348,18 @@ namespace LiteFX::Rendering {
         virtual const command_queue_type* createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) noexcept = 0;
 
         /// <inheritdoc />
-        [[nodiscard]] virtual UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
+        virtual [[nodiscard]] UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual [[nodiscard]] UniquePtr<frame_buffer_type> makeFrameBuffer(const Size2d& renderArea) const noexcept = 0;
 
     private:
         inline UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override {
             return this->makeBarrier(syncBefore, syncAfter);
+        }
+
+        inline UniquePtr<IFrameBuffer> getNewFrameBuffer(const Size2d& renderArea) const noexcept override {
+            return this->makeFrameBuffer(renderArea);
         }
 
         inline const ICommandQueue& getDefaultQueue(QueueType type) const {

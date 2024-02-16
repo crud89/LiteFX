@@ -565,6 +565,11 @@ UniquePtr<DirectX12Barrier> DirectX12Device::makeBarrier(PipelineStage syncBefor
 	return makeUnique<DirectX12Barrier>(syncBefore, syncAfter);
 }
 
+UniquePtr<DirectX12FrameBuffer> DirectX12Device::makeFrameBuffer(const Size2d& renderArea) const noexcept
+{
+	return makeUnique<DirectX12FrameBuffer>(*this, renderArea);
+}
+
 MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(Format format) const noexcept
 {
 	constexpr std::array<MultiSamplingLevel, 7> allLevels = { MultiSamplingLevel::x64, MultiSamplingLevel::x32, MultiSamplingLevel::x16, MultiSamplingLevel::x8, MultiSamplingLevel::x4, MultiSamplingLevel::x2, MultiSamplingLevel::x1 };

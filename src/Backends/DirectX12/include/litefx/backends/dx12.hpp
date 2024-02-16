@@ -1077,7 +1077,7 @@ namespace LiteFX::Rendering::Backends {
         void generateMipMaps(IDirectX12Image& image) noexcept override;
 
         /// <inheritdoc />
-        UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
+        [[nodiscard]] UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
 
         /// <inheritdoc />
         void barrier(const DirectX12Barrier& barrier) const noexcept override;
@@ -1377,11 +1377,9 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// Initializes a DirectX 12 frame buffer.
         /// </summary>
-        /// <param name="renderPass">The parent render pass of the frame buffer.</param>
-        /// <param name="bufferIndex">The index of the frame buffer within the parent render pass.</param>
+        /// <param name="device">The device the frame buffer is allocated on.</param>
         /// <param name="renderArea">The initial size of the render area.</param>
-        /// <param name="commandBuffers">The number of command buffers, the frame buffer stores.</param>
-        DirectX12FrameBuffer(const DirectX12RenderPass& renderPass, UInt32 bufferIndex, const Size2d& renderArea, UInt32 commandBuffers = 1);
+        DirectX12FrameBuffer(const DirectX12Device& device, const Size2d& renderArea);
         DirectX12FrameBuffer(const DirectX12FrameBuffer&) noexcept = delete;
         DirectX12FrameBuffer(DirectX12FrameBuffer&&) noexcept = delete;
         virtual ~DirectX12FrameBuffer() noexcept;
@@ -1421,22 +1419,8 @@ namespace LiteFX::Rendering::Backends {
         /// <seealso cref="depthStencilTargetHeap" />
         UInt32 depthStencilTargetDescriptorSize() const noexcept;
 
-        /// Returns a reference to the value of the fence that indicates the last submission drawing into the frame buffer.
-        /// </summary>
-        /// <remarks>
-        /// The frame buffer must only be re-used if this fence has been passed in the command queue that executes the parent render pass.
-        /// </remarks>
-        /// <returns>A reference to the of the last submission targeting the frame buffer.</returns>
-        UInt64& lastFence() noexcept;
-
         // FrameBuffer interface.
     public:
-        /// <inheritdoc />
-        UInt64 lastFence() const noexcept override;
-
-        /// <inheritdoc />
-        UInt32 bufferIndex() const noexcept override;
-
         /// <inheritdoc />
         const Size2d& size() const noexcept override;
 
@@ -1447,18 +1431,39 @@ namespace LiteFX::Rendering::Backends {
         size_t getHeight() const noexcept override;
 
         /// <inheritdoc />
+        void mapRenderTarget(const RenderTarget& renderTarget, UInt32 index) override;
+
+        /// <inheritdoc />
+        void unmapRenderTarget(const RenderTarget& renderTarget) noexcept override;
+
+        /// <inheritdoc />
         Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers() const noexcept override;
 
         /// <inheritdoc />
         SharedPtr<const DirectX12CommandBuffer> commandBuffer(UInt32 index) const override;
 
         /// <inheritdoc />
-        Enumerable<IDirectX12Image*> images() const noexcept override;
+        Enumerable<const IDirectX12Image*> images() const noexcept override;
 
         /// <inheritdoc />
-        IDirectX12Image& image(UInt32 location) const override;
+        inline const IDirectX12Image& operator[](UInt32 index) const override {
+            return this->image(index);
+        }
 
-    public:
+        /// <inheritdoc />
+        const IDirectX12Image& image(UInt32 index) const override;
+
+        /// <inheritdoc />
+        inline const IDirectX12Image& operator[](const RenderTarget& renderTarget) const override {
+            return this->image(renderTarget);
+        }
+
+        /// <inheritdoc />
+        const IDirectX12Image& image(const RenderTarget& renderTarget) const override;
+
+        /// <inheritdoc />
+        void addImage(const String& name, Format format, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) override;
+
         /// <inheritdoc />
         void resize(const Size2d& renderArea) override;
     };
@@ -2067,6 +2072,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         [[nodiscard]] UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
+
+        /// <inheritdoc />
+        [[nodiscard]] UniquePtr<DirectX12FrameBuffer> makeFrameBuffer(const Size2d& renderArea) const noexcept override;
 
         /// <inheritdoc />
         /// <seealso href="https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_standard_multisample_quality_levels" />

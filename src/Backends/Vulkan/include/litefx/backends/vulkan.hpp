@@ -1075,7 +1075,7 @@ namespace LiteFX::Rendering::Backends {
         void generateMipMaps(IVulkanImage& image) noexcept override;
 
         /// <inheritdoc />
-        UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
+        [[nodiscard]] UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
 
         /// <inheritdoc />
         void barrier(const VulkanBarrier& barrier) const noexcept override;
@@ -1365,40 +1365,22 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a Vulkan frame buffer.
     /// </summary>
     /// <seealso cref="VulkanRenderPass" />
-    class LITEFX_VULKAN_API VulkanFrameBuffer final : public FrameBuffer<VulkanCommandBuffer>, public Resource<VkFramebuffer> {
+    class LITEFX_VULKAN_API VulkanFrameBuffer final : public FrameBuffer<VulkanCommandBuffer> {
         LITEFX_IMPLEMENTATION(VulkanFrameBufferImpl);
 
     public:
         /// <summary>
         /// Initializes a Vulkan frame buffer.
         /// </summary>
-        /// <param name="renderPass">The parent render pass of the frame buffer.</param>
-        /// <param name="bufferIndex">The index of the frame buffer within the parent render pass.</param>
+        /// <param name="device">The device the frame buffer is allocated on.</param>
         /// <param name="renderArea">The initial size of the render area.</param>
-        /// <param name="commandBuffers">The number of command buffers, the frame buffer stores.</param>
-        VulkanFrameBuffer(const VulkanRenderPass& renderPass, UInt32 bufferIndex, const Size2d& renderArea, UInt32 commandBuffers = 1);
+        VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea);
         VulkanFrameBuffer(const VulkanFrameBuffer&) noexcept = delete;
         VulkanFrameBuffer(VulkanFrameBuffer&&) noexcept = delete;
         virtual ~VulkanFrameBuffer() noexcept;
 
-        // Vulkan frame buffer interface.
-    public:
-        /// Returns a reference to the value of the fence that indicates the last submission drawing into the frame buffer.
-        /// </summary>
-        /// <remarks>
-        /// The frame buffer must only be re-used if this fence has been passed in the command queue that executes the parent render pass.
-        /// </remarks>
-        /// <returns>A reference to the of the last submission targeting the frame buffer.</returns>
-        UInt64& lastFence() noexcept;
-
         // FrameBuffer interface.
     public:
-        /// <inheritdoc />
-        UInt64 lastFence() const noexcept override;
-
-        /// <inheritdoc />
-        UInt32 bufferIndex() const noexcept override;
-
         /// <inheritdoc />
         const Size2d& size() const noexcept override;
 
@@ -1409,18 +1391,39 @@ namespace LiteFX::Rendering::Backends {
         size_t getHeight() const noexcept override;
 
         /// <inheritdoc />
+        void mapRenderTarget(const RenderTarget& renderTarget, UInt32 index) override;
+
+        /// <inheritdoc />
+        void unmapRenderTarget(const RenderTarget& renderTarget) noexcept override;
+
+        /// <inheritdoc />
         SharedPtr<const VulkanCommandBuffer> commandBuffer(UInt32 index) const override;
 
         /// <inheritdoc />
         Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers() const noexcept override;
 
         /// <inheritdoc />
-        Enumerable<IVulkanImage*> images() const noexcept override;
+        Enumerable<const IVulkanImage*> images() const noexcept override;
 
         /// <inheritdoc />
-        IVulkanImage& image(UInt32 location) const override;
+        inline const IVulkanImage& operator[](UInt32 index) const {
+            return this->image(index);
+        }
 
-    public:
+        /// <inheritdoc />
+        const IVulkanImage& image(UInt32 index) const override;
+
+        /// <inheritdoc />
+        inline const IVulkanImage& operator[](const RenderTarget& renderTarget) const {
+            return this->image(renderTarget);
+        }
+
+        /// <inheritdoc />
+        const IVulkanImage& image(const RenderTarget& renderTarget) const override;
+
+        /// <inheritdoc />
+        void addImage(const String& name, Format format, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) override;
+
         /// <inheritdoc />
         void resize(const Size2d& renderArea) override;
     };
@@ -1979,6 +1982,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         [[nodiscard]] UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
+
+        /// <inheritdoc />
+        [[nodiscard]] UniquePtr<VulkanFrameBuffer> makeFrameBuffer(const Size2d& renderArea) const noexcept override;
 
         /// <inheritdoc />
         MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept override;

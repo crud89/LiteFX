@@ -11,22 +11,16 @@ public:
 	friend class VulkanFrameBuffer;
 
 private:
-    const VulkanRenderPass& m_renderPass;
-    Array<UniquePtr<IVulkanImage>> m_outputAttachments;
-    Array<IVulkanImage*> m_renderTargetViews;
-	Array<SharedPtr<VulkanCommandBuffer>> m_commandBuffers;
-    Array<VkImageView> m_attachmentViews;
+    Array<UniquePtr<IVulkanImage>> m_images;
+    Array<VkImageView> m_imageViews;
+    Dictionary<UInt64, IVulkanImage*> m_mappedRenderTargets;
 	Size2d m_size;
-    UInt32 m_bufferIndex;
-    UInt64 m_lastFence{ 0 };
+    const VulkanDevice& m_device;
 
 public:
-    VulkanFrameBufferImpl(VulkanFrameBuffer* parent, const VulkanRenderPass& renderPass, UInt32 bufferIndex, const Size2d& renderArea, UInt32 commandBuffers) :
-        base(parent), m_bufferIndex(bufferIndex), m_size(renderArea), m_renderPass(renderPass)
+    VulkanFrameBufferImpl(VulkanFrameBuffer* parent, const VulkanDevice& device, const Size2d& renderArea) :
+        base(parent), m_device(device), m_size(renderArea)
 	{
-        // Retrieve a command buffer from the graphics queue.
-        m_commandBuffers.resize(commandBuffers);
-        std::ranges::generate(m_commandBuffers, [this]() { return m_renderPass.commandQueue().createCommandBuffer(false, true); });
 	}
 
     ~VulkanFrameBufferImpl()
@@ -37,19 +31,16 @@ public:
 public:
     void cleanup()
     {
-        for (auto& view : m_attachmentViews)
-            ::vkDestroyImageView(m_renderPass.device().handle(), view, nullptr);
+        for (auto& view : m_imageViews)
+            ::vkDestroyImageView(m_device.handle(), view, nullptr);
 
-        m_attachmentViews.clear();
+        m_imageViews.clear();
     }
 
-	VkFramebuffer initialize()
+	void initialize()
 	{
-        // Get a reference to the device, the parent render pass is created on.
-        const auto& device = m_renderPass.device();
-
         // Define a factory callback for an image view.
-        auto getImageView = [&](const IVulkanImage* image) -> VkImageView {
+        auto getImageView = [&](const UniquePtr<IVulkanImage>& image) -> VkImageView {
             VkImageViewCreateInfo createInfo = {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
                 .pNext = nullptr,
@@ -81,107 +72,41 @@ public:
             }
 
             VkImageView imageView;
-            raiseIfFailed(::vkCreateImageView(device.handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
+            raiseIfFailed(::vkCreateImageView(m_device.handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
             return imageView;
         };
 
-        // Clear earlier images.
-        m_renderTargetViews.clear();
-        m_outputAttachments.clear();
 
-        // Retrieve the image views for the input and output attachments. Start with the input attachments.
-        // NOTE: We assume, that the parent render pass provides the attachments in an sorted manner.
-        std::ranges::for_each(m_renderPass.inputAttachments(), [&, i = 0](const VulkanRenderPassDependency& inputAttachment) mutable {
-            if (inputAttachment.renderTarget().type() == RenderTargetType::Present)
-                throw InvalidArgumentException("renderPass", "The input attachment mapped to location {0} is a present target, which cannot be used as input attachment.", i);
-
-            if (inputAttachment.inputAttachmentSource() == nullptr)
-                throw InvalidArgumentException("renderPass", "The input attachment mapped to location {0} has no initialized source.", i);
-
-            // Store the image view from the source frame buffer.
-            auto imageView = getImageView(&inputAttachment.inputAttachmentSource()->frameBuffer(m_bufferIndex).image(i++));
-            m_attachmentViews.push_back(imageView);
-        });
-
-        // Initialize the output attachments from render targets of the parent render pass.
-        // NOTE: Again, we assume, that the parent render pass provides the render targets in an sorted manner.
-        auto samples = m_renderPass.multiSamplingLevel();
-
-        std::ranges::for_each(m_renderPass.renderTargets(), [&, i = 0](const RenderTarget& renderTarget) mutable {
-            if (renderTarget.location() != i++) [[unlikely]]
-                LITEFX_WARNING(VULKAN_LOG, "Remapped render target from location {0} to location {1}. Please make sure that the render targets are sorted within the render pass and do not have any gaps in their location mappings.", renderTarget.location(), i - 1);
-
-            if (renderTarget.type() == RenderTargetType::Present && samples == MultiSamplingLevel::x1)
-            {
-                // If the render target is a present target, acquire an image view from the swap chain.
-                auto image = device.swapChain().image(m_bufferIndex);
-                m_renderTargetViews.push_back(image);
-                m_attachmentViews.push_back(getImageView(image));
-            }
-            else
-            {
-                // Create an image view for the render target.
-                auto image = device.factory().createAttachment(renderTarget, m_size, samples);
-                m_attachmentViews.push_back(getImageView(image.get()));
-                m_renderTargetViews.push_back(image.get());
-                m_outputAttachments.push_back(std::move(image));
-            }
-        });
-
-        // If we have a present target and multi sampling is enabled, make sure to add a view for the resolve attachment.
-        if (samples > MultiSamplingLevel::x1 && std::ranges::any_of(m_renderPass.renderTargets(), [](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::Present; }))
-        {
-            auto image = device.swapChain().image(m_bufferIndex);
-            m_renderTargetViews.push_back(image);
-            m_attachmentViews.push_back(getImageView(image));
-        }
-
-        // Allocate the frame buffer.
-        VkFramebufferCreateInfo frameBufferInfo{};
-        frameBufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        frameBufferInfo.renderPass = m_renderPass.handle();
-        frameBufferInfo.attachmentCount = static_cast<UInt32>(m_attachmentViews.size());
-        frameBufferInfo.pAttachments = m_attachmentViews.data();
-        frameBufferInfo.width = m_size.width();
-        frameBufferInfo.height = m_size.height();
-        frameBufferInfo.layers = 1;
-
-        VkFramebuffer frameBuffer;
-        raiseIfFailed(::vkCreateFramebuffer(device.handle(), &frameBufferInfo, nullptr, &frameBuffer), "Unable to create frame buffer from swap chain frame.");
-
-        return frameBuffer;
+        // Create the image views for each image.
+        m_imageViews = m_images | std::views::transform(getImageView) | std::ranges::to<Array<VkImageView>>();
 	}
+
+    void resize(const Size2d& renderArea)
+    {
+        // TODO: Resize/Re-allocate all images.
+        m_size = renderArea;
+
+        // Recreate all resources.
+        auto images = m_images |
+            std::views::transform([&](const UniquePtr<IVulkanImage>& image) { return m_device.factory().createTexture(image->name(), image->format(), renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage()); }) |
+            std::views::as_rvalue | std::ranges::to<Array<UniquePtr<IVulkanImage>>>();
+        m_images = std::move(images);
+
+        // Re-initialize to update heaps and descriptors.
+        this->initialize();
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanFrameBuffer::VulkanFrameBuffer(const VulkanRenderPass& renderPass, UInt32 bufferIndex, const Size2d& renderArea, UInt32 commandBuffers) :
-	m_impl(makePimpl<VulkanFrameBufferImpl>(this, renderPass, bufferIndex, renderArea, commandBuffers)), Resource<VkFramebuffer>(VK_NULL_HANDLE)
+VulkanFrameBuffer::VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea) :
+	m_impl(makePimpl<VulkanFrameBufferImpl>(this, device, renderArea))
 {
-    this->handle() = m_impl->initialize();
 }
 
-VulkanFrameBuffer::~VulkanFrameBuffer() noexcept
-{
-    ::vkDestroyFramebuffer(m_impl->m_renderPass.device().handle(), this->handle(), nullptr);
-}
-
-UInt64& VulkanFrameBuffer::lastFence() noexcept
-{
-    return m_impl->m_lastFence;
-}
-
-UInt64 VulkanFrameBuffer::lastFence() const noexcept
-{
-    return m_impl->m_lastFence;
-}
-
-UInt32 VulkanFrameBuffer::bufferIndex() const noexcept
-{
-    return m_impl->m_bufferIndex;
-}
+VulkanFrameBuffer::~VulkanFrameBuffer() noexcept = default;
 
 const Size2d& VulkanFrameBuffer::size() const noexcept
 {
@@ -198,39 +123,61 @@ size_t VulkanFrameBuffer::getHeight() const noexcept
 	return m_impl->m_size.height();
 }
 
+void VulkanFrameBuffer::mapRenderTarget(const RenderTarget& renderTarget, UInt32 index)
+{
+    if (index >= m_impl->m_images.size()) [[unlikely]]
+        throw ArgumentOutOfRangeException("index", 0u, static_cast<UInt32>(m_impl->m_images.size()), index, "The frame buffer does not contain an image at index {0}.", index);
+
+    m_impl->m_mappedRenderTargets[renderTarget.identifier()] = m_impl->m_images[index].get();
+}
+
+void VulkanFrameBuffer::unmapRenderTarget(const RenderTarget& renderTarget) noexcept
+{
+    m_impl->m_mappedRenderTargets.erase(renderTarget.identifier());
+}
+
 SharedPtr<const VulkanCommandBuffer> VulkanFrameBuffer::commandBuffer(UInt32 index) const
 {
-    if (index >= static_cast<UInt32>(m_impl->m_commandBuffers.size())) [[unlikely]]
-        throw ArgumentOutOfRangeException("index", 0u, static_cast<UInt32>(m_impl->m_commandBuffers.size()), index, "No command buffer with index {1} is stored in the frame buffer. The frame buffer only contains {0} command buffers.", m_impl->m_commandBuffers.size(), index);
-
-	return m_impl->m_commandBuffers[index];
+    throw;
 }
 
 Enumerable<SharedPtr<const VulkanCommandBuffer>> VulkanFrameBuffer::commandBuffers() const noexcept
 {
-    return m_impl->m_commandBuffers;
+    throw;
 }
 
-Enumerable<IVulkanImage*> VulkanFrameBuffer::images() const noexcept
+Enumerable<const IVulkanImage*> VulkanFrameBuffer::images() const noexcept
 {
-    return m_impl->m_renderTargetViews;
+    return m_impl->m_images | std::views::transform([](auto& image) { return image.get(); });
 }
 
-IVulkanImage& VulkanFrameBuffer::image(UInt32 location) const
+const IVulkanImage& VulkanFrameBuffer::image(UInt32 index) const
 {
-    if (location >= m_impl->m_renderTargetViews.size())
-        throw ArgumentOutOfRangeException("location", 0u, static_cast<UInt32>(m_impl->m_renderTargetViews.size()), location, "No render target is mapped to location {0}.", location);
+    if (index >= m_impl->m_images.size())
+        throw ArgumentOutOfRangeException("index", 0u, static_cast<UInt32>(m_impl->m_images.size()), index, "The frame buffer does not contain an image at index {0}.", index);
 
-    return *m_impl->m_renderTargetViews[location];
+    return *m_impl->m_images[index];
+}
+
+const IVulkanImage& VulkanFrameBuffer::image(const RenderTarget& renderTarget) const
+{
+    if (!m_impl->m_mappedRenderTargets.contains(renderTarget.identifier())) [[unlikely]]
+        throw InvalidArgumentException("renderTarget", "The frame buffer does not map an image to the provided render target \"{0}\".", renderTarget.name());
+
+    return *m_impl->m_mappedRenderTargets[renderTarget.identifier()];
+}
+
+void VulkanFrameBuffer::addImage(const String& name, Format format, MultiSamplingLevel samples, ResourceUsage usage)
+{
+    // Add a new image.
+    m_impl->m_images.push_back(std::move(m_impl->m_device.factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage)));
+
+    // Re-initialize to reset descriptor heaps and allocate descriptors.
+    m_impl->initialize();
 }
 
 void VulkanFrameBuffer::resize(const Size2d& renderArea)
 {
-    // Destroy the old frame buffer.
-    ::vkDestroyFramebuffer(m_impl->m_renderPass.device().handle(), this->handle(), nullptr);
-
     // Reset the size and re-initialize the frame buffer.
-    m_impl->m_size = renderArea;
-    m_impl->cleanup();
-    this->handle() = m_impl->initialize();
+    m_impl->resize(renderArea);
 }
