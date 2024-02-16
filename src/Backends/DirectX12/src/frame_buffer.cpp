@@ -152,6 +152,9 @@ void DirectX12FrameBuffer::mapRenderTarget(const RenderTarget& renderTarget, UIn
     if (index >= m_impl->m_images.size()) [[unlikely]]
         throw ArgumentOutOfRangeException("index", 0u, static_cast<UInt32>(m_impl->m_images.size()), index, "The frame buffer does not contain an image at index {0}.", index);
 
+    if (m_impl->m_images[index]->format() != renderTarget.format()) [[unlikely]]
+        LITEFX_WARNING(DIRECTX12_LOG, "The render target format {0} does not match the image format {1} for image {2}.", renderTarget.format(), m_impl->m_images[index]->format(), index);
+
     m_impl->m_mappedRenderTargets[renderTarget.identifier()] = m_impl->m_images[index].get();
 }
 
