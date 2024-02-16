@@ -277,11 +277,6 @@ Enumerable<IDirectX12Image*> DirectX12SwapChain::images() const noexcept
 	return m_impl->m_presentImages | std::views::transform([](UniquePtr<IDirectX12Image>& image) { return image.get(); });
 }
 
-void DirectX12SwapChain::present(const DirectX12FrameBuffer& frameBuffer) const
-{
-	this->present(frameBuffer.lastFence());
-}
-
 void DirectX12SwapChain::present(UInt64 fence) const
 {
 	// Store the last fence here that marks the end of the rendering to this frame buffer. Presenting is queued after rendering anyway, but when swapping the back buffers buffers,

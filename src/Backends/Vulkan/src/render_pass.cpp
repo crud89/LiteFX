@@ -556,7 +556,6 @@ void VulkanRenderPass::begin(UInt32 buffer)
     m_impl->m_backBuffer = buffer;
 
     // Begin the command recording on the frame buffers command buffer. Before we can do that, we need to make sure it has not being executed anymore.
-    m_impl->m_queue->waitFor(frameBuffer->lastFence());
     commandBuffer->begin();
 
     // Begin the render pass.
@@ -600,7 +599,7 @@ UInt64 VulkanRenderPass::end() const
     ::vkCmdEndRenderPass(std::as_const(*commandBuffer).handle());
 
     // Submit the command buffer.
-    frameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffer);
+    auto fence = m_impl->m_queue->submit(commandBuffer);
 
     // Present the swap chain.
     if (this->hasPresentTarget())
@@ -611,7 +610,7 @@ UInt64 VulkanRenderPass::end() const
     m_impl->m_activeCommandBuffer = nullptr;
 
     // Return the last fence.
-    return frameBuffer->lastFence();
+    return fence;
 }
 
 void VulkanRenderPass::resizeRenderArea(const Size2d& renderArea)

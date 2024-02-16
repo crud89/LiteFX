@@ -1640,7 +1640,6 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         using base_type = SwapChain<IVulkanImage, VulkanFrameBuffer>;
-        using base_type::present;
 
     public:
         /// <summary>
@@ -1691,9 +1690,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         Enumerable<IVulkanImage*> images() const noexcept override;
-
-        /// <inheritdoc />
-        void present(const VulkanFrameBuffer& frameBuffer) const override;
 
         /// <inheritdoc />
         void present(UInt64 fence) const override;

@@ -7347,12 +7347,6 @@ namespace LiteFX::Rendering {
         };
 
         /// <summary>
-        /// Queues a present that gets executed after <paramref name="frameBuffer" /> signals its readiness.
-        /// </summary>
-        /// <param name="frameBuffer">The frame buffer for which the present should wait.</param>
-        virtual void present(const IFrameBuffer& frameBuffer) const = 0;
-
-        /// <summary>
         /// Queues a present that gets executed after <paramref name="fence" /> has been signaled on the default graphics queue.
         /// </summary>
         /// <remarks>

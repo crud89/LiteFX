@@ -1031,17 +1031,6 @@ namespace LiteFX::Rendering {
         /// <inheritdoc />
         virtual Enumerable<image_interface_type*> images() const noexcept = 0;
 
-        /// <summary>
-        /// Queues a present that gets executed after <paramref name="frameBuffer" /> signals its readiness.
-        /// </summary>
-        /// <param name="frameBuffer">The frame buffer for which the present should wait.</param>
-        virtual void present(const frame_buffer_type& frameBuffer) const = 0;
-
-        /// <inheritdoc />
-        inline void present(const IFrameBuffer& frameBuffer) const override {
-            this->present(dynamic_cast<const frame_buffer_type&>(frameBuffer));
-        }
-
     private:
         inline Enumerable<IImage*> getImages() const noexcept override {
             return this->images();

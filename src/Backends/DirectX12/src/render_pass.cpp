@@ -374,7 +374,6 @@ void DirectX12RenderPass::begin(UInt32 buffer)
     const auto& context = m_impl->m_contexts[buffer];
 
     // Begin the command recording on the frame buffers command buffer. Before we can do that, we need to make sure it has not being executed anymore.
-    //m_impl->m_queue.waitFor(frameBuffer->lastFence());   // Done by swapping back buffers.
     auto& beginCommandBuffer = m_impl->m_beginCommandBuffers[buffer];
     beginCommandBuffer->begin();
 
@@ -499,7 +498,7 @@ UInt64 DirectX12RenderPass::end() const
     commandBuffers.push_back(endCommandBuffer);
 
     // Submit and store the fence.
-    UInt64 fence = m_impl->m_activeFrameBuffer->lastFence() = m_impl->m_queue->submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const DirectX12CommandBuffer>>>());
+    auto fence = m_impl->m_queue->submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const DirectX12CommandBuffer>>>());
 
     if (!m_impl->m_name.empty())
         m_impl->m_queue->endDebugRegion();
@@ -508,7 +507,7 @@ UInt64 DirectX12RenderPass::end() const
     //       frame in the queue has been drawn and the back buffer can be written again.
     //       Instead of blocking, we could also use a wait-able swap chain (https://www.gamedev.net/forums/topic/677527-dx12-fences-and-swap-chain-present/).
     if (m_impl->m_presentTarget != nullptr)
-        swapChain.present(*frameBuffer);
+        swapChain.present(fence);
 
     // Reset the frame buffer.
     m_impl->m_activeFrameBuffer = nullptr;

@@ -1681,7 +1681,6 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         using base_type = SwapChain<IDirectX12Image, DirectX12FrameBuffer>;
-        using base_type::present;
 
     public:
         /// <summary>
@@ -1738,9 +1737,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         Enumerable<IDirectX12Image*> images() const noexcept override;
-
-        /// <inheritdoc />
-        void present(const DirectX12FrameBuffer& frameBuffer) const override;
 
         /// <inheritdoc />
         void present(UInt64 fence) const override;
