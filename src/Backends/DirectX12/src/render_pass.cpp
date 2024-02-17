@@ -38,6 +38,9 @@ public:
     {
         this->mapRenderTargets(renderTargets);
         this->mapInputAttachments(inputAttachments);
+
+        if (secondaryCommandBuffers == 0) [[unlikely]]
+            LITEFX_WARNING(DIRECTX12_LOG, "Secondary command buffer count for this render pass is 0, which makes it prevents recording draw commands to this render pass.");
     }
 
     DirectX12RenderPassImpl(DirectX12RenderPass* parent, const DirectX12Device& device) :
@@ -304,9 +307,9 @@ UInt32 DirectX12RenderPass::secondaryCommandBuffers() const noexcept
     return m_impl->m_secondaryCommandBufferCount;
 }
 
-Enumerable<const RenderTarget*> DirectX12RenderPass::renderTargets() const noexcept
+const Array<RenderTarget>& DirectX12RenderPass::renderTargets() const noexcept
 {
-    return m_impl->m_renderTargets | std::views::transform([](auto& renderTarget) { return &renderTarget; });
+    return m_impl->m_renderTargets;
 }
 
 const RenderTarget& DirectX12RenderPass::renderTarget(UInt32 location) const
@@ -322,9 +325,9 @@ bool DirectX12RenderPass::hasPresentTarget() const noexcept
     return m_impl->m_presentTarget != nullptr;
 }
 
-Enumerable<const RenderPassDependency*> DirectX12RenderPass::inputAttachments() const noexcept
+const Array<RenderPassDependency>& DirectX12RenderPass::inputAttachments() const noexcept
 {
-    return m_impl->m_inputAttachments | std::views::transform([](auto& inputAttachment) { return &inputAttachment; });
+    return m_impl->m_inputAttachments;
 }
 
 const RenderPassDependency& DirectX12RenderPass::inputAttachment(UInt32 location) const 

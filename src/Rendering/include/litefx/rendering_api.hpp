@@ -2026,6 +2026,21 @@ namespace LiteFX::Rendering {
         void add(const String& id, UniquePtr<IRenderPass>&& renderPass);
 
         /// <summary>
+        /// Adds a new frame buffer to the device state and uses its name as identifier.
+        /// </summary>
+        /// <param name="frameBuffer">The render pass to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another frame buffer with the same identifier has already been added.</exception>
+        void add(UniquePtr<IFrameBuffer>&& frameBuffer);
+
+        /// <summary>
+        /// Adds a new frame buffer to the device state.
+        /// </summary>
+        /// <param name="id">The identifier for the frame buffer.</param>
+        /// <param name="renderPass">The frame buffer to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another frame buffer with the same <paramref name="id" /> has already been added.</exception>
+        void add(const String& id, UniquePtr<IFrameBuffer>&& frameBuffer);
+
+        /// <summary>
         /// Adds a new pipeline to the device state and uses its name as identifier.
         /// </summary>
         /// <param name="pipeline">The pipeline to add to the device state.</param>
@@ -2147,6 +2162,14 @@ namespace LiteFX::Rendering {
         IRenderPass& renderPass(const String& id) const;
 
         /// <summary>
+        /// Returns a frame buffer from the device state.
+        /// </summary>
+        /// <param name="id">The identifier associated with the frame buffer.</param>
+        /// <returns>A reference of the frame buffer.</returns>
+        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no frame buffer has been added for the provided <paramref name="id" />.</exception>
+        IFrameBuffer& frameBuffer(const String& id) const;
+
+        /// <summary>
         /// Returns a pipeline from the device state.
         /// </summary>
         /// <param name="id">The identifier associated with the pipeline.</param>
@@ -2221,6 +2244,13 @@ namespace LiteFX::Rendering {
         /// <param name="renderPass">The render pass to release.</param>
         /// <returns><c>true</c>, if the render pass was properly released, <c>false</c> otherwise.</returns>
         bool release(const IRenderPass& renderPass);
+
+        /// <summary>
+        /// Releases a frame buffer.
+        /// </summary>
+        /// <param name="renderPass">The frame buffer to release.</param>
+        /// <returns><c>true</c>, if the frame buffer was properly released, <c>false</c> otherwise.</returns>
+        bool release(const IFrameBuffer& frameBuffer);
 
         /// <summary>
         /// Releases a pipeline.
@@ -6861,7 +6891,7 @@ namespace LiteFX::Rendering {
     /// overwrite the mapping. It is also possible to remove a render target mapping by calling <see cref="IFrameBuffer::unmapRenderTarget" />. This will result in future attempts
     /// to resolve this render target using the frame buffer instance to fail.
     /// </remarks>
-    class LITEFX_RENDERING_API IFrameBuffer {
+    class LITEFX_RENDERING_API IFrameBuffer : public virtual IStateResource {
     public:
         /// <summary>
         /// Event arguments that are published to subscribers when a frame buffer gets resized.
@@ -7118,7 +7148,7 @@ namespace LiteFX::Rendering {
         /// <param name="samples">The number of samples of the image.</param>
         /// <param name="usage">The desired resource usage flags for the image.</param>
         inline void addImage(const RenderTarget& renderTarget, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) {
-            this->addImage("", renderTarget, samples, usage);
+            this->addImage(fmt::format("{0} image", renderTarget.name()), renderTarget, samples, usage);
         }
 
         /// <summary>
@@ -7153,12 +7183,8 @@ namespace LiteFX::Rendering {
         /// <param name="samples">The number of samples of the image.</param>
         /// <param name="usage">The desired resource usage flags for the image.</param>
         template <typename TSelf>
-        inline auto addImages(this TSelf&& self, Span<const RenderTarget*> renderTargets, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
-            std::ranges::for_each(renderTargets, [&](auto renderTarget) {
-                if (renderTarget != nullptr)
-                    self.addImage(fmt::format("{0} image", renderTarget->name()), *renderTarget, samples, usage);
-            });
-
+        inline auto addImages(this TSelf&& self, Span<const RenderTarget> renderTargets, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
+            std::ranges::for_each(renderTargets, [&](auto& renderTarget) { self.addImage(fmt::format("{0} image", renderTarget.name()), renderTarget, samples, usage); });
             return std::forward<TSelf>(self);
         }
 
@@ -7289,7 +7315,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>A list of render targets, the render pass renders into.</returns>
         /// <seealso cref="IFrameBuffer" />
-        virtual Enumerable<const RenderTarget*> renderTargets() const noexcept = 0;
+        virtual const Array<RenderTarget>& renderTargets() const noexcept = 0;
 
         /// <summary>
         /// Returns the render target mapped to the location provided by <paramref name="location" />.
@@ -7309,7 +7335,7 @@ namespace LiteFX::Rendering {
         /// Returns the input attachment the render pass is consuming.
         /// </summary>
         /// <returns>An array of input attachment mappings, that are mapped to the render pass.</returns>
-        virtual Enumerable<const RenderPassDependency*> inputAttachments() const noexcept = 0;
+        virtual const Array<RenderPassDependency>& inputAttachments() const noexcept = 0;
 
         /// <summary>
         /// Returns the input attachment at a <paramref name="location" />.
@@ -8359,7 +8385,17 @@ namespace LiteFX::Rendering {
         /// <param name="renderArea">The initial render area of the frame buffer.</param>
         /// <returns>The instance of the frame buffer.</returns>
         inline [[nodiscard]] UniquePtr<IFrameBuffer> makeFrameBuffer(const Size2d& renderArea) const noexcept {
-            return this->getNewFrameBuffer(renderArea);
+            return this->makeFrameBuffer("", renderArea);
+        }
+
+        /// <summary>
+        /// Creates a new frame buffer instance.
+        /// </summary>
+        /// <param name="name">The name of the frame buffer.</param>
+        /// <param name="renderArea">The initial render area of the frame buffer.</param>
+        /// <returns>The instance of the frame buffer.</returns>
+        inline [[nodiscard]] UniquePtr<IFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept {
+            return this->getNewFrameBuffer(name, renderArea);
         }
 
         /// <summary>
@@ -8432,7 +8468,7 @@ namespace LiteFX::Rendering {
 
     private:
         virtual UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
-        virtual UniquePtr<IFrameBuffer> getNewFrameBuffer(const Size2d& renderArea) const noexcept = 0;
+        virtual UniquePtr<IFrameBuffer> getNewFrameBuffer(StringView name, const Size2d& renderArea) const noexcept = 0;
         virtual const ICommandQueue& getDefaultQueue(QueueType type) const = 0;
         virtual const ICommandQueue* getNewQueue(QueueType type, QueuePriority priority) noexcept = 0;
     };

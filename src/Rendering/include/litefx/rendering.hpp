@@ -870,7 +870,7 @@ namespace LiteFX::Rendering {
     /// <seealso cref="RenderTarget" />
     template <typename TCommandBuffer> requires
         meta::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type, typename TCommandBuffer::bottom_level_acceleration_structure_type, typename TCommandBuffer::top_level_acceleration_structure_type>>
-    class FrameBuffer : public IFrameBuffer {
+    class FrameBuffer : public virtual StateResource, public IFrameBuffer {
     public:
         using image_type = TCommandBuffer::image_type;
 
@@ -1271,14 +1271,19 @@ namespace LiteFX::Rendering {
         virtual [[nodiscard]] UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual [[nodiscard]] UniquePtr<frame_buffer_type> makeFrameBuffer(const Size2d& renderArea) const noexcept = 0;
+        inline [[nodiscard]] UniquePtr<frame_buffer_type> makeFrameBuffer(const Size2d& renderArea) const noexcept {
+            return this->makeFrameBuffer("", renderArea);
+        }
+
+        /// <inheritdoc />
+        virtual [[nodiscard]] UniquePtr<frame_buffer_type> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept = 0;
 
     private:
         inline UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override {
             return this->makeBarrier(syncBefore, syncAfter);
         }
 
-        inline UniquePtr<IFrameBuffer> getNewFrameBuffer(const Size2d& renderArea) const noexcept override {
+        inline UniquePtr<IFrameBuffer> getNewFrameBuffer(StringView name, const Size2d& renderArea) const noexcept override {
             return this->makeFrameBuffer(renderArea);
         }
 

@@ -121,7 +121,7 @@ public:
 		D3D12_BLEND_DESC blendState = {};
 		D3D12_DEPTH_STENCIL_DESC depthStencilState = {};
 		auto targets = m_renderPass.renderTargets();
-		UInt32 renderTargets = std::ranges::count_if(targets, [](const RenderTarget* renderTarget) { return renderTarget->type() != RenderTargetType::DepthStencil; });
+		UInt32 renderTargets = std::ranges::count_if(targets, [](auto& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; });
 		UInt32 depthStencilTargets = static_cast<UInt32>(targets.size()) - renderTargets;
 		DXGI_FORMAT dsvFormat { };
 		std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT> rtvFormats { };
@@ -134,11 +134,11 @@ public:
 		if (depthStencilTargets > 1) [[unlikely]]
 			throw RuntimeException("You have specified too many render targets: only 1 depth/stencil target is allowed, but {0} have been specified.", depthStencilTargets);
 
-		std::ranges::for_each(targets, [&, i = 0](const RenderTarget* renderTarget) mutable {
-			if (renderTarget->type() == RenderTargetType::DepthStencil)
+		std::ranges::for_each(targets, [&, i = 0](auto& renderTarget) mutable {
+			if (renderTarget.type() == RenderTargetType::DepthStencil)
 			{
 				// Setup depth/stencil format.
-				dsvFormat = DX12::getFormat(renderTarget->format());
+				dsvFormat = DX12::getFormat(renderTarget.format());
 
 				// Setup depth/stencil state.
 				// TODO: From depth/stencil state.
@@ -162,18 +162,18 @@ public:
 			{
 				// Setup target formats.
 				UInt32 target = i++;
-				rtvFormats[target] = DX12::getFormat(renderTarget->format());
+				rtvFormats[target] = DX12::getFormat(renderTarget.format());
 
 				// Setup the blend state.
 				auto& targetBlendState = blendState.RenderTarget[target];
-				targetBlendState.BlendEnable = renderTarget->blendState().Enable;
-				targetBlendState.RenderTargetWriteMask = static_cast<D3D12_COLOR_WRITE_ENABLE>(renderTarget->blendState().WriteMask);
-				targetBlendState.SrcBlend = DX12::getBlendFactor(renderTarget->blendState().SourceColor);
-				targetBlendState.SrcBlendAlpha = DX12::getBlendFactor(renderTarget->blendState().SourceAlpha);
-				targetBlendState.DestBlend = DX12::getBlendFactor(renderTarget->blendState().DestinationColor);
-				targetBlendState.DestBlendAlpha = DX12::getBlendFactor(renderTarget->blendState().DestinationAlpha);
-				targetBlendState.BlendOp = DX12::getBlendOperation(renderTarget->blendState().ColorOperation);
-				targetBlendState.BlendOpAlpha = DX12::getBlendOperation(renderTarget->blendState().AlphaOperation);
+				targetBlendState.BlendEnable = renderTarget.blendState().Enable;
+				targetBlendState.RenderTargetWriteMask = static_cast<D3D12_COLOR_WRITE_ENABLE>(renderTarget.blendState().WriteMask);
+				targetBlendState.SrcBlend = DX12::getBlendFactor(renderTarget.blendState().SourceColor);
+				targetBlendState.SrcBlendAlpha = DX12::getBlendFactor(renderTarget.blendState().SourceAlpha);
+				targetBlendState.DestBlend = DX12::getBlendFactor(renderTarget.blendState().DestinationColor);
+				targetBlendState.DestBlendAlpha = DX12::getBlendFactor(renderTarget.blendState().DestinationAlpha);
+				targetBlendState.BlendOp = DX12::getBlendOperation(renderTarget.blendState().ColorOperation);
+				targetBlendState.BlendOpAlpha = DX12::getBlendOperation(renderTarget.blendState().AlphaOperation);
 
 				// TODO: We should also implement this, but this restricts all blend states to be equal and IndependentBlendEnable set to false.
 				targetBlendState.LogicOp = D3D12_LOGIC_OP::D3D12_LOGIC_OP_COPY;
@@ -319,7 +319,7 @@ public:
 	{
 		// Find out how many descriptor sets there are within the input attachments and which descriptors are bound.
 		Dictionary<UInt32, Array<UInt32>> descriptorsPerSet;
-		std::ranges::for_each(m_renderPass.inputAttachments(), [&descriptorsPerSet](auto dependency) { descriptorsPerSet[dependency->binding().Space].push_back(dependency->binding().Register); });
+		std::ranges::for_each(m_renderPass.inputAttachments(), [&descriptorsPerSet](auto& dependency) { descriptorsPerSet[dependency.binding().Space].push_back(dependency.binding().Register); });
 
 		// Validate the descriptor sets, so that no descriptors are bound twice all descriptor sets are fully bound.
 		for (auto& [set, descriptors] : descriptorsPerSet)
@@ -370,15 +370,15 @@ public:
 		std::is_convertible_v<std::ranges::range_value_t<decltype(descriptorSets)>, UInt32>
 	{
 		// Allocate the bindings array.
-		auto interfacePointer = static_cast<const IFrameBuffer*>(frameBuffer);
-		auto& bindings = m_inputAttachmentBindings[frameBuffer];
+		auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
+		auto& bindings = m_inputAttachmentBindings[interfacePointer];
 
 		// Initialize the descriptor set bindings.
 		bindings.append_range(descriptorSets | std::views::transform([this](UInt32 set) { return std::move(m_layout->descriptorSet(set).allocate()); }));
 
 		// Listen to frame buffer events and update the bindings or remove the sets (on release).
-		m_frameBufferResizeTokens[interfacePointer] = frameBuffer.resized.add(std::bind(&irectX12RenderPipelineImpl::onFrameBufferResize, this, std::placeholders::_1, std::placeholders::_2));
-		m_frameBufferReleaseTokens[interfacePointer] = frameBuffer.released.add(std::bind(&irectX12RenderPipelineImpl::onFrameBufferRelease, this, std::placeholders::_1, std::placeholders::_2));
+		m_frameBufferResizeTokens[interfacePointer] = frameBuffer.resized.add(std::bind(&DirectX12RenderPipelineImpl::onFrameBufferResize, this, std::placeholders::_1, std::placeholders::_2));
+		m_frameBufferReleaseTokens[interfacePointer] = frameBuffer.released.add(std::bind(&DirectX12RenderPipelineImpl::onFrameBufferRelease, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	void updateInputAttachmentBindings(const DirectX12FrameBuffer& frameBuffer)
@@ -388,13 +388,13 @@ public:
 		auto& bindings = m_inputAttachmentBindings.at(interfacePointer);
 
 		// Iterate the dependencies and update the binding for each one.
-		std::ranges::for_each(m_renderPass.inputAttachments(), [&](auto dependency) {
+		std::ranges::for_each(m_renderPass.inputAttachments(), [&](auto& dependency) {
 			for (auto& binding : bindings)
 			{
-				if (binding->layout().space() == dependency->binding().Space)
+				if (binding->layout().space() == dependency.binding().Space)
 				{
 					// Attach the image from the right frame buffer to the descriptor set.
-					binding->update(dependency->binding().Register, frameBuffer[dependency->renderTarget()]);
+					binding->update(dependency.binding().Register, frameBuffer[dependency.renderTarget()]);
 					break;
 				}
 			}

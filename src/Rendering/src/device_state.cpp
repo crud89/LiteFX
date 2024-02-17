@@ -12,6 +12,7 @@ public:
 
 private:
     Dictionary<String, UniquePtr<IRenderPass>> m_renderPasses;
+    Dictionary<String, UniquePtr<IFrameBuffer>> m_frameBuffers;
     Dictionary<String, UniquePtr<IPipeline>> m_pipelines;
     Dictionary<String, UniquePtr<IBuffer>> m_buffers;
     Dictionary<String, UniquePtr<IVertexBuffer>> m_vertexBuffers;
@@ -94,6 +95,12 @@ void DeviceState::clear()
         pair.second = nullptr;
 
     m_impl->m_renderPasses.clear();
+
+    // Clear the frame buffers.
+    for (auto& pair : m_impl->m_frameBuffers)
+        pair.second = nullptr;
+
+    m_impl->m_frameBuffers.clear();
 }
 
 void DeviceState::add(UniquePtr<IRenderPass>&& renderPass)
@@ -110,6 +117,22 @@ void DeviceState::add(const String& id, UniquePtr<IRenderPass>&& renderPass)
         throw InvalidArgumentException("id", "Another render pass with the identifier \"{0}\" has already been registered in the device state.", id);
 
     m_impl->m_renderPasses.insert(std::make_pair(id, std::move(renderPass)));
+}
+
+void DeviceState::add(UniquePtr<IFrameBuffer>&& frameBuffer)
+{
+    this->add(frameBuffer->name(), std::move(frameBuffer));
+}
+
+void DeviceState::add(const String& id, UniquePtr<IFrameBuffer>&& frameBuffer)
+{
+    if (frameBuffer == nullptr) [[unlikely]]
+        throw InvalidArgumentException("frameBuffer", "The frame buffer must be initialized.");
+
+    if (m_impl->m_frameBuffers.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("id", "Another frame buffer with the identifier \"{0}\" has already been registered in the device state.", id);
+
+    m_impl->m_frameBuffers.insert(std::make_pair(id, std::move(frameBuffer)));
 }
 
 void DeviceState::add(UniquePtr<IPipeline>&& pipeline)
@@ -243,6 +266,14 @@ IRenderPass& DeviceState::renderPass(const String& id) const
     return *m_impl->m_renderPasses[id];
 }
 
+IFrameBuffer& DeviceState::frameBuffer(const String& id) const
+{
+    if (!m_impl->m_frameBuffers.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("id", "No frame buffer with the identifier \"{0}\" has been registered in the device state.", id);
+
+    return *m_impl->m_frameBuffers[id];
+}
+
 IPipeline& DeviceState::pipeline(const String& id) const
 {
     if (!m_impl->m_pipelines.contains(id)) [[unlikely]]
@@ -316,6 +347,19 @@ bool DeviceState::release(const IRenderPass& renderPass)
 
     match->second = nullptr;
     m_impl->m_renderPasses.erase(match->first);
+
+    return true;
+}
+
+bool DeviceState::release(const IFrameBuffer& frameBuffer)
+{
+    auto match = std::find_if(m_impl->m_frameBuffers.begin(), m_impl->m_frameBuffers.end(), [&frameBuffer](const auto& pair) { return pair.second.get() == &frameBuffer; });
+    
+    if (match == m_impl->m_frameBuffers.end()) [[unlikely]]
+        return false;
+
+    match->second = nullptr;
+    m_impl->m_frameBuffers.erase(match->first);
 
     return true;
 }

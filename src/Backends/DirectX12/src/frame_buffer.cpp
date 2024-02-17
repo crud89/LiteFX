@@ -104,8 +104,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12FrameBuffer::DirectX12FrameBuffer(const DirectX12Device& device, const Size2d& renderArea) :
-    m_impl(makePimpl<DirectX12FrameBufferImpl>(this, device, renderArea))
+DirectX12FrameBuffer::DirectX12FrameBuffer(const DirectX12Device& device, const Size2d& renderArea, StringView name) :
+    m_impl(makePimpl<DirectX12FrameBufferImpl>(this, device, renderArea)), StateResource(name)
 {
     m_impl->initialize();
 }
