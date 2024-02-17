@@ -417,7 +417,7 @@ UInt64 DirectX12RenderPass::end() const
     // Transition the present and depth/stencil views.
     // NOTE: Ending the render pass implicitly barriers with legacy resource state?!
     DirectX12Barrier renderTargetBarrier(PipelineStage::RenderTarget, PipelineStage::Fragment), depthStencilBarrier(PipelineStage::DepthStencil, PipelineStage::DepthStencil),
-        resolveBarrier(PipelineStage::RenderTarget, PipelineStage::Resolve), presentBarrier(PipelineStage::RenderTarget, PipelineStage::None);
+        resolveBarrier(PipelineStage::RenderTarget, PipelineStage::Resolve), presentBarrier(PipelineStage::RenderTarget, PipelineStage::Transfer);
     std::ranges::for_each(m_impl->m_renderTargets, [&](const RenderTarget& renderTarget) {
         //if (renderTarget.multiQueueAccess())
         //    return;  // Resources with simultaneous access enabled don't need to be transitioned.
@@ -435,7 +435,7 @@ UInt64 DirectX12RenderPass::end() const
             if (requiresResolve)
                 resolveBarrier.transition(frameBuffer[renderTarget], ResourceAccess::RenderTarget, ResourceAccess::ResolveRead, ImageLayout::RenderTarget, ImageLayout::ResolveSource);
             else
-                presentBarrier.transition(frameBuffer[renderTarget], ResourceAccess::RenderTarget, ResourceAccess::None, ImageLayout::RenderTarget, ImageLayout::Present);
+                presentBarrier.transition(frameBuffer[renderTarget], ResourceAccess::RenderTarget, ResourceAccess::TransferRead, ImageLayout::RenderTarget, ImageLayout::CopySource);
 
             break;
         }
@@ -459,6 +459,19 @@ UInt64 DirectX12RenderPass::end() const
         presentBarrier.transition(backBufferImage, ResourceAccess::ResolveWrite, ResourceAccess::Common, ImageLayout::ResolveDestination, ImageLayout::Present);
         presentBarrier.transition(multiSampledImage, ResourceAccess::ResolveRead, ResourceAccess::Common, ImageLayout::ResolveSource, ImageLayout::Common);
         endCommandBuffer->barrier(presentBarrier);
+    }
+    else if (this->hasPresentTarget())
+    {
+        DirectX12Barrier beginPresentBarrier(PipelineStage::None, PipelineStage::Transfer);
+        beginPresentBarrier.transition(backBufferImage, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
+        endCommandBuffer->barrier(beginPresentBarrier);
+
+        auto& presentTarget = frameBuffer[*m_impl->m_presentTarget];
+        endCommandBuffer->transfer(presentTarget, backBufferImage);
+
+        DirectX12Barrier endPresentBarrier(PipelineStage::Transfer, PipelineStage::None);
+        endPresentBarrier.transition(backBufferImage, ResourceAccess::TransferWrite, ResourceAccess::None, ImageLayout::CopyDestination, ImageLayout::Present);
+        endCommandBuffer->barrier(endPresentBarrier);
     }
 
     // If there is a present target, allow the swap chain to resolve queries for the current heap.
