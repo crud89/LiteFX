@@ -412,7 +412,7 @@ UInt64 DirectX12RenderPass::end() const
 
     // If the present target is multi-sampled, we need to resolve it to the back buffer.
     const auto& backBufferImage = m_impl->m_device.swapChain().image();
-    bool requiresResolve = this->hasPresentTarget() && backBufferImage.samples() > MultiSamplingLevel::x1;
+    bool requiresResolve = this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1;
 
     // Transition the present and depth/stencil views.
     // NOTE: Ending the render pass implicitly barriers with legacy resource state?!
