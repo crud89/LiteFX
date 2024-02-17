@@ -1458,7 +1458,7 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a DirectX 12 frame buffer.
     /// </summary>
     /// <seealso cref="DirectX12RenderPass" />
-    class LITEFX_DIRECTX12_API DirectX12FrameBuffer final : public FrameBuffer<DirectX12CommandBuffer> {
+    class LITEFX_DIRECTX12_API DirectX12FrameBuffer final : public FrameBuffer<IDirectX12Image> {
         LITEFX_IMPLEMENTATION(DirectX12FrameBufferImpl);
 
     public:

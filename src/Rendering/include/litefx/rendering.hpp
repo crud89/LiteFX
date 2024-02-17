@@ -858,13 +858,13 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Stores the images used by a <see cref="RenderPass" /> to either read from using input attachments or write to using render targets.
     /// </summary>
-    /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
+    /// <typeparam name="TImage">The type of the frame buffer images. Must be derived from <see cref="IImage"/>.</typeparam>
     /// <seealso cref="RenderTarget" />
-    template <typename TCommandBuffer> requires
-        meta::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type, typename TCommandBuffer::bottom_level_acceleration_structure_type, typename TCommandBuffer::top_level_acceleration_structure_type>>
+    template <typename TImage> requires
+        std::derived_from<TImage, IImage>
     class FrameBuffer : public virtual StateResource, public IFrameBuffer {
     public:
-        using image_type = TCommandBuffer::image_type;
+        using image_type = TImage;
 
     public:
         virtual ~FrameBuffer() noexcept = default;
@@ -940,7 +940,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
     template <typename TRenderPipeline, typename TCommandQueue, typename TFrameBuffer> requires
         meta::implements<TCommandQueue, CommandQueue<typename TCommandQueue::command_buffer_type>> &&
-        meta::implements<TFrameBuffer, FrameBuffer<typename TCommandQueue::command_buffer_type>> &&
+        meta::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::image_type>> &&
         meta::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>>
     class RenderPass : public virtual StateResource, public IRenderPass {
     public:
