@@ -501,21 +501,13 @@ namespace LiteFX::Rendering {
         using index_buffer_type = TIndexBuffer;
         using image_type = TImage;
         using barrier_type = TBarrier;
-        using bottom_level_acceleration_structure_type = TBLAS;
-        using top_level_acceleration_structure_type = TTLAS;
-
-    public:
-        using command_buffer_type = TCommandBuffer;
-        using buffer_type = TBuffer;
-        using vertex_buffer_type = TVertexBuffer;
-        using index_buffer_type = TIndexBuffer;
-        using image_type = TImage;
-        using barrier_type = TBarrier;
         using pipeline_type = TPipeline;
         using pipeline_layout_type = pipeline_type::pipeline_layout_type;
         using descriptor_set_layout_type = pipeline_layout_type::descriptor_set_layout_type;
         using push_constants_layout_type = pipeline_layout_type::push_constants_layout_type;
         using descriptor_set_type = descriptor_set_layout_type::descriptor_set_type;
+        using bottom_level_acceleration_structure_type = TBLAS;
+        using top_level_acceleration_structure_type = TTLAS;
 
     public:
         virtual ~CommandBuffer() noexcept = default;
@@ -531,40 +523,40 @@ namespace LiteFX::Rendering {
         virtual void generateMipMaps(image_type& image) noexcept = 0;
 
         /// <inheritdoc />
-        virtual void transfer(buffer_type& source, buffer_type& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const = 0;
+        virtual void transfer(const buffer_type& source, const buffer_type& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(const void* const data, size_t size, buffer_type& target, UInt32 targetElement = 0, UInt32 elements = 1) const = 0;
+        virtual void transfer(const void* const data, size_t size, const buffer_type& target, UInt32 targetElement = 0, UInt32 elements = 1) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(Span<const void* const> data, size_t elementSize, buffer_type& target, UInt32 firstElement = 0) const = 0;
+        virtual void transfer(Span<const void* const> data, size_t elementSize, const buffer_type& target, UInt32 firstElement = 0) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(buffer_type& source, image_type& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const = 0;
+        virtual void transfer(const buffer_type& source, const image_type& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(const void* const data, size_t size, image_type& target, UInt32 subresource = 0) const = 0;
+        virtual void transfer(const void* const data, size_t size, const image_type& target, UInt32 subresource = 0) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(Span<const void* const> data, size_t elementSize, image_type& target, UInt32 firstSubresource = 0, UInt32 subresources = 1) const = 0;
+        virtual void transfer(Span<const void* const> data, size_t elementSize, const image_type& target, UInt32 firstSubresource = 0, UInt32 subresources = 1) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(image_type& source, image_type& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const = 0;
+        virtual void transfer(const image_type& source, const image_type& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(image_type& source, buffer_type& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const = 0;
+        virtual void transfer(const image_type& source, const buffer_type& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(SharedPtr<buffer_type> source, buffer_type& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const = 0;
+        virtual void transfer(SharedPtr<const buffer_type> source, const buffer_type& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(SharedPtr<buffer_type> source, image_type& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const = 0;
+        virtual void transfer(SharedPtr<const buffer_type> source, const image_type& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(SharedPtr<image_type> source, image_type& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const = 0;
+        virtual void transfer(SharedPtr<const image_type> source, const image_type& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(SharedPtr<image_type> source, buffer_type& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const = 0;
+        virtual void transfer(SharedPtr<const image_type> source, const buffer_type& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const = 0;
 
         /// <inheritdoc />
         virtual void use(const pipeline_type& pipeline) const noexcept = 0;
@@ -654,52 +646,52 @@ namespace LiteFX::Rendering {
             this->generateMipMaps(dynamic_cast<image_type&>(image));
         }
 
-        inline void cmdTransfer(IBuffer& source, IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const override {
-            this->transfer(dynamic_cast<buffer_type&>(source), dynamic_cast<buffer_type&>(target), sourceElement, targetElement, elements);
+        inline void cmdTransfer(const IBuffer& source, const IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const override {
+            this->transfer(dynamic_cast<const buffer_type&>(source), dynamic_cast<const buffer_type&>(target), sourceElement, targetElement, elements);
         }
         
-        inline void cmdTransfer(IBuffer& source, IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const override {
-            this->transfer(dynamic_cast<buffer_type&>(source), dynamic_cast<image_type&>(target), sourceElement, firstSubresource, elements);
+        inline void cmdTransfer(const IBuffer& source, const IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const override {
+            this->transfer(dynamic_cast<const buffer_type&>(source), dynamic_cast<const image_type&>(target), sourceElement, firstSubresource, elements);
         }
         
-        inline void cmdTransfer(IImage& source, IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const override {
-            this->transfer(dynamic_cast<image_type&>(source), dynamic_cast<image_type&>(target), sourceSubresource, targetSubresource, subresources);
+        inline void cmdTransfer(const IImage& source, const IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const override {
+            this->transfer(dynamic_cast<const image_type&>(source), dynamic_cast<const image_type&>(target), sourceSubresource, targetSubresource, subresources);
         }
 
-        inline void cmdTransfer(IImage& source, IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const override {
-            this->transfer(dynamic_cast<image_type&>(source), dynamic_cast<buffer_type&>(target), firstSubresource, targetElement, subresources);
+        inline void cmdTransfer(const IImage& source, const IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const override {
+            this->transfer(dynamic_cast<const image_type&>(source), dynamic_cast<const buffer_type&>(target), firstSubresource, targetElement, subresources);
         }
 
-        inline void cmdTransfer(SharedPtr<IBuffer> source, IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const override {
-            this->transfer(std::dynamic_pointer_cast<buffer_type>(source), dynamic_cast<buffer_type&>(target), sourceElement, targetElement, elements);
+        inline void cmdTransfer(SharedPtr<const IBuffer> source, const IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const override {
+            this->transfer(std::dynamic_pointer_cast<const buffer_type>(source), dynamic_cast<const buffer_type&>(target), sourceElement, targetElement, elements);
         }
         
-        inline void cmdTransfer(SharedPtr<IBuffer> source, IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const override {
-            this->transfer(std::dynamic_pointer_cast<buffer_type>(source), dynamic_cast<image_type&>(target), sourceElement, firstSubresource, elements);
+        inline void cmdTransfer(SharedPtr<const IBuffer> source, const IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const override {
+            this->transfer(std::dynamic_pointer_cast<const buffer_type>(source), dynamic_cast<const image_type&>(target), sourceElement, firstSubresource, elements);
         }
         
-        inline void cmdTransfer(SharedPtr<IImage> source, IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const override {
-            this->transfer(std::dynamic_pointer_cast<image_type>(source), dynamic_cast<image_type&>(target), sourceSubresource, targetSubresource, subresources);
+        inline void cmdTransfer(SharedPtr<const IImage> source, const IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const override {
+            this->transfer(std::dynamic_pointer_cast<const image_type>(source), dynamic_cast<const image_type&>(target), sourceSubresource, targetSubresource, subresources);
         }
         
-        inline void cmdTransfer(SharedPtr<IImage> source, IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const override {
-            this->transfer(std::dynamic_pointer_cast<image_type>(source), dynamic_cast<buffer_type&>(target), firstSubresource, targetElement, subresources);
+        inline void cmdTransfer(SharedPtr<const IImage> source, const IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const override {
+            this->transfer(std::dynamic_pointer_cast<const image_type>(source), dynamic_cast<const buffer_type&>(target), firstSubresource, targetElement, subresources);
         }
 
-        inline void cmdTransfer(const void* const data, size_t size, IBuffer& target, UInt32 targetElement, UInt32 elements) const override {
-            this->transfer(data, size, dynamic_cast<buffer_type&>(target), targetElement, elements);
+        inline void cmdTransfer(const void* const data, size_t size, const IBuffer& target, UInt32 targetElement, UInt32 elements) const override {
+            this->transfer(data, size, dynamic_cast<const buffer_type&>(target), targetElement, elements);
         }
 
-        inline void cmdTransfer(Span<const void* const> data, size_t elementSize, IBuffer& target, UInt32 targetElement) const override {
-            this->transfer(data, elementSize, dynamic_cast<buffer_type&>(target), targetElement);
+        inline void cmdTransfer(Span<const void* const> data, size_t elementSize, const IBuffer& target, UInt32 targetElement) const override {
+            this->transfer(data, elementSize, dynamic_cast<const buffer_type&>(target), targetElement);
         }
 
-        inline void cmdTransfer(const void* const data, size_t size, IImage& target, UInt32 subresource) const override {
-            this->transfer(data, size, dynamic_cast<image_type&>(target), subresource);
+        inline void cmdTransfer(const void* const data, size_t size, const IImage& target, UInt32 subresource) const override {
+            this->transfer(data, size, dynamic_cast<const image_type&>(target), subresource);
         }
 
-        inline void cmdTransfer(Span<const void* const> data, size_t elementSize, IImage& target, UInt32 firstSubresource, UInt32 elements) const override {
-            this->transfer(data, elementSize, dynamic_cast<image_type&>(target), firstSubresource, elements);
+        inline void cmdTransfer(Span<const void* const> data, size_t elementSize, const IImage& target, UInt32 firstSubresource, UInt32 elements) const override {
+            this->transfer(data, elementSize, dynamic_cast<const image_type&>(target), firstSubresource, elements);
         }
 
         inline void cmdUse(const IPipeline& pipeline) const noexcept override {

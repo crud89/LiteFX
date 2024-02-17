@@ -323,7 +323,7 @@ void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier) const noex
 	barrier.execute(*this);
 }
 
-void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Buffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
+void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDirectX12Buffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("sourceElement", "The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
@@ -334,7 +334,7 @@ void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Buffer
 	this->handle()->CopyBufferRegion(std::as_const(target).handle().Get(), targetElement * target.alignedElementSize(), std::as_const(source).handle().Get(), sourceElement * source.alignedElementSize(), elements * source.alignedElementSize());
 }
 
-void DirectX12CommandBuffer::transfer(const void* const data, size_t size, IDirectX12Buffer& target, UInt32 targetElement, UInt32 elements) const
+void DirectX12CommandBuffer::transfer(const void* const data, size_t size, const IDirectX12Buffer& target, UInt32 targetElement, UInt32 elements) const
 {
 	auto alignment = target.elementAlignment();
 	auto elementSize = target.elementSize();
@@ -346,7 +346,7 @@ void DirectX12CommandBuffer::transfer(const void* const data, size_t size, IDire
 	this->transfer(stagingBuffer, target, 0, targetElement, elements);
 }
 
-void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t elementSize, IDirectX12Buffer& target, UInt32 firstElement) const
+void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t elementSize, const IDirectX12Buffer& target, UInt32 firstElement) const
 {
 	auto elements = static_cast<UInt32>(data.size());
 	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements)));
@@ -355,7 +355,7 @@ void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t eleme
 	this->transfer(stagingBuffer, target, 0, firstElement, elements);
 }
 
-void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Image& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
+void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDirectX12Image& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("sourceElement", "The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
@@ -374,7 +374,7 @@ void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Image&
 	}
 }
 
-void DirectX12CommandBuffer::transfer(const void* const data, size_t size, IDirectX12Image& target, UInt32 subresource) const
+void DirectX12CommandBuffer::transfer(const void* const data, size_t size, const IDirectX12Image& target, UInt32 subresource) const
 {
 	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, size)));
 	stagingBuffer->map(data, size, 0);
@@ -382,7 +382,7 @@ void DirectX12CommandBuffer::transfer(const void* const data, size_t size, IDire
 	this->transfer(stagingBuffer, target, 0, subresource, 1);
 }
 
-void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t elementSize, IDirectX12Image& target, UInt32 firstSubresource, UInt32 subresources) const
+void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t elementSize, const IDirectX12Image& target, UInt32 firstSubresource, UInt32 subresources) const
 {
 	auto elements = static_cast<UInt32>(data.size());
 	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, elementSize, elements)));
@@ -391,7 +391,7 @@ void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t eleme
 	this->transfer(stagingBuffer, target, 0, firstSubresource, subresources);
 }
 
-void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Image& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
+void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDirectX12Image& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
 	if (source.elements() < sourceSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("sourceElement", "The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, sourceSubresource);
@@ -406,7 +406,7 @@ void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Image& 
 	}
 }
 
-void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Buffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
+void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDirectX12Buffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
 	if (source.elements() < firstSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("sourceElement", "The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
@@ -425,25 +425,25 @@ void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Buffer&
 	}
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Buffer> source, IDirectX12Buffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
+void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Buffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
 {
 	this->transfer(*source, target, sourceElement, targetElement, elements);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Buffer> source, IDirectX12Image& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
+void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Image& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
 	this->transfer(*source, target, sourceElement, firstSubresource, elements);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Image> source, IDirectX12Image& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
+void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Image& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
 	this->transfer(*source, target, sourceSubresource, targetSubresource, subresources);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Image> source, IDirectX12Buffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
+void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Buffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
 	this->transfer(*source, target, firstSubresource, targetElement, subresources);
 	m_impl->m_sharedResources.push_back(source);
