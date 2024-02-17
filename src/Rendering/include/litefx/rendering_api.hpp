@@ -6898,20 +6898,20 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <seealso cref="IFrameBuffer::resize" />
         /// <seealso cref="IFrameBuffer::resized" />
-        struct FrameBufferResizeEventArgs : public EventArgs {
+        struct ResizeEventArgs : public EventArgs {
         private:
             const Size2d& m_newSize;
 
         public:
-            FrameBufferResizeEventArgs(const Size2d& newSize) : 
+            ResizeEventArgs(const Size2d& newSize) : 
                 EventArgs(), m_newSize(newSize) { }
-            FrameBufferResizeEventArgs(const FrameBufferResizeEventArgs&) = default;
-            FrameBufferResizeEventArgs(FrameBufferResizeEventArgs&&) = default;
-            virtual ~FrameBufferResizeEventArgs() noexcept = default;
+            ResizeEventArgs(const ResizeEventArgs&) = default;
+            ResizeEventArgs(ResizeEventArgs&&) = default;
+            virtual ~ResizeEventArgs() noexcept = default;
 
         public:
-            FrameBufferResizeEventArgs& operator=(const FrameBufferResizeEventArgs&) = default;
-            FrameBufferResizeEventArgs& operator=(FrameBufferResizeEventArgs&&) = default;
+            ResizeEventArgs& operator=(const ResizeEventArgs&) = default;
+            ResizeEventArgs& operator=(ResizeEventArgs&&) = default;
 
         public:
             /// <summary>
@@ -6928,17 +6928,17 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <seealso cref="IFrameBuffer::~IFrameBuffer" />
         /// <seealso cref="IFrameBuffer::released" />
-        struct FrameBufferReleasedEventArgs : public EventArgs {
+        struct ReleasedEventArgs : public EventArgs {
         public:
-            FrameBufferReleasedEventArgs() : 
+            ReleasedEventArgs() : 
                 EventArgs() { }
-            FrameBufferReleasedEventArgs(const FrameBufferReleasedEventArgs&) = default;
-            FrameBufferReleasedEventArgs(FrameBufferReleasedEventArgs&&) = default;
-            virtual ~FrameBufferReleasedEventArgs() noexcept = default;
+            ReleasedEventArgs(const ReleasedEventArgs&) = default;
+            ReleasedEventArgs(ReleasedEventArgs&&) = default;
+            virtual ~ReleasedEventArgs() noexcept = default;
 
         public:
-            FrameBufferReleasedEventArgs& operator=(const FrameBufferReleasedEventArgs&) = default;
-            FrameBufferReleasedEventArgs& operator=(FrameBufferReleasedEventArgs&&) = default;
+            ReleasedEventArgs& operator=(const ReleasedEventArgs&) = default;
+            ReleasedEventArgs& operator=(ReleasedEventArgs&&) = default;
         };
 
     public:
@@ -6954,7 +6954,7 @@ namespace LiteFX::Rendering {
         /// Invoked when the frame buffer gets resized.
         /// </summary>
         /// <seealso cref="resize" />
-        mutable Event<FrameBufferResizeEventArgs> resized;
+        mutable Event<ResizeEventArgs> resized;
 
         /// <summary>
         /// Invoked when the frame buffer gets released.
@@ -6965,7 +6965,7 @@ namespace LiteFX::Rendering {
         /// cached frame buffer states they hold, such as descriptor sets for input attachment bindings or command buffers associated with the frame buffer.
         /// </remarks>
         /// <seealso cref="~IFrameBuffer" />
-        mutable Event<FrameBufferReleasedEventArgs> released;
+        mutable Event<ReleasedEventArgs> released;
 
     public:
         /// <summary>
@@ -7207,20 +7207,20 @@ namespace LiteFX::Rendering {
         /// Event arguments that are published to subscribers when a render pass is beginning.
         /// </summary>
         /// <seealso cref="IRenderPass::beginning" />
-        struct BeginRenderPassEventArgs : public EventArgs {
+        struct BeginEventArgs : public EventArgs {
         private:
             const IFrameBuffer& m_frameBuffer;
 
         public:
-            BeginRenderPassEventArgs(const IFrameBuffer& frameBuffer) : 
+            BeginEventArgs(const IFrameBuffer& frameBuffer) : 
                 EventArgs(), m_frameBuffer(frameBuffer) { }
-            BeginRenderPassEventArgs(const BeginRenderPassEventArgs&) = default;
-            BeginRenderPassEventArgs(BeginRenderPassEventArgs&&) = default;
-            virtual ~BeginRenderPassEventArgs() noexcept = default;
+            BeginEventArgs(const BeginEventArgs&) = default;
+            BeginEventArgs(BeginEventArgs&&) = default;
+            virtual ~BeginEventArgs() noexcept = default;
 
         public:
-            BeginRenderPassEventArgs& operator=(const BeginRenderPassEventArgs&) = default;
-            BeginRenderPassEventArgs& operator=(BeginRenderPassEventArgs&&) = default;
+            BeginEventArgs& operator=(const BeginEventArgs&) = default;
+            BeginEventArgs& operator=(BeginEventArgs&&) = default;
 
         public:
             /// <summary>
@@ -7240,7 +7240,7 @@ namespace LiteFX::Rendering {
         /// Invoked, when the render pass is beginning.
         /// </summary>
         /// <seealso cref="begin" />
-        mutable Event<BeginRenderPassEventArgs> beginning;
+        mutable Event<BeginEventArgs> beginning;
 
         /// <summary>
         /// Invoked, when the render pass is ending.

@@ -431,7 +431,7 @@ public:
 		commandBuffer.bind(m_inputAttachmentBindings.at(interfacePointer) | std::views::transform([](auto& set) { return set.get(); }));
 	}
 
-	void onFrameBufferResize(const void* sender, IFrameBuffer::FrameBufferResizeEventArgs args)
+	void onFrameBufferResize(const void* sender, IFrameBuffer::ResizeEventArgs args)
 	{
 		// Update the descriptors in the descriptor sets.
 		// NOTE: No slicing here, as the event is always triggered by the frame buffer instance.
@@ -439,7 +439,7 @@ public:
 		this->updateInputAttachmentBindings(*frameBuffer);
 	}
 
-	void onFrameBufferRelease(const void* sender, IFrameBuffer::FrameBufferReleasedEventArgs args)
+	void onFrameBufferRelease(const void* sender, IFrameBuffer::ReleasedEventArgs args)
 	{
 		// Get the frame buffer pointer.
 		auto interfacePointer = reinterpret_cast<const IFrameBuffer*>(sender);

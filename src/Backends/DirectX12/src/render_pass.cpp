@@ -128,7 +128,7 @@ public:
         m_activeFrameBuffer = &frameBuffer;
     }
 
-    void onFrameBufferRelease(const void* sender, IFrameBuffer::FrameBufferReleasedEventArgs args)
+    void onFrameBufferRelease(const void* sender, IFrameBuffer::ReleasedEventArgs args)
     {
         // Obtain the interface pointer and release all resources bound to the frame buffer.
         auto interfacePointer = reinterpret_cast<const IFrameBuffer*>(sender);
