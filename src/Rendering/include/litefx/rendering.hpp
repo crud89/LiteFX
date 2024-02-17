@@ -864,7 +864,7 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Stores the images for the output attachments for a back buffer of a <see cref="RenderPass" />, as well as a <see cref="CommandBuffer" /> instance, that records draw commands.
+    /// Stores the images used by a <see cref="RenderPass" /> to either read from using input attachments or write to using render targets.
     /// </summary>
     /// <typeparam name="TCommandBuffer">The type of the command buffer. Must implement <see cref="CommandBuffer"/>.</typeparam>
     /// <seealso cref="RenderTarget" />
@@ -872,167 +872,17 @@ namespace LiteFX::Rendering {
         meta::implements<TCommandBuffer, CommandBuffer<typename TCommandBuffer::command_buffer_type, typename TCommandBuffer::buffer_type, typename TCommandBuffer::vertex_buffer_type, typename TCommandBuffer::index_buffer_type, typename TCommandBuffer::image_type, typename TCommandBuffer::barrier_type, typename TCommandBuffer::pipeline_type, typename TCommandBuffer::bottom_level_acceleration_structure_type, typename TCommandBuffer::top_level_acceleration_structure_type>>
     class FrameBuffer : public IFrameBuffer {
     public:
-        using command_buffer_type = TCommandBuffer;
-        using image_type = command_buffer_type::image_type;
+        using image_type = TCommandBuffer::image_type;
 
     public:
         virtual ~FrameBuffer() noexcept = default;
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<SharedPtr<const command_buffer_type>> commandBuffers() const noexcept = 0;
-
-        /// <inheritdoc />
-        virtual SharedPtr<const command_buffer_type> commandBuffer(UInt32 index) const = 0;
-
-        /// <inheritdoc />
         virtual Enumerable<const image_type*> images() const noexcept = 0;
 
     private:
-        inline SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept override {
-            return this->commandBuffer(index);
-        }
-
-        inline Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept override {
-            return this->commandBuffers();
-        }
-
         inline Enumerable<const IImage*> getImages() const noexcept override {
-            return this->images();
-        }
-    };
-
-    /// <summary>
-    /// Represents the source for an input attachment mapping.
-    /// </summary>
-    /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
-    template <typename TFrameBuffer> requires
-        meta::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>>
-    class RenderPassDependencySource : public IRenderPassDependencySource {
-    public:
-        using frame_buffer_type = TFrameBuffer;
-
-    public:
-        virtual ~RenderPassDependencySource() noexcept = default;
-
-    public:
-        /// <inheritdoc />
-        virtual const frame_buffer_type& frameBuffer(UInt32 buffer) const = 0;
-    };
-
-    /// <summary>
-    /// Represents a mapping between a set of <see cref="IRenderTarget" /> instances and the input attachments of a <see cref="RenderPass" />.
-    /// </summary>
-    /// <typeparam name="TRenderPassDependencySource">The type of the input attachment mapping source. Must implement <see cref="RenderPassDependencySource" />.</typeparam>
-    template <typename TRenderPassDependencySource> requires
-        meta::implements<TRenderPassDependencySource, RenderPassDependencySource<typename TRenderPassDependencySource::frame_buffer_type>>
-    class IRenderPassDependency {
-    public:
-        using render_pass_dependency_source_type = TRenderPassDependencySource;
-
-    public:
-        virtual ~IRenderPassDependency() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Returns the source of the input attachment render target.
-        /// </summary>
-        /// <returns>The source of the input attachment render target.</returns>
-        virtual const render_pass_dependency_source_type* inputAttachmentSource() const noexcept = 0;
-
-        /// <summary>
-        /// Returns a reference of the render target that is mapped to the input attachment.
-        /// </summary>
-        /// <returns>A reference of the render target that is mapped to the input attachment.</returns>
-        virtual const RenderTarget& renderTarget() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the binding point for the input attachment binding.
-        /// </summary>
-        /// <returns>The binding point for the input attachment binding.</returns>
-        virtual const DescriptorBindingPoint& binding() const noexcept = 0;
-    };
-
-    /// <summary>
-    /// Represents a render pass.
-    /// </summary>
-    /// <remarks>
-    /// A render pass is a conceptual layer, that may not have any logical representation within the actual implementation. It is a high-level view on a specific workload on the
-    /// GPU, that processes data using different <see cref="RenderPipeline" />s and stores the outputs in the <see cref="IRenderTarget" />s of a <see cref="FrameBuffer" />.
-    /// </remarks>
-    /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="RenderPipeline" />.</typeparam>
-    /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="CommandQueue" />.</typeparam>
-    /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
-    /// <typeparam name="TRenderPassDependency">The type of the input attachment mapping. Must implement <see cref="IRenderPassDependency" />.</typeparam>
-    template <typename TRenderPipeline, typename TCommandQueue, typename TFrameBuffer, typename TRenderPassDependency> requires
-        meta::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>> &&
-        /*meta::implements<TCommandQueue, CommandQueue<typename TFrameBuffer::command_buffer_type>> &&*/
-        meta::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>> /*&&
-        meta::implements<TRenderPassDependency, IRenderPassDependency<TDerived>>*/
-    class RenderPass : public virtual StateResource, public IRenderPass, public RenderPassDependencySource<TFrameBuffer> {
-    public:
-        using command_queue_type = TCommandQueue;
-        using frame_buffer_type = TFrameBuffer;
-        using render_pipeline_type = TRenderPipeline;
-        using render_pass_dependency_type = TRenderPassDependency;
-        using pipeline_layout_type = render_pipeline_type::pipeline_layout_type;
-        using descriptor_set_layout_type = pipeline_layout_type::descriptor_set_layout_type;
-        using descriptor_set_type = descriptor_set_layout_type::descriptor_set_type;
-
-    public:
-        virtual ~RenderPass() noexcept = default;
-
-    public:
-        /// <inheritdoc />
-        virtual const frame_buffer_type& activeFrameBuffer() const = 0;
-
-        /// <inheritdoc />
-        virtual const command_queue_type& commandQueue() const noexcept = 0;
-
-        /// <inheritdoc />
-        virtual Enumerable<const frame_buffer_type*> frameBuffers() const noexcept = 0;
-
-        /// <inheritdoc />
-        virtual Enumerable<const render_pipeline_type*> pipelines() const noexcept = 0;
-
-        /// <inheritdoc />
-        virtual Span<const render_pass_dependency_type> inputAttachments() const noexcept = 0;
-
-    private:
-        inline Enumerable<const IFrameBuffer*> getFrameBuffers() const noexcept override {
-            return this->frameBuffers();
-        }
-
-        inline Enumerable<const IRenderPipeline*> getPipelines() const noexcept override {
-            return this->pipelines();
-        }
-
-        inline const ICommandQueue& getCommandQueue() const noexcept override {
-            return this->commandQueue();
-        }
-    };
-
-    /// <summary>
-    /// Represents a swap chain, i.e. a chain of multiple <see cref="IImage" /> instances, that can be presented to a <see cref="ISurface" />.
-    /// </summary>
-    /// <typeparam name="TImageInterface">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
-    template <typename TImageInterface, typename TFrameBuffer> requires
-        meta::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::command_buffer_type>> &&
-        std::derived_from<TImageInterface, IImage>
-    class SwapChain : public ISwapChain {
-    public:
-        using image_interface_type = TImageInterface;
-        using frame_buffer_type = TFrameBuffer;
-
-    public:
-        virtual ~SwapChain() noexcept = default;
-
-    public:
-        /// <inheritdoc />
-        virtual Enumerable<image_interface_type*> images() const noexcept = 0;
-
-    private:
-        inline Enumerable<IImage*> getImages() const noexcept override {
             return this->images();
         }
     };
@@ -1083,6 +933,87 @@ namespace LiteFX::Rendering {
 
         inline UInt64 submitCommandBuffers(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const override {
             return this->submit(commandBuffers | std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) | std::ranges::to<Enumerable<SharedPtr<const command_buffer_type>>>());
+        }
+    };
+
+    /// <summary>
+    /// Represents a render pass.
+    /// </summary>
+    /// <remarks>
+    /// A render pass is a conceptual layer, that may not have any logical representation within the actual implementation. It is a high-level view on a specific workload on the
+    /// GPU, that processes data using different <see cref="RenderPipeline" />s and stores the outputs in the <see cref="IRenderTarget" />s of a <see cref="FrameBuffer" />.
+    /// </remarks>
+    /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="RenderPipeline" />.</typeparam>
+    /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="CommandQueue" />.</typeparam>
+    /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
+    template <typename TRenderPipeline, typename TCommandQueue, typename TFrameBuffer> requires
+        meta::implements<TCommandQueue, CommandQueue<typename TCommandQueue::command_buffer_type>> &&
+        meta::implements<TFrameBuffer, FrameBuffer<typename TCommandQueue::command_buffer_type>> &&
+        meta::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>>
+    class RenderPass : public virtual StateResource, public IRenderPass {
+    public:
+        using command_queue_type = TCommandQueue;
+        using command_buffer_type = TCommandQueue::command_buffer_type;
+        using frame_buffer_type = TFrameBuffer;
+        using render_pipeline_type = TRenderPipeline;
+        using pipeline_layout_type = render_pipeline_type::pipeline_layout_type;
+        using descriptor_set_layout_type = pipeline_layout_type::descriptor_set_layout_type;
+        using descriptor_set_type = descriptor_set_layout_type::descriptor_set_type;
+
+    public:
+        virtual ~RenderPass() noexcept = default;
+
+    public:
+        /// <inheritdoc />
+        virtual Enumerable<const render_pipeline_type*> pipelines() const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual Enumerable<SharedPtr<const command_buffer_type>> commandBuffers() const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual SharedPtr<const command_buffer_type> commandBuffer(UInt32 index) const = 0;
+
+        /// <inheritdoc />
+        virtual void begin(const frame_buffer_type& frameBuffer) const = 0;
+
+    private:
+        inline Enumerable<const IRenderPipeline*> getPipelines() const noexcept override {
+            return this->pipelines();
+        }
+
+        inline SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept override {
+            return this->commandBuffer(index);
+        }
+
+        inline Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept override {
+            return this->commandBuffers();
+        }
+
+        inline void beginRenderPass(const IFrameBuffer& frameBuffer) const override {
+            this->begin(dynamic_cast<const frame_buffer_type&>(frameBuffer));
+        }
+    };
+
+    /// <summary>
+    /// Represents a swap chain, i.e. a chain of multiple <see cref="IImage" /> instances, that can be presented to a <see cref="ISurface" />.
+    /// </summary>
+    /// <typeparam name="TImageInterface">The type of the image interface. Must inherit from <see cref="IImage"/>.</typeparam>
+    template <typename TImageInterface> requires
+        std::derived_from<TImageInterface, IImage>
+    class SwapChain : public ISwapChain {
+    public:
+        using image_interface_type = TImageInterface;
+
+    public:
+        virtual ~SwapChain() noexcept = default;
+
+    public:
+        /// <inheritdoc />
+        virtual Enumerable<image_interface_type*> images() const noexcept = 0;
+
+    private:
+        inline Enumerable<IImage*> getImages() const noexcept override {
+            return this->images();
         }
     };
 
@@ -1276,10 +1207,10 @@ namespace LiteFX::Rendering {
     template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TComputePipeline, typename TRayTracingPipeline, typename TBarrier> requires
         meta::implements<TSurface, ISurface> &&
         meta::implements<TGraphicsAdapter, IGraphicsAdapter> &&
-        meta::implements<TSwapChain, SwapChain<typename TFactory::image_type, typename TRenderPass::frame_buffer_type>> &&
+        meta::implements<TSwapChain, SwapChain<typename TFactory::image_type>> &&
         meta::implements<TCommandQueue, CommandQueue<typename TCommandQueue::command_buffer_type>> &&
         meta::implements<TFactory, GraphicsFactory<typename TFactory::descriptor_layout_type, typename TFactory::buffer_type, typename TFactory::vertex_buffer_type, typename TFactory::index_buffer_type, typename TFactory::image_type, typename TFactory::sampler_type, typename TFactory::bottom_level_acceleration_structure_type, typename TFactory::top_level_acceleration_structure_type>> &&
-        meta::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, TCommandQueue, typename TRenderPass::frame_buffer_type, typename TRenderPass::render_pass_dependency_type>> &&
+        meta::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, TCommandQueue, typename TRenderPass::frame_buffer_type>> &&
         meta::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>> &&
         meta::implements<TRayTracingPipeline, RayTracingPipeline<typename TRayTracingPipeline::pipeline_layout_type, typename TRayTracingPipeline::shader_program_type>> &&
         meta::implements<TBarrier, Barrier<typename TFactory::buffer_type, typename TFactory::image_type>>
@@ -1390,19 +1321,17 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Returns a builder for a <see cref="RenderPass" />.
         /// </summary>
-        /// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
         /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
         /// <returns>An instance of a builder that is used to create a new render pass.</returns>
-        [[nodiscard]] virtual render_pass_builder_type buildRenderPass(MultiSamplingLevel samples = MultiSamplingLevel::x1, UInt32 commandBuffers = 1) const = 0;
+        [[nodiscard]] virtual render_pass_builder_type buildRenderPass(UInt32 commandBuffers = 1) const = 0;
 
         /// <summary>
         /// Returns a builder for a <see cref="RenderPass" />.
         /// </summary>
         /// <param name="name">The name of the render pass.</param>
         /// <param name="samples">The number of samples, the render targets of the render pass should be sampled with.</param>
-        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
         /// <returns>An instance of a builder that is used to create a new render pass.</returns>
-        [[nodiscard]] virtual render_pass_builder_type buildRenderPass(const String& name, MultiSamplingLevel samples = MultiSamplingLevel::x1, UInt32 commandBuffers = 1) const = 0;
+        [[nodiscard]] virtual render_pass_builder_type buildRenderPass(const String& name, UInt32 commandBuffers = 1) const = 0;
 
         /// <summary>
         /// Returns a builder for a <see cref="ComputePipeline" />.
@@ -1411,11 +1340,11 @@ namespace LiteFX::Rendering {
         /// <returns>An instance of a builder that is used to create a new compute pipeline.</returns>
         [[nodiscard]] virtual compute_pipeline_builder_type buildComputePipeline(const String& name) const = 0;
 
-        /// <summary>
-        /// Returns a builder for a <see cref="RenderPipeline" />.
-        /// </summary>
-        /// <param name="name">The name of the render pipeline.</param>
-        /// <returns>An instance of a builder that is used to create a new render pipeline.</returns>
+        ///// <summary>
+        ///// Returns a builder for a <see cref="RenderPipeline" />.
+        ///// </summary>
+        ///// <param name="name">The name of the render pipeline.</param>
+        ///// <returns>An instance of a builder that is used to create a new render pipeline.</returns>
         //[[nodiscard]] virtual render_pipeline_builder_type buildRenderPipeline(const String& name) const = 0;
 
         /// <summary>

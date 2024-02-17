@@ -498,6 +498,16 @@ Enumerable<const VulkanRenderPipeline*> VulkanRenderPass::pipelines() const noex
     return m_impl->m_pipelines | std::views::transform([](const UniquePtr<VulkanRenderPipeline>& pipeline) { return pipeline.get(); });
 }
 
+SharedPtr<const VulkanCommandBuffer> VulkanRenderPass::commandBuffer(UInt32 index) const
+{
+    throw;
+}
+
+Enumerable<SharedPtr<const VulkanCommandBuffer>> VulkanRenderPass::commandBuffers() const noexcept
+{
+    throw;
+}
+
 const RenderTarget& VulkanRenderPass::renderTarget(UInt32 location) const
 {
     if (auto match = std::ranges::find_if(m_impl->m_renderTargets, [&location](const RenderTarget& renderTarget) { return renderTarget.location() == location; }); match != m_impl->m_renderTargets.end()) [[likely]]

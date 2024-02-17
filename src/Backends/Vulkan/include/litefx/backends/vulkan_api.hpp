@@ -50,7 +50,6 @@ namespace LiteFX::Rendering::Backends {
     class VulkanRayTracingPipeline;
     class VulkanFrameBuffer;
     class VulkanRenderPass;
-    class VulkanRenderPassDependency;
     class VulkanSwapChain;
     class VulkanQueue;
     class VulkanGraphicsFactory;

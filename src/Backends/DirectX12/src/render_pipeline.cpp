@@ -20,52 +20,38 @@ private:
 	Vector4f m_blendFactors{ 0.f, 0.f, 0.f, 0.f };
 	UInt32 m_stencilRef{ 0 };
 	bool m_alphaToCoverage{ false };
+	MultiSamplingLevel m_samples{ MultiSamplingLevel::x1 };
 	const DirectX12RenderPass& m_renderPass;
-	UInt64 m_renderPassResetEventToken;
-	Dictionary<const DirectX12RenderPass*, UInt64> m_dependencyResetEventTokens;
-	Array<Array<UniquePtr<DirectX12DescriptorSet>>> m_inputAttachmentBindings;
 	UniquePtr<IDirectX12Sampler> m_inputAttachmentSampler;
+	Dictionary<const IFrameBuffer*, Array<UniquePtr<DirectX12DescriptorSet>>> m_inputAttachmentBindings;
+	Dictionary<const IFrameBuffer*, size_t> m_frameBufferResizeTokens, m_frameBufferReleaseTokens;
 
 public:
 	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, bool alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer) :
 		base(parent), m_renderPass(renderPass), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer)
 	{
-		this->initializeEventHandlers();
 	}
 
 	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass) :
 		base(parent), m_renderPass(renderPass)
 	{
-		this->initializeEventHandlers();
 	}
 
-	~DirectX12RenderPipelineImpl()
+	~DirectX12RenderPipelineImpl() noexcept 
 	{
-		// NOTE: This assumes, that the pipeline is destroyed before all render passes.
-		m_renderPass.reseted.remove(m_renderPassResetEventToken);
-		std::ranges::for_each(m_dependencyResetEventTokens, [](auto& pair) { pair.first->reseted.remove(pair.second); });
+		// Stop listening to frame buffer events.
+		for (auto [frameBuffer, token] : m_frameBufferResizeTokens)
+			frameBuffer->resized -= token;
+
+		for (auto [frameBuffer, token] : m_frameBufferReleaseTokens)
+			frameBuffer->released -= token;
 	}
 
 public:
-	void initializeEventHandlers()
-	{
-		// Listen to parent render pass reset event, in case the number of frame buffers changes.
-		m_renderPassResetEventToken = m_renderPass.reseted.add(std::bind(&DirectX12RenderPipelineImpl::onRenderPassReset, this, std::placeholders::_1, std::placeholders::_2));
-
-		// Listen to the parent render pass dependency reset events, in case their render area changes, in which case we have to reset the input attachment bindings.
-		std::ranges::for_each(m_renderPass.inputAttachments(), [&](const DirectX12RenderPassDependency& dependency) {
-			if (!m_dependencyResetEventTokens.contains(dependency.inputAttachmentSource()))
-			{
-				// Register listener and add the source to the pass list.
-				auto pass = dependency.inputAttachmentSource();
-				m_dependencyResetEventTokens[pass] = pass->reseted.add(std::bind(&DirectX12RenderPipelineImpl::onDependencyReset, this, std::placeholders::_1, std::placeholders::_2));
-			}
-		});
-	}
-
-	ComPtr<ID3D12PipelineState> initialize()
+	ComPtr<ID3D12PipelineState> initialize(MultiSamplingLevel samples)
 	{
 		LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline \"{1}\" for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_parent->name());
+		m_samples = samples;
 
 		// Check if there are mesh shaders in the program.
 		auto modules = m_program->modules();
@@ -128,7 +114,6 @@ public:
 		inputLayout.NumElements = static_cast<UInt32>(inputLayoutElements.size());
 
 		// Setup multi-sampling state.
-		auto samples = m_renderPass.multiSamplingLevel();
 		DXGI_SAMPLE_DESC multisamplingState = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ std::to_underlying(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
 
 		// Setup render target states.
@@ -136,7 +121,7 @@ public:
 		D3D12_BLEND_DESC blendState = {};
 		D3D12_DEPTH_STENCIL_DESC depthStencilState = {};
 		auto targets = m_renderPass.renderTargets();
-		UInt32 renderTargets = std::ranges::count_if(targets, [](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; });
+		UInt32 renderTargets = std::ranges::count_if(targets, [](const RenderTarget* renderTarget) { return renderTarget->type() != RenderTargetType::DepthStencil; });
 		UInt32 depthStencilTargets = static_cast<UInt32>(targets.size()) - renderTargets;
 		DXGI_FORMAT dsvFormat { };
 		std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT> rtvFormats { };
@@ -149,11 +134,11 @@ public:
 		if (depthStencilTargets > 1) [[unlikely]]
 			throw RuntimeException("You have specified too many render targets: only 1 depth/stencil target is allowed, but {0} have been specified.", depthStencilTargets);
 
-		std::ranges::for_each(targets, [&, i = 0](const RenderTarget& renderTarget) mutable {
-			if (renderTarget.type() == RenderTargetType::DepthStencil)
+		std::ranges::for_each(targets, [&, i = 0](const RenderTarget* renderTarget) mutable {
+			if (renderTarget->type() == RenderTargetType::DepthStencil)
 			{
 				// Setup depth/stencil format.
-				dsvFormat = DX12::getFormat(renderTarget.format());
+				dsvFormat = DX12::getFormat(renderTarget->format());
 
 				// Setup depth/stencil state.
 				// TODO: From depth/stencil state.
@@ -177,18 +162,18 @@ public:
 			{
 				// Setup target formats.
 				UInt32 target = i++;
-				rtvFormats[target] = DX12::getFormat(renderTarget.format());
+				rtvFormats[target] = DX12::getFormat(renderTarget->format());
 
 				// Setup the blend state.
 				auto& targetBlendState = blendState.RenderTarget[target];
-				targetBlendState.BlendEnable = renderTarget.blendState().Enable;
-				targetBlendState.RenderTargetWriteMask = static_cast<D3D12_COLOR_WRITE_ENABLE>(renderTarget.blendState().WriteMask);
-				targetBlendState.SrcBlend = DX12::getBlendFactor(renderTarget.blendState().SourceColor);
-				targetBlendState.SrcBlendAlpha = DX12::getBlendFactor(renderTarget.blendState().SourceAlpha);
-				targetBlendState.DestBlend = DX12::getBlendFactor(renderTarget.blendState().DestinationColor);
-				targetBlendState.DestBlendAlpha = DX12::getBlendFactor(renderTarget.blendState().DestinationAlpha);
-				targetBlendState.BlendOp = DX12::getBlendOperation(renderTarget.blendState().ColorOperation);
-				targetBlendState.BlendOpAlpha = DX12::getBlendOperation(renderTarget.blendState().AlphaOperation);
+				targetBlendState.BlendEnable = renderTarget->blendState().Enable;
+				targetBlendState.RenderTargetWriteMask = static_cast<D3D12_COLOR_WRITE_ENABLE>(renderTarget->blendState().WriteMask);
+				targetBlendState.SrcBlend = DX12::getBlendFactor(renderTarget->blendState().SourceColor);
+				targetBlendState.SrcBlendAlpha = DX12::getBlendFactor(renderTarget->blendState().SourceAlpha);
+				targetBlendState.DestBlend = DX12::getBlendFactor(renderTarget->blendState().DestinationColor);
+				targetBlendState.DestBlendAlpha = DX12::getBlendFactor(renderTarget->blendState().DestinationAlpha);
+				targetBlendState.BlendOp = DX12::getBlendOperation(renderTarget->blendState().ColorOperation);
+				targetBlendState.BlendOpAlpha = DX12::getBlendOperation(renderTarget->blendState().AlphaOperation);
 
 				// TODO: We should also implement this, but this restricts all blend states to be equal and IndependentBlendEnable set to false.
 				targetBlendState.LogicOp = D3D12_LOGIC_OP::D3D12_LOGIC_OP_COPY;
@@ -198,9 +183,6 @@ public:
 
 		blendState.AlphaToCoverageEnable = m_alphaToCoverage;
 		blendState.IndependentBlendEnable = TRUE;
-
-		// Setup input attachment bindings.
-		this->initializeInputAttachmentBindings();
 
 		// Initialize the remainder depending on the pipeline type.
 		if (hasMeshShaders)
@@ -333,11 +315,11 @@ public:
 		return pipelineState;
 	}
 
-	void initializeInputAttachmentBindings()
+	void initializeInputAttachmentBindings(const DirectX12FrameBuffer& frameBuffer)
 	{
 		// Find out how many descriptor sets there are within the input attachments and which descriptors are bound.
 		Dictionary<UInt32, Array<UInt32>> descriptorsPerSet;
-		std::ranges::for_each(m_renderPass.inputAttachments(), [&descriptorsPerSet](auto& dependency) { descriptorsPerSet[dependency.binding().Space].push_back(dependency.binding().Register); });
+		std::ranges::for_each(m_renderPass.inputAttachments(), [&descriptorsPerSet](auto dependency) { descriptorsPerSet[dependency->binding().Space].push_back(dependency->binding().Register); });
 
 		// Validate the descriptor sets, so that no descriptors are bound twice all descriptor sets are fully bound.
 		for (auto& [set, descriptors] : descriptorsPerSet)
@@ -381,42 +363,39 @@ public:
 		}
 
 		// Allocate the input attachment bindings.
-		this->allocateInputAttachmentBindings(descriptorsPerSet | std::views::keys);
-
-		// Bind all input attachments.
-		this->bindInputAttachments();
+		this->allocateInputAttachmentBindings(frameBuffer, descriptorsPerSet | std::views::keys);
 	}
 
-	void allocateInputAttachmentBindings(const std::ranges::input_range auto& descriptorSets) requires 
+	void allocateInputAttachmentBindings(const DirectX12FrameBuffer& frameBuffer, const std::ranges::input_range auto& descriptorSets) requires 
 		std::is_convertible_v<std::ranges::range_value_t<decltype(descriptorSets)>, UInt32>
 	{
 		// Allocate the bindings array.
-		auto backBuffers = m_renderPass.frameBuffers().size();
-		m_inputAttachmentBindings.resize(backBuffers);
+		auto interfacePointer = static_cast<const IFrameBuffer*>(frameBuffer);
+		auto& bindings = m_inputAttachmentBindings[frameBuffer];
 
 		// Initialize the descriptor set bindings.
-		std::ranges::for_each(m_inputAttachmentBindings, [this, &descriptorSets](auto& inputBindings) {
-			// Allocate each descriptor set.
-			for (UInt32 descriptorSet : descriptorSets)
-				inputBindings.push_back(std::move(m_layout->descriptorSet(descriptorSet).allocate()));
-		});
+		bindings.append_range(descriptorSets | std::views::transform([this](UInt32 set) { return std::move(m_layout->descriptorSet(set).allocate()); }));
+
+		// Listen to frame buffer events and update the bindings or remove the sets (on release).
+		m_frameBufferResizeTokens[interfacePointer] = frameBuffer.resized.add(std::bind(&irectX12RenderPipelineImpl::onFrameBufferResize, this, std::placeholders::_1, std::placeholders::_2));
+		m_frameBufferReleaseTokens[interfacePointer] = frameBuffer.released.add(std::bind(&irectX12RenderPipelineImpl::onFrameBufferRelease, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
-	void bindInputAttachments()
+	void updateInputAttachmentBindings(const DirectX12FrameBuffer& frameBuffer)
 	{
-		// Iterate the dependencies and update the binding for each one on every back buffer descriptor set.
-		std::ranges::for_each(m_renderPass.inputAttachments(), [this](const DirectX12RenderPassDependency& dependency) {
-			// Find the input attachment for the binding.
-			for (UInt32 backBuffer{ 0 }; auto& bindings : m_inputAttachmentBindings)
+		// Get the interface pointer and obtain the descriptor sets for the input attachments.
+		auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
+		auto& bindings = m_inputAttachmentBindings.at(interfacePointer);
+
+		// Iterate the dependencies and update the binding for each one.
+		std::ranges::for_each(m_renderPass.inputAttachments(), [&](auto dependency) {
+			for (auto& binding : bindings)
 			{
-				for (auto& binding : bindings)
+				if (binding->layout().space() == dependency->binding().Space)
 				{
-					if (binding->layout().space() == dependency.binding().Space)
-					{
-						// Attach the image from the right frame buffer to the descriptor set.
-						binding->update(dependency.binding().Register, dependency.inputAttachmentSource()->frameBuffer(backBuffer++).image(dependency.renderTarget().location()));
-						break;
-					}
+					// Attach the image from the right frame buffer to the descriptor set.
+					binding->update(dependency->binding().Register, frameBuffer[dependency->renderTarget()]);
+					break;
 				}
 			}
 		});
@@ -424,50 +403,53 @@ public:
 		// If there's a sampler, bind it too.
 		if (m_renderPass.inputAttachmentSamplerBinding().has_value())
 		{
-			for (UInt32 backBuffer{ 0 }; auto & bindings : m_inputAttachmentBindings)
+			for (auto& binding : bindings)
 			{
-				for (auto& binding : bindings)
+				if (binding->layout().space() == m_renderPass.inputAttachmentSamplerBinding().value().Space)
 				{
-					if (binding->layout().space() == m_renderPass.inputAttachmentSamplerBinding().value().Space)
-					{
-						binding->update(m_renderPass.inputAttachmentSamplerBinding().value().Register, *m_inputAttachmentSampler);
-						break;
-					}
+					binding->update(m_renderPass.inputAttachmentSamplerBinding().value().Register, *m_inputAttachmentSampler);
+					break;
 				}
 			}
 		}
 	}
 
-	void onRenderPassReset(const void* sender, const IRenderPass::ResetEventArgs& eventArgs)
+	void bindInputAttachments(const DirectX12CommandBuffer& commandBuffer)
 	{
-		// If frame buffer count changed, reset number of descriptor sets and re-bind them.
-		if (eventArgs.frameBuffers() != static_cast<UInt32>(m_inputAttachmentBindings.size())) [[unlikely]]
+		// If this is the first time, the current frame buffer is bound to the render pass, we need to allocate descriptors for it.
+		auto& frameBuffer = m_renderPass.activeFrameBuffer();
+		auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
+
+		if (!m_inputAttachmentBindings.contains(interfacePointer))
 		{
-			// First, clear all the descriptor sets.
-			m_inputAttachmentBindings.clear();
-
-			// Get all descriptor sets that bind input attachments.
-			auto descriptorSets = m_renderPass.inputAttachments() | std::views::transform([](auto& dependency) { return dependency.binding().Space; }) | std::ranges::to<Array<UInt32>>();
-			std::ranges::sort(descriptorSets);
-			descriptorSets = std::ranges::unique(descriptorSets) | std::ranges::to<Array<UInt32>>();
-			
-			// If there is a sampler defined, also add it to the sets.
-			if (m_inputAttachmentSampler != nullptr)
-				descriptorSets.push_back(m_renderPass.inputAttachmentSamplerBinding().value().Space);
-
-			// Re-allocate the descriptor sets.
-			this->allocateInputAttachmentBindings(descriptorSets);
-
-			// Bind all input attachments.
-			this->bindInputAttachments();
+			// Allocate and update input attachment bindings.
+			this->initializeInputAttachmentBindings(frameBuffer);
+			this->updateInputAttachmentBindings(frameBuffer);
 		}
+
+		// Bind the input attachment sets.
+		commandBuffer.bind(m_inputAttachmentBindings.at(interfacePointer) | std::views::transform([](auto& set) { return set.get(); }));
 	}
 
-	void onDependencyReset(const void* sender, const IRenderPass::ResetEventArgs& eventArgs)
+	void onFrameBufferResize(const void* sender, IFrameBuffer::FrameBufferResizeEventArgs args)
 	{
-		// Re-bind all input attachments, but not if the frame buffer count has changed (this is handled if the parent render pass back buffer count is changed).
-		if (eventArgs.frameBuffers() == static_cast<UInt32>(m_inputAttachmentBindings.size())) [[likely]]
-			this->bindInputAttachments();
+		// Update the descriptors in the descriptor sets.
+		// NOTE: No slicing here, as the event is always triggered by the frame buffer instance.
+		auto frameBuffer = reinterpret_cast<const DirectX12FrameBuffer*>(sender);
+		this->updateInputAttachmentBindings(*frameBuffer);
+	}
+
+	void onFrameBufferRelease(const void* sender, IFrameBuffer::FrameBufferReleasedEventArgs args)
+	{
+		// Get the frame buffer pointer.
+		auto interfacePointer = reinterpret_cast<const IFrameBuffer*>(sender);
+
+		// Release the descriptor sets.
+		m_inputAttachmentBindings.erase(interfacePointer);
+
+		// Release the tokens.
+		m_frameBufferReleaseTokens.erase(interfacePointer);
+		m_frameBufferResizeTokens.erase(interfacePointer);
 	}
 };
 
@@ -475,13 +457,13 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, const bool enableAlphaToCoverage, const String& name) :
+DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, MultiSamplingLevel samples, bool enableAlphaToCoverage, const String& name) :
 	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer)), DirectX12PipelineState(nullptr)
 {
 	if (!name.empty())
 		this->name() = name;
 
-	this->handle() = m_impl->initialize();
+	this->handle() = m_impl->initialize(samples);
 }
 
 DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const String& name) noexcept :
@@ -518,6 +500,23 @@ bool DirectX12RenderPipeline::alphaToCoverage() const noexcept
 	return m_impl->m_alphaToCoverage;
 }
 
+MultiSamplingLevel DirectX12RenderPipeline::samples() const noexcept
+{
+	return m_impl->m_samples;
+}
+
+void DirectX12RenderPipeline::updateSamples(MultiSamplingLevel samples)
+{
+	// Release all frame buffer bindings.
+	m_impl->m_inputAttachmentBindings.clear();
+
+	// Release current pipeline state.
+	this->handle().Reset();
+
+	// Rebuild the pipeline.
+	this->handle() = m_impl->initialize(samples);
+}
+
 void DirectX12RenderPipeline::use(const DirectX12CommandBuffer& commandBuffer) const noexcept
 {
 	commandBuffer.handle()->SetPipelineState(this->handle().Get());
@@ -525,7 +524,7 @@ void DirectX12RenderPipeline::use(const DirectX12CommandBuffer& commandBuffer) c
 	commandBuffer.handle()->IASetPrimitiveTopology(DX12::getPrimitiveTopology(m_impl->m_inputAssembler->topology()));
 
 	// Bind all the input attachments for the parent render pass.
-	commandBuffer.bind(m_impl->m_inputAttachmentBindings[m_impl->m_renderPass.activeBackBuffer()] | std::views::transform([](auto& set) { return set.get(); }));
+	m_impl->bindInputAttachments(commandBuffer);
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
@@ -549,6 +548,6 @@ void DirectX12RenderPipelineBuilder::build()
 	instance->m_impl->m_inputAssembler = m_state.inputAssembler;
 	instance->m_impl->m_rasterizer = m_state.rasterizer;
 	instance->m_impl->m_alphaToCoverage = m_state.enableAlphaToCoverage;
-	instance->handle() = instance->m_impl->initialize();
+	instance->handle() = instance->m_impl->initialize(m_state.samples);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

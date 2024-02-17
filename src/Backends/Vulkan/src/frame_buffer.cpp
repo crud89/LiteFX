@@ -139,16 +139,6 @@ void VulkanFrameBuffer::unmapRenderTarget(const RenderTarget& renderTarget) noex
     m_impl->m_mappedRenderTargets.erase(renderTarget.identifier());
 }
 
-SharedPtr<const VulkanCommandBuffer> VulkanFrameBuffer::commandBuffer(UInt32 index) const
-{
-    throw;
-}
-
-Enumerable<SharedPtr<const VulkanCommandBuffer>> VulkanFrameBuffer::commandBuffers() const noexcept
-{
-    throw;
-}
-
 Enumerable<const IVulkanImage*> VulkanFrameBuffer::images() const noexcept
 {
     return m_impl->m_images | std::views::transform([](auto& image) { return image.get(); });

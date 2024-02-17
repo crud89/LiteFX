@@ -1397,12 +1397,6 @@ namespace LiteFX::Rendering::Backends {
         void unmapRenderTarget(const RenderTarget& renderTarget) noexcept override;
 
         /// <inheritdoc />
-        SharedPtr<const VulkanCommandBuffer> commandBuffer(UInt32 index) const override;
-
-        /// <inheritdoc />
-        Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers() const noexcept override;
-
-        /// <inheritdoc />
         Enumerable<const IVulkanImage*> images() const noexcept override;
 
         /// <inheritdoc />
@@ -1570,66 +1564,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void changeMultiSamplingLevel(MultiSamplingLevel samples) override;
-    };
-
-    /// <summary>
-    /// Implements a <see cref="IRenderPassDependency" />.
-    /// </summary>
-    /// <seealso cref="VulkanRenderPass" />
-    /// <seealso cref="VulkanRenderPassBuilder" />
-    class LITEFX_VULKAN_API VulkanRenderPassDependency final : public IRenderPassDependency<VulkanRenderPass> {
-        LITEFX_IMPLEMENTATION(VulkanRenderPassDependencyImpl);
-
-    public:
-        /// <summary>
-        /// Creates a new Vulkan input attachment mapping.
-        /// </summary>
-        /// <param name="renderPass">The render pass to fetch the input attachment from.</param>
-        /// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
-        /// <param name="binding">The binding point to bind the input attachment to.</param>
-        VulkanRenderPassDependency(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, DescriptorBindingPoint binding);
-
-        /// <summary>
-        /// Creates a new Vulkan input attachment mapping.
-        /// </summary>
-        /// <param name="renderPass">The render pass to fetch the input attachment from.</param>
-        /// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
-        /// <param name="bindingRegister">The register to bind the input attachment to.</param>
-        /// <param name="space">The space to bind the input attachment to.</param>
-        VulkanRenderPassDependency(const VulkanRenderPass& renderPass, const RenderTarget& renderTarget, UInt32 bindingRegister, UInt32 space);
-
-        /// <summary>
-        /// Copies another input attachment mapping.
-        /// </summary>
-        VulkanRenderPassDependency(const VulkanRenderPassDependency&) noexcept;
-
-        /// <summary>
-        /// Takes over another input attachment mapping.
-        /// </summary>
-        VulkanRenderPassDependency(VulkanRenderPassDependency&&) noexcept;
-
-        virtual ~VulkanRenderPassDependency() noexcept;
-
-    public:
-        /// <summary>
-        /// Copies another input attachment mapping.
-        /// </summary>
-        inline VulkanRenderPassDependency& operator=(const VulkanRenderPassDependency&) noexcept;
-
-        /// <summary>
-        /// Takes over another input attachment mapping.
-        /// </summary>
-        inline VulkanRenderPassDependency& operator=(VulkanRenderPassDependency&&) noexcept;
-
-    public:
-        /// <inheritdoc />
-        const VulkanRenderPass* inputAttachmentSource() const noexcept override;
-
-        /// <inheritdoc />
-        const RenderTarget& renderTarget() const noexcept override;
-
-        /// <inheritdoc />
-        const DescriptorBindingPoint& binding() const noexcept override;
     };
 
     /// <summary>

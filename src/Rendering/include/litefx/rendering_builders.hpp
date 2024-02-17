@@ -1427,6 +1427,11 @@ namespace LiteFX::Rendering {
             /// The alpha-to-coverage setting.
             /// </summary>
             bool enableAlphaToCoverage{ false };
+
+            /// <summary>
+            /// The multi-sampling level of the render pipeline.
+            /// </summary>
+            MultiSamplingLevel samples { MultiSamplingLevel::x1 };
         } m_state;
 
     public:
@@ -1484,6 +1489,16 @@ namespace LiteFX::Rendering {
         template <typename TSelf>
         constexpr inline auto enableAlphaToCoverage(this TSelf&& self, bool enable = true) -> TSelf&& {
             self.m_state.enableAlphaToCoverage = enable;
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Sets the multi-sampling level of the render pipeline.
+        /// </summary>
+        /// <param name="samples">The multi-sampling level of the render pipeline.</param>
+        template <typename TSelf>
+        constexpr inline auto samples(this TSelf&& self, MultiSamplingLevel samples) -> TSelf&& {
+            self.m_state.samples = samples;
             return std::forward<TSelf>(self);
         }
     };
@@ -1633,12 +1648,11 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TRenderPass">The type of the render pass. Must implement <see cref="RenderPass" />.</typeparam>
     /// <seealso cref="RenderPass" />
     template <typename TRenderPass> requires
-        meta::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, typename TRenderPass::command_queue_type, typename TRenderPass::frame_buffer_type, typename TRenderPass::render_pass_dependency_type>>
+        meta::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, typename TRenderPass::command_queue_type, typename TRenderPass::frame_buffer_type>>
     class RenderPassBuilder : public Builder<TRenderPass> {
     public:
         using Builder<TRenderPass>::Builder;
         using render_pass_type = TRenderPass;
-        using render_pass_dependency_type = render_pass_type::render_pass_dependency_type;
         using command_queue_type = render_pass_type::command_queue_type;
 
     protected:
@@ -1652,11 +1666,6 @@ namespace LiteFX::Rendering {
             UInt32 commandBufferCount{ 0 };
 
             /// <summary>
-            /// The multi-sampling level for the render pass frame buffer.
-            /// </summary>
-            MultiSamplingLevel multiSamplingLevel{ MultiSamplingLevel::x1 };
-
-            /// <summary>
             /// The render targets of the render pass.
             /// </summary>
             Array<RenderTarget> renderTargets{ };
@@ -1664,7 +1673,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The input attachments of the render pass.
             /// </summary>
-            Array<render_pass_dependency_type> inputAttachments{ };
+            Array<RenderPassDependency> inputAttachments{ };
 
             /// <summary>
             /// The command queue, the render pass will execute on.
@@ -1675,21 +1684,15 @@ namespace LiteFX::Rendering {
             /// The binding point for input attachment samplers, if required.
             /// </summary>
             Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding{ std::nullopt };
-
-            /// <summary>
-            /// If `std::nullopt`, the render area is acquired from the parent device swap chain, otherwise the value of this property gets used.
-            /// </summary>
-            Optional<Size2d> renderArea{ std::nullopt };
         } m_state;
 
         /// <summary>
         /// Creates a new input attachment mapping between a render target of a specified render pass and an input location of the render pass that is currently built.
         /// </summary>
         /// <param name="binding">The descriptor binding on which to bind the mapped render target.</param>
-        /// <param name="renderPass">The render pass that produces the render target.</param>
         /// <param name="renderTarget">The render target of the render pass.</param>
         /// <returns>The input attachment mapping that describes the relation between the earlier render pass render target and the input location.</returns>
-        virtual inline render_pass_dependency_type makeInputAttachment(DescriptorBindingPoint binding, const render_pass_type& renderPass, const RenderTarget& renderTarget) = 0;
+        virtual inline RenderPassDependency makeInputAttachment(DescriptorBindingPoint binding, const RenderTarget& renderTarget) = 0;
 
     public:
         /// <summary>
@@ -1713,16 +1716,6 @@ namespace LiteFX::Rendering {
         template <typename TSelf>
         constexpr inline auto commandBuffers(this TSelf&& self, UInt32 count) -> TSelf&& {
             self.m_state.commandBufferCount = count;
-            return std::forward<TSelf>(self);
-        }
-
-        /// <summary>
-        /// Sets the multi-sampling level for the render targets.
-        /// </summary>
-        /// <param name="samples">The number of samples for each render target.</param>
-        template <typename TSelf>
-        constexpr inline auto multiSamplingLevel(this TSelf&& self, MultiSamplingLevel samples) -> TSelf&& {
-            self.m_state.multiSamplingLevel = samples;
             return std::forward<TSelf>(self);
         }
 
@@ -1783,60 +1776,6 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Adds a render target to the render pass, that maps to an input attachment of another render pass. The location is assigned incrementally.
-        /// </summary>
-        /// <param name="output">The input attachment mapping to map to.</param>
-        /// <param name="type">The type of the render target.</param>
-        /// <param name="format">The color format of the render target.</param>
-        /// <param name="flags">The flags that control the behavior of the render target.</param>
-        /// <param name="clearValues">The fixed clear value for the render target.</param>
-        template <typename TSelf>
-        constexpr inline auto renderTarget(this TSelf&& self, render_pass_dependency_type& output, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf&& {
-            self.renderTarget("", output, static_cast<UInt32>(self.m_state.m_renderTargets.size()), type, format, flags, clearValues);
-            return std::forward<TSelf>(self);
-        }
-
-        /// <summary>
-        /// Adds a render target to the render pass, that maps to an input attachment of another render pass. The location is assigned incrementally.
-        /// </summary>
-        /// <param name="name">The name of the render target.</param>
-        /// <param name="output">The input attachment mapping to map to.</param>
-        /// <param name="type">The type of the render target.</param>
-        /// <param name="format">The color format of the render target.</param>
-        /// <param name="flags">The flags that control the behavior of the render target.</param>
-        /// <param name="clearValues">The fixed clear value for the render target.</param>
-        template <typename TSelf>
-        constexpr inline auto renderTarget(this TSelf&& self, const String& name, render_pass_dependency_type& output, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf&& {
-            self.renderTarget(name, output, static_cast<UInt32>(self.m_state.renderTargets.size()), type, format, flags, clearValues);
-            return std::forward<TSelf>(self);
-        }
-
-        /// <summary>
-        /// Adds a render target to the render pass, that maps to an input attachment of another render pass.
-        /// </summary>
-        /// <param name="output">The input attachment mapping to map to.</param>
-        /// <param name="location">The location of the render target.</param>
-        /// <param name="type">The type of the render target.</param>
-        /// <param name="format">The color format of the render target.</param>
-        /// <param name="flags">The flags that control the behavior of the render target.</param>
-        /// <param name="clearValues">The fixed clear value for the render target.</param>
-        template <typename TSelf>
-        constexpr inline auto renderTarget(this TSelf&& self, render_pass_dependency_type& output, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.0f, 0.0f, 0.0f, 0.0f }) -> TSelf&& {
-            self.renderTarget("", output, location, type, format, flags, clearValues);
-            return std::forward<TSelf>(self);
-        }
-
-        /// <summary>
-        /// Adds an input attachment to the render pass.
-        /// </summary>
-        /// <param name="inputAttachment">The input attachment to add.</param>
-        template <typename TSelf>
-        constexpr inline auto inputAttachment(this TSelf&& self, const render_pass_dependency_type& inputAttachment) -> TSelf&& {
-            self.m_state.inputAttachments.push_back(inputAttachment);
-            return std::forward<TSelf>(self);
-        }
-
-        /// <summary>
         /// Adds an input attachment to the render pass.
         /// </summary>
         /// <param name="binding">The descriptor binding on which to bind the mapped render target.</param>
@@ -1844,7 +1783,7 @@ namespace LiteFX::Rendering {
         /// <param name="outputLocation">The location to which the input attachment is written by <paramref name="renderPass" />.</param>
         template <typename TSelf>
         constexpr inline auto inputAttachment(this TSelf&& self, DescriptorBindingPoint binding, const render_pass_type& renderPass, UInt32 outputLocation) -> TSelf&& {
-            self.inputAttachment(static_cast<RenderPassBuilder&>(self).makeInputAttachment(binding, renderPass, renderPass.renderTarget(outputLocation)));
+            self.inputAttachment(static_cast<RenderPassBuilder&>(self).makeInputAttachment(binding, renderPass.renderTarget(outputLocation)));
             return std::forward<TSelf>(self);
         }
 
@@ -1852,11 +1791,10 @@ namespace LiteFX::Rendering {
         /// Adds an input attachment to the render pass.
         /// </summary>
         /// <param name="binding">The descriptor binding on which to bind the mapped render target.</param>
-        /// <param name="renderPass">The render pass, the input attachment is created from.</param>
         /// <param name="renderTarget">The render target that is bound as input attachment.</param>
         template <typename TSelf>
-        constexpr inline auto inputAttachment(this TSelf&& self, DescriptorBindingPoint binding, const render_pass_type& renderPass, RenderTarget renderTarget) -> TSelf&& {
-            self.inputAttachment(static_cast<RenderPassBuilder&>(self).makeInputAttachment(binding, renderPass, renderTarget));
+        constexpr inline auto inputAttachment(this TSelf&& self, DescriptorBindingPoint binding, RenderTarget renderTarget) -> TSelf&& {
+            self.inputAttachment(static_cast<RenderPassBuilder&>(self).makeInputAttachment(binding, renderTarget));
             return std::forward<TSelf>(self);
         }
 
@@ -1867,16 +1805,6 @@ namespace LiteFX::Rendering {
         template <typename TSelf>
         constexpr inline auto inputAttachmentSamplerBinding(this TSelf&& self, const DescriptorBindingPoint& bindingPoint) -> TSelf&& {
             self.m_state.inputAttachmentSamplerBinding = bindingPoint;
-            return std::forward<TSelf>(self);
-        }
-
-        /// <summary>
-        /// Sets the render area on the render pass.
-        /// </summary>
-        /// <param name="renderArea">The render area to use for the render pass.</param>
-        template <typename TSelf>
-        constexpr inline auto renderArea(this TSelf&& self, const Size2d& renderArea) -> TSelf&& {
-            self.m_state.renderArea = renderArea;
             return std::forward<TSelf>(self);
         }
     };

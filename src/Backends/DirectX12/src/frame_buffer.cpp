@@ -163,16 +163,6 @@ void DirectX12FrameBuffer::unmapRenderTarget(const RenderTarget& renderTarget) n
     m_impl->m_mappedRenderTargets.erase(renderTarget.identifier());
 }
 
-SharedPtr<const DirectX12CommandBuffer> DirectX12FrameBuffer::commandBuffer(UInt32 index) const
-{
-    throw;
-}
-
-Enumerable<SharedPtr<const DirectX12CommandBuffer>> DirectX12FrameBuffer::commandBuffers() const noexcept
-{
-    throw;
-}
-
 Enumerable<const IDirectX12Image*> DirectX12FrameBuffer::images() const noexcept
 {
     return m_impl->m_images | std::views::transform([](auto& image) { return image.get(); });
@@ -194,6 +184,14 @@ const IDirectX12Image& DirectX12FrameBuffer::image(const RenderTarget& renderTar
     return *m_impl->m_mappedRenderTargets[renderTarget.identifier()];
 }
 
+const IDirectX12Image& DirectX12FrameBuffer::resolveImage(UInt64 hash) const
+{
+    if (!m_impl->m_mappedRenderTargets.contains(hash)) [[unlikely]]
+        throw InvalidArgumentException("renderTarget", "The frame buffer does not map an image to the provided render target name hash \"0x{0:016X}\".", hash);
+
+    return *m_impl->m_mappedRenderTargets[hash];
+}
+
 void DirectX12FrameBuffer::addImage(const String& name, Format format, MultiSamplingLevel samples, ResourceUsage usage)
 {
     // Add a new image.
@@ -203,7 +201,21 @@ void DirectX12FrameBuffer::addImage(const String& name, Format format, MultiSamp
     m_impl->initialize();
 }
 
+void DirectX12FrameBuffer::addImage(const String& name, const RenderTarget& renderTarget, MultiSamplingLevel samples, ResourceUsage usage)
+{
+    // Add a new image.
+    auto index = m_impl->m_images.size();
+    m_impl->m_images.push_back(std::move(m_impl->m_device.factory().createTexture(name, renderTarget.format(), m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage)));
+
+    // Re-initialize to reset descriptor heaps and allocate descriptors.
+    m_impl->initialize();
+
+    // Map the render target to the image.
+    this->mapRenderTarget(renderTarget, static_cast<UInt32>(index));
+}
+
 void DirectX12FrameBuffer::resize(const Size2d& renderArea)
 {
     m_impl->resize(renderArea);
+    this->resized(this, { renderArea });
 }
