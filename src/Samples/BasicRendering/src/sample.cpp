@@ -248,6 +248,11 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     auto renderArea = Size2d(e.width(), e.height());
     m_device->swapChain().reset(surfaceFormat, renderArea, 3);
 
+    // Resize the frame buffers. Note that we could also use an event handler on the swap chain `reseted` event to do this automatically instead.
+    m_device->state().frameBuffer("Frame Buffer 0").resize(renderArea);
+    m_device->state().frameBuffer("Frame Buffer 1").resize(renderArea);
+    m_device->state().frameBuffer("Frame Buffer 2").resize(renderArea);
+
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
     m_scissor->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));

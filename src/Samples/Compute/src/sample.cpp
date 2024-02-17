@@ -49,9 +49,15 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     using ShaderProgram = TRenderBackend::shader_program_type;
     using InputAssembler = TRenderBackend::input_assembler_type;
     using Rasterizer = TRenderBackend::rasterizer_type;
+    using FrameBuffer = TRenderBackend::frame_buffer_type;
 
     // Get the default device.
     auto device = backend->device("Default");
+
+    // Create the frame buffers for all back buffers.
+    auto frameBuffers = std::views::iota(0u, device->swapChain().buffers()) |
+        std::views::transform([&](UInt32 index) { return device->makeFrameBuffer(fmt::format("Frame Buffer {0}", index), device->swapChain().renderArea()); }) |
+        std::ranges::to<Array<UniquePtr<FrameBuffer>>>();
 
     // Create input assembler state.
     SharedPtr<InputAssembler> inputAssembler = device->buildInputAssembler()
@@ -68,6 +74,12 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
         .renderTarget("Color Target", RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear | RenderTargetFlags::Shared | RenderTargetFlags::AllowStorage, { 0.1f, 0.1f, 0.1f, 1.f })
         .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
+
+    // Map all render targets to the frame buffer.
+    std::ranges::for_each(frameBuffers, [&renderPass](auto& frameBuffer) { 
+        frameBuffer->addImage(renderPass->renderTarget(0), MultiSamplingLevel::x1, ResourceUsage::FrameBufferImage | ResourceUsage::AllowWrite);
+        frameBuffer->addImage(renderPass->renderTarget(1)); 
+    });
 
     // Create the shader program.
     SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
@@ -98,6 +110,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     device->state().add(std::move(renderPass));
     device->state().add(std::move(renderPipeline));
     device->state().add(std::move(postPipeline));
+    std::ranges::for_each(frameBuffers, [device](auto& frameBuffer) { device->state().add(std::move(frameBuffer)); });
 }
 
 void SampleApp::initBuffers(IRenderBackend* backend)
@@ -139,9 +152,9 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto& postPipeline = m_device->state().pipeline("Post");
     auto& postInputLayout = postPipeline.layout()->descriptorSet(0);
     auto postBindings = postInputLayout.allocateMultiple(3, {
-        { { .resource = renderPass.frameBuffer(0).image(0) } },
-        { { .resource = renderPass.frameBuffer(1).image(0) } },
-        { { .resource = renderPass.frameBuffer(2).image(0) } }
+        { { .resource = m_device->state().frameBuffer("Frame Buffer 0").resolveImage("Color Target"_hash) } },
+        { { .resource = m_device->state().frameBuffer("Frame Buffer 1").resolveImage("Color Target"_hash) } },
+        { { .resource = m_device->state().frameBuffer("Frame Buffer 2").resolveImage("Color Target"_hash) } }
     });
     
     // Add everything to the state.
@@ -257,12 +270,16 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     auto surfaceFormat = m_device->swapChain().surfaceFormat();
     auto renderArea = Size2d(e.width(), e.height());
     m_device->swapChain().reset(surfaceFormat, renderArea, 3);
-    
-    // Update the post-processing bindings that reference the "opaque" frame buffer.
-    auto opaqueFrameBuffers = m_device->state().renderPass("Opaque").frameBuffers();
-    
-    for (size_t i{ 0 }; auto& frameBuffer : opaqueFrameBuffers)
-        m_device->state().descriptorSet(fmt::format("Post Bindings {0}", i++)).update(0, frameBuffer->image(0));
+
+    // Resize the frame buffers. Note that we could also use an event handler on the swap chain `reseted` event to do this automatically instead.
+    for (int i = 0; i < 3; ++i)
+    {
+        auto& frameBuffer = m_device->state().frameBuffer(fmt::format("Frame Buffer {0}", i));
+        frameBuffer.resize(renderArea);
+
+        // Update the post-processing bindings that reference the "opaque" frame buffer.
+        m_device->state().descriptorSet(fmt::format("Post Bindings {0}", i)).update(0, frameBuffer["Color Target"]);
+    }
 
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
@@ -372,6 +389,7 @@ void SampleApp::drawFrame()
     auto backBuffer = m_device->swapChain().swapBackBuffer();
 
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
+    auto& frameBuffer = m_device->state().frameBuffer(fmt::format("Frame Buffer {0}", backBuffer));
     auto& renderPass = m_device->state().renderPass("Opaque");
     auto& postPipeline = m_device->state().pipeline("Post");
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
@@ -390,8 +408,8 @@ void SampleApp::drawFrame()
         renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
 
         // Begin rendering on the render pass and use the only pipeline we've created for it.
-        renderPass.begin(backBuffer);
-        auto commandBuffer = renderPass.activeFrameBuffer().commandBuffer(0);
+        renderPass.begin(frameBuffer);
+        auto commandBuffer = renderPass.commandBuffer(0);
         commandBuffer->use(geometryPipeline);
         commandBuffer->setViewports(m_viewport.get());
         commandBuffer->setScissors(m_scissor.get());
@@ -425,12 +443,11 @@ void SampleApp::drawFrame()
         commandBuffer->use(postPipeline);
 
         // Get the image from the back buffer of the geometry pass.
-        auto& frameBuffer = renderPass.frameBuffer(backBuffer);
-        auto& image = frameBuffer.image(0);
+        auto& image = frameBuffer["Color Target"];
 
         // Create a barrier that handles image transition.
         // NOTE: Since we did not specify the `RenderTargetFlags::Attachment` flag for the render target during pipeline creation, the render target is in `Common` layout and only needs 
-        //       transitioning into a writeable state.
+        //       transitioning into a writable state.
         auto barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Compute);
         barrier->transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::Common, ImageLayout::ReadWrite);
         commandBuffer->barrier(*barrier);
@@ -462,7 +479,7 @@ void SampleApp::drawFrame()
         commandBuffer->barrier(*barrier);
 
         // Copy the image.
-        commandBuffer->transfer(renderPass.frameBuffer(backBuffer).image(0), *m_device->swapChain().image(backBuffer));
+        commandBuffer->transfer(image, *m_device->swapChain().image(backBuffer));
 
         // Transition the image back into `Present` layout.
         barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::Resolve);
