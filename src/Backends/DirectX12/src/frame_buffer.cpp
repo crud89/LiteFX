@@ -90,9 +90,19 @@ public:
         m_size = renderArea;
 
         // Recreate all resources.
+        Dictionary<const IDirectX12Image*, IDirectX12Image*> imageReplacements;
+
         auto images = m_images |
-            std::views::transform([&](const UniquePtr<IDirectX12Image>& image) { return m_device.factory().createTexture(image->name(), image->format(), renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage()); }) |
-            std::views::as_rvalue | std::ranges::to<Array<UniquePtr<IDirectX12Image>>>();
+            std::views::transform([&](const UniquePtr<IDirectX12Image>& image) { 
+                auto newImage = m_device.factory().createTexture(image->name(), image->format(), renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage()); 
+                imageReplacements[image.get()] = newImage.get();
+                return std::move(newImage);
+            }) | std::views::as_rvalue | std::ranges::to<Array<UniquePtr<IDirectX12Image>>>();
+
+        // Update the mappings.
+        std::ranges::for_each(m_mappedRenderTargets | std::views::values, [&imageReplacements](auto& image) { image = imageReplacements[image]; });
+
+        // Store the new images.
         m_images = std::move(images);
 
         // Re-initialize to update heaps and descriptors.
