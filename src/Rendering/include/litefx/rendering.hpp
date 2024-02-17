@@ -867,6 +867,9 @@ namespace LiteFX::Rendering {
         using image_type = TImage;
 
     public:
+        using IFrameBuffer::addImage;
+
+    public:
         virtual ~FrameBuffer() noexcept = default;
 
     public:

@@ -1462,6 +1462,9 @@ namespace LiteFX::Rendering::Backends {
         LITEFX_IMPLEMENTATION(DirectX12FrameBufferImpl);
 
     public:
+        using FrameBuffer<IDirectX12Image>::addImage;
+
+    public:
         /// <summary>
         /// Initializes a DirectX 12 frame buffer.
         /// </summary>

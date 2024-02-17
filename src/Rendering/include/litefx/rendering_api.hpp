@@ -7148,7 +7148,7 @@ namespace LiteFX::Rendering {
         /// <param name="samples">The number of samples of the image.</param>
         /// <param name="usage">The desired resource usage flags for the image.</param>
         inline void addImage(const RenderTarget& renderTarget, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) {
-            this->addImage(fmt::format("{0} image", renderTarget.name()), renderTarget, samples, usage);
+            this->addImage(renderTarget.name(), renderTarget, samples, usage);
         }
 
         /// <summary>
@@ -7184,7 +7184,7 @@ namespace LiteFX::Rendering {
         /// <param name="usage">The desired resource usage flags for the image.</param>
         template <typename TSelf>
         inline auto addImages(this TSelf&& self, Span<const RenderTarget> renderTargets, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
-            std::ranges::for_each(renderTargets, [&](auto& renderTarget) { self.addImage(fmt::format("{0} image", renderTarget.name()), renderTarget, samples, usage); });
+            std::ranges::for_each(renderTargets, [&](auto& renderTarget) { self.addImage(renderTarget.name(), renderTarget, samples, usage); });
             return std::forward<TSelf>(self);
         }
 
