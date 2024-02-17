@@ -25,6 +25,7 @@ private:
 	UniquePtr<IDirectX12Sampler> m_inputAttachmentSampler;
 	Dictionary<const IFrameBuffer*, Array<UniquePtr<DirectX12DescriptorSet>>> m_inputAttachmentBindings;
 	Dictionary<const IFrameBuffer*, size_t> m_frameBufferResizeTokens, m_frameBufferReleaseTokens;
+	mutable std::mutex m_usageMutex;
 
 public:
 	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, bool alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer) :
@@ -525,9 +526,14 @@ void DirectX12RenderPipeline::updateSamples(MultiSamplingLevel samples)
 
 void DirectX12RenderPipeline::use(const DirectX12CommandBuffer& commandBuffer) const noexcept
 {
+	// Set the pipeline state.
 	commandBuffer.handle()->SetPipelineState(this->handle().Get());
 	commandBuffer.handle()->SetGraphicsRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
 	commandBuffer.handle()->IASetPrimitiveTopology(DX12::getPrimitiveTopology(m_impl->m_inputAssembler->topology()));
+
+	// NOTE: The same pipeline can be used from multiple multi-threaded command buffers, in which case we need to prevent multiple threads 
+	//       from attempting to initialize the bindings on first use.
+	std::lock_guard<std::mutex> lock(m_impl->m_usageMutex);
 
 	// Bind all the input attachments for the parent render pass.
 	m_impl->bindInputAttachments(commandBuffer);
