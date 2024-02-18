@@ -447,7 +447,7 @@ void SampleApp::drawFrame()
 
         // Create a barrier that handles image transition.
         auto barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Compute);
-        barrier->transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::Undefined, ImageLayout::ReadWrite);
+        barrier->transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::ShaderResource, ImageLayout::ReadWrite);
         commandBuffer->barrier(*barrier);
 
         // Bind the image to the texture descriptor.
@@ -480,7 +480,10 @@ void SampleApp::drawFrame()
         commandBuffer->transfer(image, *m_device->swapChain().image(backBuffer));
 
         // Transition the image back into `Present` layout.
+        // NOTE: It is important to transition the frame buffer image back into "Shader Resource", as frame buffer color images are always expected to be in this state, when no
+        //       render pass is currently rendering to them.
         barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::Resolve);
+        barrier->transition(image, ResourceAccess::TransferRead, ResourceAccess::Common, ImageLayout::CopySource, ImageLayout::ShaderResource);
         barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::TransferWrite, ResourceAccess::Common, ImageLayout::CopyDestination, ImageLayout::Present);
         commandBuffer->barrier(*barrier);
 
