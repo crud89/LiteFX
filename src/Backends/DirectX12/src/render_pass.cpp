@@ -30,7 +30,6 @@ private:
     Optional<DescriptorBindingPoint> m_inputAttachmentSamplerBinding{ };
     const DirectX12Device& m_device;
     const DirectX12Queue* m_queue;
-    String m_name;
 
 public:
     DirectX12RenderPassImpl(DirectX12RenderPass* parent, const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding, UInt32 secondaryCommandBuffers) :
@@ -70,10 +69,6 @@ public:
             m_depthStencilTarget = match._Ptr;
         else
             m_depthStencilTarget = nullptr;
-
-        // Check if there are render targets that are used as attachments and issue a warning.
-        if (auto match = std::ranges::find_if(m_renderTargets, [](const RenderTarget& renderTarget) { return renderTarget.attachment(); }); match != m_renderTargets.end()) [[unlikely]]
-            LITEFX_WARNING(DIRECTX12_LOG, "DirectX 12 does not support optimized layouts for render pass attachments. Render targets will be transitioned into general image layouts and need to be sampled accordingly.");
 
         // TODO: If there is a present target, we need to check if the provided queue can actually present on the surface. Currently, 
         //       we simply check if the queue is the same as the swap chain queue (which is the default graphics queue).
@@ -233,20 +228,14 @@ DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const St
     DirectX12RenderPass(device, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers)
 {
     if (!name.empty())
-    {
         this->name() = name;
-        m_impl->m_name = name;
-    }
 }
 
 DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name) noexcept :
     m_impl(makePimpl<DirectX12RenderPassImpl>(this, device))
 {
     if (!name.empty())
-    {
         this->name() = name;
-        m_impl->m_name = name;
-    }
 }
 
 DirectX12RenderPass::~DirectX12RenderPass() noexcept = default;
@@ -374,8 +363,8 @@ void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer) const
     beginCommandBuffer->barrier(depthStencilBarrier);
     beginCommandBuffer->barrier(inputAttachmentBarrier);
 
-    if (!m_impl->m_name.empty())
-        m_impl->m_queue->beginDebugRegion(fmt::format("{0} Render Pass", m_impl->m_name));
+    if (!this->name().empty())
+        m_impl->m_queue->beginDebugRegion(fmt::format("{0} Render Pass", this->name()));
 
     // Begin a suspending render pass for the transition and a suspend-the-resume render pass on each command buffer of the frame buffer.
     std::as_const(*beginCommandBuffer).handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
@@ -487,7 +476,7 @@ UInt64 DirectX12RenderPass::end() const
     // Submit and store the fence.
     auto fence = m_impl->m_queue->submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const DirectX12CommandBuffer>>>());
 
-    if (!m_impl->m_name.empty())
+    if (!this->name().empty())
         m_impl->m_queue->endDebugRegion();
 
     // NOTE: No need to wait for the fence here, since `Present` will wait for the back buffer to be ready. If we have multiple frames in flight, this will block until the first

@@ -90,7 +90,7 @@ public:
 
     void resize(const Size2d& renderArea)
     {
-        // TODO: Resize/Re-allocate all images.
+        // Resize/Re-allocate all images.
         m_size = renderArea;
 
         // Recreate all resources.

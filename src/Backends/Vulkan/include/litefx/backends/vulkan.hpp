@@ -1034,7 +1034,7 @@ namespace LiteFX::Rendering::Backends {
         /// Begins the command buffer as a secondary command buffer that inherits the state of <paramref name="renderPass" />.
         /// </summary>
         /// <param name="renderPass">The render pass state to inherit.</param>
-        virtual void begin(const VulkanRenderPass& renderPass) const noexcept;
+        virtual void begin(const VulkanRenderPass& renderPass) const;
 
         // CommandBuffer interface.
     public:
@@ -1081,40 +1081,40 @@ namespace LiteFX::Rendering::Backends {
         void barrier(const VulkanBarrier& barrier) const noexcept override;
 
         /// <inheritdoc />
-        void transfer(IVulkanBuffer& source, IVulkanBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
+        void transfer(const IVulkanBuffer& source, const IVulkanBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
-        void transfer(const void* const data, size_t size, IVulkanBuffer& target, UInt32 targetElement = 0, UInt32 elements = 1) const override;
+        void transfer(const void* const data, size_t size, const IVulkanBuffer& target, UInt32 targetElement = 0, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
-        void transfer(Span<const void* const> data, size_t elementSize, IVulkanBuffer& target, UInt32 firstElement = 0) const override;
+        void transfer(Span<const void* const> data, size_t elementSize, const IVulkanBuffer& target, UInt32 firstElement = 0) const override;
 
         /// <inheritdoc />
-        void transfer(IVulkanBuffer& source, IVulkanImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 subresources = 1) const override;
+        void transfer(const IVulkanBuffer& source, const IVulkanImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
-        void transfer(const void* const data, size_t size, IVulkanImage& target, UInt32 subresource = 0) const override;
+        void transfer(const void* const data, size_t size, const IVulkanImage& target, UInt32 subresource = 0) const override;
 
         /// <inheritdoc />
-        void transfer(Span<const void* const> data, size_t elementSize, IVulkanImage& target, UInt32 firstSubresource = 0, UInt32 subresources = 1) const override;
+        void transfer(Span<const void* const> data, size_t elementSize, const IVulkanImage& target, UInt32 firstSubresource = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
-        void transfer(IVulkanImage& source, IVulkanImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
+        void transfer(const IVulkanImage& source, const IVulkanImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
-        void transfer(IVulkanImage& source, IVulkanBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
+        void transfer(const IVulkanImage& source, const IVulkanBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
-        void transfer(SharedPtr<IVulkanBuffer> source, IVulkanBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
+        void transfer(SharedPtr<const IVulkanBuffer> source, const IVulkanBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
-        void transfer(SharedPtr<IVulkanBuffer> source, IVulkanImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
+        void transfer(SharedPtr<const IVulkanBuffer> source, const IVulkanImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
-        void transfer(SharedPtr<IVulkanImage> source, IVulkanImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
+        void transfer(SharedPtr<const IVulkanImage> source, const IVulkanImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
-        void transfer(SharedPtr<IVulkanImage> source, IVulkanBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
+        void transfer(SharedPtr<const IVulkanImage> source, const IVulkanBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
         void use(const VulkanPipelineState& pipeline) const noexcept override;
@@ -1187,6 +1187,107 @@ namespace LiteFX::Rendering::Backends {
     };
 
     /// <summary>
+    /// Implements a Vulkan command queue.
+    /// </summary>
+    /// <seealso cref="VulkanCommandBuffer" />
+    class LITEFX_VULKAN_API VulkanQueue final : public CommandQueue<VulkanCommandBuffer>, public Resource<VkQueue> {
+        LITEFX_IMPLEMENTATION(VulkanQueueImpl);
+
+    public:
+        using base_type = CommandQueue<VulkanCommandBuffer>;
+        using base_type::submit;
+
+    public:
+        /// <summary>
+        /// Initializes the Vulkan command queue.
+        /// </summary>
+        /// <param name="device">The device, commands get send to.</param>
+        /// <param name="type">The type of the command queue.</param>
+        /// <param name="priority">The priority, of which commands are issued on the device.</param>
+        /// <param name="familyId">The ID of the queue family.</param>
+        /// <param name="queueId">The ID of the queue.</param>
+        explicit VulkanQueue(const VulkanDevice& device, QueueType type, QueuePriority priority, UInt32 familyId, UInt32 queueId);
+        VulkanQueue(const VulkanQueue&) = delete;
+        VulkanQueue(VulkanQueue&&) = delete;
+        virtual ~VulkanQueue() noexcept;
+
+        // VulkanQueue interface.
+    public:
+        /// <summary>
+        /// Returns a reference to the device that provides this queue.
+        /// </summary>
+        /// <returns>A reference to the queue's parent device.</returns>
+        virtual const VulkanDevice& device() const noexcept;
+
+        /// <summary>
+        /// Returns the queue family ID.
+        /// </summary>
+        /// <returns>The queue family ID.</returns>
+        virtual UInt32 familyId() const noexcept;
+
+        /// <summary>
+        /// Returns the queue ID.
+        /// </summary>
+        /// <returns>The queue ID.</returns>
+        virtual UInt32 queueId() const noexcept;
+
+        /// <summary>
+        /// Returns the internal timeline semaphore used to synchronize the queue execution.
+        /// </summary>
+        /// <returns>The internal timeline semaphore.</returns>
+        virtual const VkSemaphore& timelineSemaphore() const noexcept;
+
+        // CommandQueue interface.
+    public:
+        /// <inheritdoc />
+        QueuePriority priority() const noexcept override;
+
+        /// <inheritdoc />
+        QueueType type() const noexcept override;
+
+#ifndef NDEBUG
+    public:
+        /// <inheritdoc />
+        void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
+
+        /// <inheritdoc />
+        void endDebugRegion() const noexcept override;
+
+        /// <inheritdoc />
+        void setDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
+#endif
+
+    public:
+        /// <inheritdoc />
+        SharedPtr<VulkanCommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const override;
+
+        /// <inheritdoc />
+        UInt64 submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) const override;
+
+        /// <inheritdoc />
+        UInt64 submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const override;
+
+        /// <inheritdoc />
+        void waitFor(UInt64 fence) const noexcept override;
+
+        /// <inheritdoc />
+        void waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept;
+
+        /// <inheritdoc />
+        UInt64 currentFence() const noexcept override;
+
+    private:
+        inline void waitForQueue(const ICommandQueue& queue, UInt64 fence) const override {
+            auto vkQueue = dynamic_cast<const VulkanQueue*>(&queue);
+
+            if (vkQueue == nullptr) [[unlikely]]
+                throw InvalidArgumentException("queue", "Cannot wait for queues from other backends.");
+
+            this->waitFor(*vkQueue, fence);
+        }
+    };
+
+    /// <summary>
     /// Implements a Vulkan <see cref="RenderPipeline" />.
     /// </summary>
     /// <seealso cref="VulkanComputePipeline" />
@@ -1204,9 +1305,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="layout">The layout of the pipeline.</param>
         /// <param name="inputAssembler">The input assembler state of the pipeline.</param>
         /// <param name="rasterizer">The rasterizer state of the pipeline.</param>
-        /// <param name="name">The optional name of the render pipeline.</param>
+        /// <param name="samples">The initial multi-sampling level of the render pipeline.</param>
         /// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
-        explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, bool enableAlphaToCoverage = false, const String& name = "");
+        /// <param name="name">The optional name of the render pipeline.</param>
+        explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool enableAlphaToCoverage = false, const String& name = "");
         VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
         VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
         virtual ~VulkanRenderPipeline() noexcept;
@@ -1237,6 +1339,12 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         bool alphaToCoverage() const noexcept override;
+
+        /// <inheritdoc />
+        MultiSamplingLevel samples() const noexcept override;
+
+        /// <inheritdoc />
+        void updateSamples(MultiSamplingLevel samples) override;
 
         // VulkanPipelineState interface.
     public:
@@ -1365,8 +1473,13 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a Vulkan frame buffer.
     /// </summary>
     /// <seealso cref="VulkanRenderPass" />
-    class LITEFX_VULKAN_API VulkanFrameBuffer final : public FrameBuffer<VulkanCommandBuffer> {
+    class LITEFX_VULKAN_API VulkanFrameBuffer final : public FrameBuffer<IVulkanImage> {
         LITEFX_IMPLEMENTATION(VulkanFrameBufferImpl);
+
+    public:
+        using FrameBuffer::addImage;
+        using FrameBuffer::mapRenderTarget;
+        using FrameBuffer::mapRenderTargets;
 
     public:
         /// <summary>
@@ -1374,10 +1487,37 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="device">The device the frame buffer is allocated on.</param>
         /// <param name="renderArea">The initial size of the render area.</param>
-        VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea);
+        /// <param name="name">The name of the frame buffer.</param>
+        VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea, StringView name = "");
         VulkanFrameBuffer(const VulkanFrameBuffer&) noexcept = delete;
         VulkanFrameBuffer(VulkanFrameBuffer&&) noexcept = delete;
         virtual ~VulkanFrameBuffer() noexcept;
+
+        // Vulkan frame buffer interface.
+    public:
+        /// <summary>
+        /// Returns the image view for an image at the specified index.
+        /// </summary>
+        /// <param name="imageIndex">The index of the image for which the image view should be returned.</param>
+        /// <returns>The image view for the image.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the provided image index does not address an image within the frame buffer.</exception>
+        VkImageView imageView(UInt32 imageIndex) const;
+
+        /// <summary>
+        /// Returns the image view for an image with the specified name.
+        /// </summary>
+        /// <param name="imageName">The name of the image for which the image view should be returned.</param>
+        /// <returns>The image view for the image.</returns>
+        /// <exception cref="InvalidArgumentException">Thrown, if the provided image name does refer to an image within the frame buffer.</exception>
+        VkImageView imageView(StringView imageName) const;
+
+        /// <summary>
+        /// Returns the image view for an image mapped to the specified render target.
+        /// </summary>
+        /// <param name="renderTarget">The render target for which to return the image image view.</param>
+        /// <returns>The image view for the image.</returns>
+        /// <exception cref="InvalidArgumentException">Thrown, if the provided render target is not mapped to an image within the frame buffer.</exception>
+        VkImageView imageView(const RenderTarget& renderTarget) const;
 
         // FrameBuffer interface.
     public:
@@ -1392,6 +1532,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void mapRenderTarget(const RenderTarget& renderTarget, UInt32 index) override;
+
+        /// <inheritdoc />
+        void mapRenderTarget(const RenderTarget& renderTarget, StringView name) override;
 
         /// <inheritdoc />
         void unmapRenderTarget(const RenderTarget& renderTarget) noexcept override;
@@ -1416,7 +1559,23 @@ namespace LiteFX::Rendering::Backends {
         const IVulkanImage& image(const RenderTarget& renderTarget) const override;
 
         /// <inheritdoc />
+        inline const IVulkanImage& operator[](StringView renderTargetName) const override {
+            return this->resolveImage(hash(renderTargetName));
+        }
+
+        /// <inheritdoc />
+        inline const IVulkanImage& image(StringView renderTargetName) const override {
+            return this->resolveImage(hash(renderTargetName));
+        }
+
+        /// <inheritdoc />
+        const IVulkanImage& resolveImage(UInt64 hash) const override;
+
+        /// <inheritdoc />
         void addImage(const String& name, Format format, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) override;
+
+        /// <inheritdoc />
+        void addImage(const String& name, const RenderTarget& renderTarget, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) override;
 
         /// <inheritdoc />
         void resize(const Size2d& renderArea) override;
@@ -1426,48 +1585,45 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a Vulkan render pass.
     /// </summary>
     /// <seealso cref="VulkanRenderPassBuilder" />
-    class LITEFX_VULKAN_API VulkanRenderPass final : public RenderPass<VulkanRenderPipeline, VulkanQueue, VulkanFrameBuffer, VulkanRenderPassDependency>, public Resource<VkRenderPass> {
+    class LITEFX_VULKAN_API VulkanRenderPass final : public RenderPass<VulkanRenderPipeline, VulkanQueue, VulkanFrameBuffer> {
         LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
         LITEFX_BUILDER(VulkanRenderPassBuilder);
 
     public:
-        using base_type = RenderPass<VulkanRenderPipeline, VulkanQueue, VulkanFrameBuffer, VulkanRenderPassDependency>;
+        using base_type = RenderPass<VulkanRenderPipeline, VulkanQueue, VulkanFrameBuffer>;
 
     public:
         /// <summary>
         /// Creates and initializes a new Vulkan render pass instance that executes on the default graphics queue.
         /// </summary>
         /// <param name="device">The parent device instance.</param>
-        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
         /// <param name="renderTargets">The render targets that are output by the render pass.</param>
-        /// <param name="samples">The number of samples for the render targets in this render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
-        explicit VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanRenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt);
+        /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        explicit VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u);
 
         /// <summary>
         /// Creates and initializes a new Vulkan render pass instance that executes on the default graphics queue.
         /// </summary>
         /// <param name="device">The parent device instance.</param>
         /// <param name="name">The name of the render pass state resource.</param>
-        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
         /// <param name="renderTargets">The render targets that are output by the render pass.</param>
-        /// <param name="samples">The number of samples for the render targets in this render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
-        explicit VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanRenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt);
+        /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        explicit VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u);
         
         /// <summary>
         /// Creates and initializes a new Vulkan render pass instance.
         /// </summary>
         /// <param name="device">The parent device instance.</param>
         /// <param name="queue">The command queue to execute the render pass on.</param>
-        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
         /// <param name="renderTargets">The render targets that are output by the render pass.</param>
-        /// <param name="samples">The number of samples for the render targets in this render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
-        explicit VulkanRenderPass(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanRenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt);
+        /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        explicit VulkanRenderPass(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u);
 
         /// <summary>
         /// Creates and initializes a new Vulkan render pass instance.
@@ -1475,12 +1631,11 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="device">The parent device instance.</param>
         /// <param name="name">The name of the render pass state resource.</param>
         /// <param name="queue">The command queue to execute the render pass on.</param>
-        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
         /// <param name="renderTargets">The render targets that are output by the render pass.</param>
-        /// <param name="samples">The number of samples for the render targets in this render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
-        explicit VulkanRenderPass(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, UInt32 commandBuffers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, Span<VulkanRenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt);
+        /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        explicit VulkanRenderPass(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u);
 
         VulkanRenderPass(const VulkanRenderPass&) = delete;
         VulkanRenderPass(VulkanRenderPass&&) = delete;
@@ -1498,12 +1653,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="name">The name of the render pass state resource.</param>
         explicit VulkanRenderPass(const VulkanDevice& device, const String& name = "") noexcept;
 
-        // RenderPassDependencySource interface.
-    public:
-        /// <inheritdoc />
-        const VulkanFrameBuffer& frameBuffer(UInt32 buffer) const override;
-
-        // RenderPass interface.
+        // Vulkan render pass interface.
     public:
         /// <summary>
         /// Returns a reference to the device that provides this queue.
@@ -1511,69 +1661,59 @@ namespace LiteFX::Rendering::Backends {
         /// <returns>A reference to the queue's parent device.</returns>
         virtual const VulkanDevice& device() const noexcept;
 
+        // RenderPass interface.
+    public:
         /// <inheritdoc />
         const VulkanFrameBuffer& activeFrameBuffer() const override;
-
-        /// <inheritdoc />
-        UInt32 activeBackBuffer() const override;
 
         /// <inheritdoc />
         const VulkanQueue& commandQueue() const noexcept override;
 
         /// <inheritdoc />
-        Enumerable<const VulkanFrameBuffer*> frameBuffers() const noexcept override;
+        Enumerable<const VulkanRenderPipeline*> pipelines() const noexcept override;
 
         /// <inheritdoc />
-        Enumerable<const VulkanRenderPipeline*> pipelines() const noexcept override;
+        Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers() const noexcept override;
+
+        /// <inheritdoc />
+        SharedPtr<const VulkanCommandBuffer> commandBuffer(UInt32 index) const override;
+
+        /// <inheritdoc />
+        UInt32 secondaryCommandBuffers() const noexcept override;
+
+        /// <inheritdoc />
+        const Array<RenderTarget>& renderTargets() const noexcept override;
 
         /// <inheritdoc />
         const RenderTarget& renderTarget(UInt32 location) const override;
 
         /// <inheritdoc />
-        Span<const RenderTarget> renderTargets() const noexcept override;
-
-        /// <inheritdoc />
         bool hasPresentTarget() const noexcept override;
 
         /// <inheritdoc />
-        Span<const VulkanRenderPassDependency> inputAttachments() const noexcept override;
+        const Array<RenderPassDependency>& inputAttachments() const noexcept override;
+
+        /// <inheritdoc />
+        const RenderPassDependency& inputAttachment(UInt32 location) const override;
         
         /// <inheritdoc />
         const Optional<DescriptorBindingPoint>& inputAttachmentSamplerBinding() const noexcept override;
 
         /// <inheritdoc />
-        Size2d renderArea() const noexcept override;
+        void begin(const VulkanFrameBuffer& frameBuffer) const override;
 
-        /// <inheritdoc />
-        bool usesSwapChainRenderArea() const noexcept override;
-
-        /// <inheritdoc />
-        MultiSamplingLevel multiSamplingLevel() const noexcept override;
-
-        /// <inheritdoc />
-        void begin(UInt32 buffer) override;
-        
         /// <inheritdoc />
         UInt64 end() const override;
-
-        /// <inheritdoc />
-        void resizeRenderArea(const Size2d& renderArea) override;
-
-        /// <inheritdoc />
-        void resizeWithSwapChain(bool enable) override;
-
-        /// <inheritdoc />
-        void changeMultiSamplingLevel(MultiSamplingLevel samples) override;
     };
 
     /// <summary>
     /// Implements a Vulkan swap chain.
     /// </summary>
-    class LITEFX_VULKAN_API VulkanSwapChain final : public SwapChain<IVulkanImage, VulkanFrameBuffer> {
+    class LITEFX_VULKAN_API VulkanSwapChain final : public SwapChain<IVulkanImage> {
         LITEFX_IMPLEMENTATION(VulkanSwapChainImpl);
 
     public:
-        using base_type = SwapChain<IVulkanImage, VulkanFrameBuffer>;
+        using base_type = SwapChain<IVulkanImage>;
 
     public:
         /// <summary>
@@ -1623,6 +1763,9 @@ namespace LiteFX::Rendering::Backends {
         IVulkanImage* image(UInt32 backBuffer) const override;
 
         /// <inheritdoc />
+        const IVulkanImage& image() const noexcept override;
+
+        /// <inheritdoc />
         Enumerable<IVulkanImage*> images() const noexcept override;
 
         /// <inheritdoc />
@@ -1640,107 +1783,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         [[nodiscard]] UInt32 swapBackBuffer() const override;
-    };
-
-    /// <summary>
-    /// Implements a Vulkan command queue.
-    /// </summary>
-    /// <seealso cref="VulkanCommandBuffer" />
-    class LITEFX_VULKAN_API VulkanQueue final : public CommandQueue<VulkanCommandBuffer>, public Resource<VkQueue> {
-        LITEFX_IMPLEMENTATION(VulkanQueueImpl);
-
-    public:
-        using base_type = CommandQueue<VulkanCommandBuffer>;
-        using base_type::submit;
-
-    public:
-        /// <summary>
-        /// Initializes the Vulkan command queue.
-        /// </summary>
-        /// <param name="device">The device, commands get send to.</param>
-        /// <param name="type">The type of the command queue.</param>
-        /// <param name="priority">The priority, of which commands are issued on the device.</param>
-        /// <param name="familyId">The ID of the queue family.</param>
-        /// <param name="queueId">The ID of the queue.</param>
-        explicit VulkanQueue(const VulkanDevice& device, QueueType type, QueuePriority priority, UInt32 familyId, UInt32 queueId);
-        VulkanQueue(const VulkanQueue&) = delete;
-        VulkanQueue(VulkanQueue&&) = delete;
-        virtual ~VulkanQueue() noexcept;
-
-        // VulkanQueue interface.
-    public:
-        /// <summary>
-        /// Returns a reference to the device that provides this queue.
-        /// </summary>
-        /// <returns>A reference to the queue's parent device.</returns>
-        virtual const VulkanDevice& device() const noexcept;
-
-        /// <summary>
-        /// Returns the queue family ID.
-        /// </summary>
-        /// <returns>The queue family ID.</returns>
-        virtual UInt32 familyId() const noexcept;
-
-        /// <summary>
-        /// Returns the queue ID.
-        /// </summary>
-        /// <returns>The queue ID.</returns>
-        virtual UInt32 queueId() const noexcept;
-
-        /// <summary>
-        /// Returns the internal timeline semaphore used to synchronize the queue execution.
-        /// </summary>
-        /// <returns>The internal timeline semaphore.</returns>
-        virtual const VkSemaphore& timelineSemaphore() const noexcept;
-
-        // CommandQueue interface.
-    public:
-        /// <inheritdoc />
-        QueuePriority priority() const noexcept override;
-
-        /// <inheritdoc />
-        QueueType type() const noexcept override;
-
-#ifndef NDEBUG
-    public:
-        /// <inheritdoc />
-        void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
-
-        /// <inheritdoc />
-        void endDebugRegion() const noexcept override;
-
-        /// <inheritdoc />
-        void setDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
-#endif
-
-    public:
-        /// <inheritdoc />
-        SharedPtr<VulkanCommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const override;
-
-        /// <inheritdoc />
-        UInt64 submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) const override;
-
-        /// <inheritdoc />
-        UInt64 submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const override;
-
-        /// <inheritdoc />
-        void waitFor(UInt64 fence) const noexcept override;
-
-        /// <inheritdoc />
-        void waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept;
-
-        /// <inheritdoc />
-        UInt64 currentFence() const noexcept override;
-
-    private:
-        inline void waitForQueue(const ICommandQueue& queue, UInt64 fence) const override {
-            auto vkQueue = dynamic_cast<const VulkanQueue*>(&queue);
-
-            if (vkQueue == nullptr) [[unlikely]]
-                throw InvalidArgumentException("queue", "Cannot wait for queues from other backends.");
-
-            this->waitFor(*vkQueue, fence);
-        }
     };
 
     /// <summary>
@@ -1914,7 +1956,7 @@ namespace LiteFX::Rendering::Backends {
         [[nodiscard]] UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
 
         /// <inheritdoc />
-        [[nodiscard]] UniquePtr<VulkanFrameBuffer> makeFrameBuffer(const Size2d& renderArea) const noexcept override;
+        [[nodiscard]] UniquePtr<VulkanFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept override;
 
         /// <inheritdoc />
         MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept override;
@@ -1934,12 +1976,12 @@ namespace LiteFX::Rendering::Backends {
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:
         /// <inheritdoc />
-        [[nodiscard]] VulkanRenderPassBuilder buildRenderPass(MultiSamplingLevel samples = MultiSamplingLevel::x1, UInt32 commandBuffers = 1) const override;
+        [[nodiscard]] VulkanRenderPassBuilder buildRenderPass(UInt32 commandBuffers = 1) const override;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanRenderPassBuilder buildRenderPass(const String& name, MultiSamplingLevel samples = MultiSamplingLevel::x1, UInt32 commandBuffers = 1) const override;
+        [[nodiscard]] VulkanRenderPassBuilder buildRenderPass(const String& name, UInt32 commandBuffers = 1) const override;
 
-        /// <inheritdoc />
+        ///// <inheritdoc />
         //[[nodiscard]] VulkanRenderPipelineBuilder buildRenderPipeline(const String& name) const override;
 
         /// <inheritdoc />

@@ -1265,7 +1265,7 @@ namespace LiteFX::Rendering::Backends {
             if (d3dQueue == nullptr) [[unlikely]]
                 throw InvalidArgumentException("queue", "Cannot wait for queues from other backends.");
 
-                this->waitFor(*d3dQueue, fence);
+            this->waitFor(*d3dQueue, fence);
         }
     };
 
@@ -1287,8 +1287,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="layout">The layout of the pipeline.</param>
         /// <param name="inputAssembler">The input assembler state of the pipeline.</param>
         /// <param name="rasterizer">The rasterizer state of the pipeline.</param>
-        /// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
         /// <param name="samples">The initial multi-sampling level of the render pipeline.</param>
+        /// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
         /// <param name="name">The optional name of the render pipeline.</param>
         explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool enableAlphaToCoverage = false, const String& name = "");
         DirectX12RenderPipeline(DirectX12RenderPipeline&&) noexcept = delete;
@@ -1462,9 +1462,9 @@ namespace LiteFX::Rendering::Backends {
         LITEFX_IMPLEMENTATION(DirectX12FrameBufferImpl);
 
     public:
-        using FrameBuffer<IDirectX12Image>::addImage;
-        using FrameBuffer<IDirectX12Image>::mapRenderTarget;
-        using FrameBuffer<IDirectX12Image>::mapRenderTargets;
+        using FrameBuffer::addImage;
+        using FrameBuffer::mapRenderTarget;
+        using FrameBuffer::mapRenderTargets;
 
     public:
         /// <summary>
@@ -1583,6 +1583,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="device">The parent device instance.</param>
         /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
@@ -1593,6 +1594,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="device">The parent device instance.</param>
         /// <param name="name">The name of the render pass state resource.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
         /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
@@ -1604,6 +1606,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="device">The parent device instance.</param>
         /// <param name="queue">The command queue to execute the render pass on.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
         /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
@@ -1616,6 +1619,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="device">The parent device instance.</param>
         /// <param name="name">The name of the render pass state resource.</param>
         /// <param name="queue">The command queue to execute the render pass on.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
         /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>

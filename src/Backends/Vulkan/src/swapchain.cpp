@@ -1038,6 +1038,11 @@ IVulkanImage* VulkanSwapChain::image(UInt32 backBuffer) const
 	return m_impl->m_presentImages[backBuffer].get();
 }
 
+const IVulkanImage& VulkanSwapChain::image() const noexcept
+{
+	return *m_impl->m_presentImages[m_impl->m_currentImage];
+}
+
 Enumerable<IVulkanImage*> VulkanSwapChain::images() const noexcept
 {
 	return m_impl->m_presentImages | std::views::transform([](UniquePtr<IVulkanImage>& image) { return image.get(); });

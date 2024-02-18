@@ -31,11 +31,15 @@ public:
 	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, bool alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer) :
 		base(parent), m_renderPass(renderPass), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer)
 	{
+		if (renderPass.inputAttachmentSamplerBinding().has_value())
+			m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
 	}
 
 	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass) :
 		base(parent), m_renderPass(renderPass)
 	{
+		if (renderPass.inputAttachmentSamplerBinding().has_value())
+			m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
 	}
 
 	~DirectX12RenderPipelineImpl() noexcept 
@@ -353,9 +357,6 @@ public:
 			{
 				if (descriptorsPerSet.contains(samplerBinding.Space)) [[unlikely]]
 					throw RuntimeException("The input attachment sampler is defined in a descriptor set that contains input attachment descriptors. Samplers must be defined within their own space.");
-
-				// Create the sampler.
-				m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
 
 				// Store the descriptor so it gets bound.
 				descriptorsPerSet[samplerBinding.Space].push_back(samplerBinding.Register);

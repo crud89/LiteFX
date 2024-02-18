@@ -12,7 +12,7 @@ public:
 
 private:
     Array<UniquePtr<IVulkanImage>> m_images;
-    Array<VkImageView> m_imageViews;
+    Dictionary<const IVulkanImage*, VkImageView> m_renderTargetHandles;
     Dictionary<UInt64, IVulkanImage*> m_mappedRenderTargets;
 	Size2d m_size;
     const VulkanDevice& m_device;
@@ -31,16 +31,16 @@ public:
 public:
     void cleanup()
     {
-        for (auto& view : m_imageViews)
+        for (auto view : m_renderTargetHandles | std::views::values)
             ::vkDestroyImageView(m_device.handle(), view, nullptr);
 
-        m_imageViews.clear();
+        m_renderTargetHandles.clear();
     }
 
 	void initialize()
 	{
         // Define a factory callback for an image view.
-        auto getImageView = [&](const UniquePtr<IVulkanImage>& image) -> VkImageView {
+        auto getImageView = [&](const UniquePtr<IVulkanImage>& image) -> std::pair<const IVulkanImage*, VkImageView> {
             VkImageViewCreateInfo createInfo = {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
                 .pNext = nullptr,
@@ -73,23 +73,35 @@ public:
 
             VkImageView imageView;
             raiseIfFailed(::vkCreateImageView(m_device.handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
-            return imageView;
+            return { image.get(), imageView };
         };
 
+        // Destroy the previous image views.
+        this->cleanup();
 
         // Create the image views for each image.
-        m_imageViews = m_images | std::views::transform(getImageView) | std::ranges::to<Array<VkImageView>>();
+        m_renderTargetHandles = m_images | std::views::transform(getImageView) | std::ranges::to<Dictionary<const IVulkanImage*, VkImageView>>();
 	}
 
     void resize(const Size2d& renderArea)
     {
-        // TODO: Resize/Re-allocate all images.
+        // Resize/Re-allocate all images.
         m_size = renderArea;
 
         // Recreate all resources.
+        Dictionary<const IVulkanImage*, IVulkanImage*> imageReplacements;
+
         auto images = m_images |
-            std::views::transform([&](const UniquePtr<IVulkanImage>& image) { return m_device.factory().createTexture(image->name(), image->format(), renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage()); }) |
-            std::views::as_rvalue | std::ranges::to<Array<UniquePtr<IVulkanImage>>>();
+            std::views::transform([&](const UniquePtr<IVulkanImage>& image) { 
+                auto newImage = m_device.factory().createTexture(image->name(), image->format(), renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage()); 
+                imageReplacements[image.get()] = newImage.get();
+                return std::move(newImage);
+            }) | std::views::as_rvalue | std::ranges::to<Array<UniquePtr<IVulkanImage>>>();
+
+        // Update the mappings.
+        std::ranges::for_each(m_mappedRenderTargets | std::views::values, [&imageReplacements](auto& image) { image = imageReplacements[image]; });
+
+        // Store the new images.
         m_images = std::move(images);
 
         // Re-initialize to update heaps and descriptors.
@@ -101,12 +113,38 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanFrameBuffer::VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea) :
-	m_impl(makePimpl<VulkanFrameBufferImpl>(this, device, renderArea))
+VulkanFrameBuffer::VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea, StringView name) :
+	m_impl(makePimpl<VulkanFrameBufferImpl>(this, device, renderArea)), StateResource(name)
 {
 }
 
 VulkanFrameBuffer::~VulkanFrameBuffer() noexcept = default;
+
+VkImageView VulkanFrameBuffer::imageView(UInt32 imageIndex) const
+{
+    if (imageIndex >= m_impl->m_images.size()) [[unlikely]]
+        throw ArgumentOutOfRangeException("imageIndex", 0u, static_cast<UInt32>(m_impl->m_images.size()), imageIndex, "The frame buffer does not contain an image at index {0}.", imageIndex);
+
+    return m_impl->m_renderTargetHandles.at(m_impl->m_images[imageIndex].get());
+}
+
+VkImageView VulkanFrameBuffer::imageView(StringView imageName) const
+{
+    auto nameHash = hash(imageName);
+
+    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](UniquePtr<IVulkanImage>& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end())
+        return m_impl->m_renderTargetHandles.at(match->get());
+    else
+        throw InvalidArgumentException("imageName", "The frame buffer does not contain an image with the name \"{0}\".", imageName);
+}
+
+VkImageView VulkanFrameBuffer::imageView(const RenderTarget& renderTarget) const
+{
+    if (!m_impl->m_mappedRenderTargets.contains(renderTarget.identifier())) [[unlikely]]
+        throw InvalidArgumentException("renderTarget", "The frame buffer does not map an image to the provided render target \"{0}\".", renderTarget.name());
+
+    return m_impl->m_renderTargetHandles.at(m_impl->m_mappedRenderTargets[renderTarget.identifier()]);
+}
 
 const Size2d& VulkanFrameBuffer::size() const noexcept
 {
@@ -132,6 +170,16 @@ void VulkanFrameBuffer::mapRenderTarget(const RenderTarget& renderTarget, UInt32
         LITEFX_WARNING(VULKAN_LOG, "The render target format {0} does not match the image format {1} for image {2}.", renderTarget.format(), m_impl->m_images[index]->format(), index);
 
     m_impl->m_mappedRenderTargets[renderTarget.identifier()] = m_impl->m_images[index].get();
+}
+
+void VulkanFrameBuffer::mapRenderTarget(const RenderTarget& renderTarget, StringView name)
+{
+    auto nameHash = hash(name);
+
+    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](UniquePtr<IVulkanImage>& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end())
+        this->mapRenderTarget(renderTarget, std::ranges::distance(m_impl->m_images.begin(), match));
+    else
+        throw InvalidArgumentException("name", "The frame buffer does not contain an image with the name \"{0}\".", name);
 }
 
 void VulkanFrameBuffer::unmapRenderTarget(const RenderTarget& renderTarget) noexcept
@@ -160,6 +208,14 @@ const IVulkanImage& VulkanFrameBuffer::image(const RenderTarget& renderTarget) c
     return *m_impl->m_mappedRenderTargets[renderTarget.identifier()];
 }
 
+const IVulkanImage& VulkanFrameBuffer::resolveImage(UInt64 hash) const
+{
+    if (!m_impl->m_mappedRenderTargets.contains(hash)) [[unlikely]]
+        throw InvalidArgumentException("renderTarget", "The frame buffer does not map an image to the provided render target name hash \"0x{0:016X}\".", hash);
+
+    return *m_impl->m_mappedRenderTargets[hash];
+}
+
 void VulkanFrameBuffer::addImage(const String& name, Format format, MultiSamplingLevel samples, ResourceUsage usage)
 {
     // Add a new image.
@@ -167,6 +223,19 @@ void VulkanFrameBuffer::addImage(const String& name, Format format, MultiSamplin
 
     // Re-initialize to reset descriptor heaps and allocate descriptors.
     m_impl->initialize();
+}
+
+void VulkanFrameBuffer::addImage(const String& name, const RenderTarget& renderTarget, MultiSamplingLevel samples, ResourceUsage usage)
+{
+    // Add a new image.
+    auto index = m_impl->m_images.size();
+    m_impl->m_images.push_back(std::move(m_impl->m_device.factory().createTexture(name, renderTarget.format(), m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage)));
+
+    // Re-initialize to reset descriptor heaps and allocate descriptors.
+    m_impl->initialize();
+
+    // Map the render target to the image.
+    this->mapRenderTarget(renderTarget, static_cast<UInt32>(index));
 }
 
 void VulkanFrameBuffer::resize(const Size2d& renderArea)
