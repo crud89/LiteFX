@@ -217,16 +217,6 @@ UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(con
 	return DirectX12IndexBuffer::allocate(name, layout, m_impl->m_allocator, elements, usage, resourceDesc, allocationDesc);
 }
 
-UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const
-{
-	return this->createAttachment("", target, size, samples);
-}
-
-UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const
-{
-	throw;
-}
-
 UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
 {
 	return this->createTexture("", format, size, dimension, levels, layers, samples, usage);

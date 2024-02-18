@@ -276,16 +276,6 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 	return buffer;
 }
 
-UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const
-{
-	return this->createAttachment("", target, size, samples);
-}
-
-UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const
-{
-	throw;
-}
-
 UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
 {
 	return this->createTexture("", format, size, dimension, levels, layers, samples, usage);
@@ -328,8 +318,6 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 		imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::RenderTarget))
 	{
-		imageInfo.usage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
-
 		if (::hasDepth(format) || ::hasStencil(format))
 			imageInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 		else

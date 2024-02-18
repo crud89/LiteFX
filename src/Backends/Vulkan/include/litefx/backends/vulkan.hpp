@@ -1799,7 +1799,6 @@ namespace LiteFX::Rendering::Backends {
         using base_type::createBuffer;
         using base_type::createVertexBuffer;
         using base_type::createIndexBuffer;
-        using base_type::createAttachment;
         using base_type::createTexture;
         using base_type::createTextures;
         using base_type::createSampler;
@@ -1833,12 +1832,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UniquePtr<IVulkanIndexBuffer> createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const override;
-
-        /// <inheritdoc />
-        UniquePtr<IVulkanImage> createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
-
-        /// <inheritdoc />
-        UniquePtr<IVulkanImage> createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const override;
 
         /// <inheritdoc />
         UniquePtr<IVulkanImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;

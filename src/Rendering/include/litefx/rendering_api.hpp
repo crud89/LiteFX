@@ -8086,31 +8086,6 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Creates an image that is used as render target attachment.
-        /// </summary>
-        /// <param name="target">The render target description.</param>
-        /// <param name="size">The extent of the image.</param>
-        /// <param name="samples">The number of samples, the image should be sampled with.</param>
-        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
-        /// <returns>The instance of the attachment image.</returns>
-        inline UniquePtr<IImage> createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const {
-            return this->getAttachment(target, size, samples);
-        }
-
-        /// <summary>
-        /// Creates an image that is used as render target attachment.
-        /// </summary>
-        /// <param name="name">The name of the image.</param>
-        /// <param name="target">The render target description.</param>
-        /// <param name="size">The extent of the image.</param>
-        /// <param name="samples">The number of samples, the image should be sampled with.</param>
-        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
-        /// <returns>The instance of the attachment image.</returns>
-        inline UniquePtr<IImage> createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const {
-            return this->getAttachment(name, target, size, samples);
-        }
-
-        /// <summary>
         /// Creates a texture, based on the <paramref name="layout" />.
         /// </summary>
         /// <remarks>
@@ -8288,8 +8263,6 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
         virtual UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
         virtual UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
-        virtual UniquePtr<IImage> getAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const = 0;
-        virtual UniquePtr<IImage> getAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const = 0;
         virtual UniquePtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
         virtual UniquePtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
         virtual Enumerable<UniquePtr<IImage>> getTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
