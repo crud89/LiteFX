@@ -689,7 +689,7 @@ namespace LiteFX::Rendering {
         /// Allows the resource data to be copied from another resource.
         /// </summary>
         /// <remarks>
-        /// This flag is implicitly set for resources created with <see cref="ResourceHeap::Readback" /> and for render target images (attachments), that allow storage (<see cref="RenderTargetFlags::AllowStorage" />).
+        /// This flag is implicitly set for resources created with <see cref="ResourceHeap::Readback" /> and for render target images (attachments).
         /// </remarks>
         TransferDestination = 0x0020,
 
@@ -1017,52 +1017,7 @@ namespace LiteFX::Rendering {
         /// When this flag is set, the render target storage is freed after the render pass has finished. The main use of this is to have depth/stencil targets on a render 
         /// pass that are only required during this render pass. It is not valid to attempt accessing the render target before or after the render pass.
         /// </remarks>
-        Volatile = 0x04,
-
-        /// <summary>
-        /// If enabled, the render target is initialized with storage/unordered access enabled.
-        /// </summary>
-        /// <remarks>
-        /// This flag is set, the render target image is created with storage/unordered access enabled. This allows the render target to be transitioned into a read/write
-        /// resource outside of the render pass. However, enabling this might be less efficient than creating a new texture and copying the render target into it on some
-        /// hardware.
-        /// 
-        /// This flag must not be combined with depth/stencil formats.
-        /// </remarks>
-        /// <seealso cref="https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_flags" />
-        AllowStorage = 0x08,
-
-        /// <summary>
-        /// If enabled, the image can be used simultaneously from multiple queues.
-        /// </summary>
-        /// <remarks>
-        /// If this flag is specified, the render target image is created with support for multi-queue access. This allows multiple queues to read from the image 
-        /// simultaneously, as long as writes are properly synchronized using fences and barriers. If this flag is not specified, the render target image can only be 
-        /// accessed by the queue that first uses the render target (which must be the queue that executes the render target).
-        /// 
-        /// Note that it is currently not possible to transfer ownership between queues, so if multi-queue access is required, this flag must be specified when creating the
-        /// render target.
-        /// 
-        /// This flag must not be combined with depth/stencil formats.
-        /// </remarks>
-        Shared = 0x10,
-
-        /// <summary>
-        /// If enabled and supported, the render target will transition into an optimized attachment layout instead of a general image layout.
-        /// </summary>
-        /// <remarks>
-        /// In Vulkan render passes are more elaborate compared to DirectX, which does not have any concept similar to "attachments". In DirectX all attachments are regular
-        /// images and later render passes use them as they would with any image in a shader. In Vulkan however, there is a special set of instructions to load data from 
-        /// input attachments. If a render target is mapped to a input attachment and should use optimized layouts, this flag can be specified to enable it. Note, that it
-        /// might require to provide different shaders based on which backend is used. The shader targets created by the engine will define a macro (`DXIL`/`SPIRV`) to
-        /// support targeting different backends.
-        /// 
-        /// If attachments are unsupported, creating a render pass with a render target that has this flag enabled, a warning will be issued to remind you to pay attention
-        /// to the differences in the backends.
-        /// 
-        /// This flag is ignored for present targets.
-        /// </remarks>
-        Attachment = 0x20
+        Volatile = 0x04
     };
 
     /// <summary>
@@ -2595,30 +2550,6 @@ namespace LiteFX::Rendering {
         virtual bool isVolatile() const noexcept = 0;
 
         /// <summary>
-        /// Returns <c>true</c>, if the render target image can be used for storage/unordered access.
-        /// </summary>
-        /// <returns><c>true</c>, if the render target image can be used for storage/unordered access.</returns>
-        /// <seealso cref="flags" />
-        /// <seealso cref="RenderTargetFlags" />
-        virtual bool allowStorage() const noexcept = 0;
-
-        /// <summary>
-        /// Returns <c>true</c>, if the render target image can be accessed simultaneously from different queues.
-        /// </summary>
-        /// <returns><c>true</c>, if the render target image can be accessed simultaneously from different queues.</returns>
-        /// <seealso cref="flags" />
-        /// <seealso cref="RenderTargetFlags" />
-        virtual bool multiQueueAccess() const noexcept = 0;
-
-        /// <summary>
-        /// Returns <c>true</c>, if the render target should transition into an optimized attachment layout, rather than a general image layout after executing the render pass.
-        /// </summary>
-        /// <returns><c>true</c>, if the render target should transition into an optimized attachment layout.</returns>
-        /// <seealso cref="flags" />
-        /// <seealso cref="RenderTargetFlags" />
-        virtual bool attachment() const noexcept = 0;
-
-        /// <summary>
         /// Returns the render targets blend state.
         /// </summary>
         /// <returns>The render targets blend state.</returns>
@@ -2722,15 +2653,6 @@ namespace LiteFX::Rendering {
 
         /// <inheritdoc />
         bool isVolatile() const noexcept override;
-
-        /// <inheritdoc />
-        bool allowStorage() const noexcept override;
-
-        /// <inheritdoc />
-        bool multiQueueAccess() const noexcept override;
-
-        /// <inheritdoc />
-        bool attachment() const noexcept override;
 
         /// <inheritdoc />
         const BlendState& blendState() const noexcept override;

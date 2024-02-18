@@ -409,7 +409,7 @@ UInt64 VulkanRenderPass::end() const
         {
         default:
         case RenderTargetType::Color:
-            renderTargetBarrier.transition(frameBuffer[renderTarget], ResourceAccess::RenderTarget, ResourceAccess::None, ImageLayout::RenderTarget, renderTarget.attachment() ? ImageLayout::ShaderResource : ImageLayout::Common);
+            renderTargetBarrier.transition(frameBuffer[renderTarget], ResourceAccess::RenderTarget, ResourceAccess::None, ImageLayout::RenderTarget, ImageLayout::ShaderResource);
             break;
         case RenderTargetType::DepthStencil:
             depthStencilBarrier.transition(frameBuffer[renderTarget], ResourceAccess::DepthStencilWrite, ResourceAccess::None, ImageLayout::DepthWrite, ImageLayout::DepthRead);

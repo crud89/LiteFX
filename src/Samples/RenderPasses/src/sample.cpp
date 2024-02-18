@@ -97,8 +97,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     //   rasterizer depth state for more info).
     // Note that using the same names for render targets and image resources makes mapping render targets easier, as we can call the `mapRenderTargets`.
     UniquePtr<RenderPass> firstPass = device->buildRenderPass("First Pass")
-        .renderTarget("G-Buffer Color", 0, RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear | RenderTargetFlags::Attachment, { 0.1f, 0.1f, 0.1f, 1.f })
-        .renderTarget("Depth", 1, RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear | RenderTargetFlags::ClearStencil | RenderTargetFlags::Attachment, { 1.f, 0.f, 0.f, 0.f });
+        .renderTarget("G-Buffer Color", 0, RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
+        .renderTarget("Depth", 1, RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear | RenderTargetFlags::ClearStencil, { 1.f, 0.f, 0.f, 0.f });
     
     UniquePtr<RenderPass> secondPass = device->buildRenderPass("Second Pass")
         .inputAttachmentSamplerBinding(DescriptorBindingPoint { .Register = 0, .Space = 1 })

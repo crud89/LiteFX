@@ -72,7 +72,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     // Create a geometry render pass.
     UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
-        .renderTarget("Color Target", RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear | RenderTargetFlags::Shared | RenderTargetFlags::AllowStorage, { 0.1f, 0.1f, 0.1f, 1.f })
+        .renderTarget("Color Target", RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
         .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
     // Map all render targets to the frame buffer.
@@ -446,10 +446,8 @@ void SampleApp::drawFrame()
         auto& image = frameBuffer["Color Target"];
 
         // Create a barrier that handles image transition.
-        // NOTE: Since we did not specify the `RenderTargetFlags::Attachment` flag for the render target during pipeline creation, the render target is in `Common` layout and only needs 
-        //       transitioning into a writable state.
         auto barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Compute);
-        barrier->transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::Common, ImageLayout::ReadWrite);
+        barrier->transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::Undefined, ImageLayout::ReadWrite);
         commandBuffer->barrier(*barrier);
 
         // Bind the image to the texture descriptor.

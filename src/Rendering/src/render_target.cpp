@@ -131,21 +131,6 @@ bool RenderTarget::isVolatile() const noexcept
     return LITEFX_FLAG_IS_SET(m_impl->m_flags, RenderTargetFlags::Volatile);
 }
 
-bool RenderTarget::allowStorage() const noexcept
-{
-    return LITEFX_FLAG_IS_SET(m_impl->m_flags, RenderTargetFlags::AllowStorage);
-}
-
-bool RenderTarget::multiQueueAccess() const noexcept
-{
-    return LITEFX_FLAG_IS_SET(m_impl->m_flags, RenderTargetFlags::Shared);
-}
-
-bool RenderTarget::attachment() const noexcept
-{
-    return LITEFX_FLAG_IS_SET(m_impl->m_flags, RenderTargetFlags::Attachment);
-}
-
 const IRenderTarget::BlendState& RenderTarget::blendState() const noexcept
 {
     return m_impl->m_blendState;
