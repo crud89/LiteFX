@@ -58,9 +58,25 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     using ShaderProgram = TRenderBackend::shader_program_type;
     using InputAssembler = TRenderBackend::input_assembler_type;
     using Rasterizer = TRenderBackend::rasterizer_type;
+    using FrameBuffer = TRenderBackend::frame_buffer_type;
 
     // Get the default device.
     auto device = backend->device("Default");
+
+    // Create the frame buffers for all back buffers.
+    auto frameBuffers = std::views::iota(0u, device->swapChain().buffers()) |
+        std::views::transform([&](UInt32 index) { 
+            auto frameBuffer = device->makeFrameBuffer(fmt::format("Frame Buffer {0}", index), device->swapChain().renderArea());
+
+            // NOTE: In this example we manually add the images to the frame buffers and map them later. This demonstrates how to share the same image 
+            //       on multiple render targets. Note that the formats must match. If you intend to use multi-sampling you also have to keep the sample
+            //       level in mind!
+            frameBuffer->addImage("G-Buffer Color", Format::B8G8R8A8_UNORM); // Written in first render pass, read in second render pass.
+            frameBuffer->addImage("Color", Format::B8G8R8A8_UNORM); // Written in second and third render pass.
+            frameBuffer->addImage("Depth", Format::D32_SFLOAT); // Written first, read in third render pass for depth test.
+
+            return std::move(frameBuffer);
+        }) | std::ranges::to<Array<UniquePtr<FrameBuffer>>>();
 
     // Create input assembler state.
     SharedPtr<InputAssembler> inputAssembler = device->buildInputAssembler()
@@ -74,29 +90,44 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
 
-    // Create a geometry and lighting render passes.
-    UniquePtr<RenderPass> geometryPass = device->buildRenderPass("Geometry Pass")
+    // Create three render passes:
+    // - The first render pass draws geometry into "G-Buffer Color" image and "Depth" image.
+    // - The second is a screen-space pass, that samples "G-Buffer Color" and writes it into "Color", but does not use "Depth".
+    // - The third render pass again draws geometry, but directly into "Color". It uses "Depth" as a render target, but does not write to it (see it's 
+    //   rasterizer depth state for more info).
+    // Note that using the same names for render targets and image resources makes mapping render targets easier, as we can call the `mapRenderTargets`.
+    UniquePtr<RenderPass> firstPass = device->buildRenderPass("First Pass")
         .renderTarget("G-Buffer Color", 0, RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear | RenderTargetFlags::Attachment, { 0.1f, 0.1f, 0.1f, 1.f })
-        .renderTarget("G-Buffer Depth/Stencil", 1, RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear | RenderTargetFlags::ClearStencil | RenderTargetFlags::Attachment, { 1.f, 0.f, 0.f, 0.f });
+        .renderTarget("Depth", 1, RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear | RenderTargetFlags::ClearStencil | RenderTargetFlags::Attachment, { 1.f, 0.f, 0.f, 0.f });
     
-    UniquePtr<RenderPass> lightingPass = device->buildRenderPass("Lighting Pass")
+    UniquePtr<RenderPass> secondPass = device->buildRenderPass("Second Pass")
         .inputAttachmentSamplerBinding(DescriptorBindingPoint { .Register = 0, .Space = 1 })
-        .inputAttachment(DescriptorBindingPoint { .Register = 0, .Space = 0 }, *geometryPass, 0)  // Map color attachment from geometry pass render target 0.
-        .inputAttachment(DescriptorBindingPoint { .Register = 1, .Space = 0 }, *geometryPass, 1)  // Map depth/stencil attachment from geometry pass render target 1.
-        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
-        .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear | RenderTargetFlags::ClearStencil, { 1.f, 0.f, 0.f, 0.f });
+        .inputAttachment(DescriptorBindingPoint { .Register = 0, .Space = 0 }, *firstPass, 0)  // Map color attachment from geometry pass render target 0.
+        .renderTarget("Color", RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f });
+
+    UniquePtr<RenderPass> thirdPass = device->buildRenderPass("Third Pass")
+        .renderTarget("Color", 0, RenderTargetType::Present, Format::B8G8R8A8_UNORM)
+        .renderTarget("Depth", 1, RenderTargetType::DepthStencil, Format::D32_SFLOAT);
+
+    // Map all render targets to the frame buffer.
+    // NOTE: As we use name matching for mapping, we do not need to map the second render pass, as the "Color" target will be mapped properly. The 
+    //       "Depth" target will actually be mapped twice, so that the second mapping overwrites the first one, but the mappings are equal anyway.
+    std::ranges::for_each(frameBuffers, [&firstPass, &thirdPass](auto& frameBuffer) { 
+        frameBuffer->mapRenderTargets(firstPass->renderTargets()); 
+        frameBuffer->mapRenderTargets(thirdPass->renderTargets());
+    });
 
     // Create the shader programs.
     SharedPtr<ShaderProgram> geometryPassShader = device->buildShaderProgram()
         .withVertexShaderModule("shaders/geometry_pass_vs." + FileExtensions<TRenderBackend>::SHADER)
         .withFragmentShaderModule("shaders/geometry_pass_fs." + FileExtensions<TRenderBackend>::SHADER);
 
-    SharedPtr<ShaderProgram> lightingPassShader = device->buildShaderProgram()
+    SharedPtr<ShaderProgram> samplingPassShader = device->buildShaderProgram()
         .withVertexShaderModule("shaders/lighting_pass_vs." + FileExtensions<TRenderBackend>::SHADER)
         .withFragmentShaderModule("shaders/lighting_pass_fs." + FileExtensions<TRenderBackend>::SHADER);
 
     // Create a render pipeline for each render pass.
-    UniquePtr<RenderPipeline> geometryPipeline = device->buildRenderPipeline(*geometryPass, "Geometry")
+    UniquePtr<RenderPipeline> firstPipeline = device->buildRenderPipeline(*firstPass, "First Pass Pipeline")
         .inputAssembler(inputAssembler)
         .rasterizer(device->buildRasterizer()
             .polygonMode(PolygonMode::Solid)
@@ -106,21 +137,33 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .layout(geometryPassShader->reflectPipelineLayout())
         .shaderProgram(geometryPassShader);
 
-    UniquePtr<RenderPipeline> lightingPipeline = device->buildRenderPipeline(*lightingPass, "Lighting")
+    UniquePtr<RenderPipeline> secondPipeline = device->buildRenderPipeline(*secondPass, "Second Pass Pipeline")
+        .inputAssembler(inputAssembler)
+        .rasterizer(device->buildRasterizer()
+            .polygonMode(PolygonMode::Solid)
+            .cullMode(CullMode::Disabled))
+        .layout(samplingPassShader->reflectPipelineLayout())
+        .shaderProgram(samplingPassShader);
+
+    UniquePtr<RenderPipeline> thirdPipeline = device->buildRenderPipeline(*thirdPass, "Third Pass Pipeline")
         .inputAssembler(inputAssembler)
         .rasterizer(device->buildRasterizer()
             .polygonMode(PolygonMode::Solid)
             .cullMode(CullMode::BackFaces)
             .cullOrder(CullOrder::ClockWise)
-            .lineWidth(1.f))
-        .layout(lightingPassShader->reflectPipelineLayout())
-        .shaderProgram(lightingPassShader);
+            .lineWidth(1.f)
+            .depthState(DepthStencilState::DepthState { .Write = false, .Operation = CompareOperation::Less }))
+        .layout(geometryPassShader->reflectPipelineLayout())
+        .shaderProgram(geometryPassShader);
 
     // Add the resources to the device state.
-    device->state().add(std::move(geometryPass));
-    device->state().add(std::move(lightingPass));
-    device->state().add(std::move(geometryPipeline));
-    device->state().add(std::move(lightingPipeline));
+    device->state().add(std::move(firstPass));
+    device->state().add(std::move(secondPass));
+    device->state().add(std::move(thirdPass));
+    device->state().add(std::move(firstPipeline));
+    device->state().add(std::move(secondPipeline));
+    device->state().add(std::move(thirdPipeline));
+    std::ranges::for_each(frameBuffers, [device](auto& frameBuffer) { device->state().add(std::move(frameBuffer)); });
 }
 
 void SampleApp::initBuffers(IRenderBackend* backend)
@@ -138,7 +181,8 @@ void SampleApp::initBuffers(IRenderBackend* backend)
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
-    auto& geometryPipeline = m_device->state().pipeline("Geometry");
+    // NOTE: We can re-use the same bindings for the first and the last render pass, as they are compatible.
+    auto& geometryPipeline = m_device->state().pipeline("First Pass Pipeline");
     auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
     auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, ResourceHeap::Resource);
     auto cameraBindings = cameraBindingLayout.allocate({ { 0, *cameraBuffer } });
@@ -277,6 +321,11 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     auto renderArea = Size2d(e.width(), e.height());
     m_device->swapChain().reset(surfaceFormat, renderArea, 3);
 
+    // Resize the frame buffers. Note that we could also use an event handler on the swap chain `reseted` event to do this automatically instead.
+    m_device->state().frameBuffer("Frame Buffer 0").resize(renderArea);
+    m_device->state().frameBuffer("Frame Buffer 1").resize(renderArea);
+    m_device->state().frameBuffer("Frame Buffer 2").resize(renderArea);
+
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
     m_scissor->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
@@ -383,11 +432,12 @@ void SampleApp::drawFrame()
 
     // Swap the back buffers for the next frame.
     auto backBuffer = m_device->swapChain().swapBackBuffer();
+    auto& frameBuffer = m_device->state().frameBuffer(fmt::format("Frame Buffer {0}", backBuffer));
 
     {
         // Query state.
-        auto& geometryPass = m_device->state().renderPass("Geometry Pass");
-        auto& geometryPipeline = m_device->state().pipeline("Geometry");
+        auto& renderPass = m_device->state().renderPass("First Pass");
+        auto& pipeline = m_device->state().pipeline("First Pass Pipeline");
         auto& transformBuffer = m_device->state().buffer("Transform");
         auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
         auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer));
@@ -395,12 +445,12 @@ void SampleApp::drawFrame()
         auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 
         // Wait for all transfers to finish.
-        geometryPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
+        renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
 
         // Begin rendering on the render pass and use the only pipeline we've created for it.
-        geometryPass.begin(backBuffer);
-        auto commandBuffer = geometryPass.activeFrameBuffer().commandBuffer(0);
-        commandBuffer->use(geometryPipeline);
+        renderPass.begin(frameBuffer);
+        auto commandBuffer = renderPass.commandBuffer(0);
+        commandBuffer->use(pipeline);
         commandBuffer->setViewports(m_viewport.get());
         commandBuffer->setScissors(m_scissor.get());
 
@@ -409,7 +459,7 @@ void SampleApp::drawFrame()
         auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
         // Compute world transform and update the transform buffer.
-        transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 0.0f, 0.0f));
         transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
         // Bind both descriptor sets to the pipeline.
@@ -419,22 +469,22 @@ void SampleApp::drawFrame()
         commandBuffer->bind(vertexBuffer);
         commandBuffer->bind(indexBuffer);
 
-        // Draw the object and present the frame by ending the render pass.
+        // Draw the object and end the render pass.
         commandBuffer->drawIndexed(indexBuffer.elements());
-        geometryPass.end();
+        renderPass.end();
     }
 
     {
         // Query state.
-        auto& lightingPass = m_device->state().renderPass("Lighting Pass");
-        auto& lightingPipeline = m_device->state().pipeline("Lighting");
+        auto& renderPass = m_device->state().renderPass("Second Pass");
+        auto& pipeline = m_device->state().pipeline("Second Pass Pipeline");
         auto& viewPlaneVertexBuffer = m_device->state().vertexBuffer("View Plane Vertices");
         auto& viewPlaneIndexBuffer = m_device->state().indexBuffer("View Plane Indices");
 
         // Start the lighting pass.
-        lightingPass.begin(backBuffer);
-        auto commandBuffer = lightingPass.activeFrameBuffer().commandBuffer(0);
-        commandBuffer->use(lightingPipeline);
+        renderPass.begin(frameBuffer);
+        auto commandBuffer = renderPass.commandBuffer(0);
+        commandBuffer->use(pipeline);
         commandBuffer->setViewports(m_viewport.get());
         commandBuffer->setScissors(m_scissor.get());
 
@@ -444,6 +494,43 @@ void SampleApp::drawFrame()
         commandBuffer->drawIndexed(viewPlaneIndexBuffer.elements());
 
         // End the lighting pass.
-        lightingPass.end();
+        renderPass.end();
+    }
+
+    {
+        // Query state.
+        auto& renderPass = m_device->state().renderPass("Third Pass");
+        auto& pipeline = m_device->state().pipeline("Third Pass Pipeline");
+        auto& transformBuffer = m_device->state().buffer("Transform");
+        auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
+        auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer));
+        auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
+        auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
+
+        // Begin rendering on the render pass and use the only pipeline we've created for it.
+        renderPass.begin(frameBuffer);
+        auto commandBuffer = renderPass.commandBuffer(0);
+        commandBuffer->use(pipeline);
+        commandBuffer->setViewports(m_viewport.get());
+        commandBuffer->setScissors(m_scissor.get());
+
+        // Get the amount of time that has passed since the first frame.
+        auto now = std::chrono::high_resolution_clock::now();
+        auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
+
+        // Bind both descriptor sets to the pipeline.
+        commandBuffer->bind({ &cameraBindings, &transformBindings });
+
+        // Bind the vertex and index buffers.
+        commandBuffer->bind(vertexBuffer);
+        commandBuffer->bind(indexBuffer);
+
+        // Draw an additional instance of the object on top of the existing contents.
+        transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
+        commandBuffer->drawIndexed(indexBuffer.elements());
+
+        // Present the frame by ending the render pass.
+        renderPass.end();
     }
 }
