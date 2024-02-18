@@ -52,6 +52,7 @@ public:
 #ifndef NDEBUG
 private:
     VkDebugUtilsMessengerEXT m_debugMessenger{ VK_NULL_HANDLE };
+    VkDebugUtilsMessengerEXT m_debugBreaker{ VK_NULL_HANDLE };
     VkInstance m_instance{ nullptr };
 
 private:    
@@ -76,6 +77,19 @@ private:
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: LITEFX_TRACE(VULKAN_LOG, "{1}: {0}", callbackData->pMessage, t); break;
         }
 
+        // Write to debug output.
+        OutputDebugString(callbackData->pMessage);
+
+        return VK_FALSE;
+    }
+
+    static VKAPI_ATTR VkBool32 VKAPI_CALL onDebugBreak(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* callbackData, void* userData)
+    {
+        // Ignore layer loader errors.
+        if (callbackData->messageIdNumber == 0x79DE34D4)
+            return VK_FALSE;
+
+        __debugbreak();
         return VK_FALSE;
     }
 
@@ -84,6 +98,9 @@ public:
     {
         if (m_debugMessenger != VK_NULL_HANDLE && vkDestroyDebugUtilsMessenger != nullptr)
             vkDestroyDebugUtilsMessenger(m_instance, m_debugMessenger, nullptr);
+
+        if (m_debugBreaker != VK_NULL_HANDLE && vkDestroyDebugUtilsMessenger != nullptr)
+            vkDestroyDebugUtilsMessenger(m_instance, m_debugBreaker, nullptr);
     }
 #endif
 
@@ -126,13 +143,22 @@ public:
         createInfo.ppEnabledLayerNames = enabledLayers.data();
 
 #ifndef NDEBUG
-        VkDebugUtilsMessengerCreateInfoEXT debugCallbackInfo = {};
-        debugCallbackInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        debugCallbackInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        debugCallbackInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        debugCallbackInfo.pfnUserCallback = onDebugMessage;
+        VkDebugUtilsMessengerCreateInfoEXT debugMessageCallbackInfo = {
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+            .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+            .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+            .pfnUserCallback = &onDebugMessage
+        };
 
-        createInfo.pNext = &debugCallbackInfo;
+        VkDebugUtilsMessengerCreateInfoEXT debugBreakCallbackInfo = {
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+            .pNext = &debugMessageCallbackInfo,
+            .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+            .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT,
+            .pfnUserCallback = &onDebugBreak
+        };
+
+        createInfo.pNext = &debugBreakCallbackInfo;
 #endif
         VkInstance instance;
         raiseIfFailed(::vkCreateInstance(&createInfo, nullptr, &instance), "Unable to create Vulkan instance.");
@@ -150,12 +176,14 @@ public:
             LITEFX_WARNING(VULKAN_LOG, "The debug messenger factory \"vkDestroyDebugUtilsMessengerEXT\" could not be loaded. Debug utilities will not be enabled.");
         else
         {
-            auto result = vkCreateDebugUtilsMessenger(instance, &debugCallbackInfo, nullptr, &m_debugMessenger);
+            auto result = vkCreateDebugUtilsMessenger(instance, &debugMessageCallbackInfo, nullptr, &m_debugMessenger);
 
             if (result == VK_ERROR_EXTENSION_NOT_PRESENT)
                 LITEFX_WARNING(VULKAN_LOG, "The extension \"{0}\" is not present. Debug utilities will not be enabled.", VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             else
-                raiseIfFailed(result, "Unable to initialize debug callback.");
+                raiseIfFailed(result, "Unable to initialize debug message callback.");
+
+            raiseIfFailed(vkCreateDebugUtilsMessenger(instance, &debugBreakCallbackInfo, nullptr, &m_debugBreaker), "Unable to initialize debug break callback.");
 
             // Remember the instance so we can destroy the debug messenger.
             m_instance = instance;
