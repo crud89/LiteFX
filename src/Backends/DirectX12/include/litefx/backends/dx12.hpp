@@ -1463,6 +1463,8 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         using FrameBuffer<IDirectX12Image>::addImage;
+        using FrameBuffer<IDirectX12Image>::mapRenderTarget;
+        using FrameBuffer<IDirectX12Image>::mapRenderTargets;
 
     public:
         /// <summary>
@@ -1479,37 +1481,28 @@ namespace LiteFX::Rendering::Backends {
         // DirectX 12 FrameBuffer
     public:
         /// <summary>
-        /// Returns a pointer to the descriptor heap that allocates the render targets for this frame buffer.
+        /// Returns the descriptor handle for an image at the specified index.
         /// </summary>
-        /// <returns>A pointer to the descriptor heap that allocates the render targets for this frame buffer.</returns>
-        /// <seealso cref="depthStencilTargetHeap" />
-        /// <seealso cref="renderTargetDescriptorSize" />
-        ID3D12DescriptorHeap* renderTargetHeap() const noexcept;
+        /// <param name="imageIndex">The index of the image for which the descriptor handle should be returned.</param>
+        /// <returns>The descriptor handle for the image.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the provided image index does not address an image within the frame buffer.</exception>
+        D3D12_CPU_DESCRIPTOR_HANDLE descriptorHandle(UInt32 imageIndex) const;
 
         /// <summary>
-        /// Returns a pointer to the descriptor heap that allocates the depth/stencil views for this frame buffer.
+        /// Returns the descriptor handle for an image with the specified name.
         /// </summary>
-        /// <remarks>
-        /// Note that it is typically not supported to have more than one depth/stencil output view bound to a <see cref="RenderPass" />.
-        /// </remarks>
-        /// <returns>A pointer to the descriptor heap that allocates the depth/stencil views for this frame buffer.</returns>
-        /// <seealso cref="renderTargetHeap" />
-        /// <seealso cref="depthStencilDescriptorSize" />
-        ID3D12DescriptorHeap* depthStencilTargetHeap() const noexcept;
-
+        /// <param name="imageName">The name of the image for which the descriptor handle should be returned.</param>
+        /// <returns>The descriptor handle for the image.</returns>
+        /// <exception cref="InvalidArgumentException">Thrown, if the provided image name does refer to an image within the frame buffer.</exception>
+        D3D12_CPU_DESCRIPTOR_HANDLE descriptorHandle(StringView imageName) const;
+        
         /// <summary>
-        /// Returns the size of a descriptor for a render target within the frame buffer.
+        /// Returns the descriptor handle for an image mapped to the specified render target.
         /// </summary>
-        /// <returns>The size of a descriptor for a render target within the frame buffer.</returns>
-        /// <seealso cref="renderTargetHeap" />
-        UInt32 renderTargetDescriptorSize() const noexcept;
-
-        /// <summary>
-        /// Returns the size of a descriptor for a depth/stencil view within the frame buffer.
-        /// </summary>
-        /// <returns>The size of a descriptor for a depth/stencil view within the frame buffer.</returns>
-        /// <seealso cref="depthStencilTargetHeap" />
-        UInt32 depthStencilTargetDescriptorSize() const noexcept;
+        /// <param name="renderTarget">The render target for which to return the image descriptor handle.</param>
+        /// <returns>The descriptor handle for the image.</returns>
+        /// <exception cref="InvalidArgumentException">Thrown, if the provided render target is not mapped to an image within the frame buffer.</exception>
+        D3D12_CPU_DESCRIPTOR_HANDLE descriptorHandle(const RenderTarget& renderTarget) const;
 
         // FrameBuffer interface.
     public:
@@ -1524,6 +1517,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void mapRenderTarget(const RenderTarget& renderTarget, UInt32 index) override;
+
+        /// <inheritdoc />
+        void mapRenderTarget(const RenderTarget& renderTarget, StringView name) override;
 
         /// <inheritdoc />
         void unmapRenderTarget(const RenderTarget& renderTarget) noexcept override;

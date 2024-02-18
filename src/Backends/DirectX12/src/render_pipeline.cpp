@@ -142,7 +142,6 @@ public:
 				dsvFormat = DX12::getFormat(renderTarget.format());
 
 				// Setup depth/stencil state.
-				// TODO: From depth/stencil state.
 				depthStencilState.DepthEnable = rasterizer.depthStencilState().depthState().Enable;
 				depthStencilState.DepthWriteMask = rasterizer.depthStencilState().depthState().Write ? D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ZERO;
 				depthStencilState.DepthFunc = DX12::getCompareOp(rasterizer.depthStencilState().depthState().Operation);

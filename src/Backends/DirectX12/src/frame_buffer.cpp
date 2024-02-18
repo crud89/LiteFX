@@ -14,6 +14,7 @@ private:
     Array<UniquePtr<IDirectX12Image>> m_images;
     ComPtr<ID3D12DescriptorHeap> m_renderTargetHeap, m_depthStencilHeap;
     Dictionary<UInt64, IDirectX12Image*> m_mappedRenderTargets;
+    Dictionary<const IDirectX12Image*, D3D12_CPU_DESCRIPTOR_HANDLE> m_renderTargetHandles;
     UInt32 m_renderTargetDescriptorSize, m_depthStencilDescriptorSize;
     Size2d m_size;
     const DirectX12Device& m_device;
@@ -50,7 +51,8 @@ public:
         CD3DX12_CPU_DESCRIPTOR_HANDLE depthStencilViewDescriptor(m_depthStencilHeap->GetCPUDescriptorHandleForHeapStart());
 
         // Initialize the output attachments from render targets of the parent render pass.
-        // NOTE: Again, we assume, that the parent render pass provides the render targets in an sorted manner.
+        m_renderTargetHandles.clear();
+
         std::ranges::for_each(m_images, [&, i = 0](const UniquePtr<IDirectX12Image>& image) mutable {
             // Check if the device supports the multi sampling level for the render target.
             auto samples = image->samples();
@@ -68,6 +70,7 @@ public:
                 };
 
                 m_device.handle()->CreateDepthStencilView(std::as_const(*image).handle().Get(), &depthStencilViewDesc, depthStencilViewDescriptor);
+                m_renderTargetHandles[image.get()] = depthStencilViewDescriptor;
                 depthStencilViewDescriptor = depthStencilViewDescriptor.Offset(m_depthStencilDescriptorSize);
             }
             else
@@ -79,6 +82,7 @@ public:
                 };
 
                 m_device.handle()->CreateRenderTargetView(std::as_const(*image).handle().Get(), &renderTargetViewDesc, renderTargetViewDescriptor);
+                m_renderTargetHandles[image.get()] = renderTargetViewDescriptor;
                 renderTargetViewDescriptor = renderTargetViewDescriptor.Offset(m_renderTargetDescriptorSize);
             }
         });
@@ -122,24 +126,30 @@ DirectX12FrameBuffer::DirectX12FrameBuffer(const DirectX12Device& device, const 
 
 DirectX12FrameBuffer::~DirectX12FrameBuffer() noexcept = default;
 
-ID3D12DescriptorHeap* DirectX12FrameBuffer::renderTargetHeap() const noexcept
+D3D12_CPU_DESCRIPTOR_HANDLE DirectX12FrameBuffer::descriptorHandle(UInt32 imageIndex) const
 {
-    return m_impl->m_renderTargetHeap.Get();
+    if (imageIndex >= m_impl->m_images.size()) [[unlikely]]
+        throw ArgumentOutOfRangeException("imageIndex", 0u, static_cast<UInt32>(m_impl->m_images.size()), imageIndex, "The frame buffer does not contain an image at index {0}.", imageIndex);
+
+    return m_impl->m_renderTargetHandles.at(m_impl->m_images[imageIndex].get());
 }
 
-ID3D12DescriptorHeap* DirectX12FrameBuffer::depthStencilTargetHeap() const noexcept
+D3D12_CPU_DESCRIPTOR_HANDLE DirectX12FrameBuffer::descriptorHandle(StringView imageName) const
 {
-    return m_impl->m_depthStencilHeap.Get();
+    auto nameHash = hash(imageName);
+
+    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](UniquePtr<IDirectX12Image>& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end())
+        return m_impl->m_renderTargetHandles.at(match->get());
+    else
+        throw InvalidArgumentException("imageName", "The frame buffer does not contain an image with the name \"{0}\".", imageName);
 }
 
-UInt32 DirectX12FrameBuffer::renderTargetDescriptorSize() const noexcept
+D3D12_CPU_DESCRIPTOR_HANDLE DirectX12FrameBuffer::descriptorHandle(const RenderTarget& renderTarget) const
 {
-    return m_impl->m_renderTargetDescriptorSize;
-}
+    if (!m_impl->m_mappedRenderTargets.contains(renderTarget.identifier())) [[unlikely]]
+        throw InvalidArgumentException("renderTarget", "The frame buffer does not map an image to the provided render target \"{0}\".", renderTarget.name());
 
-UInt32 DirectX12FrameBuffer::depthStencilTargetDescriptorSize() const noexcept
-{
-    return m_impl->m_depthStencilDescriptorSize;
+    return m_impl->m_renderTargetHandles.at(m_impl->m_mappedRenderTargets[renderTarget.identifier()]);
 }
 
 const Size2d& DirectX12FrameBuffer::size() const noexcept
@@ -166,6 +176,16 @@ void DirectX12FrameBuffer::mapRenderTarget(const RenderTarget& renderTarget, UIn
         LITEFX_WARNING(DIRECTX12_LOG, "The render target format {0} does not match the image format {1} for image {2}.", renderTarget.format(), m_impl->m_images[index]->format(), index);
 
     m_impl->m_mappedRenderTargets[renderTarget.identifier()] = m_impl->m_images[index].get();
+}
+
+void DirectX12FrameBuffer::mapRenderTarget(const RenderTarget& renderTarget, StringView name)
+{
+    auto nameHash = hash(name);
+
+    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](UniquePtr<IDirectX12Image>& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end())
+        this->mapRenderTarget(renderTarget, std::ranges::distance(m_impl->m_images.begin(), match));
+    else
+        throw InvalidArgumentException("name", "The frame buffer does not contain an image with the name \"{0}\".", name);
 }
 
 void DirectX12FrameBuffer::unmapRenderTarget(const RenderTarget& renderTarget) noexcept

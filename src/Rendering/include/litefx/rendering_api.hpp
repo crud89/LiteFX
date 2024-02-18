@@ -7009,7 +7009,49 @@ namespace LiteFX::Rendering {
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="index" /> does not address an image in the frame buffer.</exception>
         /// <seealso cref="unmapRenderTarget" />
         virtual void mapRenderTarget(const RenderTarget& renderTarget, UInt32 index) = 0;
-        
+
+        /// <summary>
+        /// Maps a render target to a frame buffer image.
+        /// </summary>
+        /// <remarks>
+        /// When calling <see cref="IRenderPass::begin" />, passing a frame buffer, the render pass attempts to resolve all render target images. In order for this resolution to be 
+        /// successful, a mapping first needs to be established between the render target and the image. This method establishes this mapping.
+        /// 
+        /// Calling this method multiple times will overwrite the mapped index.
+        /// </remarks>
+        /// <param name="renderTarget">The render target to map the image to.</param>
+        /// <param name="imageName">The name of the image the render target maps to.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if the frame buffer does not contain an image with the name specified in <paramref name="imageName" />.</exception>
+        /// <seealso cref="unmapRenderTarget" />
+        virtual void mapRenderTarget(const RenderTarget& renderTarget, StringView imageName) = 0;
+
+        /// <summary>
+        /// Maps a render target to a frame buffer image using the render targets name to look up the image.
+        /// </summary>
+        /// <remarks>
+        /// When calling <see cref="IRenderPass::begin" />, passing a frame buffer, the render pass attempts to resolve all render target images. In order for this resolution to be 
+        /// successful, a mapping first needs to be established between the render target and the image. This method establishes this mapping.
+        /// 
+        /// Calling this method multiple times will overwrite the mapped index.
+        /// </remarks>
+        /// <param name="renderTarget">The render target to map the image to.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if the frame buffer does not contain an image with the same name as the render target.</exception>
+        /// <seealso cref="unmapRenderTarget" />
+        inline void mapRenderTarget(const RenderTarget& renderTarget) {
+            this->mapRenderTarget(renderTarget, renderTarget.name());
+        }
+
+        /// <summary>
+        /// Maps a set of render targets to the frame buffer images, using the names of the render targets to look up the images.
+        /// </summary>
+        /// <param name="renderTargets">The render targets to map to the frame buffer.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if the frame buffer cannot map the name of one or more render targets to images.</exception>
+        /// <seealso cref="mapRenderTarget" />
+        /// <seealso cref="unmapRenderTarget" />
+        inline void mapRenderTargets(Span<const RenderTarget> renderTargets) {
+            std::ranges::for_each(renderTargets, [this](auto& renderTarget) { this->mapRenderTarget(renderTarget); });
+        }
+
         /// <summary>
         /// Removes a mapping between a render target and an image in the frame buffer.
         /// </summary>
