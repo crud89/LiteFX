@@ -350,20 +350,13 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
         auto& image = frameBuffer[renderTarget];
 
         if (renderTarget.type() == RenderTargetType::DepthStencil)
-            depthStencilBarrier.transition(image, ResourceAccess::None, ResourceAccess::DepthStencilWrite, ImageLayout::Undefined, ImageLayout::DepthWrite);
+            depthStencilBarrier.transition(image, ResourceAccess::None, ResourceAccess::DepthStencilWrite, ImageLayout::DepthRead, ImageLayout::DepthWrite);
         else
-            renderTargetBarrier.transition(image, ResourceAccess::None, ResourceAccess::RenderTarget, ImageLayout::Undefined, ImageLayout::RenderTarget);
+            renderTargetBarrier.transition(image, ResourceAccess::None, ResourceAccess::RenderTarget, ImageLayout::ShaderResource, ImageLayout::RenderTarget);
     });
-
-    VulkanBarrier inputAttachmentBarrier(PipelineStage::None, PipelineStage::All);
-
-    std::ranges::for_each(m_impl->m_inputAttachments, [&inputAttachmentBarrier, &frameBuffer](const RenderPassDependency& dependency) {
-        inputAttachmentBarrier.transition(frameBuffer[dependency.renderTarget()], ResourceAccess::None, ResourceAccess::ShaderRead, ImageLayout::Undefined, ImageLayout::ShaderResource);
-     });
 
     primaryCommandBuffer->barrier(renderTargetBarrier);
     primaryCommandBuffer->barrier(depthStencilBarrier);
-    primaryCommandBuffer->barrier(inputAttachmentBarrier);
     
     if (!this->name().empty())
         m_impl->m_queue->beginDebugRegion(fmt::format("{0} Render Pass", this->name()));
@@ -456,6 +449,7 @@ UInt64 VulkanRenderPass::end() const
         primaryCommandBuffer->transfer(presentTarget, backBufferImage);
 
         VulkanBarrier endPresentBarrier(PipelineStage::Transfer, PipelineStage::None);
+        endPresentBarrier.transition(presentTarget, ResourceAccess::TransferRead, ResourceAccess::None, ImageLayout::CopySource, ImageLayout::ShaderResource);
         endPresentBarrier.transition(backBufferImage, ResourceAccess::TransferWrite, ResourceAccess::None, ImageLayout::CopyDestination, ImageLayout::Present);
         primaryCommandBuffer->barrier(endPresentBarrier);
     }

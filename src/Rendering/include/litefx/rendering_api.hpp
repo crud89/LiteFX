@@ -1722,6 +1722,8 @@ namespace LiteFX::Rendering {
         /// Indicates that an image's layout is not known, which typically happens after creating image resources. It is not valid to transition any resource into this state.
         /// 
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_UNDEFINED` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_UNDEFINED` in the Vulkan 🌋 backend.
+        /// 
+        /// When using this layout as a source layout, the contents of the image may be discarded.
         /// </remarks>
         Undefined = 0x7FFFFFFF
     };

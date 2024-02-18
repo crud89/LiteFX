@@ -90,13 +90,27 @@ public:
 
         // Recreate all resources.
         Dictionary<const IVulkanImage*, IVulkanImage*> imageReplacements;
+        auto& queue = m_device.defaultQueue(QueueType::Graphics);
+        auto commandBuffer = queue.createCommandBuffer(true);
+        auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
 
         auto images = m_images |
             std::views::transform([&](const UniquePtr<IVulkanImage>& image) { 
-                auto newImage = m_device.factory().createTexture(image->name(), image->format(), renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage()); 
+                auto format = image->format();
+                auto newImage = m_device.factory().createTexture(image->name(), format, renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage()); 
                 imageReplacements[image.get()] = newImage.get();
+
+                if (::hasDepth(format) || ::hasStencil(format))
+                    barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::DepthRead);
+                else
+                    barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::ShaderResource);
+
                 return std::move(newImage);
             }) | std::views::as_rvalue | std::ranges::to<Array<UniquePtr<IVulkanImage>>>();
+
+        // Transition the image layouts into their expected states.
+        commandBuffer->barrier(*barrier);
+        auto fence = queue.submit(commandBuffer);
 
         // Update the mappings.
         std::ranges::for_each(m_mappedRenderTargets | std::views::values, [&imageReplacements](auto& image) { image = imageReplacements[image]; });
@@ -106,6 +120,9 @@ public:
 
         // Re-initialize to update heaps and descriptors.
         this->initialize();
+
+        // Wait for the fence to finish.
+        queue.waitFor(fence);
     }
 };
 
@@ -218,28 +235,58 @@ const IVulkanImage& VulkanFrameBuffer::resolveImage(UInt64 hash) const
 
 void VulkanFrameBuffer::addImage(const String& name, Format format, MultiSamplingLevel samples, ResourceUsage usage)
 {
-    // Add a new image.
+    // Add a new image...
     m_impl->m_images.push_back(std::move(m_impl->m_device.factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage)));
+
+    // ... and make sure it is in the right layout.
+    auto& queue = m_impl->m_device.defaultQueue(QueueType::Graphics);
+    auto commandBuffer = queue.createCommandBuffer(true);
+    auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
+    if (::hasDepth(format) || ::hasStencil(format))
+        barrier->transition(*m_impl->m_images.back(), ResourceAccess::None, ResourceAccess::None, ImageLayout::DepthRead);
+    else
+        barrier->transition(*m_impl->m_images.back(), ResourceAccess::None, ResourceAccess::None, ImageLayout::ShaderResource);
+    commandBuffer->barrier(*barrier);
+    auto fence = queue.submit(commandBuffer);
 
     // Re-initialize to reset descriptor heaps and allocate descriptors.
     m_impl->initialize();
+
+    // Wait for the fence to finish.
+    queue.waitFor(fence);
 }
 
 void VulkanFrameBuffer::addImage(const String& name, const RenderTarget& renderTarget, MultiSamplingLevel samples, ResourceUsage usage)
 {
-    // Add a new image.
+    // Add a new image...
     auto index = m_impl->m_images.size();
-    m_impl->m_images.push_back(std::move(m_impl->m_device.factory().createTexture(name, renderTarget.format(), m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage)));
+    auto format = renderTarget.format();
+    m_impl->m_images.push_back(std::move(m_impl->m_device.factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage)));
+
+    // ... and make sure it is in the right layout.
+    auto& queue = m_impl->m_device.defaultQueue(QueueType::Graphics);
+    auto commandBuffer = queue.createCommandBuffer(true);
+    auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
+    if (::hasDepth(format) || ::hasStencil(format))
+        barrier->transition(*m_impl->m_images.back(), ResourceAccess::None, ResourceAccess::None, ImageLayout::DepthRead);
+    else
+        barrier->transition(*m_impl->m_images.back(), ResourceAccess::None, ResourceAccess::None, ImageLayout::ShaderResource);
+    commandBuffer->barrier(*barrier);
+    auto fence = queue.submit(commandBuffer);
 
     // Re-initialize to reset descriptor heaps and allocate descriptors.
     m_impl->initialize();
 
     // Map the render target to the image.
     this->mapRenderTarget(renderTarget, static_cast<UInt32>(index));
+
+    // Wait for the fence to finish.
+    queue.waitFor(fence);
 }
 
 void VulkanFrameBuffer::resize(const Size2d& renderArea)
 {
     // Reset the size and re-initialize the frame buffer.
     m_impl->resize(renderArea);
+    this->resized(this, { renderArea });
 }
