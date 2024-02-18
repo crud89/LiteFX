@@ -1783,7 +1783,7 @@ namespace LiteFX::Rendering {
         /// <param name="outputLocation">The location to which the input attachment is written by <paramref name="renderPass" />.</param>
         template <typename TSelf>
         constexpr inline auto inputAttachment(this TSelf&& self, DescriptorBindingPoint binding, const render_pass_type& renderPass, UInt32 outputLocation) -> TSelf&& {
-            self.inputAttachment(static_cast<RenderPassBuilder&>(self).makeInputAttachment(binding, renderPass.renderTarget(outputLocation)));
+            self.m_state.inputAttachments.push_back(static_cast<RenderPassBuilder&>(self).makeInputAttachment(binding, renderPass.renderTarget(outputLocation)));
             return std::forward<TSelf>(self);
         }
 
@@ -1794,7 +1794,7 @@ namespace LiteFX::Rendering {
         /// <param name="renderTarget">The render target that is bound as input attachment.</param>
         template <typename TSelf>
         constexpr inline auto inputAttachment(this TSelf&& self, DescriptorBindingPoint binding, RenderTarget renderTarget) -> TSelf&& {
-            self.inputAttachment(static_cast<RenderPassBuilder&>(self).makeInputAttachment(binding, renderTarget));
+            self.m_state.inputAttachments.push_back(static_cast<RenderPassBuilder&>(self).makeInputAttachment(binding, renderTarget));
             return std::forward<TSelf>(self);
         }
 
