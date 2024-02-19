@@ -323,6 +323,7 @@ public:
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES,
             .pNext = &deviceFeatures,
             .synchronization2 = true,
+            .dynamicRendering = true,
             .maintenance4 = true
         };
 
@@ -575,14 +576,14 @@ VulkanSwapChain& VulkanDevice::swapChain() noexcept
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
-VulkanRenderPassBuilder VulkanDevice::buildRenderPass(MultiSamplingLevel samples, UInt32 commandBuffers) const
+VulkanRenderPassBuilder VulkanDevice::buildRenderPass(UInt32 commandBuffers) const
 {
-    return VulkanRenderPassBuilder(*this, commandBuffers, samples);
+    return VulkanRenderPassBuilder(*this, commandBuffers);
 }
 
-VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const String& name, MultiSamplingLevel samples, UInt32 commandBuffers) const
+VulkanRenderPassBuilder VulkanDevice::buildRenderPass(const String& name, UInt32 commandBuffers) const
 {
-    return VulkanRenderPassBuilder(*this, commandBuffers, samples, name);
+    return VulkanRenderPassBuilder(*this, commandBuffers, name);
 }
 
 VulkanRenderPipelineBuilder VulkanDevice::buildRenderPipeline(const VulkanRenderPass& renderPass, const String& name) const
@@ -677,6 +678,11 @@ const VulkanQueue* VulkanDevice::createQueue(QueueType type, QueuePriority prior
 UniquePtr<VulkanBarrier> VulkanDevice::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept
 {
     return makeUnique<VulkanBarrier>(syncBefore, syncAfter);
+}
+
+UniquePtr<VulkanFrameBuffer> VulkanDevice::makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept
+{
+    return makeUnique<VulkanFrameBuffer>(*this, renderArea, name);
 }
 
 MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(Format format) const noexcept

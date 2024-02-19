@@ -276,80 +276,6 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 	return buffer;
 }
 
-UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const
-{
-	return this->createAttachment("", target, size, samples);
-}
-
-UniquePtr<IVulkanImage> VulkanGraphicsFactory::createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const
-{
-	// Setup default usage.
-	ResourceUsage usage = ResourceUsage::TransferSource;
-
-	if (target.allowStorage())
-		usage |= ResourceUsage::TransferDestination | ResourceUsage::AllowWrite;
-
-	// Setup image.
-	const auto format = target.format();
-	const auto width = std::max<UInt32>(1, size.width());
-	const auto height = std::max<UInt32>(1, size.height());
-
-	VkImageCreateInfo imageInfo{};
-	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	imageInfo.imageType = VK_IMAGE_TYPE_2D;
-	imageInfo.extent.width = width;
-	imageInfo.extent.height = height;
-	imageInfo.extent.depth = 1;
-	imageInfo.mipLevels = 1;
-	imageInfo.arrayLayers = 1;
-	imageInfo.format = Vk::getFormat(format);
-	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imageInfo.samples = Vk::getSamples(samples);
-	imageInfo.usage = ::hasDepth(format) || ::hasStencil(format) ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
-	if (target.attachment())
-		imageInfo.usage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
-	else
-		imageInfo.usage |= VK_IMAGE_USAGE_SAMPLED_BIT;
-
-	if (target.allowStorage())
-		imageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
-
-	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferSource))
-		imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferDestination))
-		imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-
-	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
-
-	if (!target.multiQueueAccess())
-		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	else
-	{
-		imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
-		imageInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
-		imageInfo.pQueueFamilyIndices = queueFamilies.data();
-	}
-
-	VmaAllocationCreateInfo allocInfo = {};
-	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-
-	UniquePtr<IVulkanImage> image;
-
-	if (::hasDepth(format)) [[unlikely]]
-		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, usage, m_impl->m_allocator, imageInfo, allocInfo);
-	else
-		image = VulkanImage::allocate(name, m_impl->m_device, Size3d{ width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, usage, m_impl->m_allocator, imageInfo, allocInfo);
-
-#ifndef NDEBUG
-	if (!name.empty())
-		m_impl->m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*image).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, name);
-#endif
-
-	return image;
-}
-
 UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
 {
 	return this->createTexture("", format, size, dimension, levels, layers, samples, usage);
@@ -371,19 +297,18 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	auto height = std::max<UInt32>(1, size.height());
 	auto depth = std::max<UInt32>(1, size.depth());
 
-	VkImageCreateInfo imageInfo{};
-	imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	imageInfo.imageType = Vk::getImageType(dimension);
-	imageInfo.extent.width = width;
-	imageInfo.extent.height = height;
-	imageInfo.extent.depth = depth;
-	imageInfo.mipLevels = levels;
-	imageInfo.arrayLayers = layers;
-	imageInfo.format = Vk::getFormat(format);
-	imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imageInfo.samples = Vk::getSamples(samples);
-	imageInfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
+	VkImageCreateInfo imageInfo = {
+		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
+		.imageType = Vk::getImageType(dimension),
+		.format = Vk::getFormat(format),
+		.extent = VkExtent3D { .width = width, .height = height, .depth = depth },
+		.mipLevels = levels, 
+		.arrayLayers = layers,
+		.samples = Vk::getSamples(samples),
+		.tiling = VK_IMAGE_TILING_OPTIMAL,
+		.usage = VK_IMAGE_USAGE_SAMPLED_BIT,
+		.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED
+	};
 	
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite))
 		imageInfo.usage |= VK_IMAGE_USAGE_STORAGE_BIT;
@@ -391,9 +316,13 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 		imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferDestination))
 		imageInfo.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-
-	if (::hasDepth(format) || ::hasStencil(format))
-		imageInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::RenderTarget))
+	{
+		if (::hasDepth(format) || ::hasStencil(format))
+			imageInfo.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		else
+			imageInfo.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+	}
 
 	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
 	imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;

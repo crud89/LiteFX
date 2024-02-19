@@ -225,11 +225,6 @@ public:
 		return m_currentImage;
 	}
 
-	void present(const VulkanFrameBuffer& frameBuffer)
-	{
-		this->present(frameBuffer.lastFence());
-	}
-
 	void present(UInt64 fence) 
 	{
 		// Draw the frame, if the result of the render pass it should be presented to the swap chain.
@@ -600,7 +595,6 @@ public:
 		LITEFX_TRACE(VULKAN_LOG, "Resetting swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4} }}...", fmt::ptr(&m_device), images, extent.width(), extent.height(), selectedFormat);
 
 		// Wait for both devices to be idle.
-		//m_device.defaultQueue(QueueType::Graphics).waitFor(m_lastFence);
 		this->waitForInteropDevice();
 		m_presentImages.clear();
 		m_imageResources.clear();
@@ -836,11 +830,6 @@ public:
 		return m_currentImage;
 	}
 
-	void present(const VulkanFrameBuffer& frameBuffer)
-	{
-		this->present(frameBuffer.lastFence());
-	}
-
 	void present(UInt64 fence)
 	{
 		// Wait for all commands to finish on the default graphics queue. We assume that this is the last queue that receives (synchronized) workloads, as it is expected to
@@ -1049,14 +1038,14 @@ IVulkanImage* VulkanSwapChain::image(UInt32 backBuffer) const
 	return m_impl->m_presentImages[backBuffer].get();
 }
 
+const IVulkanImage& VulkanSwapChain::image() const noexcept
+{
+	return *m_impl->m_presentImages[m_impl->m_currentImage];
+}
+
 Enumerable<IVulkanImage*> VulkanSwapChain::images() const noexcept
 {
 	return m_impl->m_presentImages | std::views::transform([](UniquePtr<IVulkanImage>& image) { return image.get(); });
-}
-
-void VulkanSwapChain::present(const VulkanFrameBuffer& frameBuffer) const
-{
-	m_impl->present(frameBuffer);
 }
 
 void VulkanSwapChain::present(UInt64 fence) const 

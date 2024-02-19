@@ -456,14 +456,14 @@ DirectX12ComputePipeline& DirectX12Device::blitPipeline() const noexcept
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
-DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(MultiSamplingLevel samples, UInt32 commandBuffers) const
+DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(UInt32 commandBuffers) const
 {
-	return DirectX12RenderPassBuilder(*this, commandBuffers, samples);
+	return DirectX12RenderPassBuilder(*this, commandBuffers);
 }
 
-DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const String& name, MultiSamplingLevel samples, UInt32 commandBuffers) const
+DirectX12RenderPassBuilder DirectX12Device::buildRenderPass(const String& name, UInt32 commandBuffers) const
 {
-	return DirectX12RenderPassBuilder(*this, commandBuffers, samples, name);
+	return DirectX12RenderPassBuilder(*this, commandBuffers, name);
 }
 
 DirectX12RenderPipelineBuilder DirectX12Device::buildRenderPipeline(const DirectX12RenderPass& renderPass, const String& name) const
@@ -563,6 +563,11 @@ const DirectX12Queue* DirectX12Device::createQueue(QueueType type, QueuePriority
 UniquePtr<DirectX12Barrier> DirectX12Device::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept
 {
 	return makeUnique<DirectX12Barrier>(syncBefore, syncAfter);
+}
+
+UniquePtr<DirectX12FrameBuffer> DirectX12Device::makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept
+{
+	return makeUnique<DirectX12FrameBuffer>(*this, renderArea, name);
 }
 
 MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(Format format) const noexcept

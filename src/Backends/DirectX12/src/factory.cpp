@@ -217,55 +217,6 @@ UniquePtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(con
 	return DirectX12IndexBuffer::allocate(name, layout, m_impl->m_allocator, elements, usage, resourceDesc, allocationDesc);
 }
 
-UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const
-{
-	return this->createAttachment("", target, size, samples);
-}
-
-UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const
-{
-	// Setup default usage.
-	ResourceUsage usage = ResourceUsage::TransferSource;
-
-	if (target.allowStorage())
-		usage |= ResourceUsage::TransferDestination | ResourceUsage::AllowWrite;
-
-	const auto format = target.format();
-	const auto width = std::max<UInt32>(1, size.width());
-	const auto height = std::max<UInt32>(1, size.height());
-
-	D3D12_RESOURCE_DESC1 resourceDesc { };
-	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	resourceDesc.Alignment = 0;
-	resourceDesc.Width = width;
-	resourceDesc.Height = height;
-	resourceDesc.DepthOrArraySize = 1;
-	resourceDesc.MipLevels = 1;
-	resourceDesc.Format = DX12::getFormat(format);
-	resourceDesc.SampleDesc = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
-	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	if (target.allowStorage())
-		resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-
-	//if (target.multiQueueAccess())
-	//	resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_SIMULTANEOUS_ACCESS;
-
-	D3D12MA::ALLOCATION_DESC allocationDesc { .HeapType = D3D12_HEAP_TYPE_DEFAULT };
-
-	if (::hasDepth(format) || ::hasStencil(format))
-	{
-		resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-		return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, usage, resourceDesc, allocationDesc);
-	}
-	else
-	{
-		resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
-		return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, 1 }, format, ImageDimensions::DIM_2, 1, 1, samples, usage, resourceDesc, allocationDesc);
-	}
-}
-
 UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
 {
 	return this->createTexture("", format, size, dimension, levels, layers, samples, usage);
@@ -287,17 +238,28 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String&
 	auto height = std::max<UInt32>(1, size.height());
 	auto depth = std::max<UInt32>(1, size.depth());
 
-	D3D12_RESOURCE_DESC1 resourceDesc { };
-	resourceDesc.Dimension = DX12::getImageType(dimension);
-	resourceDesc.Alignment = 0;
-	resourceDesc.Width = width;
-	resourceDesc.Height = height;
-	resourceDesc.DepthOrArraySize = dimension == ImageDimensions::DIM_3 ? depth : layers;
-	resourceDesc.MipLevels = levels;
-	resourceDesc.Format = DX12::getFormat(format);
-	resourceDesc.SampleDesc = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
-	resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	resourceDesc.Flags = LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite) ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
+	D3D12_RESOURCE_FLAGS flags = LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite) ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
+
+	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::RenderTarget))
+	{
+		if (::hasDepth(format) || ::hasStencil(format))
+			flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+		else
+			flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
+	}
+
+	D3D12_RESOURCE_DESC1 resourceDesc = {
+		.Dimension = DX12::getImageType(dimension),
+		.Alignment = 0,
+		.Width = width,
+		.Height = height,
+		.DepthOrArraySize = static_cast<UInt16>(dimension == ImageDimensions::DIM_3 ? depth : layers),
+		.MipLevels = static_cast<UInt16>(levels),
+		.Format = DX12::getFormat(format),
+		.SampleDesc = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ static_cast<UInt32>(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN },
+		.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
+		.Flags = flags,
+	};
 
 	D3D12MA::ALLOCATION_DESC allocationDesc { .HeapType = D3D12_HEAP_TYPE_DEFAULT };
 	

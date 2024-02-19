@@ -689,9 +689,14 @@ namespace LiteFX::Rendering {
         /// Allows the resource data to be copied from another resource.
         /// </summary>
         /// <remarks>
-        /// This flag is implicitly set for resources created with <see cref="ResourceHeap::Readback" /> and for render target images (attachments), that allow storage (<see cref="RenderTargetFlags::AllowStorage" />).
+        /// This flag is implicitly set for resources created with <see cref="ResourceHeap::Readback" /> and for render target images (attachments).
         /// </remarks>
         TransferDestination = 0x0020,
+
+        /// <summary>
+        /// Allows the resource to be used as a render target.
+        /// </summary>
+        RenderTarget = 0x0040,
 
         /// <summary>
         /// Allows the resource to be used to build acceleration structures.
@@ -705,7 +710,13 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Shortcut for commonly used `TransferSource | TransferDestination` combination.
         /// </summary>
-        Default = TransferSource | TransferDestination
+        Default = TransferSource | TransferDestination,
+
+        /// <summary>
+        /// Default usage for frame buffer images.
+        /// </summary>
+        /// <seealso cref="IFrameBuffer" />
+        FrameBufferImage = TransferSource | RenderTarget,
     };
 
     /// <summary>
@@ -1006,52 +1017,7 @@ namespace LiteFX::Rendering {
         /// When this flag is set, the render target storage is freed after the render pass has finished. The main use of this is to have depth/stencil targets on a render 
         /// pass that are only required during this render pass. It is not valid to attempt accessing the render target before or after the render pass.
         /// </remarks>
-        Volatile = 0x04,
-
-        /// <summary>
-        /// If enabled, the render target is initialized with storage/unordered access enabled.
-        /// </summary>
-        /// <remarks>
-        /// This flag is set, the render target image is created with storage/unordered access enabled. This allows the render target to be transitioned into a read/write
-        /// resource outside of the render pass. However, enabling this might be less efficient than creating a new texture and copying the render target into it on some
-        /// hardware.
-        /// 
-        /// This flag must not be combined with depth/stencil formats.
-        /// </remarks>
-        /// <seealso cref="https://learn.microsoft.com/en-us/windows/win32/api/d3d12/ne-d3d12-d3d12_resource_flags" />
-        AllowStorage = 0x08,
-
-        /// <summary>
-        /// If enabled, the image can be used simultaneously from multiple queues.
-        /// </summary>
-        /// <remarks>
-        /// If this flag is specified, the render target image is created with support for multi-queue access. This allows multiple queues to read from the image 
-        /// simultaneously, as long as writes are properly synchronized using fences and barriers. If this flag is not specified, the render target image can only be 
-        /// accessed by the queue that first uses the render target (which must be the queue that executes the render target).
-        /// 
-        /// Note that it is currently not possible to transfer ownership between queues, so if multi-queue access is required, this flag must be specified when creating the
-        /// render target.
-        /// 
-        /// This flag must not be combined with depth/stencil formats.
-        /// </remarks>
-        Shared = 0x10,
-
-        /// <summary>
-        /// If enabled and supported, the render target will transition into an optimized attachment layout instead of a general image layout.
-        /// </summary>
-        /// <remarks>
-        /// In Vulkan render passes are more elaborate compared to DirectX, which does not have any concept similar to "attachments". In DirectX all attachments are regular
-        /// images and later render passes use them as they would with any image in a shader. In Vulkan however, there is a special set of instructions to load data from 
-        /// input attachments. If a render target is mapped to a input attachment and should use optimized layouts, this flag can be specified to enable it. Note, that it
-        /// might require to provide different shaders based on which backend is used. The shader targets created by the engine will define a macro (`DXIL`/`SPIRV`) to
-        /// support targeting different backends.
-        /// 
-        /// If attachments are unsupported, creating a render pass with a render target that has this flag enabled, a warning will be issued to remind you to pay attention
-        /// to the differences in the backends.
-        /// 
-        /// This flag is ignored for present targets.
-        /// </remarks>
-        Attachment = 0x20
+        Volatile = 0x04
     };
 
     /// <summary>
@@ -1756,6 +1722,8 @@ namespace LiteFX::Rendering {
         /// Indicates that an image's layout is not known, which typically happens after creating image resources. It is not valid to transition any resource into this state.
         /// 
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_UNDEFINED` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_UNDEFINED` in the Vulkan 🌋 backend.
+        /// 
+        /// When using this layout as a source layout, the contents of the image may be discarded.
         /// </remarks>
         Undefined = 0x7FFFFFFF
     };
@@ -2015,6 +1983,21 @@ namespace LiteFX::Rendering {
         void add(const String& id, UniquePtr<IRenderPass>&& renderPass);
 
         /// <summary>
+        /// Adds a new frame buffer to the device state and uses its name as identifier.
+        /// </summary>
+        /// <param name="frameBuffer">The render pass to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another frame buffer with the same identifier has already been added.</exception>
+        void add(UniquePtr<IFrameBuffer>&& frameBuffer);
+
+        /// <summary>
+        /// Adds a new frame buffer to the device state.
+        /// </summary>
+        /// <param name="id">The identifier for the frame buffer.</param>
+        /// <param name="renderPass">The frame buffer to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another frame buffer with the same <paramref name="id" /> has already been added.</exception>
+        void add(const String& id, UniquePtr<IFrameBuffer>&& frameBuffer);
+
+        /// <summary>
         /// Adds a new pipeline to the device state and uses its name as identifier.
         /// </summary>
         /// <param name="pipeline">The pipeline to add to the device state.</param>
@@ -2136,6 +2119,14 @@ namespace LiteFX::Rendering {
         IRenderPass& renderPass(const String& id) const;
 
         /// <summary>
+        /// Returns a frame buffer from the device state.
+        /// </summary>
+        /// <param name="id">The identifier associated with the frame buffer.</param>
+        /// <returns>A reference of the frame buffer.</returns>
+        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no frame buffer has been added for the provided <paramref name="id" />.</exception>
+        IFrameBuffer& frameBuffer(const String& id) const;
+
+        /// <summary>
         /// Returns a pipeline from the device state.
         /// </summary>
         /// <param name="id">The identifier associated with the pipeline.</param>
@@ -2210,6 +2201,13 @@ namespace LiteFX::Rendering {
         /// <param name="renderPass">The render pass to release.</param>
         /// <returns><c>true</c>, if the render pass was properly released, <c>false</c> otherwise.</returns>
         bool release(const IRenderPass& renderPass);
+
+        /// <summary>
+        /// Releases a frame buffer.
+        /// </summary>
+        /// <param name="renderPass">The frame buffer to release.</param>
+        /// <returns><c>true</c>, if the frame buffer was properly released, <c>false</c> otherwise.</returns>
+        bool release(const IFrameBuffer& frameBuffer);
 
         /// <summary>
         /// Releases a pipeline.
@@ -2405,8 +2403,10 @@ namespace LiteFX::Rendering {
     /// Represents a render target, i.e. an abstract view of the output of an <see cref="RenderPass" />.
     /// </summary>
     /// <remarks>
-    /// A render target represents one output of a render pass, stored within an <see cref="IImage" />. It is contained by a <see cref="RenderPass" />, that contains 
-    /// the <see cref="FrameBuffer" />, that stores the actual render target image resource.
+    /// A render target represents one output of a render pass, stored within an <see cref="IImage" />. It is contained by a <see cref="RenderPass" />, that maps it to an image resource on
+    /// the <see cref="FrameBuffer" /> the render pass operates on. The <see cref="IRenderTarget::identifier" /> is used to associate an image within a frame buffer to a render target.
+    /// 
+    /// When using a <see cref="IRenderPipeline" /> during rendering, a similar lookup is performed to bind frame buffer images to input attachments.
     /// </remarks>
     /// <seealso cref="RenderTarget" />
     /// <seealso cref="RenderPass" />
@@ -2465,6 +2465,12 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// A unique identifier for the render target.
+        /// </summary>
+        /// <returns>The unique identifier for the render target.</returns>
+        virtual UInt64 identifier() const noexcept = 0;
+
+        /// <summary>
         /// Returns the name of the render target.
         /// </summary>
         /// <returns>The name of the render target.</returns>
@@ -2487,16 +2493,16 @@ namespace LiteFX::Rendering {
         virtual RenderTargetType type() const noexcept = 0;
 
         /// <summary>
-        /// Returns the flags that control the behavior of the render target.
-        /// </summary>
-        /// <returns>The flags that control the behavior of the render target.</returns>
-        virtual RenderTargetFlags flags() const noexcept = 0;
-
-        /// <summary>
         /// Returns the internal format of the render target.
         /// </summary>
         /// <returns>The internal format of the render target.</returns>
         virtual Format format() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the flags that control the behavior of the render target.
+        /// </summary>
+        /// <returns>The flags that control the behavior of the render target.</returns>
+        virtual RenderTargetFlags flags() const noexcept = 0;
 
         /// <summary>
         /// Returns <c>true</c>, if the render target should be cleared, when the render pass is started. If the <see cref="format" /> is set to a depth format, this clears the
@@ -2546,30 +2552,6 @@ namespace LiteFX::Rendering {
         virtual bool isVolatile() const noexcept = 0;
 
         /// <summary>
-        /// Returns <c>true</c>, if the render target image can be used for storage/unordered access.
-        /// </summary>
-        /// <returns><c>true</c>, if the render target image can be used for storage/unordered access.</returns>
-        /// <seealso cref="flags" />
-        /// <seealso cref="RenderTargetFlags" />
-        virtual bool allowStorage() const noexcept = 0;
-
-        /// <summary>
-        /// Returns <c>true</c>, if the render target image can be accessed simultaneously from different queues.
-        /// </summary>
-        /// <returns><c>true</c>, if the render target image can be accessed simultaneously from different queues.</returns>
-        /// <seealso cref="flags" />
-        /// <seealso cref="RenderTargetFlags" />
-        virtual bool multiQueueAccess() const noexcept = 0;
-
-        /// <summary>
-        /// Returns <c>true</c>, if the render target should transition into an optimized attachment layout, rather than a general image layout after executing the render pass.
-        /// </summary>
-        /// <returns><c>true</c>, if the render target should transition into an optimized attachment layout.</returns>
-        /// <seealso cref="flags" />
-        /// <seealso cref="RenderTargetFlags" />
-        virtual bool attachment() const noexcept = 0;
-
-        /// <summary>
         /// Returns the render targets blend state.
         /// </summary>
         /// <returns>The render targets blend state.</returns>
@@ -2584,39 +2566,69 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(RenderTargetImpl);
 
     public:
-        RenderTarget() noexcept;
-
         /// <summary>
         /// Initializes the render target.
         /// </summary>
+        /// <param name="uid">A unique identifier for the render target.</param>
         /// <param name="location">The location of the render target output attachment.</param>
         /// <param name="type">The type of the render target.</param>
         /// <param name="format">The format of the render target.</param>
         /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="clearValues">The values with which the render target gets cleared.</param>
         /// <param name="blendState">The render target blend state.</param>
-        explicit RenderTarget(UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const BlendState& blendState = {});
+        explicit RenderTarget(UInt64 uid, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const BlendState& blendState = {});
 
         /// <summary>
         /// Initializes the render target.
         /// </summary>
-        /// <param name="name">The name of the render target.</param>
+        /// <remarks>
+        /// This overload uses the <paramname ref="name" /> parameter to compute the <see cref="identifier" />.
+        /// </remarks>
+        /// <param name="name">The unique name of the render target.</param>
         /// <param name="location">The location of the render target output attachment.</param>
         /// <param name="type">The type of the render target.</param>
         /// <param name="format">The format of the render target.</param>
         /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="clearValues">The values with which the render target gets cleared.</param>
         /// <param name="blendState">The render target blend state.</param>
-        explicit RenderTarget(const String& name, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const BlendState& blendState = {});
-        RenderTarget(const RenderTarget&) noexcept;
-        RenderTarget(RenderTarget&&) noexcept;
+        explicit RenderTarget(StringView name, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const BlendState& blendState = {});
+        
+        /// <summary>
+        /// Creates a copy of a render target.
+        /// </summary>
+        /// <param name="_other">The render target instance to copy.</param>
+        RenderTarget(const RenderTarget& _other) noexcept;
+
+        /// <summary>
+        /// Takes over another instance of a render target.
+        /// </summary>
+        /// <param name="_other">The render target instance to take over.</param>
+        RenderTarget(RenderTarget&& _other) noexcept;
+        
+        /// <summary>
+        /// Releases the render target instance.
+        /// </summary>
         virtual ~RenderTarget() noexcept;
 
     public:
-        inline RenderTarget& operator=(const RenderTarget&) noexcept;
-        inline RenderTarget& operator=(RenderTarget&&) noexcept;
+        /// <summary>
+        /// Assigns a render target by copying it.
+        /// </summary>
+        /// <param name="_other">The render target instance to copy.</param>
+        /// <returns>A reference to the current render target instance.</returns>
+        inline RenderTarget& operator=(const RenderTarget& _other) noexcept;
+
+        /// <summary>
+        /// Assigns a render target by taking it over.
+        /// </summary>
+        /// <param name="_other">The render target to take over.</param>
+        /// <returns>A reference to the current render target instance.</returns>
+        inline RenderTarget& operator=(RenderTarget&& _other) noexcept;
 
     public:
+        /// <inheritdoc />
+        UInt64 identifier() const noexcept override;
+
         /// <inheritdoc />
         const String& name() const noexcept override;
 
@@ -2627,10 +2639,10 @@ namespace LiteFX::Rendering {
         RenderTargetType type() const noexcept override;
 
         /// <inheritdoc />
-        RenderTargetFlags flags() const noexcept override;
+        Format format() const noexcept override;
 
         /// <inheritdoc />
-        Format format() const noexcept override;
+        RenderTargetFlags flags() const noexcept override;
 
         /// <inheritdoc />
         bool clearBuffer() const noexcept override;
@@ -2645,16 +2657,75 @@ namespace LiteFX::Rendering {
         bool isVolatile() const noexcept override;
 
         /// <inheritdoc />
-        bool allowStorage() const noexcept override;
-
-        /// <inheritdoc />
-        bool multiQueueAccess() const noexcept override;
-
-        /// <inheritdoc />
-        bool attachment() const noexcept override;
-
-        /// <inheritdoc />
         const BlendState& blendState() const noexcept override;
+    };
+
+    /// <summary>
+    /// Represents a mapping between a set of <see cref="RenderTarget" /> instances and the input attachments of a <see cref="IRenderPass" />.
+    /// </summary>
+    class LITEFX_RENDERING_API RenderPassDependency final {
+        LITEFX_IMPLEMENTATION(RenderPassDependencyImpl);
+
+    public:
+        /// <summary>
+        /// Creates a new render target dependency.
+        /// </summary>
+        /// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
+        /// <param name="descriptorBinding">The binding point to bind the input attachment to.</param>
+        RenderPassDependency(const RenderTarget& renderTarget, const DescriptorBindingPoint& descriptorBinding) noexcept;
+
+        /// <summary>
+        /// Creates a new render target dependency.
+        /// </summary>
+        /// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
+        /// <param name="bindingRegister">The register to bind the input attachment to.</param>
+        /// <param name="space">The space to bind the input attachment to.</param>
+        RenderPassDependency(const RenderTarget& renderTarget, UInt32 bindingRegister, UInt32 space) noexcept;
+
+        /// <summary>
+        /// Creates a copy of another render pass dependency.
+        /// </summary>
+        /// <param name="_other">The render pass dependency to copy.</param>
+        RenderPassDependency(const RenderPassDependency& _other) noexcept;
+
+        /// <summary>
+        /// Takes over another render pass dependency instance.
+        /// </summary>
+        /// <param name="_other">The render pass dependency instance to take over.</param>
+        RenderPassDependency(RenderPassDependency&& _other) noexcept;
+
+        /// <summary>
+        /// Releases the current render pass dependency instance.
+        /// </summary>
+        ~RenderPassDependency() noexcept;
+
+    public:
+        /// <summary>
+        /// Assigns another render pass dependency instance by copying it.
+        /// </summary>
+        /// <param name="_other">The render pass dependency to copy.</param>
+        /// <returns>A reference of the current render pass dependency instance.</returns>
+        RenderPassDependency& operator=(const RenderPassDependency& _other) noexcept;
+
+        /// <summary>
+        /// Assigns another render pass dependency by taking it over.
+        /// </summary>
+        /// <param name="_other">The render pass dependency to take over.</param>
+        /// <returns>A reference of the current render pass dependency instance.</returns>
+        RenderPassDependency& operator=(RenderPassDependency&& _other) noexcept;
+
+    public:
+        /// <summary>
+        /// Returns a reference of the render target that is mapped to the input attachment.
+        /// </summary>
+        /// <returns>A reference of the render target that is mapped to the input attachment.</returns>
+        const RenderTarget& renderTarget() const noexcept;
+
+        /// <summary>
+        /// Returns the binding point for the input attachment binding.
+        /// </summary>
+        /// <returns>The binding point for the input attachment binding.</returns>
+        const DescriptorBindingPoint& binding() const noexcept;
     };
 
     /// <summary>
@@ -5787,7 +5858,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements to copy from the source buffer into the target buffer.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
         /// <seealso cref="IBarrier" />
-        inline void transfer(IBuffer& source, IBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const {
+        inline void transfer(const IBuffer& source, const IBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, targetElement, elements);
         }
         
@@ -5811,7 +5882,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetElement">The index of the first element in the target buffer to copy to.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target buffer.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        inline void transfer(SharedPtr<IBuffer> source, IBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const {
+        inline void transfer(SharedPtr<const IBuffer> source, const IBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, targetElement, elements);
         }
 
@@ -5828,7 +5899,7 @@ namespace LiteFX::Rendering {
         /// <param name="target">The target buffer to transfer data to.</param>
         /// <param name="targetElement">The array element to map the data to.</param>
         /// <param name="elements">The number of elements to copy.</param>
-        inline void transfer(const void* const data, size_t size, IBuffer& target, UInt32 targetElement = 0, UInt32 elements = 1) const {
+        inline void transfer(const void* const data, size_t size, const IBuffer& target, UInt32 targetElement = 0, UInt32 elements = 1) const {
             this->cmdTransfer(data, size, target, targetElement, elements);
         }
 
@@ -5844,7 +5915,7 @@ namespace LiteFX::Rendering {
         /// <param name="elementSize">The number of bytes to map for each element.</param>
         /// <param name="target">The target buffer to transfer data to.</param>
         /// <param name="targetElement">The first array element to transfer the data to.</param>
-        inline void transfer(Span<const void* const> data, size_t elementSize, IBuffer& target, UInt32 targetElement = 0) const {
+        inline void transfer(Span<const void* const> data, size_t elementSize, const IBuffer& target, UInt32 targetElement = 0) const {
             this->cmdTransfer(data, elementSize, target, targetElement);
         }
 
@@ -5883,7 +5954,7 @@ namespace LiteFX::Rendering {
         /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        inline void transfer(IBuffer& source, IImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
+        inline void transfer(const IBuffer& source, const IImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, firstSubresource, elements);
         }
 
@@ -5929,7 +6000,7 @@ namespace LiteFX::Rendering {
         /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        inline void transfer(SharedPtr<IBuffer> source, IImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
+        inline void transfer(SharedPtr<const IBuffer> source, const IImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, firstSubresource, elements);
         }
 
@@ -5946,7 +6017,7 @@ namespace LiteFX::Rendering {
         /// <param name="target">The target buffer to transfer data to.</param>
         /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
-        inline void transfer(const void* const data, size_t size, IImage& target, UInt32 subresource = 0) const {
+        inline void transfer(const void* const data, size_t size, const IImage& target, UInt32 subresource = 0) const {
             this->cmdTransfer(data, size, target, subresource);
         }
 
@@ -5963,7 +6034,7 @@ namespace LiteFX::Rendering {
         /// <param name="target">The target buffer to transfer data to.</param>
         /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
-        inline void transfer(Span<const void* const> data, size_t elementSize, IImage& target, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
+        inline void transfer(Span<const void* const> data, size_t elementSize, const IImage& target, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
             this->cmdTransfer(data, elementSize, target, firstSubresource, elements);
         }
 
@@ -5980,7 +6051,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetSubresource">The image of the first sub-resource in the target image to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy between the images.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        inline void transfer(IImage& source, IImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const {
+        inline void transfer(const IImage& source, const IImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, sourceSubresource, targetSubresource, subresources);
         }
 
@@ -6004,7 +6075,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetSubresource">The image of the first sub-resource in the target image to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy between the images.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        inline void transfer(SharedPtr<IImage> source, IImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const {
+        inline void transfer(SharedPtr<const IImage> source, const IImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, sourceSubresource, targetSubresource, subresources);
         }
 
@@ -6043,7 +6114,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetElement">The index of the first target element to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        inline void transfer(IImage& source, IBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const {
+        inline void transfer(const IImage& source, const IBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, firstSubresource, targetElement, subresources);
         }
 
@@ -6089,7 +6160,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetElement">The index of the first target element to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        inline void transfer(SharedPtr<IImage> source, IBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const {
+        inline void transfer(SharedPtr<const IImage> source, const IBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, firstSubresource, targetElement, subresources);
         }
 
@@ -6560,18 +6631,18 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<IBarrier> getBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
         virtual void cmdBarrier(const IBarrier& barrier) const noexcept = 0;
         virtual void cmdGenerateMipMaps(IImage& image) noexcept = 0;
-        virtual void cmdTransfer(IBuffer& source, IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const = 0;
-        virtual void cmdTransfer(IBuffer& source, IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const = 0;
-        virtual void cmdTransfer(IImage& source, IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const = 0;
-        virtual void cmdTransfer(IImage& source, IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const = 0;
-        virtual void cmdTransfer(SharedPtr<IBuffer> source, IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const = 0;
-        virtual void cmdTransfer(SharedPtr<IBuffer> source, IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const = 0;
-        virtual void cmdTransfer(SharedPtr<IImage> source, IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const = 0;
-        virtual void cmdTransfer(SharedPtr<IImage> source, IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const = 0;
-        virtual void cmdTransfer(const void* const data, size_t size, IBuffer& target, UInt32 targetElement, UInt32 elements) const = 0;
-        virtual void cmdTransfer(Span<const void* const> data, size_t elementSize, IBuffer& target, UInt32 targetElement) const = 0;
-        virtual void cmdTransfer(const void* const data, size_t size, IImage& target, UInt32 subresource) const = 0;
-        virtual void cmdTransfer(Span<const void* const> data, size_t elementSize, IImage& target, UInt32 firstSubresource, UInt32 elements) const = 0;
+        virtual void cmdTransfer(const IBuffer& source, const IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const = 0;
+        virtual void cmdTransfer(const IBuffer& source, const IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const = 0;
+        virtual void cmdTransfer(const IImage& source, const IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const = 0;
+        virtual void cmdTransfer(const IImage& source, const IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const = 0;
+        virtual void cmdTransfer(SharedPtr<const IBuffer> source, const IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const = 0;
+        virtual void cmdTransfer(SharedPtr<const IBuffer> source, const IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const = 0;
+        virtual void cmdTransfer(SharedPtr<const IImage> source, const IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const = 0;
+        virtual void cmdTransfer(SharedPtr<const IImage> source, const IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const = 0;
+        virtual void cmdTransfer(const void* const data, size_t size, const IBuffer& target, UInt32 targetElement, UInt32 elements) const = 0;
+        virtual void cmdTransfer(Span<const void* const> data, size_t elementSize, const IBuffer& target, UInt32 targetElement) const = 0;
+        virtual void cmdTransfer(const void* const data, size_t size, const IImage& target, UInt32 subresource) const = 0;
+        virtual void cmdTransfer(Span<const void* const> data, size_t elementSize, const IImage& target, UInt32 firstSubresource, UInt32 elements) const = 0;
         virtual void cmdUse(const IPipeline& pipeline) const noexcept = 0;
         virtual void cmdBind(const IDescriptorSet& descriptorSet) const = 0;
         virtual void cmdBind(Span<const IDescriptorSet*> descriptorSets) const = 0;
@@ -6592,7 +6663,6 @@ namespace LiteFX::Rendering {
         virtual void cmdCopyAccelerationStructure(const IBottomLevelAccelerationStructure& from, const IBottomLevelAccelerationStructure& to, bool compress) const noexcept = 0;
         virtual void cmdCopyAccelerationStructure(const ITopLevelAccelerationStructure& from, const ITopLevelAccelerationStructure& to, bool compress) const noexcept = 0;
         virtual void cmdTraceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable, const IBuffer* hitShaderBindingTable, const IBuffer* callableShaderBindingTable) const noexcept = 0;
-
     };
 
     /// <summary>
@@ -6633,6 +6703,25 @@ namespace LiteFX::Rendering {
         /// <seealso href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#fragops-covg" />
         /// <seealso href="https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-blend-state#alpha-to-coverage" />
         virtual bool alphaToCoverage() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the multi-sampling level of the pipeline.
+        /// </summary>
+        /// <remarks>
+        /// When using the pipeline, the multi-sampling level must match the level of the render target images.
+        /// </remarks>
+        /// <returns>The multi-sampling level of the pipeline.</returns>
+        /// <seealso cref="updateSamples" />
+        virtual MultiSamplingLevel samples() const noexcept = 0;
+
+        /// <summary>
+        /// Changes the multi-sampling level of the pipeline.
+        /// </summary>
+        /// <remarks>
+        /// Changing the multi-sampling level of a pipeline causes it to be re-created, which is considered an expensive operation. Don't use this method to change 
+        /// samples frequently, for example when binding frame buffers with different sample levels. Instead, use multiple pipelines for this purpose.
+        /// </remarks>
+        virtual void updateSamples(MultiSamplingLevel samples) = 0;
 
     private:
         virtual SharedPtr<IInputAssembler> getInputAssembler() const noexcept = 0;
@@ -6717,30 +6806,92 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// The interface for a frame buffer.
     /// </summary>
-    class LITEFX_RENDERING_API IFrameBuffer {
+    /// <remarks>
+    /// A frame buffer is a set of images of equal size, that are used by render targets and/or input attachments in a <see cref="IRenderPass" />. When creating a new frame buffer,
+    /// it is empty by default and needs images to be added into it. When beginning a render pass during rendering, a frame buffer instance needs to be passed to it. The render 
+    /// pass then tries to obtain an image for each render target from the frame buffer. It does this by resolving it's render targets (<see cref="IRenderPass::renderTargets" />).
+    /// A render target stores a unique identifier (<see cref="IRenderTarget::identifier" />), that is used to obtain the image. Before this resolution process can be successful, 
+    /// the render targets must first be mapped to the images in the frame buffer by calling <see cref="IFrameBuffer::mapRenderTarget" />. Calling this method multiple times will
+    /// overwrite the mapping. It is also possible to remove a render target mapping by calling <see cref="IFrameBuffer::unmapRenderTarget" />. This will result in future attempts
+    /// to resolve this render target using the frame buffer instance to fail.
+    /// </remarks>
+    class LITEFX_RENDERING_API IFrameBuffer : public virtual IStateResource {
     public:
-        virtual ~IFrameBuffer() noexcept = default;
+        /// <summary>
+        /// Event arguments that are published to subscribers when a frame buffer gets resized.
+        /// </summary>
+        /// <seealso cref="IFrameBuffer::resize" />
+        /// <seealso cref="IFrameBuffer::resized" />
+        struct ResizeEventArgs : public EventArgs {
+        private:
+            const Size2d& m_newSize;
+
+        public:
+            ResizeEventArgs(const Size2d& newSize) : 
+                EventArgs(), m_newSize(newSize) { }
+            ResizeEventArgs(const ResizeEventArgs&) = default;
+            ResizeEventArgs(ResizeEventArgs&&) = default;
+            virtual ~ResizeEventArgs() noexcept = default;
+
+        public:
+            ResizeEventArgs& operator=(const ResizeEventArgs&) = default;
+            ResizeEventArgs& operator=(ResizeEventArgs&&) = default;
+
+        public:
+            /// <summary>
+            /// Returns the new size of the frame buffer.
+            /// </summary>
+            /// <returns>The new size of the frame buffer.</returns>
+            inline const Size2d& newSize() const noexcept {
+                return m_newSize;
+            }
+        };
+
+        /// <summary>
+        /// Event arguments that are published to subscribers when a frame buffer gets released.
+        /// </summary>
+        /// <seealso cref="IFrameBuffer::~IFrameBuffer" />
+        /// <seealso cref="IFrameBuffer::released" />
+        struct ReleasedEventArgs : public EventArgs {
+        public:
+            ReleasedEventArgs() : 
+                EventArgs() { }
+            ReleasedEventArgs(const ReleasedEventArgs&) = default;
+            ReleasedEventArgs(ReleasedEventArgs&&) = default;
+            virtual ~ReleasedEventArgs() noexcept = default;
+
+        public:
+            ReleasedEventArgs& operator=(const ReleasedEventArgs&) = default;
+            ReleasedEventArgs& operator=(ReleasedEventArgs&&) = default;
+        };
 
     public:
         /// <summary>
-        /// Returns the value of the fence that indicates the last submission drawing into the frame buffer.
+        /// Releases the frame buffer.
         /// </summary>
-        /// <remarks>
-        /// The frame buffer must only be re-used if this fence has been passed in the command queue that executes the parent render pass.
-        /// </remarks>
-        /// <returns>The value of the last submission targeting the frame buffer.</returns>
-        virtual UInt64 lastFence() const noexcept = 0;
+        virtual inline ~IFrameBuffer() noexcept {
+            released.invoke(this, { });
+        }
+
+    public:
+        /// <summary>
+        /// Invoked when the frame buffer gets resized.
+        /// </summary>
+        /// <seealso cref="resize" />
+        mutable Event<ResizeEventArgs> resized;
 
         /// <summary>
-        /// Returns the index of the buffer within the <see cref="RenderPass" />.
+        /// Invoked when the frame buffer gets released.
         /// </summary>
         /// <remarks>
-        /// A render pass stores multiple frame buffers, each with their own index. Calling <see cref="RenderPass::frameBuffer" /> with this index on the frame buffers render
-        /// pass returns the current frame buffer instance (i.e. the same instance, as the one, the index has been requested from).
+        /// Note that it is no longer valid to access the frame buffer when receiving this event. The only thing that can be assumed to still be valid is the pointer to the frame 
+        /// buffer. The intent of this event is to release any resources that depend on the frame buffer instance. Internally, render passes and pipelines use this event to release
+        /// cached frame buffer states they hold, such as descriptor sets for input attachment bindings or command buffers associated with the frame buffer.
         /// </remarks>
-        /// <returns>the index of the buffer within the <see cref="RenderPass" />.</returns>
-        virtual UInt32 bufferIndex() const noexcept = 0;
+        /// <seealso cref="~IFrameBuffer" />
+        mutable Event<ReleasedEventArgs> released;
 
+    public:
         /// <summary>
         /// Returns the current size of the frame buffer.
         /// </summary>
@@ -6769,147 +6920,281 @@ namespace LiteFX::Rendering {
         virtual size_t getHeight() const noexcept = 0;
 
         /// <summary>
-        /// Returns all command buffers, the frame buffer stores.
+        /// Maps a render target to a frame buffer image.
         /// </summary>
-        /// <returns>All command buffers, the frame buffer stores.</returns>
-        /// <seealso cref="commandBuffer" />
-        inline Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers() const noexcept {
-            return this->getCommandBuffers();
+        /// <remarks>
+        /// When calling <see cref="IRenderPass::begin" />, passing a frame buffer, the render pass attempts to resolve all render target images. In order for this resolution to be 
+        /// successful, a mapping first needs to be established between the render target and the image. This method establishes this mapping.
+        /// 
+        /// Calling this method multiple times will overwrite the mapped index.
+        /// </remarks>
+        /// <param name="renderTarget">The render target to map the image to.</param>
+        /// <param name="index">The index of the image to map to the render target.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="index" /> does not address an image in the frame buffer.</exception>
+        /// <seealso cref="unmapRenderTarget" />
+        virtual void mapRenderTarget(const RenderTarget& renderTarget, UInt32 index) = 0;
+
+        /// <summary>
+        /// Maps a render target to a frame buffer image.
+        /// </summary>
+        /// <remarks>
+        /// When calling <see cref="IRenderPass::begin" />, passing a frame buffer, the render pass attempts to resolve all render target images. In order for this resolution to be 
+        /// successful, a mapping first needs to be established between the render target and the image. This method establishes this mapping.
+        /// 
+        /// Calling this method multiple times will overwrite the mapped index.
+        /// </remarks>
+        /// <param name="renderTarget">The render target to map the image to.</param>
+        /// <param name="imageName">The name of the image the render target maps to.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if the frame buffer does not contain an image with the name specified in <paramref name="imageName" />.</exception>
+        /// <seealso cref="unmapRenderTarget" />
+        virtual void mapRenderTarget(const RenderTarget& renderTarget, StringView imageName) = 0;
+
+        /// <summary>
+        /// Maps a render target to a frame buffer image using the render targets name to look up the image.
+        /// </summary>
+        /// <remarks>
+        /// When calling <see cref="IRenderPass::begin" />, passing a frame buffer, the render pass attempts to resolve all render target images. In order for this resolution to be 
+        /// successful, a mapping first needs to be established between the render target and the image. This method establishes this mapping.
+        /// 
+        /// Calling this method multiple times will overwrite the mapped index.
+        /// </remarks>
+        /// <param name="renderTarget">The render target to map the image to.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if the frame buffer does not contain an image with the same name as the render target.</exception>
+        /// <seealso cref="unmapRenderTarget" />
+        inline void mapRenderTarget(const RenderTarget& renderTarget) {
+            this->mapRenderTarget(renderTarget, renderTarget.name());
         }
 
         /// <summary>
-        /// Returns a command buffer that records draw commands for the frame buffer.
+        /// Maps a set of render targets to the frame buffer images, using the names of the render targets to look up the images.
         /// </summary>
-        /// <param name="index">The index of the command buffer.</param>
-        /// <returns>A command buffer that records draw commands for the frame buffer</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the frame buffer does not store a command buffer at <paramref name="index" />.</exception>
-        /// <seealso cref="commandBuffers" />
-        inline SharedPtr<const ICommandBuffer> commandBuffer(UInt32 index) const {
-            return this->getCommandBuffer(index);
+        /// <param name="renderTargets">The render targets to map to the frame buffer.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if the frame buffer cannot map the name of one or more render targets to images.</exception>
+        /// <seealso cref="mapRenderTarget" />
+        /// <seealso cref="unmapRenderTarget" />
+        inline void mapRenderTargets(Span<const RenderTarget> renderTargets) {
+            std::ranges::for_each(renderTargets, [this](auto& renderTarget) { this->mapRenderTarget(renderTarget); });
         }
 
         /// <summary>
-        /// Returns the images that store the output attachments for the render targets of the <see cref="RenderPass" />.
+        /// Removes a mapping between a render target and an image in the frame buffer.
         /// </summary>
-        /// <returns>The images that store the output attachments for the render targets of the <see cref="RenderPass" />.</returns>
-        inline Enumerable<IImage*> images() const noexcept {
+        /// <remarks>
+        /// If no image in the frame buffer is currently mapped to <paramref name="renderTarget" />, calling this method will have no effect.
+        /// </remarks>
+        /// <param name="renderTarget">The render target to remove the mapping for.</param>
+        /// <seealso cref="mapRenderTarget" />
+        virtual void unmapRenderTarget(const RenderTarget& renderTarget) noexcept = 0;
+
+        /// <summary>
+        /// Returns all images contained by the frame buffer.
+        /// </summary>
+        /// <returns>A set of pointers to the images contained by the frame buffer.</returns>
+        inline Enumerable<const IImage*> images() const noexcept {
             return this->getImages();
         }
 
         /// <summary>
-        /// Returns the image that stores the output attachment for the render target mapped the location passed with <paramref name="location" />.
+        /// Returns an image from the frame buffer.
         /// </summary>
-        /// <returns>The image that stores the output attachment for the render target mapped the location passed with <paramref name="location" />.</returns>
-        virtual IImage& image(UInt32 location) const = 0;
+        /// <param name="index">The index of the image.</param>
+        /// <returns>The image from the frame buffer with the index <paramref name="index" />.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the <paramref name="index" /> does not address an image in the frame buffer.</exception>
+        virtual const IImage& operator[](UInt32 index) const = 0;
 
-    public:
+        /// <summary>
+        /// Returns an image from the frame buffer.
+        /// </summary>
+        /// <param name="index">The index of the image.</param>
+        /// <returns>The image from the frame buffer with the index <paramref name="index" />.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the <paramref name="index" /> does not address an image in the frame buffer.</exception>
+        virtual const IImage& image(UInt32 index) const = 0;
+
+        /// <summary>
+        /// Resolves a render target and returns the image mapped to it.
+        /// </summary>
+        /// <param name="renderTarget">The render target to resolve.</param>
+        /// <returns>The image mapped to the render target.</returns>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="renderTarget" /> is not mapped to an image in the frame buffer.</exception>
+        virtual const IImage& operator[](const RenderTarget& renderTarget) const = 0;
+
+        /// <summary>
+        /// Resolves a render target and returns the image mapped to it.
+        /// </summary>
+        /// <param name="renderTarget">The render target to resolve.</param>
+        /// <returns>The image mapped to the render target.</returns>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="renderTarget" /> is not mapped to an image in the frame buffer.</exception>
+        virtual const IImage& image(const RenderTarget& renderTarget) const = 0;
+
+        /// <summary>
+        /// Resolves a render target name and returns the image mapped to it.
+        /// </summary>
+        /// <param name="renderTargetName">The render target name to resolve.</param>
+        /// <returns>The image mapped to the render target.</returns>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="renderTargetName" /> is not mapped to an image in the frame buffer.</exception>
+        virtual const IImage& operator[](StringView renderTargetName) const = 0;
+
+        /// <summary>
+        /// Resolves a render target name and returns the image mapped to it.
+        /// </summary>
+        /// <param name="renderTargetName">The render target name to resolve.</param>
+        /// <returns>The image mapped to the render target.</returns>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="renderTargetName" /> is not mapped to an image in the frame buffer.</exception>
+        virtual const IImage& image(StringView renderTargetName) const = 0;
+
+        /// <summary>
+        /// Resolves a render target name hash and returns the image mapped to it.
+        /// </summary>
+        /// <param name="hash">The render target name hash to resolve.</param>
+        /// <returns>The image mapped to the render target.</returns>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="hash" /> is not mapped to an image in the frame buffer.</exception>
+        /// <seealso cref="image" />
+        virtual const IImage& resolveImage(UInt64 hash) const = 0;
+
+        /// <summary>
+        /// Adds an image to the frame buffer.
+        /// </summary>
+        /// <param name="format">The format of the image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        template <typename TSelf>
+        inline auto addImage(this TSelf&& self, Format format, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
+            self.addImage(format, samples, usage);
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds an image to the frame buffer.
+        /// </summary>
+        /// <param name="format">The format of the image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        inline void addImage(Format format, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) {
+            this->addImage("", format, samples, usage);
+        }
+
+        /// <summary>
+        /// Adds an image to the frame buffer.
+        /// </summary>
+        /// <param name="name">The name of the image.</param>
+        /// <param name="format">The format of the image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        template <typename TSelf>
+        inline auto addImage(this TSelf&& self, StringView name, Format format, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
+            self.addImage(name, format, samples, usage);
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds an image to the frame buffer.
+        /// </summary>
+        /// <param name="name">The name of the image.</param>
+        /// <param name="format">The format of the image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        virtual void addImage(const String& name, Format format, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) = 0;
+
+        /// <summary>
+        /// Adds an image for a render target to the frame buffer.
+        /// </summary>
+        /// <param name="renderTarget">The render target for which to add an image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        template <typename TSelf>
+        inline auto addImage(this TSelf&& self, const RenderTarget& renderTarget, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
+            self.addImage(renderTarget, samples, usage);
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds an image for a render target to the frame buffer.
+        /// </summary>
+        /// <param name="renderTarget">The render target for which to add an image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        inline void addImage(const RenderTarget& renderTarget, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) {
+            this->addImage(renderTarget.name(), renderTarget, samples, usage);
+        }
+
+        /// <summary>
+        /// Adds an image for a render target to the frame buffer.
+        /// </summary>
+        /// <param name="name">The name of the image.</param>
+        /// <param name="renderTarget">The render target for which to add an image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        template <typename TSelf>
+        inline auto addImage(this TSelf&& self, StringView name, const RenderTarget& renderTarget, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
+            self.addImage(name, renderTarget, samples, usage);
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds an image for a render target to the frame buffer.
+        /// </summary>
+        /// <param name="name">The name of the image.</param>
+        /// <param name="renderTarget">The render target for which to add an image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        virtual void addImage(const String& name, const RenderTarget& renderTarget, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) = 0;
+
+        /// <summary>
+        /// Adds multiple images for a set of render targets to the frame buffer.
+        /// </summary>
+        /// <remarks>
+        /// Note that the names of the images are built from the render target names.
+        /// </remarks>
+        /// <param name="renderTargets">The render targets for which to add an image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        template <typename TSelf>
+        inline auto addImages(this TSelf&& self, Span<const RenderTarget> renderTargets, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
+            std::ranges::for_each(renderTargets, [&](auto& renderTarget) { self.addImage(renderTarget.name(), renderTarget, samples, usage); });
+            return std::forward<TSelf>(self);
+        }
+
         /// <summary>
         /// Causes the frame buffer to be invalidated and recreated with a new size.
         /// </summary>
-        /// <remarks>
-        /// A frame buffer resize causes all render target resources (i.e. images) to be re-created. This is done by the implementation itself, except for present targets, which require
-        /// a view of an image created on a <see cref="ISwapChain" />. If the frame buffer has a present target, it calls <see cref="ISwapChain::images" /> on the parent devices' swap 
-        /// chain. Note that there should only be one render pass, that contains present targets, otherwise the images are written by different render passes, which may result in 
-        /// undefined behavior.
-        /// </remarks>
         /// <param name="renderArea">The new dimensions of the frame buffer.</param>
         virtual void resize(const Size2d& renderArea) = 0;
 
     private:
-        virtual SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept = 0;
-        virtual Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept = 0;
-        virtual Enumerable<IImage*> getImages() const noexcept = 0;
-    };
-
-    /// <summary>
-    /// Interface for an input attachment mapping source.
-    /// </summary>
-    /// <remarks>
-    /// This interface is implemented by a <see cref="RenderPass" /> to return the frame buffer for a given back buffer. It is called by a <see cref="FrameBuffer" /> 
-    /// during initialization or re-creation, in order to resolve input attachment dependencies.
-    /// </remarks>
-    class IRenderPassDependencySource {
-    public:
-        virtual ~IRenderPassDependencySource() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Returns the frame buffer with the index provided in <paramref name="buffer" />.
-        /// </summary>
-        /// <param name="buffer">The index of a frame buffer within the source.</param>
-        /// <returns>The frame buffer with the index provided in <paramref name="buffer" />.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the <paramref name="buffer" /> does not map to a frame buffer within the source.</exception>
-        virtual const IFrameBuffer& frameBuffer(UInt32 buffer) const = 0;
+        virtual Enumerable<const IImage*> getImages() const noexcept = 0;
     };
 
     /// <summary>
     /// The interface for a render pass.
     /// </summary>
-    class LITEFX_RENDERING_API IRenderPass : public virtual IRenderPassDependencySource, public virtual IStateResource {
+    class LITEFX_RENDERING_API IRenderPass : public virtual IStateResource {
     public:
         /// <summary>
         /// Event arguments that are published to subscribers when a render pass is beginning.
         /// </summary>
         /// <seealso cref="IRenderPass::beginning" />
-        struct BeginRenderPassEventArgs : public EventArgs {
+        struct BeginEventArgs : public EventArgs {
         private:
-            UInt32 m_backBuffer;
+            const IFrameBuffer& m_frameBuffer;
 
         public:
-            BeginRenderPassEventArgs(UInt32 backBuffer) : 
-                EventArgs(), m_backBuffer(backBuffer) { }
-            BeginRenderPassEventArgs(const BeginRenderPassEventArgs&) = default;
-            BeginRenderPassEventArgs(BeginRenderPassEventArgs&&) = default;
-            virtual ~BeginRenderPassEventArgs() noexcept = default;
+            BeginEventArgs(const IFrameBuffer& frameBuffer) : 
+                EventArgs(), m_frameBuffer(frameBuffer) { }
+            BeginEventArgs(const BeginEventArgs&) = default;
+            BeginEventArgs(BeginEventArgs&&) = default;
+            virtual ~BeginEventArgs() noexcept = default;
 
         public:
-            BeginRenderPassEventArgs& operator=(const BeginRenderPassEventArgs&) = default;
-            BeginRenderPassEventArgs& operator=(BeginRenderPassEventArgs&&) = default;
-
-        public:
-            /// <summary>
-            /// Gets the index of the next back-buffer used in the render pass.
-            /// </summary>
-            /// <returns>The index of the next back-buffer used in the render pass.</returns>
-            inline UInt32 backBuffer() const noexcept {
-                return m_backBuffer;
-            }
-        };
-
-        /// <summary>
-        /// Event arguments that are published to subscribers when a render pass has been reset.
-        /// </summary>
-        struct ResetEventArgs : public EventArgs {
-        private:
-            UInt32 m_frameBuffers;
-            Size2d m_renderArea;
-
-        public:
-            ResetEventArgs(UInt32 frameBuffers, Size2d renderArea) : 
-                EventArgs(), m_frameBuffers(frameBuffers), m_renderArea(renderArea) { }
-            ResetEventArgs(const ResetEventArgs&) = default;
-            ResetEventArgs(ResetEventArgs&&) = default;
-            virtual ~ResetEventArgs() noexcept = default;
-
-        public:
-            ResetEventArgs& operator=(const ResetEventArgs&) = default;
-            ResetEventArgs& operator=(ResetEventArgs&&) = default;
+            BeginEventArgs& operator=(const BeginEventArgs&) = default;
+            BeginEventArgs& operator=(BeginEventArgs&&) = default;
 
         public:
             /// <summary>
-            /// Returns the new number of frame buffers withing the render pass.
+            /// Gets the frame buffer on which the render pass is executing.
             /// </summary>
-            /// <returns>The new number of frame buffers withing the render pass.</returns>
-            inline UInt32 frameBuffers() const noexcept {
-                return m_frameBuffers;
-            }
-
-            /// <summary>
-            /// Returns the new render area of the render pass.
-            /// </summary>
-            /// <returns>The new render area of the render pass.</returns>
-            inline const Size2d& renderArea() const noexcept {
-                return m_renderArea;
+            /// <returns>The buffer on which the render pass is executing.</returns>
+            inline const IFrameBuffer& frameBuffer() const noexcept {
+                return m_frameBuffer;
             }
         };
 
@@ -6921,20 +7206,13 @@ namespace LiteFX::Rendering {
         /// Invoked, when the render pass is beginning.
         /// </summary>
         /// <seealso cref="begin" />
-        mutable Event<BeginRenderPassEventArgs> beginning;
+        mutable Event<BeginEventArgs> beginning;
 
         /// <summary>
         /// Invoked, when the render pass is ending.
         /// </summary>
         /// <seealso cref="end" />
         mutable Event<EventArgs> ending;
-
-        /// <summary>
-        /// Invoked, if the render area or the number of frame buffers has changed.
-        /// </summary>
-        /// <seealso cref="resizeRenderArea" />
-        /// <seealso cref="resizeWithSwapChain" />
-        mutable Event<ResetEventArgs> reseted;
 
     public:
         /// <summary>
@@ -6947,31 +7225,14 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">The index of the frame buffer.</param>
         /// <returns>A back buffer used by the render pass.</returns>
         /// <exception cref="RuntimeException">Thrown, if the render pass has not started.</exception>
+        /// <seealso cref="begin" />
         virtual const IFrameBuffer& activeFrameBuffer() const = 0;
-
-        /// <summary>
-        /// Returns the currently active back buffer.
-        /// </summary>
-        /// <returns>The currently active back buffer.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the render pass has not started.</exception>
-        virtual UInt32 activeBackBuffer() const = 0;
 
         /// <summary>
         /// Returns the command queue, the render pass is executing on.
         /// </summary>
         /// <returns>A reference of the command queue, the render pass is executing on.</returns>
-        inline const ICommandQueue& commandQueue() const noexcept {
-            // NOTE: This should be a covariant, though?!
-            return this->getCommandQueue();
-        }
-
-        /// <summary>
-        /// Returns a list of all frame buffers.
-        /// </summary>
-        /// <returns>A list of all frame buffers. </returns>
-        inline Enumerable<const IFrameBuffer*> frameBuffers() const noexcept {
-            return this->getFrameBuffers();
-        }
+        virtual const ICommandQueue& commandQueue() const noexcept = 0;
 
         /// <summary>
         /// Returns an array of all render pipelines, owned by the render pass.
@@ -6983,11 +7244,34 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Returns the render target mapped to the location provided by <paramref name="location" />.
+        /// Returns all command buffers, that can be currently used for recording multi-threaded commands in the render pass.
         /// </summary>
-        /// <param name="location">The location to return the render target for.</param>
-        /// <returns>The render target mapped to the location provided by <paramref name="location" />.</returns>
-        virtual const RenderTarget& renderTarget(UInt32 location) const = 0;
+        /// <returns>
+        /// All command buffers, that can be currently used for recording multi-threaded commands in the render pass, or an empty set, if the render pass has not been 
+        /// initialized with additional command buffers, or the render pass is currently not active.
+        /// </returns>
+        /// <seealso cref="commandBuffer" />
+        inline Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers() const noexcept {
+            return this->getCommandBuffers();
+        }
+
+        /// <summary>
+        /// Returns a command buffer that can be currently used for recording multi-threaded commands in the render pass.
+        /// </summary>
+        /// <param name="index">The index of the command buffer.</param>
+        /// <returns>A command buffer that can be currently used for recording multi-threaded commands in the render pass.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the render pass has not been begun.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the frame buffer does not store a command buffer at <paramref name="index" />.</exception>
+        /// <seealso cref="commandBuffers" />
+        inline SharedPtr<const ICommandBuffer> commandBuffer(UInt32 index) const {
+            return this->getCommandBuffer(index);
+        }
+
+        /// <summary>
+        /// Returns the number of secondary command buffers the render pass stores for multi-threaded command recording.
+        /// </summary>
+        /// <returns>The number of secondary command buffers the render pass stores for multi-threaded command recording.</returns>
+        virtual UInt32 secondaryCommandBuffers() const noexcept = 0;
 
         /// <summary>
         /// Returns the list of render targets, the render pass renders into.
@@ -6996,9 +7280,15 @@ namespace LiteFX::Rendering {
         /// Note that the actual render target image resources are stored within the individual <see cref="FrameBuffer" />s of the render pass.
         /// </remarks>
         /// <returns>A list of render targets, the render pass renders into.</returns>
-        /// <seealso cref="FrameBuffer" />
-        /// <seealso cref="frameBuffer" />
-        virtual Span<const RenderTarget> renderTargets() const noexcept = 0;
+        /// <seealso cref="IFrameBuffer" />
+        virtual const Array<RenderTarget>& renderTargets() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the render target mapped to the location provided by <paramref name="location" />.
+        /// </summary>
+        /// <param name="location">The location to return the render target for.</param>
+        /// <returns>The render target mapped to the location provided by <paramref name="location" />.</returns>
+        virtual const RenderTarget& renderTarget(UInt32 location) const = 0;
 
         /// <summary>
         /// Returns <c>true</c>, if one of the render targets is used for presentation on a swap chain.
@@ -7011,7 +7301,14 @@ namespace LiteFX::Rendering {
         /// Returns the input attachment the render pass is consuming.
         /// </summary>
         /// <returns>An array of input attachment mappings, that are mapped to the render pass.</returns>
-        //virtual Span<const IRenderPassDependency> inputAttachments() const noexcept = 0;
+        virtual const Array<RenderPassDependency>& inputAttachments() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the input attachment at a <paramref name="location" />.
+        /// </summary>
+        /// <returns>The input attachment at a <paramref name="location" />.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if no input attachment is defined at the specified <paramref name="location" />.</exception>
+        virtual const RenderPassDependency& inputAttachment(UInt32 location) const = 0;
 
         /// <summary>
         /// Returns the binding point for input attachment samplers.
@@ -7023,38 +7320,12 @@ namespace LiteFX::Rendering {
         virtual const Optional<DescriptorBindingPoint>& inputAttachmentSamplerBinding() const noexcept = 0;
 
         /// <summary>
-        /// Returns the number of samples, the render targets are sampled with.
-        /// </summary>
-        /// <returns>The number of samples, the render targets are sampled with.</returns>
-        virtual MultiSamplingLevel multiSamplingLevel() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the render area of the render pass.
-        /// </summary>
-        /// <returns>The render area of the render pass.</returns>
-        /// <seealso cref="resizeRenderArea" />
-        virtual Size2d renderArea() const noexcept = 0;
-
-        /// <summary>
-        /// Returns `true`, if the render area is taken from the parent device swap chain.
-        /// </summary>
-        /// <remarks>
-        /// A render pass can either have it's own render area, or use the render area dictated by the swap chain, in which case this method returns `true`. If the swap
-        /// chain render area is used, render passes are automatically resized if the swap chain gets reseted.
-        /// 
-        /// Note that the number of back buffers is always taken from the swap chain, as each frame in flight requires its own back buffers, that do not overlap, as they 
-        /// might be executed in parallel.
-        /// </remarks>
-        /// <returns>`true`, if the render area is taken from the parent device swap chain.</returns>
-        /// <seealso cref="renderArea" />
-        /// <seealso cref="resizeWithSwapChain" />
-        virtual bool usesSwapChainRenderArea() const noexcept = 0;
-
-        /// <summary>
         /// Begins the render pass.
         /// </summary>
-        /// <param name="buffer">The back buffer to use. Typically this is the same as the value returned from <see cref="ISwapChain::swapBackBuffer" />.</param>
-        virtual void begin(UInt32 buffer) = 0;
+        /// <param name="frameBuffer">The frame buffer to obtain input attachments and render targets from.</param>
+        inline void begin(const IFrameBuffer& frameBuffer) const {
+            this->beginRenderPass(frameBuffer);
+        };
 
         /// <summary>
         /// Ends the render pass.
@@ -7062,49 +7333,14 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// If the frame buffer has a present render target, this causes the render pass to synchronize with the swap chain and issue a present command.
         /// </remarks>
-        /// <param name="buffer">The back buffer to use. Typically this is the same as the value returned from <see cref="ISwapChain::swapBackBuffer" />.</param>
         /// <returns>The value of the fence that indicates the end of the render pass.</returns>
         virtual UInt64 end() const = 0;
 
-        /// <summary>
-        /// Resizes the render area of the render pass and disables automatic resizing if the swap chain render area changes.
-        /// </summary>
-        /// <param name="renderArea">The size of the render area, the frame buffers will be resized to.</param>
-        /// <seealso cref="renderArea" />
-        /// <seealso cref="usesSwapChainRenderArea" />
-        /// <seealso cref="resizeWithSwapChain" />
-        /// <exception cref="RuntimeException">Thrown, if the render pass is currently active.</exception>
-        virtual void resizeRenderArea(const Size2d& renderArea) = 0;
-
-        /// <summary>
-        /// Enables or disables automatic resizing based on the swap chain render area.
-        /// </summary>
-        /// <remarks>
-        /// If <paramref name="enable" /> is set to true, the render area will be resized based on the swap chain render area and future reset events on the swap chain
-        /// will also resize the render pass. Otherwise, the render area will remain and the render pass will no longer be resized automatically, if the swap chain gets
-        /// resized.
-        /// </remarks>
-        /// <param name="enable">`true` to resize the render area and listen for swap chain resize events in the future.</param>
-        /// <seealso cref="followsSwapChainRenderArea" />
-        /// <exception cref="RuntimeException">Thrown, if the render pass is currently active.</exception>
-        virtual void resizeWithSwapChain(bool enable) = 0;
-
-        /// <summary>
-        /// Changes the multi sampling level of the render pass.
-        /// </summary>
-        /// <remarks>
-        /// The method causes the frame buffers to be re-created. It checks, if the <paramref name="samples" /> are supported by the device for each render target 
-        /// format. If not, an exception will be thrown. To prevent this, call <see cref=IGraphicsDevice::maximumMultiSamplingLevel" /> for each render target format on 
-        /// your own, in order to request the maximum number of samples supported.
-        /// </remarks>
-        /// <param name="samples">The number of samples per edge pixel.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if one or more of the render targets have a format, that does not support the provided multi-sampling level.</exception>
-        virtual void changeMultiSamplingLevel(MultiSamplingLevel samples) = 0;
-
     private:
-        virtual Enumerable<const IFrameBuffer*> getFrameBuffers() const noexcept = 0;
+        virtual void beginRenderPass(const IFrameBuffer& frameBuffer) const = 0;
+        virtual SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept = 0;
+        virtual Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept = 0;
         virtual Enumerable<const IRenderPipeline*> getPipelines() const noexcept = 0;
-        virtual const ICommandQueue& getCommandQueue() const noexcept = 0;
     };
 
     /// <summary>
@@ -7237,18 +7473,18 @@ namespace LiteFX::Rendering {
         virtual IImage* image(UInt32 backBuffer) const = 0;
 
         /// <summary>
+        /// Returns the current swap chain back buffer image.
+        /// </summary>
+        /// <returns>A reference of the current swap chain back buffer image.</returns>
+        virtual const IImage& image() const noexcept = 0;
+
+        /// <summary>
         /// Returns an array of the swap chain present images.
         /// </summary>
         /// <returns>Returns an array of the swap chain present images.</returns>
         inline Enumerable<IImage*> images() const noexcept {
             return this->getImages();
         };
-
-        /// <summary>
-        /// Queues a present that gets executed after <paramref name="frameBuffer" /> signals its readiness.
-        /// </summary>
-        /// <param name="frameBuffer">The frame buffer for which the present should wait.</param>
-        virtual void present(const IFrameBuffer& frameBuffer) const = 0;
 
         /// <summary>
         /// Queues a present that gets executed after <paramref name="fence" /> has been signaled on the default graphics queue.
@@ -7774,31 +8010,6 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Creates an image that is used as render target attachment.
-        /// </summary>
-        /// <param name="target">The render target description.</param>
-        /// <param name="size">The extent of the image.</param>
-        /// <param name="samples">The number of samples, the image should be sampled with.</param>
-        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
-        /// <returns>The instance of the attachment image.</returns>
-        inline UniquePtr<IImage> createAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const {
-            return this->getAttachment(target, size, samples);
-        }
-
-        /// <summary>
-        /// Creates an image that is used as render target attachment.
-        /// </summary>
-        /// <param name="name">The name of the image.</param>
-        /// <param name="target">The render target description.</param>
-        /// <param name="size">The extent of the image.</param>
-        /// <param name="samples">The number of samples, the image should be sampled with.</param>
-        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
-        /// <returns>The instance of the attachment image.</returns>
-        inline UniquePtr<IImage> createAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples = MultiSamplingLevel::x1) const {
-            return this->getAttachment(name, target, size, samples);
-        }
-
-        /// <summary>
         /// Creates a texture, based on the <paramref name="layout" />.
         /// </summary>
         /// <remarks>
@@ -7976,8 +8187,6 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
         virtual UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
         virtual UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
-        virtual UniquePtr<IImage> getAttachment(const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const = 0;
-        virtual UniquePtr<IImage> getAttachment(const String& name, const RenderTarget& target, const Size2d& size, MultiSamplingLevel samples) const = 0;
         virtual UniquePtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
         virtual UniquePtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
         virtual Enumerable<UniquePtr<IImage>> getTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
@@ -8105,8 +8314,27 @@ namespace LiteFX::Rendering {
         /// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
         /// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
         /// <returns>The instance of the memory barrier.</returns>
-        inline UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
+        inline [[nodiscard]] UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
             return this->getNewBarrier(syncBefore, syncAfter);
+        }
+
+        /// <summary>
+        /// Creates a new frame buffer instance.
+        /// </summary>
+        /// <param name="renderArea">The initial render area of the frame buffer.</param>
+        /// <returns>The instance of the frame buffer.</returns>
+        inline [[nodiscard]] UniquePtr<IFrameBuffer> makeFrameBuffer(const Size2d& renderArea) const noexcept {
+            return this->makeFrameBuffer("", renderArea);
+        }
+
+        /// <summary>
+        /// Creates a new frame buffer instance.
+        /// </summary>
+        /// <param name="name">The name of the frame buffer.</param>
+        /// <param name="renderArea">The initial render area of the frame buffer.</param>
+        /// <returns>The instance of the frame buffer.</returns>
+        inline [[nodiscard]] UniquePtr<IFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept {
+            return this->getNewFrameBuffer(name, renderArea);
         }
 
         /// <summary>
@@ -8179,6 +8407,7 @@ namespace LiteFX::Rendering {
 
     private:
         virtual UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
+        virtual UniquePtr<IFrameBuffer> getNewFrameBuffer(StringView name, const Size2d& renderArea) const noexcept = 0;
         virtual const ICommandQueue& getDefaultQueue(QueueType type) const = 0;
         virtual const ICommandQueue* getNewQueue(QueueType type, QueuePriority priority) noexcept = 0;
     };

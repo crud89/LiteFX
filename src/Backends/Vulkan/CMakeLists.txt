@@ -32,7 +32,6 @@ SET(VULKAN_BACKEND_SOURCES
     "src/surface.cpp"
     "src/swapchain.cpp"
     "src/frame_buffer.cpp"
-    "src/render_pass_dependency.cpp"
     "src/render_pass.cpp"
     "src/render_pipeline.cpp"
     "src/compute_pipeline.cpp"

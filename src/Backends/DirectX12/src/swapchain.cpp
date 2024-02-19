@@ -272,14 +272,14 @@ IDirectX12Image* DirectX12SwapChain::image(UInt32 backBuffer) const
 	return m_impl->m_presentImages[backBuffer].get();
 }
 
+const IDirectX12Image& DirectX12SwapChain::image() const noexcept
+{
+	return *m_impl->m_presentImages[m_impl->m_currentImage];
+}
+
 Enumerable<IDirectX12Image*> DirectX12SwapChain::images() const noexcept
 {
 	return m_impl->m_presentImages | std::views::transform([](UniquePtr<IDirectX12Image>& image) { return image.get(); });
-}
-
-void DirectX12SwapChain::present(const DirectX12FrameBuffer& frameBuffer) const
-{
-	this->present(frameBuffer.lastFence());
 }
 
 void DirectX12SwapChain::present(UInt64 fence) const

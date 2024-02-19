@@ -262,7 +262,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a DirectX 12 render pipeline builder.
 		/// </summary>
-		/// <param name="renderPass">The parent render pass</param>
+		/// <param name="renderPass">The parent render pass.</param>
 		/// <param name="name">A debug name for the render pipeline.</param>
 		constexpr inline explicit DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const String& name = "");
 		DirectX12RenderPipelineBuilder(DirectX12RenderPipelineBuilder&&) = delete;
@@ -337,26 +337,10 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a DirectX 12 render pass builder.
 		/// </summary>
 		/// <param name="device">The parent device</param>
-		/// <param name="samples">The multi-sampling level for the render targets.</param>
-		/// <param name="name">A debug name for the render pass.</param>
-		constexpr inline explicit DirectX12RenderPassBuilder(const DirectX12Device& device, MultiSamplingLevel samples = MultiSamplingLevel::x1, const String& name = "") noexcept;
-
-		/// <summary>
-		/// Initializes a DirectX 12 render pass builder.
-		/// </summary>
-		/// <param name="device">The parent device</param>
 		/// <param name="commandBuffers">The number of command buffers to initialize.</param>
 		/// <param name="name">A debug name for the render pass.</param>
 		constexpr inline explicit DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, const String& name = "") noexcept;
 
-		/// <summary>
-		/// Initializes a DirectX 12 render pass builder.
-		/// </summary>
-		/// <param name="device">The parent device</param>
-		/// <param name="commandBuffers">The number of command buffers to initialize.</param>
-		/// <param name="multiSamplingLevel">The multi-sampling level for the render targets.</param>
-		/// <param name="name">A debug name for the render pass.</param>
-		constexpr inline explicit DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, MultiSamplingLevel multiSamplingLevel, const String& name = "") noexcept;
 		DirectX12RenderPassBuilder(const DirectX12RenderPassBuilder&) noexcept = delete;
 		DirectX12RenderPassBuilder(DirectX12RenderPassBuilder&&) noexcept = delete;
 		constexpr inline virtual ~DirectX12RenderPassBuilder() noexcept;
@@ -369,7 +353,7 @@ namespace LiteFX::Rendering::Backends {
 		// RenderPassBuilder interface.
 	protected:
 		/// <inheritdoc />
-		inline DirectX12RenderPassDependency makeInputAttachment(DescriptorBindingPoint binding, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget) override;
+		inline RenderPassDependency makeInputAttachment(DescriptorBindingPoint binding, const RenderTarget& renderTarget) override;
 	};
 
 }

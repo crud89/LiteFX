@@ -48,9 +48,16 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     using ShaderProgram = TRenderBackend::shader_program_type;
     using InputAssembler = TRenderBackend::input_assembler_type;
     using Rasterizer = TRenderBackend::rasterizer_type;
+    using FrameBuffer = TRenderBackend::frame_buffer_type;
 
     // Get the default device.
     auto device = backend->device("Default");
+    auto samples = MultiSamplingLevel::x8; // NOTE: x8 times should work on all D3D12 enabled devices, except for RGBA32 formats. x4 is fine for all formats. Higher might not be supported.
+
+    // Create the frame buffers for all back buffers.
+    auto frameBuffers = std::views::iota(0u, device->swapChain().buffers()) |
+        std::views::transform([&](UInt32 index) { return device->makeFrameBuffer(fmt::format("Frame Buffer {0}", index), device->swapChain().renderArea()); }) |
+        std::ranges::to<Array<UniquePtr<FrameBuffer>>>();
 
     // Create input assembler state.
     SharedPtr<InputAssembler> inputAssembler = device->buildInputAssembler()
@@ -64,17 +71,21 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
 
     // Create a geometry render pass.
-    UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque", MultiSamplingLevel::x4)
+    UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
         .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
         .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
+
+    // Map all render targets to the frame buffer and set the multi-sampling level there.
+    std::ranges::for_each(frameBuffers, [&renderPass, &samples](auto& frameBuffer) { frameBuffer->addImages(renderPass->renderTargets(), samples); });
 
     // Create a shader program.
     SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
         .withVertexShaderModule("shaders/basic_vs." + FileExtensions<TRenderBackend>::SHADER)
         .withFragmentShaderModule("shaders/basic_fs." + FileExtensions<TRenderBackend>::SHADER);
 
-    // Create a render pipeline.
+    // Create a render pipeline. We also need to set the sampling level here.
     UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
+        .samples(samples)
         .inputAssembler(inputAssembler)
         .rasterizer(device->buildRasterizer()
             .polygonMode(PolygonMode::Solid)
@@ -87,6 +98,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     // Add the resources to the device state.
     device->state().add(std::move(renderPass));
     device->state().add(std::move(renderPipeline));
+    std::ranges::for_each(frameBuffers, [device](auto& frameBuffer) { device->state().add(std::move(frameBuffer)); });
 }
 
 void SampleApp::initBuffers(IRenderBackend* backend)
@@ -238,6 +250,11 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     auto renderArea = Size2d(e.width(), e.height());
     m_device->swapChain().reset(surfaceFormat, renderArea, 3);
 
+    // Resize the frame buffers. Note that we could also use an event handler on the swap chain `reseted` event to do this automatically instead.
+    m_device->state().frameBuffer("Frame Buffer 0").resize(renderArea);
+    m_device->state().frameBuffer("Frame Buffer 1").resize(renderArea);
+    m_device->state().frameBuffer("Frame Buffer 2").resize(renderArea);
+
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
     m_scissor->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
@@ -346,6 +363,7 @@ void SampleApp::drawFrame()
     auto backBuffer = m_device->swapChain().swapBackBuffer();
 
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
+    auto& frameBuffer = m_device->state().frameBuffer(fmt::format("Frame Buffer {0}", backBuffer));
     auto& renderPass = m_device->state().renderPass("Opaque");
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& transformBuffer = m_device->state().buffer("Transform");
@@ -358,8 +376,8 @@ void SampleApp::drawFrame()
     renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
-    renderPass.begin(backBuffer);
-    auto commandBuffer = renderPass.activeFrameBuffer().commandBuffer(0);
+    renderPass.begin(frameBuffer);
+    auto commandBuffer = renderPass.commandBuffer(0);
     commandBuffer->use(geometryPipeline);
     commandBuffer->setViewports(m_viewport.get());
     commandBuffer->setScissors(m_scissor.get());

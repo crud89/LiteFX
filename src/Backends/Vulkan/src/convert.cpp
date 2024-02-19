@@ -1013,9 +1013,11 @@ constexpr VkPipelineStageFlags2 LITEFX_VULKAN_API LiteFX::Rendering::Backends::V
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Geometry))
 		sync |= VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT;
 
-	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Fragment) ||
-		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::DepthStencil))
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Fragment))
 		sync |= VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::DepthStencil))
+		sync |= VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Indirect))
 		sync |= VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT;

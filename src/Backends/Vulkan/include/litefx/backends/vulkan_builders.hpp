@@ -329,34 +329,18 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a Vulkan render pass builder.
 		/// </summary>
-		/// <param name="device">The parent device</param>
+		/// <param name="device">The parent device.</param>
 		/// <param name="name">A debug name for the render pass.</param>
 		constexpr inline explicit VulkanRenderPassBuilder(const VulkanDevice& device, const String& name = "") noexcept;
 
 		/// <summary>
 		/// Initializes a Vulkan render pass builder.
 		/// </summary>
-		/// <param name="device">The parent device</param>
-		/// <param name="samples">The multi-sampling level for the render targets.</param>
-		/// <param name="name">A debug name for the render pass.</param>
-		constexpr inline explicit VulkanRenderPassBuilder(const VulkanDevice& device, MultiSamplingLevel samples = MultiSamplingLevel::x1, const String& name = "") noexcept;
-
-		/// <summary>
-		/// Initializes a Vulkan render pass builder.
-		/// </summary>
-		/// <param name="device">The parent device</param>
+		/// <param name="device">The parent device.</param>
 		/// <param name="commandBuffers">The number of command buffers to initialize.</param>
 		/// <param name="name">A debug name for the render pass.</param>
 		constexpr inline explicit VulkanRenderPassBuilder(const VulkanDevice& device, UInt32 commandBuffers, const String& name = "") noexcept;
 
-		/// <summary>
-		/// Initializes a Vulkan render pass builder.
-		/// </summary>
-		/// <param name="device">The parent device</param>
-		/// <param name="commandBuffers">The number of command buffers to initialize.</param>
-		/// <param name="multiSamplingLevel">The multi-sampling level for the render targets.</param>
-		/// <param name="name">A debug name for the render pass.</param>
-		constexpr inline explicit VulkanRenderPassBuilder(const VulkanDevice& device, UInt32 commandBuffers, MultiSamplingLevel multiSamplingLevel, const String& name = "") noexcept;
 		VulkanRenderPassBuilder(const VulkanRenderPassBuilder&) noexcept = delete;
 		VulkanRenderPassBuilder(VulkanRenderPassBuilder&&) noexcept = delete;
 		constexpr inline virtual ~VulkanRenderPassBuilder() noexcept;
@@ -369,7 +353,7 @@ namespace LiteFX::Rendering::Backends {
 		// RenderPassBuilder interface.
 	protected:
 		/// <inheritdoc />
-		inline VulkanRenderPassDependency makeInputAttachment(DescriptorBindingPoint binding, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget) override;
+		inline RenderPassDependency makeInputAttachment(DescriptorBindingPoint binding, const RenderTarget& renderTarget) override;
 	};
 
 }
