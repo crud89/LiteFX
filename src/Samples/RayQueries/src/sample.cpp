@@ -148,11 +148,11 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto commandBuffer = m_device->defaultQueue(QueueType::Graphics).createCommandBuffer(true);
 
     // Create the vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, vertices.size());
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, vertices.size(), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
     commandBuffer->transfer(vertices.data(), vertices.size() * sizeof(::Vertex), *vertexBuffer, 0, vertices.size());
 
     // Create the index buffer and transfer the staging buffer into it.
-    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, indices.size());
+    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, indices.size(), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
     commandBuffer->transfer(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), *indexBuffer, 0, indices.size());
 
     // Before building the acceleration structures the GPU needs to wait for the transfer to finish.
