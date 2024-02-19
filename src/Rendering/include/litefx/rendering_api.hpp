@@ -7093,6 +7093,7 @@ namespace LiteFX::Rendering {
         /// <param name="format">The format of the image.</param>
         /// <param name="samples">The number of samples of the image.</param>
         /// <param name="usage">The desired resource usage flags for the image.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another image with the same name as provided in <paramref name="name" /> has already been added to the frame buffer.</exception>
         virtual void addImage(const String& name, Format format, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) = 0;
 
         /// <summary>

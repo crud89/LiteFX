@@ -224,6 +224,12 @@ const IDirectX12Image& DirectX12FrameBuffer::resolveImage(UInt64 hash) const
 
 void DirectX12FrameBuffer::addImage(const String& name, Format format, MultiSamplingLevel samples, ResourceUsage usage)
 {
+    // Check if there's already another image with the same name.
+    auto nameHash = hash(name);
+
+    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](auto& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end()) [[unlikely]]
+        throw InvalidArgumentException("name", "Another image with the name {0} does already exist within the frame buffer.", name);
+
     // Add a new image.
     m_impl->m_images.push_back(std::move(m_impl->m_device.factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage)));
     
@@ -233,6 +239,12 @@ void DirectX12FrameBuffer::addImage(const String& name, Format format, MultiSamp
 
 void DirectX12FrameBuffer::addImage(const String& name, const RenderTarget& renderTarget, MultiSamplingLevel samples, ResourceUsage usage)
 {
+    // Check if there's already another image with the same name.
+    auto nameHash = hash(name);
+    
+    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](auto& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end()) [[unlikely]]
+        throw InvalidArgumentException("name", "Another image with the name {0} does already exist within the frame buffer.", name);
+
     // Add a new image.
     auto index = m_impl->m_images.size();
     m_impl->m_images.push_back(std::move(m_impl->m_device.factory().createTexture(name, renderTarget.format(), m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage)));
