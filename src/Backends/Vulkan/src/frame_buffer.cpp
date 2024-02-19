@@ -81,6 +81,13 @@ public:
 
         // Create the image views for each image.
         m_renderTargetHandles = m_images | std::views::transform(getImageView) | std::ranges::to<Dictionary<const IVulkanImage*, VkImageView>>();
+
+#ifndef NDEBUG
+        // Set debug names.
+        std::ranges::for_each(m_images, [this](auto& image) {
+            m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*image).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, image->name().c_str());
+        });
+#endif
 	}
 
     void resize(const Size2d& renderArea)
