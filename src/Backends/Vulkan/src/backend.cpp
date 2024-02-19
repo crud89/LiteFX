@@ -183,6 +183,7 @@ public:
             else
                 raiseIfFailed(result, "Unable to initialize debug message callback.");
 
+            debugBreakCallbackInfo.pNext = nullptr; // Reset pNext to comply with validation requirements.
             raiseIfFailed(vkCreateDebugUtilsMessenger(instance, &debugBreakCallbackInfo, nullptr, &m_debugBreaker), "Unable to initialize debug break callback.");
 
             // Remember the instance so we can destroy the debug messenger.
