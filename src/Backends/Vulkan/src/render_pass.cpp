@@ -17,19 +17,22 @@ private:
     Array<RenderTarget> m_renderTargets;
     Array<RenderPassDependency> m_inputAttachments;
     Dictionary<const IFrameBuffer*, size_t> m_frameBufferTokens;
+    Array<size_t> m_swapChainTokens;
     Dictionary<const IFrameBuffer*, SharedPtr<VulkanCommandBuffer>> m_primaryCommandBuffers;
     Dictionary<const IFrameBuffer*, Array<SharedPtr<VulkanCommandBuffer>>> m_secondaryCommandBuffers;
+    Dictionary<const IVulkanImage*, VkImageView> m_swapChainViews;
     UInt32 m_secondaryCommandBufferCount = 0;
     const VulkanFrameBuffer* m_activeFrameBuffer = nullptr;
     const RenderTarget* m_presentTarget = nullptr;
     const RenderTarget* m_depthStencilTarget = nullptr;
     Optional<DescriptorBindingPoint> m_inputAttachmentSamplerBinding{ };
     const VulkanDevice& m_device;
+    const VulkanSwapChain& m_swapChain;
     const VulkanQueue* m_queue;
 
 public:
     VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding, UInt32 secondaryCommandBuffers) :
-        base(parent), m_device(device), m_queue(&queue), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding), m_secondaryCommandBufferCount(secondaryCommandBuffers)
+        base(parent), m_device(device), m_swapChain(m_device.swapChain()), m_queue(&queue), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding), m_secondaryCommandBufferCount(secondaryCommandBuffers)
     {
         this->mapRenderTargets(renderTargets);
         this->mapInputAttachments(inputAttachments);
@@ -39,7 +42,7 @@ public:
     }
 
     VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanDevice& device) :
-        base(parent), m_device(device), m_queue(&device.defaultQueue(QueueType::Graphics))
+        base(parent), m_device(device), m_swapChain(m_device.swapChain()), m_queue(&device.defaultQueue(QueueType::Graphics))
     {
     }
 
@@ -48,6 +51,14 @@ public:
         // Stop listening to frame buffer events.
         for (auto [frameBuffer, token] : m_frameBufferTokens)
             frameBuffer->released -= token;
+
+        // Stop listening to swap chain events.
+        for (auto token : m_swapChainTokens)
+            m_swapChain.reseted -= token;
+
+        // Release swap chain image views if there are any.
+        for (auto view : m_swapChainViews | std::views::values)
+            ::vkDestroyImageView(m_device.handle(), view, nullptr);
     }
 
 public:
@@ -70,6 +81,10 @@ public:
         //       we simply check if the queue is the same as the swap chain queue (which is the default graphics queue).
         if (m_presentTarget != nullptr && m_queue != std::addressof(m_device.defaultQueue(QueueType::Graphics))) [[unlikely]]
             throw InvalidArgumentException("renderTargets", "A render pass with a present target must be executed on the default graphics queue.");
+
+        // Listen to swap chain resets in order to clear back buffer image views.
+        if (m_presentTarget != nullptr)
+            m_swapChainTokens.push_back(m_swapChain.reseted.add(std::bind(&VulkanRenderPassImpl::onSwapChainReset, this, std::placeholders::_1, std::placeholders::_2)));
     }
 
     void mapInputAttachments(Span<RenderPassDependency> inputAttachments)
@@ -127,10 +142,20 @@ public:
         m_frameBufferTokens.erase(interfacePointer);
     }
 
+    void onSwapChainReset(const void* sender, ISwapChain::ResetEventArgs args)
+    {
+        // Release swap chain image views if there are any, so that they need to be re-created with the next context.
+        for (auto view : m_swapChainViews | std::views::values)
+            ::vkDestroyImageView(m_device.handle(), view, nullptr);
+
+        m_swapChainViews.clear();
+    }
+
     Array<VkRenderingAttachmentInfo> colorTargetContext(const VulkanFrameBuffer& frameBuffer)
     {
         return m_renderTargets | std::views::filter([](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; }) |
-            std::views::transform([&frameBuffer](const RenderTarget& renderTarget) {
+            std::views::transform([this, &frameBuffer](const RenderTarget& renderTarget) {
+                // Create an attachment info.
                 VkRenderingAttachmentInfo attachmentInfo = {
                     .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
                     .imageView = frameBuffer.imageView(renderTarget),
@@ -140,12 +165,42 @@ public:
                     .clearValue = { renderTarget.clearValues().x(), renderTarget.clearValues().y(), renderTarget.clearValues().z(), renderTarget.clearValues().w() }
                 };
 
+                // Get the image and check if we need to resolve it.
                 if (renderTarget.type() == RenderTargetType::Present && frameBuffer[renderTarget].samples() > MultiSamplingLevel::x1)
                 {
-                    // TODO: Implement me!
+                    auto getImageView = [&](const IVulkanImage& image) -> VkImageView {
+                        VkImageViewCreateInfo createInfo = {
+                            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                            .image = std::as_const(image).handle(),
+                            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                            .format = Vk::getFormat(image.format()),
+                            .components = VkComponentMapping {
+                                .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                                .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                                .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                                .a = VK_COMPONENT_SWIZZLE_IDENTITY
+                            },
+                            .subresourceRange = VkImageSubresourceRange {
+                                .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+                                .levelCount = 1,
+                                .layerCount = 1
+                            }
+                        };
+
+                        VkImageView imageView;
+                        raiseIfFailed(::vkCreateImageView(m_device.handle(), &createInfo, nullptr, &imageView), "Unable to create image view for swap chain back buffer.");
+                        return imageView;
+                    };
+
+                    // Create an image view if we don't already have one for the swap chain image.
+                    auto& backBuffer = m_swapChain.image();
+
+                    if (!m_swapChainViews.contains(&backBuffer))
+                        m_swapChainViews[&backBuffer] = getImageView(backBuffer);
+
                     attachmentInfo.resolveMode = VK_RESOLVE_MODE_AVERAGE_BIT;
-                    //attachmentInfo.resolveImageView = m_device.swapChain().image()
-                    throw;
+                    attachmentInfo.resolveImageView = m_swapChainViews.at(&backBuffer);
+                    attachmentInfo.resolveImageLayout = Vk::getImageLayout(ImageLayout::ResolveDestination);
                 }
 
                 return attachmentInfo;
@@ -355,6 +410,17 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
             renderTargetBarrier.transition(image, ResourceAccess::None, ResourceAccess::RenderTarget, ImageLayout::ShaderResource, ImageLayout::RenderTarget);
     });
 
+    // If the present target is multi-sampled, transition the back buffer image into resolve state.
+    const auto& backBufferImage = m_impl->m_swapChain.image();
+    bool requiresResolve = this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1;
+
+    if (requiresResolve)
+    {
+        VulkanBarrier resolveBarrier(PipelineStage::None, PipelineStage::Resolve);
+        resolveBarrier.transition(backBufferImage, ResourceAccess::None, ResourceAccess::ResolveWrite, ImageLayout::Undefined, ImageLayout::ResolveDestination);
+        primaryCommandBuffer->barrier(resolveBarrier);
+    }
+
     primaryCommandBuffer->barrier(renderTargetBarrier);
     primaryCommandBuffer->barrier(depthStencilBarrier);
     
@@ -380,7 +446,7 @@ UInt64 VulkanRenderPass::end() const
 
     // Get frame buffer and swap chain references.
     auto& frameBuffer = *m_impl->m_activeFrameBuffer;
-    const auto& swapChain = m_impl->m_device.swapChain();
+    const auto& swapChain = m_impl->m_swapChain;
 
     // End secondary command buffers and end rendering.
     auto primaryCommandBuffer = m_impl->getPrimaryCommandBuffer(frameBuffer);
@@ -391,12 +457,12 @@ UInt64 VulkanRenderPass::end() const
     ::vkCmdEndRendering(std::as_const(*primaryCommandBuffer).handle());
 
     // If the present target is multi-sampled, we need to resolve it to the back buffer.
-    const auto& backBufferImage = m_impl->m_device.swapChain().image();
+    const auto& backBufferImage = m_impl->m_swapChain.image();
     bool requiresResolve = this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1;
 
     // Transition the present and depth/stencil views.
     VulkanBarrier renderTargetBarrier(PipelineStage::RenderTarget, PipelineStage::None), depthStencilBarrier(PipelineStage::DepthStencil, PipelineStage::None),
-        resolveBarrier(PipelineStage::RenderTarget, PipelineStage::Resolve), presentBarrier(PipelineStage::RenderTarget, PipelineStage::Transfer);
+        resolveBarrier(PipelineStage::RenderTarget, PipelineStage::None), presentBarrier(PipelineStage::RenderTarget, PipelineStage::Transfer);
     std::ranges::for_each(m_impl->m_renderTargets, [&](const RenderTarget& renderTarget) {
         switch (renderTarget.type())
         {
@@ -409,7 +475,7 @@ UInt64 VulkanRenderPass::end() const
             break;
         case RenderTargetType::Present:
             if (requiresResolve)
-                resolveBarrier.transition(frameBuffer[renderTarget], ResourceAccess::RenderTarget, ResourceAccess::ResolveRead, ImageLayout::RenderTarget, ImageLayout::ResolveSource);
+                resolveBarrier.transition(frameBuffer[renderTarget], ResourceAccess::RenderTarget, ResourceAccess::None, ImageLayout::RenderTarget, ImageLayout::ShaderResource);
             else
                 presentBarrier.transition(frameBuffer[renderTarget], ResourceAccess::RenderTarget, ResourceAccess::TransferRead, ImageLayout::RenderTarget, ImageLayout::CopySource);
 
@@ -420,27 +486,19 @@ UInt64 VulkanRenderPass::end() const
     primaryCommandBuffer->barrier(renderTargetBarrier);
     primaryCommandBuffer->barrier(depthStencilBarrier);
     primaryCommandBuffer->barrier(presentBarrier);
+    primaryCommandBuffer->barrier(resolveBarrier);
 
     // Add another barrier for the back buffer image, if required.
     if (requiresResolve)
     {
-        // TODO: Implement me!
-        throw;
-
-        //resolveBarrier.transition(backBufferImage, ResourceAccess::Common, ResourceAccess::ResolveWrite, ImageLayout::Common, ImageLayout::ResolveDestination);
-        //primaryCommandBuffer->barrier(resolveBarrier);
-
-        //auto& multiSampledImage = frameBuffer[*m_impl->m_presentTarget];
-        //std::as_const(*primaryCommandBuffer).handle()->ResolveSubresource(backBufferImage.handle().Get(), 0, multiSampledImage.handle().Get(), 0, DX12::getFormat(multiSampledImage.format()));
-
-        //// Transition the present target back to the present state.
-        //VulkanBarrier presentBarrier(PipelineStage::Resolve, PipelineStage::Resolve);
-        //presentBarrier.transition(backBufferImage, ResourceAccess::ResolveWrite, ResourceAccess::Common, ImageLayout::ResolveDestination, ImageLayout::Present);
-        //presentBarrier.transition(multiSampledImage, ResourceAccess::ResolveRead, ResourceAccess::Common, ImageLayout::ResolveSource, ImageLayout::Common);
-        //primaryCommandBuffer->barrier(presentBarrier);
+        // Transition the resolved swap chain back buffer image into a present state.
+        VulkanBarrier presentBarrier(PipelineStage::Resolve, PipelineStage::None);
+        presentBarrier.transition(backBufferImage, ResourceAccess::ResolveWrite, ResourceAccess::None, ImageLayout::ResolveDestination, ImageLayout::Present);
+        primaryCommandBuffer->barrier(presentBarrier);
     }
     else if (this->hasPresentTarget())
     {
+        // Copy the contents from the frame buffer image into the swap chain back buffer.
         VulkanBarrier beginPresentBarrier(PipelineStage::None, PipelineStage::Transfer);
         beginPresentBarrier.transition(backBufferImage, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
         primaryCommandBuffer->barrier(beginPresentBarrier);
