@@ -50,6 +50,18 @@ const VulkanDescriptorSetLayout& VulkanDescriptorSet::layout() const noexcept
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const
 {
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
+
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+    
+    const auto& descriptorLayout = *(*match);
+
     VkWriteDescriptorSet descriptorWrite{ };
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrite.dstSet = this->handle();
@@ -57,7 +69,6 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
     descriptorWrite.dstArrayElement = firstDescriptor;
     descriptorWrite.descriptorCount = 1;
 
-    auto& descriptorLayout = m_impl->m_layout.descriptor(binding);
     Array<VkDescriptorBufferInfo> bufferInfos;
     UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;
 
@@ -159,6 +170,18 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
 {
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
+
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+    
+    const auto& layout = *(*match);
+
     VkDescriptorImageInfo imageInfo{ };
     VkWriteDescriptorSet descriptorWrite{ };
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -167,8 +190,6 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
     descriptorWrite.dstArrayElement = descriptor;
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
-
-    const auto& layout = m_impl->m_layout.descriptor(binding);
 
     switch (layout.descriptorType())
     {
@@ -241,7 +262,17 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, UInt32 descriptor) const
 {
-    const auto& layout = m_impl->m_layout.descriptor(binding);
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
+
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+    
+    const auto& layout = *(*match);
 
     if (layout.descriptorType() != DescriptorType::Sampler) [[unlikely]]
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a sampler descriptor.", binding);
@@ -263,7 +294,17 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, 
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStructure& accelerationStructure, UInt32 descriptor) const
 {
-    const auto& layout = m_impl->m_layout.descriptor(binding);
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
+
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+    
+    const auto& layout = *(*match);
 
     if (layout.descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor.", binding);

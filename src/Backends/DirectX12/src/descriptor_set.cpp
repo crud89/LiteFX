@@ -90,7 +90,17 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
     if (bufferElement + elementCount > buffer.elements()) [[unlikely]]
         LITEFX_WARNING(DIRECTX12_LOG, "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), elementCount, bufferElement);
 
-    const auto& descriptorLayout = m_impl->m_layout.descriptor(binding);
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
+
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+    
+    const auto& descriptorLayout = *(*match);
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding) + firstDescriptor;
     auto descriptorSize = m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, descriptorSize);
@@ -222,8 +232,18 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
 {
     // TODO: Add LOD lower bound (for clamping) as parameter?
-    // Acquire a descriptor handle.
-    const auto& descriptorLayout = m_impl->m_layout.descriptor(binding);
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
+
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+
+    const auto& descriptorLayout = *(*match);
+
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset + descriptor, m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
 
@@ -383,6 +403,16 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
 
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sampler, UInt32 descriptor) const
 {
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
+
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
 
     D3D12_SAMPLER_DESC samplerInfo = {
@@ -405,7 +435,17 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sam
 
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12AccelerationStructure& accelerationStructure, UInt32 descriptor) const
 {
-    const auto& layout = m_impl->m_layout.descriptor(binding);
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
+
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+    
+    const auto& layout = *(*match);
 
     if (layout.descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor.", binding);
