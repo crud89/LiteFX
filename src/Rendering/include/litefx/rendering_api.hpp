@@ -7357,10 +7357,11 @@ namespace LiteFX::Rendering {
             Format m_surfaceFormat;
             const Size2d& m_renderArea;
             UInt32 m_buffers;
+            bool m_vsync;
 
         public:
-            ResetEventArgs(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers) :
-                EventArgs(), m_surfaceFormat(surfaceFormat), m_renderArea(renderArea), m_buffers(buffers) { }
+            ResetEventArgs(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers, bool enableVsync) :
+                EventArgs(), m_surfaceFormat(surfaceFormat), m_renderArea(renderArea), m_buffers(buffers), m_vsync(enableVsync) { }
             ResetEventArgs(const ResetEventArgs&) = default;
             ResetEventArgs(ResetEventArgs&&) = default;
             virtual ~ResetEventArgs() noexcept = default;
@@ -7392,6 +7393,14 @@ namespace LiteFX::Rendering {
             /// <returns>The number of back-buffers in the swap chain.</returns>
             inline UInt32 buffers() const noexcept {
                 return m_buffers;
+            }
+
+            /// <summary>
+            /// Returns `true` if vertical synchronization is enabled or `false` otherwise.
+            /// </summary>
+            /// <returns>`true` if vertical synchronization is enabled or `false` otherwise.</returns>
+            inline bool enableVsync() const noexcept {
+                return m_vsync;
             }
         };
 
@@ -7467,6 +7476,12 @@ namespace LiteFX::Rendering {
         virtual const Size2d& renderArea() const noexcept = 0;
 
         /// <summary>
+        /// Returns `true`, if vertical synchronization should be used, otherwise `false`.
+        /// </summary>
+        /// <returns>`true`, if vertical synchronization should be used, otherwise `false`.</returns>
+        virtual bool verticalSynchronization() const noexcept = 0;
+
+        /// <summary>
         /// Returns the swap chain present image for <paramref name="backBuffer" />.
         /// </summary>
         /// <param name="backBuffer">The index of the back buffer for which to return the swap chain present image.</param>
@@ -7533,8 +7548,9 @@ namespace LiteFX::Rendering {
         /// <param name="surfaceFormat">The swap chain image format.</param>
         /// <param name="renderArea">The dimensions of the frame buffers.</param>
         /// <param name="buffers">The number of buffers in the swap chain.</param>
+        /// <param name="enableVsync">`true`, if vertical synchronization should be used, otherwise `false`.</param>
         /// <seealso cref="multiSamplingLevel" />
-        virtual void reset(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers) = 0;
+        virtual void reset(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers, bool enableVsync = false) = 0;
 
         /// <summary>
         /// Swaps the front buffer with the next back buffer in order.
