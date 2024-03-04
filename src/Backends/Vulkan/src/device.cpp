@@ -342,7 +342,7 @@ public:
             .shaderInputAttachmentArrayNonUniformIndexing = true,
             .shaderUniformTexelBufferArrayNonUniformIndexing = true,
             .shaderStorageTexelBufferArrayNonUniformIndexing = true,
-            //.descriptorBindingUniformBufferUpdateAfterBind = true,	// Causes problems on some NVidia cards.
+            .descriptorBindingUniformBufferUpdateAfterBind = true,
             .descriptorBindingSampledImageUpdateAfterBind = true,
             .descriptorBindingStorageImageUpdateAfterBind = true,
             .descriptorBindingStorageBufferUpdateAfterBind = true,
