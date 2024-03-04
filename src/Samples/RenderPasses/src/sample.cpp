@@ -444,6 +444,7 @@ void SampleApp::drawFrame()
     // Swap the back buffers for the next frame.
     auto backBuffer = m_device->swapChain().swapBackBuffer();
     auto& frameBuffer = m_device->state().frameBuffer(fmt::format("Frame Buffer {0}", backBuffer));
+    UInt64 fence = 0;
 
     {
         // Query state.
@@ -482,7 +483,7 @@ void SampleApp::drawFrame()
 
         // Draw the object and end the render pass.
         commandBuffer->drawIndexed(indexBuffer.elements());
-        renderPass.end();
+        fence = renderPass.end();
     }
 
     {
@@ -493,6 +494,7 @@ void SampleApp::drawFrame()
         auto& viewPlaneIndexBuffer = m_device->state().indexBuffer("View Plane Indices");
 
         // Start the lighting pass.
+        renderPass.commandQueue().waitFor(fence);
         renderPass.begin(frameBuffer);
         auto commandBuffer = renderPass.commandBuffer(0);
         commandBuffer->use(pipeline);
@@ -505,7 +507,7 @@ void SampleApp::drawFrame()
         commandBuffer->drawIndexed(viewPlaneIndexBuffer.elements());
 
         // End the lighting pass.
-        renderPass.end();
+        fence = renderPass.end();
     }
 
     {
@@ -519,6 +521,7 @@ void SampleApp::drawFrame()
         auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 
         // Begin rendering on the render pass and use the only pipeline we've created for it.
+        renderPass.commandQueue().waitFor(fence);
         renderPass.begin(frameBuffer);
         auto commandBuffer = renderPass.commandBuffer(0);
         commandBuffer->use(pipeline);
