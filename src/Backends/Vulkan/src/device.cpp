@@ -469,9 +469,9 @@ public:
         m_factory = makeUnique<VulkanGraphicsFactory>(*m_parent);
     }
 
-    void createSwapChain(Format format, const Size2d& frameBufferSize, UInt32 frameBuffers)
+    void createSwapChain(Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
     {
-        m_swapChain = makeUnique<VulkanSwapChain>(*m_parent, format, frameBufferSize, frameBuffers);
+        m_swapChain = makeUnique<VulkanSwapChain>(*m_parent, format, renderArea, backBuffers, enableVsync);
     }
 
 public:
@@ -503,11 +503,11 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanDevice::VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features, Span<String> extensions) :
-    VulkanDevice(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3, features, extensions)
+    VulkanDevice(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features, extensions)
 {
 }
 
-VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, GraphicsDeviceFeatures features, Span<String> extensions) :
+VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features, Span<String> extensions) :
     Resource<VkDevice>(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, std::move(surface), features, extensions))
 {
     LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", fmt::ptr(reinterpret_cast<const void*>(m_impl->m_surface.get())), adapter.deviceId(), Join(this->enabledExtensions(), ", "));
@@ -527,7 +527,7 @@ VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphic
     this->handle() = m_impl->initialize(features);
     m_impl->initializeDefaultQueues();
     m_impl->createFactory();
-    m_impl->createSwapChain(format, frameBufferSize, frameBuffers);
+    m_impl->createSwapChain(format, renderArea, backBuffers, enableVsync);
 }
 
 VulkanDevice::~VulkanDevice() noexcept

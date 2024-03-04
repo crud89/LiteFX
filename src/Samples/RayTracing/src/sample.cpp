@@ -393,7 +393,7 @@ void SampleApp::onInit()
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.
-        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, Size2d(static_cast<Float>(width), static_cast<Float>(height)), 3, GraphicsDeviceFeatures { .RayTracing = true });
+        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, Size2d(static_cast<Float>(width), static_cast<Float>(height)), 3, false, GraphicsDeviceFeatures { .RayTracing = true });
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);
@@ -430,7 +430,8 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     // Resize the frame buffer and recreate the swap chain.
     auto surfaceFormat = m_device->swapChain().surfaceFormat();
     auto renderArea = Size2d(e.width(), e.height());
-    m_device->swapChain().reset(surfaceFormat, renderArea, 3);
+    auto vsync = m_device->swapChain().verticalSynchronization();
+    m_device->swapChain().reset(surfaceFormat, renderArea, 3, vsync);
 
     // Recreate output images and re-bind them to the output descriptors.
     auto backBuffers = m_device->factory().createTexture("Back Buffers", m_device->swapChain().surfaceFormat(), m_device->swapChain().renderArea(), ImageDimensions::DIM_2, 1u, m_device->swapChain().buffers(), MultiSamplingLevel::x1, ResourceUsage::AllowWrite | ResourceUsage::TransferSource);
@@ -510,6 +511,16 @@ void SampleApp::keyDown(int key, int scancode, int action, int mods)
             // NOTE: If we were to launch in fullscreen mode, we should use something like `max(windowRect.width(), defaultWidth)`.
             ::glfwSetWindowMonitor(m_window.get(), nullptr, windowRect.x(), windowRect.y(), windowRect.width(), windowRect.height(), 0);
         }
+    }
+
+    if (key == GLFW_KEY_F7 && action == GLFW_PRESS)
+    {
+        // Wait for the device.
+        m_device->wait();
+
+        // Toggle VSync on the swap chain.
+        auto& swapChain = m_device->swapChain();
+        swapChain.reset(swapChain.surfaceFormat(), swapChain.renderArea(), swapChain.buffers(), !swapChain.verticalSynchronization());
     }
 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)

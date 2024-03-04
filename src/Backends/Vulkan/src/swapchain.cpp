@@ -29,6 +29,7 @@ private:
 	Array<VkQueryPool> m_timingQueryPools;
 	VkQueryPool m_currentQueryPool;
 	bool m_supportsTiming = false;
+	bool m_vsync = false;
 
 public:
 	VulkanSwapChainImpl(VulkanSwapChain* parent, const VulkanDevice& device) :
@@ -51,7 +52,7 @@ public:
 	}
 
 public:
-	void initialize(Format format, const Size2d& renderArea, UInt32 buffers)
+	void initialize(Format format, const Size2d& renderArea, UInt32 buffers, bool vsync)
 	{
 		if (format == Format::Other || format == Format::None) [[unlikely]]
 			throw InvalidArgumentException("format", "The provided surface format it not a valid value.");
@@ -93,9 +94,10 @@ public:
 		createInfo.imageExtent.width = std::max<UInt32>(1u, std::clamp(static_cast<UInt32>(renderArea.width()), deviceCaps.minImageExtent.width, deviceCaps.maxImageExtent.width));
 
 		// Set the present mode to VK_PRESENT_MODE_MAILBOX_KHR, since it offers best performance without tearing. For VSync use VK_PRESENT_MODE_FIFO_KHR, which is also the only one guaranteed to be available.
-		createInfo.presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+		createInfo.presentMode = vsync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR;/* VK_PRESENT_MODE_MAILBOX_KHR;*/
+		m_vsync = vsync;
 
-		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4} }}...", fmt::ptr(&m_device), images, createInfo.imageExtent.width, createInfo.imageExtent.height, selectedFormat);
+		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", fmt::ptr(&m_device), images, createInfo.imageExtent.width, createInfo.imageExtent.height, selectedFormat, vsync);
 
 		// Log if something needed to be changed.
 		[[unlikely]] if (selectedFormat != format)
@@ -176,11 +178,11 @@ public:
 		m_timestamps.resize(timingEvents.size());
 	}
 
-	void reset(Format format, const Size2d& renderArea, UInt32 buffers)
+	void reset(Format format, Size2d renderArea, UInt32 buffers, bool vsync)
 	{
 		// Cleanup and re-initialize.
 		this->cleanup();
-		this->initialize(format, renderArea, buffers);
+		this->initialize(format, renderArea, buffers, vsync);
 	}
 
 	void cleanup()
@@ -372,6 +374,7 @@ private:
 	Array<ComPtr<ID3D12GraphicsCommandList7>> m_presentCommandLists;
 	
 	bool m_supportsTearing = false;
+	bool m_vsync = false;
 	HANDLE m_fenceHandle;
 
 	Array<SharedPtr<TimingEvent>> m_timingEvents;
@@ -406,7 +409,7 @@ public:
 	}
 
 public:
-	void initialize(Format format, const Size2d& renderArea, UInt32 buffers)
+	void initialize(Format format, const Size2d& renderArea, UInt32 buffers, bool vsync)
 	{
 		if (format == Format::Other || format == Format::None) [[unlikely]]
 			throw InvalidArgumentException("format", "The provided surface format it not a valid value.");
@@ -445,6 +448,7 @@ public:
 		// Create a D3D12 factory.
 		ComPtr<IDXGIFactory7> factory;
 		UInt32 tearingSupport = 0;
+		m_vsync = vsync;
 #ifndef NDEBUG
 		D3D::raiseIfFailed(::CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&factory)), "Unable to crate D3D12 factory for interop.");
 #else
@@ -499,7 +503,7 @@ public:
 		D3D::raiseIfFailed(m_d3dDevice->CreateCommandQueue(&presentQueueDesc, IID_PPV_ARGS(&m_presentQueue)), "Unable to create present queue.");
 
 		// Create the swap chain instance.
-		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4} }}...", fmt::ptr(&m_device), images, extent.width(), extent.height(), selectedFormat);
+		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", fmt::ptr(&m_device), images, extent.width(), extent.height(), selectedFormat, vsync);
 
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc {
 			.Width = static_cast<UInt32>(extent.width()),
@@ -558,7 +562,7 @@ public:
 		}
 	}
 
-	void reset(Format format, const Size2d& renderArea, UInt32 buffers)
+	void reset(Format format, const Size2d& renderArea, UInt32 buffers, bool vsync)
 	{
 		// Release the image memory of the previously allocated images.
 		std::ranges::for_each(m_presentImages, [this](const auto& image) { ::vkDestroyImage(m_device.handle(), std::as_const(*image).handle(), nullptr); });
@@ -592,7 +596,7 @@ public:
 			LITEFX_INFO(VULKAN_LOG, "The render area has been adjusted to {0}x{1} Px (was {2}x{3} Px).", extent.height(), extent.width(), static_cast<UInt32>(renderArea.height()), static_cast<UInt32>(renderArea.width()));
 
 		// Reset the swap chain instance.
-		LITEFX_TRACE(VULKAN_LOG, "Resetting swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4} }}...", fmt::ptr(&m_device), images, extent.width(), extent.height(), selectedFormat);
+		LITEFX_TRACE(VULKAN_LOG, "Resetting swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", fmt::ptr(&m_device), images, extent.width(), extent.height(), selectedFormat, vsync);
 
 		// Wait for both devices to be idle.
 		this->waitForInteropDevice();
@@ -621,6 +625,9 @@ public:
 			D3D::raiseIfFailed(m_d3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_presentCommandAllocators[i])), "Unable to create command allocator for present queue commands.");
 			D3D::raiseIfFailed(m_d3dDevice->CreateCommandList1(0, D3D12_COMMAND_LIST_TYPE_DIRECT, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&m_presentCommandLists[i])), "Unable to create command list for present queue commands.");
 		}
+
+		// Store vsync flag.
+		m_vsync = vsync;
 	}
 
 	void createImages(Format format, const Size2d& renderArea, UInt32 buffers)
@@ -776,11 +783,10 @@ public:
 		// Release the image memory of the previously allocated images.
 		std::ranges::for_each(m_presentImages, [this](const auto& image) { ::vkDestroyImage(m_device.handle(), std::as_const(*image).handle(), nullptr); });
 
+		// Destroy the swap chain and interop device and resources.
+		this->waitForInteropDevice();
 		m_imageResources.clear();
 		m_presentImages.clear();
-
-		// Destroy the swap chain and interop device.
-		this->waitForInteropDevice();
 		m_swapChain.Reset();
 		m_d3dDevice.Reset();
 
@@ -887,7 +893,11 @@ public:
 		m_presentQueue->ExecuteCommandLists(commandBuffers.size(), commandBuffers.data());
 
 		// Do the presentation.
-		D3D::raiseIfFailed(m_swapChain->Present(0, m_supportsTearing ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to queue present event on swap chain.");
+		if (m_vsync)
+			D3D::raiseIfFailed(m_swapChain->Present(1, 0), "Unable to queue present event on swap chain.");
+		else
+			D3D::raiseIfFailed(m_swapChain->Present(0, m_supportsTearing ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to queue present event on swap chain.");
+
 		D3D::raiseIfFailed(m_presentQueue->Signal(m_presentationFence.Get(), m_presentFences[m_currentImage]), "Unable to signal presentation fence.");
 	}
 	
@@ -961,10 +971,10 @@ private:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanSwapChain::VulkanSwapChain(const VulkanDevice& device, Format surfaceFormat, const Size2d& renderArea, UInt32 buffers) :
+VulkanSwapChain::VulkanSwapChain(const VulkanDevice& device, Format surfaceFormat, const Size2d& renderArea, UInt32 buffers, bool enableVsync) :
 	m_impl(makePimpl<VulkanSwapChainImpl>(this, device))
 {
-	m_impl->initialize(surfaceFormat, renderArea, buffers);
+	m_impl->initialize(surfaceFormat, renderArea, buffers, enableVsync);
 }
 
 VulkanSwapChain::~VulkanSwapChain() noexcept = default;
@@ -1030,6 +1040,11 @@ const Size2d& VulkanSwapChain::renderArea() const noexcept
 	return m_impl->m_renderArea;
 }
 
+bool VulkanSwapChain::verticalSynchronization() const noexcept
+{
+	return m_impl->m_vsync;
+}
+
 IVulkanImage* VulkanSwapChain::image(UInt32 backBuffer) const
 {
 	if (backBuffer >= m_impl->m_presentImages.size()) [[unlikely]]
@@ -1073,10 +1088,10 @@ void VulkanSwapChain::addTimingEvent(SharedPtr<TimingEvent> timingEvent)
 	m_impl->resetQueryPools(events);
 }
 
-void VulkanSwapChain::reset(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers)
+void VulkanSwapChain::reset(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers, bool enableVsync)
 {
-	m_impl->reset(surfaceFormat, renderArea, buffers);
-	this->reseted(this, { surfaceFormat, renderArea, buffers });
+	m_impl->reset(surfaceFormat, renderArea, buffers, enableVsync);
+	this->reseted(this, { surfaceFormat, renderArea, buffers, enableVsync });
 }
 
 UInt32 VulkanSwapChain::swapBackBuffer() const

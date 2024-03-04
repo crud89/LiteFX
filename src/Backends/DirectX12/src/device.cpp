@@ -181,9 +181,9 @@ public:
 		m_factory = makeUnique<DirectX12GraphicsFactory>(*m_parent);
 	}
 
-	void createSwapChain(Format format, const Size2d& frameBufferSize, UInt32 frameBuffers)
+	void createSwapChain(Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
 	{
-		m_swapChain = makeUnique<DirectX12SwapChain>(*m_parent, format, frameBufferSize, frameBuffers);
+		m_swapChain = makeUnique<DirectX12SwapChain>(*m_parent, format, renderArea, backBuffers, enableVsync);
 	}
 
 	void createQueues()
@@ -260,11 +260,11 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, GraphicsDeviceFeatures features) :
-	DirectX12Device(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3, features)
+	DirectX12Device(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features)
 {
 }
 
-DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, GraphicsDeviceFeatures features, UInt32 globalBufferHeapSize, UInt32 globalSamplerHeapSize) :
+DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features, UInt32 globalBufferHeapSize, UInt32 globalSamplerHeapSize) :
 	ComResource<ID3D12Device10>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, std::move(surface), backend, globalBufferHeapSize, globalSamplerHeapSize))
 {
 	LITEFX_DEBUG(DIRECTX12_LOG, "Creating DirectX 12 device {{ Surface: {0}, Adapter: {1} }}...", fmt::ptr(&surface), adapter.deviceId());
@@ -281,7 +281,7 @@ DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX1
 	this->handle() = m_impl->initialize(features);
 	m_impl->createQueues();
 	m_impl->createFactory();
-	m_impl->createSwapChain(format, frameBufferSize, frameBuffers);
+	m_impl->createSwapChain(format, renderArea, backBuffers, enableVsync);
 	m_impl->createBlitPipeline();
 }
 

@@ -1713,8 +1713,9 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="device">The device that owns the swap chain.</param>
         /// <param name="format">The initial surface format.</param>
         /// <param name="renderArea">The initial size of the render area.</param>
+        /// <param name="enableVsync">`true` if vertical synchronization should be used, otherwise `false`.</param>
         /// <param name="buffers">The initial number of buffers.</param>
-        explicit DirectX12SwapChain(const DirectX12Device& device, Format surfaceFormat = Format::B8G8R8A8_SRGB, const Size2d& renderArea = { 800, 600 }, UInt32 buffers = 3);
+        explicit DirectX12SwapChain(const DirectX12Device& device, Format surfaceFormat = Format::B8G8R8A8_SRGB, const Size2d& renderArea = { 800, 600 }, UInt32 buffers = 3, bool enableVsync = false);
         DirectX12SwapChain(const DirectX12SwapChain&) = delete;
         DirectX12SwapChain(DirectX12SwapChain&&) = delete;
         virtual ~DirectX12SwapChain() noexcept;
@@ -1757,6 +1758,9 @@ namespace LiteFX::Rendering::Backends {
         const Size2d& renderArea() const noexcept override;
 
         /// <inheritdoc />
+        bool verticalSynchronization() const noexcept override;
+
+        /// <inheritdoc />
         IDirectX12Image* image(UInt32 backBuffer) const override;
 
         /// <inheritdoc />
@@ -1776,7 +1780,7 @@ namespace LiteFX::Rendering::Backends {
         void addTimingEvent(SharedPtr<TimingEvent> timingEvent) override;
 
         /// <inheritdoc />
-        void reset(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers) override;
+        void reset(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers, bool enableVsync = false) override;
 
         /// <inheritdoc />
         [[nodiscard]] UInt32 swapBackBuffer() const override;
@@ -1881,12 +1885,13 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="adapter">The adapter the device uses for drawing.</param>
         /// <param name="surface">The surface, the device should draw to.</param>
         /// <param name="format">The initial surface format, device uses for drawing.</param>
-        /// <param name="frameBufferSize">The initial size of the frame buffers.</param>
-        /// <param name="frameBuffers">The initial number of frame buffers.</param>
+        /// <param name="renderArea">The initial size of the render area.</param>
+        /// <param name="backBuffers">The initial number of back buffers.</param>
+        /// <param name="enableVsync">The initial setting for vertical synchronization.</param>
         /// <param name="features">The features that should be supported by this device.</param>
         /// <param name="globalBufferHeapSize">The size of the global heap for constant buffers, shader resources and images.</param>
         /// <param name="globalSamplerHeapSize">The size of the global heap for samplers.</param>
-        explicit DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& frameBufferSize, UInt32 frameBuffers, GraphicsDeviceFeatures features = {}, UInt32 globalBufferHeapSize = 524287, UInt32 globalSamplerHeapSize = 2048);
+        explicit DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = {}, UInt32 globalBufferHeapSize = 524287, UInt32 globalSamplerHeapSize = 2048);
 
         DirectX12Device(const DirectX12Device&) = delete;
         DirectX12Device(DirectX12Device&&) = delete;

@@ -211,7 +211,7 @@ void SampleApp::onInit()
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.
-        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3);
+        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3, false);
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);
@@ -248,7 +248,8 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     // Resize the frame buffer and recreate the swap chain.
     auto surfaceFormat = m_device->swapChain().surfaceFormat();
     auto renderArea = Size2d(e.width(), e.height());
-    m_device->swapChain().reset(surfaceFormat, renderArea, 3);
+    bool vsync = m_device->swapChain().verticalSynchronization();
+    m_device->swapChain().reset(surfaceFormat, renderArea, 3, vsync);
 
     // Resize the frame buffers. Note that we could also use an event handler on the swap chain `reseted` event to do this automatically instead.
     m_device->state().frameBuffer("Frame Buffer 0").resize(renderArea);
@@ -328,6 +329,16 @@ void SampleApp::keyDown(int key, int scancode, int action, int mods)
             // NOTE: If we were to launch in fullscreen mode, we should use something like `max(windowRect.width(), defaultWidth)`.
             ::glfwSetWindowMonitor(m_window.get(), nullptr, windowRect.x(), windowRect.y(), windowRect.width(), windowRect.height(), 0);
         }
+    }
+
+    if (key == GLFW_KEY_F7 && action == GLFW_PRESS)
+    {
+        // Wait for the device.
+        m_device->wait();
+
+        // Toggle VSync on the swap chain.
+        auto& swapChain = m_device->swapChain();
+        swapChain.reset(swapChain.surfaceFormat(), swapChain.renderArea(), swapChain.buffers(), !swapChain.verticalSynchronization());
     }
 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
