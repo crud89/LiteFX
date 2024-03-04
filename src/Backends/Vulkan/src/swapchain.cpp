@@ -94,7 +94,7 @@ public:
 		createInfo.imageExtent.width = std::max<UInt32>(1u, std::clamp(static_cast<UInt32>(renderArea.width()), deviceCaps.minImageExtent.width, deviceCaps.maxImageExtent.width));
 
 		// Set the present mode to VK_PRESENT_MODE_MAILBOX_KHR, since it offers best performance without tearing. For VSync use VK_PRESENT_MODE_FIFO_KHR, which is also the only one guaranteed to be available.
-		createInfo.presentMode = vsync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_MAILBOX_KHR;
+		createInfo.presentMode = vsync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR;/* VK_PRESENT_MODE_MAILBOX_KHR;*/
 		m_vsync = vsync;
 
 		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", fmt::ptr(&m_device), images, createInfo.imageExtent.width, createInfo.imageExtent.height, selectedFormat, vsync);
