@@ -317,7 +317,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_device->state().add(std::move(shaderBindingTable));
     m_device->state().add(std::move(backBuffers));
     m_device->state().add("Sampler Bindings", std::move(samplerBindings));
-    std::ranges::for_each(outputBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Output Bindings {0}", i++), std::move(binding)); });
+    std::ranges::for_each(outputBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(std::format("Output Bindings {0}", i++), std::move(binding)); });
     m_device->state().add("Material Bindings", std::move(materialBindings));
 }
 
@@ -438,7 +438,7 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     
     for (int i = 0; i < m_device->swapChain().buffers(); ++i)
     {
-        auto& outputBindings = m_device->state().descriptorSet(fmt::format("Output Bindings {0}", i));
+        auto& outputBindings = m_device->state().descriptorSet(std::format("Output Bindings {0}", i));
         outputBindings.update(0, *backBuffers, 0, 0, 1, i, 1);
     }
 
@@ -558,7 +558,7 @@ void SampleApp::drawFrame()
     auto& staticDataBindings = m_device->state().descriptorSet("Static Data Bindings");
     auto& materialBindings = m_device->state().descriptorSet("Material Bindings");
     auto& samplerBindings = m_device->state().descriptorSet("Sampler Bindings");
-    auto& outputBindings = m_device->state().descriptorSet(fmt::format("Output Bindings {0}", backBuffer));
+    auto& outputBindings = m_device->state().descriptorSet(std::format("Output Bindings {0}", backBuffer));
     auto& shaderBindingTable = m_device->state().buffer("Shader Binding Table");
     auto& backBuffers = m_device->state().image("Back Buffers");
     auto& cameraBuffer = m_device->state().buffer("Camera");

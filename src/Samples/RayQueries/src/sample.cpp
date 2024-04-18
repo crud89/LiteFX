@@ -95,7 +95,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     // Create the frame buffers for all back buffers.
     auto frameBuffers = std::views::iota(0u, device->swapChain().buffers()) |
-        std::views::transform([&](UInt32 index) { return device->makeFrameBuffer(fmt::format("Frame Buffer {0}", index), device->swapChain().renderArea()); }) |
+        std::views::transform([&](UInt32 index) { return device->makeFrameBuffer(std::format("Frame Buffer {0}", index), device->swapChain().renderArea()); }) |
         std::ranges::to<Array<UniquePtr<FrameBuffer>>>();
 
     // Create input assembler state for the geometry.
@@ -545,7 +545,7 @@ void SampleApp::drawFrame()
     auto backBuffer = m_device->swapChain().swapBackBuffer();
 
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
-    auto& frameBuffer = m_device->state().frameBuffer(fmt::format("Frame Buffer {0}", backBuffer));
+    auto& frameBuffer = m_device->state().frameBuffer(std::format("Frame Buffer {0}", backBuffer));
     auto& renderPass = m_device->state().renderPass("Deferred");
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& staticDataBindings = m_device->state().descriptorSet("Static Data Bindings");

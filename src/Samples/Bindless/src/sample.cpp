@@ -86,7 +86,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     // Create the frame buffers for all back buffers.
     auto frameBuffers = std::views::iota(0u, device->swapChain().buffers()) |
-        std::views::transform([&](UInt32 index) { return device->makeFrameBuffer(fmt::format("Frame Buffer {0}", index), device->swapChain().renderArea()); }) |
+        std::views::transform([&](UInt32 index) { return device->makeFrameBuffer(std::format("Frame Buffer {0}", index), device->swapChain().renderArea()); }) |
         std::ranges::to<Array<UniquePtr<FrameBuffer>>>();
 
     // Create input assembler state.
@@ -185,7 +185,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_device->state().add(std::move(drawDataBuffer));
     m_device->state().add(std::move(instanceBuffer));
     m_device->state().add("Camera Bindings", std::move(cameraBindings));
-    std::ranges::for_each(drawDataBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Draw Data Bindings {0}", i++), std::move(binding)); });
+    std::ranges::for_each(drawDataBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(std::format("Draw Data Bindings {0}", i++), std::move(binding)); });
     m_device->state().add("Instance Bindings", std::move(instanceBinding));
 }
 
@@ -420,11 +420,11 @@ void SampleApp::drawFrame()
     auto backBuffer = m_device->swapChain().swapBackBuffer();
 
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
-    auto& frameBuffer = m_device->state().frameBuffer(fmt::format("Frame Buffer {0}", backBuffer));
+    auto& frameBuffer = m_device->state().frameBuffer(std::format("Frame Buffer {0}", backBuffer));
     auto& renderPass = m_device->state().renderPass("Opaque");
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& drawDataBuffer = m_device->state().buffer("Draw Data");
-    auto& drawDataBindings = m_device->state().descriptorSet(fmt::format("Draw Data Bindings {0}", backBuffer));
+    auto& drawDataBindings = m_device->state().descriptorSet(std::format("Draw Data Bindings {0}", backBuffer));
     auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
     auto& instanceBindings = m_device->state().descriptorSet("Instance Bindings");
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");

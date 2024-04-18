@@ -31,11 +31,11 @@ public:
 public:
 	VkPipeline initialize()
 	{
-		LITEFX_TRACE(VULKAN_LOG, "Creating compute pipeline (\"{1}\") for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_parent->name());
+		LITEFX_TRACE(VULKAN_LOG, "Creating compute pipeline (\"{1}\") for layout {0}...", reinterpret_cast<void*>(m_layout.get()), m_parent->name());
 	
 		// Setup shader stages.
 		auto modules = m_program->modules();
-		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(reinterpret_cast<const void*>(m_program.get())), modules.size());
+		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", reinterpret_cast<void*>(m_program.get()), modules.size());
 
 		if (modules.size() > 1)
 			throw RuntimeException("Only one shader module must be bound to a compute pipeline.");

@@ -97,7 +97,7 @@ public:
 		createInfo.presentMode = vsync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR;/* VK_PRESENT_MODE_MAILBOX_KHR;*/
 		m_vsync = vsync;
 
-		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", fmt::ptr(&m_device), images, createInfo.imageExtent.width, createInfo.imageExtent.height, selectedFormat, vsync);
+		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", reinterpret_cast<void*>(&m_device), images, createInfo.imageExtent.width, createInfo.imageExtent.height, selectedFormat, vsync);
 
 		// Log if something needed to be changed.
 		[[unlikely]] if (selectedFormat != format)
@@ -503,7 +503,7 @@ public:
 		D3D::raiseIfFailed(m_d3dDevice->CreateCommandQueue(&presentQueueDesc, IID_PPV_ARGS(&m_presentQueue)), "Unable to create present queue.");
 
 		// Create the swap chain instance.
-		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", fmt::ptr(&m_device), images, extent.width(), extent.height(), selectedFormat, vsync);
+		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", reinterpret_cast<const void*>(&m_device), images, extent.width(), extent.height(), selectedFormat, vsync);
 
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc {
 			.Width = static_cast<UInt32>(extent.width()),
@@ -596,7 +596,7 @@ public:
 			LITEFX_INFO(VULKAN_LOG, "The render area has been adjusted to {0}x{1} Px (was {2}x{3} Px).", extent.height(), extent.width(), static_cast<UInt32>(renderArea.height()), static_cast<UInt32>(renderArea.width()));
 
 		// Reset the swap chain instance.
-		LITEFX_TRACE(VULKAN_LOG, "Resetting swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", fmt::ptr(&m_device), images, extent.width(), extent.height(), selectedFormat, vsync);
+		LITEFX_TRACE(VULKAN_LOG, "Resetting swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", reinterpret_cast<const void*>(&m_device), images, extent.width(), extent.height(), selectedFormat, vsync);
 
 		// Wait for both devices to be idle.
 		this->waitForInteropDevice();

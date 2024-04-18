@@ -7,9 +7,6 @@
 PROJECT(LiteFX.Core VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
-# Resolve package dependencies.
-FIND_PACKAGE(fmt CONFIG REQUIRED)
-
 CONFIGURE_FILE("config.tmpl" "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/config.h")
 CONFIGURE_FILE("version.tmpl" "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/version.h")
 CONFIGURE_FILE("core.tmpl" "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/core.h")
@@ -63,9 +60,6 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>
         $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
 )
-
-# Link project dependencies.
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC fmt::fmt)
 
 # Pre-compile core header.
 IF(LITEFX_BUILD_PRECOMPILED_HEADERS)

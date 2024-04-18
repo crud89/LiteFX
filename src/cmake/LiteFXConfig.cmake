@@ -14,7 +14,7 @@ SET(LITEFX_HAS_DIRECTX_MATH @LITEFX_BUILD_WITH_DIRECTX_MATH@)
 SET(LITEFX_HAS_GLM @LITEFX_BUILD_WITH_GLM@)
 
 # Keep track of the imported libraries for convenience.
-SET(LITEFX_DEPENDENCIES fmt::fmt spdlog::spdlog LiteFX.Core LiteFX.Logging LiteFX.AppModel LiteFX.Math LiteFX.Graphics LiteFX.Rendering)
+SET(LITEFX_DEPENDENCIES LiteFX.Core LiteFX.Logging LiteFX.AppModel LiteFX.Math LiteFX.Graphics LiteFX.Rendering)
 
 # Lookup package dependencies.
 INCLUDE(CMakeFindDependencyMacro)
@@ -43,9 +43,6 @@ ENDIF(LITEFX_HAS_DIRECTX_MATH)
 IF(LITEFX_HAS_GLM)
   FIND_DEPENDENCY(glm CONFIG)
 ENDIF(LITEFX_HAS_GLM)
-
-FIND_DEPENDENCY(fmt CONFIG)
-FIND_DEPENDENCY(spdlog CONFIG)
 
 FIND_PROGRAM(LITEFX_BUILD_GLSLC_COMPILER glslc HINTS ENV VULKAN_SDK PATH_SUFFIXES bin DOC "The full path to the `glslc.exe` shader compiler binary.")
 FIND_PROGRAM(LITEFX_BUILD_DXC_COMPILER dxc HINTS ENV VULKAN_SDK PATH_SUFFIXES bin DOC "The full path to the `dxc.exe` shader compiler binary.")

@@ -59,7 +59,7 @@ public:
 
 		// Create the swap chain.
 		auto size = Size2d{ std::max<UInt32>(1, renderArea.width()), std::max<UInt32>(1, renderArea.height()) };
-		LITEFX_TRACE(DIRECTX12_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", fmt::ptr(m_device.handle().Get()), backBuffers, size.width(), size.height(), format, enableVsync);
+		LITEFX_TRACE(DIRECTX12_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", reinterpret_cast<void*>(m_device.handle().Get()), backBuffers, size.width(), size.height(), format, enableVsync);
 		
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 		swapChainDesc.Width = static_cast<UInt32>(size.width());
@@ -115,7 +115,7 @@ public:
 		UInt32 buffers = std::max<UInt32>(2, backBuffers);
 		auto size = Size2d{ std::max<UInt32>(1, renderArea.width()), std::max<UInt32>(1, renderArea.height()) };
 		raiseIfFailed(m_parent->handle()->ResizeBuffers(buffers, static_cast<UInt32>(size.width()), static_cast<UInt32>(size.height()), DX12::getFormat(format), m_supportsVariableRefreshRates ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
-		LITEFX_TRACE(DIRECTX12_LOG, "Resetting swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", fmt::ptr(m_device.handle().Get()), backBuffers, size.width(), size.height(), format, enableVsync);
+		LITEFX_TRACE(DIRECTX12_LOG, "Resetting swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", reinterpret_cast<void*>(m_device.handle().Get()), backBuffers, size.width(), size.height(), format, enableVsync);
 
 		// Acquire the swap chain images.
 		m_presentImages.resize(buffers);
@@ -191,7 +191,7 @@ private:
 		auto formats = m_parent->getSurfaceFormats();
 
 		return Join(formats |
-			std::views::transform([](Format format) { return fmt::to_string(format); }) |
+			std::views::transform([](Format format) { return std::format("{0}", format); }) |
 			std::ranges::to<Array<String>>(), ", ");
 	}
 };
