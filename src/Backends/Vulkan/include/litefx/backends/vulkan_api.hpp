@@ -23,6 +23,7 @@
 #include <litefx/config.h>
 #include <litefx/rendering.hpp>
 #include <vulkan/vulkan.h>
+#include "vulkan_formatters.hpp"
 
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Math;
@@ -356,7 +357,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="args">The arguments passed to the error message format string.</param>
         template <typename ...TArgs>
         explicit VulkanPlatformException(VkResult result, StringView format, TArgs&&... args) noexcept :
-            VulkanPlatformException(fmt::vformat(format, fmt::make_format_args(args...)), result) { }
+            VulkanPlatformException(std::vformat(format, std::make_format_args(args...)), result) { }
 
         VulkanPlatformException(const VulkanPlatformException&) = default;
         VulkanPlatformException(VulkanPlatformException&&) = default;

@@ -36,6 +36,8 @@ using namespace Microsoft::WRL;
 #include <litefx/config.h>
 #include <litefx/rendering.hpp>
 
+#include "dx12_formatters.hpp"
+
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Math;
     using namespace LiteFX::Rendering;
@@ -311,7 +313,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="args">The arguments passed to the error message format string.</param>
         template <typename ...TArgs>
         explicit DX12PlatformException(HRESULT result, StringView format, TArgs&&... args) noexcept :
-            DX12PlatformException(result, fmt::vformat(format, fmt::make_format_args(args...))) { }
+            DX12PlatformException(result, std::vformat(format, std::make_format_args(args...))) { }
 
         DX12PlatformException(const DX12PlatformException&) = default;
         DX12PlatformException(DX12PlatformException&&) = default;

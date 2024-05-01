@@ -3,9 +3,8 @@
 #include "vulkan_api.hpp"
 
 template <>
-struct LITEFX_VULKAN_API fmt::formatter<VkResult> : formatter<string_view> {
-    template <typename FormatContext>
-    auto format(VkResult t, FormatContext& ctx) {
+struct LITEFX_VULKAN_API std::formatter<VkResult> : std::formatter<std::string_view> {
+    auto format(VkResult t, std::format_context& ctx) const {
         string_view name;
 
         switch (t)

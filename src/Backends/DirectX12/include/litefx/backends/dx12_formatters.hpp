@@ -3,9 +3,8 @@
 #include "dx12_api.hpp"
 
 template <>
-struct LITEFX_DIRECTX12_API fmt::formatter<D3D12_MESSAGE_ID> : formatter<string_view> {
-    template <typename FormatContext>
-    auto format(D3D12_MESSAGE_ID t, FormatContext& ctx) {
+struct LITEFX_DIRECTX12_API std::formatter<D3D12_MESSAGE_ID> : std::formatter<std::string_view> {
+    auto format(D3D12_MESSAGE_ID t, std::format_context& ctx) const {
         string_view name;
 
         switch (t)
@@ -859,9 +858,8 @@ struct LITEFX_DIRECTX12_API fmt::formatter<D3D12_MESSAGE_ID> : formatter<string_
 };
 
 template <>
-struct LITEFX_DIRECTX12_API fmt::formatter<D3D12_ROOT_PARAMETER_TYPE> : formatter<string_view> {
-    template <typename FormatContext>
-    auto format(D3D12_ROOT_PARAMETER_TYPE t, FormatContext& ctx) {
+struct LITEFX_DIRECTX12_API std::formatter<D3D12_ROOT_PARAMETER_TYPE> : std::formatter<std::string_view> {
+    auto format(D3D12_ROOT_PARAMETER_TYPE t, std::format_context& ctx) const {
         std::string_view name;
 
         switch (t)
@@ -879,9 +877,8 @@ struct LITEFX_DIRECTX12_API fmt::formatter<D3D12_ROOT_PARAMETER_TYPE> : formatte
 };
 
 template <>
-struct LITEFX_DIRECTX12_API fmt::formatter<D3D_SHADER_INPUT_TYPE> : formatter<string_view> {
-    template <typename FormatContext>
-    auto format(D3D_SHADER_INPUT_TYPE t, FormatContext& ctx) {
+struct LITEFX_DIRECTX12_API std::formatter<D3D_SHADER_INPUT_TYPE> : std::formatter<std::string_view> {
+    auto format(D3D_SHADER_INPUT_TYPE t, std::format_context& ctx) const {
         std::string_view name;
 
         switch (t)

@@ -106,7 +106,7 @@ public:
                 auto commandBuffer = m_queue->createCommandBuffer(false);
 #ifndef NDEBUG
                 m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*commandBuffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, 
-                    fmt::format("{0} Primary Commands {1}", m_parent->name(), m_primaryCommandBuffers.size()).c_str());
+                    std::format("{0} Primary Commands {1}", m_parent->name(), m_primaryCommandBuffers.size()).c_str());
 #endif
                 m_primaryCommandBuffers[interfacePointer] = commandBuffer;
             }
@@ -117,7 +117,7 @@ public:
                     auto commandBuffer = m_queue->createCommandBuffer(false, true);
 #ifndef NDEBUG
                     m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*commandBuffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, 
-                        fmt::format("{0} Secondary Commands {1}", m_parent->name(), i).c_str());
+                        std::format("{0} Secondary Commands {1}", m_parent->name(), i).c_str());
 #endif
                     return commandBuffer;
                 }) | std::ranges::to<Array<SharedPtr<VulkanCommandBuffer>>>();
@@ -425,7 +425,7 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
     primaryCommandBuffer->barrier(depthStencilBarrier);
     
     if (!this->name().empty())
-        m_impl->m_queue->beginDebugRegion(fmt::format("{0} Render Pass", this->name()));
+        m_impl->m_queue->beginDebugRegion(std::format("{0} Render Pass", this->name()));
 
     // Begin the render pass on the primary command buffer.
     ::vkCmdBeginRendering(std::as_const(*primaryCommandBuffer).handle(), &renderingInfo);

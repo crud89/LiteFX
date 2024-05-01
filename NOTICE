@@ -11,7 +11,6 @@ contact us by opening an issue:
 The following third party material may be included and re-distributed within 
 LiteFX releases:
 
-- {fmt}: Copyright (c) 2012 - present, Victor Zverovich (1)
 - spdlog: Copyright (c) 2016 Gabi Melman (1)
 - Vulkan Memory Allocator: (c) 2017-2019 Advanced Micro Devices, Inc. All 
   rights reserved. (1)

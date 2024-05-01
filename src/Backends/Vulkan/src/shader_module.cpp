@@ -63,7 +63,7 @@ public:
 			throw std::runtime_error("Unable to compile shader file.");
 
 #ifndef NDEBUG
-		m_device.setDebugName(*reinterpret_cast<const UInt64*>(&module), VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT, fmt::format("{0}: {1}", m_fileName, m_entryPoint));
+		m_device.setDebugName(*reinterpret_cast<const UInt64*>(&module), VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT, std::format("{0}: {1}", m_fileName, m_entryPoint));
 #endif
 
 		m_bytecode = fileContents;

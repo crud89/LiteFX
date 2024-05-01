@@ -327,7 +327,7 @@ public:
             .maintenance4 = true
         };
 
-        // Enable various descriptor related features, as well as timelime semaphores and other little QoL improvements.
+        // Enable various descriptor related features, as well as timeline semaphores and other little QoL improvements.
         VkPhysicalDeviceVulkan12Features deviceFeatures12 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
             .pNext = &deviceFeatures13,
@@ -342,7 +342,7 @@ public:
             .shaderInputAttachmentArrayNonUniformIndexing = true,
             .shaderUniformTexelBufferArrayNonUniformIndexing = true,
             .shaderStorageTexelBufferArrayNonUniformIndexing = true,
-            .descriptorBindingUniformBufferUpdateAfterBind = true,
+            .descriptorBindingUniformBufferUpdateAfterBind = true, // On NVidia cards this requires Turing or later.
             .descriptorBindingSampledImageUpdateAfterBind = true,
             .descriptorBindingStorageImageUpdateAfterBind = true,
             .descriptorBindingStorageBufferUpdateAfterBind = true,
@@ -510,7 +510,7 @@ VulkanDevice::VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAda
 VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features, Span<String> extensions) :
     Resource<VkDevice>(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, std::move(surface), features, extensions))
 {
-    LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", fmt::ptr(reinterpret_cast<const void*>(m_impl->m_surface.get())), adapter.deviceId(), Join(this->enabledExtensions(), ", "));
+    LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", reinterpret_cast<void*>(m_impl->m_surface.get()), adapter.deviceId(), Join(this->enabledExtensions(), ", "));
     LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
     LITEFX_DEBUG(VULKAN_LOG, "Vendor: {0:#0x}", adapter.vendorId());
     LITEFX_DEBUG(VULKAN_LOG, "Driver Version: {0:#0x}", adapter.driverVersion());
@@ -557,7 +557,7 @@ void VulkanDevice::setDebugName(UInt64 handle, VkDebugReportObjectTypeEXT type, 
         };
         
         if (m_impl->debugMarkerSetObjectName(this->handle(), &nameInfo) != VK_SUCCESS)
-            LITEFX_WARNING(VULKAN_LOG, "Unable to set object name for object handle {0}.", fmt::ptr(reinterpret_cast<void*>(handle)));
+            LITEFX_WARNING(VULKAN_LOG, "Unable to set object name for object handle {0}.", reinterpret_cast<void*>(handle));
     }
 #endif
 }

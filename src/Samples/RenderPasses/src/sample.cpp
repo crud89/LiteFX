@@ -66,7 +66,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     // Create the frame buffers for all back buffers.
     auto frameBuffers = std::views::iota(0u, device->swapChain().buffers()) |
         std::views::transform([&](UInt32 index) { 
-            auto frameBuffer = device->makeFrameBuffer(fmt::format("Frame Buffer {0}", index), device->swapChain().renderArea());
+            auto frameBuffer = device->makeFrameBuffer(std::format("Frame Buffer {0}", index), device->swapChain().renderArea());
 
             // NOTE: In this example we manually add the images to the frame buffers and map them later. This demonstrates how to share the same image 
             //       on multiple render targets. Note that the formats must match. If you intend to use multi-sampling you also have to keep the sample
@@ -217,7 +217,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_device->state().add(std::move(cameraBuffer));
     m_device->state().add(std::move(transformBuffer));
     m_device->state().add("Camera Bindings", std::move(cameraBindings));
-    std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Transform Bindings {0}", i++), std::move(binding)); });
+    std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(std::format("Transform Bindings {0}", i++), std::move(binding)); });
 }
 
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
@@ -443,7 +443,7 @@ void SampleApp::drawFrame()
 
     // Swap the back buffers for the next frame.
     auto backBuffer = m_device->swapChain().swapBackBuffer();
-    auto& frameBuffer = m_device->state().frameBuffer(fmt::format("Frame Buffer {0}", backBuffer));
+    auto& frameBuffer = m_device->state().frameBuffer(std::format("Frame Buffer {0}", backBuffer));
     UInt64 fence = 0;
 
     {
@@ -452,7 +452,7 @@ void SampleApp::drawFrame()
         auto& pipeline = m_device->state().pipeline("First Pass Pipeline");
         auto& transformBuffer = m_device->state().buffer("Transform");
         auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
-        auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer));
+        auto& transformBindings = m_device->state().descriptorSet(std::format("Transform Bindings {0}", backBuffer));
         auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
         auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 
@@ -516,7 +516,7 @@ void SampleApp::drawFrame()
         auto& pipeline = m_device->state().pipeline("Third Pass Pipeline");
         auto& transformBuffer = m_device->state().buffer("Transform");
         auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
-        auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer));
+        auto& transformBindings = m_device->state().descriptorSet(std::format("Transform Bindings {0}", backBuffer));
         auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
         auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 

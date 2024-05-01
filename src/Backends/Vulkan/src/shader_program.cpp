@@ -11,9 +11,8 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 
 template <>
-struct LITEFX_VULKAN_API fmt::formatter<SpvReflectResult> : formatter<string_view> {
-    template <typename FormatContext>
-    auto format(SpvReflectResult t, FormatContext& ctx) {
+struct LITEFX_VULKAN_API std::formatter<SpvReflectResult> : std::formatter<std::string_view> {
+    auto format(SpvReflectResult t, std::format_context& ctx) {
         string_view name;
 
         switch (t)
@@ -209,26 +208,26 @@ public:
             auto result = reflection.GetResult();
 
             if (result != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
-                throw RuntimeException("Unable to reflect shader module (Error {0}).", reflection.GetResult());
+                throw RuntimeException("Unable to reflect shader module (Error {0:x}).", static_cast<UInt32>(reflection.GetResult()));
 
             // Get the number of descriptor sets and push constants.
             UInt32 descriptorSetCount, pushConstantCount;
 
             if ((result = reflection.EnumerateDescriptorSets(&descriptorSetCount, nullptr)) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
-                throw RuntimeException("Unable to get descriptor set count (Error {0}).", result);
+                throw RuntimeException("Unable to get descriptor set count (Error {0:x}).", static_cast<UInt32>(result));
 
             if ((result = reflection.EnumeratePushConstants(&pushConstantCount, nullptr)) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
-                throw RuntimeException("Unable to get push constants count (Error {0}).", result);
+                throw RuntimeException("Unable to get push constants count (Error {0:x}).", static_cast<UInt32>(result));
 
             // Acquire the descriptor sets and push constants.
             Array<SpvReflectDescriptorSet*> descriptorSets(descriptorSetCount);
             Array<SpvReflectBlockVariable*> pushConstants(pushConstantCount);
 
             if ((result = reflection.EnumerateDescriptorSets(&descriptorSetCount, descriptorSets.data())) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
-                throw RuntimeException("Unable to enumerate descriptor sets (Error {0}).", result);
+                throw RuntimeException("Unable to enumerate descriptor sets (Error {0:x}).", static_cast<UInt32>(result));
 
             if ((result = reflection.EnumeratePushConstants(&pushConstantCount, pushConstants.data())) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
-                throw RuntimeException("Unable to enumerate push constants (Error {0}).", result);
+                throw RuntimeException("Unable to enumerate push constants (Error {0:x}).", static_cast<UInt32>(result));
 
             // Parse the descriptor sets.
             std::ranges::for_each(descriptorSets, [this, &shaderModule, &reflection, &descriptorSetLayouts](const SpvReflectDescriptorSet* descriptorSet) {
@@ -319,7 +318,7 @@ public:
                         if (auto match = std::ranges::find_if(layout.descriptors, [&descriptor](const DescriptorInfo& element) { return element.location == descriptor.location; }); match == layout.descriptors.end())
                             layout.descriptors.push_back(descriptor);
                         else if (!descriptor.equals(*match))
-                            LITEFX_WARNING(VULKAN_LOG, "Mismatching descriptors detected: the descriptor at location {0} ({3} elements with size of {4} bytes) of the descriptor set {1} in shader stage {2} conflicts with a descriptor from at least one other shader stage and will be dropped (conflicts with descriptor of type {9} in stage/s {6} with {7} elements of {8} bytes).",
+                            LITEFX_WARNING(VULKAN_LOG, "Mismatching descriptors detected: the descriptor at location {0} ({3} elements with size of {4} bytes) of the descriptor set {1} in shader stage {2} conflicts with a descriptor from at least one other shader stage and will be dropped (conflicts with descriptor of type {8} in stage/s {5} with {6} elements of {7} bytes).",
                                 descriptor.location, descriptorSet->set, shaderModule->type(), descriptor.elements, descriptor.elementSize, layout.stage, match->elements, match->elementSize, match->type);
                     }
 

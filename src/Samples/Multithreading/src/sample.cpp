@@ -68,7 +68,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     // Create the frame buffers for all back buffers.
     auto frameBuffers = std::views::iota(0u, device->swapChain().buffers()) |
-        std::views::transform([&](UInt32 index) { return device->makeFrameBuffer(fmt::format("Frame Buffer {0}", index), device->swapChain().renderArea()); }) |
+        std::views::transform([&](UInt32 index) { return device->makeFrameBuffer(std::format("Frame Buffer {0}", index), device->swapChain().renderArea()); }) |
         std::ranges::to<Array<UniquePtr<FrameBuffer>>>();
 
     // Create input assembler state.
@@ -142,7 +142,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     
     // Create a transform buffer array for each worker and bind it to one of the descriptor sets.
     Array<UniquePtr<IBuffer>> transformBuffers(NUM_WORKERS);
-    std::ranges::generate(transformBuffers, [&, i = 0]() mutable { return m_device->factory().createBuffer(fmt::format("Transform {0}", i++), transformBindingLayout, 0, ResourceHeap::Dynamic, 3); });
+    std::ranges::generate(transformBuffers, [&, i = 0]() mutable { return m_device->factory().createBuffer(std::format("Transform {0}", i++), transformBindingLayout, 0, ResourceHeap::Dynamic, 3); });
     auto transformBindings = transformBindingLayout.allocateMultiple(3 * NUM_WORKERS, [&transformBuffers](UInt32 set) -> Enumerable<DescriptorBinding> { 
         return { { .binding = 0, .resource = *transformBuffers[set % NUM_WORKERS], .firstElement = set / NUM_WORKERS, .elements = 1 } }; 
     });
@@ -156,7 +156,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_device->state().add(std::move(cameraBuffer));
     m_device->state().add("Camera Bindings", std::move(cameraBindings));
     std::ranges::for_each(transformBuffers, [this](auto& buffer) { m_device->state().add(std::move(buffer)); });
-    std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Transform Bindings {0}", i++), std::move(binding)); });
+    std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(std::format("Transform Bindings {0}", i++), std::move(binding)); });
 }
 
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
@@ -382,9 +382,9 @@ void SampleApp::drawObject(const IRenderPass* renderPass, int index, int backBuf
 {
     // Query state. Be careful here, not to alter the state somewhere else!
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
-    auto& transformBuffer = m_device->state().buffer(fmt::format("Transform {0}", index));
+    auto& transformBuffer = m_device->state().buffer(std::format("Transform {0}", index));
     auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
-    auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer * NUM_WORKERS + index));
+    auto& transformBindings = m_device->state().descriptorSet(std::format("Transform Bindings {0}", backBuffer * NUM_WORKERS + index));
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 
@@ -420,7 +420,7 @@ void SampleApp::drawFrame()
     auto backBuffer = m_device->swapChain().swapBackBuffer();
 
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
-    auto& frameBuffer = m_device->state().frameBuffer(fmt::format("Frame Buffer {0}", backBuffer));
+    auto& frameBuffer = m_device->state().frameBuffer(std::format("Frame Buffer {0}", backBuffer));
     auto& renderPass = m_device->state().renderPass("Opaque");
 
     // Wait for all transfers to finish.

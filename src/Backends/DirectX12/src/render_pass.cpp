@@ -94,7 +94,7 @@ public:
             {
                 auto commandBuffer = m_queue->createCommandBuffer(false);
 #ifndef NDEBUG
-                std::as_const(*commandBuffer).handle()->SetName(Widen(fmt::format("{0} Begin Commands {1}", m_parent->name(), m_beginCommandBuffers.size())).c_str());
+                std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} Begin Commands {1}", m_parent->name(), m_beginCommandBuffers.size())).c_str());
 #endif
                 m_beginCommandBuffers[interfacePointer] = commandBuffer;
             }
@@ -103,7 +103,7 @@ public:
             {
                 auto commandBuffer = m_queue->createCommandBuffer(false);
 #ifndef NDEBUG
-                std::as_const(*commandBuffer).handle()->SetName(Widen(fmt::format("{0} End Commands {1}", m_parent->name(), m_endCommandBuffers.size())).c_str());
+                std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} End Commands {1}", m_parent->name(), m_endCommandBuffers.size())).c_str());
 #endif
                 m_endCommandBuffers[interfacePointer] = commandBuffer;
             }
@@ -113,7 +113,7 @@ public:
                 std::views::transform([this](UInt32 i) {
                     auto commandBuffer = m_queue->createCommandBuffer(false);
 #ifndef NDEBUG
-                    std::as_const(*commandBuffer).handle()->SetName(Widen(fmt::format("{0} Secondary Commands {1}", m_parent->name(), i)).c_str());
+                    std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} Secondary Commands {1}", m_parent->name(), i)).c_str());
 #endif
                     return commandBuffer;
                 }) | std::ranges::to<Array<SharedPtr<DirectX12CommandBuffer>>>();
@@ -364,7 +364,7 @@ void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer) const
     beginCommandBuffer->barrier(inputAttachmentBarrier);
 
     if (!this->name().empty())
-        m_impl->m_queue->beginDebugRegion(fmt::format("{0} Render Pass", this->name()));
+        m_impl->m_queue->beginDebugRegion(std::format("{0} Render Pass", this->name()));
 
     // Begin a suspending render pass for the transition and a suspend-the-resume render pass on each command buffer of the frame buffer.
     std::as_const(*beginCommandBuffer).handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
