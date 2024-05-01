@@ -181,12 +181,11 @@ If you are having problems building the project, you may find answers [in the wi
 
 ### Dependencies
 
-All dependencies are automatically installed using *vcpkg*, when performing a manual build. The engine only has two hard dependencies:
+All dependencies are automatically installed using *vcpkg*, when performing a manual build. The engine core by itself only has one hard dependency:
 
 - [spdlog](https://github.com/gabime/spdlog): Lightweight logging library.
-- [{fmt}](https://github.com/fmtlib/fmt): String formatting library and implicit dependency of *spdlog*.
 
-Depending on which rendering backends are build, the following dependencies are required:
+Depending on which rendering backends are build, the following dependencies are additionally linked against:
 
 - [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/): Required by the Vulkan backend.
 - [Vulkan Memory Allocator](https://gpuopen.com/vulkan-memory-allocator/): Required by the Vulkan backend. Handles memory allocations.
