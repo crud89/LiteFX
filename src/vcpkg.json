@@ -22,6 +22,7 @@
     "vulkan-memory-allocator",
     "d3d12-memory-allocator",
     "winpixeventruntime",
-    "directx-agility-sdk"
+    "directx-agility-sdk",
+    "directx-warp"
   ]
 }

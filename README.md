@@ -206,6 +206,10 @@ Furthermore, the samples also use some libraries for convenience. Those dependen
 - [glfw3](https://www.glfw.org/): Cross-platform window manager.
 - [stb](https://github.com/nothings/stb): Lightweight image loading and processing library.
 
+Finally, the tests are using conformant software emulated rasterizers to keep them portable:
+
+- [Windows Advanced Rasterization Platform (WARP)](https://learn.microsoft.com/en-us/windows/win32/direct3darticles/directx-warp): Emulates D3D12 devices.
+
 ## Getting Started
 
 For a [quick-start guide](https://litefx.crudolph.io/docs/md_docs_tutorials_project_setup.html), a collection of tutorials and more in-depth information on how to use the engine and work with the code base, take a look at the [documentation](https://litefx.crudolph.io/docs/) and the [project wiki](https://github.com/crud89/LiteFX/wiki).

@@ -10,4 +10,4 @@ IF("${CMAKE_MODULE_PATH}" STREQUAL "")
 ENDIF("${CMAKE_MODULE_PATH}" STREQUAL "")
 
 # Define overlay ports (separated by `;`).
-SET(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/modules/overlay-ports/winpixeventruntime/;${CMAKE_SOURCE_DIR}/modules/overlay-ports/dx-agility-sdk/;${CMAKE_SOURCE_DIR}/modules/overlay-ports/d3d12-memory-allocator/;${CMAKE_SOURCE_DIR}/modules/overlay-ports/spdlog/")
+SET(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/modules/overlay-ports/winpixeventruntime/;${CMAKE_SOURCE_DIR}/modules/overlay-ports/dx-agility-sdk/;${CMAKE_SOURCE_DIR}/modules/overlay-ports/d3d12-memory-allocator/;${CMAKE_SOURCE_DIR}/modules/overlay-ports/spdlog/;${CMAKE_SOURCE_DIR}/modules/overlay-ports/dx-warp/")
