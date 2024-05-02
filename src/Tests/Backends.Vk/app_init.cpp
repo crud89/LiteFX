@@ -7,7 +7,7 @@ HWND _window { nullptr };
 
 SharedPtr<Viewport> _viewport;
 SharedPtr<Scissor> _scissor;
-DirectX12Device* _device;
+VulkanDevice* _device;
 
 void TestApp::onInit()
 {
@@ -18,11 +18,17 @@ void TestApp::onInit()
         _scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(FRAMEBUFFER_WIDTH), static_cast<Float>(FRAMEBUFFER_HEIGHT)));
 
         // As we've enabled WARP, it's the only one available.
-        auto adapter = backend->findAdapter(std::nullopt);
+        auto adapters = backend->listAdapters() | 
+            std::views::filter([](auto adapter) { return adapter->type() == GraphicsAdapterType::CPU; }) | 
+            std::ranges::to<std::vector<const LiteFX::Rendering::Backends::VulkanGraphicsAdapter*>>();
+
+        if (adapters.empty())
+            throw RuntimeException("Cannot find software rasterizer driver.");
+
         auto surface = backend->createSurface(_window);
 
         // Create the device.
-        _device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, false);
+        _device = backend->createDevice("Default", *adapters.front(), std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, false);
 
         return true;
     };
@@ -32,8 +38,8 @@ void TestApp::onInit()
     };
 
     // Register the DirectX 12 backend de-/initializer.
-    this->onBackendStart<DirectX12Backend>(startCallback);
-    this->onBackendStop<DirectX12Backend>(stopCallback);
+    this->onBackendStart<VulkanBackend>(startCallback);
+    this->onBackendStop<VulkanBackend>(stopCallback);
 }
 
 void TestApp::onStartup()
@@ -106,12 +112,20 @@ int main(int argc, char* argv[])
     ::ShowWindow(_window, SW_SHOWNORMAL);
     ::UpdateWindow(_window);
 
+    // Setup instance extensions.
+    Array<String> extensions { VK_KHR_SURFACE_EXTENSION_NAME };
+
+#if defined(WIN32)
+    // Enable Windows-specific extensions.
+    extensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
+#endif // defined(WIN32)
+
 	// Create the app.
 	try
 	{
 		UniquePtr<App> app = App::build<TestApp>()
 			.logTo<TerminationSink>(LogLevel::Error) // Exit on error.
-			.useBackend<DirectX12Backend>(true); // Use WARP.
+			.useBackend<VulkanBackend>(extensions);
 
 		app->run();
 	}

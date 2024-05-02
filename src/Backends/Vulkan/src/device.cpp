@@ -185,7 +185,7 @@ private:
             m_extensions.push_back(VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME);
         }
 
-#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
+#if defined(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN) && defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
         // Interop swap chain requires external memory access.
         m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
         m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
@@ -194,9 +194,9 @@ private:
         // Required to synchronize Vulkan command execution with D3D presentation.
         m_extensions.push_back(VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME);
         //m_extensions.push_back(VK_KHR_EXTERNAL_FENCE_WIN32_EXTENSION_NAME);
-#else
+#else // defined(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN) && defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
         m_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
+#endif // defined(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN) && defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
 
 #ifndef NDEBUG
         auto availableExtensions = m_adapter.getAvailableDeviceExtensions();
@@ -308,12 +308,15 @@ public:
         };
 
         // Allow geometry and tessellation shader stages.
+        // NOTE: ... except when building tests, as they are not supported by SwiftShader.
         VkPhysicalDeviceFeatures2 deviceFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
             .pNext = &meshShaderFeatures,
             .features = {
+#ifndef LITEFX_BUILD_TESTS
                 .geometryShader = true,
                 .tessellationShader = true,
+#endif // LITEFX_BUILD_TESTS
                 .samplerAnisotropy = true
             }
         };
@@ -328,21 +331,22 @@ public:
         };
 
         // Enable various descriptor related features, as well as timeline semaphores and other little QoL improvements.
+        // NOTE: Input attachment features are disabled, as they are not supported by Intel ARC drivers and SwiftShader and since we're now using dynamic rendering anyway, this became (even) less important.
         VkPhysicalDeviceVulkan12Features deviceFeatures12 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
             .pNext = &deviceFeatures13,
             .descriptorIndexing = true,
-            .shaderInputAttachmentArrayDynamicIndexing = true,
+            //.shaderInputAttachmentArrayDynamicIndexing = true,
             .shaderUniformTexelBufferArrayDynamicIndexing = true,
             .shaderStorageTexelBufferArrayDynamicIndexing = true,
             .shaderUniformBufferArrayNonUniformIndexing = true,
             .shaderSampledImageArrayNonUniformIndexing = true,
             .shaderStorageBufferArrayNonUniformIndexing = true,
             .shaderStorageImageArrayNonUniformIndexing = true,
-            .shaderInputAttachmentArrayNonUniformIndexing = true,
+            //.shaderInputAttachmentArrayNonUniformIndexing = true,
             .shaderUniformTexelBufferArrayNonUniformIndexing = true,
             .shaderStorageTexelBufferArrayNonUniformIndexing = true,
-            .descriptorBindingUniformBufferUpdateAfterBind = true, // On NVidia cards this requires Turing or later.
+            //.descriptorBindingUniformBufferUpdateAfterBind = true, // Not supported on NVidia Pascal and earlier, as well as SwiftShader.
             .descriptorBindingSampledImageUpdateAfterBind = true,
             .descriptorBindingStorageImageUpdateAfterBind = true,
             .descriptorBindingStorageBufferUpdateAfterBind = true,

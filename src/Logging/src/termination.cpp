@@ -31,7 +31,10 @@ termination_sink::termination_sink(int status, const spdlog::level::level_enum& 
 void termination_sink::sink_it_(const spdlog::details::log_msg& msg)
 {
     if (msg.level >= m_minLevel)
+    {
+        ::OutputDebugString(msg.payload.data());
         ::exit(m_status);
+    }
 }
 
 void termination_sink::flush_()

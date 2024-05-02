@@ -209,6 +209,7 @@ Furthermore, the samples also use some libraries for convenience. Those dependen
 Finally, the tests are using conformant software emulated rasterizers to keep them portable:
 
 - [Windows Advanced Rasterization Platform (WARP)](https://learn.microsoft.com/en-us/windows/win32/direct3darticles/directx-warp): Emulates D3D12 devices.
+- [Mesa 3D 24.1 / Lavapipe](https://github.com/pal1000/mesa-dist-win): Emulates Vulkan devices and needs to be installed manually (see [Tests](/src/tests/readme.md) for more information).
 
 ## Getting Started
 

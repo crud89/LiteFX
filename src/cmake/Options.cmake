@@ -14,6 +14,13 @@ OPTION(LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER "Add code to samples to load PIX GP
 
 OPTION(LITEFX_BUILD_TESTS "When set to ON, tests will be built for the project." OFF)
 
+# Forcefully disable interop swap chain for test builds.
+IF(LITEFX_BUILD_TESTS)
+  SET(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN OFF CACHE BOOL "" FORCE)
+ELSE(LITEFX_BUILD_TESTS)
+  OPTION(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN "When set to ON, the Vulkan backend will use a DXIL interop swap chain, if the DirectX backend is also built. This option is not available when building tests." ON)
+ENDIF(LITEFX_BUILD_TESTS)
+
 # NOTE: In order for this to work, you should add the RenderDoc installation path to the PATH environment variable, so that the runtime can pick up the API dll.
 OPTION(LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER "Adds code to the samples to create additional RenderDoc capture triggers for simplified debugging, when starting with --load-render-doc=1 command line argument." OFF)
 

@@ -137,17 +137,21 @@ public:
             
             // If the descriptor is an unbounded runtime array, disable validation warnings about partially bound elements.
             if (binding.descriptorCount != std::numeric_limits<UInt32>::max())
-                bindingFlags.push_back(VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT);
+                bindingFlags.push_back(VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT);
             else
             {
                 // Unbounded arrays must be the only descriptor within a descriptor set.
                 if (m_descriptorLayouts.size() != 1) [[unlikely]]
                     throw InvalidArgumentException("descriptorLayouts", "If an unbounded runtime array descriptor is used, it must be the only descriptor in the descriptor set, however the current descriptor set specifies {0} descriptors", m_descriptorLayouts.size());
 
-                bindingFlags.push_back(VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT);
+                bindingFlags.push_back(VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT);
                 m_usesDescriptorIndexing = true;
                 binding.descriptorCount = maxUnboundedArraySize;
             }
+
+            // ALlow update after binding for all buffers except constant/uniform buffers.
+            if (type != DescriptorType::ConstantBuffer)
+                bindingFlags.back() |= VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT;
 
             bindings.push_back(binding);
         });
