@@ -17,7 +17,7 @@ private:
     SharedPtr<spdlog::sinks::ansicolor_stdout_sink_mt> m_sink;
 
 public:
-    ConsoleSinkImpl(ConsoleSink* parent, const LogLevel& level, const String& pattern) : 
+    ConsoleSinkImpl(ConsoleSink* parent, LogLevel level, const String& pattern) : 
         base(parent), m_pattern(pattern), m_level(level), m_sink(makeShared<spdlog::sinks::ansicolor_stdout_sink_mt>()) 
     { 
         m_sink->set_level(static_cast<spdlog::level::level_enum>(level));
@@ -29,7 +29,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-ConsoleSink::ConsoleSink(const LogLevel& level, const String& pattern) :
+ConsoleSink::ConsoleSink(LogLevel level, const String& pattern) :
     m_impl(makePimpl<ConsoleSinkImpl>(this, level, pattern))
 {
 }

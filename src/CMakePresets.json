@@ -34,7 +34,30 @@
       }
     },
     {
+      "name": "windows-x64-test",
+      "inherits": "windows",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "LITEFX_BUILD_TESTS": "ON"
+      }
+    },
+    {
       "name": "windows-x64-release",
+      "inherits": "windows",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "windows-x64-publish",
       "inherits": "windows",
       "architecture": {
         "value": "x64",
@@ -56,7 +79,30 @@
       }
     },
     {
+      "name": "windows-x86-test",
+      "inherits": "windows",
+      "architecture": {
+        "value": "x86",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "LITEFX_BUILD_TESTS": "ON"
+      }
+    },
+    {
       "name": "windows-x86-release",
+      "inherits": "windows",
+      "architecture": {
+        "value": "x86",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "windows-x86-publish",
       "inherits": "windows",
       "architecture": {
         "value": "x86",
@@ -83,6 +129,24 @@
     {
       "name": "windows-x86-debug",
       "configurePreset": "windows-x86-debug"
+    },
+    {
+      "name": "windows-x86-publish",
+      "configurePreset": "windows-x86-publish"
+    },
+    {
+      "name": "windows-x64-publish",
+      "configurePreset": "windows-x64-publish"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "windows-x64-test",
+      "configurePreset": "windows-x64-test"
+    },
+    {
+      "name": "windows-x86-test",
+      "configurePreset": "windows-x86-test"
     }
   ]
 }

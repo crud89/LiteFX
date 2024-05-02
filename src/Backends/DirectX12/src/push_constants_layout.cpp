@@ -18,7 +18,7 @@ private:
     UInt32 m_size;
 
 public:
-    DirectX12PushConstantsLayoutImpl(DirectX12PushConstantsLayout* parent, const UInt32& size) :
+    DirectX12PushConstantsLayoutImpl(DirectX12PushConstantsLayout* parent, UInt32 size) :
         base(parent), m_size(size)
     {
         // Align the size to 4 bytes.
@@ -30,13 +30,13 @@ public:
     }
 
 private:
-    void setRanges(Array<UniquePtr<DirectX12PushConstantsRange>>&& ranges)
+    void setRanges(Enumerable<UniquePtr<DirectX12PushConstantsRange>>&& ranges)
     {
-        m_rangePointers = std::move(ranges);
+        m_rangePointers = ranges | std::views::as_rvalue | std::ranges::to<std::vector>();
 
         std::ranges::for_each(m_rangePointers, [this](const UniquePtr<DirectX12PushConstantsRange>& range) {
             if (m_ranges.contains(static_cast<ShaderStage>(range->stage())))
-                throw InvalidArgumentException("Only one push constant range can be mapped to a shader stage.");
+                throw InvalidArgumentException("ranges", "Only one push constant range can be mapped to a shader stage.");
 
             m_ranges[range->stage()] = range.get();
         });
@@ -47,91 +47,66 @@ private:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(Array<UniquePtr<DirectX12PushConstantsRange>>&& ranges, const UInt32& size) :
+DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(Enumerable<UniquePtr<DirectX12PushConstantsRange>>&& ranges, UInt32 size) :
     m_impl(makePimpl<DirectX12PushConstantsLayoutImpl>(this, size))
 {
     m_impl->setRanges(std::move(ranges));
 }
 
-DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(const UInt32& size) :
+DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(UInt32 size) :
     m_impl(makePimpl<DirectX12PushConstantsLayoutImpl>(this, size))
 {
 }
 
 DirectX12PushConstantsLayout::~DirectX12PushConstantsLayout() noexcept = default;
 
-const UInt32& DirectX12PushConstantsLayout::size() const noexcept
+UInt32 DirectX12PushConstantsLayout::size() const noexcept
 {
     return m_impl->m_size;
 }
 
-const DirectX12PushConstantsRange& DirectX12PushConstantsLayout::range(const ShaderStage& stage) const
+const DirectX12PushConstantsRange& DirectX12PushConstantsLayout::range(ShaderStage stage) const
 {
-    auto bits = static_cast<UInt32>(stage);
+    auto bits = std::to_underlying(stage);
 
     if (!(bits && !(bits & (bits - 1))))
-        throw ArgumentOutOfRangeException("The stage mask must only contain one shader stage.");
+        throw InvalidArgumentException("stage", "The stage mask must only contain one shader stage.");
 
     if (!m_impl->m_ranges.contains(stage))
-        throw InvalidArgumentException("No push constant range has been associated with the provided shader stage.");
+        throw InvalidArgumentException("stage", "No push constant range has been associated with the provided shader stage.");
 
     return *m_impl->m_ranges[stage];
 }
 
-Array<const DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() const noexcept
+Enumerable<const DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() const noexcept
 {
-    return m_impl->m_rangePointers |
-        std::views::transform([](const UniquePtr<DirectX12PushConstantsRange>& range) { return range.get(); }) |
-        ranges::to<Array<const DirectX12PushConstantsRange*>>();
+    return m_impl->m_rangePointers | std::views::transform([](const UniquePtr<DirectX12PushConstantsRange>& range) { return range.get(); });
 }
 
-Array<DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() noexcept
+Enumerable<DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() noexcept
 {
-    return m_impl->m_rangePointers |
-        std::views::transform([](UniquePtr<DirectX12PushConstantsRange>& range) { return range.get(); }) |
-        ranges::to<Array<DirectX12PushConstantsRange*>>();
+    return m_impl->m_rangePointers | std::views::transform([](UniquePtr<DirectX12PushConstantsRange>& range) { return range.get(); });
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
-// ------------------------------------------------------------------------------------------------
-// Push constants layout builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class DirectX12PushConstantsLayoutBuilder::DirectX12PushConstantsLayoutBuilderImpl : public Implement<DirectX12PushConstantsLayoutBuilder> {
-public:
-    friend class DirectX12PushConstantsLayoutBuilder;
-
-private:
-    Array<UniquePtr<DirectX12PushConstantsRange>> m_ranges;
-    UInt32 m_size;
-
-public:
-    DirectX12PushConstantsLayoutBuilderImpl(DirectX12PushConstantsLayoutBuilder* parent, const UInt32& size) :
-        base(parent), m_size(size)
-    {
-    }
-};
-
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Push constants layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12PushConstantsLayoutBuilder::DirectX12PushConstantsLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, const UInt32& size) :
-    m_impl(makePimpl<DirectX12PushConstantsLayoutBuilderImpl>(this, size)), PushConstantsLayoutBuilder(parent, UniquePtr<DirectX12PushConstantsLayout>(new DirectX12PushConstantsLayout(size)))
+constexpr DirectX12PushConstantsLayoutBuilder::DirectX12PushConstantsLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 size) :
+    PushConstantsLayoutBuilder(parent, UniquePtr<DirectX12PushConstantsLayout>(new DirectX12PushConstantsLayout(size)))
 {
 }
 
-DirectX12PushConstantsLayoutBuilder::~DirectX12PushConstantsLayoutBuilder() noexcept = default;
+constexpr DirectX12PushConstantsLayoutBuilder::~DirectX12PushConstantsLayoutBuilder() noexcept = default;
 
 void DirectX12PushConstantsLayoutBuilder::build()
 {
-    auto instance = this->instance();
-    instance->m_impl->setRanges(std::move(m_impl->m_ranges));
+    this->instance()->m_impl->setRanges(std::move(m_state.ranges | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>()));
 }
 
-DirectX12PushConstantsLayoutBuilder& DirectX12PushConstantsLayoutBuilder::withRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding)
+constexpr UniquePtr<DirectX12PushConstantsRange> DirectX12PushConstantsLayoutBuilder::makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding)
 {
-    m_impl->m_ranges.push_back(makeUnique<DirectX12PushConstantsRange>(shaderStages, offset, size, space, binding));
-    return *this;
+    return makeUnique<DirectX12PushConstantsRange>(shaderStages, offset, size, space, binding);
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

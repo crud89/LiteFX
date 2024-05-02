@@ -22,14 +22,14 @@ public:
         auto buffers = m_layout.uniforms() + m_layout.images() + m_layout.storages() + m_layout.buffers();
 
         if (buffers > 0 && m_bufferHeap == nullptr)
-            throw ArgumentNotInitializedException("The buffer descriptor heap handle must be initialized, if the descriptor set layout contains uniform buffers, storage buffers or images.");
+            throw ArgumentNotInitializedException("bufferHeap", "The buffer descriptor heap handle must be initialized, if the descriptor set layout contains uniform buffers, storage buffers or images.");
 
         if (m_layout.samplers() > 0 && m_samplerHeap == nullptr)
-            throw ArgumentNotInitializedException("The sampler descriptor heap handle must be initialized, if the descriptor set layout contains samplers.");
+            throw ArgumentNotInitializedException("samplerHeap", "The sampler descriptor heap handle must be initialized, if the descriptor set layout contains samplers.");
     }
 
 public:
-    D3D12_FILTER getFilterMode(const FilterMode& minFilter, const FilterMode& magFilter, const MipMapMode& mipFilter, const Float& anisotropy = 0.f)
+    D3D12_FILTER getFilterMode(FilterMode minFilter, FilterMode magFilter, MipMapMode mipFilter, Float anisotropy = 0.f)
     {
         if (anisotropy > 0.f)
             return D3D12_ENCODE_ANISOTROPIC_FILTER(D3D12_FILTER_REDUCTION_TYPE_STANDARD);
@@ -43,7 +43,7 @@ public:
         }
     }
 
-    D3D12_TEXTURE_ADDRESS_MODE getBorderMode(const BorderMode& mode)
+    D3D12_TEXTURE_ADDRESS_MODE getBorderMode(BorderMode mode)
     {
         switch (mode)
         {
@@ -52,11 +52,11 @@ public:
         case BorderMode::ClampToBorder: return D3D12_TEXTURE_ADDRESS_MODE_BORDER;
         case BorderMode::RepeatMirrored: return D3D12_TEXTURE_ADDRESS_MODE_MIRROR;
         case BorderMode::ClampToEdgeMirrored: return D3D12_TEXTURE_ADDRESS_MODE_MIRROR_ONCE;
-        default: throw std::invalid_argument("Invalid border mode.");
+        default: [[unlikely]] throw InvalidArgumentException("mode", "Invalid border mode.");
         }
     }
 
-    void updateGlobalBuffers(const UInt32& offset, const UInt32& descriptors)
+    void updateGlobalBuffers(UInt32 offset, UInt32 descriptors)
     {
         m_layout.device().updateBufferDescriptors(*this->m_parent, offset, descriptors);
     }
@@ -83,14 +83,24 @@ const DirectX12DescriptorSetLayout& DirectX12DescriptorSet::layout() const noexc
     return m_impl->m_layout;
 }
 
-void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffer& buffer, const UInt32& bufferElement, const UInt32& elements, const UInt32& firstDescriptor) const
+void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const
 {
     UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;
 
     if (bufferElement + elementCount > buffer.elements()) [[unlikely]]
         LITEFX_WARNING(DIRECTX12_LOG, "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), elementCount, bufferElement);
 
-    const auto& descriptorLayout = m_impl->m_layout.descriptor(binding);
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
+
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+    
+    const auto& descriptorLayout = *(*match);
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding) + firstDescriptor;
     auto descriptorSize = m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, descriptorSize);
@@ -213,17 +223,27 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Buffe
         break;
     }
     default: [[unlikely]]
-        throw InvalidArgumentException("The descriptor at binding point {0} does not reference a buffer, uniform or storage resource.", binding);
+        throw InvalidArgumentException("binding", "The descriptor at binding point {0} does not reference a buffer, uniform or storage resource.", binding);
     }
 
     m_impl->updateGlobalBuffers(offset, elementCount);
 }
 
-void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Image& texture, const UInt32& descriptor, const UInt32& firstLevel, const UInt32& levels, const UInt32& firstLayer, const UInt32& layers) const
+void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
 {
     // TODO: Add LOD lower bound (for clamping) as parameter?
-    // Acquire a descriptor handle.
-    const auto& descriptorLayout = m_impl->m_layout.descriptor(binding);
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
+
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+
+    const auto& descriptorLayout = *(*match);
+
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset + descriptor, m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
 
@@ -231,12 +251,26 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Image
     const UInt32 numLevels = levels == 0 ? texture.levels() - firstLevel : levels;
     const UInt32 numLayers = layers == 0 ? texture.layers() - firstLayer : layers;
 
-    if (descriptorLayout.descriptorType() == DescriptorType::Texture)
+    if (descriptorLayout.descriptorType() == DescriptorType::Texture || descriptorLayout.descriptorType() == DescriptorType::InputAttachment)
     {
         D3D12_SHADER_RESOURCE_VIEW_DESC textureView = {
             .Format = DX12::getFormat(texture.format()),
             .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
         };
+
+        // Handle depth images.
+        if (::hasDepth(texture.format()))
+        {
+            switch (texture.format())
+            {
+            case Format::D16_UNORM:             textureView.Format = DXGI_FORMAT_R16_UNORM; break;
+            case Format::D32_SFLOAT:            textureView.Format = DXGI_FORMAT_R32_FLOAT; break;
+            case Format::D24_UNORM_S8_UINT:     textureView.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; break;
+            case Format::D32_SFLOAT_S8_UINT:    textureView.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; break;
+            //case Format::D16_UNORM_S8_UINT: ??
+            //case Format::X8_D24_UNORM: ??
+            }
+        }
 
         switch (texture.dimensions())
         {
@@ -297,7 +331,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Image
     else if (descriptorLayout.descriptorType() == DescriptorType::RWTexture)
     {
         if (!texture.writable())
-            throw InvalidArgumentException("The provided texture is not writable and cannot be bound to a read/write descriptor.");
+            throw InvalidArgumentException("binding", "The provided texture is not writable and cannot be bound to a read/write descriptor.");
 
         D3D12_UNORDERED_ACCESS_VIEW_DESC textureView = {
             .Format = DX12::getFormat(texture.format())
@@ -319,15 +353,31 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Image
 
             break;
         case ImageDimensions::DIM_2:
-            if (texture.layers() == 1)
+            if (texture.samples() == MultiSamplingLevel::x1)
             {
-                textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
-                textureView.Texture2D = { .MipSlice = firstLevel, .PlaneSlice = 0 };
+                if (texture.layers() == 1)
+                {
+                    textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2D;
+                    textureView.Texture2D = { .MipSlice = firstLevel, .PlaneSlice = 0 };
+                }
+                else
+                {
+                    textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+                    textureView.Texture2DArray = { .MipSlice = firstLevel, .FirstArraySlice = firstLayer, .ArraySize = numLayers, .PlaneSlice = 0 };
+                }
             }
             else
             {
-                textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
-                textureView.Texture2DArray = { .MipSlice = firstLevel, .FirstArraySlice = firstLayer, .ArraySize = numLayers, .PlaneSlice = 0 };
+                if (texture.layers() == 1)
+                {
+                    textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DMS;
+                    textureView.Texture2D = { .MipSlice = firstLevel, .PlaneSlice = 0 };
+                }
+                else
+                {
+                    textureView.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DMSARRAY;
+                    textureView.Texture2DArray = { .MipSlice = firstLevel, .FirstArraySlice = firstLayer, .ArraySize = numLayers, .PlaneSlice = 0 };
+                }
             }
 
             break;
@@ -345,14 +395,24 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Image
     }
     else [[unlikely]]
     {
-        throw InvalidArgumentException("The provided texture is bound to a descriptor that is does neither describe a `Texture`, nor a `WritableTexture`.");
+        throw InvalidArgumentException("binding", "The provided texture is bound to a descriptor that is does neither describe a `Texture`, nor a `WritableTexture`.");
     }
 
     m_impl->updateGlobalBuffers(offset, 1);
 }
 
-void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Sampler& sampler, const UInt32& descriptor) const
+void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sampler, UInt32 descriptor) const
 {
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
+
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
 
     D3D12_SAMPLER_DESC samplerInfo = {
@@ -362,7 +422,7 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Sampl
         .AddressW = m_impl->getBorderMode(sampler.getBorderModeW()),
         .MipLODBias = sampler.getMipMapBias(),
         .MaxAnisotropy = static_cast<UInt32>(sampler.getAnisotropy()),
-        .ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS,
+        .ComparisonFunc = D3D12_COMPARISON_FUNC_NONE,
         .BorderColor = { 0.f, 0.f, 0.f, 0.f },
         .MinLOD = sampler.getMinLOD(),
         .MaxLOD = sampler.getMaxLOD()
@@ -373,34 +433,42 @@ void DirectX12DescriptorSet::update(const UInt32& binding, const IDirectX12Sampl
     m_impl->m_layout.device().updateSamplerDescriptors(*this, offset, 1);
 }
 
-void DirectX12DescriptorSet::attach(const UInt32& binding, const IDirectX12Image& image) const
+void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12AccelerationStructure& accelerationStructure, UInt32 descriptor) const
 {
-    auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
 
-    D3D12_SHADER_RESOURCE_VIEW_DESC inputAttachmentView = {
-        .Format = DX12::getFormat(image.format()),
-        .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+    
+    const auto& layout = *(*match);
+
+    if (layout.descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
+        throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor.", binding);
+
+    auto buffer = accelerationStructure.buffer();
+
+    if (buffer == nullptr) [[unlikely]]
+        throw InvalidArgumentException("accelerationStructure", "The acceleration structure buffer has not yet been allocated.");
+
+    auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
+    auto descriptorSize = m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, descriptorSize);
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
+        .Format = DXGI_FORMAT_UNKNOWN,
+        .ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
         .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-        .Texture2D = { .MostDetailedMip = 0, .MipLevels = 1, .PlaneSlice = 0, .ResourceMinLODClamp = 0 },
+        .RaytracingAccelerationStructure = { .Location = buffer->virtualAddress() }
     };
 
-    // DSV needs special care.
-    // TODO: Support stencil targets, which require a separate view.
-    if (::hasDepth(image.format()))
-    {
-        switch (image.format())
-        {
-        case Format::D16_UNORM:             inputAttachmentView.Format = DXGI_FORMAT_R16_UNORM; break;
-        case Format::D32_SFLOAT:            inputAttachmentView.Format = DXGI_FORMAT_R32_FLOAT; break;
-        case Format::D24_UNORM_S8_UINT:     inputAttachmentView.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; break;
-        case Format::D32_SFLOAT_S8_UINT:    inputAttachmentView.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; break;
-        //case Format::D16_UNORM_S8_UINT: ??
-        //case Format::X8_D24_UNORM: ??
-        }
-    }
+    m_impl->m_layout.device().handle()->CreateShaderResourceView(nullptr, &bufferView, descriptorHandle);
+    descriptorHandle = descriptorHandle.Offset(descriptorSize);
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-    m_impl->m_layout.device().handle()->CreateShaderResourceView(image.handle().Get(), &inputAttachmentView, descriptorHandle);
     m_impl->updateGlobalBuffers(offset, 1);
 }
 
@@ -409,7 +477,7 @@ const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::bufferHeap() const n
     return m_impl->m_bufferHeap;
 }
 
-const UInt32& DirectX12DescriptorSet::bufferOffset() const noexcept
+UInt32 DirectX12DescriptorSet::bufferOffset() const noexcept
 {
     return m_impl->m_bufferOffset;
 }
@@ -419,7 +487,7 @@ const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::samplerHeap() const 
     return m_impl->m_samplerHeap;
 }
 
-const UInt32& DirectX12DescriptorSet::samplerOffset() const noexcept
+UInt32 DirectX12DescriptorSet::samplerOffset() const noexcept
 {
     return m_impl->m_samplerOffset;
 }

@@ -19,7 +19,7 @@ private:
     UInt32 m_size;
 
 public:
-    VulkanPushConstantsLayoutImpl(VulkanPushConstantsLayout* parent, const UInt32& size) :
+    VulkanPushConstantsLayoutImpl(VulkanPushConstantsLayout* parent, UInt32 size) :
         base(parent), m_size(size)
     {
         // Align the size to 4 bytes.
@@ -31,13 +31,13 @@ public:
     }
 
 private:
-    void setRanges(Array<UniquePtr<VulkanPushConstantsRange>>&& ranges)
+    void setRanges(Enumerable<UniquePtr<VulkanPushConstantsRange>>&& ranges)
     {
-        m_rangePointers = std::move(ranges);
+        m_rangePointers = ranges | std::views::as_rvalue | std::ranges::to<std::vector>();
 
         std::ranges::for_each(m_rangePointers, [this](const UniquePtr<VulkanPushConstantsRange>& range) {
             if (m_ranges.contains(static_cast<ShaderStage>(range->stage())))
-                throw InvalidArgumentException("Only one push constant range can be mapped to a shader stage.");
+                throw InvalidArgumentException("ranges", "Only one push constant range can be mapped to a shader stage.");
 
             m_ranges[range->stage()] = range.get();
         });
@@ -48,13 +48,13 @@ private:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanPushConstantsLayout::VulkanPushConstantsLayout(Array<UniquePtr<VulkanPushConstantsRange>>&& ranges, const UInt32& size) :
+VulkanPushConstantsLayout::VulkanPushConstantsLayout(Enumerable<UniquePtr<VulkanPushConstantsRange>>&& ranges, UInt32 size) :
     m_impl(makePimpl<VulkanPushConstantsLayoutImpl>(this, size))
 {
     m_impl->setRanges(std::move(ranges));
 }
 
-VulkanPushConstantsLayout::VulkanPushConstantsLayout(const UInt32& size) :
+VulkanPushConstantsLayout::VulkanPushConstantsLayout(UInt32 size) :
     m_impl(makePimpl<VulkanPushConstantsLayoutImpl>(this, size))
 {
 }
@@ -77,68 +77,46 @@ void VulkanPushConstantsLayout::pipelineLayout(const VulkanPipelineLayout& pipel
         throw RuntimeException("The push constant layout has already been initialized from another pipeline layout.");
 }
 
-const UInt32& VulkanPushConstantsLayout::size() const noexcept
+UInt32 VulkanPushConstantsLayout::size() const noexcept
 {
     return m_impl->m_size;
 }
 
-const VulkanPushConstantsRange& VulkanPushConstantsLayout::range(const ShaderStage& stage) const
+const VulkanPushConstantsRange& VulkanPushConstantsLayout::range(ShaderStage stage) const
 {
-    if (!(static_cast<UInt32>(stage) && !(static_cast<UInt32>(stage) & (static_cast<UInt32>(stage) - 1))))
-        throw ArgumentOutOfRangeException("The stage mask must only contain one shader stage.");
+    if (!(std::to_underlying(stage) && !(std::to_underlying(stage) & (std::to_underlying(stage) - 1))))
+        throw InvalidArgumentException("stage", "The stage mask must only contain one shader stage.");
 
     if (!m_impl->m_ranges.contains(stage))
-        throw InvalidArgumentException("No push constant range has been associated with the provided shader stage.");
+        throw InvalidArgumentException("stage", "No push constant range has been associated with the provided shader stage.");
 
     return *m_impl->m_ranges[stage];
 }
 
-Array<const VulkanPushConstantsRange*> VulkanPushConstantsLayout::ranges() const noexcept
+Enumerable<const VulkanPushConstantsRange*> VulkanPushConstantsLayout::ranges() const noexcept
 {
-    return m_impl->m_rangePointers |
-        std::views::transform([](const UniquePtr<VulkanPushConstantsRange>& range) { return range.get(); }) |
-        ranges::to<Array<const VulkanPushConstantsRange*>>();
+    return m_impl->m_rangePointers | std::views::transform([](const UniquePtr<VulkanPushConstantsRange>& range) { return range.get(); });
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
-// ------------------------------------------------------------------------------------------------
-// Push constants layout builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class VulkanPushConstantsLayoutBuilder::VulkanPushConstantsLayoutBuilderImpl : public Implement<VulkanPushConstantsLayoutBuilder> {
-public:
-    friend class VulkanPushConstantsLayoutBuilder;
-
-private:
-    Array<UniquePtr<VulkanPushConstantsRange>> m_ranges;
-    UInt32 m_size;
-
-public:
-    VulkanPushConstantsLayoutBuilderImpl(VulkanPushConstantsLayoutBuilder* parent, const UInt32& size) :
-        base(parent), m_size(size)
-    {
-    }
-};
-
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Push constants layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanPushConstantsLayoutBuilder::VulkanPushConstantsLayoutBuilder(VulkanPipelineLayoutBuilder& parent, const UInt32& size) :
-    m_impl(makePimpl<VulkanPushConstantsLayoutBuilderImpl>(this, size)), PushConstantsLayoutBuilder(parent, UniquePtr<VulkanPushConstantsLayout>(new VulkanPushConstantsLayout(size)))
+constexpr VulkanPushConstantsLayoutBuilder::VulkanPushConstantsLayoutBuilder(VulkanPipelineLayoutBuilder& parent, UInt32 size) :
+    PushConstantsLayoutBuilder(parent, UniquePtr<VulkanPushConstantsLayout>(new VulkanPushConstantsLayout(size)))
 {
 }
 
-VulkanPushConstantsLayoutBuilder::~VulkanPushConstantsLayoutBuilder() noexcept = default;
+constexpr VulkanPushConstantsLayoutBuilder::~VulkanPushConstantsLayoutBuilder() noexcept = default;
 
 void VulkanPushConstantsLayoutBuilder::build()
 {
-    this->instance()->m_impl->setRanges(std::move(m_impl->m_ranges));
+    this->instance()->m_impl->setRanges(std::move(m_state.ranges | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<VulkanPushConstantsRange>>>()));
 }
 
-VulkanPushConstantsLayoutBuilder& VulkanPushConstantsLayoutBuilder::withRange(const ShaderStage& shaderStages, const UInt32& offset, const UInt32& size, const UInt32& space, const UInt32& binding)
+UniquePtr<VulkanPushConstantsRange> VulkanPushConstantsLayoutBuilder::makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding)
 {
-    m_impl->m_ranges.push_back(makeUnique<VulkanPushConstantsRange>(shaderStages, offset, size, space, binding));
-    return *this;
+    return makeUnique<VulkanPushConstantsRange>(shaderStages, offset, size, space, binding);
 }
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

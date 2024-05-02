@@ -66,7 +66,7 @@ void App::startBackend(std::type_index type) const
 	auto backend = const_cast<IBackend*>(this->getBackend(type));
 
 	if (backend == nullptr)
-		throw InvalidArgumentException("No backend of type {0} has been registered.", type.name());
+		throw InvalidArgumentException("type", "No backend of type {0} has been registered.", type.name());
 
 	if (backend->state() == BackendState::Active)
 		return;
@@ -93,7 +93,7 @@ void App::stopBackend(std::type_index type) const
 	auto backend = const_cast<IBackend*>(this->getBackend(type));
 
 	if (backend == nullptr)
-		throw InvalidArgumentException("No backend of type {0} has been registered.", type.name());
+		throw InvalidArgumentException("type", "No backend of type {0} has been registered.", type.name());
 
 	if (backend->state() != BackendState::Inactive)
 	{
@@ -111,13 +111,13 @@ void App::stopBackend(std::type_index type) const
 	}
 }
 
-void App::stopActiveBackends(const BackendType& type) const
+void App::stopActiveBackends(BackendType type) const
 {
 	for (auto& backend : m_impl->m_backends | std::views::filter([type](const auto& b) { return b.second->type() == type && b.second->state() == BackendState::Active; }))
 		this->stopBackend(backend.first);
 }
 
-IBackend* App::activeBackend(const BackendType& type) const
+IBackend* App::activeBackend(BackendType type) const
 {
 	for (auto& backend : m_impl->m_backends | std::views::filter([type](const auto& b) { return b.second->type() == type && b.second->state() == BackendState::Active; }))
 		return backend.second.get();
@@ -125,7 +125,7 @@ IBackend* App::activeBackend(const BackendType& type) const
 	return nullptr;
 }
 
-std::type_index App::activeBackendType(const BackendType& type) const
+std::type_index App::activeBackendType(BackendType type) const
 {
 	for (auto& backend : m_impl->m_backends | std::views::filter([type](const auto& b) { return b.second->type() == type && b.second->state() == BackendState::Active; }))
 		return backend.first;
@@ -143,12 +143,11 @@ void App::registerStopCallback(std::type_index type, const std::function<void()>
 	m_impl->m_stopCallbacks.insert(std::make_pair(type, callback));
 }
 
-Array<const IBackend*> App::getBackends(const BackendType type) const noexcept
+Enumerable<const IBackend*> App::getBackends(const BackendType type) const noexcept
 {
 	return m_impl->m_backends |
 		std::views::transform([](const auto& backend) { return backend.second.get(); }) |
-		std::views::filter([type](const auto backend) { return backend->type() == type; }) |
-		ranges::to<Array<const IBackend*>>();
+		std::views::filter([type](const auto backend) { return backend->type() == type; });
 }
 
 void App::use(UniquePtr<IBackend>&& backend)
@@ -156,7 +155,7 @@ void App::use(UniquePtr<IBackend>&& backend)
 	auto type = backend->typeId();
 
 	if (m_impl->m_backends.contains(type))
-		throw InvalidArgumentException("Another backend of type {0} already has been registered. An application may only contain one backend of a certain type.", type.name());
+		throw InvalidArgumentException("backend", "Another backend of type {0} already has been registered. An application may only contain one backend of a certain type.", type.name());
 
 	m_impl->m_backends[type] = std::move(backend);
 
@@ -172,10 +171,29 @@ void App::run()
 	// Start the app.
 	Logger::get(this->name()).info("Starting app (Version {1}) on platform {0}...", this->platform(), this->version());
 	Logger::get(this->name()).debug("Using engine: {0:e}.", this->version());
+
+	// Start the first registered rendering backend for each backend type.
+	for (BackendType type : VALID_BACKEND_TYPES)
+	{
+		auto backends = this->getBackends(type);
+
+		if (!backends.empty())
+			this->startBackend(backends.front()->typeId());
+	}
+
+	// Fire startup event.
 	this->startup(this, { });
+
+	// Shutdown the app.
+	Logger::get(this->name()).debug("Shutting down app...", this->version());
+
+	for (auto& backend : m_impl->m_backends | std::views::filter([](const auto& b) { return b.second->state() == BackendState::Active; }))
+		this->stopBackend(backend.first);
+
+	this->shutdown(this, { });
 }
 
-void App::resize(int& width, int& height)
+void App::resize(int width, int height)
 {
 	// Ensure the area is at least 1 pixel into each direction.
 	width = std::max(width, 1);
@@ -190,7 +208,7 @@ void App::resize(int& width, int& height)
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-void AppBuilder::use(UniquePtr<IBackend>&& backend)
+constexpr void AppBuilder::use(UniquePtr<IBackend>&& backend)
 {
 	this->instance()->use(std::move(backend));
 }

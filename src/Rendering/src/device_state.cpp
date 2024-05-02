@@ -12,12 +12,14 @@ public:
 
 private:
     Dictionary<String, UniquePtr<IRenderPass>> m_renderPasses;
+    Dictionary<String, UniquePtr<IFrameBuffer>> m_frameBuffers;
     Dictionary<String, UniquePtr<IPipeline>> m_pipelines;
     Dictionary<String, UniquePtr<IBuffer>> m_buffers;
     Dictionary<String, UniquePtr<IVertexBuffer>> m_vertexBuffers;
     Dictionary<String, UniquePtr<IIndexBuffer>> m_indexBuffers;
     Dictionary<String, UniquePtr<IImage>> m_images;
     Dictionary<String, UniquePtr<ISampler>> m_samplers;
+    Dictionary<String, UniquePtr<IAccelerationStructure>> m_accelerationStructures;
     Dictionary<String, UniquePtr<IDescriptorSet>> m_descriptorSets;
 
 public:
@@ -77,6 +79,11 @@ void DeviceState::clear()
 
     m_impl->m_samplers.clear();
 
+    for (auto& pair : m_impl->m_accelerationStructures)
+        pair.second = nullptr;
+
+    m_impl->m_accelerationStructures.clear();
+
     // Clear pipelines.
     for (auto& pair : m_impl->m_pipelines)
         pair.second = nullptr;
@@ -88,6 +95,12 @@ void DeviceState::clear()
         pair.second = nullptr;
 
     m_impl->m_renderPasses.clear();
+
+    // Clear the frame buffers.
+    for (auto& pair : m_impl->m_frameBuffers)
+        pair.second = nullptr;
+
+    m_impl->m_frameBuffers.clear();
 }
 
 void DeviceState::add(UniquePtr<IRenderPass>&& renderPass)
@@ -98,12 +111,28 @@ void DeviceState::add(UniquePtr<IRenderPass>&& renderPass)
 void DeviceState::add(const String& id, UniquePtr<IRenderPass>&& renderPass)
 {
     if (renderPass == nullptr) [[unlikely]]
-        throw new InvalidArgumentException("The render pass must be initialized.");
+        throw InvalidArgumentException("renderPass", "The render pass must be initialized.");
 
     if (m_impl->m_renderPasses.contains(id)) [[unlikely]]
-        throw InvalidArgumentException("Another render pass with the identifier \"{0}\" has already been registered in the device state.", id);
+        throw InvalidArgumentException("id", "Another render pass with the identifier \"{0}\" has already been registered in the device state.", id);
 
     m_impl->m_renderPasses.insert(std::make_pair(id, std::move(renderPass)));
+}
+
+void DeviceState::add(UniquePtr<IFrameBuffer>&& frameBuffer)
+{
+    this->add(frameBuffer->name(), std::move(frameBuffer));
+}
+
+void DeviceState::add(const String& id, UniquePtr<IFrameBuffer>&& frameBuffer)
+{
+    if (frameBuffer == nullptr) [[unlikely]]
+        throw InvalidArgumentException("frameBuffer", "The frame buffer must be initialized.");
+
+    if (m_impl->m_frameBuffers.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("id", "Another frame buffer with the identifier \"{0}\" has already been registered in the device state.", id);
+
+    m_impl->m_frameBuffers.insert(std::make_pair(id, std::move(frameBuffer)));
 }
 
 void DeviceState::add(UniquePtr<IPipeline>&& pipeline)
@@ -114,10 +143,10 @@ void DeviceState::add(UniquePtr<IPipeline>&& pipeline)
 void DeviceState::add(const String& id, UniquePtr<IPipeline>&& pipeline)
 {
     if (pipeline == nullptr) [[unlikely]]
-        throw new InvalidArgumentException("The pipeline must be initialized.");
+        throw InvalidArgumentException("pipeline", "The pipeline must be initialized.");
 
     if (m_impl->m_pipelines.contains(id)) [[unlikely]]
-        throw InvalidArgumentException("Another pipeline with the identifier \"{0}\" has already been registered in the device state.", id);
+        throw InvalidArgumentException("id", "Another pipeline with the identifier \"{0}\" has already been registered in the device state.", id);
 
     m_impl->m_pipelines.insert(std::make_pair(id, std::move(pipeline)));
 }
@@ -130,10 +159,10 @@ void DeviceState::add(UniquePtr<IBuffer>&& buffer)
 void DeviceState::add(const String& id, UniquePtr<IBuffer>&& buffer)
 {
     if (buffer == nullptr) [[unlikely]]
-        throw new InvalidArgumentException("The buffer must be initialized.");
+        throw InvalidArgumentException("buffer", "The buffer must be initialized.");
 
     if (m_impl->m_buffers.contains(id)) [[unlikely]]
-        throw InvalidArgumentException("Another buffer with the identifier \"{0}\" has already been registered in the device state.", id);
+        throw InvalidArgumentException("id", "Another buffer with the identifier \"{0}\" has already been registered in the device state.", id);
 
     m_impl->m_buffers.insert(std::make_pair(id, std::move(buffer)));
 }
@@ -146,10 +175,10 @@ void DeviceState::add(UniquePtr<IVertexBuffer>&& vertexBuffer)
 void DeviceState::add(const String& id, UniquePtr<IVertexBuffer>&& vertexBuffer)
 {
     if (vertexBuffer == nullptr) [[unlikely]]
-        throw new InvalidArgumentException("The vertex buffer must be initialized.");
+        throw InvalidArgumentException("vertexBuffer", "The vertex buffer must be initialized.");
 
     if (m_impl->m_vertexBuffers.contains(id)) [[unlikely]]
-        throw InvalidArgumentException("Another vertex buffer with the identifier \"{0}\" has already been registered in the device state.", id);
+        throw InvalidArgumentException("id", "Another vertex buffer with the identifier \"{0}\" has already been registered in the device state.", id);
 
     m_impl->m_vertexBuffers.insert(std::make_pair(id, std::move(vertexBuffer)));
 }
@@ -162,10 +191,10 @@ void DeviceState::add(UniquePtr<IIndexBuffer>&& indexBuffer)
 void DeviceState::add(const String& id, UniquePtr<IIndexBuffer>&& indexBuffer)
 {
     if (indexBuffer == nullptr) [[unlikely]]
-        throw new InvalidArgumentException("The index buffer must be initialized.");
+        throw InvalidArgumentException("indexBuffer", "The index buffer must be initialized.");
 
     if (m_impl->m_indexBuffers.contains(id)) [[unlikely]]
-        throw InvalidArgumentException("Another index buffer with the identifier \"{0}\" has already been registered in the device state.", id);
+        throw InvalidArgumentException("id", "Another index buffer with the identifier \"{0}\" has already been registered in the device state.", id);
 
     m_impl->m_indexBuffers.insert(std::make_pair(id, std::move(indexBuffer)));
 }
@@ -178,10 +207,10 @@ void DeviceState::add(UniquePtr<IImage>&& image)
 void DeviceState::add(const String& id, UniquePtr<IImage>&& image)
 {
     if (image == nullptr) [[unlikely]]
-        throw new InvalidArgumentException("The image must be initialized.");
+        throw InvalidArgumentException("image", "The image must be initialized.");
 
     if (m_impl->m_images.contains(id)) [[unlikely]]
-        throw InvalidArgumentException("Another image with the identifier \"{0}\" has already been registered in the device state.", id);
+        throw InvalidArgumentException("id", "Another image with the identifier \"{0}\" has already been registered in the device state.", id);
 
     m_impl->m_images.insert(std::make_pair(id, std::move(image)));
 }
@@ -194,21 +223,37 @@ void DeviceState::add(UniquePtr<ISampler>&& sampler)
 void DeviceState::add(const String& id, UniquePtr<ISampler>&& sampler)
 {
     if (sampler == nullptr) [[unlikely]]
-        throw new InvalidArgumentException("The sampler must be initialized.");
+        throw InvalidArgumentException("sampler", "The sampler must be initialized.");
 
     if (m_impl->m_samplers.contains(id)) [[unlikely]]
-        throw InvalidArgumentException("Another sampler with the identifier \"{0}\" has already been registered in the device state.", id);
+        throw InvalidArgumentException("id", "Another sampler with the identifier \"{0}\" has already been registered in the device state.", id);
 
     m_impl->m_samplers.insert(std::make_pair(id, std::move(sampler)));
+}
+
+void DeviceState::add(UniquePtr<IAccelerationStructure>&& accelerationStructure)
+{
+    this->add(accelerationStructure->name(), std::move(accelerationStructure));
+}
+
+void DeviceState::add(const String& id, UniquePtr<IAccelerationStructure>&& accelerationStructure)
+{
+    if (accelerationStructure == nullptr) [[unlikely]]
+        throw InvalidArgumentException("accelerationStructure", "The acceleration structure must be initialized.");
+
+    if (m_impl->m_samplers.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("id", "Another acceleration structure with the identifier \"{0}\" has already been registered in the device state.", id);
+
+    m_impl->m_accelerationStructures.insert(std::make_pair(id, std::move(accelerationStructure)));
 }
 
 void DeviceState::add(const String& id, UniquePtr<IDescriptorSet>&& descriptorSet)
 {
     if (descriptorSet == nullptr) [[unlikely]]
-        throw new InvalidArgumentException("The descriptor set must be initialized.");
+        throw InvalidArgumentException("descriptorSet", "The descriptor set must be initialized.");
 
     if (m_impl->m_descriptorSets.contains(id)) [[unlikely]]
-        throw InvalidArgumentException("Another descriptor set with the identifier \"{0}\" has already been registered in the device state.", id);
+        throw InvalidArgumentException("id", "Another descriptor set with the identifier \"{0}\" has already been registered in the device state.", id);
 
     m_impl->m_descriptorSets.insert(std::make_pair(id, std::move(descriptorSet)));
 }
@@ -216,15 +261,23 @@ void DeviceState::add(const String& id, UniquePtr<IDescriptorSet>&& descriptorSe
 IRenderPass& DeviceState::renderPass(const String& id) const
 {
     if (!m_impl->m_renderPasses.contains(id)) [[unlikely]]
-        throw InvalidArgumentException("No render pass with the identifier \"{0}\" has been registered in the device state.", id);
+        throw InvalidArgumentException("id", "No render pass with the identifier \"{0}\" has been registered in the device state.", id);
 
     return *m_impl->m_renderPasses[id];
+}
+
+IFrameBuffer& DeviceState::frameBuffer(const String& id) const
+{
+    if (!m_impl->m_frameBuffers.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("id", "No frame buffer with the identifier \"{0}\" has been registered in the device state.", id);
+
+    return *m_impl->m_frameBuffers[id];
 }
 
 IPipeline& DeviceState::pipeline(const String& id) const
 {
     if (!m_impl->m_pipelines.contains(id)) [[unlikely]]
-        throw InvalidArgumentException("No pipelines with the identifier \"{0}\" has been registered in the device state.", id);
+        throw InvalidArgumentException("id", "No pipelines with the identifier \"{0}\" has been registered in the device state.", id);
 
     return *m_impl->m_pipelines[id];
 }
@@ -232,7 +285,7 @@ IPipeline& DeviceState::pipeline(const String& id) const
 IBuffer& DeviceState::buffer(const String& id) const
 {
     if (!m_impl->m_buffers.contains(id)) [[unlikely]]
-        throw InvalidArgumentException("No buffers with the identifier \"{0}\" has been registered in the device state.", id);
+        throw InvalidArgumentException("id", "No buffers with the identifier \"{0}\" has been registered in the device state.", id);
 
     return *m_impl->m_buffers[id];
 }
@@ -240,7 +293,7 @@ IBuffer& DeviceState::buffer(const String& id) const
 IVertexBuffer& DeviceState::vertexBuffer(const String& id) const
 {
     if (!m_impl->m_vertexBuffers.contains(id)) [[unlikely]]
-        throw InvalidArgumentException("No vertex buffers with the identifier \"{0}\" has been registered in the device state.", id);
+        throw InvalidArgumentException("id", "No vertex buffers with the identifier \"{0}\" has been registered in the device state.", id);
 
     return *m_impl->m_vertexBuffers[id];
 }
@@ -248,7 +301,7 @@ IVertexBuffer& DeviceState::vertexBuffer(const String& id) const
 IIndexBuffer& DeviceState::indexBuffer(const String& id) const
 {
     if (!m_impl->m_indexBuffers.contains(id)) [[unlikely]]
-        throw InvalidArgumentException("No index buffers with the identifier \"{0}\" has been registered in the device state.", id);
+        throw InvalidArgumentException("id", "No index buffers with the identifier \"{0}\" has been registered in the device state.", id);
 
     return *m_impl->m_indexBuffers[id];
 }
@@ -256,7 +309,7 @@ IIndexBuffer& DeviceState::indexBuffer(const String& id) const
 IImage& DeviceState::image(const String& id) const
 {
     if (!m_impl->m_images.contains(id)) [[unlikely]]
-        throw InvalidArgumentException("No images with the identifier \"{0}\" has been registered in the device state.", id);
+        throw InvalidArgumentException("id", "No images with the identifier \"{0}\" has been registered in the device state.", id);
 
     return *m_impl->m_images[id];
 }
@@ -264,15 +317,23 @@ IImage& DeviceState::image(const String& id) const
 ISampler& DeviceState::sampler(const String& id) const
 {
     if (!m_impl->m_samplers.contains(id)) [[unlikely]]
-        throw InvalidArgumentException("No samplers with the identifier \"{0}\" has been registered in the device state.", id);
+        throw InvalidArgumentException("id", "No samplers with the identifier \"{0}\" has been registered in the device state.", id);
 
     return *m_impl->m_samplers[id];
+}
+
+IAccelerationStructure& DeviceState::accelerationStructure(const String& id) const
+{
+    if (!m_impl->m_accelerationStructures.contains(id)) [[unlikely]]
+        throw InvalidArgumentException("id", "No acceleration structure with the identifier \"{0}\" has been registered in the device state.", id);
+
+    return *m_impl->m_accelerationStructures[id];
 }
 
 IDescriptorSet& DeviceState::descriptorSet(const String& id) const
 {
     if (!m_impl->m_descriptorSets.contains(id)) [[unlikely]]
-        throw InvalidArgumentException("No descriptor sets with the identifier \"{0}\" has been registered in the device state.", id);
+        throw InvalidArgumentException("id", "No descriptor sets with the identifier \"{0}\" has been registered in the device state.", id);
 
     return *m_impl->m_descriptorSets[id];
 }
@@ -286,6 +347,19 @@ bool DeviceState::release(const IRenderPass& renderPass)
 
     match->second = nullptr;
     m_impl->m_renderPasses.erase(match->first);
+
+    return true;
+}
+
+bool DeviceState::release(const IFrameBuffer& frameBuffer)
+{
+    auto match = std::find_if(m_impl->m_frameBuffers.begin(), m_impl->m_frameBuffers.end(), [&frameBuffer](const auto& pair) { return pair.second.get() == &frameBuffer; });
+    
+    if (match == m_impl->m_frameBuffers.end()) [[unlikely]]
+        return false;
+
+    match->second = nullptr;
+    m_impl->m_frameBuffers.erase(match->first);
 
     return true;
 }

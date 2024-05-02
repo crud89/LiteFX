@@ -16,7 +16,7 @@ private:
     AttributeSemantic m_semantic;
 
 public:
-    BufferAttributeImpl(BufferAttribute* parent, const UInt32& location, const UInt32& offset, const BufferFormat& format, const AttributeSemantic& semantic, const UInt32& semanticIndex) :
+    BufferAttributeImpl(BufferAttribute* parent, UInt32 location, UInt32 offset, BufferFormat format, AttributeSemantic semantic, UInt32 semanticIndex) :
         base(parent), m_location(location), m_offset(offset), m_format(format), m_semantic(semantic), m_semanticIndex(semanticIndex) 
     {
     }
@@ -31,7 +31,7 @@ BufferAttribute::BufferAttribute() :
 {
 }
 
-BufferAttribute::BufferAttribute(const UInt32& location, const UInt32& offset, const BufferFormat& format, const AttributeSemantic& semantic, const UInt32& semanticIndex) :
+BufferAttribute::BufferAttribute(UInt32 location, UInt32 offset, BufferFormat format, AttributeSemantic semantic, UInt32 semanticIndex) :
     m_impl(makePimpl<BufferAttributeImpl>(this, location, offset, format, semantic, semanticIndex))
 {
 }
@@ -49,27 +49,27 @@ BufferAttribute::BufferAttribute(BufferAttribute&& _other) noexcept :
 
 BufferAttribute::~BufferAttribute() noexcept = default;
 
-const UInt32& BufferAttribute::location() const noexcept
+UInt32 BufferAttribute::location() const noexcept
 {
     return m_impl->m_location;
 }
 
-const BufferFormat& BufferAttribute::format() const noexcept
+BufferFormat BufferAttribute::format() const noexcept
 {
     return m_impl->m_format;
 }
 
-const UInt32& BufferAttribute::offset() const noexcept
+UInt32 BufferAttribute::offset() const noexcept
 {
     return m_impl->m_offset;
 }
 
-const AttributeSemantic& BufferAttribute::semantic() const noexcept
+AttributeSemantic BufferAttribute::semantic() const noexcept
 {
     return m_impl->m_semantic;
 }
 
-const UInt32& BufferAttribute::semanticIndex() const noexcept
+UInt32 BufferAttribute::semanticIndex() const noexcept
 {
     return m_impl->m_semanticIndex;
 }

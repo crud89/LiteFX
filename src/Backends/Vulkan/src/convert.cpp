@@ -2,7 +2,7 @@
 
 using namespace LiteFX::Rendering::Backends;
 
-Format LiteFX::Rendering::Backends::Vk::getFormat(const VkFormat& format)
+constexpr Format LiteFX::Rendering::Backends::Vk::getFormat(const VkFormat& format)
 {
 	switch (format)
 	{
@@ -303,7 +303,7 @@ Format LiteFX::Rendering::Backends::Vk::getFormat(const VkFormat& format)
 	}
 }
 
-VkFormat LiteFX::Rendering::Backends::Vk::getFormat(const Format& format)
+constexpr VkFormat LiteFX::Rendering::Backends::Vk::getFormat(Format format)
 {
 	switch (format)
 	{
@@ -604,7 +604,7 @@ VkFormat LiteFX::Rendering::Backends::Vk::getFormat(const Format& format)
 	}
 }
 
-VkFormat LiteFX::Rendering::Backends::Vk::getFormat(const BufferFormat& format)
+constexpr VkFormat LiteFX::Rendering::Backends::Vk::getFormat(BufferFormat format)
 {
 	switch (format)
 	{
@@ -661,7 +661,7 @@ VkFormat LiteFX::Rendering::Backends::Vk::getFormat(const BufferFormat& format)
 	}
 }
 
-PolygonMode LiteFX::Rendering::Backends::Vk::getPolygonMode(const VkPolygonMode& mode)
+constexpr PolygonMode LiteFX::Rendering::Backends::Vk::getPolygonMode(const VkPolygonMode& mode)
 {
 	switch (mode)
 	{
@@ -676,7 +676,7 @@ PolygonMode LiteFX::Rendering::Backends::Vk::getPolygonMode(const VkPolygonMode&
 	}
 }
 
-VkPolygonMode LiteFX::Rendering::Backends::Vk::getPolygonMode(const PolygonMode& mode)
+constexpr VkPolygonMode LiteFX::Rendering::Backends::Vk::getPolygonMode(PolygonMode mode)
 {
 	switch (mode)
 	{
@@ -691,7 +691,7 @@ VkPolygonMode LiteFX::Rendering::Backends::Vk::getPolygonMode(const PolygonMode&
 	}
 }
 
-CullMode LiteFX::Rendering::Backends::Vk::getCullMode(const VkCullModeFlags& mode)
+constexpr CullMode LiteFX::Rendering::Backends::Vk::getCullMode(const VkCullModeFlags& mode)
 {
 	switch (mode)
 	{
@@ -708,7 +708,7 @@ CullMode LiteFX::Rendering::Backends::Vk::getCullMode(const VkCullModeFlags& mod
 	}
 }
 
-VkCullModeFlags LiteFX::Rendering::Backends::Vk::getCullMode(const CullMode& mode)
+constexpr VkCullModeFlags LiteFX::Rendering::Backends::Vk::getCullMode(CullMode mode)
 {
 	switch (mode)
 	{
@@ -725,7 +725,7 @@ VkCullModeFlags LiteFX::Rendering::Backends::Vk::getCullMode(const CullMode& mod
 	}
 }
 
-PrimitiveTopology LiteFX::Rendering::Backends::Vk::getPrimitiveTopology(const VkPrimitiveTopology& topology)
+constexpr PrimitiveTopology LiteFX::Rendering::Backends::Vk::getPrimitiveTopology(const VkPrimitiveTopology& topology)
 {
 	switch (topology)
 	{
@@ -744,7 +744,7 @@ PrimitiveTopology LiteFX::Rendering::Backends::Vk::getPrimitiveTopology(const Vk
 	}
 }
 
-VkPrimitiveTopology LiteFX::Rendering::Backends::Vk::getPrimitiveTopology(const PrimitiveTopology& topology)
+constexpr VkPrimitiveTopology LiteFX::Rendering::Backends::Vk::getPrimitiveTopology(PrimitiveTopology topology)
 {
 	switch (topology)
 	{
@@ -763,7 +763,7 @@ VkPrimitiveTopology LiteFX::Rendering::Backends::Vk::getPrimitiveTopology(const 
 	}
 }
 
-ShaderStage LiteFX::Rendering::Backends::Vk::getShaderStage(const VkShaderStageFlagBits& shaderType)
+constexpr ShaderStage LiteFX::Rendering::Backends::Vk::getShaderStage(const VkShaderStageFlagBits& shaderType)
 {
 	switch (shaderType)
 	{
@@ -779,12 +779,28 @@ ShaderStage LiteFX::Rendering::Backends::Vk::getShaderStage(const VkShaderStageF
 		return ShaderStage::Fragment;
 	case VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT:
 		return ShaderStage::Compute;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_TASK_BIT_EXT:
+		return ShaderStage::Task;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_MESH_BIT_EXT:
+		return ShaderStage::Mesh;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_RAYGEN_BIT_KHR:
+		return ShaderStage::RayGeneration;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_ANY_HIT_BIT_KHR:
+		return ShaderStage::AnyHit;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR:
+		return ShaderStage::ClosestHit;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_INTERSECTION_BIT_KHR:
+		return ShaderStage::Intersection;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_MISS_BIT_KHR:
+		return ShaderStage::Miss;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_CALLABLE_BIT_KHR:
+		return ShaderStage::Callable;
 	default:
 		return ShaderStage::Other;
 	}
 }
 
-VkShaderStageFlagBits LiteFX::Rendering::Backends::Vk::getShaderStage(const ShaderStage& shaderType)
+constexpr VkShaderStageFlagBits LiteFX::Rendering::Backends::Vk::getShaderStage(ShaderStage shaderType)
 {
 	switch (shaderType)
 	{
@@ -800,13 +816,29 @@ VkShaderStageFlagBits LiteFX::Rendering::Backends::Vk::getShaderStage(const Shad
 		return VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT;
 	case ShaderStage::Compute:
 		return VkShaderStageFlagBits::VK_SHADER_STAGE_COMPUTE_BIT;
+	case ShaderStage::Task:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_TASK_BIT_EXT;
+	case ShaderStage::Mesh:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_MESH_BIT_EXT;
+	case ShaderStage::RayGeneration:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+	case ShaderStage::AnyHit:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+	case ShaderStage::ClosestHit:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+	case ShaderStage::Intersection:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
+	case ShaderStage::Miss:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_MISS_BIT_KHR;
+	case ShaderStage::Callable:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_CALLABLE_BIT_KHR;
 	case ShaderStage::Other:
 	default:
 		throw std::invalid_argument("Unsupported shader type.");
 	}
 }
 
-MultiSamplingLevel LiteFX::Rendering::Backends::Vk::getSamples(const VkSampleCountFlagBits& samples)
+constexpr MultiSamplingLevel LiteFX::Rendering::Backends::Vk::getSamples(const VkSampleCountFlagBits& samples)
 {
 	switch (samples)
 	{
@@ -829,7 +861,7 @@ MultiSamplingLevel LiteFX::Rendering::Backends::Vk::getSamples(const VkSampleCou
 	}
 }
 
-VkImageType LiteFX::Rendering::Backends::Vk::getImageType(const ImageDimensions& dimension)
+constexpr VkImageType LiteFX::Rendering::Backends::Vk::getImageType(ImageDimensions dimension)
 {
 	switch (dimension)
 	{
@@ -845,7 +877,7 @@ VkImageType LiteFX::Rendering::Backends::Vk::getImageType(const ImageDimensions&
 	}
 }
 
-VkImageViewType LiteFX::Rendering::Backends::Vk::getImageViewType(const ImageDimensions& dimension, const UInt32& layers)
+constexpr VkImageViewType LiteFX::Rendering::Backends::Vk::getImageViewType(ImageDimensions dimension, UInt32 layers)
 {
 	switch (dimension)
 	{
@@ -862,7 +894,7 @@ VkImageViewType LiteFX::Rendering::Backends::Vk::getImageViewType(const ImageDim
 	}
 }
 
-VkSampleCountFlagBits LiteFX::Rendering::Backends::Vk::getSamples(const MultiSamplingLevel& samples)
+constexpr VkSampleCountFlagBits LiteFX::Rendering::Backends::Vk::getSamples(MultiSamplingLevel samples)
 {
 	switch (samples)
 	{
@@ -885,7 +917,7 @@ VkSampleCountFlagBits LiteFX::Rendering::Backends::Vk::getSamples(const MultiSam
 	}
 }
 
-VkCompareOp LiteFX::Rendering::Backends::Vk::getCompareOp(const CompareOperation& compareOp)
+constexpr VkCompareOp LiteFX::Rendering::Backends::Vk::getCompareOp(CompareOperation compareOp)
 {
 	switch (compareOp) {
 	case CompareOperation::Never: return VkCompareOp::VK_COMPARE_OP_NEVER;
@@ -896,11 +928,11 @@ VkCompareOp LiteFX::Rendering::Backends::Vk::getCompareOp(const CompareOperation
 	case CompareOperation::GreaterEqual: return VkCompareOp::VK_COMPARE_OP_GREATER_OR_EQUAL;
 	case CompareOperation::NotEqual: return VkCompareOp::VK_COMPARE_OP_NOT_EQUAL;
 	case CompareOperation::Always: return VkCompareOp::VK_COMPARE_OP_ALWAYS;
-	default: throw InvalidArgumentException("Unsupported compare operation.");
+	default: throw InvalidArgumentException("compareOp", "Unsupported compare operation.");
 	}
 }
 
-VkStencilOp LiteFX::Rendering::Backends::Vk::getStencilOp(const StencilOperation& stencilOp)
+constexpr VkStencilOp LiteFX::Rendering::Backends::Vk::getStencilOp(StencilOperation stencilOp)
 {
 	switch (stencilOp) {
 	case StencilOperation::Keep: return VkStencilOp::VK_STENCIL_OP_KEEP;
@@ -911,11 +943,11 @@ VkStencilOp LiteFX::Rendering::Backends::Vk::getStencilOp(const StencilOperation
 	case StencilOperation::IncrementWrap: return VkStencilOp::VK_STENCIL_OP_INCREMENT_AND_WRAP;
 	case StencilOperation::DecrementClamp: return VkStencilOp::VK_STENCIL_OP_DECREMENT_AND_CLAMP;
 	case StencilOperation::DecrementWrap: return VkStencilOp::VK_STENCIL_OP_DECREMENT_AND_WRAP;
-	default: throw InvalidArgumentException("Unsupported stencil operation.");
+	default: throw InvalidArgumentException("stencilOp", "Unsupported stencil operation.");
 	}
 }
 
-VkBlendFactor LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendFactor(const BlendFactor& blendFactor)
+constexpr VkBlendFactor LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendFactor(BlendFactor blendFactor)
 {
 	switch (blendFactor) {
 	case BlendFactor::Zero: return VkBlendFactor::VK_BLEND_FACTOR_ZERO;
@@ -937,11 +969,11 @@ VkBlendFactor LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendFactor(
 	case BlendFactor::OneMinusSource1Color: return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
 	case BlendFactor::Source1Alpha: return VK_BLEND_FACTOR_SRC1_ALPHA;
 	case BlendFactor::OneMinusSource1Alpha: return VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
-	default: throw InvalidArgumentException("Unsupported blend factor.");
+	default: throw InvalidArgumentException("blendFactor", "Unsupported blend factor.");
 	}
 }
 
-VkBlendOp LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendOperation(const BlendOperation& blendOperation)
+constexpr VkBlendOp LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendOperation(BlendOperation blendOperation)
 {
 	switch (blendOperation) {
 	case BlendOperation::Add: return VkBlendOp::VK_BLEND_OP_ADD;
@@ -949,46 +981,147 @@ VkBlendOp LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendOperation(c
 	case BlendOperation::ReverseSubtract: return VkBlendOp::VK_BLEND_OP_REVERSE_SUBTRACT;
 	case BlendOperation::Minimum: return VkBlendOp::VK_BLEND_OP_MIN;
 	case BlendOperation::Maximum: return VkBlendOp::VK_BLEND_OP_MAX;
-	default: throw InvalidArgumentException("Unsupported blend operation.");
+	default: throw InvalidArgumentException("blendOperation", "Unsupported blend operation.");
 	}
 }
 
-VkImageLayout LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getImageLayout(const ResourceState& resourceState)
+constexpr VkPipelineStageFlags2 LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getPipelineStage(PipelineStage pipelineStage)
 {
-	switch (resourceState) {
-	case ResourceState::Common: return VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED;
-	case ResourceState::ReadOnly: return VkImageLayout::VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	case ResourceState::ReadWrite: return VkImageLayout::VK_IMAGE_LAYOUT_GENERAL;
-	case ResourceState::CopySource: return VkImageLayout::VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-	case ResourceState::CopyDestination: return VkImageLayout::VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	case ResourceState::RenderTarget: return VkImageLayout::VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	case ResourceState::DepthRead: return VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
-	case ResourceState::DepthWrite: return VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-	case ResourceState::Present:
-	case ResourceState::ResolveDestination: return VkImageLayout::VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-	case ResourceState::ResolveSource: return VkImageLayout::VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	default: throw InvalidArgumentException("Unsupported resource state.");
-	}
+	if (pipelineStage == PipelineStage::None)
+		return VK_PIPELINE_STAGE_2_NONE;
+	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::All))
+		return VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
+	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Draw))
+		return VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT;
+	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Compute))
+		return VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
+
+	VkPipelineStageFlags2 sync{ };
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::InputAssembly))
+		sync |= VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Vertex))
+		sync |= VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::TessellationControl))
+		sync |= VK_PIPELINE_STAGE_2_TESSELLATION_CONTROL_SHADER_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::TessellationEvaluation))
+		sync |= VK_PIPELINE_STAGE_2_TESSELLATION_EVALUATION_SHADER_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Geometry))
+		sync |= VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Fragment))
+		sync |= VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::DepthStencil))
+		sync |= VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Indirect))
+		sync |= VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::RenderTarget))
+		sync |= VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Transfer))
+		sync |= VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+	
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Resolve))
+		sync |= VK_PIPELINE_STAGE_2_RESOLVE_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Raytracing))
+		sync |= VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::AccelerationStructureBuild))
+		sync |= VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::AccelerationStructureCopy))
+		sync |= VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT_KHR;
+
+	// TODO: Mesh and task shader stages.
+
+	return sync;
 }
 
-VkAccessFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getAccessFlags(const ResourceState& resourceState)
+constexpr VkAccessFlags2 LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getResourceAccess(ResourceAccess resourceAccess)
 {
-	switch (resourceState) {
-	case ResourceState::Common: return 0; //return VkAccessFlagBits::VK_ACCESS_NONE_KHR;
-	case ResourceState::UniformBuffer: return VkAccessFlagBits::VK_ACCESS_UNIFORM_READ_BIT;
-	case ResourceState::VertexBuffer: return VkAccessFlagBits::VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
-	case ResourceState::IndexBuffer: return VkAccessFlagBits::VK_ACCESS_INDEX_READ_BIT;
-	case ResourceState::GenericRead: return VkAccessFlagBits::VK_ACCESS_SHADER_READ_BIT | VkAccessFlagBits::VK_ACCESS_INDEX_READ_BIT | VkAccessFlagBits::VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT | VkAccessFlagBits::VK_ACCESS_UNIFORM_READ_BIT | VkAccessFlagBits::VK_ACCESS_TRANSFER_READ_BIT | VkAccessFlagBits::VK_ACCESS_MEMORY_READ_BIT;
-	case ResourceState::ReadOnly: return VkAccessFlagBits::VK_ACCESS_SHADER_READ_BIT;
-	case ResourceState::ReadWrite: return VkAccessFlagBits::VK_ACCESS_SHADER_READ_BIT | VkAccessFlagBits::VK_ACCESS_SHADER_WRITE_BIT;
-	case ResourceState::CopySource: return VkAccessFlagBits::VK_ACCESS_TRANSFER_READ_BIT;
-	case ResourceState::CopyDestination: return VkAccessFlagBits::VK_ACCESS_TRANSFER_WRITE_BIT;
-	case ResourceState::RenderTarget: return VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VkAccessFlagBits::VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	case ResourceState::DepthRead: return VkAccessFlagBits::VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-	case ResourceState::DepthWrite: return VkAccessFlagBits::VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VkAccessFlagBits::VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	case ResourceState::Present:
-	case ResourceState::ResolveSource: return VkAccessFlagBits::VK_ACCESS_MEMORY_READ_BIT;
-	case ResourceState::ResolveDestination: return VkAccessFlagBits::VK_ACCESS_MEMORY_READ_BIT | VkAccessFlagBits::VK_ACCESS_MEMORY_WRITE_BIT;
-	default: throw InvalidArgumentException("Unsupported resource state.");
+	if (resourceAccess == ResourceAccess::None)
+		return VK_ACCESS_2_NONE;
+
+	VkAccessFlags2 access = { };
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::Common))
+		access |= (VK_ACCESS_2_MEMORY_WRITE_BIT | VK_ACCESS_2_MEMORY_READ_BIT);
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::VertexBuffer))
+		access |= VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::IndexBuffer))
+		access |= VK_ACCESS_2_INDEX_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::UniformBuffer))
+		access |= VK_ACCESS_2_UNIFORM_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::RenderTarget))
+		access |= VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::DepthStencilRead))
+		access |= VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::DepthStencilWrite))
+		access |= VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ShaderRead))
+		access |= VK_ACCESS_2_SHADER_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ShaderReadWrite))
+		access |= (VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT);
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::Indirect))
+		access |= VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::TransferRead))
+		access |= VK_ACCESS_2_TRANSFER_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::TransferWrite))
+		access |= VK_ACCESS_2_TRANSFER_WRITE_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ResolveRead))
+		access |= VK_ACCESS_2_MEMORY_READ_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ResolveWrite))
+		access |= VK_ACCESS_2_MEMORY_WRITE_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::AccelerationStructureRead))
+		access |= VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::AccelerationStructureWrite))
+		access |= VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;
+
+	return access;
+}
+
+constexpr VkImageLayout LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getImageLayout(ImageLayout imageLayout)
+{
+	switch (imageLayout) {
+	case ImageLayout::Common: return VK_IMAGE_LAYOUT_GENERAL;
+	case ImageLayout::ShaderResource: return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+	case ImageLayout::ReadWrite: return VK_IMAGE_LAYOUT_GENERAL;
+	case ImageLayout::CopySource: return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+	case ImageLayout::CopyDestination: return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	case ImageLayout::RenderTarget: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	case ImageLayout::DepthRead: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+	case ImageLayout::DepthWrite: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND // Images from interop swap chain must not be transitioned into present state.
+	case ImageLayout::Present: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+#else
+	case ImageLayout::Present: return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+#endif
+	case ImageLayout::ResolveSource: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	case ImageLayout::ResolveDestination: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	case ImageLayout::Undefined: return VK_IMAGE_LAYOUT_UNDEFINED;
+	default: throw InvalidArgumentException("imageLayout", "Unsupported image layout.");
 	}
 }

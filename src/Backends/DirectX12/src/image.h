@@ -14,7 +14,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(DirectX12ImageImpl);
 
 	public:
-		explicit DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr, const String& name = "");
+		explicit DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr, const String& name = "");
 		DirectX12Image(DirectX12Image&&) = delete;
 		DirectX12Image(const DirectX12Image&) = delete;
 		virtual ~DirectX12Image() noexcept;
@@ -22,54 +22,51 @@ namespace LiteFX::Rendering::Backends {
 		// IDeviceMemory interface.
 	public:
 		/// <inheritdoc />
-		virtual const UInt32& elements() const noexcept override;
+		UInt32 elements() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t size() const noexcept override;
+		size_t size() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t elementSize() const noexcept override;
+		size_t elementSize() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t elementAlignment() const noexcept override;
+		size_t elementAlignment() const noexcept override;
 
 		/// <inheritdoc />
-		virtual size_t alignedElementSize() const noexcept override;
+		size_t alignedElementSize() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const bool& writable() const noexcept override;
+		ResourceUsage usage() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const ResourceState& state(const UInt32& subresource = 0) const override;
-
-		/// <inheritdoc />
-		virtual ResourceState& state(const UInt32& subresource = 0) override;
+		UInt64 virtualAddress() const noexcept override;
 
 		// IImage interface.
 	public:
 		/// <inheritdoc />
-		virtual size_t size(const UInt32& level) const noexcept override;
+		size_t size(UInt32 level) const noexcept override;
 
 		/// <inheritdoc />
-		virtual Size3d extent(const UInt32& level = 0) const noexcept override;
+		Size3d extent(UInt32 level = 0) const noexcept override;
 
 		/// <inheritdoc />
-		virtual const Format& format() const noexcept override;
+		Format format() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const ImageDimensions& dimensions() const noexcept override;
+		ImageDimensions dimensions() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const UInt32& levels() const noexcept override;
+		UInt32 levels() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const UInt32& layers() const noexcept override;
+		UInt32 layers() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const UInt32& planes() const noexcept override;
+		UInt32 planes() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const MultiSamplingLevel& samples() const noexcept override;
+		MultiSamplingLevel samples() const noexcept override;
 
 		// DirectX 12 image.
 	public:
@@ -77,8 +74,8 @@ namespace LiteFX::Rendering::Backends {
 		virtual const D3D12MA::Allocation* allocationInfo() const noexcept;
 
 	public:
-		static UniquePtr<DirectX12Image> allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
-		static UniquePtr<DirectX12Image> allocate(const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
+		static UniquePtr<DirectX12Image> allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
+		static UniquePtr<DirectX12Image> allocate(const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
 	};
 
 	/// <summary>
@@ -102,7 +99,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="maxLod"></param>
 		/// <param name="minLod"></param>
 		/// <param name="anisotropy"></param>
-		explicit DirectX12Sampler(const DirectX12Device& device, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& minLod = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& anisotropy = 0.f, const String& name = "");
+		explicit DirectX12Sampler(const DirectX12Device& device, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float minLod = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float anisotropy = 0.f, const String& name = "");
 		DirectX12Sampler(DirectX12Sampler&&) = delete;
 		DirectX12Sampler(const DirectX12Sampler&) = delete;
 		virtual ~DirectX12Sampler() noexcept;
@@ -110,33 +107,33 @@ namespace LiteFX::Rendering::Backends {
 		// ISampler interface.
 	public:
 		/// <inheritdoc />
-		virtual const FilterMode& getMinifyingFilter() const noexcept override;
+		FilterMode getMinifyingFilter() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const FilterMode& getMagnifyingFilter() const noexcept override;
+		FilterMode getMagnifyingFilter() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const BorderMode& getBorderModeU() const noexcept override;
+		BorderMode getBorderModeU() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const BorderMode& getBorderModeV() const noexcept override;
+		BorderMode getBorderModeV() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const BorderMode& getBorderModeW() const noexcept override;
+		BorderMode getBorderModeW() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const Float& getAnisotropy() const noexcept override;
+		Float getAnisotropy() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const MipMapMode& getMipMapMode() const noexcept override;
+		MipMapMode getMipMapMode() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const Float& getMipMapBias() const noexcept override;
+		Float getMipMapBias() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const Float& getMaxLOD() const noexcept override;
+		Float getMaxLOD() const noexcept override;
 
 		/// <inheritdoc />
-		virtual const Float& getMinLOD() const noexcept override;
+		Float getMinLOD() const noexcept override;
 	};
 }

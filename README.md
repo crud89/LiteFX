@@ -1,12 +1,16 @@
 # LiteFX
 
-An extensible, descriptive, modern computer graphics and rendering engine, written in C++20.
+An extensible, descriptive, modern computer graphics and rendering engine, written in C++23.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/crud89/LiteFX/main/docs/img/banner_m.jpg?token=AEMKYX75E4UF4U6GAT5ZTIDA3C4GU">
 </p>
 
-[![GitHub](https://img.shields.io/github/license/crud89/litefx)](https://github.com/crud89/LiteFX/blob/main/LICENSE) [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/crud89/litefx/weekly.yml?branch=main)](https://github.com/crud89/LiteFX/actions/workflows/weekly.yml) [![Latest release](https://img.shields.io/github/release/crud89/litefx.svg)](https://github.com/crud89/LiteFX/releases) [![Released at](https://img.shields.io/github/release-date/crud89/litefx.svg)](https://github.com/crud89/LiteFX/tags) [![Issues](https://img.shields.io/github/issues/crud89/LiteFX)](https://github.com/crud89/LiteFX/issues) [![Pull Requests](https://img.shields.io/github/issues-pr/crud89/LiteFX)](https://github.com/crud89/LiteFX/pulls) [![Documentation](https://img.shields.io/badge/docs-gh--pages-70dcf4.svg)](https://litefx.crudolph.io/docs/)
+<div align="center">
+
+[![GitHub](https://img.shields.io/github/license/crud89/litefx?style=flat-square)](https://github.com/crud89/LiteFX/blob/main/LICENSE) [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/crud89/litefx/weekly.yml?branch=main&style=flat-square)](https://github.com/crud89/LiteFX/actions/workflows/weekly.yml) [![Latest release](https://img.shields.io/github/release/crud89/litefx.svg?style=flat-square)](https://github.com/crud89/LiteFX/releases) [![Released at](https://img.shields.io/github/release-date/crud89/litefx.svg?style=flat-square)](https://github.com/crud89/LiteFX/tags) [![Issues](https://img.shields.io/github/issues/crud89/LiteFX?style=flat-square)](https://github.com/crud89/LiteFX/issues) [![Pull Requests](https://img.shields.io/github/issues-pr/crud89/LiteFX?style=flat-square)](https://github.com/crud89/LiteFX/pulls) [![Documentation](https://img.shields.io/badge/docs-gh--pages-70dcf4.svg?style=flat-square)](https://litefx.crudolph.io/docs/)
+
+</div>
 
 ## About
 
@@ -16,8 +20,8 @@ The engine design follows an descriptive approach, which means that an applicati
 
 ```cxx
 UniquePtr<RenderPass> renderPass = device->buildRenderPass("Geometry")
-    .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 1.f }, true, false)
-    .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, MultiSamplingLevel::x1, { 1.f, 0.f, 0.f, 0.f }, true, false);
+    .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, RenderTargetFlags::Clear, { 0.f, 0.f, 0.f, 1.f })
+    .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, MultiSamplingLevel::x1, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
 UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
     .inputAssembler(inputAssembler)
@@ -38,17 +42,17 @@ UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPa
         .withFragmentShaderModule("shaders/basic_fs." + FileExtensions<TRenderBackend>::SHADER));
 ```
 
-LiteFX is written in modern C++20, following established design patterns to make it easy to learn and adapt. Its focus is make the performance of modern graphics APIs easily accessible, whilst retaining full flexibility.
+LiteFX is written in modern C++23, following established design patterns to make it easy to learn and adapt. Its focus is make the performance of modern graphics APIs easily accessible, whilst retaining full flexibility.
 
 † Shaders can be built using *glslc* or *DXC*. *glslc* can be used to compile HLSL and GLSL shaders into SPIR-V for the Vulkan backend. *DXC* can only compile HLSL, but can target SPIR-V and DXIL, that's why it is preferred over *glslc*.
 
 ### Key Features
 
-- **Fluent Builders**: the fluent builder API can help you to organize creation of your render context. Instances, render passes and pipeline states typically require a lot of code to set them up. LiteFX hides this code behind a flexible builder architecture. However, if you don't like it, you can still create all objects on your own.
-- **Runtime Backend Switching**: Switch between DirectX 12 and Vulkan at runtime without re-creating the window. The engine's app model supports flexible configuration and all domain types are abstracted in a way, that make it easy to provide different render paths.
-- **State of the Art**: the engine makes use of some of the most recent techniques introduced to the supported APIs in order to help you to fully utilize the latest hardware. For example it implements support for [DirectX 12 render passes](https://docs.microsoft.com/en-us/windows/win32/direct3d12/direct3d-12-render-passes) or [Vulkan timeline semaphores](https://www.khronos.org/blog/vulkan-timeline-semaphores) for improved thread synchronization.
+- **State of the Art**: the engine makes use of some of the most recent techniques introduced to the supported APIs in order to help you to fully utilize the latest hardware. For example it uses features from the [DirectX 12 Agility SDK](https://devblogs.microsoft.com/directx/announcing-dx12agility/) and [Vulkan 1.3](https://www.khronos.org/news/press/vulkan-reduces-fragmentation-and-provides-roadmap-visibility-for-developers), such as *mesh shaders*, *ray tracing* and *enhanced barriers*.
+- **Streamlined API**: low-level graphics APIs typically involve a lot of boilerplate code to set them up. LiteFX provides different techniques to make this code less verbose. *Fluent Builders* can be used to setup and configure render graphs. *Shader Reflection* can be used in both, Vulkan and DirectX 12, to create pipeline layouts from a single line of code.
 - **Multi-Threading Support**: LiteFX comes with support for multi-threaded render passes in order to maximize throughput and prevent GPU stalls. It takes care of the necessary synchronization between threads and exposes interfaces for manual synchronization. 
-- **Descriptor and Memory Management**: descriptors and buffers can be hard to get around. LiteFX abstracts them away in a way that is both efficient and easy to adapt.
+- **Descriptor and Memory Management**: descriptors and buffers can be hard to get around. LiteFX abstracts them away in a way that is both efficient and accessible.
+- **Runtime Backend Switching**: Switch between API backends at runtime without re-creating the window. The engine's app model supports flexible configuration and all domain types are abstracted in a way, that make it easy to provide different render paths.
 - **CMake Integration**: you can use CMake to integrate the engine into your project. Furthermore, it exports scripts that allow you to integrate assets and shaders into your build process. It can be installed using *vcpkg*, making project setup quick and painless.
 - **Much More**: If you want to learn what else you can do, check out the [guides](https://litefx.crudolph.io/docs/md_docs_tutorials_project_setup.html) and [wiki](https://github.com/crud89/LiteFX/wiki).
 
@@ -68,12 +72,13 @@ You can also build the sources on your own. Currently only MSVC builds under Win
 
 In order for the project to be built, there are a few prerequisites that need to be present on your environment:
 
+- [C++23 compatible compiler](https://en.cppreference.com/w/cpp/compiler_support/23): At the moment only MSVC fully supports the required features.
 - [CMake](https://cmake.org/download/) (version 3.20 or higher). †
 - Optional: [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later (required to build the Vulkan backend).
 - Optional: Custom [DXC](https://github.com/microsoft/DirectXShaderCompiler) build (required to build shaders for DirectX backend). ‡
 - Optional: Windows 10 SDK 10.0.19041.0 or later (required to build DirectX backend).
 
-† CMake 3.20 is part of Visual Studio 2019 version 16.10 and above. When using older Visual Studio versions, consider installing CMake manually.
+† CMake 3.20 is part of Visual Studio 2019 version 16.10 and above. When using other compilers, CMake needs to be installed manually.
 
 ‡ Note that the LunarG Vulkan SDK (1.3.204.1 and above) ships with a pre-built DXC binary, that supports DXIL and SPIR-V code generation and thus should be favored over the DXC binary shipped with the Windows SDK, which only supports DXIL.
 
@@ -82,7 +87,7 @@ In order for the project to be built, there are a few prerequisites that need to
 Create a new directory from where you want to build the sources. Then open your shell and clone the repository:
 
 ```sh
-git clone https://github.com/crud89/LiteFX.git . --recurse-submodules
+git clone --recursive https://github.com/crud89/LiteFX.git .
 ```
 
 #### Performing a Build
@@ -94,8 +99,8 @@ There are multiple ways of creating a build from scratch. In general, all *CMake
 Building from command line is the most straightforward way and is typically sufficient, if you only want to consume a fresh build.
 
 ```sh
-cmake src/ --preset windows-x64
-cmake --build out/build/windows-x64/ --target install --config Release
+cmake src/ --preset windows-x64-release
+cmake --build out/build/windows-x64-release/ --target install
 ```
 
 ##### Using Visual Studio
@@ -117,7 +122,7 @@ You can customize the engine build, according to your specific needs. The most s
   "configurePresets": [
     {
       "name": "win-x64-custom-preset",
-      "inherits": "windows-x64",
+      "inherits": "windows-x64-release",
       "cacheVariables": {
       }
     }
@@ -125,17 +130,18 @@ You can customize the engine build, according to your specific needs. The most s
 }
 ```
 
-Within the cache variables, you can override the build options, LiteFX exports. All customizable options have the `BUILD_` prefix and are described in detail below:
+Within the cache variables, you can override the build options, LiteFX exports. All customizable options have the `LITEFX_BUILD_` prefix and are described in detail below:
 
-- `BUILD_VULKAN_BACKEND` (default: `ON`): builds the Vulkan 🌋 backend (requires [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later to be installed on your system).
-- `BUILD_DX12_BACKEND` (default: `ON`): builds the DirectX 12 ❎ backend.
-- `BUILD_DEFINE_BUILDERS` (default: `ON`): enables the [builder architecture](https://github.com/crud89/LiteFX/wiki/Builders) for backends.
-- `BUILD_WITH_GLM` (default: `ON`): adds [glm](https://glm.g-truc.net/0.9.9/index.html) converters to math types. †
-- `BUILD_WITH_DIRECTX_MATH` (default: `ON`): adds [DirectX Math](https://github.com/microsoft/DirectXMath) converters to math types. †
-- `BUILD_HLSL_SHADER_MODEL` (default: `6_3`): specifies the default HLSL shader model.
-- `BUILD_EXAMPLES` (default: `ON`): builds the examples. Depending on which backends are built, some may be omitted.
-- `BUILD_EXAMPLES_DX12_PIX_LOADER` (default: `ON`): enables code that attempts to load the latest version of the [PIX GPU capturer](https://devblogs.microsoft.com/pix/) in the DirectX 12 samples, if available (and if the command line argument `--load-pix=true` is specified).
-- `BUILD_EXAMPLES_RENDERDOC_LOADER` (default: `OFF`): enables code in the samples, that loads the [RenderDoc](https://renderdoc.org/) runtime API, if the application is launched from within RenderDoc (and if the command line argument `--load-render-doc=true` is specified).
+- `LITEFX_BUILD_VULKAN_BACKEND` (default: `ON`): builds the Vulkan 🌋 backend (requires [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later to be installed on your system).
+- `LITEFX_BUILD_DX12_BACKEND` (default: `ON`): builds the DirectX 12 ❎ backend.
+- `LITEFX_BUILD_DEFINE_BUILDERS` (default: `ON`): enables the [builder architecture](https://github.com/crud89/LiteFX/wiki/Builders) for backends.
+- `LITEFX_BUILD_WITH_GLM` (default: `ON`): adds [glm](https://glm.g-truc.net/0.9.9/index.html) converters to math types. †
+- `LITEFX_BUILD_WITH_DIRECTX_MATH` (default: `ON`): adds [DirectX Math](https://github.com/microsoft/DirectXMath) converters to math types. †
+- `LITEFX_BUILD_HLSL_SHADER_MODEL` (default: `6_5`): specifies the default HLSL shader model.
+- `LITEFX_BUILD_EXAMPLES` (default: `ON`): builds the examples. Depending on which backends are built, some may be omitted.
+- `LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER` (default: `ON`): enables code that attempts to load the latest version of the [PIX GPU capturer](https://devblogs.microsoft.com/pix/) in the DirectX 12 samples, if available (and if the command line argument `--load-pix=true` is specified).
+- `LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER` (default: `OFF`): enables code in the samples, that loads the [RenderDoc](https://renderdoc.org/) runtime API, if the application is launched from within RenderDoc (and if the command line argument `--load-render-doc=true` is specified).
+- `LITEFX_BUILD_TESTS` (default: `OFF`): builds tests for the project.
 
 For example, if you only want to build the Vulkan backend and samples and don't want to use DirectX Math, a preset would look like this:
 
@@ -150,10 +156,10 @@ For example, if you only want to build the Vulkan backend and samples and don't 
   "configurePresets": [
     {
       "name": "win-x64-vulkan-only",
-      "inherits": "windows-x64",
+      "inherits": "windows-x64-release",
       "cacheVariables": {
-        "BUILD_DX12_BACKEND": "OFF",
-        "BUILD_WITH_DIRECTX_MATH": "OFF"
+        "LITEFX_BUILD_DX12_BACKEND": "OFF",
+        "LITEFX_BUILD_WITH_DIRECTX_MATH": "OFF"
       }
     }
   ]
@@ -175,17 +181,18 @@ If you are having problems building the project, you may find answers [in the wi
 
 ### Dependencies
 
-All dependencies are automatically installed using *vcpkg*, when performing a manual build. The engine only has two hard dependencies:
+All dependencies are automatically installed using *vcpkg*, when performing a manual build. The engine core by itself only has one hard dependency:
 
 - [spdlog](https://github.com/gabime/spdlog): Lightweight logging library.
-- [{fmt}](https://github.com/fmtlib/fmt): String formatting library and implicit dependency of *spdlog*.
 
-Depending on which rendering backends are build, the following dependencies are required:
+Depending on which rendering backends are build, the following dependencies are additionally linked against:
 
-- [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/): Required by the Vulkan backend
+- [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/): Required by the Vulkan backend.
 - [Vulkan Memory Allocator](https://gpuopen.com/vulkan-memory-allocator/): Required by the Vulkan backend. Handles memory allocations.
 - [SPIR-V Reflect](https://github.com/KhronosGroup/SPIRV-Reflect): Required by the Vulkan backend. Used to implement shader reflection.
 - [DirectX Headers](https://github.com/microsoft/DirectX-Headers): Required by the DirectX 12 backend.
+- [DirectX Agility SDK](https://devblogs.microsoft.com/directx/directx12agility/): Required by the DirectX 12 backend.
+- [WinPixEventRuntime](https://devblogs.microsoft.com/pix/winpixeventruntime/): Required by the DirectX 12 backend.
 - [D3D12 Memory Allocator](https://gpuopen.com/d3d12-memory-allocator/): Required by the DirectX 12 backend. Handles memory allocations.
 
 The math module can optionally be built with converters for the following math and linear algebra libraries:
@@ -215,6 +222,6 @@ Want to add yours? Feel free to [contact](mailto:litefx@crudolph.io?subject=[Git
 
 ## License
 
-LiteFX is licensed under the permissive [MIT license](./LICENSE). The documentation (i.e. the contents of the `docs` folder of this repository, especially the LiteFX logo, banner and icon) is licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+LiteFX is licensed under the permissive [MIT license](./LICENSE). The documentation (i.e. the contents of the `docs` folder of this repository, especially the LiteFX logo, banner and icon) is licensed under [CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/). Parts of this software are from third parties and are licensed under different terms. By using or redistributing this software, you agree to the terms of the third-party licenses mentioned in the [NOTICE](./NOTICE) file, depending on the parts you use or re-distribute. Please refer to [the above list](#dependencies) to see which license terms you have to agree to.
 
 If you want to use LiteFX in your projects, linking to [project website](https://litefx.crudolph.io/) and/or putting the logo in your project description is much appreciated.

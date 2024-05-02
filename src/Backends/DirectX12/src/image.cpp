@@ -16,19 +16,17 @@ private:
 	Format m_format;
 	Size3d m_extent;
 	UInt32 m_elements, m_levels, m_layers, m_planes; 
-	Array<ResourceState> m_states;
 	ImageDimensions m_dimensions;
-	bool m_writable;
+	ResourceUsage m_usage;
 	MultiSamplingLevel m_samples;
 	const DirectX12Device& m_device;
 
 public:
-	DirectX12ImageImpl(DirectX12Image* parent, const DirectX12Device& device, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, AllocatorPtr allocator, AllocationPtr&& allocation) :
-		base(parent), m_device(device), m_allocator(allocator), m_allocation(std::move(allocation)), m_extent(extent), m_format(format), m_dimensions(dimension), m_levels(levels), m_layers(layers), m_writable(writable), m_samples(samples)
+	DirectX12ImageImpl(DirectX12Image* parent, const DirectX12Device& device, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation) :
+		base(parent), m_device(device), m_allocator(allocator), m_allocation(std::move(allocation)), m_extent(extent), m_format(format), m_dimensions(dimension), m_levels(levels), m_layers(layers), m_usage(usage), m_samples(samples)
 	{
 		m_planes = ::D3D12GetFormatPlaneCount(device.handle().Get(), DX12::getFormat(format));
 		m_elements = m_planes * m_layers * m_levels;
-		m_states.resize(m_elements, initialState);
 	}
 };
 
@@ -36,8 +34,8 @@ public:
 // Image Base shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Image::DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
-	m_impl(makePimpl<DirectX12ImageImpl>(this, device, extent, format, dimension, levels, layers, samples, writable, initialState, allocator, std::move(allocation))), ComResource<ID3D12Resource>(nullptr)
+DirectX12Image::DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
+	m_impl(makePimpl<DirectX12ImageImpl>(this, device, extent, format, dimension, levels, layers, samples, usage, allocator, std::move(allocation))), ComResource<ID3D12Resource>(nullptr)
 {
 	this->handle() = std::move(image);
 
@@ -53,7 +51,7 @@ DirectX12Image::DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resou
 
 DirectX12Image::~DirectX12Image() noexcept = default;
 
-const UInt32& DirectX12Image::elements() const noexcept
+UInt32 DirectX12Image::elements() const noexcept
 {
 	return m_impl->m_elements;
 }
@@ -94,28 +92,17 @@ size_t DirectX12Image::alignedElementSize() const noexcept
 	return this->elementSize();
 }
 
-const bool& DirectX12Image::writable() const noexcept
+ResourceUsage DirectX12Image::usage() const noexcept
 {
-	return m_impl->m_writable;
+	return m_impl->m_usage;
 }
 
-const ResourceState& DirectX12Image::state(const UInt32& subresource) const
+UInt64 DirectX12Image::virtualAddress() const noexcept
 {
-	if (subresource >= m_impl->m_states.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("The sub-resource with the provided index {0} does not exist.", subresource);
-
-	return m_impl->m_states[subresource];
+	return static_cast<UInt64>(this->handle()->GetGPUVirtualAddress());
 }
 
-ResourceState& DirectX12Image::state(const UInt32& subresource)
-{
-	if (subresource >= m_impl->m_states.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("The sub-resource with the provided index {0} does not exist.", subresource);
-
-	return m_impl->m_states[subresource];
-}
-
-size_t DirectX12Image::size(const UInt32& level) const noexcept
+size_t DirectX12Image::size(UInt32 level) const noexcept
 {
 	if (level >= m_impl->m_levels)
 		return 0;
@@ -132,7 +119,7 @@ size_t DirectX12Image::size(const UInt32& level) const noexcept
 	}
 }
 
-Size3d DirectX12Image::extent(const UInt32& level) const noexcept
+Size3d DirectX12Image::extent(UInt32 level) const noexcept
 {
 	if (level >= m_impl->m_levels)
 		return Size3d{ 0, 0, 0 };
@@ -149,32 +136,32 @@ Size3d DirectX12Image::extent(const UInt32& level) const noexcept
 	return size;
 }
 
-const Format& DirectX12Image::format() const noexcept
+Format DirectX12Image::format() const noexcept
 {
 	return m_impl->m_format;
 }
 
-const ImageDimensions& DirectX12Image::dimensions() const noexcept 
+ImageDimensions DirectX12Image::dimensions() const noexcept 
 {
 	return m_impl->m_dimensions;
 }
 
-const UInt32& DirectX12Image::levels() const noexcept
+UInt32 DirectX12Image::levels() const noexcept
 {
 	return m_impl->m_levels;
 }
 
-const UInt32& DirectX12Image::layers() const noexcept
+UInt32 DirectX12Image::layers() const noexcept
 {
 	return m_impl->m_layers;
 }
 
-const UInt32& DirectX12Image::planes() const noexcept
+UInt32 DirectX12Image::planes() const noexcept
 {
 	return m_impl->m_planes;
 }
 
-const MultiSamplingLevel& DirectX12Image::samples() const noexcept
+MultiSamplingLevel DirectX12Image::samples() const noexcept
 {
 	return m_impl->m_samples;
 }
@@ -189,22 +176,24 @@ const D3D12MA::Allocation* DirectX12Image::allocationInfo() const noexcept
 	return m_impl->m_allocation.get();
 }
 
-UniquePtr<DirectX12Image> DirectX12Image::allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
+UniquePtr<DirectX12Image> DirectX12Image::allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
 {
-	return DirectX12Image::allocate("", device, allocator, extent, format, dimension, levels, layers, samples, writable, initialState, resourceDesc, allocationDesc);
+	return DirectX12Image::allocate("", device, allocator, extent, format, dimension, levels, layers, samples, usage, resourceDesc, allocationDesc);
 }
 
-UniquePtr<DirectX12Image> DirectX12Image::allocate(const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, const Format& format, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& writable, const ResourceState& initialState, const D3D12_RESOURCE_DESC& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
+UniquePtr<DirectX12Image> DirectX12Image::allocate(const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
 {
 	if (allocator == nullptr) [[unlikely]]
-		throw ArgumentNotInitializedException("The allocator must be initialized.");
+		throw ArgumentNotInitializedException("allocator", "The allocator must be initialized.");
+
+	bool isDepthStencil = ::hasDepth(format) || ::hasStencil(format);
 
 	ComPtr<ID3D12Resource> resource;
 	D3D12MA::Allocation* allocation;
-	raiseIfFailed<RuntimeException>(allocator->CreateResource(&allocationDesc, &resourceDesc, DX12::getResourceState(initialState), nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to create image resource.");
-	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Writable: {7} }}", name.empty() ? fmt::to_string(fmt::ptr(resource.Get())) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, writable, samples);
+	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, isDepthStencil ? D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ : D3D12_BARRIER_LAYOUT_COMMON, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to create image resource.");
+	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}", name.empty() ? std::format("{0}", reinterpret_cast<void*>(resource.Get())) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples);
 	
-	return makeUnique<DirectX12Image>(device, std::move(resource), extent, format, dimension, levels, layers, samples, writable, initialState, allocator, AllocationPtr(allocation), name);
+	return makeUnique<DirectX12Image>(device, std::move(resource), extent, format, dimension, levels, layers, samples, usage, allocator, AllocationPtr(allocation), name);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -225,7 +214,7 @@ private:
 	const DirectX12Device& m_device;
 
 public:
-	DirectX12SamplerImpl(DirectX12Sampler* parent, const DirectX12Device& device, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy) :
+	DirectX12SamplerImpl(DirectX12Sampler* parent, const DirectX12Device& device, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) :
 		base(parent), m_device(device), m_magFilter(magFilter), m_minFilter(minFilter), m_borderU(borderU), m_borderV(borderV), m_borderW(borderW), m_mipMapMode(mipMapMode), m_mipMapBias(mipMapBias), m_minLod(minLod), m_maxLod(maxLod), m_anisotropy(anisotropy)
 	{
 	}
@@ -235,7 +224,7 @@ public:
 // Sampler shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Sampler::DirectX12Sampler(const DirectX12Device& device, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy, const String& name) :
+DirectX12Sampler::DirectX12Sampler(const DirectX12Device& device, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy, const String& name) :
 	m_impl(makePimpl<DirectX12SamplerImpl>(this, device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy))
 {
 	if (!name.empty())
@@ -244,52 +233,52 @@ DirectX12Sampler::DirectX12Sampler(const DirectX12Device& device, const FilterMo
 
 DirectX12Sampler::~DirectX12Sampler() noexcept = default;
 
-const FilterMode& DirectX12Sampler::getMinifyingFilter() const noexcept
+FilterMode DirectX12Sampler::getMinifyingFilter() const noexcept
 {
 	return m_impl->m_minFilter;
 }
 
-const FilterMode& DirectX12Sampler::getMagnifyingFilter() const noexcept
+FilterMode DirectX12Sampler::getMagnifyingFilter() const noexcept
 {
 	return m_impl->m_magFilter;
 }
 
-const BorderMode& DirectX12Sampler::getBorderModeU() const noexcept
+BorderMode DirectX12Sampler::getBorderModeU() const noexcept
 {
 	return m_impl->m_borderU;
 }
 
-const BorderMode& DirectX12Sampler::getBorderModeV() const noexcept
+BorderMode DirectX12Sampler::getBorderModeV() const noexcept
 {
 	return m_impl->m_borderV;
 }
 
-const BorderMode& DirectX12Sampler::getBorderModeW() const noexcept
+BorderMode DirectX12Sampler::getBorderModeW() const noexcept
 {
 	return m_impl->m_borderW;
 }
 
-const Float& DirectX12Sampler::getAnisotropy() const noexcept
+Float DirectX12Sampler::getAnisotropy() const noexcept
 {
 	return m_impl->m_anisotropy;
 }
 
-const MipMapMode& DirectX12Sampler::getMipMapMode() const noexcept
+MipMapMode DirectX12Sampler::getMipMapMode() const noexcept
 {
 	return m_impl->m_mipMapMode;
 }
 
-const Float& DirectX12Sampler::getMipMapBias() const noexcept
+Float DirectX12Sampler::getMipMapBias() const noexcept
 {
 	return m_impl->m_mipMapBias;
 }
 
-const Float& DirectX12Sampler::getMaxLOD() const noexcept
+Float DirectX12Sampler::getMaxLOD() const noexcept
 {
 	return m_impl->m_maxLod;
 }
 
-const Float& DirectX12Sampler::getMinLOD() const noexcept
+Float DirectX12Sampler::getMinLOD() const noexcept
 {
 	return m_impl->m_minLod;
 }

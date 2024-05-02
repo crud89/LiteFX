@@ -7,9 +7,6 @@
 PROJECT(LiteFX.Core VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
-# Resolve package dependencies.
-FIND_PACKAGE(fmt CONFIG REQUIRED)
-
 CONFIGURE_FILE("config.tmpl" "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/config.h")
 CONFIGURE_FILE("version.tmpl" "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/version.h")
 CONFIGURE_FILE("core.tmpl" "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/core.h")
@@ -17,6 +14,7 @@ CONFIGURE_FILE("core.tmpl" "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/core.h")
 # Collect header & source files.
 SET(CORE_HEADERS
     "include/litefx/containers.hpp"
+    "include/litefx/generator.hpp"
     "include/litefx/string.hpp"
     "include/litefx/traits.hpp"
     "include/litefx/exceptions.hpp"
@@ -63,13 +61,10 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
         $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
 )
 
-# Link project dependencies.
-TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC fmt::fmt)
-
 # Pre-compile core header.
-IF(BUILD_PRECOMPILED_HEADERS)
+IF(LITEFX_BUILD_PRECOMPILED_HEADERS)
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} PRIVATE <litefx/core.h>)
-ENDIF(BUILD_PRECOMPILED_HEADERS)
+ENDIF(LITEFX_BUILD_PRECOMPILED_HEADERS)
 
 # Setup installer.
 INSTALL(TARGETS ${PROJECT_NAME} EXPORT EXPORT LiteFX

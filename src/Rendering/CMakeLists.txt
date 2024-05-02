@@ -23,8 +23,11 @@ SET(RENDERING_SOURCES
     "src/viewport.cpp"
     "src/scissor.cpp"
     "src/render_target.cpp"
+    "src/render_pass_dependency.cpp"
     "src/state_resource.cpp"
     "src/device_state.cpp"
+    "src/timing_event.cpp"
+    "src/shader_record_collection.cpp"
 )
 
 # Add shared library project.
@@ -60,9 +63,9 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
 )
 
 # Re-use pre-compiled core header.
-IF(BUILD_PRECOMPILED_HEADERS)
+IF(LITEFX_BUILD_PRECOMPILED_HEADERS)
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} REUSE_FROM LiteFX.Core)
-ENDIF(BUILD_PRECOMPILED_HEADERS)
+ENDIF(LITEFX_BUILD_PRECOMPILED_HEADERS)
 
 # Setup installer.
 INSTALL(TARGETS ${PROJECT_NAME} EXPORT EXPORT LiteFX

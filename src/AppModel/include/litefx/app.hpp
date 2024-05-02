@@ -243,7 +243,7 @@ namespace LiteFX {
 			if (auto match = std::find_if(m_subscribers.begin(), m_subscribers.end(), [&token](const auto& d) { return d.token() == token; }); match != m_subscribers.end()) [[likely]]
 				return *match;
 				
-			throw InvalidArgumentException("The event does not contain the provided token.");
+			throw InvalidArgumentException("token", "The event does not contain the provided token.");
 		}
 
 	public:
@@ -330,7 +330,7 @@ namespace LiteFX {
 		/// Returns the new window width.
 		/// </summary>
 		/// <returns>The new window width.</returns>
-		const int& width() const noexcept {
+		inline int width() const noexcept {
 			return m_width;
 		}
 
@@ -338,7 +338,7 @@ namespace LiteFX {
 		/// Returns the new window height.
 		/// </summary>
 		/// <returns>The new window height.</returns>
-		const int& height() const noexcept {
+		inline int height() const noexcept {
 			return m_height;
 		}
 	};
@@ -400,7 +400,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="type">The backend type of the requested backends.</param>
 		/// <returns>All registered instances of <paramref name="type" />.</returns>
-		virtual Array<const IBackend*> getBackends(const BackendType type) const noexcept;
+		virtual Enumerable<const IBackend*> getBackends(const BackendType type) const noexcept;
 
 	protected:
 		/// <summary>
@@ -416,7 +416,7 @@ namespace LiteFX {
 		/// <typeparam name="TBackend">The type, the type index is derived from.</typeparam>
 		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
 		template <typename TBackend> requires
-			rtti::implements<TBackend, IBackend>
+			meta::implements<TBackend, IBackend>
 		TBackend* findBackend() {
 			return dynamic_cast<TBackend*>(this->getBackend(typeid(TBackend)));
 		}
@@ -449,21 +449,21 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="type">The backend type for which the active backend should be stopped.</param>
 		/// <seealso cref="stopBackend" />
-		virtual void stopActiveBackends(const BackendType& type) const;
+		virtual void stopActiveBackends(BackendType type) const;
 
 		/// <summary>
 		/// Returns the active backend of the provided backend <paramref name="type" />.
 		/// </summary>
 		/// <param name="type">The type of the backend.</param>
 		/// <returns>The active backend of the provided backend type, or <c>std::nullptr</c>, if no backend is active.</returns>
-		virtual IBackend* activeBackend(const BackendType& type) const;
+		virtual IBackend* activeBackend(BackendType type) const;
 
 		/// <summary>
 		/// Returns the type index of the active backend of the provided backend <paramref name="type" />.
 		/// </summary>
 		/// <param name="type">The type of the backend.</param>
 		/// <returns>Type index of the active backend of the provided backend type, or the type index of <c>std::nullptr_t</c>, if no backend is active.</returns>
-		virtual std::type_index activeBackendType(const BackendType& type) const;
+		virtual std::type_index activeBackendType(BackendType type) const;
 
 	private:
 		/// <summary>
@@ -484,12 +484,12 @@ namespace LiteFX {
 		/// <summary>
 		/// Invoked, if a backend has been started.
 		/// </summary>
-		Event<const IBackend*> backendStarted;
+		mutable Event<const IBackend*> backendStarted;
 
 		/// <summary>
 		/// Invoked, if a backend has been stopped.
 		/// </summary>
-		Event<const IBackend*> backendStopped;
+		mutable Event<const IBackend*> backendStopped;
 
 		/// <summary>
 		/// Sets a callback that is called, if a backend is started.
@@ -508,13 +508,13 @@ namespace LiteFX {
 		/// <seealso cref="onBackendStop" />
 		/// <seealso cref="backendStarted" />
 		template <typename TBackend> requires
-			rtti::implements<TBackend, IBackend>
+			meta::implements<TBackend, IBackend>
 		void onBackendStart(const std::function<bool(TBackend*)>& callback) {
 			this->registerStartCallback(typeid(TBackend), [this, callback]() {
 				auto backend = this->findBackend<TBackend>();
 
 				if (backend == nullptr)
-					throw InvalidArgumentException("No backend of type {0} has been registered.", typeid(TBackend).name());
+					throw InvalidArgumentException("callback", "No backend of type {0} has been registered.", typeid(TBackend).name());
 
 				if (backend->state() == BackendState::Active)
 					return true;
@@ -535,13 +535,13 @@ namespace LiteFX {
 		/// <seealso cref="onBackendStart" />
 		/// <seealso cref="backendStopped" />
 		template <typename TBackend> requires
-			rtti::implements<TBackend, IBackend>
+			meta::implements<TBackend, IBackend>
 		void onBackendStop(const std::function<void(TBackend*)>& callback) {
 			this->registerStopCallback(typeid(TBackend), [this, callback]() {
 				auto backend = this->findBackend<TBackend>();
 
 				if (backend == nullptr)
-					throw InvalidArgumentException("No backend of type {0} has been registered.", typeid(TBackend).name());
+					throw InvalidArgumentException("callback", "No backend of type {0} has been registered.", typeid(TBackend).name());
 
 				if (backend->state() != BackendState::Inactive)
 					callback(backend);
@@ -555,7 +555,7 @@ namespace LiteFX {
 		/// <typeparam name="TBackend">The type, the type index is derived from.</typeparam>
 		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
 		template <typename TBackend> requires
-			rtti::implements<TBackend, IBackend>
+			meta::implements<TBackend, IBackend>
 		const TBackend* findBackend() const {
 			return dynamic_cast<const TBackend*>(this->getBackend(typeid(TBackend)));
 		}
@@ -566,7 +566,7 @@ namespace LiteFX {
 		/// <typeparam name="TBackend">The type of the backend to start.</typeparam>
 		/// <exception cref="InvalidArgumentException">Thrown, if no backend of type <typeparamref name="TBackend" /> is registered.</exception>
 		template <typename TBackend> requires
-			rtti::implements<TBackend, IBackend>
+			meta::implements<TBackend, IBackend>
 		void startBackend() {
 			this->startBackend(typeid(TBackend));
 		}
@@ -577,7 +577,7 @@ namespace LiteFX {
 		/// <typeparam name="TBackend">The type of the backend to stop.</typeparam>
 		/// <exception cref="InvalidArgumentException">Thrown, if no backend of type <typeparamref name="TBackend" /> is registered.</exception>
 		template <typename TBackend> requires
-			rtti::implements<TBackend, IBackend>
+			meta::implements<TBackend, IBackend>
 		void stopBackend() {
 			this->stopBackend(typeid(TBackend));
 		}
@@ -586,12 +586,17 @@ namespace LiteFX {
 		/// <summary>
 		/// Invoked, if the application has been started.
 		/// </summary>
-		Event<EventArgs> startup;
+		mutable Event<EventArgs> startup;
 
 		/// <summary>
 		/// Invoked during initialization.
 		/// </summary>
-		Event<EventArgs> initializing;
+		mutable Event<EventArgs> initializing;
+
+		/// <summary>
+		/// Invoked, if the application has is shutting down.
+		/// </summary>
+		mutable Event<EventArgs> shutdown;
 
 		/// <summary>
 		/// Adds a backend to the app.
@@ -609,17 +614,14 @@ namespace LiteFX {
 		/// <summary>
 		/// Invoked, if the app window or context gets resized.
 		/// </summary>
-		Event<ResizeEventArgs> resized;
+		mutable Event<ResizeEventArgs> resized;
 
 		/// <summary>
 		/// Called, if the application window resizes.
 		/// </summary>
-		/// <remarks>
-		/// Calling this method ensures, that the <paramref name="width" /> and <paramref name="height" /> parameters are valid.
-		/// </remarks>
 		/// <param name="width">The new width of the application window.</param>
 		/// <param name="height">The new height of the application window.</param>
-		void resize(int& width, int& height);
+		void resize(int width, int height);
 
 	public:
 		/// <summary>
@@ -634,20 +636,20 @@ namespace LiteFX {
 	/// <summary>
 	/// Creates a new builder for an <see cref="App" />.
 	/// </summary>
-	class LITEFX_APPMODEL_API AppBuilder : public Builder<AppBuilder, App> {
+	class LITEFX_APPMODEL_API [[nodiscard]] AppBuilder : public Builder<App> {
 	public:
-		using builder_type::Builder;
+		using Builder<App>::Builder;
 
 	public:
 		/// <inheritdoc />
-		void use(UniquePtr<IBackend>&& backend);
+		constexpr inline void use(UniquePtr<IBackend>&& backend);
 
 		/// <summary>
 		/// Registers a sink for logging.
 		/// </summary>
 		template <typename TSink, typename ...TArgs> requires
 			std::convertible_to<TSink*, ISink*>
-		AppBuilder& logTo(TArgs&&... args) {
+		constexpr inline AppBuilder& logTo(TArgs&&... args) {
 			auto sink = makeUnique<TSink>(std::forward<TArgs>(args)...);
 			Logger::sinkTo(sink.get());
 			return *this;
@@ -657,120 +659,11 @@ namespace LiteFX {
 		/// Registers a new backend.
 		/// </summary>
 		template <typename TBackend, typename ...TArgs> requires
-			rtti::implements<TBackend, IBackend>
-		AppBuilder& useBackend(TArgs&&... args) {
+			meta::implements<TBackend, IBackend>
+			constexpr inline AppBuilder& useBackend(TArgs&&... args) {
 			this->use(makeUnique<TBackend>(*this->instance(), std::forward<TArgs>(args)...));
 			return *this;
 		}
 	};
 
-	/// <summary>
-	/// Contains the version of an <see cref="App" />.
-	/// </summary>
-	class LITEFX_APPMODEL_API AppVersion {
-		LITEFX_IMPLEMENTATION(AppVersionImpl);
-
-	public:
-		/// <summary>
-		/// Creates a new app version instance.
-		/// </summary>
-		/// <param name="major">The major version of the app.</param>
-		/// <param name="minor">The minor version of the app.</param>
-		/// <param name="patch">The patch number of the app.</param>
-		/// <param name="revision">The revision of the app.</param>
-		explicit AppVersion(int major = 1, int minor = 0, int patch = 0, int revision = 0) noexcept;
-		AppVersion(const AppVersion&) = delete;
-		AppVersion(AppVersion&&) = delete;
-
-		virtual ~AppVersion() noexcept;
-
-	public:
-		/// <summary>
-		/// Gets the major version of the app.
-		/// </summary>
-		/// <returns>The major version of the app.</returns>
-		int major() const noexcept;
-
-		/// <summary>
-		/// Gets the minor version of the app.
-		/// </summary>
-		/// <returns>The minor version of the app.</returns>
-		int minor() const noexcept;
-
-		/// <summary>
-		/// Gets the patch number of the app.
-		/// </summary>
-		/// <returns>The patch number of the app.</returns>
-		int patch() const noexcept;
-
-		/// <summary>
-		/// Gets the revision of the app.
-		/// </summary>
-		/// <returns>The revision of the app.</returns>
-		int revision() const noexcept;
-
-		/// <summary>
-		/// Gets the major version of the engine build.
-		/// </summary>
-		/// <returns>The major version of the engine build.</returns>
-		int engineMajor() const noexcept;
-
-		/// <summary>
-		/// Gets the minor version of the engine build.
-		/// </summary>
-		/// <returns>The minor version of the engine build.</returns>
-		int engineMinor() const noexcept;
-
-		/// <summary>
-		/// Gets the revision of the engine build.
-		/// </summary>
-		/// <returns>The revision of the engine build.</returns>
-		int engineRevision() const noexcept;
-
-		/// <summary>
-		/// Gets the status of the engine build.
-		/// </summary>
-		/// <returns>The status of the engine build.</returns>
-		int engineStatus() const noexcept;
-		
-		/// <summary>
-		/// Gets the identifier of the engine build.
-		/// </summary>
-		/// <returns>The identifier of the engine build.</returns>
-		String engineIdentifier() const noexcept;
-
-		/// <summary>
-		/// Gets the version string of the engine build.
-		/// </summary>
-		/// <returns>The version string of the engine build.</returns>
-		String engineVersion() const noexcept;
-	};
-
 }
-
-template <>
-struct fmt::formatter<LiteFX::AppVersion> {
-	bool engineVersion = false;
-
-	constexpr auto parse(format_parse_context& ctx) {
-		auto it = ctx.begin(), end = ctx.end();
-
-		if (it != end && (*it == 'e'))
-		{
-			engineVersion = true;
-			it++;
-		}
-
-		if (it != end && *it != '}')
-			throw format_error("Invalid version format: expected: `}`.");
-
-		return it;
-	}
-
-	template <typename FormatContext>
-	auto format(const LiteFX::AppVersion& app, FormatContext& ctx) {
-		return engineVersion ?
-			fmt::format_to(ctx.out(), "{} Version {}", app.engineIdentifier(), app.engineVersion()) :
-			fmt::format_to(ctx.out(), "{}.{}.{}.{}", app.major(), app.minor(), app.patch(), app.revision());
-	}
-};

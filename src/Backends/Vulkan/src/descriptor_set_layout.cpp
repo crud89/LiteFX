@@ -38,16 +38,17 @@ private:
         { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 7 }
     };
     ShaderStage m_stages;
-    UInt32 m_space, m_poolSize;
+    UInt32 m_space;
     mutable std::mutex m_mutex;
     const VulkanDevice& m_device;
     bool m_usesDescriptorIndexing = false;
     Dictionary<const VkDescriptorSet*, const VkDescriptorPool*> m_descriptorSetSources;
 
 public:
-    VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize) :
-        base(parent), m_device(device), m_descriptorLayouts(std::move(descriptorLayouts)), m_space(space), m_stages(stages), m_poolSize(poolSize)
+    VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages) :
+        base(parent), m_device(device), m_space(space), m_stages(stages)
     {
+        m_descriptorLayouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device) :
@@ -56,9 +57,9 @@ public:
     }
 
 public:
-    VkDescriptorSetLayout initialize(const UInt32& maxUnboundedArraySize)
+    VkDescriptorSetLayout initialize(UInt32 maxUnboundedArraySize)
     {
-        LITEFX_TRACE(VULKAN_LOG, "Defining layout for descriptor set {0} {{ Stages: {1}, Pool Size: {2} }}...", m_space, m_stages, m_poolSize);
+        LITEFX_TRACE(VULKAN_LOG, "Defining layout for descriptor set {0} {{ Stages: {1} }}...", m_space, m_stages);
 
         // Parse the shader stage descriptor.
         VkShaderStageFlags shaderStages = {};
@@ -75,6 +76,22 @@ public:
             shaderStages |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
         if ((m_stages & ShaderStage::Compute) == ShaderStage::Compute)
             shaderStages |= VK_SHADER_STAGE_COMPUTE_BIT;
+        if ((m_stages & ShaderStage::Task) == ShaderStage::Task)
+            shaderStages |= VK_SHADER_STAGE_TASK_BIT_EXT;
+        if ((m_stages & ShaderStage::Mesh) == ShaderStage::Mesh)
+            shaderStages |= VK_SHADER_STAGE_MESH_BIT_EXT;
+        if ((m_stages & ShaderStage::RayGeneration) == ShaderStage::RayGeneration)
+            shaderStages |= VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+        if ((m_stages & ShaderStage::Miss) == ShaderStage::Miss)
+            shaderStages |= VK_SHADER_STAGE_MISS_BIT_KHR;
+        if ((m_stages & ShaderStage::Callable) == ShaderStage::Callable)
+            shaderStages |= VK_SHADER_STAGE_CALLABLE_BIT_KHR;
+        if ((m_stages & ShaderStage::ClosestHit) == ShaderStage::ClosestHit)
+            shaderStages |= VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+        if ((m_stages & ShaderStage::AnyHit) == ShaderStage::AnyHit)
+            shaderStages |= VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+        if ((m_stages & ShaderStage::Intersection) == ShaderStage::Intersection)
+            shaderStages |= VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
 
         // Parse descriptor set layouts.
         Array<VkDescriptorSetLayoutBinding> bindings;
@@ -98,17 +115,18 @@ public:
 
             switch (type)
             {
-            case DescriptorType::ConstantBuffer:     binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;       break;
+            case DescriptorType::ConstantBuffer:        binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;       break;
             case DescriptorType::ByteAddressBuffer:
             case DescriptorType::RWByteAddressBuffer:
             case DescriptorType::StructuredBuffer:
-            case DescriptorType::RWStructuredBuffer: binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;       break;
-            case DescriptorType::RWTexture:          binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;        break;
-            case DescriptorType::Texture:            binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;        break;
-            case DescriptorType::RWBuffer:           binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER; break;
-            case DescriptorType::Buffer:             binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER; break;
-            case DescriptorType::InputAttachment:    binding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;     break;
-            case DescriptorType::Sampler:            binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;              break;
+            case DescriptorType::RWStructuredBuffer:    binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;       break;
+            case DescriptorType::RWTexture:             binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;        break;
+            case DescriptorType::Texture:               binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;        break;
+            case DescriptorType::RWBuffer:              binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER; break;
+            case DescriptorType::Buffer:                binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER; break;
+            case DescriptorType::InputAttachment:       binding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;     break;
+            case DescriptorType::Sampler:               binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;              break;
+            case DescriptorType::AccelerationStructure: binding.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR; break;
             default: LITEFX_WARNING(VULKAN_LOG, "The descriptor type is unsupported. Binding will be skipped.");       return;
             }
 
@@ -119,14 +137,14 @@ public:
             
             // If the descriptor is an unbounded runtime array, disable validation warnings about partially bound elements.
             if (binding.descriptorCount != std::numeric_limits<UInt32>::max())
-                bindingFlags.push_back({ });
+                bindingFlags.push_back(VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT);
             else
             {
                 // Unbounded arrays must be the only descriptor within a descriptor set.
                 if (m_descriptorLayouts.size() != 1) [[unlikely]]
-                    throw InvalidArgumentException("If an unbounded runtime array descriptor is used, it must be the only descriptor in the descriptor set, however the current descriptor set specifies {0} descriptors", m_descriptorLayouts.size());
+                    throw InvalidArgumentException("descriptorLayouts", "If an unbounded runtime array descriptor is used, it must be the only descriptor in the descriptor set, however the current descriptor set specifies {0} descriptors", m_descriptorLayouts.size());
 
-                bindingFlags.push_back(VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT_EXT);
+                bindingFlags.push_back(VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT);
                 m_usesDescriptorIndexing = true;
                 binding.descriptorCount = maxUnboundedArraySize;
             }
@@ -151,79 +169,84 @@ public:
         };
 
         // Allow for descriptors to update after they have been bound. This also means, we have to manually take care of not to update a descriptor before it got used.
-        if (m_usesDescriptorIndexing)
-            descriptorSetLayoutInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
+        descriptorSetLayoutInfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT;
 
         VkDescriptorSetLayout layout;
-        raiseIfFailed<RuntimeException>(::vkCreateDescriptorSetLayout(m_device.handle(), &descriptorSetLayoutInfo, nullptr, &layout), "Unable to create descriptor set layout.");
-
-        // Create the initial descriptor pool.
-        this->addDescriptorPool();
+        raiseIfFailed(::vkCreateDescriptorSetLayout(m_device.handle(), &descriptorSetLayoutInfo, nullptr, &layout), "Unable to create descriptor set layout.");
 
         return layout;
     }
 
-    void addDescriptorPool()
+    void reserve(UInt32 descriptorSets)
     {
-        LITEFX_TRACE(VULKAN_LOG, "Allocating descriptor pool with {5} sets {{ Uniforms: {0}, Storages: {1}, Images: {2}, Samplers: {3}, Input attachments: {4} }}...", m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]].descriptorCount, m_poolSize);
+        LITEFX_TRACE(VULKAN_LOG, "Allocating descriptor pool with {5} sets {{ Uniforms: {0}, Storages: {1}, Images: {2}, Samplers: {3}, Input attachments: {4} }}...", m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]].descriptorCount, descriptorSets);
 
         // Filter pool sizes, since descriptorCount must be greater than 0, according to the specs.
         auto poolSizes = m_poolSizes |
             std::views::filter([](const VkDescriptorPoolSize& poolSize) { return poolSize.descriptorCount > 0; }) |
-            ranges::to<Array<VkDescriptorPoolSize>>();
+            std::ranges::to<std::vector>();
 
         VkDescriptorPoolCreateInfo poolInfo = {};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
         poolInfo.poolSizeCount = poolSizes.size();
         poolInfo.pPoolSizes = poolSizes.data();
-        poolInfo.maxSets = m_poolSize;
-
-        if (m_usesDescriptorIndexing)
-            poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;
+        poolInfo.maxSets = descriptorSets;
+        poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;
 
         VkDescriptorPool descriptorPool;
-        raiseIfFailed<RuntimeException>(::vkCreateDescriptorPool(m_device.handle(), &poolInfo, nullptr, &descriptorPool), "Unable to create buffer pool.");
+        raiseIfFailed(::vkCreateDescriptorPool(m_device.handle(), &poolInfo, nullptr, &descriptorPool), "Unable to create buffer pool.");
         m_descriptorPools.push_back(descriptorPool);
     }
 
-    VkDescriptorSet tryAllocate(const UInt32& descriptors)
+    VkDescriptorSet tryAllocate(UInt32 descriptors)
     {
+        return this->tryAllocate(1u, descriptors).front();
+    }
+
+    Array<VkDescriptorSet> tryAllocate(UInt32 descriptorSets, UInt32 descriptorsPerSet)
+    {
+        // NOTE: We're thread safe here, as the calls from the interface use a mutex to synchronize allocation.
+        
+        // If the descriptor set layout is empty, no descriptor set can be allocated.
+        if (m_descriptorLayouts.empty()) [[unlikely]]
+            throw RuntimeException("Cannot allocate descriptor set from empty layout.");
+
+        // Start by reserving enough space for all descriptor sets.
+        this->reserve(descriptorSets);
+
+        // Allocate the descriptor sets.
+        Array<VkDescriptorSetLayout> layouts(descriptorSets, m_parent->handle());
+
         VkDescriptorSetVariableDescriptorCountAllocateInfo variableCountInfo;
         VkDescriptorSetAllocateInfo descriptorSetInfo = {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
             .descriptorPool = m_descriptorPools.back(),
-            .descriptorSetCount = 1,
-            .pSetLayouts = &m_parent->handle()
+            .descriptorSetCount = descriptorSets,
+            .pSetLayouts = layouts.data()
         };
+
+        // Define variable descriptor count in pNext-chain, if descriptor set contains an unbounded array.
+        Array<UInt32> descriptorCounts(descriptorSets, descriptorsPerSet);
 
         if (m_usesDescriptorIndexing)
         {
             variableCountInfo = {
                 .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO,
-                .descriptorSetCount = 1,
-                .pDescriptorCounts = &descriptors
+                .descriptorSetCount = descriptorSets,
+                .pDescriptorCounts = descriptorCounts.data()
             };
 
             descriptorSetInfo.pNext = &variableCountInfo;
         }
 
-        // Try to allocate a new descriptor set.
-        VkDescriptorSet descriptorSet;
-        auto result = ::vkAllocateDescriptorSets(m_device.handle(), &descriptorSetInfo, &descriptorSet);
+        // Try to allocate a new descriptor sets.
+        Array<VkDescriptorSet> descriptorSetHandles(descriptorSets, VK_NULL_HANDLE);
+        raiseIfFailed(::vkAllocateDescriptorSets(m_device.handle(), &descriptorSetInfo, descriptorSetHandles.data()), "Unable to allocate descriptor set.");
 
-        if (result == VK_SUCCESS) [[likely]]
-        {
-            m_descriptorSetSources.insert(std::make_pair(&descriptorSet, &m_descriptorPools.back()));
-            return descriptorSet;
-        }
-        else if (result != VK_ERROR_OUT_OF_POOL_MEMORY)
-        {
-            raiseIfFailed<RuntimeException>(result, "Unable to allocate descriptor set.");
-        }
+        for (auto handle : descriptorSetHandles)
+            m_descriptorSetSources.insert(std::make_pair(&handle, &m_descriptorPools.back()));
 
-        // The pool is full, so we have to create a new one and retry.
-        this->addDescriptorPool();
-        return this->tryAllocate(descriptors);
+        return descriptorSetHandles;
     }
 };
 
@@ -231,8 +254,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device, Array<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize, const UInt32& maxUnboundedArraySize) :
-    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, device, std::move(descriptorLayouts), space, stages, poolSize)), Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE)
+VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages, UInt32 maxUnboundedArraySize) :
+    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, device, std::move(descriptorLayouts), space, stages)), Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE)
 {
     this->handle() = m_impl->initialize(maxUnboundedArraySize);
 }
@@ -254,27 +277,25 @@ const VulkanDevice& VulkanDescriptorSetLayout::device() const noexcept
     return m_impl->m_device;
 }
 
-Array<const VulkanDescriptorLayout*> VulkanDescriptorSetLayout::descriptors() const noexcept
+Enumerable<const VulkanDescriptorLayout*> VulkanDescriptorSetLayout::descriptors() const noexcept
 {
-    return m_impl->m_descriptorLayouts |
-        std::views::transform([](const UniquePtr<VulkanDescriptorLayout>& layout) { return layout.get(); }) |
-        ranges::to<Array<const VulkanDescriptorLayout*>>();
+    return m_impl->m_descriptorLayouts | std::views::transform([](const UniquePtr<VulkanDescriptorLayout>& layout) { return layout.get(); });
 }
 
-const VulkanDescriptorLayout& VulkanDescriptorSetLayout::descriptor(const UInt32& binding) const
+const VulkanDescriptorLayout& VulkanDescriptorSetLayout::descriptor(UInt32 binding) const
 {
-    if (auto match = std::ranges::find_if(m_impl->m_descriptorLayouts, [&binding](const UniquePtr<VulkanDescriptorLayout>& layout) { return layout->binding() == binding; }); match != m_impl->m_descriptorLayouts.end())
+    if (auto match = std::ranges::find_if(m_impl->m_descriptorLayouts, [&binding](const UniquePtr<VulkanDescriptorLayout>& layout) { return layout->binding() == binding; }); match != m_impl->m_descriptorLayouts.end()) [[likely]]
         return *match->get();
 
-    throw ArgumentOutOfRangeException("No layout has been provided for the binding {0}.", binding);
+    throw InvalidArgumentException("binding", "No layout has been provided for the binding {0}.", binding);
 }
 
-const UInt32& VulkanDescriptorSetLayout::space() const noexcept
+UInt32 VulkanDescriptorSetLayout::space() const noexcept
 {
     return m_impl->m_space;
 }
 
-const ShaderStage& VulkanDescriptorSetLayout::shaderStages() const noexcept
+ShaderStage VulkanDescriptorSetLayout::shaderStages() const noexcept
 {
     return m_impl->m_stages;
 }
@@ -314,12 +335,12 @@ UInt32 VulkanDescriptorSetLayout::inputAttachments() const noexcept
     return m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT].descriptorCount;
 }
 
-UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(const Array<DescriptorBinding>& bindings) const
+UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(const Enumerable<DescriptorBinding>& bindings) const
 {
     return this->allocate(0, bindings);
 }
 
-UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(const UInt32& descriptors, const Array<DescriptorBinding>& bindings) const
+UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings) const
 {
     std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
@@ -336,47 +357,124 @@ UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(const UInt32&
     }
 
     // Apply the default bindings.
-    for (auto& binding : bindings)
+    for (UInt32 i{ 0 }; auto& binding : bindings)
+    {
         std::visit(type_switch{
-            [&descriptorSet, &binding](const ISampler& sampler) { descriptorSet->update(binding.binding, sampler, binding.firstDescriptor); },
-            [&descriptorSet, &binding](const IBuffer& buffer) { descriptorSet->update(binding.binding, buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
-            [&descriptorSet, &binding](const IImage& image) { descriptorSet->update(binding.binding, image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); }
+            [](const std::monostate&) { }, // Default: don't bind anything.
+            [&descriptorSet, &binding, i](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
+            [&descriptorSet, &binding, i](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
+            [&descriptorSet, &binding, i](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
+            [&descriptorSet, &binding, i](const IAccelerationStructure& accelerationStructure) { descriptorSet->update(binding.binding.value_or(i), accelerationStructure, binding.firstDescriptor); }
         }, binding.resource);
+
+        ++i;
+    }
 
     // Return the descriptor set.
     return descriptorSet;
 }
 
-Array<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& descriptorSets, const Array<Array<DescriptorBinding>>& bindings) const
+Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings) const
 {
     return this->allocateMultiple(descriptorSets, 0, bindings);
 }
 
-Array<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& descriptorSets, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const
+Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const
 {
     return this->allocateMultiple(descriptorSets, 0, bindingFactory);
 }
 
-Array<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors, const Array<Array<DescriptorBinding>>& bindings) const
+Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(UInt32 count, UInt32 unboundedDescriptorsCount, const Enumerable<Enumerable<DescriptorBinding>>& bindingsPerSet) const
 {
-    Array<UniquePtr<VulkanDescriptorSet>> descriptorSets(count);
-    std::ranges::generate(descriptorSets, [this, descriptors, bindings, i = 0]() mutable { return i < bindings.size() ? this->allocate(descriptors, bindings[i++]) : this->allocate(descriptors, { }); });
+    std::lock_guard<std::mutex> lock(m_impl->m_mutex);
+
+    // If the set contains an unbounded array, or there are no free sets left, we need to allocate anyway.
+    Enumerable<UniquePtr<VulkanDescriptorSet>> descriptorSets = (m_impl->m_usesDescriptorIndexing || m_impl->m_freeDescriptorSets.empty() ?
+        [this, unboundedDescriptorsCount, &count]() -> std::generator<VkDescriptorSet> { co_yield std::ranges::elements_of(m_impl->tryAllocate(count, unboundedDescriptorsCount) | std::views::as_rvalue); }() :
+        [this, unboundedDescriptorsCount, &count]() -> std::generator<VkDescriptorSet> {
+            UInt32 remainingAllocations = count;
+
+            // If there are free descriptor sets, use them first.
+            while (!m_impl->m_freeDescriptorSets.empty() && remainingAllocations --> 0) // Finally a good use for the "-->" operator!!!
+            {
+                auto descriptorSet = m_impl->m_freeDescriptorSets.front();
+                m_impl->m_freeDescriptorSets.pop();
+                co_yield descriptorSet;
+            }
+
+            // Allocate the rest from a new descriptor pool and return them.
+            co_yield std::ranges::elements_of(m_impl->tryAllocate(remainingAllocations, unboundedDescriptorsCount) | std::views::as_rvalue);
+        }()) | std::views::transform([this](auto handle) { return makeUnique<VulkanDescriptorSet>(*this, handle); }) | std::views::as_rvalue;
+
+    // Apply the default bindings.
+    for (auto [descriptorSet, bindingsPerDescriptor] : std::views::zip(descriptorSets | std::views::transform([](auto& set) { return set.get(); }), bindingsPerSet))
+    {
+        for (UInt32 i{ 0 }; auto& binding : bindingsPerDescriptor)
+        {
+            std::visit(type_switch {
+                [](const std::monostate&) {}, // Default: don't bind anything.
+                [descriptorSet, &binding, i](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
+                [descriptorSet, &binding, i](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
+                [descriptorSet, &binding, i](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
+                [descriptorSet, &binding, i](const IAccelerationStructure& accelerationStructure) { descriptorSet->update(binding.binding.value_or(i), accelerationStructure, binding.firstDescriptor); }
+            }, binding.resource);
+
+            ++i;
+        }
+    }
+
     return descriptorSets;
 }
 
-Array<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(const UInt32& count, const UInt32& descriptors, std::function<Array<DescriptorBinding>(const UInt32&)> bindingFactory) const
+Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMultiple(UInt32 count, UInt32 unboundedDescriptorsCount, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const
 {
-    Array<UniquePtr<VulkanDescriptorSet>> descriptorSets(count);
-    std::ranges::generate(descriptorSets, [this, descriptors, bindingFactory, i = 0]() mutable { return this->allocate(descriptors, bindingFactory(i++)); });
+    std::lock_guard<std::mutex> lock(m_impl->m_mutex);
+
+    // If the set contains an unbounded array, or there are no free sets left, we need to allocate anyway.
+    Enumerable<UniquePtr<VulkanDescriptorSet>> descriptorSets = (m_impl->m_usesDescriptorIndexing || m_impl->m_freeDescriptorSets.empty() ?
+        [this, unboundedDescriptorsCount, &count]() -> std::generator<VkDescriptorSet> { co_yield std::ranges::elements_of(m_impl->tryAllocate(count, unboundedDescriptorsCount) | std::views::as_rvalue); }() :
+        [this, unboundedDescriptorsCount, &count]() -> std::generator<VkDescriptorSet> {
+            UInt32 remainingAllocations = count;
+
+            // If there are free descriptor sets, use them first.
+            while (!m_impl->m_freeDescriptorSets.empty() && remainingAllocations --> 0) // Finally a good use for the "-->" operator!!!
+            {
+                auto descriptorSet = m_impl->m_freeDescriptorSets.front();
+                m_impl->m_freeDescriptorSets.pop();
+                co_yield descriptorSet;
+            }
+
+            // Allocate the rest from a new descriptor pool and return them.
+            co_yield std::ranges::elements_of(m_impl->tryAllocate(remainingAllocations, unboundedDescriptorsCount) | std::views::as_rvalue);
+        }()) | std::views::transform([this](auto handle) { return makeUnique<VulkanDescriptorSet>(*this, handle); }) | std::views::as_rvalue;
+
+    // Apply the default bindings.
+    for (UInt32 set{ 0 }; auto& descriptorSet : descriptorSets)
+    {
+        for (UInt32 i{ 0 }; auto& binding : bindingFactory(set++))
+        {
+            std::visit(type_switch {
+                [](const std::monostate&) {}, // Default: don't bind anything.
+                [&descriptorSet, &binding, i](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
+                [&descriptorSet, &binding, i](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
+                [&descriptorSet, &binding, i](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
+                [&descriptorSet, &binding, i](const IAccelerationStructure& accelerationStructure) { descriptorSet->update(binding.binding.value_or(i), accelerationStructure, binding.firstDescriptor); }
+            }, binding.resource);
+
+            ++i;
+        }
+    }
+
     return descriptorSets;
 }
 
 void VulkanDescriptorSetLayout::free(const VulkanDescriptorSet& descriptorSet) const noexcept
 {
+    std::lock_guard<std::mutex> lock(m_impl->m_mutex);
+
     if (!m_impl->m_usesDescriptorIndexing)
     {
         // Keep the descriptor set around (get's automatically released when the pool gets destroyed).
-        std::lock_guard<std::mutex> lock(m_impl->m_mutex);
         m_impl->m_freeDescriptorSets.push(descriptorSet.handle());
     }
     else
@@ -406,89 +504,40 @@ void VulkanDescriptorSetLayout::free(const VulkanDescriptorSet& descriptorSet) c
     }
 }
 
-const UInt32& VulkanDescriptorSetLayout::poolSize() const noexcept
-{
-    return m_impl->m_poolSize;
-}
-
 size_t VulkanDescriptorSetLayout::pools() const noexcept
 {
     return m_impl->m_descriptorPools.size();
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
-// ------------------------------------------------------------------------------------------------
-// Descriptor set layout builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class VulkanDescriptorSetLayoutBuilder::VulkanDescriptorSetLayoutBuilderImpl : public Implement<VulkanDescriptorSetLayoutBuilder> {
-public:
-    friend class VulkanDescriptorSetLayoutBuilder;
-
-private:
-    Array<UniquePtr<VulkanDescriptorLayout>> m_descriptorLayouts;
-    UInt32 m_poolSize, m_space, m_maxArraySize;
-    ShaderStage m_stages;
-
-public:
-    VulkanDescriptorSetLayoutBuilderImpl(VulkanDescriptorSetLayoutBuilder* parent, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize, const UInt32& maxUnboundedArraySize) :
-        base(parent), m_poolSize(poolSize), m_space(space), m_stages(stages), m_maxArraySize(maxUnboundedArraySize)
-    {
-    }
-};
-
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Descriptor set layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDescriptorSetLayoutBuilder::VulkanDescriptorSetLayoutBuilder(VulkanPipelineLayoutBuilder& parent, const UInt32& space, const ShaderStage& stages, const UInt32& poolSize, const UInt32& maxUnboundedArraySize) :
-    m_impl(makePimpl<VulkanDescriptorSetLayoutBuilderImpl>(this, space, stages, poolSize, maxUnboundedArraySize)), DescriptorSetLayoutBuilder(parent, UniquePtr<VulkanDescriptorSetLayout>(new VulkanDescriptorSetLayout(parent.device())))
+constexpr VulkanDescriptorSetLayoutBuilder::VulkanDescriptorSetLayoutBuilder(VulkanPipelineLayoutBuilder& parent, UInt32 space, ShaderStage stages, UInt32 maxUnboundedArraySize) :
+    DescriptorSetLayoutBuilder(parent, UniquePtr<VulkanDescriptorSetLayout>(new VulkanDescriptorSetLayout(parent.device())))
 {
+    m_state.maxUnboundedArraySize = maxUnboundedArraySize;
 }
 
-VulkanDescriptorSetLayoutBuilder::~VulkanDescriptorSetLayoutBuilder() noexcept = default;
+constexpr VulkanDescriptorSetLayoutBuilder::~VulkanDescriptorSetLayoutBuilder() noexcept = default;
 
 void VulkanDescriptorSetLayoutBuilder::build()
 {
     auto instance = this->instance();
-    instance->m_impl->m_descriptorLayouts = std::move(m_impl->m_descriptorLayouts);
-    instance->m_impl->m_poolSize = std::move(m_impl->m_poolSize);
-    instance->m_impl->m_space = std::move(m_impl->m_space);
-    instance->m_impl->m_stages = std::move(m_impl->m_stages);
-    instance->handle() = instance->m_impl->initialize(m_impl->m_maxArraySize);
+    instance->m_impl->m_descriptorLayouts = std::move(m_state.descriptorLayouts);
+    instance->m_impl->m_space = std::move(m_state.space);
+    instance->m_impl->m_stages = std::move(m_state.stages);
+    instance->m_impl->initialize(m_state.maxUnboundedArraySize);
 }
 
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::withDescriptor(UniquePtr<VulkanDescriptorLayout>&& layout)
+constexpr UniquePtr<VulkanDescriptorLayout> VulkanDescriptorSetLayoutBuilder::makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors)
 {
-    m_impl->m_descriptorLayouts.push_back(std::move(layout));
-    return *this;
+    return makeUnique<VulkanDescriptorLayout>(type, binding, descriptorSize, descriptors);
 }
 
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::withDescriptor(const DescriptorType& type, const UInt32& binding, const UInt32& descriptorSize, const UInt32& descriptors)
+constexpr UniquePtr<VulkanDescriptorLayout> VulkanDescriptorSetLayoutBuilder::makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy)
 {
-    return this->withDescriptor(makeUnique<VulkanDescriptorLayout>(type, binding, descriptorSize, descriptors));
+    return makeUnique<VulkanDescriptorLayout>(makeUnique<VulkanSampler>(this->parent().device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding);
 }
-
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::withStaticSampler(const UInt32& binding, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& minLod, const Float& maxLod, const Float& anisotropy)
-{
-    return this->withDescriptor(makeUnique<VulkanDescriptorLayout>(makeUnique<VulkanSampler>(this->parent().device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding));
-}
-
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::space(const UInt32& space) noexcept
-{
-    m_impl->m_space = space;
-    return *this;
-}
-
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::shaderStages(const ShaderStage& stages) noexcept
-{
-    m_impl->m_stages = stages;
-    return *this;
-}
-
-VulkanDescriptorSetLayoutBuilder& VulkanDescriptorSetLayoutBuilder::poolSize(const UInt32& poolSize) noexcept
-{
-    m_impl->m_poolSize = poolSize;
-    return *this;
-}
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

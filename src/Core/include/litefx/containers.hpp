@@ -11,6 +11,7 @@
 #include <optional>
 #include <map>
 #include <vector>
+#include <forward_list>
 #include <queue>
 #include <tuple>
 #include <memory>
@@ -19,6 +20,7 @@
 #include <ranges>
 #include <mutex>
 
+#include "generator.hpp"	// NOTE: Should be replaced by #include <generator> once it is available.
 #include "traits.hpp"
 #include "string.hpp"
 #include "exceptions.hpp"
@@ -32,7 +34,7 @@
 #endif
 
 #ifndef LITEFX_FLAG_IS_SET
-#  define LITEFX_FLAG_IS_SET(val, flag) static_cast<bool>((static_cast<UInt32>(val) & static_cast<UInt32>(flag)) == static_cast<UInt32>(flag))
+#  define LITEFX_FLAG_IS_SET(val, flag) static_cast<bool>((std::to_underlying(val) & std::to_underlying(flag)) == std::to_underlying(flag))
 #endif
 
 namespace LiteFX {
@@ -135,7 +137,7 @@ namespace LiteFX {
 	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
 	/// <returns>A new unique pointer.</returns>
 	template <class T>
-	UniquePtr<T> makeUnique() {
+	constexpr inline [[nodiscard]] UniquePtr<T> makeUnique() {
 		return std::make_unique<T>();
 	}
 
@@ -145,7 +147,7 @@ namespace LiteFX {
 	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
 	/// <returns>A new unique pointer.</returns>
 	template <class T, class... TArgs>
-	UniquePtr<T> makeUnique(TArgs&&... _args) {
+	constexpr inline [[nodiscard]] UniquePtr<T> makeUnique(TArgs&&... _args) {
 		return std::make_unique<T>(std::forward<TArgs>(_args)...);
 	}
 
@@ -155,7 +157,7 @@ namespace LiteFX {
 	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
 	/// <returns>A new shared pointer.</returns>
 	template <class T>
-	SharedPtr<T> makeShared() {
+	constexpr inline [[nodiscard]] SharedPtr<T> makeShared() {
 		return std::make_shared<T>();
 	}
 
@@ -165,7 +167,7 @@ namespace LiteFX {
 	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
 	/// <returns>A new shared pointer.</returns>
 	template <class T, class... TArgs>
-	SharedPtr<T> makeShared(TArgs&&... _args) {
+	constexpr inline [[nodiscard]] SharedPtr<T> makeShared(TArgs&&... _args) {
 		return std::make_shared<T>(std::forward<TArgs>(_args)...);
 	}
 
@@ -176,47 +178,246 @@ namespace LiteFX {
 	/// <param name="ptr">The unique pointer that should be turned into a shared pointer.</param>
 	/// <returns>A new shared pointer.</returns>
 	template <class T>
-	SharedPtr<T> asShared(UniquePtr<T>&& ptr) {
+	constexpr inline [[nodiscard]] SharedPtr<T> asShared(UniquePtr<T>&& ptr) {
 		return SharedPtr<T>(ptr.release());
 	}
 
 	/// <summary>
-	/// Contains helpers for working with ranges and views.
+	/// Describes an intermediate container for elements of type <typeparamref name="T" />.
 	/// </summary>
-	namespace ranges {
+	/// <remarks>
+	/// An `Enumerable` is a generic runtime-polymorphic container designed for class interfaces. Differently to STL containers, it does not impose constraints other than the 
+	/// requirement of being forward-iterable. It's purpose is to pass immutable containers between objects. Since it is compatible to the STL *ranges* library, it can be 
+	/// constructed from arbitrary containers.
+	/// 
+	/// Note that `Enumerable` *owns* it's elements, which means that a copy *might* occur, if the input range does not contain rvalue references. You might want to wrap the
+	/// element type in a <see cref="Ref" />, if you want to provide access to source elements. If you want to transfer ownership of the elements to the `Enumerable`, you can 
+	/// use `std::views::as_rvalue` on the source range or view. This is required for non-copyable (move-only) types, such as <see cref="UniquePtr" />. Note, however, that this 
+	/// might leave the original container in an undefined state.
+	/// </remarks>
+	/// <typeparam name="T">The type of the container elements.</typeparam>
+	template <typename T>
+	class Enumerable {
+	public:
+		using value_type = T;
+		using array_type = std::forward_list<T>;
+		using allocator_type = array_type::allocator_type;
+		using size_type = array_type::size_type;
+		using difference_type = array_type::difference_type;
+		using pointer = array_type::pointer;
+		using const_pointer = array_type::const_pointer;
+		using iterator = array_type::iterator;
+		using const_iterator = array_type::const_iterator;
+		using reference = value_type&;
+		using const_reference = const value_type&;
 
-		template <typename TContainer>
-		struct to_container { };
+	private:
+		array_type m_elements;
+		size_type m_size = 0;
 
-		template <typename TContainer, std::ranges::range TRange> requires 
-			std::convertible_to<std::ranges::range_value_t<TRange>, typename TContainer::value_type>
-		inline TContainer operator|(TRange&& range, to_container<TContainer>) {
-			auto it = range | std::views::common;
-			return TContainer{ it.begin(), it.end() };
+	public:
+		/// <summary>
+		/// Creates a new `Enumerable` from an arbitrary input range or view.
+		/// </summary>
+		/// <param name="input">The input range or view that contains the elements the `Enumerable` is initialized with.</param>
+		constexpr Enumerable(std::ranges::input_range auto&& input) noexcept requires
+			std::convertible_to<std::ranges::range_value_t<decltype(input)>, T>
+		{
+			auto it = m_elements.before_begin();
+			m_size = 0;
+
+			for (auto elem : input)
+			{
+				m_elements.insert_after(it, std::forward<std::ranges::range_value_t<decltype(input)>>(elem));
+				it++;
+				m_size++;
+			}
 		}
 
 		/// <summary>
-		/// 
+		/// Creates a new `Enumerable` from an initializer list.
 		/// </summary>
-		/// <remarks>
-		/// This may be replaced by <c>std::views::to</c> in the future.
-		/// </remarks>
-		/// <returns></returns>
-		template <std::ranges::range TContainer> requires 
-			(!std::ranges::view<TContainer>)
-		auto to() {
-			return to_container<TContainer>{};
+		/// <param name="input">The initializer list that contains the elements, the `Enumerable` is initialized with.</param>
+		constexpr Enumerable(std::initializer_list<T> input) :
+			m_elements{ input }, m_size{ input.size() }
+		{
 		}
 
-	}
+		/// <summary>
+		/// Creates a new `Enumerable` from a set of arguments.
+		/// </summary>
+		/// <typeparam name="...TArgs">The types of the arguments.</typeparam>
+		/// <param name="...args">The arguments.</param>
+		template <typename... TArgs> requires meta::are_same<T, TArgs...>
+		constexpr explicit inline Enumerable(TArgs&&... args) noexcept
+		{
+			auto input = std::to_array({ std::forward<TArgs>(args)... });
+			m_size = input.size();
+			m_elements = { std::make_move_iterator(std::begin(input)), std::make_move_iterator(std::end(input)) };
+		}
+
+		/// <summary>
+		/// Creates a new `Enumerable` from a forward list.
+		/// </summary>
+		/// <remarks>
+		/// Initializing the enumerable by moving a forward list may be more efficient than the other constructors.
+		/// </remarks>
+		/// <param name="input">The forward list that contains the elements, the `Enumerable` is initialized with.</param>
+		constexpr Enumerable(array_type&& input) noexcept :
+			m_elements(std::move(input)), m_size(0)
+		{
+			for (auto& elem : m_elements)
+				m_size++;
+		}
+
+		/// <summary>
+		/// Creates an empty `Enumerable`.
+		/// </summary>
+		constexpr Enumerable() requires std::default_initializable<array_type> = default;
+
+		/// <summary>
+		/// Initializes the `Enumerable` by taking over <paramref name="_other" />.
+		/// </summary>
+		/// <remarks>
+		/// Note that this constructor can only be used of <typeparamref name="T" /> is movable.
+		/// </remarks>
+		/// <param name="_other">The `Enumerable` to take over.</param>
+		constexpr Enumerable(Enumerable<T>&& _other) = default;
+
+		/// <summary>
+		/// Initializes the `Enumerable` by taking over <paramref name="_other" />.
+		/// </summary>
+		/// <remarks>
+		/// Note that this constructor can only be used of <typeparamref name="T" /> is movable.
+		/// </remarks>
+		/// <param name="_other">The `Enumerable` to take over.</param>
+		/// <returns>A reference of the `Enumerable` after the move.</returns>
+		constexpr Enumerable<T>& operator=(Enumerable<T>&& _other) = default;
+
+		/// <summary>
+		/// Initializes the `Enumerable` by copying <paramref name="_other" />.
+		/// </summary>
+		/// <remarks>
+		/// Note that this constructor can only be used of <typeparamref name="T" /> is copyable.
+		/// </remarks>
+		/// <param name="_other">The `Enumerable` to copy.</param>
+		constexpr Enumerable(const Enumerable<T>& _other) = default;
+
+		/// <summary>
+		/// Initializes the `Enumerable` by copying <paramref name="_other" />.
+		/// </summary>
+		/// <remarks>
+		/// Note that this constructor can only be used of <typeparamref name="T" /> is copyable.
+		/// </remarks>
+		/// <param name="_other">The `Enumerable` to copy.</param>
+		/// <returns>A reference of the `Enumerable` after the copy.</returns>
+		constexpr Enumerable<T>& operator=(const Enumerable<T>& _other) = default;
+
+	public:
+		/// <summary>
+		/// Returns the number of elements of the `Enumerable`.
+		/// </summary>
+		/// <returns>The number of elements of the `Enumerable`.</returns>
+		constexpr size_type size() const noexcept {
+			return m_size;
+		}
+
+		/// <summary>
+		/// Returns `true`, if the `Enumerable` is empty and `false` otherwise.
+		/// </summary>
+		/// <returns>`true`, if the `Enumerable` is empty and `false` otherwise.</returns>
+		constexpr bool empty() const noexcept {
+			return m_elements.empty();
+		}
+
+		/// <summary>
+		/// Returns the iterator that points to the beginning of the `Enumerable`.
+		/// </summary>
+		/// <returns>The iterator that points to the beginning of the `Enumerable`.</returns>
+		constexpr iterator begin() noexcept {
+			return m_elements.begin();
+		}
+
+		/// <summary>
+		/// Returns the iterator that points to the beginning of the `Enumerable`.
+		/// </summary>
+		/// <returns>The iterator that points to the beginning of the `Enumerable`.</returns>
+		constexpr const_iterator begin() const noexcept {
+			return m_elements.begin();
+		}
+
+		/// <summary>
+		/// Returns the iterator that points to the beginning of the `Enumerable`.
+		/// </summary>
+		/// <returns>The iterator that points to the beginning of the `Enumerable`.</returns>
+		constexpr const_iterator cbegin() noexcept {
+			return m_elements.cbegin();
+		}
+
+		/// <summary>
+		/// Returns the iterator that points to the beginning of the `Enumerable`.
+		/// </summary>
+		/// <returns>The iterator that points to the beginning of the `Enumerable`.</returns>
+		constexpr const_iterator cbegin() const noexcept {
+			return m_elements.cbegin();
+		}
+
+		/// <summary>
+		/// Returns the iterator that points to the ending of the `Enumerable`.
+		/// </summary>
+		/// <returns>The iterator that points to the ending of the `Enumerable`.</returns>
+		constexpr iterator end() noexcept {
+			return m_elements.end();
+		}
+
+		/// <summary>
+		/// Returns the iterator that points to the ending of the `Enumerable`.
+		/// </summary>
+		/// <returns>The iterator that points to the ending of the `Enumerable`.</returns>
+		constexpr const_iterator end() const noexcept {
+			return m_elements.end();
+		}
+
+		/// <summary>
+		/// Returns the iterator that points to the ending of the `Enumerable`.
+		/// </summary>
+		/// <returns>The iterator that points to the ending of the `Enumerable`.</returns>
+		constexpr const_iterator cend() noexcept {
+			return m_elements.cend();
+		}
+
+		/// <summary>
+		/// Returns the iterator that points to the ending of the `Enumerable`.
+		/// </summary>
+		/// <returns>The iterator that points to the ending of the `Enumerable`.</returns>
+		constexpr const_iterator cend() const noexcept {
+			return m_elements.cend();
+		}
+
+		/// <summary>
+		/// Returns the first element of the `Enumerable`, if it is not empty.
+		/// </summary>
+		/// <returns>The first element of the `Enumerable`, if it is not empty.</returns>
+		constexpr decltype(auto) front() {
+			return m_elements.front();
+		}
+
+		/// <summary>
+		/// Returns the first element of the `Enumerable`, if it is not empty.
+		/// </summary>
+		/// <returns>The first element of the `Enumerable`, if it is not empty.</returns>
+		constexpr decltype(auto) front() const {
+			return m_elements.front();
+		}
+	};
 
 #if (defined(BUILD_LITEFX_PIMPL) && BUILD_LITEFX_PIMPL) || (!defined(BUILD_LITEFX_PIMPL)) && !defined(LITEFX_IMPLEMENTATION)
 	/// <summary>
 	/// A smart pointer that manages an implementation instance for a public interface class.
 	/// </summary>
-	/// <typeparam name="pImpl">The type of the implementaion class.</typeparam>
+	/// <typeparam name="pImpl">The type of the implementation class.</typeparam>
 	template <class pImpl>
-	class PimplPtr {
+	class PimplPtr final {
 	private:
 		UniquePtr<pImpl> m_ptr;
 
@@ -224,7 +425,7 @@ namespace LiteFX {
 		/// <summary>
 		/// Initializes a new pointer to an uninitialized implementation instance.
 		/// </summary>
-		PimplPtr() noexcept = default;
+		constexpr inline PimplPtr() noexcept = default;
 
 		/// <summary>
 		/// Initializes a new pointer to a copy of the implementation instance managed by <paramref name="src" />.
@@ -234,13 +435,13 @@ namespace LiteFX {
 		/// of both implementation pointers manually!
 		/// </remarks>
 		/// <param name="src">The source pointer to copy the implementation instance from.</param>
-		PimplPtr(const PimplPtr& src) noexcept : m_ptr(new pImpl(*src.m_ptr)) { }
+		constexpr inline PimplPtr(const PimplPtr& src) noexcept : m_ptr(new pImpl(*src.m_ptr)) { }
 
 		/// <summary>
 		/// Initializes a new pointer by taking over the implementation instance managed by <paramref name="src" />.
 		/// </summary>
 		/// <param name="src">The source pointer to take over.</param>
-		PimplPtr(PimplPtr&& src) noexcept = default;
+		constexpr inline PimplPtr(PimplPtr&& src) noexcept = default;
 
 		/// <summary>
 		/// Initializes a new pointer to a copy of the implementation instance managed by <paramref name="src" />.
@@ -251,52 +452,58 @@ namespace LiteFX {
 		/// </remarks>
 		/// <param name="src">The source pointer to copy the implementation instance from.</param>
 		/// <returns>A new pointer to the provided implementation instance.</returns>
-		PimplPtr& operator= (const PimplPtr& src) noexcept { m_ptr.reset(new pImpl(*src.m_ptr)); return *this; }
+		constexpr inline PimplPtr& operator= (const PimplPtr& src) noexcept { m_ptr.reset(new pImpl(*src.m_ptr)); return *this; }
 
 		/// <summary>
 		/// Initializes a new pointer by taking over the implementation instance managed by <paramref name="src" />.
 		/// </summary>
 		/// <param name="src">The source pointer to take over.</param>
 		/// /// <returns>A new pointer to the provided implementation instance.</returns>
-		PimplPtr& operator= (PimplPtr&& src) noexcept = default;
+		constexpr inline PimplPtr& operator= (PimplPtr&& src) noexcept = default;
 
-		~PimplPtr() noexcept = default;
+		constexpr inline ~PimplPtr() noexcept = default;
 
 	private:
 		/// <summary>
 		/// Initializes a new pointer from the raw pointer provided with <paramref name="pimpl" />.
 		/// </summary>
 		/// <param name="pimpl">The raw pointer to take ownership over.</param>
-		PimplPtr(pImpl* pimpl) noexcept : m_ptr(pimpl) { }
+		constexpr inline PimplPtr(pImpl* pimpl) noexcept : m_ptr(pimpl) { }
 
 	public:
 		/// <summary>
 		/// Destroys the implementation instance managed by this pointer.
 		/// </summary>
-		void destroy() { m_ptr = nullptr; }
+		constexpr inline void destroy() { m_ptr = nullptr; }
 
 		/// <summary>
 		/// Releases the implementation instance managed by this pointer and returns it.
 		/// </summary>
 		/// <returns>The pointer to the managed implementation instance.</returns>
-		pImpl* release() noexcept { m_ptr.release(); }
+		constexpr inline pImpl* release() noexcept { m_ptr.release(); }
+
+		/// <summary>
+		/// Returns a pointer to the managed implementation instance.
+		/// </summary>
+		/// <returns>A pointer to the managed implementation instance.</returns>
+		constexpr inline pImpl* get() const noexcept { return m_ptr.get(); }
 
 	public:
 		/// <summary>
 		/// Returns a reference to the managed implementation instance.
 		/// </summary>
 		/// <returns>A reference to the managed implementation instance.</returns>
-		pImpl& operator* () const noexcept { return *m_ptr; }
+		constexpr inline pImpl& operator* () const noexcept { return *m_ptr; }
 
 		/// <summary>
 		/// Returns a pointer to the managed implementation instance.
 		/// </summary>
 		/// <returns>A pointer to the managed implementation instance.</returns>
-		pImpl* operator-> () const noexcept { return m_ptr.get(); }
+		constexpr inline pImpl* operator-> () const noexcept { return m_ptr.get(); }
 
 	public:
 		template <class T, class... Arg>
-		friend PimplPtr<T> makePimpl(Arg&&... arg);
+		friend constexpr inline PimplPtr<T> makePimpl(Arg&&... arg);
 	};
 
 	/// <summary>
@@ -307,7 +514,7 @@ namespace LiteFX {
 	/// <param name="...arg">The arguments forwarded to the implementation classes' constructor.</param>
 	/// <returns>The pointer to the implementation class instance.</returns>
 	template <class T, class... Arg>
-	PimplPtr<T> makePimpl(Arg&&... arg) {
+	constexpr inline [[nodiscard]] PimplPtr<T> makePimpl(Arg&&... arg) {
 		return PimplPtr<T>(new T(std::forward<Arg>(arg)...));
 	}
 
@@ -343,14 +550,14 @@ namespace LiteFX {
 		/// Initializes the implementation instance.
 		/// </summary>
 		/// <param name="parent">The pointer to the parent public interface instance.</param>
-		Implement(TInterface* parent) : m_parent(parent) {
+		constexpr inline Implement(TInterface* parent) : m_parent(parent) {
 			if (parent == nullptr)
 				throw std::runtime_error("Initializing an implementation requires the parent to be provided.");
 		}
 
 		Implement(Implement<TInterface>&&) = delete;
 		Implement(const Implement<TInterface>&) = delete;
-		virtual ~Implement() = default;
+		constexpr inline virtual ~Implement() = default;
 	};
 
 	/// <summary>
@@ -423,73 +630,66 @@ namespace LiteFX {
 	/// <typeparamref name="T" />. Assigning the builder instance to an instance of <typeparamref name="TPointer" /> will return the instance object.
 	/// Similar to child builders, it is possible to overwrite the `build` method, to perform any additional pre-construction work.
 	/// 
-	/// The derived type <typeparamref name="TDerived" /> marks the actual implementation of the builder, which itself is derived from this class in 
-	/// CRTP-fashion. It is typically used to define builder methods that return references to `this`.
-	/// 
 	/// Builders create the object instances they manage in form of smart pointers. The <typeparamref name="TPointer" /> can either be set to any smart
 	/// pointer type that wraps <typeparamref name="T" /> for convenience.
 	/// </remarks>
-	/// <typeparam name="TDerived">The concrete implementation of the builder itself.</typeparam>
 	/// <typeparam name="T">The type of the object the builder builds.</typeparam>
 	/// <typeparam name="TParent">The type of the parent builder or `std::nullptr_t`.</typeparam>
 	/// <typeparam name="TPointer">The type of the pointer, used to access the instance of <typeparamref name="T" /> this builder builds.</typeparam>
-	template <typename TDerived, typename T, typename TParent = std::nullptr_t, typename TPointer = UniquePtr<T>>
+	template <typename T, typename TParent = std::nullptr_t, typename TPointer = UniquePtr<T>>
 	class Builder;
 
 	/// <summary>
 	/// Describes a root builder.
 	/// </summary>
-	/// <typeparam name="TDerived">The concrete implementation of the builder itself.</typeparam>
 	/// <typeparam name="T">The type of the object the builder builds.</typeparam>
 	/// <typeparam name="TPointer">The type of the pointer, used to access the instance of <typeparamref name="T" /> this builder builds.</typeparam>
 	/// <seealso href="https://github.com/crud89/LiteFX/wiki/Builders" />
-	template <typename TDerived, typename T, typename TPointer>
-	class Builder<TDerived, T, std::nullptr_t, typename TPointer> {
+	template <typename T, typename TPointer>
+	class Builder<T, std::nullptr_t, typename TPointer> {
 	private:
 		TPointer m_instance;
 
 	public:
-		using derived_type = TDerived;
 		using instance_type = T;
 		using parent_type = std::nullptr_t;
 		using pointer_type = TPointer;
-		using builder_type = Builder<derived_type, instance_type, parent_type, pointer_type>;
 
 	public:
 		/// <summary>
 		/// Returns a pointer to the current instance of the object that is built by the builder.
 		/// </summary>
 		/// <returns>A pointer to the current object instance.</returns>
-		const T* instance() const noexcept { return m_instance.get(); }
+		constexpr inline const T* instance() const noexcept { return m_instance.get(); }
 
 	protected:
 		/// <summary>
 		/// Returns a pointer to the current instance of the object that is built by the builder.
 		/// </summary>
 		/// <returns>A pointer to the current object instance.</returns>
-		T* instance() noexcept { return m_instance.get(); }
+		constexpr inline T* instance() noexcept { return m_instance.get(); }
 
 	public:
 		/// <summary>
 		/// Initializes the builder instance.
 		/// </summary>
 		/// <param name="instance">The instance of the object to build.</param>
-		explicit Builder(TPointer&& instance) noexcept : m_instance(std::move(instance)) { }
+		constexpr inline explicit Builder(TPointer&& instance) noexcept : m_instance(std::move(instance)) { }
 
 		/// <summary>
 		/// Initializes the builder instance by taking over another instance.
 		/// </summary>
 		/// <param name="_other">The instance of another builder object to take over.</param>
-		Builder(builder_type&& _other) noexcept : m_instance(std::move(_other.m_instance)) { }
+		constexpr inline Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)) { }
 
-		Builder(const builder_type&) = delete;
-		virtual ~Builder() noexcept = default;
+		constexpr inline Builder(const Builder&) = delete;
+		constexpr inline virtual ~Builder() noexcept = default;
 
 	protected:
 		/// <summary>
 		/// Can be overwritten to perform any pre-construction work before the builder returns the final object instance.
 		/// </summary>
-		virtual void build() { };
+		constexpr inline virtual void build() { };
 
 	public:
 		// TODO: Provide concept (`is_buildable<TBuilder>`)
@@ -506,8 +706,7 @@ namespace LiteFX {
 		/// <summary>
 		/// Calls <see cref="build" /> and returns the instance.
 		/// </summary>
-		[[nodiscard]]
-		operator TPointer&& () {
+		constexpr inline [[nodiscard]] operator TPointer&& () {
 			this->build();
 			return std::move(m_instance);
 		}
@@ -516,42 +715,39 @@ namespace LiteFX {
 	/// <summary>
 	/// Describes a child builder.
 	/// </summary>
-	/// <typeparam name="TDerived">The concrete implementation of the builder itself.</typeparam>
 	/// <typeparam name="T">The type of the object the builder builds.</typeparam>
 	/// <typeparam name="TPointer">The type of the pointer, used to access the instance of <typeparamref name="T" /> this builder builds.</typeparam>
 	/// <seealso href="https://github.com/crud89/LiteFX/wiki/Builders" />
-	template <typename TDerived, typename T, typename TParent, typename TPointer>
+	template <typename T, typename TParent, typename TPointer>
 	class Builder {
 	private:
 		TPointer m_instance;
 		TParent& m_parent;
 
 	public:
-		using derived_type = TDerived;
 		using instance_type = T;
 		using parent_type = TParent;
 		using pointer_type = TPointer;
-		using builder_type = Builder<derived_type, instance_type, parent_type, pointer_type>;
 
 	public:
 		/// <summary>
 		/// Returns a pointer to the current instance of the object that is built by the builder.
 		/// </summary>
 		/// <returns>A pointer to the current object instance.</returns>
-		const T* instance() const noexcept { return m_instance.get(); }
+		constexpr inline const T* instance() const noexcept { return m_instance.get(); }
 
 		/// <summary>
 		/// Returns a reference of the parent builder.
 		/// </summary>
 		/// <returns>A reference of the parent builder.</returns>
-		const TParent& parent() const noexcept { return m_parent; }
+		constexpr inline const TParent& parent() const noexcept { return m_parent; }
 
 	protected:
 		/// <summary>
 		/// Returns a pointer to the current instance of the object that is built by the builder.
 		/// </summary>
 		/// <returns>A pointer to the current object instance.</returns>
-		T* instance() noexcept { return m_instance.get(); }
+		constexpr inline T* instance() noexcept { return m_instance.get(); }
 
 	public:
 		/// <summary>
@@ -559,22 +755,22 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="parent">The instance of the parent builder.</param>
 		/// <param name="instance">The instance of the object to build.</param>
-		explicit Builder(TParent& parent, TPointer&& instance) noexcept : m_parent(parent), m_instance(std::move(instance)) { }
+		constexpr inline explicit Builder(TParent& parent, TPointer&& instance) noexcept : m_parent(parent), m_instance(std::move(instance)) { }
 		
 		/// <summary>
 		/// Initializes the builder instance by taking over another instance.
 		/// </summary>
 		/// <param name="_other">The instance of another builder object to take over.</param>
-		Builder(builder_type&& _other) noexcept : m_instance(std::move(_other.m_instance)), m_parent(_other.m_parent) { }
+		constexpr inline Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)), m_parent(_other.m_parent) { }
 		
-		Builder(const builder_type&) = delete;
-		virtual ~Builder() noexcept = default;
+		constexpr inline Builder(const Builder&) = delete;
+		constexpr inline virtual ~Builder() noexcept = default;
 
 	protected:
 		/// <summary>
 		/// Can be overwritten to perform any pre-construction work before the builder returns the final object instance.
 		/// </summary>
-		virtual void build() { };
+		constexpr inline virtual void build() { };
 
 	public:
 		// TODO: Provide concept (`is_buildable<TBuilder>`)
@@ -591,8 +787,7 @@ namespace LiteFX {
 		/// <summary>
 		/// First, calls <see cref="build" />, then `use` on the parent builder using the current object instance and finally returns the parent builder.
 		/// </summary>
-		[[nodiscard]]
-		TParent& add() {
+		constexpr inline [[nodiscard]] TParent& add() {
 			this->build();
 			m_parent.use(std::move(m_instance));
 			return m_parent;

@@ -14,7 +14,11 @@ float3 applySRGB(float3 x)
 {
 	// See: https://github.com/Microsoft/DirectX-Graphics-Samples/blob/master/MiniEngine/Core/Shaders/GenerateMipsCS.hlsli#L55
 	//return x < 0.0031308 ? 12.92 * x : 1.055 * pow(abs(x), 1.0 / 2.4) - 0.055;
-	return x < 0.0031308 ? 12.92 * x : 1.13005 * sqrt(abs(x - 0.00228)) - 0.13448 * x + 0.005719;
+    return float3(
+		x.r < 0.0031308 ? 12.92 * x.r : 1.13005 * sqrt(abs(x.r - 0.00228)) - 0.13448 * x.r + 0.005719,
+		x.g < 0.0031308 ? 12.92 * x.g : 1.13005 * sqrt(abs(x.g - 0.00228)) - 0.13448 * x.g + 0.005719,
+		x.b < 0.0031308 ? 12.92 * x.b : 1.13005 * sqrt(abs(x.b - 0.00228)) - 0.13448 * x.b + 0.005719
+	);
 }
 
 float4 packColor(float4 color)

@@ -47,6 +47,7 @@ private:
         UInt32 elements;
         DescriptorType type;
         Optional<D3D12_STATIC_SAMPLER_DESC> staticSamplerState;
+        bool local = false;
 
         bool equals(const DescriptorInfo& rhs)
         {
@@ -75,9 +76,10 @@ private:
     };
 
 public:
-    DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent, const DirectX12Device& device, Array<UniquePtr<DirectX12ShaderModule>>&& modules) :
-        base(parent), m_modules(std::move(modules)), m_device(device)
+    DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent, const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) :
+        base(parent), m_device(device)
     {
+        m_modules = modules | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent, const DirectX12Device& device) :
@@ -86,6 +88,96 @@ public:
     }
 
 public:
+    void validate()
+    {
+        // First check if there are any modules at all, or any that are uninitialized.
+        if (m_modules.empty()) [[unlikely]]
+            return; // Not exactly a reason to throw, but rather an empty group cannot be meaningful used anyway.
+
+        if (std::ranges::contains(m_modules, nullptr)) [[unlikely]]
+            throw InvalidArgumentException("modules", "At least one of the shader modules is not initialized.");
+
+        // Check if there are combinations, that are not supported.
+        Dictionary<ShaderStage, UInt32> shaders = {
+            { ShaderStage::Compute, 0 },
+            { ShaderStage::Vertex, 0 },
+            { ShaderStage::Geometry, 0 },
+            { ShaderStage::TessellationControl, 0 },
+            { ShaderStage::TessellationEvaluation, 0 },
+            { ShaderStage::Fragment, 0 },
+            { ShaderStage::Task, 0 },
+            { ShaderStage::Mesh, 0 },
+            { ShaderStage::RayGeneration, 0 },
+            { ShaderStage::Miss, 0 },
+            { ShaderStage::Callable, 0 },
+            { ShaderStage::AnyHit, 0 },
+            { ShaderStage::ClosestHit, 0 },
+            { ShaderStage::Intersection, 0 }
+        };
+
+        std::ranges::for_each(m_modules, [&shaders](auto& module) { shaders[module->type()]++; });
+
+        bool containsComputeGroup    = shaders[ShaderStage::Compute] > 0;
+        bool containsGraphicsGroup   = shaders[ShaderStage::Vertex] > 0 || shaders[ShaderStage::Geometry] > 0 || shaders[ShaderStage::TessellationControl] > 0 || shaders[ShaderStage::TessellationEvaluation] > 0;
+        bool containsFragmentGroup   = shaders[ShaderStage::Fragment] > 0;
+        bool containsMeshGroup       = shaders[ShaderStage::Task] > 0 || shaders[ShaderStage::Mesh] > 0;
+        bool containsRaytracingGroup = shaders[ShaderStage::RayGeneration] > 0 || shaders[ShaderStage::Miss] > 0 || shaders[ShaderStage::Callable] > 0 || shaders[ShaderStage::AnyHit] > 0 || shaders[ShaderStage::ClosestHit] > 0 || shaders[ShaderStage::Intersection] > 0;
+
+        // Compute groups must be compute only.
+        if (containsComputeGroup)
+        {
+            if (containsGraphicsGroup || containsMeshGroup || containsFragmentGroup || containsRaytracingGroup) [[unlikely]]
+                throw InvalidArgumentException("modules", "The provided shader modules mix compute shaders with non-compute shaders.");
+            if (shaders[ShaderStage::Compute] > 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "If a shader program contains a compute shader, it must contain only one shader module.");
+
+            return;
+        }
+
+        // No compute shaders from this point - are we on a ray-tracing group?
+        if (containsRaytracingGroup)
+        {
+            if (containsGraphicsGroup || containsMeshGroup || containsFragmentGroup) [[unlikely]]
+                throw InvalidArgumentException("modules", "If a shader program contains ray-tracing shaders, it must only contain ray-tracing shaders.");
+            if (containsRaytracingGroup && shaders[ShaderStage::RayGeneration] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "If ray-tracing shaders are present, there must also be exactly one ray generation shader.");
+                
+            return;
+        }
+
+        // No ray-tracing from this point... next are mesh shaders.
+        if (containsMeshGroup)
+        {
+            if (containsGraphicsGroup) [[unlikely]]
+                throw InvalidArgumentException("modules", "Mesh shaders must not be combined with graphics shaders.");
+            if (shaders[ShaderStage::Fragment] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a mesh shader program, there must be exactly one fragment/pixel shader.");
+            if (shaders[ShaderStage::Mesh] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a mesh shader program, there must be exactly one mesh shader.");
+            if (shaders[ShaderStage::Task] > 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a mesh shader program, there must be at most one mesh shader.");
+
+            return;
+        }
+
+        // Now on to the standard graphics shaders.
+        if (containsGraphicsGroup)
+        {
+            if (shaders[ShaderStage::Fragment] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a graphics shader program, there must be exactly one fragment/pixel shader.");
+            if (shaders[ShaderStage::Vertex] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a graphics shader program, there must be exactly one vertex shader.");
+            if (shaders[ShaderStage::TessellationControl] > 1 || shaders[ShaderStage::TessellationEvaluation] > 1 || shaders[ShaderStage::Geometry] > 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a graphics shader program, there must be at most one geometry, tessellation control/domain or tessellation evaluation/hull shader.");
+
+            return;
+        }
+
+        // Finally, let's check if there's a lonely fragment shader.
+        if (containsFragmentGroup) [[unlikely]]
+            throw InvalidArgumentException("modules", "A shader program that contains only a fragment/pixel shader is not valid.");
+    }
+
     void reflectRootSignature(ComPtr<ID3D12RootSignatureDeserializer> deserializer, Dictionary<UInt32, DescriptorSetInfo>& descriptorSetLayouts, Array<PushConstantRangeInfo>& pushConstantRanges)
     {
         // Collect the shader stages.
@@ -147,10 +239,10 @@ public:
                     case D3D12_SHADER_VISIBILITY_DOMAIN:        stage = ShaderStage::TessellationEvaluation; break;
                     case D3D12_SHADER_VISIBILITY_GEOMETRY:      stage = ShaderStage::Geometry; break;
                     case D3D12_SHADER_VISIBILITY_PIXEL:         stage = ShaderStage::Fragment; break;
-                    case D3D12_SHADER_VISIBILITY_ALL:
-                    case D3D12_SHADER_VISIBILITY_AMPLIFICATION:
-                    case D3D12_SHADER_VISIBILITY_MESH:
-                    default: throw InvalidArgumentException("The push constants for a shader are defined for invalid or unsupported shader stages. Note that a push constant must only be defined for a single shader stage.");
+                    case D3D12_SHADER_VISIBILITY_AMPLIFICATION: stage = ShaderStage::Task; break;
+                    case D3D12_SHADER_VISIBILITY_MESH:          stage = ShaderStage::Mesh; break;
+                    case D3D12_SHADER_VISIBILITY_ALL:           stage = ShaderStage::Any; break; // TODO: Might not work as intended.
+                    default: throw InvalidArgumentException("pushConstantRanges", "The push constants for a shader are defined for invalid or unsupported shader stages. Note that a push constant must only be defined for a single shader stage.");
                     }
 
                     pushConstantRanges.push_back(PushConstantRangeInfo{ .stage = stage, .offset = pushConstantOffset, .size = rootParameter.Constants.Num32BitValues * 4, .location = rootParameter.Descriptor.ShaderRegister, .space = rootParameter.Descriptor.RegisterSpace });
@@ -174,11 +266,88 @@ public:
 
                 break;
             case D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE:
-                throw InvalidArgumentException("The shader modules root signature defines a descriptor table for parameter {0}, which is currently not supported. Convert each parameter of the table into a separate root parameter.", i);
+                throw InvalidArgumentException("modules", "The shader modules root signature defines a descriptor table for parameter {0}, which is currently not supported. Convert each parameter of the table into a separate root parameter.", i);
             default: 
-                throw InvalidArgumentException("The shader modules root signature exposes an unknown root parameter type {1} for parameter {0}.", i, rootParameter.ParameterType);
+                throw InvalidArgumentException("modules", "The shader modules root signature exposes an unknown root parameter type {1} for parameter {0}.", i, rootParameter.ParameterType);
             }
         }
+    }
+
+    template <typename TReflection>
+    DescriptorInfo getReflectionDescriptorDesc(D3D12_SHADER_INPUT_BIND_DESC inputDesc, TReflection* shaderReflection)
+    {
+        // First, create a description of the descriptor.
+        DescriptorType type;
+        UInt32 elementSize = 0;
+
+        switch (inputDesc.Type)
+        {
+        case D3D_SIT_CBUFFER:
+        {
+            D3D12_SHADER_BUFFER_DESC bufferDesc;
+            auto constantBuffer = shaderReflection->GetConstantBufferByName(inputDesc.Name);
+            raiseIfFailed(constantBuffer->GetDesc(&bufferDesc), "Unable to query constant buffer \"{0}\" at binding point {1} (space {2}).", inputDesc.Name, inputDesc.BindPoint, inputDesc.Space);
+
+            elementSize = bufferDesc.Size;
+            type = DescriptorType::ConstantBuffer;
+            break;
+        }
+        case D3D_SIT_BYTEADDRESS:
+        {
+            elementSize = 4;    // Byte address buffers align to DWORDs.
+            type = DescriptorType::ByteAddressBuffer;
+            break;
+        }
+        case D3D_SIT_UAV_RWBYTEADDRESS:
+        {
+            elementSize = 4;    // Byte address buffers align to DWORDs.
+            type = DescriptorType::RWByteAddressBuffer;
+            break;
+        }
+        case D3D_SIT_TBUFFER:   // Exotic mixture between constant buffer and structured buffer. We'll map it to StructuredBuffer for now.
+        case D3D_SIT_STRUCTURED:
+        case D3D_SIT_UAV_CONSUME_STRUCTURED:
+        {
+            elementSize = inputDesc.NumSamples;
+            type = DescriptorType::StructuredBuffer;
+            break;
+        }
+        case D3D_SIT_UAV_RWSTRUCTURED:
+        case D3D_SIT_UAV_APPEND_STRUCTURED:
+        case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
+        {
+            elementSize = inputDesc.NumSamples;
+            type = DescriptorType::RWStructuredBuffer;
+            break;
+        }
+        case D3D_SIT_TEXTURE:
+        {
+            type = inputDesc.Dimension == D3D_SRV_DIMENSION_BUFFER ? DescriptorType::Buffer : DescriptorType::Texture;
+            break;
+        }
+        case D3D_SIT_UAV_RWTYPED:
+        {
+            type = inputDesc.Dimension == D3D_SRV_DIMENSION_BUFFER ? DescriptorType::RWBuffer : DescriptorType::RWTexture;
+            break;
+        }
+        case D3D_SIT_SAMPLER:                 type = DescriptorType::Sampler; break;
+        case D3D_SIT_RTACCELERATIONSTRUCTURE: type = DescriptorType::AccelerationStructure; break;
+        case D3D_SIT_UAV_FEEDBACKTEXTURE: throw RuntimeException("The shader exposes an unsupported resource of type {1} at binding point {0} (space {2}).", inputDesc.BindPoint, inputDesc.Type, inputDesc.Space);
+        default: throw RuntimeException("The shader exposes an unknown resource type in binding {0} (space {1}).", inputDesc.BindPoint, inputDesc.Space);
+        }
+
+        DescriptorInfo descriptor = {
+            .location = inputDesc.BindPoint,
+            .elementSize = elementSize,
+            .elements = inputDesc.BindCount,
+            .type = type
+        };
+
+        // Unbounded arrays have a bind count of -1.
+        if (inputDesc.BindCount == 0)
+            descriptor.elements = -1;
+
+        return descriptor;
     }
 
     SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout()
@@ -191,96 +360,14 @@ public:
         std::ranges::for_each(m_modules, [this, &descriptorSetLayouts](UniquePtr<DirectX12ShaderModule>& shaderModule) {
             // Load the shader reflection.
             ComPtr<IDxcContainerReflection> reflection;
-            raiseIfFailed<RuntimeException>(::DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(&reflection)), "Unable to access DirectX shader reflection.");
-            raiseIfFailed<RuntimeException>(reflection->Load(std::as_const(*shaderModule).handle().Get()), "Unable to load reflection from shader module.");
+            raiseIfFailed(::DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(&reflection)), "Unable to access DirectX shader reflection.");
+            raiseIfFailed(reflection->Load(std::as_const(*shaderModule).handle().Get()), "Unable to load reflection from shader module.");
 
-            // Verify reflection and get the actual shader reflection interface.
-            UINT32 shaderIdx;
-            ComPtr<ID3D12ShaderReflection> shaderReflection;
-            raiseIfFailed<RuntimeException>(reflection->FindFirstPartKind(FOUR_CC('D', 'X', 'I', 'L'), &shaderIdx), "The shader module does not contain a valid DXIL shader.");
-            raiseIfFailed<RuntimeException>(reflection->GetPartReflection(shaderIdx, IID_PPV_ARGS(&shaderReflection)), "Unable to query shader reflection from DXIL module.");
-
-            // Get the shader description from the reflection.
-            D3D12_SHADER_DESC shaderInfo;
-            raiseIfFailed<RuntimeException>(shaderReflection->GetDesc(&shaderInfo), "Unable to acquire meta-data from shader module.");
-
-            // Iterate the bound resources to extract the descriptor sets.
-            for (int i(0); i < shaderInfo.BoundResources; ++i)
-            {
-                // Get the bound resource description.
-                D3D12_SHADER_INPUT_BIND_DESC inputDesc;
-                shaderReflection->GetResourceBindingDesc(i, &inputDesc);
-
-                // First, create a description of the descriptor.
-                DescriptorType type;
-                UInt32 elementSize = 0;
-
-                switch (inputDesc.Type)
-                {
-                case D3D_SIT_CBUFFER: 
-                {
-                    D3D12_SHADER_BUFFER_DESC bufferDesc;
-                    auto constantBuffer = shaderReflection->GetConstantBufferByName(inputDesc.Name);
-                    raiseIfFailed<RuntimeException>(constantBuffer->GetDesc(&bufferDesc), "Unable to query constant buffer \"{0}\" from shader module {1}.", inputDesc.Name, shaderModule->type());
-                    
-                    elementSize = bufferDesc.Size;
-                    type = DescriptorType::ConstantBuffer;
-                    break;
-                }
-                case D3D_SIT_BYTEADDRESS:
-                {
-                    elementSize = 4;    // Byte address buffers align to DWORDs.
-                    type = DescriptorType::ByteAddressBuffer;
-                    break;
-                }
-                case D3D_SIT_UAV_RWBYTEADDRESS:
-                {
-                    elementSize = 4;    // Byte address buffers align to DWORDs.
-                    type = DescriptorType::RWByteAddressBuffer;
-                    break;
-                }
-                case D3D_SIT_TBUFFER:   // Exotic mixture between constant buffer and structured buffer. We'll map it to StructuredBuffer for now.
-                case D3D_SIT_STRUCTURED:
-                case D3D_SIT_UAV_CONSUME_STRUCTURED:
-                {
-                    elementSize = inputDesc.NumSamples;
-                    type = DescriptorType::StructuredBuffer;
-                    break;
-                }
-                case D3D_SIT_UAV_RWSTRUCTURED:
-                case D3D_SIT_UAV_APPEND_STRUCTURED:
-                case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER:
-                {
-                    elementSize = inputDesc.NumSamples;
-                    type = DescriptorType::RWStructuredBuffer;
-                    break;
-                }
-                case D3D_SIT_TEXTURE:
-                {
-                    type = inputDesc.Dimension == D3D_SRV_DIMENSION_BUFFER ? DescriptorType::Buffer : DescriptorType::Texture;
-                    break;
-                }
-                case D3D_SIT_UAV_RWTYPED:
-                {
-                    type = inputDesc.Dimension == D3D_SRV_DIMENSION_BUFFER ? DescriptorType::RWBuffer : DescriptorType::RWTexture;
-                    break;
-                }
-                case D3D_SIT_SAMPLER:     type = DescriptorType::Sampler; break;
-                case D3D_SIT_RTACCELERATIONSTRUCTURE:
-                case D3D_SIT_UAV_FEEDBACKTEXTURE: throw RuntimeException("The shader exposes an unsupported resource of type {1} at binding point {0}.", i, inputDesc.Type);
-                default: throw RuntimeException("The shader exposes an unknown resource type in binding {0}.", i);
-                }
-
-                auto descriptor = DescriptorInfo {
-                    .location = inputDesc.BindPoint,
-                    .elementSize = elementSize,
-                    .elements = inputDesc.BindCount,
-                    .type = type
-                };
-
-                // Unbounded arrays have a bind count of -1.
-                if (inputDesc.BindCount == 0)
-                    descriptor.elements = -1;
+            // Callback to register a new descriptor set or merge a descriptor into an existing one.
+            auto registerDescriptor = [&descriptorSetLayouts](DescriptorInfo& descriptor, D3D12_SHADER_INPUT_BIND_DESC inputDesc, const IShaderModule* shaderModule) {
+                // Mark the descriptor as part of the local root signature, if the shader module has a local descriptor.
+                descriptor.local = !shaderModule->shaderLocalDescriptor().has_value() ? false :
+                    shaderModule->shaderLocalDescriptor().value().Register == inputDesc.BindPoint && shaderModule->shaderLocalDescriptor().value().Space == inputDesc.Space;
 
                 // Check if a descriptor set has already been defined for the space.
                 if (!descriptorSetLayouts.contains(inputDesc.Space))
@@ -295,6 +382,63 @@ public:
                         descriptorSetLayout.descriptors.push_back(descriptor);
                     else if (!match->equals(descriptor)) [[unlikely]]
                         LITEFX_WARNING(DIRECTX12_LOG, "Two incompatible descriptors are bound to the same location ({0} in space {1}) at different shader stages.", descriptor.location, inputDesc.Space);
+                }
+            };
+
+            // Libraries need a different reflection path from standard modules.
+            if (LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, shaderModule->type()))
+            {
+                // Verify reflection and get the actual shader reflection interface.
+                UINT32 shaderIdx;
+                ComPtr<ID3D12LibraryReflection> shaderReflection;
+                raiseIfFailed(reflection->FindFirstPartKind(FOUR_CC('D', 'X', 'I', 'L'), &shaderIdx), "The shader module does not contain a valid DXIL shader.");
+                raiseIfFailed(reflection->GetPartReflection(shaderIdx, IID_PPV_ARGS(&shaderReflection)), "Unable to query shader reflection from DXIL module.");
+
+                // Get the shader description from the reflection.
+                D3D12_LIBRARY_DESC shaderInfo;
+                raiseIfFailed(shaderReflection->GetDesc(&shaderInfo), "Unable to acquire meta-data from shader module.");
+                
+                // Parse each function in the module.
+                for (int f(0); f < shaderInfo.FunctionCount; ++f)
+                {
+                    D3D12_FUNCTION_DESC functionDesc;
+                    auto functionReflection = shaderReflection->GetFunctionByIndex(f);
+                    functionReflection->GetDesc(&functionDesc);
+
+                    for (int i(0); i < functionDesc.BoundResources; ++i)
+                    {
+                        // Get the bound resource description.
+                        D3D12_SHADER_INPUT_BIND_DESC inputDesc;
+                        functionReflection->GetResourceBindingDesc(i, &inputDesc);
+                        auto descriptor = this->getReflectionDescriptorDesc(inputDesc, functionReflection);
+
+                        // Register the descriptor.
+                        registerDescriptor(descriptor, inputDesc, shaderModule.get());
+                    }
+                }
+            }
+            else
+            {
+                // Verify reflection and get the actual shader reflection interface.
+                UINT32 shaderIdx;
+                ComPtr<ID3D12ShaderReflection> shaderReflection;
+                raiseIfFailed(reflection->FindFirstPartKind(FOUR_CC('D', 'X', 'I', 'L'), &shaderIdx), "The shader module does not contain a valid DXIL shader.");
+                raiseIfFailed(reflection->GetPartReflection(shaderIdx, IID_PPV_ARGS(&shaderReflection)), "Unable to query shader reflection from DXIL module.");
+
+                // Get the shader description from the reflection.
+                D3D12_SHADER_DESC shaderInfo;
+                raiseIfFailed(shaderReflection->GetDesc(&shaderInfo), "Unable to acquire meta-data from shader module.");
+
+                // Iterate the bound resources to extract the descriptor sets.
+                for (int i(0); i < shaderInfo.BoundResources; ++i)
+                {
+                    // Get the bound resource description.
+                    D3D12_SHADER_INPUT_BIND_DESC inputDesc;
+                    shaderReflection->GetResourceBindingDesc(i, &inputDesc);
+                    auto descriptor = this->getReflectionDescriptorDesc(inputDesc, shaderReflection.Get());
+
+                    // Register the descriptor.
+                    registerDescriptor(descriptor, inputDesc, shaderModule.get());
                 }
             }
         });
@@ -322,37 +466,33 @@ public:
             LITEFX_WARNING(DIRECTX12_LOG, "None of the provided shader modules exports a root signature. Descriptor sets will be acquired using reflection. Some features (such as root/push constants) are not supported.");
 
         // Create the descriptor set layouts.
-        Array<UniquePtr<DirectX12DescriptorSetLayout>> descriptorSets(descriptorSetLayouts.size());
-        std::ranges::generate(descriptorSets, [this, &descriptorSetLayouts, i = 0]() mutable {
-            // Get the descriptor set layout.
-            auto it = descriptorSetLayouts.begin();
-            std::advance(it, i++);
-            auto& descriptorSet = it->second;
+        auto descriptorSets = [this, &descriptorSetLayouts]() -> std::generator<UniquePtr<DirectX12DescriptorSetLayout>> {
+            for (auto it = descriptorSetLayouts.begin(); it != descriptorSetLayouts.end(); ++it)
+            {
+                auto& descriptorSet = it->second;
 
-            // Create the descriptor layouts.
-            Array<UniquePtr<DirectX12DescriptorLayout>> descriptors(descriptorSet.descriptors.size());
-            std::ranges::generate(descriptors, [this, &descriptorSet, j = 0]() mutable {
-                auto& descriptor = descriptorSet.descriptors[j++];
+                // Create the descriptor layouts.
+                auto descriptors = [this, &descriptorSet]() -> std::generator<UniquePtr<DirectX12DescriptorLayout>> {
+                    for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor)
+                        co_yield descriptor->staticSamplerState.has_value() ?
+                            makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(m_device,
+                                D3D12_DECODE_MAG_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
+                                D3D12_DECODE_MIN_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
+                                DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressU), DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressV), DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressW),
+                                D3D12_DECODE_MIP_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? MipMapMode::Nearest : MipMapMode::Linear,
+                                descriptor->staticSamplerState->MipLODBias, descriptor->staticSamplerState->MinLOD, descriptor->staticSamplerState->MaxLOD, static_cast<Float>(descriptor->staticSamplerState->MaxAnisotropy)), descriptor->location) :
+                            makeUnique<DirectX12DescriptorLayout>(descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->local);
+                }() | std::views::as_rvalue;
 
-                return descriptor.staticSamplerState.has_value() ?
-                    makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(m_device,
-                        D3D12_DECODE_MAG_FILTER(descriptor.staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
-                        D3D12_DECODE_MIN_FILTER(descriptor.staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
-                        DECODE_BORDER_MODE(descriptor.staticSamplerState->AddressU), DECODE_BORDER_MODE(descriptor.staticSamplerState->AddressV), DECODE_BORDER_MODE(descriptor.staticSamplerState->AddressW),
-                        D3D12_DECODE_MIP_FILTER(descriptor.staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? MipMapMode::Nearest : MipMapMode::Linear,
-                        descriptor.staticSamplerState->MipLODBias, descriptor.staticSamplerState->MinLOD, descriptor.staticSamplerState->MaxLOD, static_cast<Float>(descriptor.staticSamplerState->MaxAnisotropy)), descriptor.location) :
-                    makeUnique<DirectX12DescriptorLayout>(descriptor.type, descriptor.location, descriptor.elementSize, descriptor.elements);
-            });
-
-            return makeUnique<DirectX12DescriptorSetLayout>(m_device, std::move(descriptors), descriptorSet.space, descriptorSet.stage);
-        });
+                co_yield makeUnique<DirectX12DescriptorSetLayout>(m_device, std::move(descriptors), descriptorSet.space, descriptorSet.stage);
+            }
+        }() | std::views::as_rvalue;
 
         // Create the push constants layout.
-        Array<UniquePtr<DirectX12PushConstantsRange>> pushConstants(pushConstantRanges.size());
-        std::ranges::generate(pushConstants, [&pushConstantRanges, i = 0]() mutable {
-            auto& range = pushConstantRanges[i++];
-            return makeUnique<DirectX12PushConstantsRange>(range.stage, range.offset, range.size, range.space, range.location);
-        });
+        auto pushConstants = [&pushConstantRanges]() -> std::generator<UniquePtr<DirectX12PushConstantsRange>> {
+            for (auto range = pushConstantRanges.begin(); range != pushConstantRanges.end(); ++range)
+                co_yield makeUnique<DirectX12PushConstantsRange>(range->stage, range->offset, range->size, range->space, range->location);
+        }() | std::views::as_rvalue;
 
         auto overallSize = std::accumulate(pushConstantRanges.begin(), pushConstantRanges.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range.size; });
         auto pushConstantsLayout = makeUnique<DirectX12PushConstantsLayout>(std::move(pushConstants), overallSize);
@@ -371,9 +511,10 @@ void DirectX12ShaderProgram::suppressMissingRootSignatureWarning(bool disableWar
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device, Array<UniquePtr<DirectX12ShaderModule>>&& modules) noexcept :
+DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) :
     m_impl(makePimpl<DirectX12ShaderProgramImpl>(this, device, std::move(modules)))
 {
+    m_impl->validate();
 }
 
 DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device) noexcept :
@@ -383,11 +524,14 @@ DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device) no
 
 DirectX12ShaderProgram::~DirectX12ShaderProgram() noexcept = default;
 
-Array<const DirectX12ShaderModule*> DirectX12ShaderProgram::modules() const noexcept
+SharedPtr<DirectX12ShaderProgram> DirectX12ShaderProgram::create(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules)
 {
-    return m_impl->m_modules |
-        std::views::transform([](const UniquePtr<DirectX12ShaderModule>& shader) { return shader.get(); }) |
-        ranges::to<Array<const DirectX12ShaderModule*>>();
+    return SharedPtr<DirectX12ShaderProgram>(new DirectX12ShaderProgram(device, std::move(modules)));
+}
+
+Enumerable<const DirectX12ShaderModule*> DirectX12ShaderProgram::modules() const noexcept
+{
+    return m_impl->m_modules | std::views::transform([](const UniquePtr<DirectX12ShaderModule>& shader) { return shader.get(); });
 }
 
 SharedPtr<DirectX12PipelineLayout> DirectX12ShaderProgram::reflectPipelineLayout() const
@@ -395,7 +539,7 @@ SharedPtr<DirectX12PipelineLayout> DirectX12ShaderProgram::reflectPipelineLayout
     return m_impl->reflectPipelineLayout();
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Shader program builder implementation.
 // ------------------------------------------------------------------------------------------------
@@ -405,7 +549,6 @@ public:
     friend class DirectX12ShaderProgramBuilder;
 
 private:
-    Array<UniquePtr<DirectX12ShaderModule>> m_modules;
     const DirectX12Device& m_device;
 
 public:
@@ -419,88 +562,26 @@ public:
 // Shader program builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilder(const DirectX12Device& device) :
-    m_impl(makePimpl<DirectX12ShaderProgramBuilderImpl>(this, device)), ShaderProgramBuilder(UniquePtr<DirectX12ShaderProgram>(new DirectX12ShaderProgram(device)))
+constexpr DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilder(const DirectX12Device& device) :
+    m_impl(makePimpl<DirectX12ShaderProgramBuilderImpl>(this, device)), ShaderProgramBuilder(SharedPtr<DirectX12ShaderProgram>(new DirectX12ShaderProgram(device)))
 {
 }
 
-DirectX12ShaderProgramBuilder::~DirectX12ShaderProgramBuilder() noexcept = default;
+constexpr DirectX12ShaderProgramBuilder::~DirectX12ShaderProgramBuilder() noexcept = default;
 
 void DirectX12ShaderProgramBuilder::build()
 {
-    auto instance = this->instance();
-    instance->m_impl->m_modules = std::move(m_impl->m_modules);
+    this->instance()->m_impl->m_modules = std::move(m_state.modules);
+    this->instance()->m_impl->validate();
 }
 
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint)
+constexpr UniquePtr<DirectX12ShaderModule> DirectX12ShaderProgramBuilder::makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
-    m_impl->m_modules.push_back(makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, fileName, entryPoint));
-    return *this;
+    return makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, fileName, entryPoint, shaderLocalDescriptor);
 }
 
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withShaderModule(const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint)
+constexpr UniquePtr<DirectX12ShaderModule> DirectX12ShaderProgramBuilder::makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
-    m_impl->m_modules.push_back(makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, stream, name, entryPoint));
-    return *this;
+    return makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, stream, name, entryPoint, shaderLocalDescriptor);
 }
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withVertexShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Vertex, fileName, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withVertexShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Vertex, stream, name, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withTessellationControlShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::TessellationControl, fileName, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withTessellationControlShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::TessellationControl, stream, name, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::TessellationEvaluation, fileName, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withTessellationEvaluationShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::TessellationEvaluation, stream, name, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withGeometryShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Geometry, fileName, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withGeometryShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Geometry, stream, name, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withFragmentShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Fragment, fileName, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withFragmentShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Fragment, stream, name, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withComputeShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Compute, fileName, entryPoint);
-}
-
-DirectX12ShaderProgramBuilder& DirectX12ShaderProgramBuilder::withComputeShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Compute, stream, name, entryPoint);
-}
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

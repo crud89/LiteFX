@@ -31,18 +31,18 @@ public:
 public:
 	VkPipeline initialize()
 	{
-		LITEFX_TRACE(VULKAN_LOG, "Creating compute pipeline (\"{1}\") for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_parent->name());
+		LITEFX_TRACE(VULKAN_LOG, "Creating compute pipeline (\"{1}\") for layout {0}...", reinterpret_cast<void*>(m_layout.get()), m_parent->name());
 	
 		// Setup shader stages.
 		auto modules = m_program->modules();
-		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(reinterpret_cast<const void*>(m_program.get())), modules.size());
+		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", reinterpret_cast<void*>(m_program.get()), modules.size());
 
 		if (modules.size() > 1)
 			throw RuntimeException("Only one shader module must be bound to a compute pipeline.");
 
 		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
 			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
-			ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
+			std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
 
 		// Setup pipeline state.
 		VkComputePipelineCreateInfo pipelineInfo = {};
@@ -51,7 +51,7 @@ public:
 		pipelineInfo.stage = shaderStages.front();
 
 		VkPipeline pipeline;
-		raiseIfFailed<RuntimeException>(::vkCreateComputePipelines(m_device.handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create compute pipeline.");
+		raiseIfFailed(::vkCreateComputePipelines(m_device.handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create compute pipeline.");
 
 #ifndef NDEBUG
 		m_device.setDebugName(*reinterpret_cast<const UInt64*>(&pipeline), VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, m_parent->name());
@@ -65,7 +65,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice& device, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, const String& name) :
+VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, const String& name) :
 	m_impl(makePimpl<VulkanComputePipelineImpl>(this, device, layout, shaderProgram)), VulkanPipelineState(VK_NULL_HANDLE)
 {
 	if (!name.empty())
@@ -99,71 +99,52 @@ void VulkanComputePipeline::use(const VulkanCommandBuffer& commandBuffer) const 
 	::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_COMPUTE, this->handle());
 }
 
-void VulkanComputePipeline::bind(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet) const noexcept
+void VulkanComputePipeline::bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const noexcept
 {
-	// DescriptorSet -> DescriptorSetLayout
-	::vkCmdBindDescriptorSets(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_COMPUTE, std::as_const(*m_impl->m_layout).handle(), descriptorSet.layout().space(), 1, &descriptorSet.handle(), 0, nullptr);
+	// Filter out uninitialized sets.
+	auto sets = descriptorSets | std::views::filter([](auto set) { return set != nullptr; }) | std::ranges::to<Array<const VulkanDescriptorSet*>>();
+
+	if (sets.empty()) [[unlikely]]
+		return; // Nothing to do on empty sets.
+	else if (sets.size() == 1)
+		::vkCmdBindDescriptorSets(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_COMPUTE, std::as_const(*m_impl->m_layout).handle(), sets.front()->layout().space(), 1, &sets.front()->handle(), 0, nullptr);
+	else
+	{
+		// Sort the descriptor sets by space, as we might be able to pass the sets more efficiently if they are sorted and continuous.
+		std::ranges::sort(sets, [](auto lhs, auto rhs) { return lhs->layout().space() > rhs->layout().space(); });
+
+		// In a sorted range, last - (first - 1) equals the size of the range only if there are no duplicates and no gaps.
+		auto startSpace = sets.back()->layout().space();
+
+		if (startSpace - (sets.front()->layout().space() - 1) != static_cast<UInt32>(sets.size()))
+			std::ranges::for_each(sets, [&](auto set) { ::vkCmdBindDescriptorSets(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_COMPUTE, std::as_const(*m_impl->m_layout).handle(), set->layout().space(), 1, &set->handle(), 0, nullptr); });
+		else
+		{
+			// Obtain the handles and bind the sets.
+			auto handles = sets | std::views::transform([](auto set) { return set->handle(); }) | std::ranges::to<Array<VkDescriptorSet>>();
+			::vkCmdBindDescriptorSets(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_COMPUTE, std::as_const(*m_impl->m_layout).handle(), startSpace, static_cast<UInt32>(handles.size()), handles.data(), 0, nullptr);
+		}
+	}
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
-// ------------------------------------------------------------------------------------------------
-// Builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class VulkanComputePipelineBuilder::VulkanComputePipelineBuilderImpl : public Implement<VulkanComputePipelineBuilder> {
-public:
-	friend class VulkanComputePipelineBuilder;
-
-private:
-	SharedPtr<VulkanShaderProgram> m_program;
-	SharedPtr<VulkanPipelineLayout> m_layout;
-
-public:
-	VulkanComputePipelineBuilderImpl(VulkanComputePipelineBuilder* parent) :
-		base(parent)
-	{
-	}
-};
-
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanComputePipelineBuilder::VulkanComputePipelineBuilder(const VulkanDevice& device, const String& name) :
-	m_impl(makePimpl<VulkanComputePipelineBuilderImpl>(this)), ComputePipelineBuilder(UniquePtr<VulkanComputePipeline>(new VulkanComputePipeline(device)))
+constexpr VulkanComputePipelineBuilder::VulkanComputePipelineBuilder(const VulkanDevice& device, const String& name) :
+	ComputePipelineBuilder(UniquePtr<VulkanComputePipeline>(new VulkanComputePipeline(device)))
 {
 	this->instance()->name() = name;
 }
 
-VulkanComputePipelineBuilder::~VulkanComputePipelineBuilder() noexcept = default;
+constexpr VulkanComputePipelineBuilder::~VulkanComputePipelineBuilder() noexcept = default;
 
 void VulkanComputePipelineBuilder::build()
 {
 	auto instance = this->instance();
-	instance->m_impl->m_layout = std::move(m_impl->m_layout);
-	instance->m_impl->m_program = std::move(m_impl->m_program);
+	instance->m_impl->m_layout = m_state.pipelineLayout;
+	instance->m_impl->m_program = m_state.shaderProgram;
 	instance->handle() = instance->m_impl->initialize();
 }
-
-VulkanComputePipelineBuilder& VulkanComputePipelineBuilder::shaderProgram(SharedPtr<VulkanShaderProgram> program)
-{
-#ifndef NDEBUG
-	if (m_impl->m_layout != nullptr)
-		LITEFX_WARNING(VULKAN_LOG, "Another shader program has already been initialized and will be replaced. A pipeline can only have one shader program.");
-#endif
-
-	m_impl->m_program = program;
-	return *this;
-}
-
-VulkanComputePipelineBuilder& VulkanComputePipelineBuilder::layout(SharedPtr<VulkanPipelineLayout> layout)
-{
-#ifndef NDEBUG
-	if (m_impl->m_layout != nullptr)
-		LITEFX_WARNING(VULKAN_LOG, "Another pipeline layout has already been initialized and will be replaced. A pipeline can only have one pipeline layout.");
-#endif
-
-	m_impl->m_layout = layout;
-	return *this;
-}
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

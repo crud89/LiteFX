@@ -13,12 +13,13 @@ namespace LiteFX::Math {
 		using vec_type = Vector<scalar_type, vec_size>;
 
 	protected:
-		scalar_type m_elements[vec_size] = { };
+		using array_type = std::array<scalar_type, vec_size>;
+		array_type m_elements = { };
 
 	public:
 		Vector() noexcept = default;
 
-		Vector(const T& val) noexcept {
+		Vector(T val) noexcept {
 			std::fill(std::begin(m_elements), std::end(m_elements), val);
 		}
 
@@ -46,37 +47,45 @@ namespace LiteFX::Math {
 
 	public:
 		Vector<T, DIM>& operator= (const Vector<T, DIM>& _other) noexcept {
-			std::copy(std::begin(_other.m_elements), std::end(_other.m_elements), std::begin(m_elements));
+			std::ranges::copy(_other.m_elements, std::begin(m_elements));
 			return *this;
 		}
 
 		Vector<T, DIM>& operator= (Vector<T, DIM>&& _other) noexcept {
-			std::move(std::begin(_other.m_elements), std::end(_other.m_elements), std::begin(m_elements));
+			std::ranges::move(_other.m_elements, std::begin(m_elements));
 			return *this;
 		}
 
-		inline const T& operator[](const unsigned int& i) const noexcept {
+		inline T operator[](unsigned int i) const noexcept {
 			assert(i < DIM);
 
 			return m_elements[i];
 		}
 
-		inline T& operator[](const unsigned int& i) noexcept {
+		inline T& operator[](unsigned int i) noexcept {
 			assert(i < DIM);
 
 			return m_elements[i];
+		}
+
+		inline auto begin() const noexcept { 
+			return m_elements.begin(); 
+		}
+
+		inline auto end() const noexcept { 
+			return m_elements.end(); 
 		}
 
 	public:
 		inline const scalar_type* elements() const noexcept {
-			return m_elements;
+			return m_elements.data();
 		}
 
 		inline int size() const noexcept {
 			return vec_size;
 		}
 
-		inline const scalar_type& x() const noexcept requires (DIM > 0) {
+		inline scalar_type x() const noexcept requires (DIM > 0) {
 			return m_elements[0];
 		}
 
@@ -84,7 +93,7 @@ namespace LiteFX::Math {
 			return m_elements[0];
 		}
 
-		inline const scalar_type& y() const noexcept requires (DIM > 1) {
+		inline scalar_type y() const noexcept requires (DIM > 1) {
 			return m_elements[1];
 		}
 
@@ -92,7 +101,7 @@ namespace LiteFX::Math {
 			return m_elements[1];
 		}
 
-		inline const scalar_type& z() const noexcept requires (DIM > 2) {
+		inline scalar_type z() const noexcept requires (DIM > 2) {
 			return m_elements[2];
 		}
 
@@ -100,7 +109,7 @@ namespace LiteFX::Math {
 			return m_elements[2];
 		}
 
-		inline const scalar_type& w() const noexcept requires (DIM > 3) {
+		inline scalar_type w() const noexcept requires (DIM > 3) {
 			return m_elements[3];
 		}
 

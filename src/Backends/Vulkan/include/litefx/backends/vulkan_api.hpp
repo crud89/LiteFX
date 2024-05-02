@@ -23,6 +23,7 @@
 #include <litefx/config.h>
 #include <litefx/rendering.hpp>
 #include <vulkan/vulkan.h>
+#include "vulkan_formatters.hpp"
 
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Math;
@@ -47,9 +48,9 @@ namespace LiteFX::Rendering::Backends {
     class VulkanPipelineState;
     class VulkanRenderPipeline;
     class VulkanComputePipeline;
+    class VulkanRayTracingPipeline;
     class VulkanFrameBuffer;
     class VulkanRenderPass;
-    class VulkanInputAttachmentMapping;
     class VulkanSwapChain;
     class VulkanQueue;
     class VulkanGraphicsFactory;
@@ -62,8 +63,11 @@ namespace LiteFX::Rendering::Backends {
     class IVulkanIndexBuffer;
     class IVulkanImage;
     class IVulkanSampler;
+    class IVulkanAccelerationStructure;
+    class VulkanBottomLevelAccelerationStructure;
+    class VulkanTopLevelAccelerationStructure;
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     // Builder declarations.
     class VulkanVertexBufferLayoutBuilder;
     class VulkanDescriptorSetLayoutBuilder;
@@ -74,8 +78,10 @@ namespace LiteFX::Rendering::Backends {
     class VulkanRasterizerBuilder;
     class VulkanRenderPipelineBuilder;
     class VulkanComputePipelineBuilder;
+    class VulkanRayTracingPipelineBuilder;
     class VulkanRenderPassBuilder;
-#endif // defined(BUILD_DEFINE_BUILDERS)
+    class VulkanBarrierBuilder;
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
 
     /// <summary>
     /// Contains conversion helpers for Vulkan.
@@ -85,125 +91,130 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        Format LITEFX_VULKAN_API getFormat(const VkFormat& format);
+        constexpr inline Format LITEFX_VULKAN_API getFormat(const VkFormat& format);
 
         /// <summary>
         /// 
         /// </summary>
-        VkFormat LITEFX_VULKAN_API getFormat(const Format& format);
+        constexpr inline VkFormat LITEFX_VULKAN_API getFormat(Format format);
 
         /// <summary>
         /// 
         /// </summary>
-        //BufferFormat LITEFX_VULKAN_API getFormat(const VkFormat& format);
+        //constexpr inline BufferFormat LITEFX_VULKAN_API getFormat(const VkFormat& format);
 
         /// <summary>
         /// 
         /// </summary>
-        VkFormat LITEFX_VULKAN_API getFormat(const BufferFormat& format);
+        constexpr inline VkFormat LITEFX_VULKAN_API getFormat(BufferFormat format);
 
         /// <summary>
         /// 
         /// </summary>
-        PolygonMode LITEFX_VULKAN_API getPolygonMode(const VkPolygonMode& mode);
+        constexpr inline PolygonMode LITEFX_VULKAN_API getPolygonMode(const VkPolygonMode& mode);
 
         /// <summary>
         /// 
         /// </summary>
-        VkPolygonMode LITEFX_VULKAN_API getPolygonMode(const PolygonMode& mode);
+        constexpr inline VkPolygonMode LITEFX_VULKAN_API getPolygonMode(PolygonMode mode);
 
         /// <summary>
         /// 
         /// </summary>
-        CullMode LITEFX_VULKAN_API getCullMode(const VkCullModeFlags& mode);
+        constexpr inline CullMode LITEFX_VULKAN_API getCullMode(const VkCullModeFlags& mode);
 
         /// <summary>
         /// 
         /// </summary>
-        VkCullModeFlags LITEFX_VULKAN_API getCullMode(const CullMode& mode);
+        constexpr inline VkCullModeFlags LITEFX_VULKAN_API getCullMode(CullMode mode);
 
         /// <summary>
         /// 
         /// </summary>
-        PrimitiveTopology LITEFX_VULKAN_API getPrimitiveTopology(const VkPrimitiveTopology& topology);
+        constexpr inline PrimitiveTopology LITEFX_VULKAN_API getPrimitiveTopology(const VkPrimitiveTopology& topology);
 
         /// <summary>
         /// 
         /// </summary>
-        VkPrimitiveTopology LITEFX_VULKAN_API getPrimitiveTopology(const PrimitiveTopology& topology);
+        constexpr inline VkPrimitiveTopology LITEFX_VULKAN_API getPrimitiveTopology(PrimitiveTopology topology);
 
         /// <summary>
         /// 
         /// </summary>
-        ShaderStage LITEFX_VULKAN_API getShaderStage(const VkShaderStageFlagBits& shaderType);
+        constexpr inline ShaderStage LITEFX_VULKAN_API getShaderStage(const VkShaderStageFlagBits& shaderType);
 
         /// <summary>
         /// 
         /// </summary>
-        VkShaderStageFlagBits LITEFX_VULKAN_API getShaderStage(const ShaderStage& shaderType);
+        constexpr inline VkShaderStageFlagBits LITEFX_VULKAN_API getShaderStage(ShaderStage shaderType);
 
         /// <summary>
         /// 
         /// </summary>
-        MultiSamplingLevel LITEFX_VULKAN_API getSamples(const VkSampleCountFlagBits& samples);
+        constexpr inline MultiSamplingLevel LITEFX_VULKAN_API getSamples(const VkSampleCountFlagBits& samples);
 
         /// <summary>
         /// 
         /// </summary>
-        VkImageType LITEFX_VULKAN_API getImageType(const ImageDimensions& dimension);
+        constexpr inline VkImageType LITEFX_VULKAN_API getImageType(ImageDimensions dimension);
 
         /// <summary>
         /// 
         /// </summary>
-        VkImageViewType LITEFX_VULKAN_API getImageViewType(const ImageDimensions& dimension, const UInt32& layers = 1);
+        constexpr inline VkImageViewType LITEFX_VULKAN_API getImageViewType(ImageDimensions dimension, UInt32 layers = 1);
 
         /// <summary>
         /// 
         /// </summary>
-        VkSampleCountFlagBits LITEFX_VULKAN_API getSamples(const MultiSamplingLevel& samples);
+        constexpr inline VkSampleCountFlagBits LITEFX_VULKAN_API getSamples(MultiSamplingLevel samples);
 
         /// <summary>
         /// 
         /// </summary>
-        VkCompareOp LITEFX_VULKAN_API getCompareOp(const CompareOperation& compareOp);
+        constexpr inline VkCompareOp LITEFX_VULKAN_API getCompareOp(CompareOperation compareOp);
 
         /// <summary>
         /// 
         /// </summary>
-        VkStencilOp LITEFX_VULKAN_API getStencilOp(const StencilOperation& stencilOp);
+        constexpr inline VkStencilOp LITEFX_VULKAN_API getStencilOp(StencilOperation stencilOp);
 
         /// <summary>
         /// 
         /// </summary>
-        VkBlendFactor LITEFX_VULKAN_API getBlendFactor(const BlendFactor& blendFactor);
+        constexpr inline VkBlendFactor LITEFX_VULKAN_API getBlendFactor(BlendFactor blendFactor);
 
         /// <summary>
         /// 
         /// </summary>
-        VkBlendOp LITEFX_VULKAN_API getBlendOperation(const BlendOperation& blendOperation);
+        constexpr inline VkBlendOp LITEFX_VULKAN_API getBlendOperation(BlendOperation blendOperation);
 
         /// <summary>
         /// 
         /// </summary>
-        VkImageLayout LITEFX_VULKAN_API getImageLayout(const ResourceState& resourceState);
+        constexpr inline VkPipelineStageFlags2 LITEFX_VULKAN_API getPipelineStage(PipelineStage pipelineStage);
 
         /// <summary>
         /// 
         /// </summary>
-        VkAccessFlags LITEFX_VULKAN_API getAccessFlags(const ResourceState& resourceState);
+        constexpr inline VkAccessFlags2 LITEFX_VULKAN_API getResourceAccess(ResourceAccess resourceAccess);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        constexpr inline VkImageLayout LITEFX_VULKAN_API getImageLayout(ImageLayout imageLayout);
     }
 
     /// <summary>
     /// Represents a Vulkan <see cref="IGraphicsAdapter" />.
     /// </summary>
-    class LITEFX_VULKAN_API VulkanGraphicsAdapter : public IGraphicsAdapter, public Resource<VkPhysicalDevice> {
+    class LITEFX_VULKAN_API VulkanGraphicsAdapter final : public IGraphicsAdapter, public Resource<VkPhysicalDevice> {
         LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl);
 
     public:
         /// <summary>
         /// Initializes a graphics adapter instance with a physical device.
         /// </summary>
-        /// <param name="adapter">The phyiscal device to initialize the instance with.</param>
+        /// <param name="adapter">The physical device to initialize the instance with.</param>
         explicit VulkanGraphicsAdapter(VkPhysicalDevice adapter);
         VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
         VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) = delete;
@@ -211,28 +222,28 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        virtual String name() const noexcept override;
+        String name() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt64 uniqueId() const noexcept override;
+        UInt64 uniqueId() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 vendorId() const noexcept override;
+        UInt32 vendorId() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 deviceId() const noexcept override;
+        UInt32 deviceId() const noexcept override;
 
         /// <inheritdoc />
-        virtual GraphicsAdapterType type() const noexcept override;
+        GraphicsAdapterType type() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 driverVersion() const noexcept override;
+        UInt32 driverVersion() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 apiVersion() const noexcept override;
+        UInt32 apiVersion() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt64 dedicatedMemory() const noexcept override;
+        UInt64 dedicatedMemory() const noexcept override;
 
     public:
         /// <summary>
@@ -253,7 +264,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <returns>A list of available extensions.</returns>
         /// <seealso cref="validateDeviceExtensions" />
-        Array<String> getAvailableDeviceExtensions() const noexcept;
+        Enumerable<String> getAvailableDeviceExtensions() const noexcept;
 
         /// <summary>
         /// Returns <c>true</c>, if all elements of <paramref cref="validationLayers" /> are contained by the a list of available validation layers.
@@ -267,13 +278,13 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <returns>A list of available validation layers.</returns>
         /// <seealso cref="validateDeviceLayers" />
-        Array<String> deviceValidationLayers() const noexcept;
+        Enumerable<String> deviceValidationLayers() const noexcept;
     };
 
     /// <summary>
     /// Represents a Vulkan <see cref="ISurface" />.
     /// </summary>
-    class LITEFX_VULKAN_API VulkanSurface : public ISurface, public Resource<VkSurfaceKHR> {
+    class LITEFX_VULKAN_API VulkanSurface final : public ISurface, public Resource<VkSurfaceKHR> {
         LITEFX_IMPLEMENTATION(VulkanSurfaceImpl)
 
     public:
@@ -315,21 +326,70 @@ namespace LiteFX::Rendering::Backends {
 #endif // VK_USE_PLATFORM_WIN32_KHR
     };
 
-    DEFINE_EXCEPTION(VulkanPlatformException, std::runtime_error);
+    /// <summary>
+    /// An exception that is thrown, if a requested Vulkan operation could not be executed.
+    /// </summary>
+    class VulkanPlatformException : public RuntimeException {
+    private:
+        VkResult m_code;
+
+    public:
+        /// <summary>
+        /// Initializes a new exception.
+        /// </summary>
+        /// <param name="result">The error code returned by the operation.</param>
+        explicit VulkanPlatformException(VkResult result) noexcept :
+            m_code(result), RuntimeException("Operation returned {0}.", result) { }
+
+        /// <summary>
+        /// Initializes a new exception.
+        /// </summary>
+        /// <param name="result">The error code returned by the operation.</param>
+        /// <param name="message">The error message.</param>
+        explicit VulkanPlatformException(VkResult result, StringView message) noexcept :
+            m_code(result), RuntimeException("{1} Operation returned {0}.", result, message) { }
+
+        /// <summary>
+        /// Initializes a new exception.
+        /// </summary>
+        /// <param name="format">The format string for the error message.</param>
+        /// <param name="result">The error code returned by the operation.</param>
+        /// <param name="args">The arguments passed to the error message format string.</param>
+        template <typename ...TArgs>
+        explicit VulkanPlatformException(VkResult result, StringView format, TArgs&&... args) noexcept :
+            VulkanPlatformException(std::vformat(format, std::make_format_args(args...)), result) { }
+
+        VulkanPlatformException(const VulkanPlatformException&) = default;
+        VulkanPlatformException(VulkanPlatformException&&) = default;
+        virtual ~VulkanPlatformException() noexcept = default;
+
+        VulkanPlatformException& operator=(const VulkanPlatformException&) = default;
+        VulkanPlatformException& operator=(VulkanPlatformException&&) = default;
+
+    public:
+        /// <summary>
+        /// Returns the error code.
+        /// </summary>
+        /// <returns>The code of the error.</returns>
+        VkResult code() const noexcept {
+            return m_code;
+        }
+    };
 
     /// <summary>
-    /// 
+    /// Raises a <see cref="VulkanPlatformException" />, if <paramref name="result" /> does not equal `VK_SUCCESS`.
     /// </summary>
-    /// <typeparam name="TException"></typeparam>
-    /// <typeparam name="...TArgs"></typeparam>
-    /// <param name="result"></param>
-    /// <param name="message"></param>
-    /// <param name="...args"></param>
-    template <typename TException, typename ...TArgs>
-    inline void raiseIfFailed(VkResult result, StringView message, TArgs&&... args) {
+    /// <param name="hr">The error code returned by the operation.</param>
+    /// <param name="message">The format string for the error message.</param>
+    /// <param name="args">The arguments passed to the error message format string.</param>
+    template <typename ...TArgs>
+    static inline void raiseIfFailed(VkResult result, StringView message, TArgs&&... args) {
         if (result == VK_SUCCESS) [[likely]]
             return;
 
-        throw TException(VulkanPlatformException("Result: {0}", result), fmt::format(fmt::runtime(message), std::forward<TArgs>(args)...));
+        if (message.empty())
+            throw VulkanPlatformException(result, message);
+        else
+            throw VulkanPlatformException(result, message, std::forward<TArgs>(args)...);
     }
 }

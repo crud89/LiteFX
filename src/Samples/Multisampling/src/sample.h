@@ -1,16 +1,7 @@
 #pragma once
 
+#define LITEFX_AUTO_IMPORT_BACKEND_HEADERS
 #include <litefx/litefx.h>
-
-#ifdef BUILD_VULKAN_BACKEND
-#include <litefx/backends/vulkan.hpp>
-#include <litefx/backends/vulkan_builders.hpp>
-#endif // BUILD_VULKAN_BACKEND
-
-#ifdef BUILD_DIRECTX_12_BACKEND
-#include <litefx/backends/dx12.hpp>
-#include <litefx/backends/dx12_builders.hpp>
-#endif // BUILD_DIRECTX_12_BACKEND
 
 #if (defined _WIN32 || defined WINCE)
 #  define GLFW_EXPOSE_NATIVE_WIN32
@@ -24,7 +15,7 @@
 
 #include "config.h"
 
-#ifdef BUILD_EXAMPLES_RENDERDOC_LOADER
+#ifdef LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER
 #include <renderdoc_app.h>
 
 extern RENDERDOC_API_1_5_0* renderDoc;
@@ -93,6 +84,7 @@ public:
 		this->initializing += std::bind(&SampleApp::onInit, this);
 		this->startup += std::bind(&SampleApp::onStartup, this);
 		this->resized += std::bind(&SampleApp::onResize, this, std::placeholders::_1, std::placeholders::_2);
+		this->shutdown += std::bind(&SampleApp::onShutdown, this);
 	}
 
 private:
@@ -105,11 +97,12 @@ private:
 	/// <summary>
 	/// Updates the camera buffer. This needs to be done whenever the frame buffer changes, since we need to pass changes in the aspect ratio to the view/projection matrix.
 	/// </summary>
-	void updateCamera(const ICommandBuffer& commandBuffer, const IBuffer& buffer) const;
+	void updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const;
 
 private:
 	void onInit();
 	void onStartup();
+	void onShutdown();
 	void onResize(const void* sender, ResizeEventArgs e);
 
 public:

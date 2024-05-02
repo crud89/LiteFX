@@ -3,13 +3,12 @@
 #include "vulkan_api.hpp"
 
 template <>
-struct LITEFX_VULKAN_API fmt::formatter<VkResult> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(VkResult t, FormatContext& ctx) {
-		string_view name;
+struct LITEFX_VULKAN_API std::formatter<VkResult> : std::formatter<std::string_view> {
+    auto format(VkResult t, std::format_context& ctx) const {
+        string_view name;
 
-		switch (t)
-		{
+        switch (t)
+        {
         case VK_SUCCESS: name = "VK_SUCCESS"; break;
         case VK_NOT_READY: name = "VK_NOT_READY"; break;
         case VK_TIMEOUT: name = "VK_TIMEOUT"; break;
@@ -43,9 +42,9 @@ struct LITEFX_VULKAN_API fmt::formatter<VkResult> : formatter<string_view> {
         case VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT: name = "VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT"; break;
         case VK_ERROR_NOT_PERMITTED_EXT: name = "VK_ERROR_NOT_PERMITTED_EXT"; break;
         case VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT: name = "VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT"; break;
-		default: name = "Status: unknown"; break;
-		}
+        default: name = "Status: unknown"; break;
+        }
 
-		return formatter<string_view>::format(name, ctx);
-	}
+        return formatter<string_view>::format(name, ctx);
+    }
 };
