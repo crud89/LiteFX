@@ -3,7 +3,7 @@
 An extensible, descriptive, modern computer graphics and rendering engine, written in C++23.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/crud89/LiteFX/main/docs/img/banner_m.jpg?token=AEMKYX75E4UF4U6GAT5ZTIDA3C4GU">
+  <img src="https://raw.githubusercontent.com/crud89/LiteFX/main/docs/img/litefx_rm_banner.png">
 </p>
 
 <div align="center">
