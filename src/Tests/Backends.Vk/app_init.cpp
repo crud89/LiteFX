@@ -112,8 +112,9 @@ int main(int argc, char* argv[])
     ::ShowWindow(_window, SW_SHOWNORMAL);
     ::UpdateWindow(_window);
 
-    // Setup instance extensions.
+    // Setup instance extensions and validation layers.
     Array<String> extensions { VK_KHR_SURFACE_EXTENSION_NAME };
+    Array<String> layers { "VK_LAYER_KHRONOS_validation" };
 
 #if defined(WIN32)
     // Enable Windows-specific extensions.
@@ -125,7 +126,7 @@ int main(int argc, char* argv[])
 	{
 		UniquePtr<App> app = App::build<TestApp>()
 			.logTo<TerminationSink>(LogLevel::Error) // Exit on error.
-			.useBackend<VulkanBackend>(extensions);
+			.useBackend<VulkanBackend>(extensions, layers);
 
 		app->run();
 	}
