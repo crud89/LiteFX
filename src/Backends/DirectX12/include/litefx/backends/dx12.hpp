@@ -1161,9 +1161,6 @@ namespace LiteFX::Rendering::Backends {
         void dispatchMeshIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept override;
 
         /// <inheritdoc />
-        void dispatchMesh (const Vector3u& threadCount) const noexcept override;
-
-        /// <inheritdoc />
         void draw(UInt32 vertices, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const noexcept override;
 
         /// <inheritdoc />
