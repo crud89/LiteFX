@@ -11,9 +11,8 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 
 template <>
-struct LITEFX_VULKAN_API fmt::formatter<SpvReflectResult> : formatter<string_view> {
-    template <typename FormatContext>
-    auto format(SpvReflectResult t, FormatContext& ctx) {
+struct LITEFX_VULKAN_API std::formatter<SpvReflectResult> : std::formatter<std::string_view> {
+    auto format(SpvReflectResult t, std::format_context& ctx) {
         string_view name;
 
         switch (t)
@@ -65,6 +64,7 @@ private:
         UInt32 location;
         UInt32 elementSize;
         UInt32 elements;
+        UInt32 inputAttachmentIndex;
         DescriptorType type;
 
         bool equals(const DescriptorInfo& rhs)
@@ -104,6 +104,96 @@ public:
     }
 
 public:
+    void validate()
+    {
+        // First check if there are any modules at all, or any that are uninitialized.
+        if (m_modules.empty()) [[unlikely]]
+            return; // Not exactly a reason to throw, but rather an empty group cannot be meaningful used anyway.
+
+        if (std::ranges::contains(m_modules, nullptr)) [[unlikely]]
+            throw InvalidArgumentException("modules", "At least one of the shader modules is not initialized.");
+
+        // Check if there are combinations, that are not supported.
+        Dictionary<ShaderStage, UInt32> shaders = {
+            { ShaderStage::Compute, 0 },
+            { ShaderStage::Vertex, 0 },
+            { ShaderStage::Geometry, 0 },
+            { ShaderStage::TessellationControl, 0 },
+            { ShaderStage::TessellationEvaluation, 0 },
+            { ShaderStage::Fragment, 0 },
+            { ShaderStage::Task, 0 },
+            { ShaderStage::Mesh, 0 },
+            { ShaderStage::RayGeneration, 0 },
+            { ShaderStage::Miss, 0 },
+            { ShaderStage::Callable, 0 },
+            { ShaderStage::AnyHit, 0 },
+            { ShaderStage::ClosestHit, 0 },
+            { ShaderStage::Intersection, 0 }
+        };
+
+        std::ranges::for_each(m_modules, [&shaders](auto& module) { shaders[module->type()]++; });
+
+        bool containsComputeGroup    = shaders[ShaderStage::Compute] > 0;
+        bool containsGraphicsGroup   = shaders[ShaderStage::Vertex] > 0 || shaders[ShaderStage::Geometry] > 0 || shaders[ShaderStage::TessellationControl] > 0 || shaders[ShaderStage::TessellationEvaluation] > 0;
+        bool containsFragmentGroup   = shaders[ShaderStage::Fragment] > 0;
+        bool containsMeshGroup       = shaders[ShaderStage::Task] > 0 || shaders[ShaderStage::Mesh] > 0;
+        bool containsRaytracingGroup = shaders[ShaderStage::RayGeneration] > 0 || shaders[ShaderStage::Miss] > 0 || shaders[ShaderStage::Callable] > 0 || shaders[ShaderStage::AnyHit] > 0 || shaders[ShaderStage::ClosestHit] > 0 || shaders[ShaderStage::Intersection] > 0;
+
+        // Compute groups must be compute only.
+        if (containsComputeGroup)
+        {
+            if (containsGraphicsGroup || containsMeshGroup || containsFragmentGroup || containsRaytracingGroup) [[unlikely]]
+                throw InvalidArgumentException("modules", "The provided shader modules mix compute shaders with non-compute shaders.");
+            if (shaders[ShaderStage::Compute] > 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "If a shader program contains a compute shader, it must contain only one shader module.");
+
+            return;
+        }
+
+        // No compute shaders from this point - are we on a ray-tracing group?
+        if (containsRaytracingGroup)
+        {
+            if (containsGraphicsGroup || containsMeshGroup || containsFragmentGroup) [[unlikely]]
+                throw InvalidArgumentException("modules", "If a shader program contains ray-tracing shaders, it must only contain ray-tracing shaders.");
+            if (containsRaytracingGroup && shaders[ShaderStage::RayGeneration] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "If ray-tracing shaders are present, there must also be exactly one ray generation shader.");
+                
+            return;
+        }
+
+        // No ray-tracing from this point... next are mesh shaders.
+        if (containsMeshGroup)
+        {
+            if (containsGraphicsGroup) [[unlikely]]
+                throw InvalidArgumentException("modules", "Mesh shaders must not be combined with graphics shaders.");
+            if (shaders[ShaderStage::Fragment] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a mesh shader program, there must be exactly one fragment/pixel shader.");
+            if (shaders[ShaderStage::Mesh] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a mesh shader program, there must be exactly one mesh shader.");
+            if (shaders[ShaderStage::Task] > 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a mesh shader program, there must be at most one mesh shader.");
+
+            return;
+        }
+
+        // Now on to the standard graphics shaders.
+        if (containsGraphicsGroup)
+        {
+            if (shaders[ShaderStage::Fragment] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a graphics shader program, there must be exactly one fragment/pixel shader.");
+            if (shaders[ShaderStage::Vertex] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a graphics shader program, there must be exactly one vertex shader.");
+            if (shaders[ShaderStage::TessellationControl] > 1 || shaders[ShaderStage::TessellationEvaluation] > 1 || shaders[ShaderStage::Geometry] > 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a graphics shader program, there must be at most one geometry, tessellation control/domain or tessellation evaluation/hull shader.");
+
+            return;
+        }
+
+        // Finally, let's check if there's a lonely fragment shader.
+        if (containsFragmentGroup) [[unlikely]]
+            throw InvalidArgumentException("modules", "A shader program that contains only a fragment/pixel shader is not valid.");
+    }
+
     SharedPtr<VulkanPipelineLayout> reflectPipelineLayout()
     {
         // First, filter the descriptor sets and push constant ranges.
@@ -118,26 +208,26 @@ public:
             auto result = reflection.GetResult();
 
             if (result != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
-                throw RuntimeException("Unable to reflect shader module (Error {0}).", reflection.GetResult());
+                throw RuntimeException("Unable to reflect shader module (Error {0:x}).", static_cast<UInt32>(reflection.GetResult()));
 
             // Get the number of descriptor sets and push constants.
             UInt32 descriptorSetCount, pushConstantCount;
 
             if ((result = reflection.EnumerateDescriptorSets(&descriptorSetCount, nullptr)) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
-                throw RuntimeException("Unable to get descriptor set count (Error {0}).", result);
+                throw RuntimeException("Unable to get descriptor set count (Error {0:x}).", static_cast<UInt32>(result));
 
             if ((result = reflection.EnumeratePushConstants(&pushConstantCount, nullptr)) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
-                throw RuntimeException("Unable to get push constants count (Error {0}).", result);
+                throw RuntimeException("Unable to get push constants count (Error {0:x}).", static_cast<UInt32>(result));
 
             // Acquire the descriptor sets and push constants.
             Array<SpvReflectDescriptorSet*> descriptorSets(descriptorSetCount);
             Array<SpvReflectBlockVariable*> pushConstants(pushConstantCount);
 
             if ((result = reflection.EnumerateDescriptorSets(&descriptorSetCount, descriptorSets.data())) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
-                throw RuntimeException("Unable to enumerate descriptor sets (Error {0}).", result);
+                throw RuntimeException("Unable to enumerate descriptor sets (Error {0:x}).", static_cast<UInt32>(result));
 
             if ((result = reflection.EnumeratePushConstants(&pushConstantCount, pushConstants.data())) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
-                throw RuntimeException("Unable to enumerate push constants (Error {0}).", result);
+                throw RuntimeException("Unable to enumerate push constants (Error {0:x}).", static_cast<UInt32>(result));
 
             // Parse the descriptor sets.
             std::ranges::for_each(descriptorSets, [this, &shaderModule, &reflection, &descriptorSetLayouts](const SpvReflectDescriptorSet* descriptorSet) {
@@ -149,21 +239,22 @@ public:
 
                     // Filter the descriptor type.
                     DescriptorType type;
+                    UInt32 inputAttachmentIndex = 0;
 
                     switch (descriptor->descriptor_type)
                     {
-                    default:                                                    throw RuntimeException("Unknown or unsupported descriptor type detected in shader.");
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:    throw RuntimeException("The shader exposes a combined image samplers, which is currently not supported.");
-                    case SPV_REFLECT_TYPE_FLAG_EXTERNAL_ACCELERATION_STRUCTURE: throw RuntimeException("The shader exposes an acceleration structure, which is currently not supported.");
+                    default: throw RuntimeException("Unsupported descriptor type detected.");
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:     throw RuntimeException("The shader exposes a combined image samplers, which is currently not supported.");
                     case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:    throw RuntimeException("The shader exposes a dynamic buffer, which is currently not supported.");
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLER:                   type = DescriptorType::Sampler; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE:             type = DescriptorType::Texture; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_IMAGE:             type = DescriptorType::RWTexture; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER:            type = DescriptorType::ConstantBuffer; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:          type = DescriptorType::InputAttachment; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:      type = DescriptorType::Buffer; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:      type = DescriptorType::RWBuffer; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:     throw RuntimeException("The shader exposes a dynamic buffer, which is currently not supported.");
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:           type = DescriptorType::InputAttachment; inputAttachmentIndex = descriptor->input_attachment_index; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLER:                    type = DescriptorType::Sampler; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE:              type = DescriptorType::Texture; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_IMAGE:              type = DescriptorType::RWTexture; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER:             type = DescriptorType::ConstantBuffer; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:       type = DescriptorType::Buffer; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:       type = DescriptorType::RWBuffer; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR: type = DescriptorType::AccelerationStructure; break;
                     case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER:
                     {
                         // NOTE: Storage buffers need special care here. For more information see: 
@@ -199,11 +290,11 @@ public:
                             descriptors *= descriptor->array.dims[i];
 
                     // Create the descriptor layout.
-                    return DescriptorInfo{ .location = descriptor->binding, .elementSize = descriptor->block.padded_size, .elements = descriptors, .type = type };
+                    return DescriptorInfo{ .location = descriptor->binding, .elementSize = descriptor->block.padded_size, .elements = descriptors, .inputAttachmentIndex = inputAttachmentIndex, .type = type };
                 });
 
                 if (!descriptorSetLayouts.contains(descriptorSet->set))
-                    descriptorSetLayouts.insert(std::make_pair(descriptorSet->set, DescriptorSetInfo{ .space = descriptorSet->set, .stage = shaderModule->type(), .descriptors = descriptors}));
+                    descriptorSetLayouts.insert(std::make_pair(descriptorSet->set, DescriptorSetInfo{ .space = descriptorSet->set, .stage = shaderModule->type(), .descriptors = descriptors }));
                 else
                 {
                     // If the set already exists in another stage, merge it.
@@ -215,7 +306,7 @@ public:
                         if (auto match = std::ranges::find_if(layout.descriptors, [&descriptor](const DescriptorInfo& element) { return element.location == descriptor.location; }); match == layout.descriptors.end())
                             layout.descriptors.push_back(descriptor);
                         else if (!descriptor.equals(*match))
-                            LITEFX_WARNING(VULKAN_LOG, "Mismatching descriptors detected: the descriptor at location {0} ({3} elements with size of {4} bytes) of the descriptor set {1} in shader stage {2} conflicts with a descriptor from at least one other shader stage and will be dropped (conflicts with descriptor of type {9} in stage/s {6} with {7} elements of {8} bytes).",
+                            LITEFX_WARNING(VULKAN_LOG, "Mismatching descriptors detected: the descriptor at location {0} ({3} elements with size of {4} bytes) of the descriptor set {1} in shader stage {2} conflicts with a descriptor from at least one other shader stage and will be dropped (conflicts with descriptor of type {8} in stage/s {5} with {6} elements of {7} bytes).",
                                 descriptor.location, descriptorSet->set, shaderModule->type(), descriptor.elements, descriptor.elementSize, layout.stage, match->elements, match->elementSize, match->type);
                     }
 
@@ -244,7 +335,9 @@ public:
                 // Create the descriptor layouts.
                 auto descriptorLayouts = [&descriptorSet]() -> std::generator<UniquePtr<VulkanDescriptorLayout>> {
                     for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor)
-                        co_yield makeUnique<VulkanDescriptorLayout>(descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements);
+                        co_yield descriptor->type == DescriptorType::InputAttachment ?
+                            makeUnique<VulkanDescriptorLayout>(descriptor->type, descriptor->location, descriptor->inputAttachmentIndex) :
+                            makeUnique<VulkanDescriptorLayout>(descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements);
                 }() | std::views::as_rvalue;
 
                 co_yield makeUnique<VulkanDescriptorSetLayout>(m_device, std::move(descriptorLayouts), descriptorSet.space, descriptorSet.stage);
@@ -272,6 +365,7 @@ public:
 VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules) :
     m_impl(makePimpl<VulkanShaderProgramImpl>(this, device, std::move(modules)))
 {
+    m_impl->validate();
 }
 
 VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device) noexcept :
@@ -280,6 +374,11 @@ VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device) noexcept :
 }
 
 VulkanShaderProgram::~VulkanShaderProgram() noexcept = default;
+
+SharedPtr<VulkanShaderProgram> VulkanShaderProgram::create(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules)
+{
+    return SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device, std::move(modules)));
+}
 
 Enumerable<const VulkanShaderModule*> VulkanShaderProgram::modules() const noexcept
 {
@@ -315,7 +414,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 constexpr VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(const VulkanDevice& device) :
-    m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this, device)), ShaderProgramBuilder(UniquePtr<VulkanShaderProgram>(new VulkanShaderProgram(device)))
+    m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this, device)), ShaderProgramBuilder(SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device)))
 {
 }
 
@@ -324,15 +423,16 @@ constexpr VulkanShaderProgramBuilder::~VulkanShaderProgramBuilder() noexcept = d
 void VulkanShaderProgramBuilder::build()
 {
     this->instance()->m_impl->m_modules = std::move(m_state.modules);
+    this->instance()->m_impl->validate();
 }
 
-constexpr UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint)
+constexpr UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
-    return makeUnique<VulkanShaderModule>(m_impl->m_device, type, fileName, entryPoint);
+    return makeUnique<VulkanShaderModule>(m_impl->m_device, type, fileName, entryPoint, shaderLocalDescriptor);
 }
 
-constexpr UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint)
+constexpr UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
-    return makeUnique<VulkanShaderModule>(m_impl->m_device, type, stream, name, entryPoint);
+    return makeUnique<VulkanShaderModule>(m_impl->m_device, type, stream, name, entryPoint, shaderLocalDescriptor);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

@@ -36,6 +36,8 @@ using namespace Microsoft::WRL;
 #include <litefx/config.h>
 #include <litefx/rendering.hpp>
 
+#include "dx12_formatters.hpp"
+
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Math;
     using namespace LiteFX::Rendering;
@@ -60,9 +62,9 @@ namespace LiteFX::Rendering::Backends {
     class DirectX12PipelineState;
     class DirectX12RenderPipeline;
     class DirectX12ComputePipeline;
+    class DirectX12RayTracingPipeline;
     class DirectX12FrameBuffer;
     class DirectX12RenderPass;
-    class DirectX12InputAttachmentMapping;
     class DirectX12SwapChain;
     class DirectX12Queue;
     class DirectX12GraphicsFactory;
@@ -75,6 +77,9 @@ namespace LiteFX::Rendering::Backends {
     class IDirectX12IndexBuffer;
     class IDirectX12Image;
     class IDirectX12Sampler;
+    class IDirectX12AccelerationStructure;
+    class DirectX12BottomLevelAccelerationStructure;
+    class DirectX12TopLevelAccelerationStructure;
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     // Builder declarations.
@@ -87,6 +92,7 @@ namespace LiteFX::Rendering::Backends {
     class DirectX12RasterizerBuilder;
     class DirectX12RenderPipelineBuilder;
     class DirectX12ComputePipelineBuilder;
+    class DirectX12RayTracingPipelineBuilder;
     class DirectX12RenderPassBuilder;
     class DirectX12BarrierBuilder;
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
@@ -289,7 +295,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="result">The error code returned by the operation.</param>
         explicit DX12PlatformException(HRESULT result) noexcept :
-            m_code(result), m_error(result), RuntimeException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), m_error.ErrorMessage()) { }
+            m_code(result), m_error(result), RuntimeException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), _com_error(result).ErrorMessage()) { }
 
         /// <summary>
         /// Initializes a new exception.
@@ -297,7 +303,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="result">The error code returned by the operation.</param>
         /// <param name="message">The error message.</param>
         explicit DX12PlatformException(HRESULT result, StringView message) noexcept :
-            m_code(result), m_error(result), RuntimeException("{2} {1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), m_error.ErrorMessage(), message) { }
+            m_code(result), m_error(result), RuntimeException("{2} {1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), _com_error(result).ErrorMessage(), message) { }
 
         /// <summary>
         /// Initializes a new exception.
@@ -307,11 +313,14 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="args">The arguments passed to the error message format string.</param>
         template <typename ...TArgs>
         explicit DX12PlatformException(HRESULT result, StringView format, TArgs&&... args) noexcept :
-            DX12PlatformException(result, fmt::vformat(format, fmt::make_format_args(args...))) { }
+            DX12PlatformException(result, std::vformat(format, std::make_format_args(args...))) { }
 
-        DX12PlatformException(const DX12PlatformException&) = delete;
-        DX12PlatformException(DX12PlatformException&&) = delete;
+        DX12PlatformException(const DX12PlatformException&) = default;
+        DX12PlatformException(DX12PlatformException&&) = default;
         virtual ~DX12PlatformException() noexcept = default;
+
+        DX12PlatformException& operator=(const DX12PlatformException&) = default;
+        DX12PlatformException& operator=(DX12PlatformException&&) = default;
 
     public:
         /// <summary>

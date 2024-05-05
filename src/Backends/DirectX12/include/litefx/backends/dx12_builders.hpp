@@ -63,10 +63,10 @@ namespace LiteFX::Rendering::Backends {
 		// ShaderProgramBuilder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline UniquePtr<DirectX12ShaderModule> makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint) override;
+		constexpr inline UniquePtr<DirectX12ShaderModule> makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) override;
 
 		/// <inheritdoc />
-		constexpr inline UniquePtr<DirectX12ShaderModule> makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint) override;
+		constexpr inline UniquePtr<DirectX12ShaderModule> makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) override;
 	};
 
 	/// <summary>
@@ -140,7 +140,7 @@ namespace LiteFX::Rendering::Backends {
 		template <typename TSelf>
 		constexpr inline auto indexType(this TSelf&& self, IndexType type) -> TSelf&& {
 			self.use(makeUnique<DirectX12IndexBufferLayout>(type));
-			return self;
+			return std::forward<TSelf>(self);
 		}
 	};
 
@@ -260,7 +260,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a DirectX 12 render pipeline builder.
 		/// </summary>
-		/// <param name="renderPass">The parent render pass</param>
+		/// <param name="renderPass">The parent render pass.</param>
 		/// <param name="name">A debug name for the render pipeline.</param>
 		constexpr inline explicit DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const String& name = "");
 		DirectX12RenderPipelineBuilder(DirectX12RenderPipelineBuilder&&) = delete;
@@ -296,6 +296,29 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
+	/// Builds a DirectX 12 <see cref="RayTracingPipeline" />.
+	/// </summary>
+	/// <seealso cref="DirectX12RayTracingPipeline" />
+	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12RayTracingPipelineBuilder final : public RayTracingPipelineBuilder<DirectX12RayTracingPipeline> {
+	public:
+		/// <summary>
+		/// Initializes a DirectX 12 ray-tracing pipeline builder.
+		/// </summary>
+		/// <param name="device">The parent device</param>
+        /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
+		/// <param name="name">A debug name for the ray-tracing pipeline.</param>
+		constexpr inline explicit DirectX12RayTracingPipelineBuilder(const DirectX12Device& device, ShaderRecordCollection&& shaderRecords, const String& name = "");
+		DirectX12RayTracingPipelineBuilder(DirectX12RayTracingPipelineBuilder&&) = delete;
+		DirectX12RayTracingPipelineBuilder(const DirectX12RayTracingPipelineBuilder&) = delete;
+		constexpr inline virtual ~DirectX12RayTracingPipelineBuilder() noexcept;
+
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		inline void build() override;
+	};
+
+	/// <summary>
 	/// Implements the DirectX 12 <see cref="RenderPassBuilder" />.
 	/// </summary>
 	/// <seealso cref="DirectX12RenderPass" />
@@ -312,26 +335,10 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a DirectX 12 render pass builder.
 		/// </summary>
 		/// <param name="device">The parent device</param>
-		/// <param name="samples">The multi-sampling level for the render targets.</param>
-		/// <param name="name">A debug name for the render pass.</param>
-		constexpr inline explicit DirectX12RenderPassBuilder(const DirectX12Device& device, MultiSamplingLevel samples = MultiSamplingLevel::x1, const String& name = "") noexcept;
-
-		/// <summary>
-		/// Initializes a DirectX 12 render pass builder.
-		/// </summary>
-		/// <param name="device">The parent device</param>
 		/// <param name="commandBuffers">The number of command buffers to initialize.</param>
 		/// <param name="name">A debug name for the render pass.</param>
 		constexpr inline explicit DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, const String& name = "") noexcept;
 
-		/// <summary>
-		/// Initializes a DirectX 12 render pass builder.
-		/// </summary>
-		/// <param name="device">The parent device</param>
-		/// <param name="commandBuffers">The number of command buffers to initialize.</param>
-		/// <param name="multiSamplingLevel">The multi-sampling level for the render targets.</param>
-		/// <param name="name">A debug name for the render pass.</param>
-		constexpr inline explicit DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, MultiSamplingLevel multiSamplingLevel, const String& name = "") noexcept;
 		DirectX12RenderPassBuilder(const DirectX12RenderPassBuilder&) noexcept = delete;
 		DirectX12RenderPassBuilder(DirectX12RenderPassBuilder&&) noexcept = delete;
 		constexpr inline virtual ~DirectX12RenderPassBuilder() noexcept;
@@ -344,7 +351,7 @@ namespace LiteFX::Rendering::Backends {
 		// RenderPassBuilder interface.
 	protected:
 		/// <inheritdoc />
-		inline DirectX12InputAttachmentMapping makeInputAttachment(UInt32 inputLocation, const DirectX12RenderPass& renderPass, const RenderTarget& renderTarget) override;
+		inline RenderPassDependency makeInputAttachment(DescriptorBindingPoint binding, const RenderTarget& renderTarget) override;
 	};
 
 }

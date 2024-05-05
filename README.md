@@ -3,7 +3,7 @@
 An extensible, descriptive, modern computer graphics and rendering engine, written in C++23.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/crud89/LiteFX/main/docs/img/banner_m.jpg?token=AEMKYX75E4UF4U6GAT5ZTIDA3C4GU">
+  <img src="https://raw.githubusercontent.com/crud89/LiteFX/main/docs/img/litefx_rm_banner.png">
 </p>
 
 <div align="center">
@@ -48,7 +48,7 @@ LiteFX is written in modern C++23, following established design patterns to make
 
 ### Key Features
 
-- **State of the Art**: the engine makes use of some of the most recent techniques introduced to the supported APIs in order to help you to fully utilize the latest hardware. For example it uses features from the [DirectX 12 Agility SDK](https://devblogs.microsoft.com/directx/announcing-dx12agility/) and [Vulkan 1.3](https://www.khronos.org/news/press/vulkan-reduces-fragmentation-and-provides-roadmap-visibility-for-developers), such as *mesh shaders*, *enhanced barriers* and *dynamic states*.
+- **State of the Art**: the engine makes use of some of the most recent techniques introduced to the supported APIs in order to help you to fully utilize the latest hardware. For example it uses features from the [DirectX 12 Agility SDK](https://devblogs.microsoft.com/directx/announcing-dx12agility/) and [Vulkan 1.3](https://www.khronos.org/news/press/vulkan-reduces-fragmentation-and-provides-roadmap-visibility-for-developers), such as *mesh shaders*, *ray tracing* and *enhanced barriers*.
 - **Streamlined API**: low-level graphics APIs typically involve a lot of boilerplate code to set them up. LiteFX provides different techniques to make this code less verbose. *Fluent Builders* can be used to setup and configure render graphs. *Shader Reflection* can be used in both, Vulkan and DirectX 12, to create pipeline layouts from a single line of code.
 - **Multi-Threading Support**: LiteFX comes with support for multi-threaded render passes in order to maximize throughput and prevent GPU stalls. It takes care of the necessary synchronization between threads and exposes interfaces for manual synchronization. 
 - **Descriptor and Memory Management**: descriptors and buffers can be hard to get around. LiteFX abstracts them away in a way that is both efficient and accessible.
@@ -134,7 +134,6 @@ Within the cache variables, you can override the build options, LiteFX exports. 
 
 - `LITEFX_BUILD_VULKAN_BACKEND` (default: `ON`): builds the Vulkan 🌋 backend (requires [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later to be installed on your system).
 - `LITEFX_BUILD_DX12_BACKEND` (default: `ON`): builds the DirectX 12 ❎ backend.
-- `LITEFX_BUILD_MESH_SHADER_SUPPORT` (default: `OFF`) builds support for mesh shaders and adds the mesh shader example.
 - `LITEFX_BUILD_DEFINE_BUILDERS` (default: `ON`): enables the [builder architecture](https://github.com/crud89/LiteFX/wiki/Builders) for backends.
 - `LITEFX_BUILD_WITH_GLM` (default: `ON`): adds [glm](https://glm.g-truc.net/0.9.9/index.html) converters to math types. †
 - `LITEFX_BUILD_WITH_DIRECTX_MATH` (default: `ON`): adds [DirectX Math](https://github.com/microsoft/DirectXMath) converters to math types. †
@@ -182,12 +181,11 @@ If you are having problems building the project, you may find answers [in the wi
 
 ### Dependencies
 
-All dependencies are automatically installed using *vcpkg*, when performing a manual build. The engine only has two hard dependencies:
+All dependencies are automatically installed using *vcpkg*, when performing a manual build. The engine core by itself only has one hard dependency:
 
 - [spdlog](https://github.com/gabime/spdlog): Lightweight logging library.
-- [{fmt}](https://github.com/fmtlib/fmt): String formatting library and implicit dependency of *spdlog*.
 
-Depending on which rendering backends are build, the following dependencies are required:
+Depending on which rendering backends are build, the following dependencies are additionally linked against:
 
 - [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/): Required by the Vulkan backend.
 - [Vulkan Memory Allocator](https://gpuopen.com/vulkan-memory-allocator/): Required by the Vulkan backend. Handles memory allocations.

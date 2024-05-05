@@ -783,6 +783,18 @@ constexpr ShaderStage LiteFX::Rendering::Backends::Vk::getShaderStage(const VkSh
 		return ShaderStage::Task;
 	case VkShaderStageFlagBits::VK_SHADER_STAGE_MESH_BIT_EXT:
 		return ShaderStage::Mesh;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_RAYGEN_BIT_KHR:
+		return ShaderStage::RayGeneration;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_ANY_HIT_BIT_KHR:
+		return ShaderStage::AnyHit;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR:
+		return ShaderStage::ClosestHit;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_INTERSECTION_BIT_KHR:
+		return ShaderStage::Intersection;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_MISS_BIT_KHR:
+		return ShaderStage::Miss;
+	case VkShaderStageFlagBits::VK_SHADER_STAGE_CALLABLE_BIT_KHR:
+		return ShaderStage::Callable;
 	default:
 		return ShaderStage::Other;
 	}
@@ -808,6 +820,18 @@ constexpr VkShaderStageFlagBits LiteFX::Rendering::Backends::Vk::getShaderStage(
 		return VkShaderStageFlagBits::VK_SHADER_STAGE_TASK_BIT_EXT;
 	case ShaderStage::Mesh:
 		return VkShaderStageFlagBits::VK_SHADER_STAGE_MESH_BIT_EXT;
+	case ShaderStage::RayGeneration:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+	case ShaderStage::AnyHit:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+	case ShaderStage::ClosestHit:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+	case ShaderStage::Intersection:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
+	case ShaderStage::Miss:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_MISS_BIT_KHR;
+	case ShaderStage::Callable:
+		return VkShaderStageFlagBits::VK_SHADER_STAGE_CALLABLE_BIT_KHR;
 	case ShaderStage::Other:
 	default:
 		throw std::invalid_argument("Unsupported shader type.");
@@ -961,101 +985,120 @@ constexpr VkBlendOp LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendO
 	}
 }
 
-constexpr VkPipelineStageFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getPipelineStage(PipelineStage pipelineStage)
+constexpr VkPipelineStageFlags2 LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getPipelineStage(PipelineStage pipelineStage)
 {
 	if (pipelineStage == PipelineStage::None)
-		return VK_PIPELINE_STAGE_NONE;
+		return VK_PIPELINE_STAGE_2_NONE;
 	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::All))
-		return VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+		return VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
 	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Draw))
-		return VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
+		return VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT;
 	else if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Compute))
-		return VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
+		return VK_PIPELINE_STAGE_2_COMPUTE_SHADER_BIT;
 
-	VkPipelineStageFlags sync{ };
+	VkPipelineStageFlags2 sync{ };
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::InputAssembly))
-		sync |= VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+		sync |= VK_PIPELINE_STAGE_2_VERTEX_INPUT_BIT;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Vertex))
-		sync |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
+		sync |= VK_PIPELINE_STAGE_2_VERTEX_SHADER_BIT;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::TessellationControl))
-		sync |= VK_PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT;
+		sync |= VK_PIPELINE_STAGE_2_TESSELLATION_CONTROL_SHADER_BIT;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::TessellationEvaluation))
-		sync |= VK_PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT;
+		sync |= VK_PIPELINE_STAGE_2_TESSELLATION_EVALUATION_SHADER_BIT;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Geometry))
-		sync |= VK_PIPELINE_STAGE_GEOMETRY_SHADER_BIT;
+		sync |= VK_PIPELINE_STAGE_2_GEOMETRY_SHADER_BIT;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Fragment))
-		sync |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		sync |= VK_PIPELINE_STAGE_2_FRAGMENT_SHADER_BIT;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::DepthStencil))
-		sync |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		sync |= VK_PIPELINE_STAGE_2_EARLY_FRAGMENT_TESTS_BIT;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Indirect))
-		sync |= VK_PIPELINE_STAGE_DRAW_INDIRECT_BIT;
+		sync |= VK_PIPELINE_STAGE_2_DRAW_INDIRECT_BIT;
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::RenderTarget))
-		sync |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		sync |= VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT;
 
-	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Transfer) ||
-		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Resolve))
-		sync |= VK_PIPELINE_STAGE_TRANSFER_BIT;
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Transfer))
+		sync |= VK_PIPELINE_STAGE_2_TRANSFER_BIT;
+	
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Resolve))
+		sync |= VK_PIPELINE_STAGE_2_RESOLVE_BIT;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Raytracing))
+		sync |= VK_PIPELINE_STAGE_2_RAY_TRACING_SHADER_BIT_KHR;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::AccelerationStructureBuild))
+		sync |= VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_BUILD_BIT_KHR;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::AccelerationStructureCopy))
+		sync |= VK_PIPELINE_STAGE_2_ACCELERATION_STRUCTURE_COPY_BIT_KHR;
+
+	// TODO: Mesh and task shader stages.
 
 	return sync;
 }
 
-constexpr VkAccessFlags LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getResourceAccess(ResourceAccess resourceAccess)
+constexpr VkAccessFlags2 LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getResourceAccess(ResourceAccess resourceAccess)
 {
 	if (resourceAccess == ResourceAccess::None)
-		return VK_ACCESS_NONE;
+		return VK_ACCESS_2_NONE;
 
-	VkAccessFlags access = { };
+	VkAccessFlags2 access = { };
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::Common))
-		access |= (VK_ACCESS_MEMORY_WRITE_BIT | VK_ACCESS_MEMORY_READ_BIT);
+		access |= (VK_ACCESS_2_MEMORY_WRITE_BIT | VK_ACCESS_2_MEMORY_READ_BIT);
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::VertexBuffer))
-		access |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+		access |= VK_ACCESS_2_VERTEX_ATTRIBUTE_READ_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::IndexBuffer))
-		access |= VK_ACCESS_INDEX_READ_BIT;
+		access |= VK_ACCESS_2_INDEX_READ_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::UniformBuffer))
-		access |= VK_ACCESS_UNIFORM_READ_BIT;
+		access |= VK_ACCESS_2_UNIFORM_READ_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::RenderTarget))
-		access |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+		access |= VK_ACCESS_2_COLOR_ATTACHMENT_READ_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::DepthStencilRead))
-		access |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+		access |= VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::DepthStencilWrite))
-		access |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		access |= VK_ACCESS_2_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ShaderRead))
-		access |= VK_ACCESS_SHADER_READ_BIT;
+		access |= VK_ACCESS_2_SHADER_READ_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ShaderReadWrite))
-		access |= (VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT);
+		access |= (VK_ACCESS_2_SHADER_READ_BIT | VK_ACCESS_2_SHADER_WRITE_BIT);
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::Indirect))
-		access |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+		access |= VK_ACCESS_2_INDIRECT_COMMAND_READ_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::TransferRead))
-		access |= VK_ACCESS_TRANSFER_READ_BIT;
+		access |= VK_ACCESS_2_TRANSFER_READ_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::TransferWrite))
-		access |= VK_ACCESS_TRANSFER_WRITE_BIT;
+		access |= VK_ACCESS_2_TRANSFER_WRITE_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ResolveRead))
-		access |= VK_ACCESS_MEMORY_READ_BIT;
+		access |= VK_ACCESS_2_MEMORY_READ_BIT;
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ResolveWrite))
-		access |= VK_ACCESS_MEMORY_WRITE_BIT;
+		access |= VK_ACCESS_2_MEMORY_WRITE_BIT;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::AccelerationStructureRead))
+		access |= VK_ACCESS_2_ACCELERATION_STRUCTURE_READ_BIT_KHR;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::AccelerationStructureWrite))
+		access |= VK_ACCESS_2_ACCELERATION_STRUCTURE_WRITE_BIT_KHR;
 
 	return access;
 }

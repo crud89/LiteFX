@@ -183,31 +183,31 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) c
 	// End the command buffer.
 	commandBuffer->end();
 
-	// Create an array of all signal semaphores.
-	std::array<VkSemaphore, 1> semaphoresToSignal = { m_impl->m_timelineSemaphore };
-
 	// Submit the command buffer.
 	auto fence = ++m_impl->m_fenceValue;
-	std::array<UInt64, 1> signalValues = { fence };
 
-	VkTimelineSemaphoreSubmitInfo timelineInfo {
-		.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO,
-		.pNext = nullptr,
-		.signalSemaphoreValueCount = static_cast<UInt32>(signalValues.size()),
-		.pSignalSemaphoreValues = signalValues.data()
+	VkSemaphoreSubmitInfo signalSemaphoreInfo = {
+		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+		.semaphore = m_impl->m_timelineSemaphore,
+		.value = fence,
+		.stageMask = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT
 	};
 
-	VkSubmitInfo submitInfo {
-		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-		.pNext = &timelineInfo,
-		.commandBufferCount = 1,
-		.pCommandBuffers = &commandBuffer->handle(),
-		.signalSemaphoreCount = static_cast<UInt32>(semaphoresToSignal.size()),
-		.pSignalSemaphores = semaphoresToSignal.data()
+	VkCommandBufferSubmitInfo commandBufferInfo = {
+		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+		.commandBuffer = commandBuffer->handle()
+	};
+
+	VkSubmitInfo2 submitInfo = {
+		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+		.commandBufferInfoCount = 1,
+		.pCommandBufferInfos = &commandBufferInfo,
+		.signalSemaphoreInfoCount = 1,
+		.pSignalSemaphoreInfos = &signalSemaphoreInfo
 	};
 
 	// Submit the command buffer to the transfer queue.
-	raiseIfFailed(::vkQueueSubmit(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
+	raiseIfFailed(::vkQueueSubmit2(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
 
 	// Add the command buffer to the submitted command buffers list.
 	m_impl->m_submittedCommandBuffers.push_back({ fence, commandBuffer });
@@ -237,38 +237,37 @@ UInt64 VulkanQueue::submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>
 	m_impl->releaseCommandBuffers(completedValue);
 
 	// End the command buffer.
-	auto handles = [&commandBuffers]() -> std::generator<VkCommandBuffer> {
+	auto commandBufferInfos = [&commandBuffers]() -> std::generator<VkCommandBufferSubmitInfo> {
 		for (auto buffer = commandBuffers.begin(); buffer != commandBuffers.end(); ++buffer) {
 			(*buffer)->end();
-			co_yield (*buffer)->handle();
-		}
-	}() | std::ranges::to<Array<VkCommandBuffer>>();
 
-	// Create an array of all signal semaphores.
-	std::array<VkSemaphore, 1> semaphoresToSignal = { m_impl->m_timelineSemaphore };
+			co_yield VkCommandBufferSubmitInfo {
+				.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+				.commandBuffer = (*buffer)->handle()
+			};
+		}
+	}() | std::ranges::to<Array<VkCommandBufferSubmitInfo>>();
 
 	// Submit the command buffer.
 	auto fence = ++m_impl->m_fenceValue;
-	std::array<UInt64, 1> signalValues = { fence };
 
-	VkTimelineSemaphoreSubmitInfo timelineInfo {
-		.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO,
-		.pNext = nullptr,
-		.signalSemaphoreValueCount = static_cast<UInt32>(signalValues.size()),
-		.pSignalSemaphoreValues = signalValues.data()
+	VkSemaphoreSubmitInfo signalSemaphoreInfo = {
+		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+		.semaphore = m_impl->m_timelineSemaphore,
+		.value = fence,
+		.stageMask = VK_PIPELINE_STAGE_2_TOP_OF_PIPE_BIT
 	};
 
-	VkSubmitInfo submitInfo {
-		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-		.pNext = &timelineInfo,
-		.commandBufferCount = static_cast<UInt32>(handles.size()),
-		.pCommandBuffers = handles.data(),
-		.signalSemaphoreCount = static_cast<UInt32>(semaphoresToSignal.size()),
-		.pSignalSemaphores = semaphoresToSignal.data()
+	VkSubmitInfo2 submitInfo = {
+		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+		.commandBufferInfoCount = static_cast<UInt32>(commandBufferInfos.size()),
+		.pCommandBufferInfos = commandBufferInfos.data(),
+		.signalSemaphoreInfoCount = 1,
+		.pSignalSemaphoreInfos = &signalSemaphoreInfo
 	};
 
 	// Submit the command buffer to the transfer queue.
-	raiseIfFailed(::vkQueueSubmit(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
+	raiseIfFailed(::vkQueueSubmit2(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
 
 	// Add the command buffers to the submitted command buffers list.
 	std::ranges::for_each(commandBuffers, [this, &fence](auto& buffer) { m_impl->m_submittedCommandBuffers.push_back({ fence, buffer }); });
@@ -302,23 +301,20 @@ void VulkanQueue::waitFor(UInt64 fence) const noexcept
 
 void VulkanQueue::waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept
 {
-	static const std::array<VkPipelineStageFlags, 1> waitStages = { VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT };
-
-	VkTimelineSemaphoreSubmitInfo timelineInfo {
-		.sType = VK_STRUCTURE_TYPE_TIMELINE_SEMAPHORE_SUBMIT_INFO,
-		.waitSemaphoreValueCount = 1,
-		.pWaitSemaphoreValues = &fence
+	VkSemaphoreSubmitInfo waitSemaphoreInfo {
+		.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO,
+		.semaphore = queue.m_impl->m_timelineSemaphore,
+		.value = fence,
+		.stageMask = VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT
 	};
 
-	VkSubmitInfo submitInfo {
-		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-		.pNext = &timelineInfo,
-		.waitSemaphoreCount = 1,
-		.pWaitSemaphores = &queue.m_impl->m_timelineSemaphore,
-		.pWaitDstStageMask = waitStages.data()
+	VkSubmitInfo2 submitInfo {
+		.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2,
+		.waitSemaphoreInfoCount = 1,
+		.pWaitSemaphoreInfos = &waitSemaphoreInfo
 	};
 
-	::vkQueueSubmit(this->handle(), 1, &submitInfo, VK_NULL_HANDLE);
+	::vkQueueSubmit2(this->handle(), 1, &submitInfo, VK_NULL_HANDLE);
 }
 
 UInt64 VulkanQueue::currentFence() const noexcept

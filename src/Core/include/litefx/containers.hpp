@@ -248,7 +248,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <typeparam name="...TArgs">The types of the arguments.</typeparam>
 		/// <param name="...args">The arguments.</param>
-		template <typename... TArgs> requires rtti::are_same<T, TArgs...>
+		template <typename... TArgs> requires meta::are_same<T, TArgs...>
 		constexpr explicit inline Enumerable(TArgs&&... args) noexcept
 		{
 			auto input = std::to_array({ std::forward<TArgs>(args)... });
@@ -415,7 +415,7 @@ namespace LiteFX {
 	/// <summary>
 	/// A smart pointer that manages an implementation instance for a public interface class.
 	/// </summary>
-	/// <typeparam name="pImpl">The type of the implementaion class.</typeparam>
+	/// <typeparam name="pImpl">The type of the implementation class.</typeparam>
 	template <class pImpl>
 	class PimplPtr final {
 	private:
@@ -481,6 +481,12 @@ namespace LiteFX {
 		/// </summary>
 		/// <returns>The pointer to the managed implementation instance.</returns>
 		constexpr inline pImpl* release() noexcept { m_ptr.release(); }
+
+		/// <summary>
+		/// Returns a pointer to the managed implementation instance.
+		/// </summary>
+		/// <returns>A pointer to the managed implementation instance.</returns>
+		constexpr inline pImpl* get() const noexcept { return m_ptr.get(); }
 
 	public:
 		/// <summary>

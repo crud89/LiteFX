@@ -53,7 +53,6 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
     PUBLIC LiteFX.Core spdlog::spdlog
-    PRIVATE spdlog::spdlog_header_only
 )
 
 # Re-use pre-compiled core header.

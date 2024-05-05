@@ -79,7 +79,7 @@ public:
         bool hasInputAttachmentSampler = false;
         UInt32 rootParameterIndex{ 0 };
 
-        LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", fmt::ptr(m_parent), m_descriptorSetLayouts.size(), m_pushConstantsLayout == nullptr ? 0 : m_pushConstantsLayout->ranges().size());
+        LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", reinterpret_cast<void*>(m_parent), m_descriptorSetLayouts.size(), m_pushConstantsLayout == nullptr ? 0 : m_pushConstantsLayout->ranges().size());
 
         if (m_pushConstantsLayout != nullptr)
         {
@@ -95,6 +95,8 @@ public:
                 case ShaderStage::TessellationControl: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_HULL); break;
                 case ShaderStage::Task: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_AMPLIFICATION); break;
                 case ShaderStage::Mesh: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_MESH); break;
+                
+                // Combinations of shader stages need to be visible everywhere. Note that this includes ray-tracing shaders (https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#note-on-shader-visibility).
                 default: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_ALL); break;
                 }
 
@@ -110,25 +112,21 @@ public:
             auto stages = layout->shaderStages();
             UInt32 space = layout->space();
 
-            if (stages == ShaderStage::Vertex)
-                shaderStages = D3D12_SHADER_VISIBILITY_VERTEX;
-            if (stages == ShaderStage::Geometry)
-                shaderStages = D3D12_SHADER_VISIBILITY_GEOMETRY;
-            if (stages == ShaderStage::Fragment)
-                shaderStages = D3D12_SHADER_VISIBILITY_PIXEL;
-            if (stages == ShaderStage::TessellationEvaluation)
-                shaderStages = D3D12_SHADER_VISIBILITY_DOMAIN;
-            if (stages == ShaderStage::TessellationControl)
-                shaderStages = D3D12_SHADER_VISIBILITY_HULL;
-            if (stages == ShaderStage::Task)
-                shaderStages = D3D12_SHADER_VISIBILITY_AMPLIFICATION;
-            if (stages == ShaderStage::Mesh)
-                shaderStages = D3D12_SHADER_VISIBILITY_MESH;
+            switch (stages)
+            {
+            case ShaderStage::Vertex: shaderStages = D3D12_SHADER_VISIBILITY_VERTEX; break;
+            case ShaderStage::Geometry: shaderStages = D3D12_SHADER_VISIBILITY_GEOMETRY; break;
+            case ShaderStage::Fragment: shaderStages = D3D12_SHADER_VISIBILITY_PIXEL; break;
+            case ShaderStage::TessellationEvaluation: shaderStages = D3D12_SHADER_VISIBILITY_DOMAIN; break;
+            case ShaderStage::TessellationControl: shaderStages = D3D12_SHADER_VISIBILITY_HULL; break;
+            case ShaderStage::Task: shaderStages = D3D12_SHADER_VISIBILITY_AMPLIFICATION; break;
+            case ShaderStage::Mesh: shaderStages = D3D12_SHADER_VISIBILITY_MESH; break;
+            }
 
             // Define the root parameter ranges.
             auto layouts = layout->descriptors();
             Array<D3D12_DESCRIPTOR_RANGE1> rangeSet = layouts |
-                std::views::filter([](const DirectX12DescriptorLayout* range) { return range->staticSampler() == nullptr; }) |
+                std::views::filter([](const DirectX12DescriptorLayout* range) { return range->staticSampler() == nullptr && !range->local(); }) |
                 std::views::transform([&](const DirectX12DescriptorLayout* range) {
                 CD3DX12_DESCRIPTOR_RANGE1 descriptorRange = {};
 
@@ -136,6 +134,7 @@ public:
                 { 
                 case DescriptorType::ConstantBuffer:    descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, range->descriptors(), range->binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE | D3D12_DESCRIPTOR_RANGE_FLAG_DATA_STATIC_WHILE_SET_AT_EXECUTE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
                 case DescriptorType::InputAttachment:   hasInputAttachments = true; [[fallthrough]];
+                case DescriptorType::AccelerationStructure:
                 case DescriptorType::Buffer:
                 case DescriptorType::StructuredBuffer:
                 case DescriptorType::ByteAddressBuffer:
@@ -144,12 +143,7 @@ public:
                 case DescriptorType::RWStructuredBuffer:
                 case DescriptorType::RWByteAddressBuffer:
                 case DescriptorType::RWTexture:         descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, range->descriptors(), range->binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
-                case DescriptorType::Sampler:
-                    if (stages != ShaderStage::Compute && range->binding() == 0 && space == 0)  // NOTE: This is valid for compute shaders and shaders in render passes without input attachments.
-                        LITEFX_WARNING(DIRECTX12_LOG, "Sampler bound to register 0 of space 0, which is reserved for input attachment samplers. If your render pass does not have any input attachments, this is fine. To disable this warning, bind the sampler to another register or space, or provide a static sampler state through the root signature instead and use shader reflection to create the pipeline layout.");
-
-                    descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, range->descriptors(), range->binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_NONE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND);
-                    break;
+                case DescriptorType::Sampler:           descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, range->descriptors(), range->binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_NONE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
                 default: throw InvalidArgumentException("descriptorSetLayouts", "Invalid descriptor type: {0}.", range->descriptorType());
                 }
 
@@ -187,13 +181,16 @@ public:
             });
 
             // Define the root parameter.
-            CD3DX12_ROOT_PARAMETER1 rootParameter = {};
-            rootParameter.InitAsDescriptorTable(rangeSet.size(), rangeSet.data(), static_cast<D3D12_SHADER_VISIBILITY>(shaderStages));
-            descriptorRanges.push_back(std::move(rangeSet));
+            if (!rangeSet.empty())
+            {
+                CD3DX12_ROOT_PARAMETER1 rootParameter = {};
+                rootParameter.InitAsDescriptorTable(rangeSet.size(), rangeSet.data(), static_cast<D3D12_SHADER_VISIBILITY>(shaderStages));
+                descriptorRanges.push_back(std::move(rangeSet));
 
-            // Store the range set.
-            layout->rootParameterIndex() = rootParameterIndex++;
-            descriptorParameters.push_back(rootParameter);
+                // Store the range set.
+                layout->rootParameterIndex() = rootParameterIndex++;
+                descriptorParameters.push_back(rootParameter);
+            }
         });
 
         // Define a static sampler to sample the G-Buffer, if it is not manually defined.

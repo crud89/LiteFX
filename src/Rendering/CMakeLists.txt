@@ -23,9 +23,11 @@ SET(RENDERING_SOURCES
     "src/viewport.cpp"
     "src/scissor.cpp"
     "src/render_target.cpp"
+    "src/render_pass_dependency.cpp"
     "src/state_resource.cpp"
     "src/device_state.cpp"
     "src/timing_event.cpp"
+    "src/shader_record_collection.cpp"
 )
 
 # Add shared library project.

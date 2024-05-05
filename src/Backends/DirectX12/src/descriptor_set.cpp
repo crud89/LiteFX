@@ -90,7 +90,17 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
     if (bufferElement + elementCount > buffer.elements()) [[unlikely]]
         LITEFX_WARNING(DIRECTX12_LOG, "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), elementCount, bufferElement);
 
-    const auto& descriptorLayout = m_impl->m_layout.descriptor(binding);
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
+
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+    
+    const auto& descriptorLayout = *(*match);
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding) + firstDescriptor;
     auto descriptorSize = m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, descriptorSize);
@@ -223,8 +233,18 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
 {
     // TODO: Add LOD lower bound (for clamping) as parameter?
-    // Acquire a descriptor handle.
-    const auto& descriptorLayout = m_impl->m_layout.descriptor(binding);
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
+
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+
+    const auto& descriptorLayout = *(*match);
+
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset + descriptor, m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
 
@@ -232,12 +252,26 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
     const UInt32 numLevels = levels == 0 ? texture.levels() - firstLevel : levels;
     const UInt32 numLayers = layers == 0 ? texture.layers() - firstLayer : layers;
 
-    if (descriptorLayout.descriptorType() == DescriptorType::Texture)
+    if (descriptorLayout.descriptorType() == DescriptorType::Texture || descriptorLayout.descriptorType() == DescriptorType::InputAttachment)
     {
         D3D12_SHADER_RESOURCE_VIEW_DESC textureView = {
             .Format = DX12::getFormat(texture.format()),
             .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
         };
+
+        // Handle depth images.
+        if (::hasDepth(texture.format()))
+        {
+            switch (texture.format())
+            {
+            case Format::D16_UNORM:             textureView.Format = DXGI_FORMAT_R16_UNORM; break;
+            case Format::D32_SFLOAT:            textureView.Format = DXGI_FORMAT_R32_FLOAT; break;
+            case Format::D24_UNORM_S8_UINT:     textureView.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; break;
+            case Format::D32_SFLOAT_S8_UINT:    textureView.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; break;
+            //case Format::D16_UNORM_S8_UINT: ??
+            //case Format::X8_D24_UNORM: ??
+            }
+        }
 
         switch (texture.dimensions())
         {
@@ -370,6 +404,16 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
 
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sampler, UInt32 descriptor) const
 {
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
+
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
 
     D3D12_SAMPLER_DESC samplerInfo = {
@@ -390,34 +434,42 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sam
     m_impl->m_layout.device().updateSamplerDescriptors(*this, offset, 1);
 }
 
-void DirectX12DescriptorSet::attach(UInt32 binding, const IDirectX12Image& image) const
+void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12AccelerationStructure& accelerationStructure, UInt32 descriptor) const
 {
-    auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
 
-    D3D12_SHADER_RESOURCE_VIEW_DESC inputAttachmentView = {
-        .Format = DX12::getFormat(image.format()),
-        .ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D,
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+    
+    const auto& layout = *(*match);
+
+    if (layout.descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
+        throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor.", binding);
+
+    auto buffer = accelerationStructure.buffer();
+
+    if (buffer == nullptr) [[unlikely]]
+        throw InvalidArgumentException("accelerationStructure", "The acceleration structure buffer has not yet been allocated.");
+
+    auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
+    auto descriptorSize = m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, descriptorSize);
+
+    D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
+        .Format = DXGI_FORMAT_UNKNOWN,
+        .ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
         .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-        .Texture2D = { .MostDetailedMip = 0, .MipLevels = 1, .PlaneSlice = 0, .ResourceMinLODClamp = 0 },
+        .RaytracingAccelerationStructure = { .Location = buffer->virtualAddress() }
     };
 
-    // DSV needs special care.
-    // TODO: Support stencil targets, which require a separate view.
-    if (::hasDepth(image.format()))
-    {
-        switch (image.format())
-        {
-        case Format::D16_UNORM:             inputAttachmentView.Format = DXGI_FORMAT_R16_UNORM; break;
-        case Format::D32_SFLOAT:            inputAttachmentView.Format = DXGI_FORMAT_R32_FLOAT; break;
-        case Format::D24_UNORM_S8_UINT:     inputAttachmentView.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; break;
-        case Format::D32_SFLOAT_S8_UINT:    inputAttachmentView.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; break;
-        //case Format::D16_UNORM_S8_UINT: ??
-        //case Format::X8_D24_UNORM: ??
-        }
-    }
+    m_impl->m_layout.device().handle()->CreateShaderResourceView(nullptr, &bufferView, descriptorHandle);
+    descriptorHandle = descriptorHandle.Offset(descriptorSize);
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
-    m_impl->m_layout.device().handle()->CreateShaderResourceView(image.handle().Get(), &inputAttachmentView, descriptorHandle);
     m_impl->updateGlobalBuffers(offset, 1);
 }
 

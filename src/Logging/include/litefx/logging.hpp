@@ -15,7 +15,6 @@
 #endif
 
 #include <litefx/core.h>
-#include <fmt/core.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/sink.h>
 
@@ -127,41 +126,41 @@ namespace LiteFX::Logging {
 
     public:
         template<typename ...TArgs>
-        inline void log(LogLevel level, StringView format, TArgs&&... args) {
-            this->log(level, fmt::format(fmt::runtime(format), std::forward<TArgs>(args)...));
+        inline void log(LogLevel level, std::format_string<TArgs...> format, TArgs&&... args) {
+            this->log(level, std::format(format, std::forward<TArgs>(args)...));
         }
 
         template<typename ...TArgs>
-        inline void trace(StringView format, TArgs&&... args) {
+        inline void trace(std::format_string<TArgs...> format, TArgs&&... args) {
 #ifndef NDEBUG
             this->log(LogLevel::Trace, format, std::forward<TArgs>(args)...);
 #endif
         }
 
         template<typename ...TArgs>
-        inline void debug(StringView format, TArgs&&... args) {
+        inline void debug(std::format_string<TArgs...> format, TArgs&&... args) {
 #ifndef NDEBUG
             this->log(LogLevel::Debug, format, std::forward<TArgs>(args)...);
 #endif
         }
 
         template<typename ...TArgs>
-        inline void info(StringView format, TArgs&&... args) {
+        inline void info(std::format_string<TArgs...> format, TArgs&&... args) {
             this->log(LogLevel::Info, format, std::forward<TArgs>(args)...);
         }
 
         template<typename ...TArgs>
-        inline void warning(StringView format, TArgs&&... args) {
+        inline void warning(std::format_string<TArgs...> format, TArgs&&... args) {
             this->log(LogLevel::Warning, format, std::forward<TArgs>(args)...);
         }
 
         template<typename ...TArgs>
-        inline void error(StringView format, TArgs&&... args) {
+        inline void error(std::format_string<TArgs...> format, TArgs&&... args) {
             this->log(LogLevel::Error, format, std::forward<TArgs>(args)...);
         }
 
         template<typename ...TArgs>
-        inline void fatal(StringView format, TArgs&&... args) {
+        inline void fatal(std::format_string<TArgs...> format, TArgs&&... args) {
             this->log(LogLevel::Fatal, format, std::forward<TArgs>(args)...);
         }
     };

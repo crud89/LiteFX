@@ -20,34 +20,47 @@ private:
 	Vector4f m_blendFactors{ 0.f, 0.f, 0.f, 0.f };
 	UInt32 m_stencilRef{ 0 };
 	bool m_alphaToCoverage{ false };
+	MultiSamplingLevel m_samples{ MultiSamplingLevel::x1 };
 	const DirectX12RenderPass& m_renderPass;
+	UniquePtr<IDirectX12Sampler> m_inputAttachmentSampler;
+	Dictionary<const IFrameBuffer*, Array<UniquePtr<DirectX12DescriptorSet>>> m_inputAttachmentBindings;
+	Dictionary<const IFrameBuffer*, size_t> m_frameBufferResizeTokens, m_frameBufferReleaseTokens;
+	mutable std::mutex m_usageMutex;
 
 public:
 	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, bool alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer) :
 		base(parent), m_renderPass(renderPass), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer)
 	{
+		if (renderPass.inputAttachmentSamplerBinding().has_value())
+			m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
 	}
 
 	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass) :
 		base(parent), m_renderPass(renderPass)
 	{
+		if (renderPass.inputAttachmentSamplerBinding().has_value())
+			m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
+	}
+
+	~DirectX12RenderPipelineImpl() noexcept 
+	{
+		// Stop listening to frame buffer events.
+		for (auto [frameBuffer, token] : m_frameBufferResizeTokens)
+			frameBuffer->resized -= token;
+
+		for (auto [frameBuffer, token] : m_frameBufferReleaseTokens)
+			frameBuffer->released -= token;
 	}
 
 public:
-	ComPtr<ID3D12PipelineState> initialize()
+	ComPtr<ID3D12PipelineState> initialize(MultiSamplingLevel samples)
 	{
-		LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline \"{1}\" for layout {0}...", fmt::ptr(reinterpret_cast<void*>(m_layout.get())), m_parent->name());
+		LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline \"{1}\" for layout {0}...", reinterpret_cast<void*>(m_layout.get()), m_parent->name());
+		m_samples = samples;
 
-		// Validate shader stage usage.
+		// Check if there are mesh shaders in the program.
 		auto modules = m_program->modules();
-		bool hasComputeShaders = std::ranges::find_if(modules, [](const auto& module) { return module->type() == ShaderStage::Compute; }) != modules.end();
-		bool hasMeshShaders    = std::ranges::find_if(modules, [](const auto& module) { return module->type() == ShaderStage::Task || module->type() == ShaderStage::Mesh; }) != modules.end();
-		bool hasDirectShaders  = std::ranges::find_if(modules, [](const auto& module) { return module->type() == ShaderStage::Vertex || module->type() == ShaderStage::TessellationControl || module->type() == ShaderStage::TessellationEvaluation || module->type() == ShaderStage::Geometry; }) != modules.end();
-		
-		if (hasComputeShaders) [[unlikely]]
-			throw InvalidArgumentException("shaderProgram", "The shader program contains a compute shader, which is not supported in a graphics pipeline.");
-		else if (hasMeshShaders && hasDirectShaders) [[unlikely]]
-			throw InvalidArgumentException("shaderProgram", "A shader program that contains mesh shaders must not also contain vertex, geometry, domain or hull shaders.");
+		bool hasMeshShaders = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::Mesh | ShaderStage::Task, module->type()); }) != modules.end();
 
 		// Setup rasterizer state.
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
@@ -106,7 +119,6 @@ public:
 		inputLayout.NumElements = static_cast<UInt32>(inputLayoutElements.size());
 
 		// Setup multi-sampling state.
-		auto samples = m_renderPass.multiSamplingLevel();
 		DXGI_SAMPLE_DESC multisamplingState = samples == MultiSamplingLevel::x1 ? DXGI_SAMPLE_DESC{ 1, 0 } : DXGI_SAMPLE_DESC{ std::to_underlying(samples), DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN };
 
 		// Setup render target states.
@@ -114,7 +126,7 @@ public:
 		D3D12_BLEND_DESC blendState = {};
 		D3D12_DEPTH_STENCIL_DESC depthStencilState = {};
 		auto targets = m_renderPass.renderTargets();
-		UInt32 renderTargets = std::ranges::count_if(targets, [](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; });
+		UInt32 renderTargets = std::ranges::count_if(targets, [](auto& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; });
 		UInt32 depthStencilTargets = static_cast<UInt32>(targets.size()) - renderTargets;
 		DXGI_FORMAT dsvFormat { };
 		std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT> rtvFormats { };
@@ -127,14 +139,13 @@ public:
 		if (depthStencilTargets > 1) [[unlikely]]
 			throw RuntimeException("You have specified too many render targets: only 1 depth/stencil target is allowed, but {0} have been specified.", depthStencilTargets);
 
-		std::ranges::for_each(targets, [&, i = 0](const RenderTarget& renderTarget) mutable {
+		std::ranges::for_each(targets, [&, i = 0](auto& renderTarget) mutable {
 			if (renderTarget.type() == RenderTargetType::DepthStencil)
 			{
 				// Setup depth/stencil format.
 				dsvFormat = DX12::getFormat(renderTarget.format());
 
 				// Setup depth/stencil state.
-				// TODO: From depth/stencil state.
 				depthStencilState.DepthEnable = rasterizer.depthStencilState().depthState().Enable;
 				depthStencilState.DepthWriteMask = rasterizer.depthStencilState().depthState().Write ? D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ZERO;
 				depthStencilState.DepthFunc = DX12::getCompareOp(rasterizer.depthStencilState().depthState().Operation);
@@ -182,6 +193,7 @@ public:
 			return this->initializeMeshPipeline(blendState, rasterizerState, depthStencilState, topologyType, renderTargets, rtvFormats, dsvFormat, multisamplingState);
 		else
 			return this->initializeGraphicsPipeline(blendState, rasterizerState, depthStencilState, inputLayout, topologyType, renderTargets, rtvFormats, dsvFormat, multisamplingState);
+
 	}
 
 	ComPtr<ID3D12PipelineState> initializeMeshPipeline(const D3D12_BLEND_DESC& blendState, const D3D12_RASTERIZER_DESC& rasterizerState, const D3D12_DEPTH_STENCIL_DESC& depthStencilState, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, UINT renderTargets, const std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>& renderTargetFormats, DXGI_FORMAT depthStencilFormat, const DXGI_SAMPLE_DESC& multisamplingState)
@@ -203,7 +215,7 @@ public:
 
 		// Setup shader stages.
 		auto modules = m_program->modules();
-		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(m_program.get()), modules.size());
+		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", reinterpret_cast<void*>(m_program.get()), modules.size());
 
 		std::ranges::for_each(modules, [&, i = 0](const DirectX12ShaderModule* shaderModule) mutable {
 			LITEFX_TRACE(DIRECTX12_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", ++i, modules.size(), shaderModule->fileName(), shaderModule->type(), shaderModule->entryPoint());
@@ -264,7 +276,7 @@ public:
 		
 		// Setup shader stages.
 		auto modules = m_program->modules();
-		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", fmt::ptr(m_program.get()), modules.size());
+		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", reinterpret_cast<void*>(m_program.get()), modules.size());
 
 		std::ranges::for_each(modules, [&, i = 0](const DirectX12ShaderModule* shaderModule) mutable {
 			LITEFX_TRACE(DIRECTX12_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", ++i, modules.size(), shaderModule->fileName(), shaderModule->type(), shaderModule->entryPoint());
@@ -306,19 +318,159 @@ public:
 
 		return pipelineState;
 	}
+
+	void initializeInputAttachmentBindings(const DirectX12FrameBuffer& frameBuffer)
+	{
+		// Find out how many descriptor sets there are within the input attachments and which descriptors are bound.
+		Dictionary<UInt32, Array<UInt32>> descriptorsPerSet;
+		std::ranges::for_each(m_renderPass.inputAttachments(), [&descriptorsPerSet](auto& dependency) { descriptorsPerSet[dependency.binding().Space].push_back(dependency.binding().Register); });
+
+		// Validate the descriptor sets, so that no descriptors are bound twice all descriptor sets are fully bound.
+		for (auto& [set, descriptors] : descriptorsPerSet)
+		{
+			// Sort and check if there are duplicates.
+			std::ranges::sort(descriptors);
+
+			if (std::ranges::adjacent_find(descriptors) != descriptors.end()) [[unlikely]]
+				throw RuntimeException("The descriptor set {0} has input attachment mappings that point to the same descriptor.", set);
+
+			// Check if all descriptors in the set are mapped.
+			auto& layout = m_layout->descriptorSet(set);
+
+			for (auto& descriptor : layout.descriptors())
+			{
+				if (std::ranges::find(descriptors, descriptor->binding()) == descriptors.end()) [[unlikely]]
+				{
+					LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} is not fully mapped by the provided input attachments for the render pass.", set);
+					break;
+				}
+			}
+		}
+
+		// Don't forget the sampler.
+		if (m_renderPass.inputAttachmentSamplerBinding().has_value())
+		{
+			auto& samplerBinding = m_renderPass.inputAttachmentSamplerBinding().value();
+			auto layouts = m_layout->descriptorSets();
+
+			if (auto samplerSet = std::ranges::find_if(layouts, [&](auto set) { return set->space() == samplerBinding.Space; }); samplerSet != layouts.end())
+			{
+				if (descriptorsPerSet.contains(samplerBinding.Space)) [[unlikely]]
+					throw RuntimeException("The input attachment sampler is defined in a descriptor set that contains input attachment descriptors. Samplers must be defined within their own space.");
+
+				// Store the descriptor so it gets bound.
+				descriptorsPerSet[samplerBinding.Space].push_back(samplerBinding.Register);
+			}
+		}
+
+		// Allocate the input attachment bindings.
+		this->allocateInputAttachmentBindings(frameBuffer, descriptorsPerSet | std::views::keys);
+	}
+
+	void allocateInputAttachmentBindings(const DirectX12FrameBuffer& frameBuffer, const std::ranges::input_range auto& descriptorSets) requires 
+		std::is_convertible_v<std::ranges::range_value_t<decltype(descriptorSets)>, UInt32>
+	{
+		// Allocate the bindings array.
+		auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
+		auto& bindings = m_inputAttachmentBindings[interfacePointer];
+
+		// Initialize the descriptor set bindings.
+		bindings.append_range(descriptorSets | std::views::transform([this](UInt32 set) { return std::move(m_layout->descriptorSet(set).allocate()); }));
+
+		// Listen to frame buffer events and update the bindings or remove the sets (on release).
+		m_frameBufferResizeTokens[interfacePointer] = frameBuffer.resized.add(std::bind(&DirectX12RenderPipelineImpl::onFrameBufferResize, this, std::placeholders::_1, std::placeholders::_2));
+		m_frameBufferReleaseTokens[interfacePointer] = frameBuffer.released.add(std::bind(&DirectX12RenderPipelineImpl::onFrameBufferRelease, this, std::placeholders::_1, std::placeholders::_2));
+	}
+
+	void updateInputAttachmentBindings(const DirectX12FrameBuffer& frameBuffer)
+	{
+		// Get the interface pointer and obtain the descriptor sets for the input attachments.
+		auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
+		auto& bindings = m_inputAttachmentBindings.at(interfacePointer);
+
+		// Iterate the dependencies and update the binding for each one.
+		std::ranges::for_each(m_renderPass.inputAttachments(), [&](auto& dependency) {
+			for (auto& binding : bindings)
+			{
+				if (binding->layout().space() == dependency.binding().Space)
+				{
+					// Resolve the image and update the binding.
+					auto& image = frameBuffer[dependency.renderTarget()];
+
+					if (image.samples() != m_samples) [[unlikely]]
+						LITEFX_WARNING(DIRECTX12_LOG, "The image multi sampling level {0} does not match the render pipeline multi sampling state {1}.", image.samples(), m_samples);
+
+					// Attach the image from the right frame buffer to the descriptor set.
+					binding->update(dependency.binding().Register, image);
+					break;
+				}
+			}
+		});
+
+		// If there's a sampler, bind it too.
+		if (m_renderPass.inputAttachmentSamplerBinding().has_value())
+		{
+			for (auto& binding : bindings)
+			{
+				if (binding->layout().space() == m_renderPass.inputAttachmentSamplerBinding().value().Space)
+				{
+					binding->update(m_renderPass.inputAttachmentSamplerBinding().value().Register, *m_inputAttachmentSampler);
+					break;
+				}
+			}
+		}
+	}
+
+	void bindInputAttachments(const DirectX12CommandBuffer& commandBuffer)
+	{
+		// If this is the first time, the current frame buffer is bound to the render pass, we need to allocate descriptors for it.
+		auto& frameBuffer = m_renderPass.activeFrameBuffer();
+		auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
+
+		if (!m_inputAttachmentBindings.contains(interfacePointer))
+		{
+			// Allocate and update input attachment bindings.
+			this->initializeInputAttachmentBindings(frameBuffer);
+			this->updateInputAttachmentBindings(frameBuffer);
+		}
+
+		// Bind the input attachment sets.
+		commandBuffer.bind(m_inputAttachmentBindings.at(interfacePointer) | std::views::transform([](auto& set) { return set.get(); }));
+	}
+
+	void onFrameBufferResize(const void* sender, IFrameBuffer::ResizeEventArgs args)
+	{
+		// Update the descriptors in the descriptor sets.
+		// NOTE: No slicing here, as the event is always triggered by the frame buffer instance.
+		auto frameBuffer = reinterpret_cast<const DirectX12FrameBuffer*>(sender);
+		this->updateInputAttachmentBindings(*frameBuffer);
+	}
+
+	void onFrameBufferRelease(const void* sender, IFrameBuffer::ReleasedEventArgs args)
+	{
+		// Get the frame buffer pointer.
+		auto interfacePointer = reinterpret_cast<const IFrameBuffer*>(sender);
+
+		// Release the descriptor sets.
+		m_inputAttachmentBindings.erase(interfacePointer);
+
+		// Release the tokens.
+		m_frameBufferReleaseTokens.erase(interfacePointer);
+		m_frameBufferResizeTokens.erase(interfacePointer);
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, const bool enableAlphaToCoverage, const String& name) :
+DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, MultiSamplingLevel samples, bool enableAlphaToCoverage, const String& name) :
 	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer)), DirectX12PipelineState(nullptr)
 {
 	if (!name.empty())
 		this->name() = name;
 
-	this->handle() = m_impl->initialize();
+	this->handle() = m_impl->initialize(samples);
 }
 
 DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const String& name) noexcept :
@@ -355,11 +507,36 @@ bool DirectX12RenderPipeline::alphaToCoverage() const noexcept
 	return m_impl->m_alphaToCoverage;
 }
 
+MultiSamplingLevel DirectX12RenderPipeline::samples() const noexcept
+{
+	return m_impl->m_samples;
+}
+
+void DirectX12RenderPipeline::updateSamples(MultiSamplingLevel samples)
+{
+	// Release all frame buffer bindings.
+	m_impl->m_inputAttachmentBindings.clear();
+
+	// Release current pipeline state.
+	this->handle().Reset();
+
+	// Rebuild the pipeline.
+	this->handle() = m_impl->initialize(samples);
+}
+
 void DirectX12RenderPipeline::use(const DirectX12CommandBuffer& commandBuffer) const noexcept
 {
+	// Set the pipeline state.
 	commandBuffer.handle()->SetPipelineState(this->handle().Get());
 	commandBuffer.handle()->SetGraphicsRootSignature(std::as_const(*m_impl->m_layout).handle().Get());
 	commandBuffer.handle()->IASetPrimitiveTopology(DX12::getPrimitiveTopology(m_impl->m_inputAssembler->topology()));
+
+	// NOTE: The same pipeline can be used from multiple multi-threaded command buffers, in which case we need to prevent multiple threads 
+	//       from attempting to initialize the bindings on first use.
+	std::lock_guard<std::mutex> lock(m_impl->m_usageMutex);
+
+	// Bind all the input attachments for the parent render pass.
+	m_impl->bindInputAttachments(commandBuffer);
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
@@ -383,6 +560,6 @@ void DirectX12RenderPipelineBuilder::build()
 	instance->m_impl->m_inputAssembler = m_state.inputAssembler;
 	instance->m_impl->m_rasterizer = m_state.rasterizer;
 	instance->m_impl->m_alphaToCoverage = m_state.enableAlphaToCoverage;
-	instance->handle() = instance->m_impl->initialize();
+	instance->handle() = instance->m_impl->initialize(m_state.samples);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

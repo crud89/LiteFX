@@ -26,7 +26,7 @@ struct TransformBuffer {
 } transform;
 
 template<typename TRenderBackend> requires
-    rtti::implements<TRenderBackend, IRenderBackend>
+    meta::implements<TRenderBackend, IRenderBackend>
 struct FileExtensions {
     static const String SHADER;
 };
@@ -39,7 +39,7 @@ const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 template<typename TRenderBackend> requires
-    rtti::implements<TRenderBackend, IRenderBackend>
+    meta::implements<TRenderBackend, IRenderBackend>
 void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState)
 {
     using RenderPass = TRenderBackend::render_pass_type;
@@ -49,9 +49,15 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     using ShaderProgram = TRenderBackend::shader_program_type;
     using InputAssembler = TRenderBackend::input_assembler_type;
     using Rasterizer = TRenderBackend::rasterizer_type;
+    using FrameBuffer = TRenderBackend::frame_buffer_type;
 
     // Get the default device.
     auto device = backend->device("Default");
+
+    // Create the frame buffers for all back buffers.
+    auto frameBuffers = std::views::iota(0u, device->swapChain().buffers()) |
+        std::views::transform([&](UInt32 index) { return device->makeFrameBuffer(std::format("Frame Buffer {0}", index), device->swapChain().renderArea()); }) |
+        std::ranges::to<Array<UniquePtr<FrameBuffer>>>();
 
     // Create input assembler state.
     SharedPtr<InputAssembler> inputAssembler = device->buildInputAssembler()
@@ -66,8 +72,14 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     // Create a geometry render pass.
     UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
-        .renderTarget("Color Target", RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear | RenderTargetFlags::Shared | RenderTargetFlags::AllowStorage, { 0.1f, 0.1f, 0.1f, 1.f })
+        .renderTarget("Color Target", RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
         .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
+
+    // Map all render targets to the frame buffer.
+    std::ranges::for_each(frameBuffers, [&renderPass](auto& frameBuffer) { 
+        frameBuffer->addImage(renderPass->renderTarget(0), MultiSamplingLevel::x1, ResourceUsage::FrameBufferImage | ResourceUsage::AllowWrite);
+        frameBuffer->addImage(renderPass->renderTarget(1)); 
+    });
 
     // Create the shader program.
     SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
@@ -98,6 +110,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     device->state().add(std::move(renderPass));
     device->state().add(std::move(renderPipeline));
     device->state().add(std::move(postPipeline));
+    std::ranges::for_each(frameBuffers, [device](auto& frameBuffer) { device->state().add(std::move(frameBuffer)); });
 }
 
 void SampleApp::initBuffers(IRenderBackend* backend)
@@ -105,29 +118,19 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Get a command buffer
     auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 
-    // Create the staging buffer.
-    // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
-    //       whole buffer.
-    auto stagedVertices = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
-    stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
+    // Create the vertex buffer and transfer the staging buffer into it.
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, vertices.size());
+    commandBuffer->transfer(vertices.data(), vertices.size() * sizeof(::Vertex), *vertexBuffer, 0, vertices.size());
 
-    // Create the actual vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
-    commandBuffer->transfer(asShared(std::move(stagedVertices)), *vertexBuffer, 0, 0, vertices.size());
-
-    // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
-    auto stagedIndices = m_device->factory().createIndexBuffer(*m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
-    stagedIndices->map(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), 0);
-
-    // Create the actual index buffer and transfer the staging buffer into it.
-    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
-    commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
+    // Create the index buffer and transfer the staging buffer into it.
+    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, indices.size());
+    commandBuffer->transfer(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), *indexBuffer, 0, indices.size());
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
-    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, BufferUsage::Resource);
+    auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, ResourceHeap::Resource);
     auto cameraBindings = cameraBindingLayout.allocate({ { .resource = *cameraBuffer } });
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
@@ -137,7 +140,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, BufferUsage::Dynamic, 3);
+    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, ResourceHeap::Dynamic, 3);
     auto transformBindings = transformBindingLayout.allocateMultiple(3, {
         { { .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
         { { .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
@@ -149,9 +152,9 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto& postPipeline = m_device->state().pipeline("Post");
     auto& postInputLayout = postPipeline.layout()->descriptorSet(0);
     auto postBindings = postInputLayout.allocateMultiple(3, {
-        { { .resource = renderPass.frameBuffer(0).image(0) } },
-        { { .resource = renderPass.frameBuffer(1).image(0) } },
-        { { .resource = renderPass.frameBuffer(2).image(0) } }
+        { { .resource = m_device->state().frameBuffer("Frame Buffer 0").resolveImage("Color Target"_hash) } },
+        { { .resource = m_device->state().frameBuffer("Frame Buffer 1").resolveImage("Color Target"_hash) } },
+        { { .resource = m_device->state().frameBuffer("Frame Buffer 2").resolveImage("Color Target"_hash) } }
     });
     
     // Add everything to the state.
@@ -160,8 +163,8 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_device->state().add(std::move(cameraBuffer));
     m_device->state().add(std::move(transformBuffer));
     m_device->state().add("Camera Bindings", std::move(cameraBindings));
-    std::ranges::for_each(postBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Post Bindings {0}", i++), std::move(binding)); });
-    std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Transform Bindings {0}", i++), std::move(binding)); });
+    std::ranges::for_each(postBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(std::format("Post Bindings {0}", i++), std::move(binding)); });
+    std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(std::format("Transform Bindings {0}", i++), std::move(binding)); });
 }
 
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
@@ -173,9 +176,7 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffe
     camera.ViewProjection = projection * view;
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
-    auto cameraStagingBuffer = m_device->factory().createBuffer(m_device->state().pipeline("Geometry"), DescriptorSets::Constant, 0, BufferUsage::Staging);
-    cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
-    commandBuffer.transfer(asShared(std::move(cameraStagingBuffer)), buffer);
+    commandBuffer.transfer(reinterpret_cast<const void*>(&camera), sizeof(camera), buffer);
 }
 
 void SampleApp::onStartup()
@@ -231,7 +232,7 @@ void SampleApp::onInit()
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.
-        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3);
+        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3, false);
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);
@@ -268,18 +269,18 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     // Resize the frame buffer and recreate the swap chain.
     auto surfaceFormat = m_device->swapChain().surfaceFormat();
     auto renderArea = Size2d(e.width(), e.height());
-    m_device->swapChain().reset(surfaceFormat, renderArea, 3);
-    
-    // NOTE: Important to do this in order, since dependencies (i.e. input attachments) are re-created and might be mapped to images that do no longer exist when a dependency
-    //       gets re-created. This is hard to detect, since some frame buffers can have a constant size, that does not change with the render area and do not need to be 
-    //       re-created. We should either think of a clever implicit dependency management for this, or at least document this behavior!
-    m_device->state().renderPass("Opaque").resizeFrameBuffers(renderArea);
-    
-    // Update the post-processing bindings that reference the "opaque" frame buffer.
-    auto opaqueFrameBuffers = m_device->state().renderPass("Opaque").frameBuffers();
-    
-    for (size_t i{ 0 }; auto& frameBuffer : opaqueFrameBuffers)
-        m_device->state().descriptorSet(fmt::format("Post Bindings {0}", i++)).update(0, frameBuffer->image(0));
+    bool vsync = m_device->swapChain().verticalSynchronization();
+    m_device->swapChain().reset(surfaceFormat, renderArea, 3, vsync);
+
+    // Resize the frame buffers. Note that we could also use an event handler on the swap chain `reseted` event to do this automatically instead.
+    for (int i = 0; i < 3; ++i)
+    {
+        auto& frameBuffer = m_device->state().frameBuffer(std::format("Frame Buffer {0}", i));
+        frameBuffer.resize(renderArea);
+
+        // Update the post-processing bindings that reference the "opaque" frame buffer.
+        m_device->state().descriptorSet(std::format("Post Bindings {0}", i)).update(0, frameBuffer["Color Target"]);
+    }
 
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
@@ -356,6 +357,16 @@ void SampleApp::keyDown(int key, int scancode, int action, int mods)
         }
     }
 
+    if (key == GLFW_KEY_F7 && action == GLFW_PRESS)
+    {
+        // Wait for the device.
+        m_device->wait();
+
+        // Toggle VSync on the swap chain.
+        auto& swapChain = m_device->swapChain();
+        swapChain.reset(swapChain.surfaceFormat(), swapChain.renderArea(), swapChain.buffers(), !swapChain.verticalSynchronization());
+    }
+
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
     {
         // Close the window with the next loop.
@@ -389,13 +400,14 @@ void SampleApp::drawFrame()
     auto backBuffer = m_device->swapChain().swapBackBuffer();
 
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
+    auto& frameBuffer = m_device->state().frameBuffer(std::format("Frame Buffer {0}", backBuffer));
     auto& renderPass = m_device->state().renderPass("Opaque");
     auto& postPipeline = m_device->state().pipeline("Post");
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& transformBuffer = m_device->state().buffer("Transform");
     auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
-    auto& postBindings = m_device->state().descriptorSet(fmt::format("Post Bindings {0}", backBuffer));
-    auto& transformBindings = m_device->state().descriptorSet(fmt::format("Transform Bindings {0}", backBuffer));
+    auto& postBindings = m_device->state().descriptorSet(std::format("Post Bindings {0}", backBuffer));
+    auto& transformBindings = m_device->state().descriptorSet(std::format("Transform Bindings {0}", backBuffer));
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 
@@ -407,8 +419,8 @@ void SampleApp::drawFrame()
         renderPass.commandQueue().waitFor(m_device->defaultQueue(QueueType::Transfer), m_transferFence);
 
         // Begin rendering on the render pass and use the only pipeline we've created for it.
-        renderPass.begin(backBuffer);
-        auto commandBuffer = renderPass.activeFrameBuffer().commandBuffer(0);
+        renderPass.begin(frameBuffer);
+        auto commandBuffer = renderPass.commandBuffer(0);
         commandBuffer->use(geometryPipeline);
         commandBuffer->setViewports(m_viewport.get());
         commandBuffer->setScissors(m_scissor.get());
@@ -422,8 +434,7 @@ void SampleApp::drawFrame()
         transformBuffer.map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
         // Bind both descriptor sets to the pipeline.
-        commandBuffer->bind(cameraBindings);
-        commandBuffer->bind(transformBindings);
+        commandBuffer->bind({ &cameraBindings, &transformBindings });
 
         // Bind the vertex and index buffers.
         commandBuffer->bind(vertexBuffer);
@@ -443,14 +454,11 @@ void SampleApp::drawFrame()
         commandBuffer->use(postPipeline);
 
         // Get the image from the back buffer of the geometry pass.
-        auto& frameBuffer = renderPass.frameBuffer(backBuffer);
-        auto& image = frameBuffer.image(0);
+        auto& image = frameBuffer["Color Target"];
 
         // Create a barrier that handles image transition.
-        // NOTE: Since we did not specify the `RenderTargetFlags::Attachment` flag for the render target during pipeline creation, the render target is in `Common` layout and only needs 
-        //       transitioning into a writeable state.
         auto barrier = m_device->makeBarrier(PipelineStage::None, PipelineStage::Compute);
-        barrier->transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::Common, ImageLayout::ReadWrite);
+        barrier->transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::ShaderResource, ImageLayout::ReadWrite);
         commandBuffer->barrier(*barrier);
 
         // Bind the image to the texture descriptor.
@@ -461,7 +469,7 @@ void SampleApp::drawFrame()
 
         // After post-processing, transition the image back into a state where it can be copied from.
         barrier = m_device->makeBarrier(PipelineStage::Compute, PipelineStage::None);
-        barrier->transition(image, ResourceAccess::ShaderReadWrite, ResourceAccess::None, ImageLayout::CopySource);
+        barrier->transition(image, ResourceAccess::ShaderReadWrite, ResourceAccess::None, ImageLayout::ReadWrite, ImageLayout::CopySource);
         commandBuffer->barrier(*barrier);
 
         // Submit the command buffer.
@@ -480,10 +488,13 @@ void SampleApp::drawFrame()
         commandBuffer->barrier(*barrier);
 
         // Copy the image.
-        commandBuffer->transfer(renderPass.frameBuffer(backBuffer).image(0), *m_device->swapChain().image(backBuffer));
+        commandBuffer->transfer(image, *m_device->swapChain().image(backBuffer));
 
         // Transition the image back into `Present` layout.
+        // NOTE: It is important to transition the frame buffer image back into "Shader Resource", as frame buffer color images are always expected to be in this state, when no
+        //       render pass is currently rendering to them.
         barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::Resolve);
+        barrier->transition(image, ResourceAccess::TransferRead, ResourceAccess::Common, ImageLayout::CopySource, ImageLayout::ShaderResource);
         barrier->transition(*m_device->swapChain().image(backBuffer), ResourceAccess::TransferWrite, ResourceAccess::Common, ImageLayout::CopyDestination, ImageLayout::Present);
         commandBuffer->barrier(*barrier);
 

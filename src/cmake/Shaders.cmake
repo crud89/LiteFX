@@ -190,7 +190,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
 
       ADD_CUSTOM_COMMAND(TARGET ${target_name} 
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMAND ${LITEFX_BUILD_DXC_COMPILER} -spirv -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> ${compiler_options} -fspv-target-env=vulkan1.3 ${shader_source} 
+        COMMAND ${LITEFX_BUILD_DXC_COMPILER} -spirv -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> ${compiler_options} -fspv-target-env=vulkan1.3 ${shader_source}
         DEPENDS ${SHADER_SOURCES}
       )
     
@@ -211,7 +211,7 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       
       ADD_CUSTOM_COMMAND(TARGET ${target_name} 
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMAND ${LITEFX_BUILD_DXC_COMPILER} -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${DXIL_DEFAULT_SUFFIX}" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> $<IF:$<CONFIG:Debug,RelWithDebInfo>,-Qembed_debug,-Qstrip_debug> ${compiler_options} ${shader_source}
+        COMMAND ${LITEFX_BUILD_DXC_COMPILER} -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${DXIL_DEFAULT_SUFFIX}" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> $<IF:$<CONFIG:Debug,RelWithDebInfo>,-Qembed_debug,-Qstrip_debug> ${compiler_options} ${shader_source} -Wno-ignored-attributes
         DEPENDS ${SHADER_SOURCES}
       )
     
@@ -307,11 +307,8 @@ FUNCTION(ADD_SHADER_MODULE module_name)
   CMAKE_PARSE_ARGUMENTS(SHADER "" "SOURCE;LANGUAGE;COMPILE_AS;SHADER_MODEL;TYPE;COMPILER;LIBRARY;COMPILE_OPTIONS" "INCLUDES" ${ARGN})
 
   IF(NOT SHADER_COMPILE_OPTIONS)
-    SET(SHADER_COMPILE_OPTIONS " ")  # This must be set to some valie, since all variable arguments are reserved for shader includes. A whitespace does not hurt.
+    SET(SHADER_COMPILE_OPTIONS " ")  # This must be set to some valid value, since all variable arguments are reserved for shader includes. A whitespace does not hurt.
   ENDIF(NOT SHADER_COMPILE_OPTIONS)
-
-  # TODO: There's also the shader type ms (mesh shader) and as (amplification shader; used as a second ms stage) since shader model 6.5.
-  #       see: https://microsoft.github.io/DirectX-Specs/d3d/HLSL_ShaderModel6_5.html
 
   IF(${SHADER_LANGUAGE} STREQUAL "GLSL")
     TARGET_GLSL_SHADERS(${module_name} ${SHADER_SOURCE} ${SHADER_COMPILE_AS} ${SHADER_COMPILER} ${SHADER_TYPE} ${SHADER_COMPILE_OPTIONS} ${SHADER_INCLUDES})

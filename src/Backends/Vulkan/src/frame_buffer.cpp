@@ -11,129 +11,163 @@ public:
 	friend class VulkanFrameBuffer;
 
 private:
-    const VulkanRenderPass& m_renderPass;
-    Array<UniquePtr<IVulkanImage>> m_outputAttachments;
-    Array<IVulkanImage*> m_renderTargetViews;
-	Array<SharedPtr<VulkanCommandBuffer>> m_commandBuffers;
+    Array<UniquePtr<IVulkanImage>> m_images;
+    Dictionary<const IVulkanImage*, VkImageView> m_renderTargetHandles;
+    Dictionary<UInt64, IVulkanImage*> m_mappedRenderTargets;
 	Size2d m_size;
-    UInt32 m_bufferIndex;
-    UInt64 m_lastFence{ 0 };
+    const VulkanDevice& m_device;
 
 public:
-    VulkanFrameBufferImpl(VulkanFrameBuffer* parent, const VulkanRenderPass& renderPass, UInt32 bufferIndex, const Size2d& renderArea, UInt32 commandBuffers) :
-        base(parent), m_bufferIndex(bufferIndex), m_size(renderArea), m_renderPass(renderPass)
+    VulkanFrameBufferImpl(VulkanFrameBuffer* parent, const VulkanDevice& device, const Size2d& renderArea) :
+        base(parent), m_device(device), m_size(renderArea)
 	{
-        const auto& device = m_renderPass.device();
-
-        // Retrieve a command buffer from the graphics queue.
-        m_commandBuffers.resize(commandBuffers);
-        std::ranges::generate(m_commandBuffers, [this]() { return m_renderPass.commandQueue().createCommandBuffer(false, true); });
 	}
 
+    ~VulkanFrameBufferImpl()
+    {
+        this->cleanup();
+    }
+
 public:
-	VkFramebuffer initialize()
+    void cleanup()
+    {
+        for (auto view : m_renderTargetHandles | std::views::values)
+            ::vkDestroyImageView(m_device.handle(), view, nullptr);
+
+        m_renderTargetHandles.clear();
+    }
+
+	void initialize()
 	{
-        // Clear earlier images.
-        m_renderTargetViews.clear();
-        m_outputAttachments.clear();
+        // Define a factory callback for an image view.
+        auto getImageView = [&](const UniquePtr<IVulkanImage>& image) -> std::pair<const IVulkanImage*, VkImageView> {
+            VkImageViewCreateInfo createInfo = {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                .pNext = nullptr,
+                .image = std::as_const(*image).handle(),
+                .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                .format = Vk::getFormat(image->format()),
+                .components = VkComponentMapping {
+                    .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                    .a = VK_COMPONENT_SWIZZLE_IDENTITY
+                },
+                .subresourceRange = VkImageSubresourceRange {
+                    .baseMipLevel = 0,
+                    .levelCount = 1,
+                    .baseArrayLayer = 0,
+                    .layerCount = 1
+                }
+            };
 
-        // Retrieve the image views for the input and output attachments.
-        Array<VkImageView> attachmentViews;
-
-        // Start with the input attachments.
-        // NOTE: We assume, that the parent render pass provides the attachments in an sorted manner.
-        std::ranges::for_each(m_renderPass.inputAttachments(), [&, i = 0](const VulkanInputAttachmentMapping& inputAttachment) mutable {
-            if (inputAttachment.location() != i) [[unlikely]]
-                LITEFX_WARNING(VULKAN_LOG, "Remapped input attachment from location {0} to location {1}. Please make sure that the input attachments are sorted within the render pass and do not have any gaps in their location mappings.", inputAttachment.location(), i);
-
-            if (inputAttachment.renderTarget().type() == RenderTargetType::Present)
-                throw InvalidArgumentException("renderPass", "The input attachment mapped to location {0} is a present target, which cannot be used as input attachment.", i);
-
-            if (inputAttachment.inputAttachmentSource() == nullptr)
-                throw InvalidArgumentException("renderPass", "The input attachment mapped to location {0} has no initialized source.", i);
-
-            // Store the image view from the source frame buffer.
-            attachmentViews.push_back(inputAttachment.inputAttachmentSource()->frameBuffer(m_bufferIndex).image(i++).imageView());
-        });
-
-        // Initialize the output attachments from render targets of the parent render pass.
-        // NOTE: Again, we assume, that the parent render pass provides the render targets in an sorted manner.
-        auto samples = m_renderPass.multiSamplingLevel();
-
-        std::ranges::for_each(m_renderPass.renderTargets(), [&, i = 0](const RenderTarget& renderTarget) mutable {
-            if (renderTarget.location() != i++) [[unlikely]]
-                LITEFX_WARNING(VULKAN_LOG, "Remapped render target from location {0} to location {1}. Please make sure that the render targets are sorted within the render pass and do not have any gaps in their location mappings.", renderTarget.location(), i - 1);
-
-            if (renderTarget.type() == RenderTargetType::Present && samples == MultiSamplingLevel::x1)
-            {
-                // If the render target is a present target, acquire an image view from the swap chain.
-                auto image = m_renderPass.device().swapChain().image(m_bufferIndex);
-                m_renderTargetViews.push_back(image);
-                attachmentViews.push_back(image->imageView());
-            }
+            if (!::hasDepth(image->format()) && !::hasStencil(image->format()))
+                createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             else
             {
-                // Create an image view for the render target.
-                auto image = m_renderPass.device().factory().createAttachment(renderTarget, m_size, samples);
-                attachmentViews.push_back(image->imageView());
-                m_renderTargetViews.push_back(image.get());
-                m_outputAttachments.push_back(std::move(image));
+                if (::hasDepth(image->format()))
+                    createInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
+                if (::hasStencil(image->format()))
+                    createInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
             }
+
+            VkImageView imageView;
+            raiseIfFailed(::vkCreateImageView(m_device.handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
+            return { image.get(), imageView };
+        };
+
+        // Destroy the previous image views.
+        this->cleanup();
+
+        // Create the image views for each image.
+        m_renderTargetHandles = m_images | std::views::transform(getImageView) | std::ranges::to<Dictionary<const IVulkanImage*, VkImageView>>();
+
+#ifndef NDEBUG
+        // Set debug names.
+        std::ranges::for_each(m_images, [this](auto& image) {
+            m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*image).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, image->name().c_str());
         });
-
-        // If we have a present target and multi sampling is enabled, make sure to add a view for the resolve attachment.
-        if (samples > MultiSamplingLevel::x1 && std::ranges::any_of(m_renderPass.renderTargets(), [](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::Present; }))
-        {
-            auto image = m_renderPass.device().swapChain().image(m_bufferIndex);
-            m_renderTargetViews.push_back(image);
-            attachmentViews.push_back(image->imageView());
-        }
-
-        // Allocate the frame buffer.
-        VkFramebufferCreateInfo frameBufferInfo{};
-        frameBufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        frameBufferInfo.renderPass = m_renderPass.handle();
-        frameBufferInfo.attachmentCount = static_cast<UInt32>(attachmentViews.size());
-        frameBufferInfo.pAttachments = attachmentViews.data();
-        frameBufferInfo.width = m_size.width();
-        frameBufferInfo.height = m_size.height();
-        frameBufferInfo.layers = 1;
-
-        VkFramebuffer frameBuffer;
-        raiseIfFailed(::vkCreateFramebuffer(m_renderPass.device().handle(), &frameBufferInfo, nullptr, &frameBuffer), "Unable to create frame buffer from swap chain frame.");
-
-        return frameBuffer;
+#endif
 	}
+
+    void resize(const Size2d& renderArea)
+    {
+        // Resize/Re-allocate all images.
+        m_size = renderArea;
+
+        // Recreate all resources.
+        Dictionary<const IVulkanImage*, IVulkanImage*> imageReplacements;
+        auto& queue = m_device.defaultQueue(QueueType::Graphics);
+        auto commandBuffer = queue.createCommandBuffer(true);
+        auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
+
+        auto images = m_images |
+            std::views::transform([&](const UniquePtr<IVulkanImage>& image) { 
+                auto format = image->format();
+                auto newImage = m_device.factory().createTexture(image->name(), format, renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage()); 
+                imageReplacements[image.get()] = newImage.get();
+
+                if (::hasDepth(format) || ::hasStencil(format))
+                    barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::DepthRead);
+                else
+                    barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::ShaderResource);
+
+                return std::move(newImage);
+            }) | std::views::as_rvalue | std::ranges::to<Array<UniquePtr<IVulkanImage>>>();
+
+        // Transition the image layouts into their expected states.
+        commandBuffer->barrier(*barrier);
+        auto fence = queue.submit(commandBuffer);
+
+        // Update the mappings.
+        std::ranges::for_each(m_mappedRenderTargets | std::views::values, [&imageReplacements](auto& image) { image = imageReplacements[image]; });
+
+        // Store the new images.
+        m_images = std::move(images);
+
+        // Re-initialize to update heaps and descriptors.
+        this->initialize();
+
+        // Wait for the fence to finish.
+        queue.waitFor(fence);
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanFrameBuffer::VulkanFrameBuffer(const VulkanRenderPass& renderPass, UInt32 bufferIndex, const Size2d& renderArea, UInt32 commandBuffers) :
-	m_impl(makePimpl<VulkanFrameBufferImpl>(this, renderPass, bufferIndex, renderArea, commandBuffers)), Resource<VkFramebuffer>(VK_NULL_HANDLE)
+VulkanFrameBuffer::VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea, StringView name) :
+	m_impl(makePimpl<VulkanFrameBufferImpl>(this, device, renderArea)), StateResource(name)
 {
-    this->handle() = m_impl->initialize();
 }
 
-VulkanFrameBuffer::~VulkanFrameBuffer() noexcept
+VulkanFrameBuffer::~VulkanFrameBuffer() noexcept = default;
+
+VkImageView VulkanFrameBuffer::imageView(UInt32 imageIndex) const
 {
-    ::vkDestroyFramebuffer(m_impl->m_renderPass.device().handle(), this->handle(), nullptr);
+    if (imageIndex >= m_impl->m_images.size()) [[unlikely]]
+        throw ArgumentOutOfRangeException("imageIndex", 0u, static_cast<UInt32>(m_impl->m_images.size()), imageIndex, "The frame buffer does not contain an image at index {0}.", imageIndex);
+
+    return m_impl->m_renderTargetHandles.at(m_impl->m_images[imageIndex].get());
 }
 
-UInt64& VulkanFrameBuffer::lastFence() noexcept
+VkImageView VulkanFrameBuffer::imageView(StringView imageName) const
 {
-    return m_impl->m_lastFence;
+    auto nameHash = hash(imageName);
+
+    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](UniquePtr<IVulkanImage>& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end())
+        return m_impl->m_renderTargetHandles.at(match->get());
+    else
+        throw InvalidArgumentException("imageName", "The frame buffer does not contain an image with the name \"{0}\".", imageName);
 }
 
-UInt64 VulkanFrameBuffer::lastFence() const noexcept
+VkImageView VulkanFrameBuffer::imageView(const RenderTarget& renderTarget) const
 {
-    return m_impl->m_lastFence;
-}
+    if (!m_impl->m_mappedRenderTargets.contains(renderTarget.identifier())) [[unlikely]]
+        throw InvalidArgumentException("renderTarget", "The frame buffer does not map an image to the provided render target \"{0}\".", renderTarget.name());
 
-UInt32 VulkanFrameBuffer::bufferIndex() const noexcept
-{
-    return m_impl->m_bufferIndex;
+    return m_impl->m_renderTargetHandles.at(m_impl->m_mappedRenderTargets[renderTarget.identifier()]);
 }
 
 const Size2d& VulkanFrameBuffer::size() const noexcept
@@ -151,38 +185,127 @@ size_t VulkanFrameBuffer::getHeight() const noexcept
 	return m_impl->m_size.height();
 }
 
-SharedPtr<const VulkanCommandBuffer> VulkanFrameBuffer::commandBuffer(UInt32 index) const
+void VulkanFrameBuffer::mapRenderTarget(const RenderTarget& renderTarget, UInt32 index)
 {
-    if (index >= static_cast<UInt32>(m_impl->m_commandBuffers.size())) [[unlikely]]
-        throw ArgumentOutOfRangeException("index", 0u, static_cast<UInt32>(m_impl->m_commandBuffers.size()), index, "No command buffer with index {1} is stored in the frame buffer. The frame buffer only contains {0} command buffers.", m_impl->m_commandBuffers.size(), index);
+    if (index >= m_impl->m_images.size()) [[unlikely]]
+        throw ArgumentOutOfRangeException("index", 0u, static_cast<UInt32>(m_impl->m_images.size()), index, "The frame buffer does not contain an image at index {0}.", index);
 
-	return m_impl->m_commandBuffers[index];
+    if (m_impl->m_images[index]->format() != renderTarget.format()) [[unlikely]]
+        LITEFX_WARNING(VULKAN_LOG, "The render target format {0} does not match the image format {1} for image {2}.", renderTarget.format(), m_impl->m_images[index]->format(), index);
+
+    m_impl->m_mappedRenderTargets[renderTarget.identifier()] = m_impl->m_images[index].get();
 }
 
-Enumerable<SharedPtr<const VulkanCommandBuffer>> VulkanFrameBuffer::commandBuffers() const noexcept
+void VulkanFrameBuffer::mapRenderTarget(const RenderTarget& renderTarget, StringView name)
 {
-    return m_impl->m_commandBuffers;
+    auto nameHash = hash(name);
+
+    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](UniquePtr<IVulkanImage>& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end())
+        this->mapRenderTarget(renderTarget, std::ranges::distance(m_impl->m_images.begin(), match));
+    else
+        throw InvalidArgumentException("name", "The frame buffer does not contain an image with the name \"{0}\".", name);
 }
 
-Enumerable<IVulkanImage*> VulkanFrameBuffer::images() const noexcept
+void VulkanFrameBuffer::unmapRenderTarget(const RenderTarget& renderTarget) noexcept
 {
-    return m_impl->m_renderTargetViews;
+    m_impl->m_mappedRenderTargets.erase(renderTarget.identifier());
 }
 
-IVulkanImage& VulkanFrameBuffer::image(UInt32 location) const
+Enumerable<const IVulkanImage*> VulkanFrameBuffer::images() const noexcept
 {
-    if (location >= m_impl->m_renderTargetViews.size())
-        throw ArgumentOutOfRangeException("location", 0u, static_cast<UInt32>(m_impl->m_renderTargetViews.size()), location, "No render target is mapped to location {0}.", location);
+    return m_impl->m_images | std::views::transform([](auto& image) { return image.get(); });
+}
 
-    return *m_impl->m_renderTargetViews[location];
+const IVulkanImage& VulkanFrameBuffer::image(UInt32 index) const
+{
+    if (index >= m_impl->m_images.size())
+        throw ArgumentOutOfRangeException("index", 0u, static_cast<UInt32>(m_impl->m_images.size()), index, "The frame buffer does not contain an image at index {0}.", index);
+
+    return *m_impl->m_images[index];
+}
+
+const IVulkanImage& VulkanFrameBuffer::image(const RenderTarget& renderTarget) const
+{
+    if (!m_impl->m_mappedRenderTargets.contains(renderTarget.identifier())) [[unlikely]]
+        throw InvalidArgumentException("renderTarget", "The frame buffer does not map an image to the provided render target \"{0}\".", renderTarget.name());
+
+    return *m_impl->m_mappedRenderTargets[renderTarget.identifier()];
+}
+
+const IVulkanImage& VulkanFrameBuffer::resolveImage(UInt64 hash) const
+{
+    if (!m_impl->m_mappedRenderTargets.contains(hash)) [[unlikely]]
+        throw InvalidArgumentException("renderTarget", "The frame buffer does not map an image to the provided render target name hash \"0x{0:016X}\".", hash);
+
+    return *m_impl->m_mappedRenderTargets[hash];
+}
+
+void VulkanFrameBuffer::addImage(const String& name, Format format, MultiSamplingLevel samples, ResourceUsage usage)
+{
+    // Check if there's already another image with the same name.
+    auto nameHash = hash(name);
+
+    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](auto& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end()) [[unlikely]]
+        throw InvalidArgumentException("name", "Another image with the name {0} does already exist within the frame buffer.", name);
+
+    // Add a new image...
+    m_impl->m_images.push_back(std::move(m_impl->m_device.factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage)));
+
+    // ... and make sure it is in the right layout.
+    auto& queue = m_impl->m_device.defaultQueue(QueueType::Graphics);
+    auto commandBuffer = queue.createCommandBuffer(true);
+    auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
+    if (::hasDepth(format) || ::hasStencil(format))
+        barrier->transition(*m_impl->m_images.back(), ResourceAccess::None, ResourceAccess::None, ImageLayout::DepthRead);
+    else
+        barrier->transition(*m_impl->m_images.back(), ResourceAccess::None, ResourceAccess::None, ImageLayout::ShaderResource);
+    commandBuffer->barrier(*barrier);
+    auto fence = queue.submit(commandBuffer);
+
+    // Re-initialize to reset descriptor heaps and allocate descriptors.
+    m_impl->initialize();
+
+    // Wait for the fence to finish.
+    queue.waitFor(fence);
+}
+
+void VulkanFrameBuffer::addImage(const String& name, const RenderTarget& renderTarget, MultiSamplingLevel samples, ResourceUsage usage)
+{
+    // Check if there's already another image with the same name.
+    auto nameHash = hash(name);
+
+    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](auto& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end()) [[unlikely]]
+        throw InvalidArgumentException("name", "Another image with the name {0} does already exist within the frame buffer.", name);
+
+    // Add a new image...
+    auto index = m_impl->m_images.size();
+    auto format = renderTarget.format();
+    m_impl->m_images.push_back(std::move(m_impl->m_device.factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage)));
+
+    // ... and make sure it is in the right layout.
+    auto& queue = m_impl->m_device.defaultQueue(QueueType::Graphics);
+    auto commandBuffer = queue.createCommandBuffer(true);
+    auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
+    if (::hasDepth(format) || ::hasStencil(format))
+        barrier->transition(*m_impl->m_images.back(), ResourceAccess::None, ResourceAccess::None, ImageLayout::DepthRead);
+    else
+        barrier->transition(*m_impl->m_images.back(), ResourceAccess::None, ResourceAccess::None, ImageLayout::ShaderResource);
+    commandBuffer->barrier(*barrier);
+    auto fence = queue.submit(commandBuffer);
+
+    // Re-initialize to reset descriptor heaps and allocate descriptors.
+    m_impl->initialize();
+
+    // Map the render target to the image.
+    this->mapRenderTarget(renderTarget, static_cast<UInt32>(index));
+
+    // Wait for the fence to finish.
+    queue.waitFor(fence);
 }
 
 void VulkanFrameBuffer::resize(const Size2d& renderArea)
 {
-    // Destroy the old frame buffer.
-    ::vkDestroyFramebuffer(m_impl->m_renderPass.device().handle(), this->handle(), nullptr);
-
     // Reset the size and re-initialize the frame buffer.
-    m_impl->m_size = renderArea;
-    this->handle() = m_impl->initialize();
+    m_impl->resize(renderArea);
+    this->resized(this, { renderArea });
 }

@@ -646,6 +646,15 @@ constexpr D3D12_BARRIER_SYNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::D
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Resolve))
 		sync |= D3D12_BARRIER_SYNC_RESOLVE;
 
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Raytracing))
+		sync |= D3D12_BARRIER_SYNC_RAYTRACING;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::AccelerationStructureBuild))
+		sync |= D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::AccelerationStructureCopy))
+		sync |= D3D12_BARRIER_SYNC_COPY_RAYTRACING_ACCELERATION_STRUCTURE;
+
 	return sync;
 }
 
@@ -697,6 +706,12 @@ constexpr D3D12_BARRIER_ACCESS LITEFX_DIRECTX12_API LiteFX::Rendering::Backends:
 
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ResolveWrite))
 		access |= D3D12_BARRIER_ACCESS_RESOLVE_DEST;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::AccelerationStructureRead))
+		access |= D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::AccelerationStructureWrite))
+		access |= D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE;
 
 	return access;
 }
