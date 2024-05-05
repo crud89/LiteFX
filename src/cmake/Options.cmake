@@ -23,7 +23,7 @@ OPTION(LITEFX_BUILD_WITH_DIRECTX_MATH "Enables DirectXMath converters for math t
 FIND_PROGRAM(LITEFX_BUILD_GLSLC_COMPILER glslc HINTS ENV VULKAN_SDK PATH_SUFFIXES bin DOC "The full path to the `glslc.exe` shader compiler binary.")
 FIND_PROGRAM(LITEFX_BUILD_DXC_COMPILER dxc HINTS ENV VULKAN_SDK PATH_SUFFIXES bin DOC "The full path to the `dxc.exe` shader compiler binary.")
 
-SET(LITEFX_BUILD_HLSL_SHADER_MODEL "6_8" CACHE STRING "Shader model version used to compile HLSL shaders.")
+SET(LITEFX_BUILD_HLSL_SHADER_MODEL "6_5" CACHE STRING "Shader model version used to compile HLSL shaders.")
 
 OPTION(LITEFX_BUILD_PRECOMPILED_HEADERS "Use pre-compiled headers during build." OFF)
 

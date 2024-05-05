@@ -7,6 +7,16 @@
 PROJECT(LiteFX.Samples.Indirect VERSION ${LITEFX_VERSION} LANGUAGES CXX)
 MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 
+# Indirect draw requires shader model 6.8 or later.
+STRING(REPLACE "_" ";" SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL})
+LIST(GET SHADER_MODEL 0 SHADER_MODEL_MAJOR)
+LIST(GET SHADER_MODEL 1 SHADER_MODEL_MINOR)
+
+IF(${SHADER_MODEL_MAJOR} LESS 6 OR (${SHADER_MODEL_MAJOR} EQUAL 6 AND ${SHADER_MODEL_MINOR} LESS 8))
+    MESSAGE(STATUS "The indirect draw sample requires shader model 6.8 or later, but ${SHADER_MODEL_MAJOR}.${SHADER_MODEL_MINOR} is selected. The sample will not be available. Adjust the 'LITEFX_BUILD_HLSL_SHADER_MODEL' variable accordingly and re-configure the project.")
+    RETURN()
+ENDIF(${SHADER_MODEL_MAJOR} LESS 6 OR (${SHADER_MODEL_MAJOR} EQUAL 6 AND ${SHADER_MODEL_MINOR} LESS 8))
+
 IF(NOT LITEFX_BUILD_WITH_GLM)
     MESSAGE(FATAL_ERROR "This sample requires the glm converters for the math module. Set the LITEFX_BUILD_WITH_GLM option to ON and retry.")
 ENDIF(NOT LITEFX_BUILD_WITH_GLM)
