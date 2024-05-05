@@ -8447,6 +8447,11 @@ namespace LiteFX::Rendering {
         /// Enables or disables ray query and inline ray-tracing support.
         /// </summary>
         bool RayQueries { false };
+
+        /// <summary>
+        /// Enables or disables support for indirect draw.
+        /// </summary>
+        bool DrawIndirect { false };
     };
 
     /// <summary>

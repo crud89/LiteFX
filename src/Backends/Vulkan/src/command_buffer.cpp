@@ -680,7 +680,7 @@ void VulkanCommandBuffer::drawIndexed(UInt32 indices, UInt32 instances, UInt32 f
 
 void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
 {
-	::vkCmdDrawIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, batchBuffer.elementSize());
+	::vkCmdDrawIndexedIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, batchBuffer.elementSize());
 }
 
 void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept

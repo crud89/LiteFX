@@ -4,7 +4,9 @@
 
 using namespace LiteFX::Rendering::Backends;
 
-extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks { nullptr };
+extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks { nullptr }; 
+extern PFN_vkCmdDrawMeshTasksIndirectEXT vkCmdDrawMeshTasksIndirect { nullptr };
+extern PFN_vkCmdDrawMeshTasksIndirectCountEXT vkCmdDrawMeshTasksIndirectCount { nullptr };
 extern PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizes { nullptr };
 extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure { nullptr };
 extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure { nullptr };
@@ -314,6 +316,7 @@ public:
             .features = {
                 .geometryShader = true,
                 .tessellationShader = true,
+                .drawIndirectFirstInstance = features.DrawIndirect,
                 .samplerAnisotropy = true
             }
         };
@@ -331,7 +334,7 @@ public:
         VkPhysicalDeviceVulkan12Features deviceFeatures12 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
             .pNext = &deviceFeatures13,
-            .drawIndirectCount = true,
+            .drawIndirectCount = features.DrawIndirect,
             .descriptorIndexing = true,
             .shaderInputAttachmentArrayDynamicIndexing = true,
             .shaderUniformTexelBufferArrayDynamicIndexing = true,
@@ -385,8 +388,17 @@ public:
         debugMarkerSetObjectName = reinterpret_cast<PFN_vkDebugMarkerSetObjectNameEXT>(::vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectNameEXT"));
 #endif
 
-        if (features.MeshShaders && vkCmdDrawMeshTasks == nullptr)
-            vkCmdDrawMeshTasks = reinterpret_cast<PFN_vkCmdDrawMeshTasksEXT>(::vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksEXT"));
+        if (features.MeshShaders)
+        {
+            if (vkCmdDrawMeshTasks == nullptr)
+                vkCmdDrawMeshTasks = reinterpret_cast<PFN_vkCmdDrawMeshTasksEXT>(::vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksEXT"));
+
+            if (vkCmdDrawMeshTasksIndirect)
+                vkCmdDrawMeshTasksIndirect = reinterpret_cast<PFN_vkCmdDrawMeshTasksIndirectEXT>(::vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksIndirectEXT"));
+
+            if (vkCmdDrawMeshTasksIndirectCount)
+                vkCmdDrawMeshTasksIndirectCount = reinterpret_cast<PFN_vkCmdDrawMeshTasksIndirectCountEXT>(::vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksIndirectCountEXT"));
+        }
 
         if (features.RayTracing)
         {
