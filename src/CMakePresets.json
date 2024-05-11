@@ -42,7 +42,8 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "LITEFX_BUILD_TESTS": "ON"
+        "LITEFX_BUILD_TESTS": "ON",
+        "LITEFX_BUILD_EXAMPLES": "OFF"
       }
     },
     {
@@ -87,7 +88,8 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "LITEFX_BUILD_TESTS": "ON"
+        "LITEFX_BUILD_TESTS": "ON",
+        "LITEFX_BUILD_EXAMPLES": "OFF"
       }
     },
     {
@@ -123,12 +125,20 @@
       "configurePreset": "windows-x64-debug"
     },
     {
+      "name": "windows-x64-test",
+      "configurePreset": "windows-x64-test"
+    },
+    {
       "name": "windows-x86-release",
       "configurePreset": "windows-x86-release"
     },
     {
       "name": "windows-x86-debug",
       "configurePreset": "windows-x86-debug"
+    },
+    {
+      "name": "windows-x86-test",
+      "configurePreset": "windows-x86-test"
     },
     {
       "name": "windows-x86-publish",

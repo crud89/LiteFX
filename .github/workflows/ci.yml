@@ -19,7 +19,7 @@ on:
     types:
     - opened
     - reopened
-    - synchronize
+    #- synchronize
     - ready_for_review
 
 env:
@@ -47,16 +47,29 @@ jobs:
         with:
           submodules: true
 
-      - name: Setup build environment
+      - name: Setup Vulkan SDK 
+        uses: jakoch/install-vulkan-sdk-action@v1.0.0
+        with:
+          vulkan_version: ${{ env.vulkanSdkVersion }}
+          install_runtime: true
+          cache: true
+          stripdown: false
+
+      - name: Install OpenCppCoverage
+        id: install-opencppcoverage
+        shell: bash
+        run: | 
+          choco install opencppcoverage
+          echo "C:\Program Files\OpenCppCoverage" >> $GITHUB_PATH
+
+      - name: Setup build and test environment
         id: setup-environment
+        shell: bash
         run: |
           echo "VCPKG_FEATURE_FLAGS=manifests" >> $env:GITHUB_ENV
-
-      - name: Setup Vulkan SDK 
-        uses: humbletim/install-vulkan-sdk@v1.1.1
-        with:
-          version: ${{ env.vulkanSdkVersion }}
-          cache: true
+          #echo "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime" >> $GITHUB_PATH  # Somehow does not get picked up by the MSVC development environment.
+          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
+          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
 
       - name: Download Mesa3D driver
         uses: robinraju/release-downloader@v1.10
@@ -72,9 +85,14 @@ jobs:
       - name: Install Mesa3D driver
         working-directory: '${{ github.workspace }}/dep/mesa/'
         run: |
-            7zip x 'mesa3d-24.1.0-rc1-release-msvc.7z'
-            reg add "HKLM\SOFTWARE\Khronos\Drivers" /v '${{ github.workspace }}/dep/mesa/x64/lvp_icd.x86_64.json' /t REG_DWORD /d 0
-            reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Drivers" /v '${{ github.workspace }}/dep/mesa/x64/lvp_icd.x86_64.json' /t REG_DWORD /d 0
+          7z x 'mesa3d-24.1.0-rc1-release-msvc.7z'
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v '${{ github.workspace }}\dep\mesa\x64\lvp_icd.x86_64.json' /t REG_DWORD /d 0
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin\VkLayer_khronos_synchronization2.json' /t REG_DWORD /d 0
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin\VkLayer_khronos_validation.json' /t REG_DWORD /d 0
+          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\Drivers" /v '${{ github.workspace }}\dep\mesa\x86\lvp_icd.x86.json' /t REG_DWORD /d 0
+          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin32\VkLayer_khronos_synchronization2.json' /t REG_DWORD /d 0
+          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin32\VkLayer_khronos_validation.json' /t REG_DWORD /d 0
+          C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkaninfo.exe --summary
 
       - name: Retrieve latest CMake build
         uses: lukka/get-cmake@latest
@@ -85,18 +103,39 @@ jobs:
           vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
           vcpkgJsonGlob: '**/vcpkg.json'
 
-      - name: Build with CMake and Ninja
+      - name: Build Runtime and Tests
         id: build-with-cmake
         uses: lukka/run-cmake@v10
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
           configurePreset: '${{ matrix.configuration }}'
           buildPreset: '${{ matrix.configuration }}'
+          #testPreset: '${{ matrix.configuration }}'
+          #testPresetAdditionalArgs: "[ '--output-on-failure', '--timeout', '10' ]"
+
+      - name: Run Tests
+        working-directory: "${{ github.workspace }}/out/build/${{ matrix.configuration }}"
+        id: run-tests
+        run: |
+          OpenCppCoverage.exe --quiet --export_type=html:__coverage\html --export_type=binary:__coverage\bin --cover_children --sources='${{ github.workspace }}\src\' --modules=binaries\ -- ctest.exe ${{ matrix.configuration }} --output-on-failure --timeout 10
+          
+      - name: Upload test results
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: LiteFX-${{ matrix.triplet }}-test-results
+          path: '${{ github.workspace }}/out/build/${{ matrix.configuration }}/Testing/Temporary/LastTest.log'
+
+      - name: Upload coverage results
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: LiteFX-${{ matrix.triplet }}-coverage-results
+          path: '${{ github.workspace }}/out/build/${{ matrix.configuration }}/__coverage/'
           
       - name: Install with CMake
-        run: |
-          Set-Location '${{ github.workspace }}/out/build/${{ matrix.configuration }}'
-          cmake --install .
+        working-directory: '${{ github.workspace }}/out/build/${{ matrix.configuration }}'
+        run: cmake --install .
           
       - name: Sign binaries
         if: ${{ github.event.inputs.signArtifacts == 'true' }}
@@ -109,7 +148,7 @@ jobs:
 
       - name: Upload install artifacts
         if: ${{ github.event.inputs.uploadArtifacts == 'true' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: LiteFX-${{ matrix.triplet }}-install
           path: '${{ github.workspace }}/out/install/${{ matrix.configuration }}'

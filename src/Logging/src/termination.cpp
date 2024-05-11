@@ -1,5 +1,6 @@
 #include <litefx/logging.hpp>
 #include <spdlog/sinks/base_sink.h>
+#include <iostream>
 
 using namespace LiteFX::Logging;
 
@@ -32,7 +33,7 @@ void termination_sink::sink_it_(const spdlog::details::log_msg& msg)
 {
     if (msg.level >= m_minLevel)
     {
-        ::OutputDebugString(msg.payload.data());
+        std::cout << msg.payload.data() << "\r\nTrace: " << std::stacktrace::current() << std::endl;
         ::exit(m_status);
     }
 }
