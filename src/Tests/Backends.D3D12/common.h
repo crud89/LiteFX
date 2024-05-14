@@ -9,11 +9,14 @@
 #include <litefx/litefx.h>
 #include <litefx/core.h>
 #include <litefx/backends/dx12.hpp>
+#include <litefx/backends/dx12_builders.hpp>
 #include <litefx/logging.hpp>
 
 using namespace LiteFX;
 using namespace LiteFX::Rendering;
 using namespace LiteFX::Rendering::Backends;
+
+constexpr char TEST_LOG[] = "Tests";
 
 class TestApp : public LiteFX::App {
 public:

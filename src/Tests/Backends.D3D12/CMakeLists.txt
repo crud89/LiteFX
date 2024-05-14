@@ -11,4 +11,10 @@ DEFINE_TEST("app_should_accept_d3d12_backend" FOLDER "Tests/Backends/D3D12" EXEC
 	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12 
 )
 
+DEFINE_TEST("device_sets_up_d3d12_input_assembler" FOLDER "Tests/Backends/D3D12" EXECUTABLE_NAME "d3d12_input_assembler_test" 
+	SOURCES "common.h" "input_assembler.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12 
+)
+
 ADD_DEPENDENCIES(d3d12_app_init_test dxwarp)
+ADD_DEPENDENCIES(d3d12_input_assembler_test dxwarp)

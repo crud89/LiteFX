@@ -12,7 +12,7 @@ VulkanDevice* _device;
 void TestApp::onInit()
 {
     // Create a callback for backend startup and shutdown.
-    auto startCallback = [this]<typename TBackend>(TBackend* backend) {
+    auto startCallback = [this](VulkanBackend* backend) {
         // Create viewport and scissors.
         _viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(FRAMEBUFFER_WIDTH), static_cast<Float>(FRAMEBUFFER_HEIGHT)));
         _scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(FRAMEBUFFER_WIDTH), static_cast<Float>(FRAMEBUFFER_HEIGHT)));
@@ -33,7 +33,7 @@ void TestApp::onInit()
         return true;
     };
 
-    auto stopCallback = []<typename TBackend>(TBackend * backend) {
+    auto stopCallback = [](VulkanBackend* backend) {
         backend->releaseDevice("Default");
     };
 
@@ -44,17 +44,14 @@ void TestApp::onInit()
 
 void TestApp::onStartup()
 {
-
 }
 
 void TestApp::onShutdown()
 {
-
 }
 
 void TestApp::onResize(const void* sender, ResizeEventArgs e)
 {
-
 }
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
