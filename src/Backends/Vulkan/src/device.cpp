@@ -273,22 +273,33 @@ public:
                 };
             }) | std::ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
+
+        // Enable requested features.
+        // NOTE: We keep track of the last feature set with this pointer, as it is against the standard to include features in the pNext chain without requiring the extension.
+        void* lastFeature = nullptr;
+
         // Enable ray-tracing features.
         VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR,
             .rayQuery = features.RayQueries
         };
 
+        if (features.RayQueries)
+            lastFeature = &rayQueryFeatures;
+
         VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR rayTracingMaintenanceFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MAINTENANCE_1_FEATURES_KHR,
-            .pNext = &rayQueryFeatures,
+            .pNext = lastFeature,
             .rayTracingMaintenance1 = features.RayTracing || features.RayQueries,
             .rayTracingPipelineTraceRaysIndirect2 = features.RayQueries
         };
 
+        if (features.RayQueries || features.RayTracing)
+            lastFeature = &rayTracingMaintenanceFeatures;
+
         VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR,
-            .pNext = &rayTracingMaintenanceFeatures,
+            .pNext = lastFeature,
             .rayTracingPipeline = features.RayTracing
         };
 
@@ -299,19 +310,25 @@ public:
             .descriptorBindingAccelerationStructureUpdateAfterBind = features.RayTracing || features.RayQueries
         };
 
+        if (features.RayTracing)
+            lastFeature = &accelerationStructureFeatures;
+
         // Enable task and mesh shaders.
         VkPhysicalDeviceMeshShaderFeaturesEXT meshShaderFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT,
-            .pNext = &accelerationStructureFeatures,
+            .pNext = lastFeature,
             .taskShader = features.MeshShaders,
             .meshShader = features.MeshShaders
         };
+
+        if (features.MeshShaders)
+            lastFeature = &meshShaderFeatures;
 
         // Allow geometry and tessellation shader stages.
         // NOTE: ... except when building tests, as they are not supported by SwiftShader.
         VkPhysicalDeviceFeatures2 deviceFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-            .pNext = &meshShaderFeatures,
+            .pNext = lastFeature,
             .features = {
 #ifndef LITEFX_BUILD_TESTS
                 .geometryShader = true,
