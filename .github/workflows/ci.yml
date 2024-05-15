@@ -17,20 +17,26 @@ on:
     branches:
       - main
     types:
-    - opened
-    - reopened
+    #- opened
+    #- reopened
     #- synchronize
     - ready_for_review
 
+  issue_comment:
+    types:
+      - created
+      - edited
+
 env:
-  vulkanSdkVersion: '1.3.268.0'
+  vulkanSdkVersion: '1.3.283.0'
   mesaDriverVersion: '24.0.6'
 
 jobs:
   job:
     name: ${{ matrix.os }}-ci
     runs-on: ${{ matrix.os }}
-    if: ${{ github.event_name == 'push' || !github.event.pull_request.draft }}
+    timeout-minutes: 30
+    if: "${{ ( github.event_name == 'pull_request' && !github.event.pull_request.draft ) || ( github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, 'Run: Tests') )  }}"
     strategy:
       fail-fast: false
       matrix:
@@ -42,6 +48,27 @@ jobs:
             architecture: x64
 
     steps:
+      - name: Check persmission
+        uses: actions-cool/check-user-permission@v2
+        id: check-permission
+        if: ${{ github.event_name == 'issue_comment' }}
+        with:
+          username: github.triggering_actor
+          check-contributor: true
+
+      - name: Validate permission
+        if: ${{ github.event_name == 'issue_comment' && steps.check.outputs.require-result }}
+        run: |
+          echo "::error Insufficient permission. Only existing contributers may trigger CI runs."
+          exit 1
+
+      - name: Confirm run
+        uses: peter-evans/create-or-update-comment@v4
+        if: ${{ github.event_name == 'issue_comment' }}
+        with:
+          comment-id: ${{ github.event.comment.id }}
+          reactions: 'rocket'
+    
       - name: Checking out sources
         uses: actions/checkout@master
         with:
