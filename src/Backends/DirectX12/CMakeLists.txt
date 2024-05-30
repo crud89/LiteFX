@@ -49,12 +49,12 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/queue.cpp"
     "src/swapchain.cpp"
     "src/frame_buffer.cpp"
-    "src/input_attachment_mapping.cpp"
     "src/render_pass.cpp"
     "src/command_buffer.cpp"
     "src/barrier.cpp"
     "src/render_pipeline.cpp"
     "src/compute_pipeline.cpp"
+    "src/ray_tracing_pipeline.cpp"
     "src/pipeline_layout.cpp"
     "src/rasterizer.cpp"
     "src/input_assembler.cpp"
@@ -67,6 +67,8 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/descriptor_set_layout.cpp"
     "src/push_constants_range.cpp"
     "src/push_constants_layout.cpp"
+    "src/blas.cpp"
+    "src/tlas.cpp"
 )
 
 # Add shared library project.
@@ -99,8 +101,8 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi dxcompiler
-    PRIVATE unofficial::d3d12-memory-allocator Microsoft::WinPixEventRuntime Microsoft::DirectXAgilitySDK
+    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi dxcompiler Microsoft::DirectXAgilitySDK
+    PRIVATE unofficial::d3d12-memory-allocator Microsoft::WinPixEventRuntime
 )
 
 # Add shader modules.

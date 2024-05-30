@@ -156,6 +156,18 @@ namespace LiteFX::Math {
 		return static_cast<Double>(arg);
 	}
 
+	/// <summary>
+	/// Aligns a value <paramref name="size" /> to an alignment <paramref name="alignment" />.
+	/// </summary>
+	/// <typeparam name="T">The type of the value to align.</typeparam>
+	/// <param name="size">The value to align.</param>
+	/// <param name="alignment">The alignment to align the value to.</param>
+	/// <returns>The aligned value.</returns>
+	template <typename T = UInt32>
+	static constexpr inline T align(T size, T alignment) { 
+		return (size + alignment - 1) & ~(alignment - 1); 
+	}
+
 #pragma region Vector
 	/// <summary>
 	/// A vector that contains a single float.

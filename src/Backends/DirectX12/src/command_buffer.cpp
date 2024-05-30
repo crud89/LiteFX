@@ -60,12 +60,82 @@ public:
 		raiseIfFailed(m_commandAllocator->Reset(), "Unable to reset command allocator.");
 		raiseIfFailed(m_parent->handle()->Reset(m_commandAllocator.Get(), nullptr), "Unable to reset command list.");
 		m_recording = true;
+
+		// If it was possible to reset the command buffer, we can also safely release shared resources from previous recordings.
+		m_sharedResources.clear();
 	}
 
 	void bindDescriptorHeaps()
 	{
 		if (m_queue.type() == QueueType::Compute || m_queue.type() == QueueType::Graphics)
 			m_queue.device().bindGlobalDescriptorHeaps(*m_parent);
+	}
+
+	inline void buildAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)
+	{
+		if (scratchBuffer == nullptr) [[unlikely]]
+			throw ArgumentNotInitializedException("scratchBuffer");
+
+		auto descriptions = blas.buildInfo();
+
+		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC blasDesc = {
+			.DestAccelerationStructureData = buffer.virtualAddress() + offset,
+			.Inputs = {
+				.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL,
+				.Flags = std::bit_cast<D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS>(blas.flags()),
+				.NumDescs = static_cast<UInt32>(descriptions.size()),
+				.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY,
+				.pGeometryDescs = descriptions.data()
+			},
+			.SourceAccelerationStructureData = update ? blas.buffer()->virtualAddress() : 0ull,
+			.ScratchAccelerationStructureData = scratchBuffer->virtualAddress()
+		};
+
+		if (update)
+			blasDesc.Inputs.Flags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PERFORM_UPDATE;
+
+		// Build the acceleration structure.
+		m_parent->handle()->BuildRaytracingAccelerationStructure(&blasDesc, 0, nullptr);
+
+		// Store the scratch buffer.
+		m_sharedResources.push_back(scratchBuffer);
+	}
+
+	inline void buildAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)
+	{
+		if (scratchBuffer == nullptr) [[unlikely]]
+			throw ArgumentNotInitializedException("scratchBuffer");
+
+		// Create a buffer to store the instance build info.
+		auto buildInfo = tlas.buildInfo();
+		auto instanceBuffer = m_queue.device().factory().createBuffer(BufferType::Storage, ResourceHeap::Dynamic, sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * buildInfo.size(), 1, ResourceUsage::AccelerationStructureBuildInput);
+
+		// Map the instance buffer.
+		instanceBuffer->map(buildInfo.data(), sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * buildInfo.size());
+
+		// Build the TLAS.
+		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC tlasDesc = {
+			.DestAccelerationStructureData = buffer.virtualAddress() + offset,
+			.Inputs = {
+				.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL,
+				.Flags = std::bit_cast<D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS>(tlas.flags()),
+				.NumDescs = static_cast<UInt32>(tlas.instances().size()),
+				.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY,
+				.InstanceDescs = instanceBuffer->virtualAddress()
+			},
+			.SourceAccelerationStructureData = update ? tlas.buffer()->virtualAddress() : 0ull,
+			.ScratchAccelerationStructureData = scratchBuffer->virtualAddress()
+		};
+
+		if (update)
+			tlasDesc.Inputs.Flags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PERFORM_UPDATE;
+
+		// Build the acceleration structure.
+		m_parent->handle()->BuildRaytracingAccelerationStructure(&tlasDesc, 0, nullptr);
+
+		// Store the scratch buffer.
+		m_sharedResources.push_back(asShared(std::move(instanceBuffer)));
+		m_sharedResources.push_back(scratchBuffer);
 	}
 };
 
@@ -83,6 +153,11 @@ DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, bool
 }
 
 DirectX12CommandBuffer::~DirectX12CommandBuffer() noexcept = default;
+
+const ICommandQueue& DirectX12CommandBuffer::queue() const noexcept
+{
+	return m_impl->m_queue;
+}
 
 void DirectX12CommandBuffer::begin() const
 {
@@ -189,7 +264,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 	const auto& resourceBindingsLayout = pipeline.layout()->descriptorSet(0);
 	auto resourceBindings = resourceBindingsLayout.allocateMultiple(image.levels() * image.layers());
 	const auto& parametersLayout = resourceBindingsLayout.descriptor(0);
-	auto parameters = m_impl->m_queue.device().factory().createBuffer(parametersLayout.type(), BufferUsage::Dynamic, parametersLayout.elementSize(), image.levels());
+	auto parameters = m_impl->m_queue.device().factory().createBuffer(parametersLayout.type(), ResourceHeap::Dynamic, parametersLayout.elementSize(), image.levels());
 	parameters->map(parametersBlock, sizeof(Parameters));
 
 	// Create and bind the sampler.
@@ -201,7 +276,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 
 	// Transition the texture into a read/write state.
 	DirectX12Barrier startBarrier(PipelineStage::None, PipelineStage::Compute);
-	startBarrier.transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::ReadWrite);
+	startBarrier.transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::Undefined, ImageLayout::ReadWrite);
 	this->barrier(startBarrier);
 	auto resource = resourceBindings.begin();
 
@@ -226,16 +301,21 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 
 			// Wait for all writes.
 			DirectX12Barrier subBarrier(PipelineStage::Compute, PipelineStage::Compute);
-			subBarrier.transition(image, i, 1, l, 1, 0, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderRead, ImageLayout::ShaderResource);
+			subBarrier.transition(image, i, 1, l, 1, 0, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderRead, ImageLayout::ReadWrite, ImageLayout::ShaderResource);
 			this->barrier(subBarrier);
 			resource++;
 		}
 
 		// Original sub-resource also needs to be transitioned.
 		DirectX12Barrier endBarrier(PipelineStage::Compute, PipelineStage::All);
-		endBarrier.transition(image, 0, 1, l, 1, 0, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderRead, ImageLayout::ShaderResource);
+		endBarrier.transition(image, 0, 1, l, 1, 0, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderRead, ImageLayout::ReadWrite, ImageLayout::ShaderResource);
 		this->barrier(endBarrier);
 	}
+}
+
+UniquePtr<DirectX12Barrier> DirectX12CommandBuffer::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept
+{
+	return m_impl->m_queue.device().makeBarrier(syncBefore, syncAfter);
 }
 
 void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier) const noexcept
@@ -243,7 +323,7 @@ void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier) const noex
 	barrier.execute(*this);
 }
 
-void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Buffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
+void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDirectX12Buffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("sourceElement", "The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
@@ -254,7 +334,28 @@ void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Buffer
 	this->handle()->CopyBufferRegion(std::as_const(target).handle().Get(), targetElement * target.alignedElementSize(), std::as_const(source).handle().Get(), sourceElement * source.alignedElementSize(), elements * source.alignedElementSize());
 }
 
-void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Image& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
+void DirectX12CommandBuffer::transfer(const void* const data, size_t size, const IDirectX12Buffer& target, UInt32 targetElement, UInt32 elements) const
+{
+	auto alignment = target.elementAlignment();
+	auto elementSize = target.elementSize();
+	auto alignedSize = target.alignedElementSize();
+
+	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements)));
+	stagingBuffer->map(data, size, 0);
+
+	this->transfer(stagingBuffer, target, 0, targetElement, elements);
+}
+
+void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t elementSize, const IDirectX12Buffer& target, UInt32 firstElement) const
+{
+	auto elements = static_cast<UInt32>(data.size());
+	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements)));
+	stagingBuffer->map(data, elementSize, 0);
+
+	this->transfer(stagingBuffer, target, 0, firstElement, elements);
+}
+
+void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDirectX12Image& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("sourceElement", "The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
@@ -273,7 +374,24 @@ void DirectX12CommandBuffer::transfer(IDirectX12Buffer& source, IDirectX12Image&
 	}
 }
 
-void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Image& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
+void DirectX12CommandBuffer::transfer(const void* const data, size_t size, const IDirectX12Image& target, UInt32 subresource) const
+{
+	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, size)));
+	stagingBuffer->map(data, size, 0);
+
+	this->transfer(stagingBuffer, target, 0, subresource, 1);
+}
+
+void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t elementSize, const IDirectX12Image& target, UInt32 firstSubresource, UInt32 subresources) const
+{
+	auto elements = static_cast<UInt32>(data.size());
+	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, elementSize, elements)));
+	stagingBuffer->map(data, elementSize, 0);
+
+	this->transfer(stagingBuffer, target, 0, firstSubresource, subresources);
+}
+
+void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDirectX12Image& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
 	if (source.elements() < sourceSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("sourceElement", "The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, sourceSubresource);
@@ -288,7 +406,7 @@ void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Image& 
 	}
 }
 
-void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Buffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
+void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDirectX12Buffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
 	if (source.elements() < firstSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("sourceElement", "The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
@@ -307,25 +425,25 @@ void DirectX12CommandBuffer::transfer(IDirectX12Image& source, IDirectX12Buffer&
 	}
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Buffer> source, IDirectX12Buffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
+void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Buffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
 {
 	this->transfer(*source, target, sourceElement, targetElement, elements);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Buffer> source, IDirectX12Image& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
+void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Image& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
 	this->transfer(*source, target, sourceElement, firstSubresource, elements);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Image> source, IDirectX12Image& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
+void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Image& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
 	this->transfer(*source, target, sourceSubresource, targetSubresource, subresources);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<IDirectX12Image> source, IDirectX12Buffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
+void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Buffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
 	this->transfer(*source, target, firstSubresource, targetElement, subresources);
 	m_impl->m_sharedResources.push_back(source);
@@ -345,9 +463,22 @@ void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet) c
 		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
 }
 
+void DirectX12CommandBuffer::bind(Span<const DirectX12DescriptorSet*> descriptorSets) const
+{
+	if (m_impl->m_lastPipeline) [[likely]]
+		std::ranges::for_each(descriptorSets | std::views::filter([](auto descriptorSet) { return descriptorSet != nullptr; }), [this](auto descriptorSet) { m_impl->m_queue.device().bindDescriptorSet(*this, *descriptorSet, *m_impl->m_lastPipeline); });
+	else
+		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
+}
+
 void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept
 {
 	m_impl->m_queue.device().bindDescriptorSet(*this, descriptorSet, pipeline);
+}
+
+void DirectX12CommandBuffer::bind(Span<const DirectX12DescriptorSet*> descriptorSets, const DirectX12PipelineState& pipeline) const noexcept
+{
+	std::ranges::for_each(descriptorSets | std::views::filter([](auto descriptorSet) { return descriptorSet != nullptr; }), [this](auto descriptorSet) { m_impl->m_queue.device().bindDescriptorSet(*this, *descriptorSet, *m_impl->m_lastPipeline); });
 }
 
 void DirectX12CommandBuffer::bind(const IDirectX12VertexBuffer& buffer) const noexcept 
@@ -365,12 +496,10 @@ void DirectX12CommandBuffer::dispatch(const Vector3u& threadCount) const noexcep
 	this->handle()->Dispatch(threadCount.x(), threadCount.y(), threadCount.z());
 }
 
-#ifdef LITEFX_BUILD_MESH_SHADER_SUPPORT
 void DirectX12CommandBuffer::dispatchMesh(const Vector3u& threadCount) const noexcept
 {
 	this->handle()->DispatchMesh(threadCount.x(), threadCount.y(), threadCount.z());
 }
-#endif
 
 void DirectX12CommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const noexcept
 {
@@ -408,4 +537,70 @@ void DirectX12CommandBuffer::execute(Enumerable<SharedPtr<const DirectX12Command
 void DirectX12CommandBuffer::releaseSharedState() const
 {
 	m_impl->m_sharedResources.clear();
+}
+
+void DirectX12CommandBuffer::buildAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
+{
+	m_impl->buildAccelerationStructure(blas, scratchBuffer, buffer, offset, false);
+}
+
+void DirectX12CommandBuffer::buildAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
+{
+	m_impl->buildAccelerationStructure(tlas, scratchBuffer, buffer, offset, false);
+}
+
+void DirectX12CommandBuffer::updateAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
+{
+	m_impl->buildAccelerationStructure(blas, scratchBuffer, buffer, offset, true);
+}
+
+void DirectX12CommandBuffer::updateAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
+{
+	m_impl->buildAccelerationStructure(tlas, scratchBuffer, buffer, offset, true);
+}
+
+void DirectX12CommandBuffer::copyAccelerationStructure(const DirectX12BottomLevelAccelerationStructure& from, const DirectX12BottomLevelAccelerationStructure& to, bool compress) const noexcept
+{
+	this->handle()->CopyRaytracingAccelerationStructure(to.buffer()->virtualAddress() + to.offset(), from.buffer()->virtualAddress() + from.offset(), compress ? D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_COMPACT : D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_CLONE);
+}
+
+void DirectX12CommandBuffer::copyAccelerationStructure(const DirectX12TopLevelAccelerationStructure& from, const DirectX12TopLevelAccelerationStructure& to, bool compress) const noexcept
+{
+	this->handle()->CopyRaytracingAccelerationStructure(to.buffer()->virtualAddress() + to.offset(), from.buffer()->virtualAddress() + from.offset(), compress ? D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_COMPACT : D3D12_RAYTRACING_ACCELERATION_STRUCTURE_COPY_MODE_CLONE);
+}
+
+void DirectX12CommandBuffer::traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IDirectX12Buffer& rayGenerationShaderBindingTable, const IDirectX12Buffer* missShaderBindingTable, const IDirectX12Buffer* hitShaderBindingTable, const IDirectX12Buffer* callableShaderBindingTable) const noexcept
+{
+	D3D12_DISPATCH_RAYS_DESC rayDesc = {
+		.RayGenerationShaderRecord = {
+			.StartAddress = rayGenerationShaderBindingTable.virtualAddress() + offsets.RayGenerationGroupOffset,
+			.SizeInBytes = offsets.RayGenerationGroupSize
+		},
+		.Width = width,
+		.Height = height,
+		.Depth = depth
+	};
+
+	if (missShaderBindingTable != nullptr)
+		rayDesc.MissShaderTable = {
+			.StartAddress = missShaderBindingTable->virtualAddress() + offsets.MissGroupOffset,
+			.SizeInBytes = offsets.MissGroupSize,
+			.StrideInBytes = offsets.MissGroupStride,
+		};
+
+	if (hitShaderBindingTable != nullptr)
+		rayDesc.HitGroupTable = {
+			.StartAddress = hitShaderBindingTable->virtualAddress() + offsets.HitGroupOffset,
+			.SizeInBytes = offsets.HitGroupSize,
+			.StrideInBytes = offsets.HitGroupStride,
+		};
+
+	if (callableShaderBindingTable != nullptr)
+		rayDesc.CallableShaderTable = {
+			.StartAddress = callableShaderBindingTable->virtualAddress() + offsets.CallableGroupOffset,
+			.SizeInBytes = offsets.CallableGroupSize,
+			.StrideInBytes = offsets.CallableGroupStride,
+		};
+
+	this->handle()->DispatchRays(&rayDesc);
 }

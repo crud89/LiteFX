@@ -32,10 +32,10 @@ SET(VULKAN_BACKEND_SOURCES
     "src/surface.cpp"
     "src/swapchain.cpp"
     "src/frame_buffer.cpp"
-    "src/input_attachment_mapping.cpp"
     "src/render_pass.cpp"
     "src/render_pipeline.cpp"
     "src/compute_pipeline.cpp"
+    "src/ray_tracing_pipeline.cpp"
     "src/shader_module.cpp"
     "src/shader_program.cpp"
     "src/pipeline_layout.cpp"
@@ -52,6 +52,8 @@ SET(VULKAN_BACKEND_SOURCES
     "src/image.cpp"
     "src/push_constants_range.cpp"
     "src/push_constants_layout.cpp"
+    "src/blas.cpp"
+    "src/tlas.cpp"
 )
 
 # Add shared library project.
@@ -90,13 +92,7 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
 
 # Link against D3D12 to enable flip-model swap chains.
 IF(LITEFX_BUILD_DIRECTX_12_BACKEND)
-    FIND_PACKAGE(directx-headers CONFIG REQUIRED)
-    FIND_PACKAGE(directx-agility-sdk CONFIG REQUIRED)
-
-    TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-        PUBLIC Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi d3dcompiler
-        PRIVATE LiteFX.Backends.DirectX12 Microsoft::DirectXAgilitySDK
-    )
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC LiteFX.Backends.DirectX12)
 ENDIF(LITEFX_BUILD_DIRECTX_12_BACKEND)
 
 

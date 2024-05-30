@@ -4,6 +4,6 @@
 [submodule "docs/modules/doxygen-awesome-css"]
 	path = docs/modules/doxygen-awesome-css
 	url = https://github.com/jothepro/doxygen-awesome-css.git
-[submodule "docs/website/themes/hugo-scroll"]
-	path = docs/website/themes/hugo-scroll
-	url = https://github.com/janraasch/hugo-scroll.git
+[submodule "docs/website/themes/docsy"]
+	path = docs/website/themes/docsy
+	url = https://github.com/google/docsy.git

@@ -23,6 +23,7 @@
 #include <litefx/config.h>
 #include <litefx/rendering.hpp>
 #include <vulkan/vulkan.h>
+#include "vulkan_formatters.hpp"
 
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Math;
@@ -47,9 +48,9 @@ namespace LiteFX::Rendering::Backends {
     class VulkanPipelineState;
     class VulkanRenderPipeline;
     class VulkanComputePipeline;
+    class VulkanRayTracingPipeline;
     class VulkanFrameBuffer;
     class VulkanRenderPass;
-    class VulkanInputAttachmentMapping;
     class VulkanSwapChain;
     class VulkanQueue;
     class VulkanGraphicsFactory;
@@ -62,6 +63,9 @@ namespace LiteFX::Rendering::Backends {
     class IVulkanIndexBuffer;
     class IVulkanImage;
     class IVulkanSampler;
+    class IVulkanAccelerationStructure;
+    class VulkanBottomLevelAccelerationStructure;
+    class VulkanTopLevelAccelerationStructure;
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     // Builder declarations.
@@ -74,6 +78,7 @@ namespace LiteFX::Rendering::Backends {
     class VulkanRasterizerBuilder;
     class VulkanRenderPipelineBuilder;
     class VulkanComputePipelineBuilder;
+    class VulkanRayTracingPipelineBuilder;
     class VulkanRenderPassBuilder;
     class VulkanBarrierBuilder;
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
@@ -186,12 +191,12 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkPipelineStageFlags LITEFX_VULKAN_API getPipelineStage(PipelineStage pipelineStage);
+        constexpr inline VkPipelineStageFlags2 LITEFX_VULKAN_API getPipelineStage(PipelineStage pipelineStage);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkAccessFlags LITEFX_VULKAN_API getResourceAccess(ResourceAccess resourceAccess);
+        constexpr inline VkAccessFlags2 LITEFX_VULKAN_API getResourceAccess(ResourceAccess resourceAccess);
 
         /// <summary>
         /// 
@@ -352,11 +357,14 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="args">The arguments passed to the error message format string.</param>
         template <typename ...TArgs>
         explicit VulkanPlatformException(VkResult result, StringView format, TArgs&&... args) noexcept :
-            VulkanPlatformException(fmt::vformat(format, fmt::make_format_args(args...)), result) { }
+            VulkanPlatformException(std::vformat(format, std::make_format_args(args...)), result) { }
 
-        VulkanPlatformException(const VulkanPlatformException&) = delete;
-        VulkanPlatformException(VulkanPlatformException&&) = delete;
+        VulkanPlatformException(const VulkanPlatformException&) = default;
+        VulkanPlatformException(VulkanPlatformException&&) = default;
         virtual ~VulkanPlatformException() noexcept = default;
+
+        VulkanPlatformException& operator=(const VulkanPlatformException&) = default;
+        VulkanPlatformException& operator=(VulkanPlatformException&&) = default;
 
     public:
         /// <summary>

@@ -5,9 +5,8 @@
 using namespace LiteFX::Rendering;
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<GraphicsAdapterType> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(GraphicsAdapterType t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<GraphicsAdapterType> : std::formatter<std::string_view> {
+	auto format(GraphicsAdapterType t, std::format_context& ctx) const {
 		string_view name = "Invalid";
 		switch (t) {
 		using enum GraphicsAdapterType;
@@ -21,9 +20,8 @@ struct LITEFX_RENDERING_API fmt::formatter<GraphicsAdapterType> : formatter<stri
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<QueueType> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(QueueType t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<QueueType> : std::formatter<std::string_view> {
+	auto format(QueueType t, std::format_context& ctx) const {
 		Array<String> names;
 
 		if (t == QueueType::None)
@@ -46,9 +44,8 @@ struct LITEFX_RENDERING_API fmt::formatter<QueueType> : formatter<string_view> {
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<QueuePriority> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(QueuePriority t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<QueuePriority> : std::formatter<std::string_view> {
+	auto format(QueuePriority t, std::format_context& ctx) const {
 		String name;
 
 		switch (t) {
@@ -64,9 +61,8 @@ struct LITEFX_RENDERING_API fmt::formatter<QueuePriority> : formatter<string_vie
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<Format> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(Format t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<Format> : std::formatter<std::string_view> {
+	auto format(Format t, std::format_context& ctx) const {
 		string_view name = "Invalid";
 		switch (t) {
 		using enum Format;
@@ -224,9 +220,8 @@ struct LITEFX_RENDERING_API fmt::formatter<Format> : formatter<string_view> {
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<DescriptorType> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(DescriptorType t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<DescriptorType> : std::formatter<std::string_view> {
+	auto format(DescriptorType t, std::format_context& ctx) const {
 		string_view name = "Invalid";
 		switch (t) {
 		using enum DescriptorType;
@@ -241,36 +236,63 @@ struct LITEFX_RENDERING_API fmt::formatter<DescriptorType> : formatter<string_vi
 		case ByteAddressBuffer: name = "ByteAddressBuffer"; break;
 		case RWByteAddressBuffer: name = "RWByteAddressBuffer"; break;
 		case InputAttachment: name = "Input Attachment"; break;
+		case AccelerationStructure: name = "Acceleration Structure"; break;
 		}
 		return formatter<string_view>::format(name, ctx);
 	}
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<BufferType> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(BufferType t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<BufferType> : std::formatter<std::string_view> {
+	auto format(BufferType t, std::format_context& ctx) const {
 		string_view name = "Invalid";
 		switch (t) {
 		using enum BufferType;
-		case Index:      name = "Index";   break;
-		case Vertex:     name = "Vertex";  break;
-		case Uniform:    name = "Uniform"; break;
-		case Storage:    name = "Storage"; break;
-		case Texel:      name = "Texel";   break;
-		case Other:      name = "Other";   break;
+		case Index:                 name = "Index"; break;
+		case Vertex:                name = "Vertex"; break;
+		case Uniform:               name = "Uniform"; break;
+		case Storage:               name = "Storage"; break;
+		case Texel:                 name = "Texel"; break;
+		case AccelerationStructure: name = "Acceleration Structure"; break;
+		case ShaderBindingTable:    name = "Shader Binding Table"; break;
+		case Other:                 name = "Other"; break;
 		}
 		return formatter<string_view>::format(name, ctx);
 	}
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<BufferUsage> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(BufferUsage t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<ResourceUsage> : std::formatter<std::string_view> {
+	auto format(ResourceUsage t, std::format_context& ctx) const {
+		Array<String> names;
+
+		if (t == ResourceUsage::None)
+			names.push_back("None");
+		else if (t == ResourceUsage::Default)
+			names.push_back("Default");
+		else
+		{
+			if ((t & ResourceUsage::AllowWrite) == ResourceUsage::AllowWrite)
+				names.push_back("AllowWrite");
+			if ((t & ResourceUsage::TransferSource) == ResourceUsage::TransferSource)
+				names.push_back("TransferSource");
+			if ((t & ResourceUsage::TransferDestination) == ResourceUsage::TransferDestination)
+				names.push_back("TransferDestination");
+			if ((t & ResourceUsage::AccelerationStructureBuildInput) == ResourceUsage::AccelerationStructureBuildInput)
+				names.push_back("AccelerationStructureBuildInput");
+		}
+
+		String name = Join(names, " | ");
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API std::formatter<ResourceHeap> : std::formatter<std::string_view> {
+	auto format(ResourceHeap t, std::format_context& ctx) const {
 		string_view name = "Invalid";
 		switch (t) {
-		using enum BufferUsage;
+		using enum ResourceHeap;
 		case Staging:  name = "Staging";  break;
 		case Resource: name = "Resource"; break;
 		case Dynamic:  name = "Dynamic";  break;
@@ -281,9 +303,8 @@ struct LITEFX_RENDERING_API fmt::formatter<BufferUsage> : formatter<string_view>
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<IndexType> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(IndexType t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<IndexType> : std::formatter<std::string_view> {
+	auto format(IndexType t, std::format_context& ctx) const {
 		string_view name = "Invalid";
 		switch (t) {
 		using enum IndexType;
@@ -295,13 +316,16 @@ struct LITEFX_RENDERING_API fmt::formatter<IndexType> : formatter<string_view> {
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<ShaderStage> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(ShaderStage t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<ShaderStage> : std::formatter<std::string_view> {
+	auto format(ShaderStage t, std::format_context& ctx) const {
 		Array<String> names;
 
 		if (t == ShaderStage::Other)
 			names.push_back("Other");
+		else if (t == ShaderStage::MeshPipeline)
+			names.push_back("Mesh Shading");
+		if (t == ShaderStage::RayTracingPipeline)
+			names.push_back("Ray Tracing");
 		else
 		{
 			if ((t & ShaderStage::Vertex) == ShaderStage::Vertex)
@@ -320,6 +344,18 @@ struct LITEFX_RENDERING_API fmt::formatter<ShaderStage> : formatter<string_view>
 				names.push_back("Mesh");
 			if ((t & ShaderStage::Task) == ShaderStage::Task)
 				names.push_back("Task");
+			if ((t & ShaderStage::RayGeneration) == ShaderStage::RayGeneration)
+				names.push_back("Ray Generation");
+			if ((t & ShaderStage::AnyHit) == ShaderStage::AnyHit)
+				names.push_back("Any Hit");
+			if ((t & ShaderStage::ClosestHit) == ShaderStage::ClosestHit)
+				names.push_back("Closest Hit");
+			if ((t & ShaderStage::Intersection) == ShaderStage::Intersection)
+				names.push_back("Intersection");
+			if ((t & ShaderStage::Miss) == ShaderStage::Miss)
+				names.push_back("Miss");
+			if ((t & ShaderStage::Callable) == ShaderStage::Callable)
+				names.push_back("Callable");
 		}
 
 		String name = Join(names, " | ");
@@ -328,9 +364,8 @@ struct LITEFX_RENDERING_API fmt::formatter<ShaderStage> : formatter<string_view>
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<BufferFormat> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(BufferFormat t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<BufferFormat> : std::formatter<std::string_view> {
+	auto format(BufferFormat t, std::format_context& ctx) const {
 		Array<String> names;
 
 		switch (::getBufferFormatChannels(t))
@@ -390,9 +425,8 @@ struct LITEFX_RENDERING_API fmt::formatter<BufferFormat> : formatter<string_view
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<PolygonMode> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(PolygonMode t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<PolygonMode> : std::formatter<std::string_view> {
+	auto format(PolygonMode t, std::format_context& ctx) const {
 		string_view name;
 
 		switch (t) {
@@ -408,9 +442,8 @@ struct LITEFX_RENDERING_API fmt::formatter<PolygonMode> : formatter<string_view>
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<CullMode> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(CullMode t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<CullMode> : std::formatter<std::string_view> {
+	auto format(CullMode t, std::format_context& ctx) const {
 		string_view name;
 
 		switch (t) {
@@ -427,9 +460,8 @@ struct LITEFX_RENDERING_API fmt::formatter<CullMode> : formatter<string_view> {
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<CullOrder> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(CullOrder t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<CullOrder> : std::formatter<std::string_view> {
+	auto format(CullOrder t, std::format_context& ctx) const {
 		string_view name;
 
 		switch (t) {
@@ -444,9 +476,8 @@ struct LITEFX_RENDERING_API fmt::formatter<CullOrder> : formatter<string_view> {
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<RenderTargetType> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(RenderTargetType t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<RenderTargetType> : std::formatter<std::string_view> {
+	auto format(RenderTargetType t, std::format_context& ctx) const {
 		string_view name;
 
 		switch (t) {
@@ -462,9 +493,8 @@ struct LITEFX_RENDERING_API fmt::formatter<RenderTargetType> : formatter<string_
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<MultiSamplingLevel> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(MultiSamplingLevel t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<MultiSamplingLevel> : std::formatter<std::string_view> {
+	auto format(MultiSamplingLevel t, std::format_context& ctx) const {
 		string_view name;
 
 		switch (t) {
@@ -484,9 +514,8 @@ struct LITEFX_RENDERING_API fmt::formatter<MultiSamplingLevel> : formatter<strin
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<FilterMode> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(FilterMode t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<FilterMode> : std::formatter<std::string_view> {
+	auto format(FilterMode t, std::format_context& ctx) const {
 		string_view name;
 
 		switch (t) {
@@ -501,9 +530,8 @@ struct LITEFX_RENDERING_API fmt::formatter<FilterMode> : formatter<string_view> 
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<MipMapMode> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(MipMapMode t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<MipMapMode> : std::formatter<std::string_view> {
+	auto format(MipMapMode t, std::format_context& ctx) const {
 		string_view name;
 
 		switch (t) {
@@ -518,9 +546,8 @@ struct LITEFX_RENDERING_API fmt::formatter<MipMapMode> : formatter<string_view> 
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<BorderMode> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(BorderMode t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<BorderMode> : std::formatter<std::string_view> {
+	auto format(BorderMode t, std::format_context& ctx) const {
 		string_view name;
 
 		switch (t) {
@@ -538,9 +565,8 @@ struct LITEFX_RENDERING_API fmt::formatter<BorderMode> : formatter<string_view> 
 };
 
 template <>
-struct LITEFX_RENDERING_API fmt::formatter<AttributeSemantic> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(AttributeSemantic t, FormatContext& ctx) {
+struct LITEFX_RENDERING_API std::formatter<AttributeSemantic> : std::formatter<std::string_view> {
+	auto format(AttributeSemantic t, std::format_context& ctx) const {
 		string_view name;
 
 		switch (t) {
@@ -558,6 +584,76 @@ struct LITEFX_RENDERING_API fmt::formatter<AttributeSemantic> : formatter<string
 		default: name = "Unknown"; break;
 		}
 
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API std::formatter<GeometryFlags> : std::formatter<std::string_view> {
+	auto format(GeometryFlags t, std::format_context& ctx) const {
+		Array<String> names;
+
+		if (t == GeometryFlags::None)
+			names.push_back("None");
+		else
+		{
+			if ((t & GeometryFlags::Opaque) == GeometryFlags::Opaque)
+				names.push_back("Opaque");
+			if ((t & GeometryFlags::OneShotAnyHit) == GeometryFlags::OneShotAnyHit)
+				names.push_back("OneShotAnyHit");
+		}
+
+		String name = Join(names, " | ");
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API std::formatter<AccelerationStructureFlags> : std::formatter<std::string_view> {
+	auto format(AccelerationStructureFlags t, std::format_context& ctx) const {
+		Array<String> names;
+
+		if (t == AccelerationStructureFlags::None)
+			names.push_back("None");
+		else
+		{
+			if ((t & AccelerationStructureFlags::AllowUpdate) == AccelerationStructureFlags::AllowUpdate)
+				names.push_back("AllowUpdate");
+			if ((t & AccelerationStructureFlags::AllowCompaction) == AccelerationStructureFlags::AllowCompaction)
+				names.push_back("AllowCompaction");
+			if ((t & AccelerationStructureFlags::PreferFastTrace) == AccelerationStructureFlags::AllowCompaction)
+				names.push_back("PreferFastTrace");
+			if ((t & AccelerationStructureFlags::PreferFastBuild) == AccelerationStructureFlags::PreferFastBuild)
+				names.push_back("PreferFastBuild");
+			if ((t & AccelerationStructureFlags::MinimizeMemory) == AccelerationStructureFlags::MinimizeMemory)
+				names.push_back("MinimizeMemory");
+		}
+
+		String name = Join(names, " | ");
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API std::formatter<InstanceFlags> : std::formatter<std::string_view> {
+	auto format(InstanceFlags t, std::format_context& ctx) const {
+		Array<String> names;
+
+		if (t == InstanceFlags::None)
+			names.push_back("None");
+		else
+		{
+			if ((t & InstanceFlags::DisableCull) == InstanceFlags::DisableCull)
+				names.push_back("DisableCull");
+			if ((t & InstanceFlags::FlipWinding) == InstanceFlags::FlipWinding)
+				names.push_back("FlipWinding");
+			if ((t & InstanceFlags::ForceOpaque) == InstanceFlags::ForceOpaque)
+				names.push_back("ForceOpaque");
+			if ((t & InstanceFlags::ForceNonOpaque) == InstanceFlags::ForceNonOpaque)
+				names.push_back("ForceNonOpaque");
+		}
+
+		String name = Join(names, " | ");
 		return formatter<string_view>::format(name, ctx);
 	}
 };

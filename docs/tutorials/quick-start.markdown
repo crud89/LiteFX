@@ -439,24 +439,24 @@ auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBu
 We then create a CPU visible vertex buffer and copy the vertex data into it:
 
 ```cxx
-auto stagedVertices = m_device->factory().createVertexBuffer(inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
+auto stagedVertices = m_device->factory().createVertexBuffer(inputAssembler->vertexBufferLayout(0), ResourceHeap::Staging, vertices.size());
 stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
 ```
 
-The `BufferUsage` defines where the buffer should be visible from. `Staging` corresponds to a CPU-only visible buffer, whilst `Resource` is used for GPU-only visible buffers. We will use another buffer type (`Dynamic`) later to represent *Write once/Read once* scenarios. Finally, we copy the data to the vertex buffer by calling `map`. After this, we can create the GPU-visible vertex buffer and issue a transfer command:
+The `ResourceHeap` defines where the buffer should be visible from. `Staging` corresponds to a CPU-only visible buffer, whilst `Resource` is used for GPU-only visible buffers. We will use another buffer type (`Dynamic`) later to represent *Write once/Read once* scenarios. Finally, we copy the data to the vertex buffer by calling `map`. After this, we can create the GPU-visible vertex buffer and issue a transfer command:
 
 ```cxx
-m_vertexBuffer = m_device->factory().createVertexBuffer(inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
+m_vertexBuffer = m_device->factory().createVertexBuffer(inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, vertices.size());
 commandBuffer->transfer(*stagedVertices, *m_vertexBuffer, 0, 0, vertices.size());
 ```
 
 We store the vertex buffer in a member variable. We then go ahead and repeat the same process for the index buffer:
 
 ```cxx
-auto stagedIndices = m_device->factory().createIndexBuffer(inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
+auto stagedIndices = m_device->factory().createIndexBuffer(inputAssembler->indexBufferLayout(), ResourceHeap::Staging, indices.size());
 stagedIndices->map(indices.data(), indices.size() * inputAssembler->indexBufferLayout().elementSize(), 0);
 
-m_indexBuffer = m_device->factory().createIndexBuffer(inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
+m_indexBuffer = m_device->factory().createIndexBuffer(inputAssembler->indexBufferLayout(), ResourceHeap::Resource, indices.size());
 commandBuffer->transfer(*stagedIndices, *m_indexBuffer, 0, 0, indices.size());
 ```
 
@@ -491,8 +491,8 @@ Next, we create the two buffers that should store the camera data:
 ```cxx
 auto& cameraBindingLayout = m_pipeline->layout()->descriptorSet(0);
 auto& cameraBufferLayout = cameraBindingLayout.descriptor(0);
-m_cameraStagingBuffer = m_device->factory().createBuffer(cameraBufferLayout.type(), BufferUsage::Staging, cameraBufferLayout.elementSize(), 1);
-m_cameraBuffer = m_device->factory().createBuffer(cameraBufferLayout.type(), BufferUsage::Resource, cameraBufferLayout.elementSize(), 1);
+m_cameraStagingBuffer = m_device->factory().createBuffer(cameraBufferLayout.type(), ResourceHeap::Staging, cameraBufferLayout.elementSize(), 1);
+m_cameraBuffer = m_device->factory().createBuffer(cameraBufferLayout.type(), ResourceHeap::Resource, cameraBufferLayout.elementSize(), 1);
 ```
 
 First, we request a reference of the descriptor set layout (at space *0*), that contains the camera buffer descriptor layout (at binding point 0). We then create two constant buffers for and store them in a member variable, since we want to be able to update the camera buffer later (for example, if a resize-event occurs). The camera buffer is still static, since such events occur infrequently.
@@ -550,7 +550,7 @@ Next, we create three `Dynamic` buffers and map them to the descriptor set at sp
 auto& transformBindingLayout = m_pipeline->layout()->descriptorSet(1);
 auto& transformBufferLayout = transformBindingLayout.descriptor(0);
 m_perFrameBindings = transformBindingLayout.allocateMultiple(3);
-m_transformBuffer = m_device->factory().createBuffer(transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
+m_transformBuffer = m_device->factory().createBuffer(transformBufferLayout.type(), ResourceHeap::Dynamic, transformBufferLayout.elementSize(), 3);
 std::ranges::for_each(m_perFrameBindings, [this, &transformBufferLayout, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *m_transformBuffer, i++, 1); });
 ```
 
@@ -659,11 +659,10 @@ auto surfaceFormat = m_device->swapChain().surfaceFormat();
 auto renderArea = Size2d(width, height);
 ```
 
-Again, we first wait for the device to finish all submitted work. This ensures that we do not destroy any back buffers, that might be still used by command buffers that are yet to be executed. Next we request the surface format from the current swap chain and initialize the new render area extent. We then can go ahead and re-create the swap chain, which causes the back buffers to be re-allocated with the new size and format. Furthermore, we can resize the frame buffers of our render pass. Note that you have to decide whether or not you want to do this, because you might have a render pass, that renders into a target that is deliberately at a different size than the swap chain back buffer. However, you almost certainly want to at least resize the frame buffer of the render pass that writes your present target.
+Again, we first wait for the device to finish all submitted work. This ensures that we do not destroy any back buffers, that might be still used by command buffers that are yet to be executed. Next we request the surface format from the current swap chain and initialize the new render area extent. We then can go ahead and re-create the swap chain, which causes the back buffers to be re-allocated with the new size and format.
 
 ```cxx
 m_device->swapChain().reset(surfaceFormat, renderArea, 3);
-m_renderPass->resizeFrameBuffers(renderArea);
 ```
 
 We then also resize the viewport and scissor rectangles, so that the image is drawn over the whole area of our resized window:

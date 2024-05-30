@@ -37,7 +37,7 @@ VulkanDescriptorSet::~VulkanDescriptorSet() noexcept
     for (auto& bufferView : m_impl->m_bufferViews)
         ::vkDestroyBufferView(m_impl->m_layout.device().handle(), bufferView.second, nullptr);
 
-    for (auto& imageView: m_impl->m_imageViews)
+    for (auto& imageView : m_impl->m_imageViews)
         ::vkDestroyImageView(m_impl->m_layout.device().handle(), imageView.second, nullptr);
 
     m_impl->m_layout.free(*this);
@@ -50,6 +50,18 @@ const VulkanDescriptorSetLayout& VulkanDescriptorSet::layout() const noexcept
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const
 {
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
+
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+    
+    const auto& descriptorLayout = *(*match);
+
     VkWriteDescriptorSet descriptorWrite{ };
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
     descriptorWrite.dstSet = this->handle();
@@ -57,7 +69,6 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
     descriptorWrite.dstArrayElement = firstDescriptor;
     descriptorWrite.descriptorCount = 1;
 
-    auto& descriptorLayout = m_impl->m_layout.descriptor(binding);
     Array<VkDescriptorBufferInfo> bufferInfos;
     UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;
 
@@ -159,6 +170,18 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
 {
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
+
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+    
+    const auto& layout = *(*match);
+
     VkDescriptorImageInfo imageInfo{ };
     VkWriteDescriptorSet descriptorWrite{ };
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -167,8 +190,6 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
     descriptorWrite.dstArrayElement = descriptor;
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
-
-    const auto& layout = m_impl->m_layout.descriptor(binding);
 
     switch (layout.descriptorType())
     {
@@ -179,6 +200,10 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
     case DescriptorType::RWTexture:
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
         descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+        break;
+    case DescriptorType::InputAttachment:
+        imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
         break;
     default: [[unlikely]]
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a texture descriptor.", binding);
@@ -199,7 +224,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
         .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext = nullptr,
         .image = texture.handle(),
-        .viewType = Vk::getImageViewType(texture.dimensions(), texture.layers()),
+        .viewType = Vk::getImageViewType(texture.dimensions(), numLayers), // TODO: What if we want to bind an array with one layer only, though?!... `DescriptorLayout` should get an "isArray" property.
         .format = Vk::getFormat(texture.format()),
         .components = VkComponentMapping {
             .r = VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -217,10 +242,15 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
 
     if (!::hasDepth(texture.format()) && !::hasStencil(texture.format()))
         imageViewDesc.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    else if (::hasDepth(texture.format()))
-        imageViewDesc.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-    else if (::hasStencil(texture.format()))
-        imageViewDesc.subresourceRange.aspectMask = VK_IMAGE_ASPECT_STENCIL_BIT;
+    else
+    {
+        // TODO: This probably wont work, instead we need separate views here. Maybe we could add a "plane" parameter that addresses the depth/stencil view.
+        if (::hasDepth(texture.format()))
+            imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_DEPTH_BIT;
+
+        if (::hasStencil(texture.format()))
+            imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+    }
 
     VkImageView imageView;
     raiseIfFailed(::vkCreateImageView(m_impl->m_layout.device().handle(), &imageViewDesc, nullptr, &imageView), "Unable to create image view.");
@@ -232,7 +262,17 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, UInt32 descriptor) const
 {
-    const auto& layout = m_impl->m_layout.descriptor(binding);
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
+
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+    
+    const auto& layout = *(*match);
 
     if (layout.descriptorType() != DescriptorType::Sampler) [[unlikely]]
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a sampler descriptor.", binding);
@@ -252,25 +292,41 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, 
     ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
-void VulkanDescriptorSet::attach(UInt32 binding, const IVulkanImage& image) const
+void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStructure& accelerationStructure, UInt32 descriptor) const
 {
-    const auto& layout = m_impl->m_layout.descriptor(binding);
+    // Find the descriptor.
+    auto descriptors = m_impl->m_layout.descriptors();
+    auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
 
-    if (layout.descriptorType() != DescriptorType::InputAttachment) [[unlikely]]
-        throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a input attachment descriptor.", binding);
+    if (match == descriptors.end()) [[unlikely]]
+    {
+        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        return;
+    }
+    
+    const auto& layout = *(*match);
 
-    VkDescriptorImageInfo imageInfo{};
-    imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-    imageInfo.imageView = image.imageView();
+    if (layout.descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
+        throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor.", binding);
 
-    VkWriteDescriptorSet descriptorWrite{ };
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-    descriptorWrite.dstSet = this->handle();
-    descriptorWrite.dstBinding = binding;
-    descriptorWrite.dstArrayElement = 0;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pImageInfo = &imageInfo;
+    if (accelerationStructure.buffer() == nullptr || accelerationStructure.handle() == VK_NULL_HANDLE) [[unlikely]]
+        throw InvalidArgumentException("accelerationStructure", "The acceleration structure buffer has not yet been allocated.");
+
+    VkWriteDescriptorSetAccelerationStructureKHR accelerationStructureInfo = {
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR,
+        .accelerationStructureCount = 1,
+        .pAccelerationStructures = &accelerationStructure.handle()
+    };
+    
+    VkWriteDescriptorSet descriptorWrite = { 
+        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+        .pNext = &accelerationStructureInfo,
+        .dstSet = this->handle(),
+        .dstBinding = binding,
+        .dstArrayElement = descriptor,
+        .descriptorCount = 1,
+        .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
+    };
 
     ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
 }

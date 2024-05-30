@@ -63,10 +63,10 @@ namespace LiteFX::Rendering::Backends {
 		// ShaderProgramBuilder interface.
 	protected:
 		/// <inheritdoc />
-		constexpr inline UniquePtr<VulkanShaderModule> makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint) override;
+		constexpr inline UniquePtr<VulkanShaderModule> makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) override;
 
 		/// <inheritdoc />
-		constexpr inline UniquePtr<VulkanShaderModule> makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint) override;
+		constexpr inline UniquePtr<VulkanShaderModule> makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) override;
 	};
 
 	/// <summary>
@@ -140,7 +140,7 @@ namespace LiteFX::Rendering::Backends {
 		template <typename TSelf>
 		constexpr inline auto indexType(this TSelf&& self, IndexType type) -> TSelf&& {
 			self.use(makeUnique<VulkanIndexBufferLayout>(type));
-			return self;
+			return std::forward<TSelf>(self);
 		}
 	};
 
@@ -298,6 +298,29 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
+	/// Builds a Vulkan <see cref="RayTracingPipeline" />.
+	/// </summary>
+	/// <seealso cref="VulkanRayTracingPipeline" />
+	class LITEFX_VULKAN_API [[nodiscard]] VulkanRayTracingPipelineBuilder final : public RayTracingPipelineBuilder<VulkanRayTracingPipeline> {
+	public:
+		/// <summary>
+		/// Initializes a Vulkan ray-tracing pipeline builder.
+		/// </summary>
+		/// <param name="device">The parent device</param>
+        /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
+		/// <param name="name">A debug name for the ray-tracing pipeline.</param>
+		constexpr inline explicit VulkanRayTracingPipelineBuilder(const VulkanDevice& device, ShaderRecordCollection&& shaderRecords, const String& name = "");
+		VulkanRayTracingPipelineBuilder(VulkanRayTracingPipelineBuilder&&) = delete;
+		VulkanRayTracingPipelineBuilder(const VulkanRayTracingPipelineBuilder&) = delete;
+		constexpr inline virtual ~VulkanRayTracingPipelineBuilder() noexcept;
+
+		// Builder interface.
+	public:
+		/// <inheritdoc />
+		inline void build() override;
+	};
+
+	/// <summary>
 	/// Implements the Vulkan <see cref="RenderPassBuilder" />.
 	/// </summary>
 	/// <seealso cref="VulkanRenderPass" />
@@ -306,34 +329,18 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a Vulkan render pass builder.
 		/// </summary>
-		/// <param name="device">The parent device</param>
+		/// <param name="device">The parent device.</param>
 		/// <param name="name">A debug name for the render pass.</param>
 		constexpr inline explicit VulkanRenderPassBuilder(const VulkanDevice& device, const String& name = "") noexcept;
 
 		/// <summary>
 		/// Initializes a Vulkan render pass builder.
 		/// </summary>
-		/// <param name="device">The parent device</param>
-		/// <param name="samples">The multi-sampling level for the render targets.</param>
-		/// <param name="name">A debug name for the render pass.</param>
-		constexpr inline explicit VulkanRenderPassBuilder(const VulkanDevice& device, MultiSamplingLevel samples = MultiSamplingLevel::x1, const String& name = "") noexcept;
-
-		/// <summary>
-		/// Initializes a Vulkan render pass builder.
-		/// </summary>
-		/// <param name="device">The parent device</param>
+		/// <param name="device">The parent device.</param>
 		/// <param name="commandBuffers">The number of command buffers to initialize.</param>
 		/// <param name="name">A debug name for the render pass.</param>
 		constexpr inline explicit VulkanRenderPassBuilder(const VulkanDevice& device, UInt32 commandBuffers, const String& name = "") noexcept;
 
-		/// <summary>
-		/// Initializes a Vulkan render pass builder.
-		/// </summary>
-		/// <param name="device">The parent device</param>
-		/// <param name="commandBuffers">The number of command buffers to initialize.</param>
-		/// <param name="multiSamplingLevel">The multi-sampling level for the render targets.</param>
-		/// <param name="name">A debug name for the render pass.</param>
-		constexpr inline explicit VulkanRenderPassBuilder(const VulkanDevice& device, UInt32 commandBuffers, MultiSamplingLevel multiSamplingLevel, const String& name = "") noexcept;
 		VulkanRenderPassBuilder(const VulkanRenderPassBuilder&) noexcept = delete;
 		VulkanRenderPassBuilder(VulkanRenderPassBuilder&&) noexcept = delete;
 		constexpr inline virtual ~VulkanRenderPassBuilder() noexcept;
@@ -346,7 +353,7 @@ namespace LiteFX::Rendering::Backends {
 		// RenderPassBuilder interface.
 	protected:
 		/// <inheritdoc />
-		inline VulkanInputAttachmentMapping makeInputAttachment(UInt32 inputLocation, const VulkanRenderPass& renderPass, const RenderTarget& renderTarget) override;
+		inline RenderPassDependency makeInputAttachment(DescriptorBindingPoint binding, const RenderTarget& renderTarget) override;
 	};
 
 }
