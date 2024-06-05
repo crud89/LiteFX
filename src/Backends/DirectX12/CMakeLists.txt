@@ -12,6 +12,7 @@ FIND_PACKAGE(directx-headers CONFIG REQUIRED)
 FIND_PACKAGE(directx-agility-sdk CONFIG REQUIRED)
 FIND_PACKAGE(d3d12-memory-allocator CONFIG REQUIRED)
 FIND_PACKAGE(winpixeventruntime CONFIG REQUIRED)
+FIND_PACKAGE(directx-dxc CONFIG REQUIRED)
 
 # Collect header & source files.
 SET(DIRECTX12_BACKEND_HEADERS
