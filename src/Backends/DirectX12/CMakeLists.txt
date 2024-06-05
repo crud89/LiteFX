@@ -13,20 +13,6 @@ FIND_PACKAGE(directx-agility-sdk CONFIG REQUIRED)
 FIND_PACKAGE(d3d12-memory-allocator CONFIG REQUIRED)
 FIND_PACKAGE(winpixeventruntime CONFIG REQUIRED)
 
-# Attempt to find the proper dxcompiler.dll file from the Windows SDK and copy it to the runtime directory. This fixes an issue where the wrong (x64) dll
-# is picked up from the Vulkan SDK in x86 builds.
-IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    FIND_FILE(DXCOMPILER_DLL "dxcompiler.dll" PATHS "$ENV{WindowsSdkVerBinPath}/x64/" NO_DEFAULT_PATH)
-    FIND_FILE(DXIL_DLL "dxil.dll" PATHS "$ENV{WindowsSdkVerBinPath}/x64/" NO_DEFAULT_PATH)
-ELSEIF(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    FIND_FILE(DXCOMPILER_DLL "dxcompiler.dll" PATHS "$ENV{WindowsSdkVerBinPath}/x86/" NO_DEFAULT_PATH)
-    FIND_FILE(DXIL_DLL "dxil.dll" PATHS "$ENV{WindowsSdkVerBinPath}/x86/" NO_DEFAULT_PATH)
-ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
-
-IF(NOT DXCOMPILER_DLL OR NOT DXIL_DLL)
-    MESSAGE(WARNING "Unable to locate dxcompiler.dll or dxil.dll from Windows SDK. You may have to install the DLL manually.")
-ENDIF(NOT DXCOMPILER_DLL OR NOT DXIL_DLL)
-
 # Collect header & source files.
 SET(DIRECTX12_BACKEND_HEADERS
     "include/litefx/backends/dx12_api.hpp"
@@ -101,7 +87,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi dxcompiler Microsoft::DirectXAgilitySDK
+    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi Microsoft::DirectXAgilitySDK Microsoft::DirectXShaderCompiler Microsoft::DXIL 
     PRIVATE unofficial::d3d12-memory-allocator Microsoft::WinPixEventRuntime
 )
 
