@@ -72,15 +72,14 @@ You can also build the sources on your own. Currently only MSVC builds under Win
 
 In order for the project to be built, there are a few prerequisites that need to be present on your environment:
 
-- [C++23 compatible compiler](https://en.cppreference.com/w/cpp/compiler_support/23): At the moment only MSVC fully supports the required features.
-- [CMake](https://cmake.org/download/) (version 3.20 or higher). †
+- [C++23 compatible compiler](https://en.cppreference.com/w/cpp/compiler_support/23): At the moment only MSVC fully supports the required features. †
+- [CMake](https://cmake.org/download/) (version 3.20 or higher). ‡
 - Optional: [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later (required to build the Vulkan backend).
-- Optional: Custom [DXC](https://github.com/microsoft/DirectXShaderCompiler) build (required to build shaders for DirectX backend). ‡
 - Optional: Windows 10 SDK 10.0.19041.0 or later (required to build DirectX backend).
 
-† CMake 3.20 is part of Visual Studio 2019 version 16.10 and above. When using other compilers, CMake needs to be installed manually.
+† Note that at least Visual Studio 17.10 or later is required.
 
-‡ Note that the LunarG Vulkan SDK (1.3.204.1 and above) ships with a pre-built DXC binary, that supports DXIL and SPIR-V code generation and thus should be favored over the DXC binary shipped with the Windows SDK, which only supports DXIL.
+‡ CMake 3.20 is part of Visual Studio 2022. When using other compilers, CMake needs to be installed manually.
 
 #### Cloning the Repository
 
@@ -194,6 +193,7 @@ Depending on which rendering backends are build, the following dependencies are 
 - [DirectX Agility SDK](https://devblogs.microsoft.com/directx/directx12agility/): Required by the DirectX 12 backend.
 - [WinPixEventRuntime](https://devblogs.microsoft.com/pix/winpixeventruntime/): Required by the DirectX 12 backend.
 - [D3D12 Memory Allocator](https://gpuopen.com/d3d12-memory-allocator/): Required by the DirectX 12 backend. Handles memory allocations.
+- [DirectX Shader Compiler (DXC)](https://github.com/microsoft/DirectXShaderCompiler): Optional for Vulkan backend, but required for the DirectX 12 backend.
 
 The math module can optionally be built with converters for the following math and linear algebra libraries:
 
