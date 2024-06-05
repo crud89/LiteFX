@@ -9,6 +9,11 @@ struct VertexData
 struct VertexInput
 {
     float3 Position : POSITION;
+    
+#ifdef __spirv__
+    [[vk::builtin("BaseInstance")]]
+#endif
+    uint ModelID : SV_StartInstanceLocation;
 };
 
 struct Camera
@@ -37,10 +42,10 @@ struct Object
 ConstantBuffer<Camera>   camera  : register(b0, space0);
 StructuredBuffer<Object> objects : register(t0, space1);
 
-VertexData main(in VertexInput input, in uint modelId : SV_StartInstanceLocation)
+VertexData main(in VertexInput input)
 {
     VertexData vertex;
-    Object object = objects.Load(modelId);
+    Object object = objects.Load(input.ModelID);
     
     float4 position = mul(float4(input.Position, 1.0), object.Transform);
     
