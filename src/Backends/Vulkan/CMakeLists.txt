@@ -87,7 +87,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
     PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Vulkan::Vulkan
-    PRIVATE GPUOpen::VulkanMemoryAllocator unofficial::spirv-reflect::spirv-reflect
+    PRIVATE GPUOpen::VulkanMemoryAllocator unofficial::spirv-reflect
 )
 
 # Link against D3D12 to enable flip-model swap chains.
