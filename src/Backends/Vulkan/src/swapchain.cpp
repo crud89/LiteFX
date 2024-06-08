@@ -97,7 +97,7 @@ public:
 		createInfo.presentMode = vsync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR;/* VK_PRESENT_MODE_MAILBOX_KHR;*/
 		m_vsync = vsync;
 
-		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", reinterpret_cast<void*>(&m_device), images, createInfo.imageExtent.width, createInfo.imageExtent.height, selectedFormat, vsync);
+		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", reinterpret_cast<const void*>(&m_device), images, createInfo.imageExtent.width, createInfo.imageExtent.height, selectedFormat, vsync);
 
 		// Log if something needed to be changed.
 		[[unlikely]] if (selectedFormat != format)
