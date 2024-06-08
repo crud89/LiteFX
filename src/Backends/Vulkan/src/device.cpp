@@ -362,10 +362,17 @@ public:
             .bufferDeviceAddress = true
         };
 
+        // Enable shader draw parameters, if we use indirect draw.
+        VkPhysicalDeviceVulkan11Features deviceFeatures11 = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES,
+            .pNext = &deviceFeatures12,
+            .shaderDrawParameters = features.DrawIndirect
+        };
+
         // Enable extended dynamic state.
         VkPhysicalDeviceExtendedDynamicStateFeaturesEXT extendedDynamicStateFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT,
-            .pNext = &deviceFeatures12,
+            .pNext = &deviceFeatures11,
             .extendedDynamicState = true
         };
 
