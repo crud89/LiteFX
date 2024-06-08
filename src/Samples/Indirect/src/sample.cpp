@@ -1,4 +1,6 @@
 #include "sample.h"
+
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 
@@ -43,7 +45,7 @@ struct alignas(16) ObjectBuffer {
 } objects[NUM_INSTANCES];
 
 template<typename TRenderBackend> requires
-    rtti::implements<TRenderBackend, IRenderBackend>
+    meta::implements<TRenderBackend, IRenderBackend>
 struct FileExtensions {
     static const String SHADER;
 };
@@ -85,7 +87,7 @@ static inline void initializeObjects() {
 }
 
 template<typename TRenderBackend> requires
-    rtti::implements<TRenderBackend, IRenderBackend>
+    meta::implements<TRenderBackend, IRenderBackend>
 void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState)
 {
     using RenderPass = TRenderBackend::render_pass_type;
@@ -95,9 +97,15 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     using ShaderProgram = TRenderBackend::shader_program_type;
     using InputAssembler = TRenderBackend::input_assembler_type;
     using Rasterizer = TRenderBackend::rasterizer_type;
+    using FrameBuffer = TRenderBackend::frame_buffer_type;
 
     // Get the default device.
     auto device = backend->device("Default");
+
+    // Create the frame buffers for all back buffers.
+    auto frameBuffers = std::views::iota(0u, device->swapChain().buffers()) |
+        std::views::transform([&](UInt32 index) { return device->makeFrameBuffer(std::format("Frame Buffer {0}", index), device->swapChain().renderArea()); }) |
+        std::ranges::to<Array<UniquePtr<FrameBuffer>>>();
 
     // Create input assembler state.
     SharedPtr<InputAssembler> inputAssembler = device->buildInputAssembler()
@@ -114,6 +122,9 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
         .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
         .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
+
+    // Map all render targets to the frame buffer.
+    std::ranges::for_each(frameBuffers, [&renderPass](auto& frameBuffer) { frameBuffer->addImages(renderPass->renderTargets()); });
 
     // Create the shader program.
     SharedPtr<ShaderProgram> shaderProgram = device->buildShaderProgram()
@@ -144,6 +155,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     device->state().add(std::move(renderPass));
     device->state().add(std::move(renderPipeline));
     device->state().add(std::move(cullPipeline));
+    std::ranges::for_each(frameBuffers, [device](auto& frameBuffer) { device->state().add(std::move(frameBuffer)); });
 }
 
 void SampleApp::initBuffers(IRenderBackend* backend)
@@ -154,19 +166,19 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Create the staging buffer.
     // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
     //       whole buffer.
-    auto stagedVertices = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
+    auto stagedVertices = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Staging, vertices.size());
     stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, vertices.size());
     commandBuffer->transfer(asShared(std::move(stagedVertices)), *vertexBuffer, 0, 0, vertices.size());
 
     // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
-    auto stagedIndices = m_device->factory().createIndexBuffer(*m_inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
+    auto stagedIndices = m_device->factory().createIndexBuffer(*m_inputAssembler->indexBufferLayout(), ResourceHeap::Staging, indices.size());
     stagedIndices->map(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), 0);
 
     // Create the actual index buffer and transfer the staging buffer into it.
-    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
+    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, indices.size());
     commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
 
     // Initialize the camera buffer.
@@ -175,7 +187,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& cameraCullBindingLayout = cullPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
     auto& cameraGeometryBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    auto cameraBuffer = m_device->factory().createBuffer("Camera Buffer", cameraGeometryBindingLayout, 0, BufferUsage::Dynamic, 3);
+    auto cameraBuffer = m_device->factory().createBuffer("Camera Buffer", cameraGeometryBindingLayout, 0, ResourceHeap::Dynamic, 3);
     auto cameraCullBindings = cameraCullBindingLayout.allocateMultiple(3, {
         { { .resource = *cameraBuffer, .firstElement = 0, .elements = 1 } },
         { { .resource = *cameraBuffer, .firstElement = 1, .elements = 1 } },
@@ -190,8 +202,8 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Next, we create the objects buffer.
     auto& objectsCullBindingLayout = cullPipeline.layout()->descriptorSet(DescriptorSets::Constant);
     auto& objectsGeometryBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
-    auto objectsStagingBuffer = m_device->factory().createBuffer(objectsGeometryBindingLayout, 0, BufferUsage::Staging, sizeof(ObjectBuffer) * NUM_INSTANCES, 1, false);
-    auto objectsBuffer = m_device->factory().createBuffer("Objects Buffer", objectsGeometryBindingLayout, 0, BufferUsage::Resource, sizeof(ObjectBuffer) * NUM_INSTANCES, 1);
+    auto objectsStagingBuffer = m_device->factory().createBuffer(objectsGeometryBindingLayout, 0, ResourceHeap::Staging, sizeof(ObjectBuffer) * NUM_INSTANCES, 1);
+    auto objectsBuffer = m_device->factory().createBuffer("Objects Buffer", objectsGeometryBindingLayout, 0, ResourceHeap::Resource, sizeof(ObjectBuffer) * NUM_INSTANCES, 1);
     auto objectsCullBinding = objectsCullBindingLayout.allocate({ { .resource = *objectsBuffer } });
     auto objectsGeometryBinding = objectsGeometryBindingLayout.allocate({ { .resource = *objectsBuffer } });
 
@@ -201,11 +213,10 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Create a buffer for recording the indirect draw calls.
     // 
     // NOTE: Reflection cannot determine, that the buffer records indirect commands, so we need to explicitly state the usage.
-    // TODO: We could add writable and indirect to `BufferFlags`... maybe even `TransferSource` and `TransferDest` (ignored in D3D though).
     // NOTE: We allocate a fourth element in the counter variable, which will always be zeroed out and acts as a copy source for resetting the counter.
     auto& indirectBindingLayout = cullPipeline.layout()->descriptorSet(DescriptorSets::Indirect);
-    auto indirectCounterBuffer = m_device->factory().createBuffer("Indirect Counter", BufferType::Indirect, BufferUsage::Resource, sizeof(UInt32), 4, true);
-    auto indirectCommandsBuffer = m_device->factory().createBuffer("Indirect Commands", BufferType::Indirect, BufferUsage::Resource, sizeof(IndirectIndexedBatch) * NUM_INSTANCES, 3, true);
+    auto indirectCounterBuffer = m_device->factory().createBuffer("Indirect Counter", BufferType::Indirect, ResourceHeap::Resource, sizeof(UInt32), 4, ResourceUsage::Default | ResourceUsage::AllowWrite);
+    auto indirectCommandsBuffer = m_device->factory().createBuffer("Indirect Commands", BufferType::Indirect, ResourceHeap::Resource, sizeof(IndirectIndexedBatch) * NUM_INSTANCES, 3, ResourceUsage::AllowWrite);
     auto indirectBindings = indirectBindingLayout.allocateMultiple(3, {
         { { .resource = *indirectCounterBuffer, .firstElement = 0, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 0, .elements = 1 } },
         { { .resource = *indirectCounterBuffer, .firstElement = 1, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 1, .elements = 1 } },
@@ -224,9 +235,9 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     m_device->state().add(std::move(indirectCommandsBuffer));
     m_device->state().add("Objects Cull Bindings", std::move(objectsCullBinding));
     m_device->state().add("Objects Geometry Bindings", std::move(objectsGeometryBinding));
-    std::ranges::for_each(cameraCullBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Camera Cull Bindings {0}", i++), std::move(binding)); });
-    std::ranges::for_each(cameraGeometryBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Camera Geometry Bindings {0}", i++), std::move(binding)); });
-    std::ranges::for_each(indirectBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(fmt::format("Indirect Bindings {0}", i++), std::move(binding)); });
+    std::ranges::for_each(cameraCullBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(std::format("Camera Cull Bindings {0}", i++), std::move(binding)); });
+    std::ranges::for_each(cameraGeometryBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(std::format("Camera Geometry Bindings {0}", i++), std::move(binding)); });
+    std::ranges::for_each(indirectBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(std::format("Indirect Bindings {0}", i++), std::move(binding)); });
 }
 
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer, UInt32 backBuffer) const
@@ -326,7 +337,7 @@ void SampleApp::onInit()
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.
-        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3);
+        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, Size2d(static_cast<Float>(width), static_cast<Float>(height)), 3, false, GraphicsDeviceFeatures { .DrawIndirect = true });
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);
@@ -363,12 +374,13 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     // Resize the frame buffer and recreate the swap chain.
     auto surfaceFormat = m_device->swapChain().surfaceFormat();
     auto renderArea = Size2d(e.width(), e.height());
-    m_device->swapChain().reset(surfaceFormat, renderArea, 3);
+    auto vsync = m_device->swapChain().verticalSynchronization();
+    m_device->swapChain().reset(surfaceFormat, renderArea, 3, vsync);
 
-    // NOTE: Important to do this in order, since dependencies (i.e. input attachments) are re-created and might be mapped to images that do no longer exist when a dependency
-    //       gets re-created. This is hard to detect, since some frame buffers can have a constant size, that does not change with the render area and do not need to be 
-    //       re-created. We should either think of a clever implicit dependency management for this, or at least document this behavior!
-    m_device->state().renderPass("Opaque").resizeFrameBuffers(renderArea);
+    // Resize the frame buffers. Note that we could also use an event handler on the swap chain `reseted` event to do this automatically instead.
+    m_device->state().frameBuffer("Frame Buffer 0").resize(renderArea);
+    m_device->state().frameBuffer("Frame Buffer 1").resize(renderArea);
+    m_device->state().frameBuffer("Frame Buffer 2").resize(renderArea);
 
     // Also resize viewport and scissor.
     m_viewport->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
@@ -469,15 +481,16 @@ void SampleApp::drawFrame()
     auto backBuffer = m_device->swapChain().swapBackBuffer();
 
     // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
+    auto& frameBuffer = m_device->state().frameBuffer(std::format("Frame Buffer {0}", backBuffer));
     auto& renderPass = m_device->state().renderPass("Opaque");
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& cullPipeline = m_device->state().pipeline("Cull");
     auto& cameraBuffer = m_device->state().buffer("Camera Buffer");
-    auto& cameraGeometryBindings = m_device->state().descriptorSet(fmt::format("Camera Geometry Bindings {0}", backBuffer));
-    auto& cameraCullBindings = m_device->state().descriptorSet(fmt::format("Camera Cull Bindings {0}", backBuffer));
+    auto& cameraGeometryBindings = m_device->state().descriptorSet(std::format("Camera Geometry Bindings {0}", backBuffer));
+    auto& cameraCullBindings = m_device->state().descriptorSet(std::format("Camera Cull Bindings {0}", backBuffer));
     auto& indirectCounterBuffer = m_device->state().buffer("Indirect Counter");
     auto& indirectCommandsBuffer = m_device->state().buffer("Indirect Commands");
-    auto& indirectBindings = m_device->state().descriptorSet(fmt::format("Indirect Bindings {0}", backBuffer));
+    auto& indirectBindings = m_device->state().descriptorSet(std::format("Indirect Bindings {0}", backBuffer));
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
     auto& objectsGeometryBindings = m_device->state().descriptorSet("Objects Geometry Bindings");
@@ -509,8 +522,8 @@ void SampleApp::drawFrame()
     queue.submit(cullCommands);
 
     // Begin rendering on the render pass and use the only pipeline we've created for it.
-    renderPass.begin(backBuffer);
-    auto commandBuffer = renderPass.activeFrameBuffer().commandBuffer(0);
+    renderPass.begin(frameBuffer);
+    auto commandBuffer = renderPass.commandBuffer(0);
     commandBuffer->use(geometryPipeline);
     commandBuffer->setViewports(m_viewport.get());
     commandBuffer->setScissors(m_scissor.get());
