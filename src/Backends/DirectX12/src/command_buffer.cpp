@@ -279,7 +279,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 	this->bind(*samplerBindings, pipeline);
 
 	// Transition the texture into a read/write state.
-	DirectX12Barrier startBarrier(PipelineStage::None, PipelineStage::Compute);
+	DirectX12Barrier startBarrier(PipelineStage::All, PipelineStage::Compute);
 	startBarrier.transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::Undefined, ImageLayout::ReadWrite);
 	this->barrier(startBarrier);
 	auto resource = resourceBindings.begin();
