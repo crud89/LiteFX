@@ -638,17 +638,11 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// Initializes a Vulkan descriptor set layout.
         /// </summary>
-        /// <remarks>
-        /// If the descriptor set contains an unbounded array, it still is not truly unbounded. Instead, only maximum number of descriptors can be allocated from the descriptor set. This
-        /// number is defined by the device limits and depends on the descriptor type. If you need more descriptors in one array, increase the <paramref name="maxUnboundedArraySize" />
-        /// parameter. Keep in mind that you may be only able to use less or smaller unbounded descriptor arrays in other descriptor sets as a result.
-        /// </remarks>
         /// <param name="device">The parent device, the pipeline layout has been created from.</param>
         /// <param name="descriptorLayouts">The descriptor layouts of the descriptors within the descriptor set.</param>
         /// <param name="space">The space or set id of the descriptor set.</param>
         /// <param name="stages">The shader stages, the descriptor sets are bound to.</param>
-        /// <param name="maxUnboundedArraySize">The maximum number of descriptors in an unbounded array.</param>
-        explicit VulkanDescriptorSetLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages, UInt32 maxUnboundedArraySize = 104857);
+        explicit VulkanDescriptorSetLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages);
         VulkanDescriptorSetLayout(VulkanDescriptorSetLayout&&) = delete;
         VulkanDescriptorSetLayout(const VulkanDescriptorSetLayout&) = delete;
         virtual ~VulkanDescriptorSetLayout() noexcept;
@@ -989,9 +983,12 @@ namespace LiteFX::Rendering::Backends {
     public:
         using base_type = CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>;
         using base_type::dispatch;
+        using base_type::dispatchIndirect;
         using base_type::dispatchMesh;
         using base_type::draw;
+        using base_type::drawIndirect;
         using base_type::drawIndexed;
+        using base_type::drawIndexedIndirect;
         using base_type::barrier;
         using base_type::transfer;
         using base_type::generateMipMaps;
@@ -1141,13 +1138,34 @@ namespace LiteFX::Rendering::Backends {
         void dispatch(const Vector3u& threadCount) const noexcept override;
 
         /// <inheritdoc />
+        void dispatchIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+
+        /// <inheritdoc />
         void dispatchMesh(const Vector3u& threadCount) const noexcept override;
+
+        /// <inheritdoc />
+        void dispatchMeshIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void dispatchMeshIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept override;
 
         /// <inheritdoc />
         void draw(UInt32 vertices, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const noexcept override;
 
         /// <inheritdoc />
+        void drawIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void drawIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept override;
+
+        /// <inheritdoc />
         void drawIndexed(UInt32 indices, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void drawIndexedIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void drawIndexedIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept override;
 
         /// <inheritdoc />
         void pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept override;

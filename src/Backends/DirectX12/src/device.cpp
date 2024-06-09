@@ -28,6 +28,7 @@ private:
 	ComPtr<ID3D12DescriptorHeap> m_globalBufferHeap, m_globalSamplerHeap;
 	mutable std::mutex m_bufferBindMutex;
 	Array<std::pair<UInt32, UInt32>> m_bufferDescriptorFragments, m_samplerDescriptorFragments;
+	ComPtr<ID3D12CommandSignature> m_dispatchSignature, m_drawSignature, m_drawIndexedSignature, m_dispatchMeshSignature;
 
 public:
 	DirectX12DeviceImpl(DirectX12Device* parent, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, const DirectX12Backend& backend, UInt32 globalBufferHeapSize, UInt32 globalSamplerHeapSize) :
@@ -172,6 +173,20 @@ public:
 		m_globalBufferHeap->SetName(L"Global Descriptor Heap");
 		m_globalSamplerHeap->SetName(L"Global Sampler Heap");
 #endif
+
+		// Initialize command signatures for indirect drawing.
+		D3D12_INDIRECT_ARGUMENT_DESC argumentDesc = { .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH };
+		D3D12_COMMAND_SIGNATURE_DESC signatureDesc = { .ByteStride = sizeof(IndirectDispatchBatch), .NumArgumentDescs = 1, .pArgumentDescs = &argumentDesc, .NodeMask = 0x00 };
+		raiseIfFailed(device->CreateCommandSignature(&signatureDesc, nullptr, IID_PPV_ARGS(&m_dispatchSignature)), "Unable to create indirect dispatch command signature.");
+		argumentDesc = { .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DISPATCH_MESH };
+		signatureDesc = { .ByteStride = sizeof(IndirectIndexedBatch), .NumArgumentDescs = 1, .pArgumentDescs = &argumentDesc, .NodeMask = 0x00 };
+		raiseIfFailed(device->CreateCommandSignature(&signatureDesc, nullptr, IID_PPV_ARGS(&m_dispatchMeshSignature)), "Unable to create indirect mesh shader dispatch command signature.");
+		argumentDesc = { .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW };
+		signatureDesc = { .ByteStride = sizeof(IndirectBatch), .NumArgumentDescs = 1, .pArgumentDescs = &argumentDesc, .NodeMask = 0x00 };
+		raiseIfFailed(device->CreateCommandSignature(&signatureDesc, nullptr, IID_PPV_ARGS(&m_drawSignature)), "Unable to create indirect draw command signature.");
+		argumentDesc = { .Type = D3D12_INDIRECT_ARGUMENT_TYPE_DRAW_INDEXED };
+		signatureDesc = { .ByteStride = sizeof(IndirectIndexedBatch), .NumArgumentDescs = 1, .pArgumentDescs = &argumentDesc, .NodeMask = 0x00 };
+		raiseIfFailed(device->CreateCommandSignature(&signatureDesc, nullptr, IID_PPV_ARGS(&m_drawIndexedSignature)), "Unable to create indirect indexed draw command signature.");
 
 		return device;
 	}
@@ -453,6 +468,14 @@ void DirectX12Device::bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& co
 DirectX12ComputePipeline& DirectX12Device::blitPipeline() const noexcept
 {
 	return *m_impl->m_blitPipeline;
+}
+
+void DirectX12Device::indirectDrawSignatures(ComPtr<ID3D12CommandSignature>& dispatchSignature, ComPtr<ID3D12CommandSignature>& dispatchMeshSignature, ComPtr<ID3D12CommandSignature>& drawSignature, ComPtr<ID3D12CommandSignature>& drawIndexedSignature) const noexcept
+{
+	dispatchSignature = m_impl->m_dispatchSignature;
+	dispatchMeshSignature = m_impl->m_dispatchMeshSignature;
+	drawSignature = m_impl->m_drawSignature;
+	drawIndexedSignature = m_impl->m_drawIndexedSignature;
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

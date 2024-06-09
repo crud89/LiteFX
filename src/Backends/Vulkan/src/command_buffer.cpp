@@ -7,12 +7,13 @@ extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructures;
 extern PFN_vkCmdCopyAccelerationStructureKHR vkCmdCopyAccelerationStructure;
 extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure;
 extern PFN_vkCmdTraceRaysKHR vkCmdTraceRays;
+extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks;
+extern PFN_vkCmdDrawMeshTasksIndirectEXT vkCmdDrawMeshTasksIndirect;
+extern PFN_vkCmdDrawMeshTasksIndirectCountEXT vkCmdDrawMeshTasksIndirectCount;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
-
-extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks;
 
 class VulkanCommandBuffer::VulkanCommandBufferImpl : public Implement<VulkanCommandBuffer> {
 public:
@@ -637,9 +638,24 @@ void VulkanCommandBuffer::dispatch(const Vector3u& threadCount) const noexcept
 	::vkCmdDispatch(this->handle(), threadCount.x(), threadCount.y(), threadCount.z());
 }
 
+void VulkanCommandBuffer::dispatchIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
+{
+	::vkCmdDispatchIndirect(this->handle(), batchBuffer.handle(), offset);
+}
+
 void VulkanCommandBuffer::dispatchMesh(const Vector3u& threadCount) const noexcept
 {
 	::vkCmdDrawMeshTasks(this->handle(), threadCount.x(), threadCount.y(), threadCount.z());
+}
+
+void VulkanCommandBuffer::dispatchMeshIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
+{
+	::vkCmdDrawMeshTasksIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, batchBuffer.elementSize());
+}
+
+void VulkanCommandBuffer::dispatchMeshIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept
+{
+	::vkCmdDrawMeshTasksIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectDispatchBatch))), sizeof(IndirectDispatchBatch));
 }
 
 void VulkanCommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const noexcept
@@ -647,9 +663,29 @@ void VulkanCommandBuffer::draw(UInt32 vertices, UInt32 instances, UInt32 firstVe
 	::vkCmdDraw(this->handle(), vertices, instances, firstVertex, firstInstance);
 }
 
+void VulkanCommandBuffer::drawIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
+{
+	::vkCmdDrawIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, batchBuffer.elementSize());
+}
+
+void VulkanCommandBuffer::drawIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept
+{
+	::vkCmdDrawIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectBatch))), sizeof(IndirectBatch));
+}
+
 void VulkanCommandBuffer::drawIndexed(UInt32 indices, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const noexcept
 {
 	::vkCmdDrawIndexed(this->handle(), indices, instances, firstIndex, vertexOffset, firstInstance);
+}
+
+void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept
+{
+	::vkCmdDrawIndexedIndirect(this->handle(), batchBuffer.handle(), offset, batchCount, batchBuffer.elementSize());
+}
+
+void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept
+{
+	::vkCmdDrawIndexedIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectIndexedBatch))), sizeof(IndirectIndexedBatch));
 }
 
 void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept
