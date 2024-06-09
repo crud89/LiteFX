@@ -113,7 +113,6 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
         .indexType(IndexType::UInt16)
         .vertexBuffer(sizeof(Vertex), 0)
             .withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
-            .withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
             .add();
 
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
@@ -504,7 +503,7 @@ void SampleApp::drawFrame()
     auto cullCommands = queue.createCommandBuffer(true);
 
     // Start by updating the camera.
-    this->updateCamera(*cullCommands, cameraBuffer, backBuffer);
+    this->updateCamera(cameraBuffer, backBuffer);
 
     // Clear the counter.
     cullCommands->transfer(indirectCounterBuffer, indirectCounterBuffer, 3, backBuffer);
