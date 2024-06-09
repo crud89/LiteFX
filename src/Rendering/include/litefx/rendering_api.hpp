@@ -456,6 +456,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <remarks>
         /// In GLSL, use the <c>buffer</c> keyword to access storage buffers. In HLSL, use the <c>RWStructuredBuffer</c> keyword.
+        /// 
+        /// When using shader reflection on `AppendStructuredBuffer`/`ConsumeStructuredBuffer`, this descriptor type will be deduced, but support for those constructs is not
+        /// implemented. Instead, use a separate <see cref="RWByteAddressBuffer" /> descriptor and call `InterlockedAdd` on it.
         /// </remarks>
         RWStructuredBuffer = 0x00000012,
 
@@ -578,6 +581,25 @@ namespace LiteFX::Rendering {
         /// Describes a shader binding table for ray-tracing.
         /// </summary>
         ShaderBindingTable = 0x00000007,
+
+        /// <summary>
+        /// Describes a buffer that stores data to generate indirect draw calls.
+        /// </summary>
+        /// <remarks>
+        /// An indirect buffer refers to a buffer that contains a set of information used to generate dispatch or draw calls. A single dispatch or draw call in this 
+        /// context is referred to as a *batch*. An indirect buffer must only contain one type of batches, e.g., it is not allowed to mix indexed and non-indexed batches
+        /// in a single indirect buffer. Batches need to be densely packed within the buffer, i.e., the stride between elements is always assumed to be `0`.
+        /// 
+        /// Indirect buffers can be written from shaders, which enables use cases like GPU-culling, where a compute shader writes the batches in an indirect buffer, that
+        /// is then passed to an indirect draw call. In such situations, the number of batches in the buffer is typically not known beforehand, so an additional buffer
+        /// is used to store the number of draw calls in.
+        /// 
+        /// Note that indirect drawing support is currently limited in how data can be passed to draw calls. This is due to Vulkan not providing an adequate interface for
+        /// describing per-draw bindings in the indirect signature. In DirectX 12, it is possible for batches to provide different vertex and index buffers, as well as 
+        /// resource bindings for each draw call. Vulkan does only support draw calls that target already bound descriptors. Due to this limitation, it is currently best
+        /// practice to use bind-less descriptor arrays to pass per-draw data to draws and use a vertex attribute to index into the descriptor array.
+        /// </remarks>
+        Indirect = 0x00000008,
 
         /// <summary>
         /// Describes another type of buffer, such as samplers or images.
@@ -1892,6 +1914,98 @@ namespace LiteFX::Rendering {
     /// <seealso cref="DepthStencilState" />
     constexpr inline bool LITEFX_RENDERING_API hasStencil(Format format);
 
+#pragma endregion
+
+#pragma region "Data Types"
+
+    /// <summary>
+    /// An indirect batch used to execute an standard draw call.
+    /// </summary>
+    /// <seealso cref="IndirectDispatchBatch" />
+    /// <seealso cref="IndirectIndexedBatch" />
+    struct LITEFX_RENDERING_API alignas(16) IndirectBatch {
+        /// <summary>
+        /// The number of vertices of the mesh.
+        /// </summary>
+        /// <seealso cref="FirstVertex" />
+        UInt32 VertexCount{ };
+
+        /// <summary>
+        /// The number of instances to draw of this mesh.
+        /// </summary>
+        /// <seealso cref="FirstInstance" />
+        UInt32 InstanceCount{ };
+
+        /// <summary>
+        /// The index of the first vertex of the mesh in the vertex buffer.
+        /// </summary>
+        /// <seealso cref="VertexCount" />
+        UInt32 FirstVertex{ };
+
+        /// <summary>
+        /// The index of the first index to draw. This value is added to each instance index before obtaining per-instance data from the vertex buffer.
+        /// </summary>
+        /// <seealso cref="InstanceCount" />
+        UInt32 FirstInstance{ };
+    };
+
+    /// <summary>
+    /// An indirect batch used to execute an indexed draw call.
+    /// </summary>
+    /// <seealso cref="IndirectDispatchBatch" />
+    /// <seealso cref="IndirectBatch" />
+    struct LITEFX_RENDERING_API alignas(16) IndirectIndexedBatch {
+        /// <summary>
+        /// The number of indices in the mesh index buffer.
+        /// </summary>
+        /// <seealso cref="FirstIndex" />
+        UInt32 IndexCount{ };
+
+        /// <summary>
+        /// The number of instances to draw of this mesh.
+        /// </summary>
+        /// <seealso cref="FirstInstance" />
+        UInt32 InstanceCount{ };
+
+        /// <summary>
+        /// The first index in the index buffer used to draw the mesh.
+        /// </summary>
+        /// <seealso cref="IndexCount" />
+        UInt32 FirstIndex{ };
+
+        /// <summary>
+        /// An offset added to each index to obtain a vertex.
+        /// </summary>
+        Int32 VertexOffset{ };
+
+        /// <summary>
+        /// The index of the first index to draw. This value is added to each instance index before obtaining per-instance data from the vertex buffer.
+        /// </summary>
+        /// <seealso cref="InstanceCount" />
+        UInt32 FirstInstance{ };
+    };
+
+    /// <summary>
+    /// An indirect batch used to dispatch a compute shader kernel.
+    /// </summary>
+    /// <seealso cref="IndirectIndexedBatch" />
+    /// <seealso cref="IndirectBatch" />
+    struct LITEFX_RENDERING_API alignas(16) IndirectDispatchBatch {
+        /// <summary>
+        /// The number of threads into x-direction.
+        /// </summary>
+        UInt32 X{ 1 };
+
+        /// <summary>
+        /// The number of threads into y-direction.
+        /// </summary>
+        UInt32 Y{ 1 };
+
+        /// <summary>
+        /// The number of threads into z-direction.
+        /// </summary>
+        UInt32 Z{ 1 };
+    };
 #pragma endregion
 
     /// <summary>
@@ -4601,10 +4715,10 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
-        /// Updates a constant buffer within the current descriptor set.
+        /// Updates one or more buffer descriptors within the current descriptor set.
         /// </summary>
         /// <param name="binding">The buffer binding point.</param>
-        /// <param name="buffer">The constant buffer to write to the descriptor set.</param>
+        /// <param name="buffer">The buffer to write to the descriptor set.</param>
         /// <param name="bufferElement">The index of the first element in the buffer to bind to the descriptor set.</param>
         /// <param name="elements">The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at <paramref name="bufferElement" />.</param>
         /// <param name="firstDescriptor">The index of the first descriptor in the descriptor array to update.</param>
@@ -4613,7 +4727,7 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Updates a texture within the current descriptor set.
+        /// Updates one or more texture descriptors within the current descriptor set.
         /// </summary>
         /// <remarks>
         /// The exact representation of the level and layer parameters depends on the dimension of the provided texture, as well as the type of the descriptor identified by the 
@@ -4638,7 +4752,7 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Updates a sampler within the current descriptor set.
+        /// Updates one or more sampler descriptors within the current descriptor set.
         /// </summary>
         /// <param name="binding">The sampler binding point.</param>
         /// <param name="sampler">The sampler to write to the descriptor set.</param>
@@ -6313,17 +6427,29 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Executes a compute shader.
         /// </summary>
-        /// <param name="threadCount">The number of threads per dimension.</param>
-        virtual void dispatch(const Vector3u& threadCount) const noexcept = 0;
+        /// <param name="threadCount">The number of thread groups per dimension.</param>
+        /// <seealso cref="dispatchIndirect" />
+        virtual void dispatch(const Vector3u& threadGroupCount) const noexcept = 0;
 
         /// <summary>
         /// Executes a compute shader.
         /// </summary>
-        /// <param name="x">The number of threads along the x dimension.</param>
-        /// <param name="y">The number of threads along the y dimension.</param>
-        /// <param name="z">The number of threads along the z dimension.</param>
+        /// <param name="x">The number of thread groups along the x dimension.</param>
+        /// <param name="y">The number of thread groups along the y dimension.</param>
+        /// <param name="z">The number of thread groups along the z dimension.</param>
         inline void dispatch(UInt32 x, UInt32 y, UInt32 z) const noexcept {
-            this->dispatch({ x,y, z });
+            this->dispatch({ x, y, z });
+        }
+
+        /// <summary>
+        /// Executes a set of indirect dispatches.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="batchCount">The number of batches in the buffer to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <seealso cref="dispatch" />
+        inline void dispatchIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept {
+            this->cmdDispatchIndirect(batchBuffer, batchCount, offset);
         }
         
         /// <summary>
@@ -6332,8 +6458,8 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// This method is only supported if the <see cref="GraphicsDeviceFeature::MeshShaders" /> feature is enabled.
         /// </remarks>
-        /// <param name="threadCount">The number of threads per dimension.</param>
-        virtual void dispatchMesh(const Vector3u& threadCount) const noexcept = 0;
+        /// <param name="threadCount">The number of thread groups per dimension.</param>
+        virtual void dispatchMesh(const Vector3u& threadGroupCount) const noexcept = 0;
 
         /// <summary>
         /// Executes a mesh shader pipeline.
@@ -6341,11 +6467,35 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// This method is only supported if the <see cref="GraphicsDeviceFeature::MeshShaders" /> feature is enabled.
         /// </remarks>
-        /// <param name="x">The number of threads along the x dimension.</param>
-        /// <param name="y">The number of threads along the y dimension.</param>
-        /// <param name="z">The number of threads along the z dimension.</param>
+        /// <param name="x">The number of thread groups along the x dimension.</param>
+        /// <param name="y">The number of thread groups along the y dimension.</param>
+        /// <param name="z">The number of thread groups along the z dimension.</param>
         inline void dispatchMesh(UInt32 x, UInt32 y, UInt32 z) const noexcept {
             this->dispatchMesh({ x, y, z });
+        }
+
+        /// <summary>
+        /// Executes a set of indirect mesh shader dispatches.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="batchCount">The number of batches in the buffer to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <seealso cref="dispatchMesh" />
+        inline void dispatchMeshIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept {
+            this->cmdDispatchMeshIndirect(batchBuffer, batchCount, offset);
+        }
+
+        /// <summary>
+        /// Executes a set of indirect mesh shader dispatches.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="countBuffer">The buffer that contains the number of batches to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <param name="countOffset">The offset (in bytes) to the number of batches in the <paramref name="countBuffer" />.</param>
+        /// <param name="maxBatches">The maximum number of batches executed, even if there are more batches in <paramref name="countBuffer"/>.</param>
+        /// <seealso cref="dispatch" />
+        inline void dispatchMeshIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept {
+            this->cmdDispatchMeshIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
         }
 
         /// <summary>
@@ -6389,26 +6539,8 @@ namespace LiteFX::Rendering {
         /// <param name="instances">The number of instances to draw.</param>
         /// <param name="firstVertex">The index of the first vertex to start drawing from.</param>
         /// <param name="firstInstance">The index of the first instance to draw.</param>
+        /// <seealso cref="drawIndirect" />
         virtual void draw(UInt32 vertices, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const noexcept = 0;
-
-        /// <summary>
-        /// Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.
-        /// </summary>
-        /// <param name="indices">The number of indices to draw.</param>
-        /// <param name="instances">The number of instances to draw.</param>
-        /// <param name="firstIndex">The index of the first element of the index buffer to start drawing from.</param>
-        /// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
-        /// <param name="firstInstance">The index of the first instance to draw.</param>
-        virtual void drawIndexed(UInt32 indices, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const noexcept = 0;
-
-        /// <summary>
-        /// Pushes a block of memory into the push constants backing memory.
-        /// </summary>
-        /// <param name="layout">The layout of the push constants to update.</param>
-        /// <param name="memory">A pointer to the source memory.</param>
-        inline void pushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept {
-            this->cmdPushConstants(layout, memory);
-        }
 
         /// <summary>
         /// Draws all vertices from the vertex buffer provided in <paramref name="vertexBuffer" />.
@@ -6423,6 +6555,41 @@ namespace LiteFX::Rendering {
         inline void draw(const IVertexBuffer& vertexBuffer, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const {
             this->cmdDraw(vertexBuffer, instances, firstVertex, firstInstance);
         }
+
+        /// <summary>
+        /// Executes a set of indirect non-indexed draw calls.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="batchCount">The number of batches in the buffer to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <seealso cref="draw" />
+        inline void drawIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept {
+            this->cmdDrawIndirect(batchBuffer, batchCount, offset);
+        }
+
+        /// <summary>
+        /// Executes a set of indirect non-indexed draw calls.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="countBuffer">The buffer that contains the number of batches to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <param name="countOffset">The offset (in bytes) to the number of batches in the <paramref name="countBuffer" />.</param>
+        /// <param name="maxBatches">The maximum number of batches executed, even if there are more batches in <paramref name="countBuffer"/>.</param>
+        /// <seealso cref="draw" />
+        inline void drawIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept {
+            this->cmdDrawIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
+        }
+
+        /// <summary>
+        /// Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.
+        /// </summary>
+        /// <param name="indices">The number of indices to draw.</param>
+        /// <param name="instances">The number of instances to draw.</param>
+        /// <param name="firstIndex">The index of the first element of the index buffer to start drawing from.</param>
+        /// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
+        /// <param name="firstInstance">The index of the first instance to draw.</param>
+        /// <seealso cref="drawIndexedIndirect" />
+        virtual void drawIndexed(UInt32 indices, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const noexcept = 0;
 
         /// <summary>
         /// Draws the currently bound vertex buffer using the index buffer provided in <paramref name="indexBuffer" />.
@@ -6453,6 +6620,39 @@ namespace LiteFX::Rendering {
         /// <param name="firstInstance">The index of the first instance to draw.</param>
         inline void drawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const {
             this->cmdDrawIndexed(vertexBuffer, indexBuffer, instances, firstIndex, vertexOffset, firstInstance);
+        }
+
+        /// <summary>
+        /// Executes a set of indirect indexed draw calls.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="batchCount">The number of batches in the buffer to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <seealso cref="drawIndexed" />
+        inline void drawIndexedIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept {
+            this->cmdDrawIndexedIndirect(batchBuffer, batchCount, offset);
+        }
+
+        /// <summary>
+        /// Executes a set of indirect indexed draw calls.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="countBuffer">The buffer that contains the number of batches to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <param name="countOffset">The offset (in bytes) to the number of batches in the <paramref name="countBuffer" />.</param>
+        /// <param name="maxBatches">The maximum number of batches executed, even if there are more batches in <paramref name="countBuffer"/>.</param>
+        /// <seealso cref="drawIndexed" />
+        inline void drawIndexedIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept {
+            this->cmdDrawIndexedIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
+        }
+
+        /// <summary>
+        /// Pushes a block of memory into the push constants backing memory.
+        /// </summary>
+        /// <param name="layout">The layout of the push constants to update.</param>
+        /// <param name="memory">A pointer to the source memory.</param>
+        inline void pushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept {
+            this->cmdPushConstants(layout, memory);
         }
 
         /// <summary>
@@ -6651,9 +6851,16 @@ namespace LiteFX::Rendering {
         virtual void cmdBind(const IVertexBuffer& buffer) const noexcept = 0;
         virtual void cmdBind(const IIndexBuffer& buffer) const noexcept = 0;
         virtual void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept = 0;
+        virtual void cmdDispatchIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
+        virtual void cmdDispatchMeshIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
+        virtual void cmdDispatchMeshIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept = 0;
         virtual void cmdDraw(const IVertexBuffer& vertexBuffer, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const = 0;
+        virtual void cmdDrawIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
+        virtual void cmdDrawIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept = 0;
         virtual void cmdDrawIndexed(const IIndexBuffer& indexBuffer, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const = 0;
         virtual void cmdDrawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const = 0;
+        virtual void cmdDrawIndexedIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
+        virtual void cmdDrawIndexedIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept = 0;
         virtual void cmdExecute(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
         virtual void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffer) const = 0;
         virtual void cmdBuildAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
@@ -8240,6 +8447,11 @@ namespace LiteFX::Rendering {
         /// Enables or disables ray query and inline ray-tracing support.
         /// </summary>
         bool RayQueries { false };
+
+        /// <summary>
+        /// Enables or disables support for indirect draw.
+        /// </summary>
+        bool DrawIndirect { false };
     };
 
     /// <summary>

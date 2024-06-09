@@ -4,7 +4,7 @@ vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY)
 vcpkg_download_distfile(ARCHIVE
     URLS "https://www.nuget.org/api/v2/package/Microsoft.Direct3D.D3D12/${VERSION}"
     FILENAME "dxagilitysdk.${VERSION}.zip"
-    SHA512 22dba68f5911588a6261fdc0192e8dca57edd25bdd3bc72b610ad468a0a6dbae51db1a9cdeadf4b57f6017136af78b07ef1357b1d93bedf4e6922076bd57efb5
+    SHA512 aab78de3a9db35b1b11b2c2498d2dd19e66a71cdcd1cb426f0469d551fcd6917f4d80734be8b6d0c0b20f7f6ae4b5b9936b0b0aedb229ea49265932b36aee11e
 )
 
 vcpkg_extract_source_archive(

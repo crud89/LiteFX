@@ -4,7 +4,9 @@
 
 using namespace LiteFX::Rendering::Backends;
 
-extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks { nullptr };
+extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks { nullptr }; 
+extern PFN_vkCmdDrawMeshTasksIndirectEXT vkCmdDrawMeshTasksIndirect { nullptr };
+extern PFN_vkCmdDrawMeshTasksIndirectCountEXT vkCmdDrawMeshTasksIndirectCount { nullptr };
 extern PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizes { nullptr };
 extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure { nullptr };
 extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure { nullptr };
@@ -314,6 +316,7 @@ public:
             .features = {
                 .geometryShader = true,
                 .tessellationShader = true,
+                .drawIndirectFirstInstance = features.DrawIndirect,
                 .samplerAnisotropy = true
             }
         };
@@ -331,6 +334,7 @@ public:
         VkPhysicalDeviceVulkan12Features deviceFeatures12 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
             .pNext = &deviceFeatures13,
+            .drawIndirectCount = features.DrawIndirect,
             .descriptorIndexing = true,
             .shaderInputAttachmentArrayDynamicIndexing = true,
             .shaderUniformTexelBufferArrayDynamicIndexing = true,
@@ -358,10 +362,17 @@ public:
             .bufferDeviceAddress = true
         };
 
+        // Enable shader draw parameters, if we use indirect draw.
+        VkPhysicalDeviceVulkan11Features deviceFeatures11 = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES,
+            .pNext = &deviceFeatures12,
+            .shaderDrawParameters = features.DrawIndirect
+        };
+
         // Enable extended dynamic state.
         VkPhysicalDeviceExtendedDynamicStateFeaturesEXT extendedDynamicStateFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT,
-            .pNext = &deviceFeatures12,
+            .pNext = &deviceFeatures11,
             .extendedDynamicState = true
         };
 
@@ -384,8 +395,17 @@ public:
         debugMarkerSetObjectName = reinterpret_cast<PFN_vkDebugMarkerSetObjectNameEXT>(::vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectNameEXT"));
 #endif
 
-        if (features.MeshShaders && vkCmdDrawMeshTasks == nullptr)
-            vkCmdDrawMeshTasks = reinterpret_cast<PFN_vkCmdDrawMeshTasksEXT>(::vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksEXT"));
+        if (features.MeshShaders)
+        {
+            if (vkCmdDrawMeshTasks == nullptr)
+                vkCmdDrawMeshTasks = reinterpret_cast<PFN_vkCmdDrawMeshTasksEXT>(::vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksEXT"));
+
+            if (vkCmdDrawMeshTasksIndirect)
+                vkCmdDrawMeshTasksIndirect = reinterpret_cast<PFN_vkCmdDrawMeshTasksIndirectEXT>(::vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksIndirectEXT"));
+
+            if (vkCmdDrawMeshTasksIndirectCount)
+                vkCmdDrawMeshTasksIndirectCount = reinterpret_cast<PFN_vkCmdDrawMeshTasksIndirectCountEXT>(::vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksIndirectCountEXT"));
+        }
 
         if (features.RayTracing)
         {
