@@ -117,7 +117,7 @@ void VulkanBuffer::map(void* data, size_t size, UInt32 element, bool write)
 	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
 	auto result = write ?
 		::memcpy_s(reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), this->size(), data, size) :
-		::memcpy_s(data, size, reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), this->size());
+		::memcpy_s(data, size, reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), size);
 
 	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
 
