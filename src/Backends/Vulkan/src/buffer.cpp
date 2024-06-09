@@ -93,15 +93,9 @@ void VulkanBuffer::map(const void* const data, size_t size, UInt32 element)
 	if (element >= m_impl->m_elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("element", 0u, m_impl->m_elements, element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
 
-	size_t alignedSize = size;
-	size_t alignment = this->alignedElementSize();
-
-	if (alignment > 0)
-		alignedSize = (size + alignment - 1) & ~(alignment - 1);
-
 	char* buffer;		// A pointer to the whole (aligned) buffer memory.
 	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
-	auto result = ::memcpy_s(reinterpret_cast<void*>(buffer + (element * alignedSize)), alignedSize, data, size);
+	auto result = ::memcpy_s(reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), this->size(), data, size);
 
 	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
 
@@ -119,17 +113,11 @@ void VulkanBuffer::map(void* data, size_t size, UInt32 element, bool write)
 	if (element >= m_impl->m_elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("element", 0u, m_impl->m_elements, element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
 
-	size_t alignedSize = size;
-	size_t alignment = this->alignedElementSize();
-
-	if (alignment > 0)
-		alignedSize = (size + alignment - 1) & ~(alignment - 1);
-
 	char* buffer;		// A pointer to the whole (aligned) buffer memory.
 	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
 	auto result = write ?
-		::memcpy_s(reinterpret_cast<void*>(buffer + (element * alignedSize)), alignedSize, data, size) :
-		::memcpy_s(data, size, reinterpret_cast<void*>(buffer + (element * alignedSize)), alignedSize);
+		::memcpy_s(reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), this->size(), data, size) :
+		::memcpy_s(data, size, reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), this->size());
 
 	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
 
