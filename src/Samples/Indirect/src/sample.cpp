@@ -240,7 +240,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     std::ranges::for_each(indirectBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(std::format("Indirect Bindings {0}", i++), std::move(binding)); });
 }
 
-void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer, UInt32 backBuffer) const
+void SampleApp::updateCamera(IBuffer& buffer, UInt32 backBuffer) const
 {
     // Store the initial time this method has been called first.
     static auto start = std::chrono::high_resolution_clock::now();
