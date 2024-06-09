@@ -49,7 +49,7 @@ void main(uint3 id : SV_DispatchThreadID)
     uint instanceId = NonUniformResourceIndex(id.x);
     Object object = objects.Load(instanceId);
     
-    float3 center = transpose(object.Transform)[3].xyz; // Get the object translation.
+    float3 center = object.Transform[3].xyz; // Get the object translation.
     float radius = object.BoundingRadius; // Scale is ignored here at the moment...
     
     bool culled = false;
