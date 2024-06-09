@@ -32,6 +32,7 @@ struct alignas(16) CameraBuffer {
     glm::vec4 Right;
     float NearPlane;
     float FarPlane;
+    glm::vec2 Padding;
     glm::vec4 Frustum[6];
 } camera;
 
