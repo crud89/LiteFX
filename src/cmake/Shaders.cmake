@@ -398,6 +398,7 @@ FILE(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/Auxiliary/pcksl.cxx" CONTENT [==[
 #include <algorithm>
 #include <iterator>
 #include <vector>
+#include <cstdint>
 
 int main(int argc, char* argv[]) {
     if (argc < 2)
