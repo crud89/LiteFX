@@ -66,7 +66,7 @@ If you are using vcpkg, you can use the [registry](https://github.com/crud89/Lit
 
 ### Manual Builds
 
-You can also build the sources on your own. Currently only MSVC and Clang builds under Windows are officially supported. However, the engine does use CMake and (besides the DirectX 12 backend) no Windows-specific features, so porting the Vulkan backend and engine architecture should be absolutely possible (pull requests are much appreciated!).
+You can also build the sources on your own. Currently only MSVC and Clang builds under Windows are officially supported. Linux builds (using GCC) are at an experimental stage.
 
 #### Prerequisites
 
@@ -75,7 +75,8 @@ In order for the project to be built, there are a few prerequisites that need to
 - [C++23 compatible compiler](https://en.cppreference.com/w/cpp/compiler_support/23): Tested on MSVC 17.10 and GCC 14.2.
 - [CMake](https://cmake.org/download/) (version 3.20 or higher). †
 - Optional: [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later (required to build the Vulkan backend).
-- Optional: Windows 10 SDK 10.0.19041.0 or later (required to build DirectX backend).
+- When building for Windows: Windows 10 SDK 10.0.19041.0 or later (required to build DirectX backend).
+- When building for Linux: Install dependencies by executing `bash dependencies.sh`.
 
 † Note that at least Visual Studio 17.10 or later is required.
 
