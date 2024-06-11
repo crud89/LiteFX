@@ -14,9 +14,7 @@
       "installDir": "${sourceDir}/../out/install/${presetName}",
       "toolchainFile": "${sourceDir}/modules/vcpkg/scripts/buildsystems/vcpkg.cmake",
       "cacheVariables": {
-        "X_VCPKG_APPLOCAL_DEPS_INSTALL": "OFF",
-        "CMAKE_C_COMPILER": "cl.exe",
-        "CMAKE_CXX_COMPILER": "cl.exe"
+        "X_VCPKG_APPLOCAL_DEPS_INSTALL": "OFF"
       },
       "condition": {
         "type": "equals",
@@ -33,7 +31,7 @@
       "toolchainFile": "${sourceDir}/Modules/vcpkg/scripts/buildsystems/vcpkg.cmake",
       "cacheVariables": {
         "X_VCPKG_APPLOCAL_DEPS_INSTALL": "OFF",
-        "BUILD_DIRECTX_12_BACKEND": "OFF"
+        "LITEFX_BUILD_DIRECTX_12_BACKEND": "OFF"
       },
       "condition": {
         "type": "equals",
@@ -41,8 +39,12 @@
         "rhs": "Linux"
       },
       "vendor": {
-        "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
-          "sourceDir": "$env{HOME}/.vs/litefx/src",
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [ "Linux" ]
+        },
+        "microsoft.com/VisualStudioRemoteSettings/CMake/2.0": {
+          "sourceRootDir": "$ms{localSourceDir}\\..",
+          "remoteSourceRootDir": "$env{HOME}/.vs/litefx/",
           "copySourcesOptions": {
             "exclusionList": [
               ".vs",
@@ -138,6 +140,17 @@
       }
     },
     {
+      "name": "windows-x86-publish",
+      "inherits": "windows",
+      "architecture": {
+        "value": "x86",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
       "name": "linux-x64-debug",
       "inherits": "linux",
       "architecture": {
@@ -197,17 +210,6 @@
     {
       "name": "linux-x86-release",
       "inherits": "linux",
-      "architecture": {
-        "value": "x86",
-        "strategy": "external"
-      },
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
-      }
-    },
-    {
-      "name": "windows-x86-publish",
-      "inherits": "windows",
       "architecture": {
         "value": "x86",
         "strategy": "external"
