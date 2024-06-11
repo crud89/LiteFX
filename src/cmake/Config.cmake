@@ -10,7 +10,15 @@ SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Define C++ compile flags.
 IF(MSVC)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")       # Use multi core compiling to speed up compile times.
+    IF(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "17.10")
+        MESSAGE(FATAL_ERROR "The minimum required MSVC version is 17.10, but only ${CMAKE_CXX_COMPILER_VERSION} has been found.")
+    ENDIF(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "17.10")
+
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")         # Use multi core compiling to speed up compile times.
+ELSEIF(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    IF(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "14.1")
+        MESSAGE(FATAL_ERROR "The minimum required GCC version is 14.10, but only ${CMAKE_CXX_COMPILER_VERSION} has been found.")
+    ENDIF(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "14.1")
 ENDIF(MSVC)
 
 # For debug builds, append the "d" suffix.

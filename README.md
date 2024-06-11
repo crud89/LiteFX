@@ -72,7 +72,7 @@ You can also build the sources on your own. Currently only MSVC builds under Win
 
 In order for the project to be built, there are a few prerequisites that need to be present on your environment:
 
-- [C++23 compatible compiler](https://en.cppreference.com/w/cpp/compiler_support/23): Tested on MSVC 17.10 and GCC 13.2.
+- [C++23 compatible compiler](https://en.cppreference.com/w/cpp/compiler_support/23): Tested on MSVC 17.10 and GCC 14.1.
 - [CMake](https://cmake.org/download/) (version 3.20 or higher). †
 - Optional: [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later (required to build the Vulkan backend).
 - When building for Windows: Windows 10 SDK 10.0.19041.0 or later (required to build DirectX backend).
