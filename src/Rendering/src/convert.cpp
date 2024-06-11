@@ -3,7 +3,7 @@
 
 using namespace LiteFX::Rendering;
 
-size_t LiteFX::Rendering::getSize(const Format& format)
+constexpr size_t LiteFX::Rendering::getSize(Format format)
 {
 	switch (format) {
 	using enum Format;
@@ -166,11 +166,11 @@ size_t LiteFX::Rendering::getSize(const Format& format)
 	case R64G64B64A64_SFLOAT:
 		return 32;
 	default:
-		throw InvalidArgumentException("Unsupported format: {0}.", format);
+		throw InvalidArgumentException("format", "Unsupported format: {0}.", format);
 	}
 }
 
-bool LiteFX::Rendering::hasDepth(const Format& format)
+constexpr bool LiteFX::Rendering::hasDepth(Format format)
 {
 	const Array<Format> depthFormats = {
 		Format::D16_UNORM,
@@ -181,10 +181,10 @@ bool LiteFX::Rendering::hasDepth(const Format& format)
 		Format::D32_SFLOAT_S8_UINT
 	};
 
-	return std::any_of(std::begin(depthFormats), std::end(depthFormats), [&](const Format& f) { return f == format; });
+	return std::any_of(std::begin(depthFormats), std::end(depthFormats), [&](Format f) { return f == format; });
 }
 
-bool LiteFX::Rendering::hasStencil(const Format& format)
+constexpr bool LiteFX::Rendering::hasStencil(Format format)
 {
 	const Array<Format> stencilFormats = {
 		Format::D16_UNORM_S8_UINT,
@@ -193,5 +193,5 @@ bool LiteFX::Rendering::hasStencil(const Format& format)
 		Format::S8_UINT
 	};
 
-	return std::any_of(std::begin(stencilFormats), std::end(stencilFormats), [&](const Format& f) { return f == format; });
+	return std::any_of(std::begin(stencilFormats), std::end(stencilFormats), [&](Format f) { return f == format; });
 }

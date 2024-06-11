@@ -12,6 +12,7 @@
   "dependencies": [
     "cli11",
     "directxmath",
+    "directx-dxc",
     "glfw3",
     "glm",
     "spdlog",

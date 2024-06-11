@@ -12,20 +12,7 @@ FIND_PACKAGE(directx-headers CONFIG REQUIRED)
 FIND_PACKAGE(directx-agility-sdk CONFIG REQUIRED)
 FIND_PACKAGE(d3d12-memory-allocator CONFIG REQUIRED)
 FIND_PACKAGE(winpixeventruntime CONFIG REQUIRED)
-
-# Attempt to find the proper dxcompiler.dll file from the Windows SDK and copy it to the runtime directory. This fixes an issue where the wrong (x64) dll
-# is picked up from the Vulkan SDK in x86 builds.
-IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    FIND_FILE(DXCOMPILER_DLL "dxcompiler.dll" PATHS "$ENV{WindowsSdkVerBinPath}/x64/" NO_DEFAULT_PATH)
-    FIND_FILE(DXIL_DLL "dxil.dll" PATHS "$ENV{WindowsSdkVerBinPath}/x64/" NO_DEFAULT_PATH)
-ELSEIF(CMAKE_SIZEOF_VOID_P EQUAL 4)
-    FIND_FILE(DXCOMPILER_DLL "dxcompiler.dll" PATHS "$ENV{WindowsSdkVerBinPath}/x86/" NO_DEFAULT_PATH)
-    FIND_FILE(DXIL_DLL "dxil.dll" PATHS "$ENV{WindowsSdkVerBinPath}/x86/" NO_DEFAULT_PATH)
-ENDIF(CMAKE_SIZEOF_VOID_P EQUAL 8)
-
-IF(NOT DXCOMPILER_DLL OR NOT DXIL_DLL)
-    MESSAGE(WARNING "Unable to locate dxcompiler.dll or dxil.dll from Windows SDK. You may have to install the DLL manually.")
-ENDIF(NOT DXCOMPILER_DLL OR NOT DXIL_DLL)
+FIND_PACKAGE(directx-dxc CONFIG REQUIRED)
 
 # Collect header & source files.
 SET(DIRECTX12_BACKEND_HEADERS
@@ -49,12 +36,12 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/queue.cpp"
     "src/swapchain.cpp"
     "src/frame_buffer.cpp"
-    "src/input_attachment_mapping.cpp"
     "src/render_pass.cpp"
     "src/command_buffer.cpp"
     "src/barrier.cpp"
     "src/render_pipeline.cpp"
     "src/compute_pipeline.cpp"
+    "src/ray_tracing_pipeline.cpp"
     "src/pipeline_layout.cpp"
     "src/rasterizer.cpp"
     "src/input_assembler.cpp"
@@ -67,6 +54,8 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/descriptor_set_layout.cpp"
     "src/push_constants_range.cpp"
     "src/push_constants_layout.cpp"
+    "src/blas.cpp"
+    "src/tlas.cpp"
 )
 
 # Add shared library project.
@@ -99,13 +88,13 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
-    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi dxcompiler
-    PRIVATE unofficial::d3d12-memory-allocator Microsoft::WinPixEventRuntime Microsoft::DirectXAgilitySDK
+    PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi Microsoft::DirectXAgilitySDK Microsoft::DirectXShaderCompiler Microsoft::DXIL 
+    PRIVATE unofficial::d3d12-memory-allocator Microsoft::WinPixEventRuntime
 )
 
 # Add shader modules.
 ADD_SHADER_LIBRARY(${PROJECT_NAME}.Shaders SOURCE_FILE "shader_resources.hpp" NAMESPACE "LiteFX::Backends::DirectX12::Shaders")
-ADD_SHADER_MODULE(${PROJECT_NAME}.Blit SOURCE "shaders/blit.hlsl" LANGUAGE HLSL TYPE COMPUTE COMPILE_AS DXIL SHADER_MODEL ${BUILD_HLSL_SHADER_MODEL} COMPILER DXC LIBRARY ${PROJECT_NAME}.Shaders)
+ADD_SHADER_MODULE(${PROJECT_NAME}.Blit SOURCE "shaders/blit.hlsl" LANGUAGE HLSL TYPE COMPUTE COMPILE_AS DXIL SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC LIBRARY ${PROJECT_NAME}.Shaders)
 SET_TARGET_PROPERTIES(${PROJECT_NAME}.Shaders PROPERTIES FOLDER "Backends/Shaders")
 SET_TARGET_PROPERTIES(${PROJECT_NAME}.Blit PROPERTIES FOLDER "Backends/Shaders")
 
@@ -133,9 +122,9 @@ IF(DXIL_DLL)
 ENDIF(DXIL_DLL)
 
 # Re-use pre-compiled core header.
-IF(BUILD_PRECOMPILED_HEADERS)
+IF(LITEFX_BUILD_PRECOMPILED_HEADERS)
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} REUSE_FROM LiteFX.Core)
-ENDIF(BUILD_PRECOMPILED_HEADERS)
+ENDIF(LITEFX_BUILD_PRECOMPILED_HEADERS)
 
 # Setup installer.
 INSTALL(TARGETS ${PROJECT_NAME} EXPORT EXPORT LiteFX

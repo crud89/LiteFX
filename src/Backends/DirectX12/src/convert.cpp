@@ -2,7 +2,7 @@
 
 using namespace LiteFX::Rendering::Backends;
 
-Format LiteFX::Rendering::Backends::DX12::getFormat(const DXGI_FORMAT& format)
+constexpr Format LiteFX::Rendering::Backends::DX12::getFormat(const DXGI_FORMAT& format)
 {
 	switch (format)
 	{
@@ -149,7 +149,7 @@ Format LiteFX::Rendering::Backends::DX12::getFormat(const DXGI_FORMAT& format)
 	}
 }
 
-DXGI_FORMAT LiteFX::Rendering::Backends::DX12::getFormat(const Format& format)
+constexpr DXGI_FORMAT LiteFX::Rendering::Backends::DX12::getFormat(Format format)
 {
 	switch (format)
 	{
@@ -289,12 +289,12 @@ DXGI_FORMAT LiteFX::Rendering::Backends::DX12::getFormat(const Format& format)
 		return DXGI_FORMAT_BC7_UNORM_SRGB;
 	case Format::B4G4R4A4_UNORM:
 		return DXGI_FORMAT_B4G4R4A4_UNORM;
-	default:
-		throw InvalidArgumentException("Unsupported format: {0}", format);
+	default: [[unlikely]]
+		throw InvalidArgumentException("format", "Unsupported format: {0}", format);
 	}
 }
 
-DXGI_FORMAT LiteFX::Rendering::Backends::DX12::getFormat(const BufferFormat& format)
+constexpr DXGI_FORMAT LiteFX::Rendering::Backends::DX12::getFormat(BufferFormat format)
 {
 	switch (format)
 	{
@@ -340,12 +340,12 @@ DXGI_FORMAT LiteFX::Rendering::Backends::DX12::getFormat(const BufferFormat& for
 		return DXGI_FORMAT_R16G16B16A16_SINT;
 	case BufferFormat::XYZW16U:
 		return DXGI_FORMAT_R16G16B16A16_UINT;
-	default:
-		throw InvalidArgumentException("Unsupported format: {0}.", format);
+	default: [[unlikely]]
+		throw InvalidArgumentException("format", "Unsupported format: {0}.", format);
 	}
 }
 
-bool LiteFX::Rendering::Backends::DX12::isSRGB(const Format& format)
+constexpr bool LiteFX::Rendering::Backends::DX12::isSRGB(Format format)
 {
 	return 
 		format == Format::A8B8G8R8_SRGB || 
@@ -362,7 +362,7 @@ bool LiteFX::Rendering::Backends::DX12::isSRGB(const Format& format)
 		format == Format::R8_SRGB;
 }
 
-D3D12_RESOURCE_DIMENSION LiteFX::Rendering::Backends::DX12::getImageType(const ImageDimensions& dimensions)
+constexpr D3D12_RESOURCE_DIMENSION LiteFX::Rendering::Backends::DX12::getImageType(ImageDimensions dimensions)
 {
 	switch (dimensions)
 	{
@@ -378,7 +378,7 @@ D3D12_RESOURCE_DIMENSION LiteFX::Rendering::Backends::DX12::getImageType(const I
 	}
 }
 
-PolygonMode LiteFX::Rendering::Backends::DX12::getPolygonMode(const D3D12_FILL_MODE& mode)
+constexpr PolygonMode LiteFX::Rendering::Backends::DX12::getPolygonMode(const D3D12_FILL_MODE& mode)
 {
 	switch (mode)
 	{
@@ -391,7 +391,7 @@ PolygonMode LiteFX::Rendering::Backends::DX12::getPolygonMode(const D3D12_FILL_M
 	}
 }
 
-D3D12_FILL_MODE LiteFX::Rendering::Backends::DX12::getPolygonMode(const PolygonMode& mode)
+constexpr D3D12_FILL_MODE LiteFX::Rendering::Backends::DX12::getPolygonMode(PolygonMode mode)
 {
 	switch (mode)
 	{
@@ -404,7 +404,7 @@ D3D12_FILL_MODE LiteFX::Rendering::Backends::DX12::getPolygonMode(const PolygonM
 	}
 }
 
-CullMode LiteFX::Rendering::Backends::DX12::getCullMode(const D3D12_CULL_MODE& mode)
+constexpr CullMode LiteFX::Rendering::Backends::DX12::getCullMode(const D3D12_CULL_MODE& mode)
 {
 	switch (mode)
 	{
@@ -419,7 +419,7 @@ CullMode LiteFX::Rendering::Backends::DX12::getCullMode(const D3D12_CULL_MODE& m
 	}
 }
 
-D3D12_CULL_MODE LiteFX::Rendering::Backends::DX12::getCullMode(const CullMode& mode)
+constexpr D3D12_CULL_MODE LiteFX::Rendering::Backends::DX12::getCullMode(CullMode mode)
 {
 	switch (mode)
 	{
@@ -434,7 +434,7 @@ D3D12_CULL_MODE LiteFX::Rendering::Backends::DX12::getCullMode(const CullMode& m
 	}
 }
 
-PrimitiveTopology LiteFX::Rendering::Backends::DX12::getPrimitiveTopology(const D3D12_PRIMITIVE_TOPOLOGY& topology)
+constexpr PrimitiveTopology LiteFX::Rendering::Backends::DX12::getPrimitiveTopology(const D3D12_PRIMITIVE_TOPOLOGY& topology)
 {
 	switch (topology)
 	{
@@ -453,7 +453,7 @@ PrimitiveTopology LiteFX::Rendering::Backends::DX12::getPrimitiveTopology(const 
 	}
 }
 
-D3D12_PRIMITIVE_TOPOLOGY LiteFX::Rendering::Backends::DX12::getPrimitiveTopology(const PrimitiveTopology& topology)
+constexpr D3D12_PRIMITIVE_TOPOLOGY LiteFX::Rendering::Backends::DX12::getPrimitiveTopology(PrimitiveTopology topology)
 {
 	switch (topology)
 	{
@@ -472,7 +472,7 @@ D3D12_PRIMITIVE_TOPOLOGY LiteFX::Rendering::Backends::DX12::getPrimitiveTopology
 	}
 }
 
-D3D12_PRIMITIVE_TOPOLOGY_TYPE LiteFX::Rendering::Backends::DX12::getPrimitiveTopologyType(const PrimitiveTopology& topology)
+constexpr D3D12_PRIMITIVE_TOPOLOGY_TYPE LiteFX::Rendering::Backends::DX12::getPrimitiveTopologyType(PrimitiveTopology topology)
 {
 	switch (topology)
 	{
@@ -489,7 +489,7 @@ D3D12_PRIMITIVE_TOPOLOGY_TYPE LiteFX::Rendering::Backends::DX12::getPrimitiveTop
 	}
 }
 
-LPCTSTR LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getSemanticName(const AttributeSemantic& semantic)
+constexpr LPCTSTR LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getSemanticName(AttributeSemantic semantic)
 {
 	switch (semantic)
 	{
@@ -513,12 +513,12 @@ LPCTSTR LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getSemanticName(
 		return "TANGENT";
 	case LiteFX::Rendering::AttributeSemantic::TextureCoordinate: 
 		return "TEXCOORD";
-	default:
-		throw InvalidArgumentException("Unsupported semantic {0}.", std::to_underlying(semantic));
+	default: [[unlikely]]
+		throw InvalidArgumentException("semantic", "Unsupported semantic {0}.", std::to_underlying(semantic));
 	}
 }
 
-String LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getVendorName(const UInt32& vendorId)
+constexpr String LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getVendorName(UInt32 vendorId)
 {
 	switch (vendorId)
 	{
@@ -538,7 +538,7 @@ String LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getVendorName(con
 	}
 }
 
-D3D12_COMPARISON_FUNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getCompareOp(const CompareOperation& compareOp)
+constexpr D3D12_COMPARISON_FUNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getCompareOp(CompareOperation compareOp)
 {
 	switch (compareOp) {
 	case CompareOperation::Never: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NEVER;
@@ -549,11 +549,11 @@ D3D12_COMPARISON_FUNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::ge
 	case CompareOperation::GreaterEqual: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_GREATER_EQUAL;
 	case CompareOperation::NotEqual: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NOT_EQUAL;
 	case CompareOperation::Always: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_ALWAYS;
-	default: throw InvalidArgumentException("Unsupported compare operation.");
+	default: [[unlikely]] throw InvalidArgumentException("compareOp", "Unsupported compare operation.");
 	}
 }
 
-D3D12_STENCIL_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getStencilOp(const StencilOperation& stencilOp)
+constexpr D3D12_STENCIL_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getStencilOp(StencilOperation stencilOp)
 {
 	switch (stencilOp) {
 	case StencilOperation::Keep: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_KEEP;
@@ -564,11 +564,11 @@ D3D12_STENCIL_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getSten
 	case StencilOperation::IncrementWrap: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_INCR;
 	case StencilOperation::DecrementClamp: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_DECR_SAT;
 	case StencilOperation::DecrementWrap: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_DECR;
-	default: throw InvalidArgumentException("Unsupported stencil operation.");
+	default: [[unlikely]] throw InvalidArgumentException("stencilOp", "Unsupported stencil operation.");
 	}
 }
 
-D3D12_BLEND LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getBlendFactor(const BlendFactor& blendFactor)
+constexpr D3D12_BLEND LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getBlendFactor(BlendFactor blendFactor)
 {
 	switch (blendFactor) {
 	case BlendFactor::Zero: return D3D12_BLEND_ZERO;
@@ -590,11 +590,11 @@ D3D12_BLEND LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getBlendFact
 	case BlendFactor::OneMinusSource1Color: return D3D12_BLEND_INV_SRC1_COLOR;
 	case BlendFactor::Source1Alpha: return D3D12_BLEND_SRC1_ALPHA;
 	case BlendFactor::OneMinusSource1Alpha: return D3D12_BLEND_INV_SRC1_ALPHA;
-	default: throw InvalidArgumentException("Unsupported blend factor.");
+	default: [[unlikely]] throw InvalidArgumentException("blendFactor", "Unsupported blend factor.");
 	}
 }
 
-D3D12_BLEND_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getBlendOperation(const BlendOperation& blendOperation)
+constexpr D3D12_BLEND_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getBlendOperation(BlendOperation blendOperation)
 {
 	switch (blendOperation) {
 	case BlendOperation::Add: return D3D12_BLEND_OP_ADD;
@@ -602,11 +602,11 @@ D3D12_BLEND_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getBlendO
 	case BlendOperation::ReverseSubtract: return D3D12_BLEND_OP_REV_SUBTRACT;
 	case BlendOperation::Minimum: return D3D12_BLEND_OP_MIN;
 	case BlendOperation::Maximum: return D3D12_BLEND_OP_MAX;
-	default: throw InvalidArgumentException("Unsupported blend operation.");
+	default: [[unlikely]] throw InvalidArgumentException("blendOperation", "Unsupported blend operation.");
 	}
 }
 
-D3D12_BARRIER_SYNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getPipelineStage(const PipelineStage& pipelineStage)
+constexpr D3D12_BARRIER_SYNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getPipelineStage(PipelineStage pipelineStage)
 {
 	if (pipelineStage == PipelineStage::None)
 		return D3D12_BARRIER_SYNC_NONE;
@@ -620,7 +620,7 @@ D3D12_BARRIER_SYNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getPi
 	D3D12_BARRIER_SYNC sync { };
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::InputAssembly))
-		sync |= D3D12_BARRIER_SYNC_INPUT_ASSEMBLER;
+		sync |= D3D12_BARRIER_SYNC_INDEX_INPUT;	// D3D12_BARRIER_SYNC_INPUT_ASSEMBLER appears to be deprecated but I could not find any info about the deprecation.
 
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Vertex) || 
 		LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::TessellationControl) ||
@@ -646,10 +646,19 @@ D3D12_BARRIER_SYNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getPi
 	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Resolve))
 		sync |= D3D12_BARRIER_SYNC_RESOLVE;
 
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::Raytracing))
+		sync |= D3D12_BARRIER_SYNC_RAYTRACING;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::AccelerationStructureBuild))
+		sync |= D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE;
+
+	if (LITEFX_FLAG_IS_SET(pipelineStage, PipelineStage::AccelerationStructureCopy))
+		sync |= D3D12_BARRIER_SYNC_COPY_RAYTRACING_ACCELERATION_STRUCTURE;
+
 	return sync;
 }
 
-D3D12_BARRIER_ACCESS LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getResourceAccess(const ResourceAccess& resourceAccess)
+constexpr D3D12_BARRIER_ACCESS LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getResourceAccess(ResourceAccess resourceAccess)
 {
 	if (resourceAccess == ResourceAccess::None)
 		return D3D12_BARRIER_ACCESS_NO_ACCESS;
@@ -698,10 +707,16 @@ D3D12_BARRIER_ACCESS LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::get
 	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::ResolveWrite))
 		access |= D3D12_BARRIER_ACCESS_RESOLVE_DEST;
 
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::AccelerationStructureRead))
+		access |= D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ;
+
+	if (LITEFX_FLAG_IS_SET(resourceAccess, ResourceAccess::AccelerationStructureWrite))
+		access |= D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE;
+
 	return access;
 }
 
-D3D12_BARRIER_LAYOUT LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getImageLayout(const ImageLayout& imageLayout)
+constexpr D3D12_BARRIER_LAYOUT LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getImageLayout(ImageLayout imageLayout)
 {
 	switch (imageLayout) {
 	case ImageLayout::Common: return D3D12_BARRIER_LAYOUT_COMMON;
@@ -716,6 +731,6 @@ D3D12_BARRIER_LAYOUT LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::get
 	case ImageLayout::ResolveSource: return D3D12_BARRIER_LAYOUT_RESOLVE_SOURCE;
 	case ImageLayout::ResolveDestination: return D3D12_BARRIER_LAYOUT_RESOLVE_DEST;
 	case ImageLayout::Undefined: return D3D12_BARRIER_LAYOUT_UNDEFINED;
-	default: throw InvalidArgumentException("Unsupported image layout.");
+	default: [[unlikely]] throw InvalidArgumentException("imageLayout", "Unsupported image layout.");
 	}
 }

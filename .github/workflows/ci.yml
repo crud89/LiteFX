@@ -23,7 +23,7 @@ on:
     - ready_for_review
 
 env:
-  vulkanSdkVersion: '1.3.239.0' # Lowest version that ships with DXC is 1.2.148.0
+  vulkanSdkVersion: '1.3.268.0'
 
 jobs:
   job:
@@ -37,7 +37,7 @@ jobs:
         include:
           - os: windows-latest
             triplet: x64-windows
-            configuration: windows-x64-release
+            configuration: windows-x64-publish
             architecture: x64
 
     steps:

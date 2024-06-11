@@ -18,7 +18,7 @@ on:
         required: true
 
 env:
-  vulkanSdkVersion: '1.3.239.0' # Lowest version that ships with DXC is 1.2.148.0
+  vulkanSdkVersion: '1.3.268.0'
 
 jobs:
   build:
@@ -95,19 +95,19 @@ jobs:
         uses: lukka/run-cmake@v10
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
-          configurePreset: '${{ matrix.profile }}-release'
-          buildPreset: '${{ matrix.profile }}-release'
+          configurePreset: '${{ matrix.profile }}-publish'
+          buildPreset: '${{ matrix.profile }}-publish'
 
       - name: Upload build artifacts (Release)
         uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: LiteFX-${{ matrix.triplet }}-build-rel
-          path: '${{ github.workspace }}/out/build/${{ matrix.profile }}-release'
+          path: '${{ github.workspace }}/out/build/${{ matrix.profile }}-publish'
 
       - name: Install with CMake (Release)
         run: |
-          Set-Location '${{ github.workspace }}/out/build/${{ matrix.profile }}-release'
+          Set-Location '${{ github.workspace }}/out/build/${{ matrix.profile }}-publish'
           cmake --install .
           
       - name: Sign binaries
@@ -122,7 +122,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: LiteFX-${{ matrix.triplet }}-install
-          path: '${{ github.workspace }}/out/install/${{ matrix.profile }}-release'
+          path: '${{ github.workspace }}/out/install/${{ matrix.profile }}-publish'
           if-no-files-found: error 
           
   publish:

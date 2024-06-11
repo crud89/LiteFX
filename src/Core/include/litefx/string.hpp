@@ -39,6 +39,60 @@ namespace LiteFX {
     }
 
     /// <summary>
+    /// Computes the FNVa hash for <paramref name="string" />.
+    /// </summary>
+    /// <param name="string">The string to hash.</param>
+    /// <returns>The FNVa hash for <paramref name="string" />.</returns>
+    constexpr static inline std::uint64_t hash(StringView string) noexcept 
+    {
+        const std::uint64_t prime = 0x00000100000001b3;
+        std::uint64_t seed  = 0xcbf29ce484222325;
+        
+        for (auto ptr = string.begin(); ptr != string.end(); ptr++)
+            seed = (seed ^ *ptr) * prime;
+
+        return seed;
+    }
+
+    /// <summary>
+    /// Computes the FNVa hash for <paramref name="string" />.
+    /// </summary>
+    /// <param name="string">The string to hash.</param>
+    /// <returns>The FNVa hash for <paramref name="string" />.</returns>
+    constexpr static inline std::uint64_t hash(WStringView string) noexcept 
+    {
+        const std::uint64_t prime = 0x00000100000001b3;
+        std::uint64_t seed  = 0xcbf29ce484222325;
+
+        for (auto ptr = string.begin(); ptr != string.end(); ptr++)
+            seed = (seed ^ *ptr) * prime;
+
+        return seed;
+    }
+
+    /// <summary>
+    /// Computes the FNVa hash for <paramref name="string" />.
+    /// </summary>
+    /// <param name="string">The string to hash.</param>
+    /// <param name="chars">The number of characters in the string.</param>
+    /// <returns>The FNVa hash for <paramref name="string" />.</returns>
+    consteval inline std::uint64_t operator"" _hash(const char* string, size_t chars) noexcept 
+    {
+        return hash(StringView(string, chars));
+    }
+
+    /// <summary>
+    /// Computes the FNVa hash for <paramref name="string" />.
+    /// </summary>
+    /// <param name="string">The string to hash.</param>
+    /// <param name="chars">The number of characters in the string.</param>
+    /// <returns>The FNVa hash for <paramref name="string" />.</returns>
+    consteval inline std::uint64_t operator"" _hash(const wchar_t* string, size_t chars) noexcept 
+    {
+        return hash(WStringView(string, chars));
+    }
+
+    /// <summary>
     /// Converts an UTF-8 single-byte encoded string into an UTF-16 representation.
     /// </summary>
     /// <param name="utf8"></param>

@@ -1,14 +1,13 @@
 #pragma once
 
+#include <format>
 #include "graphics_api.hpp"
-#include <fmt/format.h>
 
 using namespace LiteFX::Graphics;
 
 template <>
-struct LITEFX_GRAPHICS_API fmt::formatter<LiteFX::Graphics::PrimitiveTopology> : formatter<string_view> {
-	template <typename FormatContext>
-	auto format(LiteFX::Graphics::PrimitiveTopology t, FormatContext& ctx) {
+struct LITEFX_GRAPHICS_API std::formatter<LiteFX::Graphics::PrimitiveTopology> : std::formatter<std::string_view> {
+	auto format(LiteFX::Graphics::PrimitiveTopology t, std::format_context& ctx) const {
 		string_view name = "Invalid";
 		switch (t) {
 		using enum PrimitiveTopology;

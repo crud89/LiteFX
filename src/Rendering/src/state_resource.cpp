@@ -25,7 +25,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 StateResource::StateResource() noexcept :
-    StateResource(fmt::format("{0}", fmt::ptr(this)))
+    StateResource(std::format("{0}", reinterpret_cast<void*>(this)))
 {
 }
 

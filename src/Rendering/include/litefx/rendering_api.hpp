@@ -38,6 +38,9 @@ namespace LiteFX::Rendering {
     class IBuffer;
     class IImage;
     class ISampler;
+    class IAccelerationStructure;
+    class IBottomLevelAccelerationStructure;
+    class ITopLevelAccelerationStructure;
     class IBarrier;
     class IDescriptorSet;
     class IDescriptorSetLayout;
@@ -52,6 +55,7 @@ namespace LiteFX::Rendering {
     class ICommandBuffer;
     class IRenderPipeline;
     class IComputePipeline;
+    class IRayTracingPipeline;
     class IFrameBuffer;
     class IRenderPass;
     class ISwapChain;
@@ -103,7 +107,7 @@ namespace LiteFX::Rendering {
     /// graphics queue, you do not need to synchronize in order to wait for the result, however this also means that no rendering can take place until the workloads have
     /// finished.
     /// </remarks>
-    enum class LITEFX_RENDERING_API QueueType {
+    enum class LITEFX_RENDERING_API QueueType : UInt32 {
         /// <summary>
         /// Describes an unspecified command queue. It is not valid to create a queue instance with this type.
         /// </summary>
@@ -123,6 +127,22 @@ namespace LiteFX::Rendering {
         /// Represents a queue that can execute only transfer workloads.
         /// </summary>
         Transfer = 0x00000004,
+
+        /// <summary>
+        /// Represents a queue that can perform hardware video decoding.
+        /// </summary>
+        /// <remarks>
+        /// Video encoding/decoding is currently not a supported feature, but knowing all the capabilities of a queue is useful to select the best queue family for a particular task.
+        /// </remarks>
+        VideoDecode = 0x00000010,
+
+        /// <summary>
+        /// Represents a queue that can perform hardware video encoding.
+        /// </summary>
+        /// <remarks>
+        /// Video encoding/decoding is currently a supported feature, but knowing all the capabilities of a queue is useful to select the best queue family for a particular task.
+        /// </remarks>
+        VideoEncode = 0x00000020,
 
         /// <summary>
         /// Represents an invalid queue type.
@@ -147,6 +167,9 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// The highest possible queue priority. Submitting work to this queue might block other queues.
         /// </summary>
+        /// <remarks>
+        /// Do not use this queue priority when creating queues, as it is reserved for the default (built-in) queues.
+        /// </remarks>
         Realtime = 100
     };
 
@@ -433,6 +456,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <remarks>
         /// In GLSL, use the <c>buffer</c> keyword to access storage buffers. In HLSL, use the <c>RWStructuredBuffer</c> keyword.
+        /// 
+        /// When using shader reflection on `AppendStructuredBuffer`/`ConsumeStructuredBuffer`, this descriptor type will be deduced, but support for those constructs is not
+        /// implemented. Instead, use a separate <see cref="RWByteAddressBuffer" /> descriptor and call `InterlockedAdd` on it.
         /// </remarks>
         RWStructuredBuffer = 0x00000012,
 
@@ -497,6 +523,11 @@ namespace LiteFX::Rendering {
         /// In GLSL, use the <c>buffer</c> keyword to access byte address buffers. In HLSL, use the <c>RWByteAddressBuffer</c> keyword.
         /// </remarks>
         RWByteAddressBuffer = 0x00000017,
+
+        /// <summary>
+        /// Represents a ray-tracing acceleration structure.
+        /// </summary>
+        AccelerationStructure = 0x00000008
     };
 
     /// <summary>
@@ -539,6 +570,38 @@ namespace LiteFX::Rendering {
         Texel = 0x00000005,
 
         /// <summary>
+        /// Describes an acceleration structure buffer.
+        /// </summary>
+        /// <seealso cref="ICommandBuffer::buildAccelerationStructure" />
+        /// <seealso cref="IBottomLevelAccelerationStructure" />
+        /// <seealso cref="ITopLevelAccelerationStructure" />
+        AccelerationStructure = 0x00000006,
+
+        /// <summary>
+        /// Describes a shader binding table for ray-tracing.
+        /// </summary>
+        ShaderBindingTable = 0x00000007,
+
+        /// <summary>
+        /// Describes a buffer that stores data to generate indirect draw calls.
+        /// </summary>
+        /// <remarks>
+        /// An indirect buffer refers to a buffer that contains a set of information used to generate dispatch or draw calls. A single dispatch or draw call in this 
+        /// context is referred to as a *batch*. An indirect buffer must only contain one type of batches, e.g., it is not allowed to mix indexed and non-indexed batches
+        /// in a single indirect buffer. Batches need to be densely packed within the buffer, i.e., the stride between elements is always assumed to be `0`.
+        /// 
+        /// Indirect buffers can be written from shaders, which enables use cases like GPU-culling, where a compute shader writes the batches in an indirect buffer, that
+        /// is then passed to an indirect draw call. In such situations, the number of batches in the buffer is typically not known beforehand, so an additional buffer
+        /// is used to store the number of draw calls in.
+        /// 
+        /// Note that indirect drawing support is currently limited in how data can be passed to draw calls. This is due to Vulkan not providing an adequate interface for
+        /// describing per-draw bindings in the indirect signature. In DirectX 12, it is possible for batches to provide different vertex and index buffers, as well as 
+        /// resource bindings for each draw call. Vulkan does only support draw calls that target already bound descriptors. Due to this limitation, it is currently best
+        /// practice to use bind-less descriptor arrays to pass per-draw data to draws and use a vertex attribute to index into the descriptor array.
+        /// </remarks>
+        Indirect = 0x00000008,
+
+        /// <summary>
         /// Describes another type of buffer, such as samplers or images.
         /// </summary>
         /// <remarks>
@@ -548,66 +611,134 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Defines how a buffer is used and describes how its memory is managed.
+    /// Defines where a resource (buffer or image) memory is located and from where it can be accessed.
     /// </summary>
     /// <remarks>
-    /// There are three common buffer usage scenarios that are supported by the library:
+    /// There are three common memory usage scenarios that are supported by the engine:
     ///
     /// <list type="number">
     /// <item>
     /// <description>
     /// <strong>Static resources</strong>: such as vertex/index/constant buffers, textures or other infrequently updated buffers. In this case, the most efficient 
-    /// approach is to create a buffer using <see cref="BufferUsage::Staging" /> and map it from the CPU. Create a second buffer using 
-    /// <see cref="BufferUsage::Resource" /> and transfer the staging buffer into it.
+    /// approach is to create a buffer using <see cref="ResourceHeap::Staging" /> and map it from the CPU. Create a second buffer using 
+    /// <see cref="ResourceHeap::Resource" /> and transfer the staging buffer into it.
     /// </description>
     /// </item>
     /// <item>
     /// <description>
     /// <strong>Dynamic resources</strong>: such as deformable meshes or buffers that need to be updated every frame. For such buffers use the
-    /// <see cref="BufferUsage::Dynamic" /> mode to prevent regular transfer overhead.
+    /// <see cref="ResourceHeap::Dynamic" /> mode to prevent regular transfer overhead.
     /// </description>
     /// </item>
     /// <item>
     /// <description>
-    /// <strong>Readbacks</strong>: or resources that are written on the GPU and read by the CPU. The usage mode <see cref="BufferUsage::Readback" /> is designed to 
+    /// <strong>Readbacks</strong>: or resources that are written on the GPU and read by the CPU. The usage mode <see cref="ResourceHeap::Readback" /> is designed to 
     /// provide the best performance for this special case.
     /// </description>
     /// </item>
     /// </list>
+    /// 
+    /// Note that image resources cannot be created on heaps different to <see cref="ResourceHeap::Resource" />. For this very reason, the graphics factory does not 
+    /// allow to specify the resource heap when creating images or attachments.
     /// </remarks>
-    enum class LITEFX_RENDERING_API BufferUsage {
+    /// <seealso cref="IGraphicsFactory" />
+    /// <seealso cref="IBuffer" />
+    enum class LITEFX_RENDERING_API ResourceHeap {
         /// <summary>
-        /// Creates a buffer that can optimally be mapped from the CPU in order to be transferred to the GPU later.
+        /// Creates a resource that can be mapped from the CPU in order to be transferred to the GPU later.
         /// </summary>
         /// <remarks>
-        /// The memory for the buffer will be allocated in the DRAM (CPU or host memory). It can be optimally accessed by the CPU in order to be written. However,
-        /// reading it from the GPU may be inefficient. This usage mode should be used to create a staging buffer, i.e. a buffer that is written infrequently and
-        /// then transferred to another buffer, that uses <see cref="BufferUsage::Resource" />.
+        /// The memory for the resource will be allocated in the DRAM (CPU or host memory). It can be optimally accessed by the CPU in order to be written. However,
+        /// reading it from the GPU is not supported. This usage mode should be used to create a staging buffer, i.e. a buffer that is written infrequently and
+        /// then transferred to another buffer, that uses <see cref="ResourceHeap::Resource" />.
         /// </remarks>
         Staging = 0x00000001,
 
         /// <summary>
-        /// Creates a buffer that can optimally be read by the GPU.
+        /// Creates a resource that can be read by the GPU.
         /// </summary>
         /// <remarks>
-        /// The memory for the buffer will be allocated on the VRAM (GPU or device memory). It can be optimally accessed by the GPU in order to be read frequently.
-        /// It can be written by a transfer call. Note that those come with an overhead and should only occur infrequently.
+        /// The memory for the resource will be allocated on the VRAM (GPU or device memory). It can be optimally accessed by the GPU in order to be read frequently.
+        /// It can be written by a transfer call, but is inaccessible from the CPU.
         /// </remarks>
         Resource = 0x00000002,
 
         /// <summary>
-        /// Creates a buffer that can be optimally mapped by the CPU and is preferred to be optimally read by the GPU.
+        /// Creates a resource that can be mapped from the CPU and read by the GPU.
         /// </summary>
         /// <remarks>
         /// Dynamic buffers are used when the content is expected to be changed every frame. They do not require transfer calls, but may not be read as efficiently
-        /// as <see cref="BufferUsage::Resource" /> buffers.
+        /// as <see cref="ResourceHeap::Resource" /> buffers.
         /// </remarks>
         Dynamic = 0x00000010,
 
         /// <summary>
-        /// Creates a buffer that can be written by the GPU and read by the CPU.
+        /// Creates a buffer that can be written on the GPU and read by the CPU.
         /// </summary>
         Readback = 0x00000100
+    };
+
+    /// <summary>
+    /// Describes the intended usage for a resource.
+    /// </summary>
+    /// <seealso cref="IGraphicsFactory" />
+    /// <seealso cref="IBuffer" />
+    /// <seealso cref="IImage" />
+    enum class LITEFX_RENDERING_API ResourceUsage {
+        /// <summary>
+        /// The resource is created without any special usage settings.
+        /// </summary>
+        None = 0x0000,
+
+        /// <summary>
+        /// Allows the resource to be written to.
+        /// </summary>
+        /// <remarks>
+        /// This flag is not allowed for vertex buffers (<see cref="BufferType::Vertex" />), index buffers (<see cref="BufferType::Index" />) and uniform buffers (<see cref="BufferType::Uniform" />).
+        /// </remarks>
+        /// <seealso cref="IDeviceMemory::writable" />
+        AllowWrite = 0x0001,
+
+        /// <summary>
+        /// Allows the resource data to be copied into another resource.
+        /// </summary>
+        /// <remarks>
+        /// This flag is implicitly set for resources created with <see cref="ResourceHeap::Staging" /> and for render target images (attachments).
+        /// </remarks>
+        TransferSource = 0x0010,
+
+        /// <summary>
+        /// Allows the resource data to be copied from another resource.
+        /// </summary>
+        /// <remarks>
+        /// This flag is implicitly set for resources created with <see cref="ResourceHeap::Readback" /> and for render target images (attachments).
+        /// </remarks>
+        TransferDestination = 0x0020,
+
+        /// <summary>
+        /// Allows the resource to be used as a render target.
+        /// </summary>
+        RenderTarget = 0x0040,
+
+        /// <summary>
+        /// Allows the resource to be used to build acceleration structures.
+        /// </summary>
+        /// <remarks>
+        /// This flag is not allowed for images and other acceleration structures (<see cref="BufferType::AccelerationStructure" />).
+        /// </remarks>
+        /// <seealso cref="IAccelerationStructure" />
+        AccelerationStructureBuildInput = 0x0100,
+
+        /// <summary>
+        /// Shortcut for commonly used `TransferSource | TransferDestination` combination.
+        /// </summary>
+        Default = TransferSource | TransferDestination,
+
+        /// <summary>
+        /// Default usage for frame buffer images.
+        /// </summary>
+        /// <seealso cref="IFrameBuffer" />
+        FrameBufferImage = TransferSource | RenderTarget,
     };
 
     /// <summary>
@@ -645,7 +776,7 @@ namespace LiteFX::Rendering {
         TessellationEvaluation = 0x00000004,
 
         /// <summary>
-        /// Represents the  geometry shader stage.
+        /// Represents the geometry shader stage.
         /// </summary>
         /// <remarks>
         /// Note that geometry shaders come with a performance penalty and might not be supported on all platforms. If you can, avoid using them.
@@ -653,7 +784,7 @@ namespace LiteFX::Rendering {
         Geometry = 0x00000008,
 
         /// <summary>
-        /// Represents the fragment or vertex shader stage.
+        /// Represents the fragment or pixel shader stage.
         /// </summary>
         Fragment = 0x00000010,
 
@@ -663,9 +794,136 @@ namespace LiteFX::Rendering {
         Compute = 0x00000020,
 
         /// <summary>
+        /// Represents the task or amplification shader stage.
+        /// </summary>
+        Task = 0x00000040,
+
+        /// <summary>
+        /// Represents the mesh shader stage.
+        /// </summary>
+        Mesh = 0x00000080,
+
+        /// <summary>
+        /// Represents the ray generation shader stage.
+        /// </summary>
+        RayGeneration = 0x00000100,
+
+        /// <summary>
+        /// Represents the any-hit shader stage.
+        /// </summary>
+        AnyHit = 0x00000200,
+
+        /// <summary>
+        /// Represents the closest-hit shader stage.
+        /// </summary>
+        ClosestHit = 0x00000400,
+
+        /// <summary>
+        /// Represents the miss shader stage.
+        /// </summary>
+        Miss = 0x00000800,
+
+        /// <summary>
+        /// Represents the intersection shader stage.
+        /// </summary>
+        Intersection = 0x00001000,
+
+        /// <summary>
+        /// Represents the callable shader stage.
+        /// </summary>
+        Callable = 0x00002000,
+
+        /// <summary>
+        /// Represents the complete rasterization pipeline.
+        /// </summary>
+        RasterizationPipeline = Vertex | Geometry | TessellationControl | TessellationEvaluation | Fragment,
+
+        /// <summary>
+        /// Represents the complete mesh shading pipeline.
+        /// </summary>
+        MeshPipeline = Task | Mesh | Fragment,
+
+        /// <summary>
+        /// Represents the complete ray-tracing pipeline.
+        /// </summary>
+        RayTracingPipeline = RayGeneration | AnyHit | ClosestHit | Miss | Intersection | Callable,
+
+        /// <summary>
+        /// Enables all supported shader stages.
+        /// </summary>
+        Any = Vertex | TessellationControl | TessellationEvaluation | Geometry | Fragment | Compute | Task | Mesh | RayGeneration | AnyHit | ClosestHit | Miss | Intersection | Callable,
+
+        /// <summary>
         /// Represents an unknown shader stage.
         /// </summary>
         Other = 0x7FFFFFFF
+    };
+
+    /// <summary>
+    /// Describes the type of a shader module record within a shader collection or shader binting table.
+    /// </summary>
+    /// <seealso cref="IShaderRecord" />
+    enum class LITEFX_RENDERING_API ShaderRecordType {
+        /// <summary>
+        /// Represents a ray generation shader record.
+        /// </summary>
+        RayGeneration = 0x01,
+
+        /// <summary>
+        /// Represents a hit group shader record.
+        /// </summary>
+        HitGroup = 0x02,
+
+        /// <summary>
+        /// Represents an intersection shader record.
+        /// </summary>
+        Intersection = 0x03,
+
+        /// <summary>
+        /// Represents a miss shader record.
+        /// </summary>
+        Miss = 0x04,
+
+        /// <summary>
+        /// Represents a callable shader record.
+        /// </summary>
+        Callable = 0x05,
+
+        /// <summary>
+        /// Represents a shader record that contains a module of an unsupported shader stage.
+        /// </summary>
+        Invalid = 0x7FFFFFFF
+    };
+
+    /// <summary>
+    /// Describes a group or combination of groups of a shader binding table.
+    /// </summary>
+    /// <seealso cref="IRayTracingPipeline::allocateShaderBindingTable" />
+    enum class LITEFX_RENDERING_API ShaderBindingGroup : UInt32 {
+        /// <summary>
+        /// Refers to the group of the shader binding table that stores the ray generation shader.
+        /// </summary>
+        RayGeneration = 0x01,
+
+        /// <summary>
+        /// Refers to the group of the shader binding table that stores the geometry hit shaders.
+        /// </summary>
+        HitGroup = 0x02,
+
+        /// <summary>
+        /// Refers to the group of the shader binding table that stores the miss shaders.
+        /// </summary>
+        Miss = 0x04,
+
+        /// <summary>
+        /// Refers to the group of the shader binding table that stores the callable shaders.
+        /// </summary>
+        Callable = 0x08,
+
+        /// <summary>
+        /// Refers to a combination of all possible groups that can be stored in a shader binding table.
+        /// </summary>
+        All = RayGeneration | HitGroup | Miss | Callable
     };
 
     /// <summary>
@@ -679,7 +937,7 @@ namespace LiteFX::Rendering {
         Solid = 0x00000001,
 
         /// <summary>
-        /// Polygons are only drawn as wireframes.
+        /// Polygons are only drawn as wire-frames.
         /// </summary>
         Wireframe = 0x00000002,
 
@@ -700,7 +958,7 @@ namespace LiteFX::Rendering {
         FrontFaces = 0x00000001,
 
         /// <summary>
-        /// The rasterizer wll discard back-facing polygons.
+        /// The rasterizer will discard back-facing polygons.
         /// </summary>
         BackFaces = 0x00000002,
 
@@ -756,6 +1014,35 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Describes the behavior of render targets.
+    /// </summary>
+    enum class LITEFX_RENDERING_API RenderTargetFlags {
+        /// <summary>
+        /// No flags are enabled.
+        /// </summary>
+        None = 0x00,
+
+        /// <summary>
+        /// If enabled, color or depth (depending on the render target type) are cleared when starting a render pass that renders to the render target.
+        /// </summary>
+        Clear = 0x01,
+
+        /// <summary>
+        /// If enabled and the render target format supports stencil storage, the stencil part is cleared when the render pass that renders to the render target is started.
+        /// </summary>
+        ClearStencil = 0x02,
+
+        /// <summary>
+        /// If enabled, the render target is discarded after ending the render pass.
+        /// </summary>
+        /// <remarks>
+        /// When this flag is set, the render target storage is freed after the render pass has finished. The main use of this is to have depth/stencil targets on a render 
+        /// pass that are only required during this render pass. It is not valid to attempt accessing the render target before or after the render pass.
+        /// </remarks>
+        Volatile = 0x04
+    };
+
+    /// <summary>
     /// Describes the dimensions of a image resource, i.e. the dimensions that are required to access a texel or describe the image extent.
     /// </summary>
     /// <seealso cref="IImage" />
@@ -786,7 +1073,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     enum class LITEFX_RENDERING_API MultiSamplingLevel : UInt32 {
         /// <summary>
-        /// The default number of samples. Multi-sampling will be de-activated, if this sampling level is used.
+        /// The default number of samples. Multi-sampling will be deactivated, if this sampling level is used.
         /// </summary>
         x1 = 0x00000001,
 
@@ -915,7 +1202,7 @@ namespace LiteFX::Rendering {
         LessEqual = 0x00000004,
 
         /// <summary>
-        /// The test succeeds, if the current value is greater or euql to the stencil ref or previous depth value.
+        /// The test succeeds, if the current value is greater or equal to the stencil ref or previous depth value.
         /// </summary>
         GreaterEqual = 0x00000005,
 
@@ -1173,7 +1460,33 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// Translates to `VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_RESOLVE` in DirectX 12 ❎.
         /// </remarks>
-        Resolve = 0x00001000
+        Resolve = 0x00001000,
+
+        /// <summary>
+        /// Waits for previous commands to finish the building stage for an acceleration structure, or blocks the following commands until the building has finished.
+        /// </summary>
+        /// <remarks>
+        /// This flag is only supported, if ray-tracing support is enabled. It translates to `VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE` in DirectX 12 ❎.
+        /// </remarks>
+        /// <seealso cref="IAccelerationStructure" />
+        AccelerationStructureBuild = 0x00010000,
+
+        /// <summary>
+        /// Waits for previous commands to finish the copying stage for an acceleration structure, or blocks the following commands until the copying has finished.
+        /// </summary>
+        /// <remarks>
+        /// This flag is only supported, if ray-tracing support is enabled. It translates to `VK_PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_COPY_RAYTRACING_ACCELERATION_STRUCTURE` in DirectX 12 ❎.
+        /// </remarks>
+        /// <seealso cref="IAccelerationStructure" />
+        AccelerationStructureCopy = 0x00020000,
+
+        /// <summary>
+        /// Waits for the previous commands to finish ray-tracing shader stages, or blocks the following commands until ray-tracing has finished.
+        /// </summary>
+        /// <remarks>
+        /// This flag is only supported if ray-tracing support is enabled. It translates to `VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR` in Vulkan 🌋 and `D3D12_BARRIER_SYNC_RAYTRACING` in DirectX 12 ❎.
+        /// </remarks>
+        Raytracing = 0x00040000,
     };
 
     /// <summary>
@@ -1307,7 +1620,23 @@ namespace LiteFX::Rendering {
         /// 
         /// This access mode translates to `D3D12_BARRIER_ACCESS_COMMON` in the DirectX 12 ❎ backend and `VK_ACCESS_MEMORY_READ_BIT | VK_ACCESS_MEMORY_WRITE_BIT` in the Vulkan 🌋 backend.
         /// </remarks>
-        Common = 0x00002000
+        Common = 0x00002000,
+
+        /// <summary>
+        /// Indicates that a resources is accessed to read an acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// This access mode flags is only supported if ray-tracing support is enabled. It translates `D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ` in the DirectX 12 ❎ backend and `VK_ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR` in the Vulkan 🌋 backend.
+        /// </remarks>
+        AccelerationStructureRead = 0x00010000,
+
+        /// <summary>
+        /// Indicates that a resources is accessed to write an acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// This access mode flags is only supported if ray-tracing support is enabled. It translates `D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE` in the DirectX 12 ❎ backend and `VK_ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR` in the Vulkan 🌋 backend.
+        /// </remarks>
+        AccelerationStructureWrite = 0x00020000,
     };
 
     /// <summary>
@@ -1415,8 +1744,112 @@ namespace LiteFX::Rendering {
         /// Indicates that an image's layout is not known, which typically happens after creating image resources. It is not valid to transition any resource into this state.
         /// 
         /// This image layout translates to `D3D12_BARRIER_LAYOUT_UNDEFINED` in the DirectX 12 ❎ backend and `VK_IMAGE_LAYOUT_UNDEFINED` in the Vulkan 🌋 backend.
+        /// 
+        /// When using this layout as a source layout, the contents of the image may be discarded.
         /// </remarks>
         Undefined = 0x7FFFFFFF
+    };
+
+    /// <summary>
+    /// Controls how a geometry that is part of a bottom-level acceleration structure (BLAS) behaves during ray-tracing.
+    /// </summary>
+    /// <seealso cref="IBottomLevelAccelerationStructure" />
+    enum class LITEFX_RENDERING_API GeometryFlags {
+        /// <summary>
+        /// Implies no restrictions on the geometry.
+        /// </summary>
+        None = 0x00,
+
+        /// <summary>
+        /// If this flag is set, the any-hit shader for this geometry is never invoked, even if it is present within the hit group.
+        /// </summary>
+        Opaque = 0x01,
+
+        /// <summary>
+        /// If this flag is set, the any-hit shader for this geometry is only invoked once for each primitive of the geometry, even if it could be invoked multiple times during ray tracing.
+        /// </summary>
+        OneShotAnyHit = 0x02
+    };
+
+    /// <summary>
+    /// Controls how an acceleration structure should be built.
+    /// </summary>
+    /// <seealso cref="IBottomLevelAccelerationStructure" />
+    /// <seealso cref="ITopLevelAccelerationStructure" />
+    enum class LITEFX_RENDERING_API AccelerationStructureFlags {
+        /// <summary>
+        /// Use default options for building the acceleration structure.
+        /// </summary>
+        None = 0x0000,
+
+        /// <summary>
+        /// Allow the acceleration structure to be updated.
+        /// </summary>
+        AllowUpdate = 0x0001,
+
+        /// <summary>
+        /// Allow the acceleration structure to be compacted.
+        /// </summary>
+        AllowCompaction = 0x0002,
+
+        /// <summary>
+        /// Prefer building a better performing acceleration structure, that possibly takes longer to build.
+        /// </summary>
+        /// <remarks>
+        /// This flag cannot be combined with <see cref="PreferFastBuild" />.
+        /// </remarks>
+        PreferFastTrace = 0x0004,
+
+        /// <summary>
+        /// Prefer fast build times for the acceleration structure, but sacrifice ray-tracing performance.
+        /// </summary>
+        /// <remarks>
+        /// This flag cannot be combined with <see cref="PreferFastTrace" />.
+        /// </remarks>
+        PreferFastBuild = 0x0008,
+
+        /// <summary>
+        /// Prefer to minimize the memory footprint of the acceleration structure, but at the cost of ray-tracing performance and build times.
+        /// </summary>
+        MinimizeMemory = 0x0010
+    };
+
+    /// <summary>
+    /// Controls how an instance within a <see cref="ITopLevelAccelerationStructure" /> behaves during ray-tracing.
+    /// </summary>
+    enum class LITEFX_RENDERING_API InstanceFlags {
+        /// <summary>
+        /// The instance uses default behavior.
+        /// </summary>
+        None = 0x00,
+
+        /// <summary>
+        /// If this flag is set front- and backface culling is disabled for the instance.
+        /// </summary>
+        DisableCull = 0x01,
+
+        /// <summary>
+        /// If this flag is set, front- and backfaces flip their default cull order.
+        /// </summary>
+        FlipWinding = 0x02,
+
+        /// <summary>
+        /// If this flag is set, no geometry of the instance invokes the any-hit shader. This overwrites per-geometry flags.
+        /// </summary>
+        /// <remarks>
+        /// This flag must not be set in combination with <see cref="ForceNonOpaque" />.
+        /// </remarks>
+        /// <seealso cref="GeometryFlags::Opaque" />
+        ForceOpaque = 0x04,
+
+        /// <summary>
+        /// If this flag is set, each geometry of the instance will ignore the <seealso cref="GeometryFlags::Opaque" /> setting.
+        /// </summary>
+        /// <remarks>
+        /// This flag must not be set in combination with <see cref="ForceOpaque" />.
+        /// </remarks>
+        /// <seealso cref="GeometryFlags::Opaque" />
+        ForceNonOpaque = 0x08
     };
 
 #pragma endregion
@@ -1429,6 +1862,12 @@ namespace LiteFX::Rendering {
     LITEFX_DEFINE_FLAGS(ResourceAccess);
     LITEFX_DEFINE_FLAGS(BufferFormat);
     LITEFX_DEFINE_FLAGS(WriteMask);
+    LITEFX_DEFINE_FLAGS(RenderTargetFlags);
+    LITEFX_DEFINE_FLAGS(GeometryFlags);
+    LITEFX_DEFINE_FLAGS(ResourceUsage);
+    LITEFX_DEFINE_FLAGS(AccelerationStructureFlags);
+    LITEFX_DEFINE_FLAGS(InstanceFlags);
+    LITEFX_DEFINE_FLAGS(ShaderBindingGroup);
 
 #pragma endregion
 
@@ -1438,7 +1877,7 @@ namespace LiteFX::Rendering {
     /// Returns the number of channels for a buffer format.
     /// </summary>
     /// <seealso cref="BufferFormat" />
-    inline UInt32 getBufferFormatChannels(const BufferFormat& format) {
+    constexpr inline UInt32 getBufferFormatChannels(BufferFormat format) {
         return static_cast<UInt32>(format) & 0x000000FF;
     }
 
@@ -1446,7 +1885,7 @@ namespace LiteFX::Rendering {
     /// Returns the number of bytes used by a channel of a buffer format.
     /// </summary>
     /// <seealso cref="BufferFormat" />
-    inline UInt32 getBufferFormatChannelSize(const BufferFormat& format) {
+    constexpr inline UInt32 getBufferFormatChannelSize(BufferFormat format) {
         return (static_cast<UInt32>(format) & 0xFF000000) >> 24;
     }
 
@@ -1454,27 +1893,119 @@ namespace LiteFX::Rendering {
     /// Returns the underlying data type of a buffer format.
     /// </summary>
     /// <seealso cref="BufferFormat" />
-    inline UInt32 getBufferFormatType(const BufferFormat& format) {
+    constexpr inline UInt32 getBufferFormatType(BufferFormat format) {
         return (static_cast<UInt32>(format) & 0x0000FF00) >> 8;
     }
 
     /// <summary>
     /// Returns the size of an element of a specified format.
     /// </summary>
-    size_t LITEFX_RENDERING_API getSize(const Format& format);
+    constexpr inline size_t LITEFX_RENDERING_API getSize(Format format);
 
     /// <summary>
     /// Returns <c>true</c>, if the format contains a depth channel.
     /// </summary>
     /// <seealso cref="DepthStencilState" />
-    bool LITEFX_RENDERING_API hasDepth(const Format& format);
+    constexpr inline bool LITEFX_RENDERING_API hasDepth(Format format);
 
     /// <summary>
     /// Returns <c>true</c>, if the format contains a stencil channel.
     /// </summary>
     /// <seealso cref="DepthStencilState" />
-    bool LITEFX_RENDERING_API hasStencil(const Format& format);
+    constexpr inline bool LITEFX_RENDERING_API hasStencil(Format format);
 
+#pragma endregion
+
+#pragma region "Data Types"
+
+    /// <summary>
+    /// An indirect batch used to execute an standard draw call.
+    /// </summary>
+    /// <seealso cref="IndirectDispatchBatch" />
+    /// <seealso cref="IndirectIndexedBatch" />
+    struct LITEFX_RENDERING_API alignas(16) IndirectBatch {
+        /// <summary>
+        /// The number of vertices of the mesh.
+        /// </summary>
+        /// <seealso cref="FirstVertex" />
+        UInt32 VertexCount{ };
+
+        /// <summary>
+        /// The number of instances to draw of this mesh.
+        /// </summary>
+        /// <seealso cref="FirstInstance" />
+        UInt32 InstanceCount{ };
+
+        /// <summary>
+        /// The index of the first vertex of the mesh in the vertex buffer.
+        /// </summary>
+        /// <seealso cref="VertexCount" />
+        UInt32 FirstVertex{ };
+
+        /// <summary>
+        /// The index of the first index to draw. This value is added to each instance index before obtaining per-instance data from the vertex buffer.
+        /// </summary>
+        /// <seealso cref="InstanceCount" />
+        UInt32 FirstInstance{ };
+    };
+
+    /// <summary>
+    /// An indirect batch used to execute an indexed draw call.
+    /// </summary>
+    /// <seealso cref="IndirectDispatchBatch" />
+    /// <seealso cref="IndirectBatch" />
+    struct LITEFX_RENDERING_API alignas(16) IndirectIndexedBatch {
+        /// <summary>
+        /// The number of indices in the mesh index buffer.
+        /// </summary>
+        /// <seealso cref="FirstIndex" />
+        UInt32 IndexCount{ };
+
+        /// <summary>
+        /// The number of instances to draw of this mesh.
+        /// </summary>
+        /// <seealso cref="FirstInstance" />
+        UInt32 InstanceCount{ };
+
+        /// <summary>
+        /// The first index in the index buffer used to draw the mesh.
+        /// </summary>
+        /// <seealso cref="IndexCount" />
+        UInt32 FirstIndex{ };
+
+        /// <summary>
+        /// An offset added to each index to obtain a vertex.
+        /// </summary>
+        Int32 VertexOffset{ };
+
+        /// <summary>
+        /// The index of the first index to draw. This value is added to each instance index before obtaining per-instance data from the vertex buffer.
+        /// </summary>
+        /// <seealso cref="InstanceCount" />
+        UInt32 FirstInstance{ };
+    };
+
+    /// <summary>
+    /// An indirect batch used to dispatch a compute shader kernel.
+    /// </summary>
+    /// <seealso cref="IndirectIndexedBatch" />
+    /// <seealso cref="IndirectBatch" />
+    struct LITEFX_RENDERING_API alignas(16) IndirectDispatchBatch {
+        /// <summary>
+        /// The number of threads into x-direction.
+        /// </summary>
+        UInt32 X{ 1 };
+
+        /// <summary>
+        /// The number of threads into y-direction.
+        /// </summary>
+        UInt32 Y{ 1 };
+
+        /// <summary>
+        /// The number of threads into z-direction.
+        /// </summary>
+        UInt32 Z{ 1 };
+    };
 #pragma endregion
 
     /// <summary>
@@ -1517,7 +2048,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual const String& name() const noexcept override;
+        const String& name() const noexcept override;
     };
 
     /// <summary>
@@ -1564,6 +2095,21 @@ namespace LiteFX::Rendering {
         /// <param name="renderPass">The render pass to add to the device state.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if another render pass with the same <paramref name="id" /> has already been added.</exception>
         void add(const String& id, UniquePtr<IRenderPass>&& renderPass);
+
+        /// <summary>
+        /// Adds a new frame buffer to the device state and uses its name as identifier.
+        /// </summary>
+        /// <param name="frameBuffer">The render pass to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another frame buffer with the same identifier has already been added.</exception>
+        void add(UniquePtr<IFrameBuffer>&& frameBuffer);
+
+        /// <summary>
+        /// Adds a new frame buffer to the device state.
+        /// </summary>
+        /// <param name="id">The identifier for the frame buffer.</param>
+        /// <param name="renderPass">The frame buffer to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another frame buffer with the same <paramref name="id" /> has already been added.</exception>
+        void add(const String& id, UniquePtr<IFrameBuffer>&& frameBuffer);
 
         /// <summary>
         /// Adds a new pipeline to the device state and uses its name as identifier.
@@ -1654,6 +2200,21 @@ namespace LiteFX::Rendering {
         /// <param name="sampler">The sampler to add to the device state.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if another sampler with the same <paramref name="id" /> has already been added.</exception>
         void add(const String& id, UniquePtr<ISampler>&& sampler);
+
+        /// <summary>
+        /// Adds a new acceleration structure to the device state and uses its name as identifier.
+        /// </summary>
+        /// <param name="accelerationStructure">The acceleration structure to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another acceleration structure with the same <paramref name="id" /> has already been added.</exception>
+        void add(UniquePtr<IAccelerationStructure>&& accelerationStructure);
+
+        /// <summary>
+        /// Adds a new acceleration structure to the device state.
+        /// </summary>
+        /// <param name="id">The identifier for the acceleration structure.</param>
+        /// <param name="accelerationStructure">The acceleration structure to add to the device state.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another acceleration structure with the same <paramref name="id" /> has already been added.</exception>
+        void add(const String& id, UniquePtr<IAccelerationStructure>&& accelerationStructure);
         
         /// <summary>
         /// Adds a new descriptor set to the device state.
@@ -1670,6 +2231,14 @@ namespace LiteFX::Rendering {
         /// <returns>A reference of the render pass.</returns>
         /// <exception cref="InvalidArgumentExceptoin">Thrown, if no render pass has been added for the provided <paramref name="id" />.</exception>
         IRenderPass& renderPass(const String& id) const;
+
+        /// <summary>
+        /// Returns a frame buffer from the device state.
+        /// </summary>
+        /// <param name="id">The identifier associated with the frame buffer.</param>
+        /// <returns>A reference of the frame buffer.</returns>
+        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no frame buffer has been added for the provided <paramref name="id" />.</exception>
+        IFrameBuffer& frameBuffer(const String& id) const;
 
         /// <summary>
         /// Returns a pipeline from the device state.
@@ -1712,7 +2281,7 @@ namespace LiteFX::Rendering {
         IImage& image(const String& id) const;
 
         /// <summary>
-        /// Returns an sampler from the device state.
+        /// Returns a sampler from the device state.
         /// </summary>
         /// <param name="id">The identifier associated with the sampler.</param>
         /// <returns>A reference of the sampler.</returns>
@@ -1720,7 +2289,15 @@ namespace LiteFX::Rendering {
         ISampler& sampler(const String& id) const;
 
         /// <summary>
-        /// Returns an descriptor set from the device state.
+        /// Returns an acceleration structure from the device state.
+        /// </summary>
+        /// <param name="id">The identifier associated with the acceleration structure.</param>
+        /// <returns>A reference of the acceleration structure.</returns>
+        /// <exception cref="InvalidArgumentExceptoin">Thrown, if no acceleration structure has been added for the provided <paramref name="id" />.</exception>
+        IAccelerationStructure& accelerationStructure(const String& id) const;
+
+        /// <summary>
+        /// Returns a descriptor set from the device state.
         /// </summary>
         /// <param name="id">The identifier associated with the descriptor set.</param>
         /// <returns>A reference of the descriptor set.</returns>
@@ -1738,6 +2315,13 @@ namespace LiteFX::Rendering {
         /// <param name="renderPass">The render pass to release.</param>
         /// <returns><c>true</c>, if the render pass was properly released, <c>false</c> otherwise.</returns>
         bool release(const IRenderPass& renderPass);
+
+        /// <summary>
+        /// Releases a frame buffer.
+        /// </summary>
+        /// <param name="renderPass">The frame buffer to release.</param>
+        /// <returns><c>true</c>, if the frame buffer was properly released, <c>false</c> otherwise.</returns>
+        bool release(const IFrameBuffer& frameBuffer);
 
         /// <summary>
         /// Releases a pipeline.
@@ -1861,6 +2445,22 @@ namespace LiteFX::Rendering {
     public:
         virtual ~ISurface() noexcept = default;
     };
+    
+    /// <summary>
+    /// Describes a single descriptor binding point within a <see cref="IShaderModule" />.
+    /// </summary>
+    struct LITEFX_RENDERING_API DescriptorBindingPoint final {
+    public:
+        /// <summary>
+        /// Stores the register index of the binding point.
+        /// </summary>
+        UInt32 Register { 0 };
+
+        /// <summary>
+        /// Stores the descriptor space (or set index) of the binding point.
+        /// </summary>
+        UInt32 Space { 0 };
+    };
 
     /// <summary>
     /// Represents a single shader module, i.e. a part of a <see cref="IShaderProgram" />.
@@ -1878,7 +2478,7 @@ namespace LiteFX::Rendering {
         /// Returns the type of the shader module.
         /// </summary>
         /// <returns>The type of the shader module.</returns>
-        virtual const ShaderStage& type() const noexcept = 0;
+        virtual ShaderStage type() const noexcept = 0;
 
         /// <summary>
         /// Returns the file name of the shader module.
@@ -1891,14 +2491,36 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The name of the shader module entry point.</returns>
         virtual const String& entryPoint() const noexcept = 0;
+
+        /// <summary>
+        /// For ray-tracing shader modules returns the binding point for the descriptor that receives shader-local data.
+        /// </summary>
+        /// <remarks>
+        /// Ray-tracing shaders, especially hit and intersection shaders may rely on local per-invocation data to handle ray intersections. One prominent example of such data is a custom 
+        /// index that identifies the geometry within the instance that has been hit, which can then be used to index into bindless arrays to acquire additional data, such as material 
+        /// properties or texture maps. This data is placed alongside the shader binding table created from a <see cref="ShaderRecordCollection" /> and passed to the shader when it is 
+        /// invoked. However, when building the <see cref="IPipelineLayout" /> for a ray-tracing pipeline, the device needs to know which descriptors bind globally and which descriptor
+        /// binds locally. This information currently cannot be reliably acquired by shader reflection and must thus be specified on a per-module basis. 
+        /// 
+        /// Note that it is only possible for one descriptor to bind to local data. However, this descriptor can bind a constant/uniform buffer that contains multiple variables. Whilst 
+        /// it is possible to bind buffer references (using <see cref="IDeviceMemory::virtualAddress" />), support for it is differs depending on the shader language. To keep shaders 
+        /// portable, it is recommended to use descriptor indexing to bind buffers and textures and only pass constant values into local descriptor bindings.
+        /// 
+        /// For shader modules of types other than ray-tracing, this setting is ignored.
+        /// </remarks>
+        /// <returns>Returns the binding point for the descriptor that receives shader-local data.</returns>
+        /// <seealso cref="ShaderRecord{{typename TLocalData}}" />
+        virtual const Optional<DescriptorBindingPoint>& shaderLocalDescriptor() const noexcept = 0;
     };
 
     /// <summary>
     /// Represents a render target, i.e. an abstract view of the output of an <see cref="RenderPass" />.
-    /// </remarks>
+    /// </summary>
     /// <remarks>
-    /// A render target represents one output of a render pass, stored within an <see cref="IImage" />. It is contained by a <see cref="RenderPass" />, that contains 
-    /// the <see cref="FrameBuffer" />, that stores the actual render target image resource.
+    /// A render target represents one output of a render pass, stored within an <see cref="IImage" />. It is contained by a <see cref="RenderPass" />, that maps it to an image resource on
+    /// the <see cref="FrameBuffer" /> the render pass operates on. The <see cref="IRenderTarget::identifier" /> is used to associate an image within a frame buffer to a render target.
+    /// 
+    /// When using a <see cref="IRenderPipeline" /> during rendering, a similar lookup is performed to bind frame buffer images to input attachments.
     /// </remarks>
     /// <seealso cref="RenderTarget" />
     /// <seealso cref="RenderPass" />
@@ -1957,6 +2579,12 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// A unique identifier for the render target.
+        /// </summary>
+        /// <returns>The unique identifier for the render target.</returns>
+        virtual UInt64 identifier() const noexcept = 0;
+
+        /// <summary>
         /// Returns the name of the render target.
         /// </summary>
         /// <returns>The name of the render target.</returns>
@@ -1970,19 +2598,25 @@ namespace LiteFX::Rendering {
         /// when it is initialized and will raise an exception, if a location is either not mapped or assigned multiple times.
         /// </remarks>
         /// <returns>The location of the render target output attachment within the fragment shader</returns>
-        virtual const UInt32& location() const noexcept = 0;
+        virtual UInt32 location() const noexcept = 0;
 
         /// <summary>
         /// Returns the type of the render target.
         /// </summary>
         /// <returns>The type of the render target.</returns>
-        virtual const RenderTargetType& type() const noexcept = 0;
+        virtual RenderTargetType type() const noexcept = 0;
 
         /// <summary>
         /// Returns the internal format of the render target.
         /// </summary>
         /// <returns>The internal format of the render target.</returns>
-        virtual const Format& format() const noexcept = 0;
+        virtual Format format() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the flags that control the behavior of the render target.
+        /// </summary>
+        /// <returns>The flags that control the behavior of the render target.</returns>
+        virtual RenderTargetFlags flags() const noexcept = 0;
 
         /// <summary>
         /// Returns <c>true</c>, if the render target should be cleared, when the render pass is started. If the <see cref="format" /> is set to a depth format, this clears the
@@ -1991,7 +2625,9 @@ namespace LiteFX::Rendering {
         /// <returns><c>true</c>, if the render target should be cleared, when the render pass is started</returns>
         /// <seealso cref="clearStencil" />
         /// <seealso cref="clearValues" />
-        virtual const bool& clearBuffer() const noexcept = 0;
+        /// <seealso cref="flags" />
+        /// <seealso cref="RenderTargetFlags" />
+        virtual bool clearBuffer() const noexcept = 0;
 
         /// <summary>
         /// Returns <c>true</c>, if the render target stencil should be cleared, when the render pass is started. If the <see cref="format" /> is does not contain a stencil channel,
@@ -2000,7 +2636,9 @@ namespace LiteFX::Rendering {
         /// <returns><c>true</c>, if the render target stencil should be cleared, when the render pass is started</returns>
         /// <seealso cref="clearStencil" />
         /// <seealso cref="clearValues" />
-        virtual const bool& clearStencil() const noexcept = 0;
+        /// <seealso cref="flags" />
+        /// <seealso cref="RenderTargetFlags" />
+        virtual bool clearStencil() const noexcept = 0;
 
         /// <summary>
         /// Returns the value, the render target is cleared with, if <see cref="clearBuffer" /> either or <see cref="clearStencil" /> is specified.
@@ -2023,7 +2661,9 @@ namespace LiteFX::Rendering {
         /// the GPU memory again in the first place.
         /// </remarks>
         /// <returns><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</returns>
-        virtual const bool& isVolatile() const noexcept = 0;
+        /// <seealso cref="flags" />
+        /// <seealso cref="RenderTargetFlags" />
+        virtual bool isVolatile() const noexcept = 0;
 
         /// <summary>
         /// Returns the render targets blend state.
@@ -2040,69 +2680,166 @@ namespace LiteFX::Rendering {
         LITEFX_IMPLEMENTATION(RenderTargetImpl);
 
     public:
-        RenderTarget() noexcept;
+        /// <summary>
+        /// Initializes the render target.
+        /// </summary>
+        /// <param name="uid">A unique identifier for the render target.</param>
+        /// <param name="location">The location of the render target output attachment.</param>
+        /// <param name="type">The type of the render target.</param>
+        /// <param name="format">The format of the render target.</param>
+        /// <param name="flags">The flags that control the behavior of the render target.</param>
+        /// <param name="clearValues">The values with which the render target gets cleared.</param>
+        /// <param name="blendState">The render target blend state.</param>
+        explicit RenderTarget(UInt64 uid, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const BlendState& blendState = {});
 
         /// <summary>
         /// Initializes the render target.
         /// </summary>
+        /// <remarks>
+        /// This overload uses the <paramname ref="name" /> parameter to compute the <see cref="identifier" />.
+        /// </remarks>
+        /// <param name="name">The unique name of the render target.</param>
         /// <param name="location">The location of the render target output attachment.</param>
         /// <param name="type">The type of the render target.</param>
         /// <param name="format">The format of the render target.</param>
-        /// <param name="clearBuffer"><c>true</c>, if the render target should be cleared, when a render pass is started.</param>
+        /// <param name="flags">The flags that control the behavior of the render target.</param>
         /// <param name="clearValues">The values with which the render target gets cleared.</param>
-        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared, when a render pass is started.</param>
-        /// <param name="isVolatile"><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</param>
         /// <param name="blendState">The render target blend state.</param>
-        explicit RenderTarget(const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const bool& isVolatile = false, const BlendState& blendState = {});
+        explicit RenderTarget(StringView name, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags = RenderTargetFlags::None, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const BlendState& blendState = {});
+        
+        /// <summary>
+        /// Creates a copy of a render target.
+        /// </summary>
+        /// <param name="_other">The render target instance to copy.</param>
+        RenderTarget(const RenderTarget& _other) noexcept;
 
         /// <summary>
-        /// Initializes the render target.
+        /// Takes over another instance of a render target.
         /// </summary>
-        /// <param name="location">The name of the render target.</param>
-        /// <param name="location">The location of the render target output attachment.</param>
-        /// <param name="type">The type of the render target.</param>
-        /// <param name="format">The format of the render target.</param>
-        /// <param name="clearBuffer"><c>true</c>, if the render target should be cleared, when a render pass is started.</param>
-        /// <param name="clearValues">The values with which the render target gets cleared.</param>
-        /// <param name="clearStencil"><c>true</c>, if the render target stencil should be cleared, when a render pass is started.</param>
-        /// <param name="isVolatile"><c>true</c>, if the target should not be made persistent for access after the render pass has finished.</param>
-        /// <param name="blendState">The render target blend state.</param>
-        explicit RenderTarget(const String& name, const UInt32& location, const RenderTargetType& type, const Format& format, const bool& clearBuffer, const Vector4f& clearValues = { 0.f , 0.f, 0.f, 0.f }, const bool& clearStencil = true, const bool& isVolatile = false, const BlendState& blendState = {});
-        RenderTarget(const RenderTarget&) noexcept;
-        RenderTarget(RenderTarget&&) noexcept;
+        /// <param name="_other">The render target instance to take over.</param>
+        RenderTarget(RenderTarget&& _other) noexcept;
+        
+        /// <summary>
+        /// Releases the render target instance.
+        /// </summary>
         virtual ~RenderTarget() noexcept;
 
     public:
-        inline RenderTarget& operator=(const RenderTarget&) noexcept;
-        inline RenderTarget& operator=(RenderTarget&&) noexcept;
+        /// <summary>
+        /// Assigns a render target by copying it.
+        /// </summary>
+        /// <param name="_other">The render target instance to copy.</param>
+        /// <returns>A reference to the current render target instance.</returns>
+        inline RenderTarget& operator=(const RenderTarget& _other) noexcept;
+
+        /// <summary>
+        /// Assigns a render target by taking it over.
+        /// </summary>
+        /// <param name="_other">The render target to take over.</param>
+        /// <returns>A reference to the current render target instance.</returns>
+        inline RenderTarget& operator=(RenderTarget&& _other) noexcept;
 
     public:
         /// <inheritdoc />
-        virtual const String& name() const noexcept override;
+        UInt64 identifier() const noexcept override;
 
         /// <inheritdoc />
-        virtual const UInt32& location() const noexcept override;
+        const String& name() const noexcept override;
 
         /// <inheritdoc />
-        virtual const RenderTargetType& type() const noexcept override;
+        UInt32 location() const noexcept override;
 
         /// <inheritdoc />
-        virtual const Format& format() const noexcept override;
+        RenderTargetType type() const noexcept override;
 
         /// <inheritdoc />
-        virtual const bool& clearBuffer() const noexcept override;
+        Format format() const noexcept override;
 
         /// <inheritdoc />
-        virtual const bool& clearStencil() const noexcept override;
+        RenderTargetFlags flags() const noexcept override;
 
         /// <inheritdoc />
-        virtual const Vector4f& clearValues() const noexcept override;
+        bool clearBuffer() const noexcept override;
 
         /// <inheritdoc />
-        virtual const bool& isVolatile() const noexcept override;
+        bool clearStencil() const noexcept override;
 
         /// <inheritdoc />
-        virtual const BlendState& blendState() const noexcept override;
+        const Vector4f& clearValues() const noexcept override;
+
+        /// <inheritdoc />
+        bool isVolatile() const noexcept override;
+
+        /// <inheritdoc />
+        const BlendState& blendState() const noexcept override;
+    };
+
+    /// <summary>
+    /// Represents a mapping between a set of <see cref="RenderTarget" /> instances and the input attachments of a <see cref="IRenderPass" />.
+    /// </summary>
+    class LITEFX_RENDERING_API RenderPassDependency final {
+        LITEFX_IMPLEMENTATION(RenderPassDependencyImpl);
+
+    public:
+        /// <summary>
+        /// Creates a new render target dependency.
+        /// </summary>
+        /// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
+        /// <param name="descriptorBinding">The binding point to bind the input attachment to.</param>
+        RenderPassDependency(const RenderTarget& renderTarget, const DescriptorBindingPoint& descriptorBinding) noexcept;
+
+        /// <summary>
+        /// Creates a new render target dependency.
+        /// </summary>
+        /// <param name="renderTarget">The render target of the <paramref name="renderPass"/> that is used for the input attachment.</param>
+        /// <param name="bindingRegister">The register to bind the input attachment to.</param>
+        /// <param name="space">The space to bind the input attachment to.</param>
+        RenderPassDependency(const RenderTarget& renderTarget, UInt32 bindingRegister, UInt32 space) noexcept;
+
+        /// <summary>
+        /// Creates a copy of another render pass dependency.
+        /// </summary>
+        /// <param name="_other">The render pass dependency to copy.</param>
+        RenderPassDependency(const RenderPassDependency& _other) noexcept;
+
+        /// <summary>
+        /// Takes over another render pass dependency instance.
+        /// </summary>
+        /// <param name="_other">The render pass dependency instance to take over.</param>
+        RenderPassDependency(RenderPassDependency&& _other) noexcept;
+
+        /// <summary>
+        /// Releases the current render pass dependency instance.
+        /// </summary>
+        ~RenderPassDependency() noexcept;
+
+    public:
+        /// <summary>
+        /// Assigns another render pass dependency instance by copying it.
+        /// </summary>
+        /// <param name="_other">The render pass dependency to copy.</param>
+        /// <returns>A reference of the current render pass dependency instance.</returns>
+        RenderPassDependency& operator=(const RenderPassDependency& _other) noexcept;
+
+        /// <summary>
+        /// Assigns another render pass dependency by taking it over.
+        /// </summary>
+        /// <param name="_other">The render pass dependency to take over.</param>
+        /// <returns>A reference of the current render pass dependency instance.</returns>
+        RenderPassDependency& operator=(RenderPassDependency&& _other) noexcept;
+
+    public:
+        /// <summary>
+        /// Returns a reference of the render target that is mapped to the input attachment.
+        /// </summary>
+        /// <returns>A reference of the render target that is mapped to the input attachment.</returns>
+        const RenderTarget& renderTarget() const noexcept;
+
+        /// <summary>
+        /// Returns the binding point for the input attachment binding.
+        /// </summary>
+        /// <returns>The binding point for the input attachment binding.</returns>
+        const DescriptorBindingPoint& binding() const noexcept;
     };
 
     /// <summary>
@@ -2295,19 +3032,19 @@ namespace LiteFX::Rendering {
         /// Returns the polygon mode of the rasterizer state.
         /// </summary>
         /// <returns>The polygon mode of the rasterizer state.</returns>
-        virtual const PolygonMode& polygonMode() const noexcept = 0;
+        virtual PolygonMode polygonMode() const noexcept = 0;
 
         /// <summary>
         /// Returns the cull mode of the rasterizer state.
         /// </summary>
         /// <returns>The cull mode of the rasterizer state.</returns>
-        virtual const CullMode& cullMode() const noexcept = 0;
+        virtual CullMode cullMode() const noexcept = 0;
 
         /// <summary>
         /// Returns the cull mode of the rasterizer state.
         /// </summary>
         /// <returns>The cull mode of the rasterizer state.</returns>
-        virtual const CullOrder& cullOrder() const noexcept = 0;
+        virtual CullOrder cullOrder() const noexcept = 0;
 
         /// <summary>
         /// Returns the line width of the rasterizer state.
@@ -2317,7 +3054,7 @@ namespace LiteFX::Rendering {
         /// use a custom shader for it.
         /// </remarks>
         /// <returns>The line width of the rasterizer state.</returns>
-        virtual const Float& lineWidth() const noexcept = 0;
+        virtual Float lineWidth() const noexcept = 0;
 
         /// <summary>
         /// Returns the depth/stencil state of the rasterizer.
@@ -2341,26 +3078,26 @@ namespace LiteFX::Rendering {
         /// <param name="cullOrder">The cull order of the rasterizer state.</param>
         /// <param name="lineWidth">The line width of the rasterizer state.</param>
         /// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
-        explicit Rasterizer(const PolygonMode& polygonMode, const CullMode& cullMode, const CullOrder& cullOrder, const Float& lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
+        explicit Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
         Rasterizer(Rasterizer&&) noexcept;
         Rasterizer(const Rasterizer&) noexcept;
         virtual ~Rasterizer() noexcept;
 
     public:
         /// <inheritdoc />
-        virtual const PolygonMode& polygonMode() const noexcept override;
+        PolygonMode polygonMode() const noexcept override;
 
         /// <inheritdoc />
-        virtual const CullMode& cullMode() const noexcept override;
+        CullMode cullMode() const noexcept override;
 
         /// <inheritdoc />
-        virtual const CullOrder& cullOrder() const noexcept override;
+        CullOrder cullOrder() const noexcept override;
 
         /// <inheritdoc />
-        virtual const Float& lineWidth() const noexcept override;
+        Float lineWidth() const noexcept override;
 
         /// <inheritdoc />
-        virtual const DepthStencilState& depthStencilState() const noexcept override;
+        const DepthStencilState& depthStencilState() const noexcept override;
 
     protected:
         virtual PolygonMode& polygonMode() noexcept;
@@ -2400,7 +3137,7 @@ namespace LiteFX::Rendering {
         /// Sets the minimum depth of the viewport.
         /// </summary>
         /// <param name="depth">The minimum depth of the viewport.</param>
-        virtual void setMinDepth(const float& depth) const noexcept = 0;
+        virtual void setMinDepth(Float depth) const noexcept = 0;
 
         /// <summary>
         /// Gets the maximum depth of the viewport.
@@ -2412,7 +3149,7 @@ namespace LiteFX::Rendering {
         /// Sets the maximum depth of the viewport.
         /// </summary>
         /// <param name="depth">The maximum depth of the viewport.</param>
-        virtual void setMaxDepth(const float& depth) const noexcept = 0;
+        virtual void setMaxDepth(Float depth) const noexcept = 0;
     };
 
     /// <summary>
@@ -2428,7 +3165,7 @@ namespace LiteFX::Rendering {
         /// <param name="clientRect">The rectangle that defines the dimensions of the viewport.</param>
         /// <param name="minDepth">The minimum depth of the viewport.</param>
         /// <param name="maxDepth">The maximum depth of the viewport.</param>
-        explicit Viewport(const RectF& clientRect = { }, const Float& minDepth = 0.f, const Float& maxDepth = 1.f);
+        explicit Viewport(const RectF& clientRect = { }, Float minDepth = 0.f, Float maxDepth = 1.f);
 
         Viewport(Viewport&&) noexcept = delete;
         Viewport(const Viewport&) noexcept = delete;
@@ -2436,22 +3173,22 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual RectF getRectangle() const noexcept override;
+        RectF getRectangle() const noexcept override;
 
         /// <inheritdoc />
-        virtual void setRectangle(const RectF& rectangle) noexcept override;
+        void setRectangle(const RectF& rectangle) noexcept override;
 
         /// <inheritdoc />
-        virtual Float getMinDepth() const noexcept override;
+        Float getMinDepth() const noexcept override;
 
         /// <inheritdoc />
-        virtual void setMinDepth(const Float& depth) const noexcept override;
+        void setMinDepth(Float depth) const noexcept override;
 
         /// <inheritdoc />
-        virtual Float getMaxDepth() const noexcept override;
+        Float getMaxDepth() const noexcept override;
 
         /// <inheritdoc />
-        virtual void setMaxDepth(const Float& depth) const noexcept override;
+        void setMaxDepth(Float depth) const noexcept override;
     };
 
     /// <summary>
@@ -2494,10 +3231,79 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual RectF getRectangle() const noexcept override;
+        RectF getRectangle() const noexcept override;
 
         /// <inheritdoc />
-        virtual void setRectangle(const RectF& rectangle) noexcept override;
+        void setRectangle(const RectF& rectangle) noexcept override;
+    };
+
+    /// <summary>
+    /// Describes the offsets and sizes of a shader group within a shader binding table buffer.
+    /// </summary>
+    /// <remarks>
+    /// If a group is not present within a shader binding table, the offset for this group is set to the maximum possible value and the size is set to `0`.
+    /// </remarks>
+    /// <seealso cref="IRayTracingPipeline::allocateShaderBindingTable" /> 
+    struct LITEFX_RENDERING_API ShaderBindingTableOffsets {
+        /// <summary>
+        /// The offset to the beginning of the ray generation group within the shader binding table.
+        /// </summary>
+        UInt64 RayGenerationGroupOffset { std::numeric_limits<UInt64>::max() };
+
+        /// <summary>
+        /// The size of the ray generation group within the shader binding table.
+        /// </summary>
+        UInt64 RayGenerationGroupSize { 0 };
+
+        /// <summary>
+        /// The stride between individual ray generation group records in the shader binding table.
+        /// </summary>
+        UInt64 RayGenerationGroupStride { 0 };
+
+        /// <summary>
+        /// The offset to the beginning of the hit group within the shader binding table.
+        /// </summary>
+        UInt64 HitGroupOffset { std::numeric_limits<UInt64>::max() };
+
+        /// <summary>
+        /// The size of the hit group within the shader binding table.
+        /// </summary>
+        UInt64 HitGroupSize { 0 };
+
+        /// <summary>
+        /// The stride between individual hit group records in the shader binding table.
+        /// </summary>
+        UInt64 HitGroupStride { 0 };
+
+        /// <summary>
+        /// The offset to the beginning of the miss group within the shader binding table.
+        /// </summary>
+        UInt64 MissGroupOffset{ std::numeric_limits<UInt64>::max() };
+
+        /// <summary>
+        /// The size of the miss group within the shader binding table.
+        /// </summary>
+        UInt64 MissGroupSize { 0 };
+
+        /// <summary>
+        /// The stride between individual miss group records in the shader binding table.
+        /// </summary>
+        UInt64 MissGroupStride { 0 };
+
+        /// <summary>
+        /// The offset to the beginning of the callable group within the shader binding table.
+        /// </summary>
+        UInt64 CallableGroupOffset { std::numeric_limits<UInt64>::max() };
+
+        /// <summary>
+        /// The size of the callable group within the shader binding table.
+        /// </summary>
+        UInt64 CallableGroupSize { 0 };
+
+        /// <summary>
+        /// The stride between individual callable group records in the shader binding table.
+        /// </summary>
+        UInt64 CallableGroupStride { 0 };
     };
 
     /// <summary>
@@ -2527,7 +3333,7 @@ namespace LiteFX::Rendering {
         /// Returns a pointer with shared ownership to the current instance.
         /// </summary>
         /// <returns>A pointer with shared ownership to the current instance.</returns>
-        std::shared_ptr<TimingEvent> getptr() {
+        inline std::shared_ptr<TimingEvent> getptr() {
             return shared_from_this();
         }
 
@@ -2585,7 +3391,7 @@ namespace LiteFX::Rendering {
         /// <param name="format">The format of the buffer attribute.</param>
         /// <param name="semantic">The semantic of the buffer attribute.</param>
         /// <param name="semanticIndex">The semantic index of the buffer attribute.</param>
-        BufferAttribute(const UInt32& location, const UInt32& offset, const BufferFormat& format, const AttributeSemantic& semantic, const UInt32& semanticIndex = 0);
+        BufferAttribute(UInt32 location, UInt32 offset, BufferFormat format, AttributeSemantic semantic, UInt32 semanticIndex = 0);
         BufferAttribute(BufferAttribute&&) noexcept;
         BufferAttribute(const BufferAttribute&);
         virtual ~BufferAttribute() noexcept;
@@ -2598,19 +3404,19 @@ namespace LiteFX::Rendering {
         /// Locations can only be specified in Vulkan and are implicitly generated based on semantics for DirectX. However, it is a good practice to provide them anyway.
         /// </remarks>
         /// <returns>The location of the buffer attribute.</returns>
-        virtual const UInt32& location() const noexcept;
+        virtual UInt32 location() const noexcept;
 
         /// <summary>
         /// Returns the format of the buffer attribute.
         /// </summary>
         /// <returns>The format of the buffer attribute.</returns>
-        virtual const BufferFormat& format() const noexcept;
+        virtual BufferFormat format() const noexcept;
 
         /// <summary>
         /// Returns the offset of the buffer attribute.
         /// </summary>
         /// <returns>The offset of the buffer attribute.</returns>
-        virtual const UInt32& offset() const noexcept;
+        virtual UInt32 offset() const noexcept;
 
         /// <summary>
         /// Returns the semantic of the buffer attribute.
@@ -2620,7 +3426,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The semantic of the buffer attribute.</returns>
         /// <seealso cref="semanticIndex" />
-        virtual const AttributeSemantic& semantic() const noexcept;
+        virtual AttributeSemantic semantic() const noexcept;
 
         /// <summary>
         /// Returns the semantic index of the buffer attribute.
@@ -2630,7 +3436,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The semantic index of the buffer attribute.</returns>
         /// <seealso cref="semantic" />
-        virtual const UInt32& semanticIndex() const noexcept;
+        virtual UInt32 semanticIndex() const noexcept;
     };
 
     /// <summary>
@@ -2657,13 +3463,13 @@ namespace LiteFX::Rendering {
         /// In GLSL, the binding point is identified by the <c>binding</c> keyword, whilst in HLSL the binding maps to a register.
         /// </remarks>
         /// <returns>The binding point, the buffer will be bound to.</returns>
-        virtual const UInt32& binding() const noexcept = 0;
+        virtual UInt32 binding() const noexcept = 0;
 
         /// <summary>
         /// Returns the buffer type of the buffer.
         /// </summary>
         /// <returns>The buffer type of the buffer.</returns>
-        virtual const BufferType& type() const noexcept = 0;
+        virtual BufferType type() const noexcept = 0;
     };
 
     /// <summary>
@@ -2695,7 +3501,7 @@ namespace LiteFX::Rendering {
         /// Returns the index type of the index buffer.
         /// </summary>
         /// <returns>The index type of the index buffer.</returns>
-        virtual const IndexType& indexType() const noexcept = 0;
+        virtual IndexType indexType() const noexcept = 0;
     };
 
     /// <summary>
@@ -2729,7 +3535,7 @@ namespace LiteFX::Rendering {
         /// Returns the type of the descriptor.
         /// </summary>
         /// <returns>The type of the descriptor.</returns>
-        virtual const DescriptorType& descriptorType() const noexcept = 0;
+        virtual DescriptorType descriptorType() const noexcept = 0;
 
         /// <summary>
         /// Returns the number of descriptors in the descriptor array, or `-1` if the array is unbounded.
@@ -2741,7 +3547,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The number of descriptors in the descriptor array, or `-1` if the array is unbounded.</returns>
         /// <seealso cref="IDescriptorLayout" />
-        virtual const UInt32& descriptors() const noexcept = 0;
+        virtual UInt32 descriptors() const noexcept = 0;
 
         /// <summary>
         /// If the descriptor describes a static sampler, this method returns the state of the sampler. Otherwise, it returns <c>nullptr</c>.
@@ -2769,15 +3575,15 @@ namespace LiteFX::Rendering {
         /// <param name="data">The address that marks the beginning of the data to map.</param>
         /// <param name="size">The number of bytes to map.</param>
         /// <param name="element">The array element to map the data to.</param>
-        virtual void map(const void* const data, const size_t& size, const UInt32& element = 0) = 0;
+        virtual void map(const void* const data, size_t size, UInt32 element = 0) = 0;
 
         /// <summary>
         /// Maps the memory blocks within <paramref name="data" /> to the internal memory of an array.
         /// </summary>
         /// <param name="data">The data blocks to map.</param>
         /// <param name="size">The size of each data block within <paramref name="data" />.</param>
-        /// <param name="firsElement">The first element of the array to map.</param>
-        virtual void map(Span<const void* const> data, const size_t& elementSize, const UInt32& firstElement = 0) = 0;
+        /// <param name="firstElement">The first element of the array to map.</param>
+        virtual void map(Span<const void* const> data, size_t elementSize, UInt32 firstElement = 0) = 0;
 
         /// <summary>
         /// Maps the memory at <paramref name="data" /> to the internal memory of this object.
@@ -2786,16 +3592,16 @@ namespace LiteFX::Rendering {
         /// <param name="size">The number of bytes to map.</param>
         /// <param name="element">The array element to map the data to.</param>
         /// <param name="write">If `true`, <paramref name="data" /> is copied into the internal memory. If `false` the internal memory is copied into <paramref name="data" />.</param>
-        virtual void map(void* data, const size_t& size, const UInt32& element = 0, bool write = true) = 0;
+        virtual void map(void* data, size_t size, UInt32 element = 0, bool write = true) = 0;
 
         /// <summary>
         /// Maps the memory blocks within <paramref name="data" /> to the internal memory of an array.
         /// </summary>
         /// <param name="data">The data blocks to map.</param>
         /// <param name="size">The size of each data block within <paramref name="data" />.</param>
-        /// <param name="firsElement">The first element of the array to map.</param>
+        /// <param name="firstElement">The first element of the array to map.</param>
         /// <param name="write">If `true`, <paramref name="data" /> is copied into the internal memory. If `false` the internal memory is copied into <paramref name="data" />.</param>
-        virtual void map(Span<void*> data, const size_t& elementSize, const UInt32& firstElement = 0, bool write = true) = 0;
+        virtual void map(Span<void*> data, size_t elementSize, UInt32 firstElement = 0, bool write = true) = 0;
     };
 
     /// <summary>
@@ -2815,7 +3621,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The number of array elements inside the memory chunk.</returns>
         /// <seealso cref="state" />
-        virtual const UInt32& elements() const noexcept = 0;
+        virtual UInt32 elements() const noexcept = 0;
 
         /// <summary>
         /// Gets the size (in bytes) of the aligned memory chunk.
@@ -2863,13 +3669,30 @@ namespace LiteFX::Rendering {
         virtual size_t alignedElementSize() const noexcept = 0;
 
         /// <summary>
+        /// Returns the usage flags for the resource.
+        /// </summary>
+        /// <returns>The usage flags for the resource.</returns>
+        virtual ResourceUsage usage() const noexcept = 0;
+
+        /// <summary>
         /// Returns <c>true</c>, if the resource can be bound to a read/write descriptor.
         /// </summary>
         /// <remarks>
         /// If the resource is not writable, attempting to bind it to a writable descriptor will result in an exception.
         /// </remarks>
         /// <returns><c>true</c>, if the resource can be bound to a read/write descriptor.</returns>
-        virtual const bool& writable() const noexcept = 0;
+        inline bool writable() const noexcept {
+            return LITEFX_FLAG_IS_SET(this->usage(), ResourceUsage::AllowWrite);
+        }
+
+        /// <summary>
+        /// Gets the address of the resource in GPU memory.
+        /// </summary>
+        /// <remarks>
+        /// Note that this may not be supported for all resource types in all backends. For example, Vulkan does not support obtaining virtual addresses of image resources.
+        /// </remarks>
+        /// <returns>The address of the resource in GPU memory.</returns>
+        virtual UInt64 virtualAddress() const noexcept = 0;
     };
 
     /// <summary>
@@ -2884,7 +3707,7 @@ namespace LiteFX::Rendering {
         /// Returns the type of the buffer.
         /// </summary>
         /// <returns>The type of the buffer.</returns>
-        virtual const BufferType& type() const noexcept = 0;
+        virtual BufferType type() const noexcept = 0;
     };
 
     /// <summary>
@@ -2904,7 +3727,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="level">The mip map level to return the size for.</param>
         /// <returns>The size (in bytes) of an image at a specified mip map level.</returns>
-        virtual size_t size(const UInt32& level) const noexcept = 0;
+        virtual size_t size(UInt32 level) const noexcept = 0;
 
         /// <summary>
         /// Gets the extent of the image at a certain mip-map level.
@@ -2915,13 +3738,13 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The extent of the image at a certain mip-map level.</returns>
         /// <seealso cref="dimensions" />
-        virtual Size3d extent(const UInt32& level = 0) const noexcept = 0;
+        virtual Size3d extent(UInt32 level = 0) const noexcept = 0;
 
         /// <summary>
         /// Gets the internal format of the image.
         /// </summary>
         /// <returns>The internal format of the image.</returns>
-        virtual const Format& format() const noexcept = 0;
+        virtual Format format() const noexcept = 0;
 
         /// <summary>
         /// Gets the images dimensionality.
@@ -2931,19 +3754,19 @@ namespace LiteFX::Rendering {
         /// extent is used.
         /// </remarks>
         /// <returns>The images dimensionality.</returns>
-        virtual const ImageDimensions& dimensions() const noexcept = 0;
+        virtual ImageDimensions dimensions() const noexcept = 0;
 
         /// <summary>
         /// Gets the number of mip-map levels of the image.
         /// </summary>
         /// <returns>The number of mip-map levels of the image.</returns>
-        virtual const UInt32& levels() const noexcept = 0;
+        virtual UInt32 levels() const noexcept = 0;
 
         /// <summary>
         /// Gets the number of layers (slices) of the image.
         /// </summary>
         /// <returns>The number of layers (slices) of the image.</returns>
-        virtual const UInt32& layers() const noexcept = 0;
+        virtual UInt32 layers() const noexcept = 0;
 
         /// <summary>
         /// Returns the number of planes of the image resource.
@@ -2953,21 +3776,13 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The number of planes of the image resource.</returns>
         /// <seealso cref="format" />
-        virtual const UInt32& planes() const noexcept = 0;
+        virtual UInt32 planes() const noexcept = 0;
 
         /// <summary>
         /// Gets the number of samples of the texture.
         /// </summary>
         /// <returns>The number of samples of the texture.</returns>
-        virtual const MultiSamplingLevel& samples() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the current image layout.
-        /// </summary>
-        /// <param name="subresource">The sub-resource ID for which to return the layout.</param>
-        /// <returns>The current image layout.</returns>
-        /// <seealso cref="subresourceId" />
-        virtual const ImageLayout& layout(const UInt32& subresource = 0) const = 0;
+        virtual MultiSamplingLevel samples() const noexcept = 0;
 
         // TODO: getSampler() for combined samplers?
 
@@ -2980,7 +3795,7 @@ namespace LiteFX::Rendering {
         /// <param name="plane">The plane of the sub-resource.</param>
         /// <returns>The sub-resource ID for the sub-resource.</returns>
         /// <seealso cref="resolveSubresource" />
-        inline virtual UInt32 subresourceId(const UInt32& level, const UInt32& layer, const UInt32& plane) const noexcept {
+        inline virtual UInt32 subresourceId(UInt32 level, UInt32 layer, UInt32 plane) const noexcept {
             return level + (layer * this->levels()) + (plane * this->levels() * this->layers());
         }
 
@@ -2992,7 +3807,7 @@ namespace LiteFX::Rendering {
         /// <param name="layer">The array layer of the sub-resource.</param>
         /// <param name="level">The mip-map level of the sub-resource.</param>
         /// <seealso cref="subresourceId" />
-        inline virtual void resolveSubresource(const UInt32& subresource, UInt32& plane, UInt32& layer, UInt32& level) const noexcept {
+        inline virtual void resolveSubresource(UInt32 subresource, UInt32& plane, UInt32& layer, UInt32& level) const noexcept {
             const auto levels = this->levels();
             const UInt32 resourcesPerPlane = levels * this->layers();
             plane = subresource / resourcesPerPlane;
@@ -3013,31 +3828,31 @@ namespace LiteFX::Rendering {
         /// Gets the filtering mode that is used for minifying lookups.
         /// </summary>
         /// <returns>The filtering mode that is used for minifying lookups.</returns>
-        virtual const FilterMode& getMinifyingFilter() const noexcept = 0;
+        virtual FilterMode getMinifyingFilter() const noexcept = 0;
 
         /// <summary>
         /// Gets the filtering mode that is used for magnifying lookups.
         /// </summary>
         /// <returns>The filtering mode that is used for magnifying lookups.</returns>
-        virtual const FilterMode& getMagnifyingFilter() const noexcept = 0;
+        virtual FilterMode getMagnifyingFilter() const noexcept = 0;
 
         /// <summary>
         /// Gets the addressing mode at the horizontal border.
         /// </summary>
         /// <returns>The addressing mode at the horizontal border.</returns>
-        virtual const BorderMode& getBorderModeU() const noexcept = 0;
+        virtual BorderMode getBorderModeU() const noexcept = 0;
 
         /// <summary>
         /// Gets the addressing mode at the vertical border.
         /// </summary>
         /// <returns>The addressing mode at the vertical border.</returns>
-        virtual const BorderMode& getBorderModeV() const noexcept = 0;
+        virtual BorderMode getBorderModeV() const noexcept = 0;
 
         /// <summary>
         /// Gets the addressing mode at the depth border.
         /// </summary>
         /// <returns>The addressing mode at the depth border.</returns>
-        virtual const BorderMode& getBorderModeW() const noexcept = 0;
+        virtual BorderMode getBorderModeW() const noexcept = 0;
 
         /// <summary>
         /// Gets the anisotropy value used when sampling this texture.
@@ -3046,31 +3861,673 @@ namespace LiteFX::Rendering {
         /// Anisotropy will be disabled, if this value is set to <c>0.0</c>.
         /// </remarks>
         /// <returns>The anisotropy value used when sampling this texture.</returns>
-        virtual const Float& getAnisotropy() const noexcept = 0;
+        virtual Float getAnisotropy() const noexcept = 0;
 
         /// <summary>
         /// Gets the mip-map selection mode.
         /// </summary>
         /// <returns>The mip-map selection mode.</returns>
-        virtual const MipMapMode& getMipMapMode() const noexcept = 0;
+        virtual MipMapMode getMipMapMode() const noexcept = 0;
 
         /// <summary>
         /// Gets the mip-map level of detail bias.
         /// </summary>
         /// <returns>The mip-map level of detail bias.</returns>
-        virtual const Float& getMipMapBias() const noexcept = 0;
+        virtual Float getMipMapBias() const noexcept = 0;
 
         /// <summary>
         /// Gets the maximum texture level of detail.
         /// </summary>
         /// <returns>The maximum texture level of detail.</returns>
-        virtual const Float& getMaxLOD() const noexcept = 0;
+        virtual Float getMaxLOD() const noexcept = 0;
 
         /// <summary>
         /// Gets the minimum texture level of detail.
         /// </summary>
         /// <returns>The minimum texture level of detail.</returns>
-        virtual const Float& getMinLOD() const noexcept = 0;
+        virtual Float getMinLOD() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// The interface for a vertex buffer.
+    /// </summary>
+    class LITEFX_RENDERING_API IVertexBuffer : public virtual IBuffer {
+    public:
+        virtual ~IVertexBuffer() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Gets the layout of the vertex buffer.
+        /// </summary>
+        /// <returns>The layout of the vertex buffer.</returns>
+        virtual const IVertexBufferLayout& layout() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// The interface for an index buffer.
+    /// </summary>
+    class LITEFX_RENDERING_API IIndexBuffer : public virtual IBuffer {
+    public:
+        virtual ~IIndexBuffer() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Gets the layout of the index buffer.
+        /// </summary>
+        /// <returns>The layout of the index buffer.</returns>
+        virtual const IIndexBufferLayout& layout() const noexcept = 0;
+    };
+
+    /// <summary>
+    /// Base interface for a ray tracing acceleration structure.
+    /// </summary>
+    /// <seealso cref="IBottomLevelAccelerationStructure" />
+    /// <seealso cref="ITopLevelAccelerationStructure" />
+    class LITEFX_RENDERING_API IAccelerationStructure : public virtual IStateResource {
+    public:
+        virtual ~IAccelerationStructure() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns the flags that control how the acceleration structure should be built.
+        /// </summary>
+        /// <returns>The flags that control how the acceleration structure should be built.</returns>
+        virtual AccelerationStructureFlags flags() const noexcept = 0;
+
+        /// <summary>
+        /// Performs a complete build of the acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// This method builds or rebuilds the entire acceleration structure. If called without any further arguments beside <paramref name="commandBuffer" />, a new buffer and scratch buffer will be allocated
+        /// from the <see cref="IGraphicsDevice" /> that created the command buffer. Alternatively, it is possible to provide a pre-allocated buffer in the <paramref name="buffer" /> parameter. This allows to
+        /// re-use memory from another acceleration structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling <see cref="buffer" />) and 
+        /// destroy it afterwards, which enables re-use scenarios for example for caching. Alternatively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory 
+        /// consumption. This is done by also providing the <paramref name="offset" /> and <paramref name="maxSize" /> parameters to address a range within the buffer itself, the acceleration structure may be 
+        /// written into. Note that the pointer passed to the <see cref="buffer" /> parameter must have been initialized with the <see cref="BufferType::AccelerationStructure" /> buffer type and must be 
+        /// writable (<see cref="ResourceUsage::AllowWrite" />).
+        /// 
+        /// By providing a <see cref="scratchBuffer" />, it is possible to re-use temporary memory while building. This can lower memory consumption when building multiple acceleration structures. However, this
+        /// also requires proper barriers to be executed between two build commands, as they are not allowed to access the same scratch memory simultaneously. Note that the pointer passed to the
+        /// <see cref="scratchBuffer" /> parameter must have been initialized on the <see cref="ResourceHeap::Resource" /> heap and must be writable (<see cref="ResourceUsage::AllowWrite" />).
+        /// 
+        /// After a successful build, the buffer pointer is stored by the acceleration structure and can be accessed by calling <see cref="buffer" /> on it.
+        /// </remarks>
+        /// <param name="commandBuffer">The command buffer used to record the acceleration structure build commands.</param>
+        /// <param name="scratchBuffer">The scratch buffer used during the acceleration structure build, or `nullptr` if a temporary buffer should be created.</param>
+        /// <param name="buffer">The buffer that stores the acceleration structure after building, or `nullptr` if a new buffer should be created.</param>
+        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure should be stored. Must be a multiple of 256. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
+        /// <param name="maxSize">The maximum available size within <paramref name="buffer" /> at <paramref name="offset" />. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="scratchBuffer" /> is not `nullptr` and does not contain enough scratch memory to build the acceleration structure.</exception>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and the range provided by <paramref name="offset" /> and <paramref name="maxSize" /> is not fully contained by the buffer.</exception>
+        /// <seealso cref="update" />
+        inline void build(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer = nullptr, SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0) {
+            this->doBuild(commandBuffer, scratchBuffer, buffer, offset, maxSize);
+        }
+
+        /// <summary>
+        /// Performs an update on the acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// Updating an acceleration structure works similar to performing a build, but may be faster compared to a full re-build. Note that in order to support updates, the acceleration structure must have been
+        /// created with the <see cref=AccelerationStructureFlags::AllowUpdate" /> flag provided. Note that this flag may cause the acceleration structure build times and memory consumption to increase and may 
+        /// lower the ray-tracing performance.
+        /// 
+        /// If no arguments beside <paramref name="commandBuffer" /> are provided, the acceleration structure may re-use the same backing memory used for building, if the buffer holds enough space to contain it.
+        /// Otherwise, a new buffer will be allocated. Alternatively, it is possible to provide a pre-allocated buffer in the <paramref name="buffer" /> parameter. This allows to re-use memory from another 
+        /// acceleration structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling <see cref="buffer" />) and destroy it afterwards, which 
+        /// enables re-use scenarios for example for caching. Alternatively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory consumption. This is done by also 
+        /// providing the <paramref name="offset" /> and <paramref name="maxSize" /> parameters to address a range within the buffer itself, the acceleration structure may be written into. Note that the pointer 
+        /// passed to the <see cref="buffer" /> parameter must have been initialized with the <see cref="BufferType::AccelerationStructure" /> buffer type and must be writable 
+        /// (<see cref="ResourceUsage::AllowWrite" />).
+        /// 
+        /// By providing a <see cref="scratchBuffer" />, it is possible to re-use temporary memory while building. This can lower memory consumption when building multiple acceleration structures. However, this
+        /// also requires proper barriers to be executed between two build commands, as they are not allowed to access the same scratch memory simultaneously. Note that the pointer passed to the
+        /// <see cref="scratchBuffer" /> parameter must have been initialized on the <see cref="ResourceHeap::Resource" /> heap and must be writable (<see cref="ResourceUsage::AllowWrite" />).
+        /// 
+        /// After a successful update, the buffer pointer is stored by the acceleration structure and can be accessed by calling <see cref="buffer" /> on it.
+        /// </remarks>
+        /// <param name="commandBuffer">The command buffer used to record the acceleration structure build commands.</param>
+        /// <param name="scratchBuffer">The scratch buffer used during the acceleration structure build, or `nullptr` if a temporary buffer should be created.</param>
+        /// <param name="buffer">The buffer that stores the acceleration structure after updating, or `nullptr` if a new buffer should be created.</param>
+        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure should be stored. Must be a multiple of 256. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
+        /// <param name="maxSize">The maximum available size within <paramref name="buffer" /> at <paramref name="offset" />. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure backing buffer is not initialized, indicating the acceleration structure has not yet been built.</exception>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="scratchBuffer" /> is not `nullptr` and does not contain enough scratch memory to build the acceleration structure.</exception>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and the range provided by <paramref name="offset" /> and <paramref name="maxSize" /> is not fully contained by the buffer.</exception>
+        /// <seealso cref="build" />
+        inline void update(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer = nullptr, SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0) {
+            this->doUpdate(commandBuffer, scratchBuffer, buffer, offset, maxSize);
+        }
+
+        /// <summary>
+        /// Returns the acceleration structure backing buffer, that stores its last build.
+        /// </summary>
+        /// <returns>The acceleration structure backing buffer, that stores its last build.</returns>
+        /// <seealso cref="offset" />
+        /// <seealso cref="size" />
+        inline SharedPtr<const IBuffer> buffer() const noexcept {
+            return this->getBuffer();
+        }
+
+        /// <summary>
+        /// Returns the offset into <see cref="buffer" /> at which the acceleration structure is stored.
+        /// </summary>
+        /// <returns>The offset into <see cref="buffer" /> at which the acceleration structure is stored.</returns>
+        /// <seealso cref="buffer" />
+        virtual UInt64 offset() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the amount of memory in bytes inside <see cref="buffer" /> that store the acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// Note that this may be different to the value specified during build, as the actual size may be smaller (but can never be larger) after building. If you want to reduce the memory footprint, you can use 
+        /// this amount of memory for a compacted buffer and copy the acceleration structure using a copy command. In order to acquire the actual size required by the acceleration structure, the system needs to
+        /// wait for the last build or update process to finish. Before that, this property will return the memory requirements as pre-computed by the device. To make sure that the build has finished, you need to
+        /// manually wait for the fence acquired by submitting the command buffer that builds or updates the acceleration structure. Afterwards this method will return the actual size required to store the 
+        /// acceleration structure.
+        ///  
+        /// If the acceleration structure has not yet been built or is invalidated, this property returns `0`.
+        /// </remarks>
+        /// <returns>The amount of memory in bytes inside <see cref="buffer" /> that store the acceleration structure.</returns>
+        /// <seealso cref="buffer" />
+        virtual UInt64 size() const noexcept = 0;
+
+    private:
+        virtual SharedPtr<const IBuffer> getBuffer() const noexcept = 0;
+        virtual void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) = 0;
+        virtual void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) = 0;
+    };
+
+    /// <summary>
+    /// A structure that holds a singular entity of geometry for hardware ray-tracing.
+    /// </summary>
+    /// <remarks>
+    /// Bottom-level acceleration structures describe actual pieces of geometry (sets of triangular meshes or axis-aligned bounding boxes for procedural geometry). They can 
+    /// best be thought of entities in terms of a scene graph, whilst <see cref="ITopLevelAccelerationStructure" />s represent their respective *instances*. For example, a 
+    /// top-level acceleration structure (TLAS) would store the world transform of the object itself, which can be placed multiple times in the scene with different transforms 
+    /// each time. Each TLAS points to a bottom-level acceleration structure (BLAS), that contains the actual geometry, consisting of multiple meshes that are all transformed 
+    /// relative to the TLAS transform.
+    /// 
+    /// Note that a bottom-level acceleration structure can only contain either triangle meshes or bounding boxes, but never both in the same structure.
+    /// </remarks>
+    /// <seealso cref="TriangleMesh" />
+    /// <seealso cref="AxisAlignedBoundingBox" />
+    /// <seealso cref="ITopLevelAccelerationStructure" />
+    class LITEFX_RENDERING_API IBottomLevelAccelerationStructure : public IAccelerationStructure {
+    public:
+        /// <summary>
+        /// Represents a triangle mesh.
+        /// </summary>
+        struct TriangleMesh final {
+        public:
+            /// <summary>
+            /// Initializes a new triangle mesh.
+            /// </summary>
+            /// <param name="vertexBuffer">The vertex buffer that stores the mesh vertices.</param>
+            /// <param name="indexBuffer">The index buffer that stores the mesh indices.</param>
+            /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
+            /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
+            TriangleMesh(SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) :
+                VertexBuffer(vertexBuffer), IndexBuffer(indexBuffer), TransformBuffer(transformBuffer), Flags(flags) { 
+                if (vertexBuffer == nullptr) [[unlikely]]
+                    throw ArgumentNotInitializedException("vertexBuffer", "The vertex buffer must be initialized.");
+            }
+
+            /// <summary>
+            /// Initializes a new triangle mesh by copying another one.
+            /// </summary>
+            /// <param name="other">The triangle mesh to copy.</param>
+            TriangleMesh(const TriangleMesh& other) noexcept :
+                VertexBuffer(other.VertexBuffer), IndexBuffer(other.IndexBuffer), TransformBuffer(other.TransformBuffer), Flags(other.Flags) { }
+
+            /// <summary>
+            /// Initializes a new triangle mesh by taking over another one.
+            /// </summary>
+            /// <param name="other">The triangle mesh to take over.</param>
+            TriangleMesh(TriangleMesh&& other) noexcept :
+                VertexBuffer(std::move(other.VertexBuffer)), IndexBuffer(std::move(other.IndexBuffer)), TransformBuffer(std::move(other.TransformBuffer)), Flags(std::move(other.Flags)) { }
+
+            /// <summary>
+            /// Releases the triangle mesh.
+            /// </summary>
+            ~TriangleMesh() noexcept = default;
+
+            /// <summary>
+            /// Copies another triangle mesh.
+            /// </summary>
+            /// <param name="other">The triangle mesh to copy.</param>
+            /// <returns>A reference to the current triangle mesh instance.</returns>
+            TriangleMesh& operator=(const TriangleMesh& other) {
+                this->VertexBuffer = other.VertexBuffer;
+                this->IndexBuffer = other.IndexBuffer;
+                this->TransformBuffer = other.TransformBuffer;
+                this->Flags = other.Flags;
+                return *this;
+            }
+
+            /// <summary>
+            /// Takes over another triangle mesh.
+            /// </summary>
+            /// <param name="other">The triangle mesh to take over.</param>
+            /// <returns>A reference to the current triangle mesh instance.</returns>
+            TriangleMesh& operator=(TriangleMesh&& other) {
+                this->VertexBuffer = std::move(other.VertexBuffer);
+                this->IndexBuffer = std::move(other.IndexBuffer);
+                this->TransformBuffer = std::move(other.TransformBuffer);
+                this->Flags = std::move(other.Flags);
+                return *this;
+            }
+
+        public:
+            /// <summary>
+            /// The vertex buffer that stores the mesh vertices.
+            /// </summary>
+            SharedPtr<const IVertexBuffer> VertexBuffer;
+
+            /// <summary>
+            /// The index buffer that stores the mesh indices.
+            /// </summary>
+            SharedPtr<const IIndexBuffer> IndexBuffer;
+
+            /// <summary>
+            /// A buffer that stores a row-major 3x4 transformation matrix applied to the vertex buffer when building the BLAS.
+            /// </summary>
+            /// <remarks>
+            /// If the transform is not set, the vertices are not further transformed, which can improve building performance.
+            /// </remarks>
+            SharedPtr<const IBuffer> TransformBuffer;
+
+            /// <summary>
+            /// The flags that control how the primitives in the geometry behaves during ray-tracing.
+            /// </summary>
+            GeometryFlags Flags;
+        };
+
+        /// <summary>
+        /// Stores a buffer that contains axis-aligned bounding boxes.
+        /// </summary>
+        /// <remarks>
+        /// You may think of this structure as a set containing voxels for procedural geometry.
+        /// </remarks>
+        struct BoundingBoxes final {
+            /// <summary>
+            /// A buffer containing the bounding box definitions.
+            /// </summary>
+            /// <remarks>
+            /// Each element of the buffer must contain a bounding box at the start of the buffer, where a bounding box takes up 6 single-precision floating point values, with the first triplet 
+            /// describing the lower corner of the bounding box and the second triplet describing the upper corner of the bounding box, as shown in the following definition:
+            /// 
+            /// <code>
+            /// struct alignas(16) AABB {
+            ///     Float minimum[3];
+            ///     Float maximum[3];
+            /// }
+            /// </code>
+            /// 
+            /// The rest of the bounding box elements memory can be filled with arbitrary data, that can be read by shaders.
+            /// </remarks>
+            SharedPtr<const IBuffer> Buffer;
+
+            /// <summary>
+            /// The flags that control how the primitives in the geometry behaves during ray-tracing.
+            /// </summary>
+            GeometryFlags Flags;
+        };
+
+    public:
+        virtual ~IBottomLevelAccelerationStructure() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns an array of triangle meshes contained by the BLAS.
+        /// </summary>
+        /// <returns>The array of triangle meshes contained by the BLAS.</returns>
+        virtual const Array<TriangleMesh>& triangleMeshes() const noexcept = 0;
+
+        /// <summary>
+        /// Adds a triangle mesh to the BLAS.
+        /// </summary>
+        /// <param name="mesh">The triangle mesh to add to the BLAS.</param>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes.</exception>
+        virtual void addTriangleMesh(const TriangleMesh& mesh) = 0;
+
+        /// <summary>
+        /// Adds a triangle mesh to the BLAS.
+        /// </summary>
+        /// <param name="vertexBuffer">The vertex buffer that stores the mesh vertices.</param>
+        /// <param name="indexBuffer">The index buffer that stores the mesh indices.</param>
+        /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
+        /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes.</exception>
+        inline void addTriangleMesh(SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) {
+            this->addTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer, flags));
+        }
+
+        /// <summary>
+        /// Returns an array of buffers, each containing axis-aligned bounding boxes stored in the BLAS.
+        /// </summary>
+        /// <returns>The array of axis-aligned bounding boxes contained by the BLAS.</returns>
+        virtual const Array<BoundingBoxes>& boundingBoxes() const noexcept = 0;
+
+        /// <summary>
+        /// Adds a buffer containing axis-aligned bounding boxes to the BLAS.
+        /// </summary>
+        /// <param name="aabbs">The bounding boxes to add to the BLAS.</param>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes.</exception>
+        virtual void addBoundingBox(const BoundingBoxes& aabbs) = 0;
+
+        /// <summary>
+        /// Adds a buffer containing axis-aligned bounding boxes to the BLAS.
+        /// </summary>
+        /// <param name="buffer">A buffer containing the bounding box definitions.</param>
+        /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes.</exception>
+        inline void addBoundingBox(SharedPtr<const IBuffer> buffer, GeometryFlags flags = GeometryFlags::None) {
+            this->addBoundingBox(BoundingBoxes { .Buffer = buffer, .Flags = flags });
+        }
+
+        /// <summary>
+        /// Clears all bounding boxes and triangle meshes from the acceleration structure.
+        /// </summary>
+        virtual void clear() noexcept = 0;
+
+        /// <summary>
+        /// Removes a triangle mesh from the acceleration structure.
+        /// </summary>
+        /// <param name="mesh">The triangle mesh to remove from the acceleration structure.</param>
+        /// <returns>`true`, if the triangle mesh was removed, otherwise `false`.</returns>
+        virtual bool remove(const TriangleMesh& mesh) noexcept = 0;
+
+        /// <summary>
+        /// Removes a bounding box set from the acceleration structure.
+        /// </summary>
+        /// <param name="aabb">The bounding box set to remove from the acceleration structure.</param>
+        /// <returns>`true`, if the bounding box set was removed, otherwise `false`.</returns>
+        virtual bool remove(const BoundingBoxes& aabb) noexcept = 0;
+
+        /// <summary>
+        /// Copies the acceleration structure into the acceleration structure provided by <paramref name="destination" />.
+        /// </summary>
+        /// <remarks>
+        /// This method copies the acceleration structure into another one, which is especially useful for compression. If called without any arguments besides <paramref name="commandBuffer" /> and
+        /// <paramref name="destination" />, the method will create a clone of the current acceleration structure, including any build info (i.e., triangle mesh or bounding box data). If the destination
+        /// acceleration structure already contains a buffer and the buffer contains enough memory to store the copy, it will be re-used and its contents will be overwritten. Otherwise, a new buffer with enough
+        /// memory to store the copy will be allocated.
+        /// 
+        /// If the <paramref name="compress" /> option is set to `true`, the copy will be compressed. Note that this is only possible, if the acceleration structure was created with the 
+        /// <see cref="AccelerationStructureFlags::AllowCompaction" /> flag enabled. Note that compression requires a query for the size of the compressed data, which can only be determined *after* the 
+        /// acceleration structure was built or updated. This implies that a copy command that is used for compression is not valid on the same command buffer that did also record the build or update commands
+        /// for it. You have to use a fence to wait for the build to finish before attempting a compression.
+        /// 
+        /// It is possible to provide a buffer for the destination acceleration structure to use after copying. This buffer can be set by providing the <paramref name="buffer" /> parameter. This allows to
+        /// re-use memory from another acceleration structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling <see cref="buffer" />) and 
+        /// destroy it afterwards, which enables re-use scenarios for example for caching. Alternatively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory 
+        /// consumption. This is done by also providing the <paramref name="offset" /> parameter to address where the copy should be stored. Note that the pointer passed to the <see cref="buffer" /> parameter 
+        /// must have been initialized with the <see cref="BufferType::AccelerationStructure" /> buffer type and must be writable (<see cref="ResourceUsage::AllowWrite" />).
+        /// 
+        /// To reduce memory consumption, the build info (i.e., triangle mesh and bounding box data) is not copied to the destination acceleration structure by default. However, this also implies that further
+        /// updates to it are inconvenient, requiring to manually copy the data in an additional pass. To also include build data in the copy, the <paramref name="copyBuildInfo" /> setting can be set to `true`.
+        /// 
+        /// After a successful copy, the buffer pointer is stored by the acceleration structure <paramref name="destination" /> and can be accessed by calling <see cref="buffer" /> on it.
+        /// </remarks>
+        /// <param name="commandBuffer">The command buffer used to record the acceleration structure copy commands.</param>
+        /// <param name="destination">The acceleration structure to copy the current one into.</param>
+        /// <param name="compress">If `true`, the acceleration structure data will be compressed.</param>
+        /// <param name="buffer">If not `nullptr`, the destination acceleration structure will be written into the provided buffer. Otherwise a new buffer is allocated, or the existing one is used depending on the available size.</param>
+        /// <param name="offset">The offset at which to store the copy within <paramref name="buffer" />. Must be a multiple of 256. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
+        /// <param name="copyBuildInfo">If `true`, the mesh data or bounding box data is copied into the acceleration structure.</param>
+        /// <excetpion cref="InvalidArgumentException">Thrown, if <paramref name="compress" /> is set to `true`, but the current acceleration structure has not been created with the <see cref="AccelerationStructureFlags::AllowCompaction" /> flag.</exception>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and does not fully contain the required memory to store the copy, starting at <paramref name="offset" />.</exception>
+        inline void copy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const {
+            this->doCopy(commandBuffer, destination, compress, buffer, offset, copyBuildInfo);
+        }
+
+    public:
+        /// <summary>
+        /// Adds a triangle mesh to the BLAS.
+        /// </summary>
+        /// <param name="mesh">The triangle mesh to add to the BLAS.</param>
+        /// <returns>A reference to the current BLAS.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes.</exception>
+        template <typename TSelf>
+        inline auto withTriangleMesh(this TSelf&& self, const TriangleMesh& mesh) -> TSelf&& {
+            self.addTriangleMesh(mesh);
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds a triangle mesh to the BLAS.
+        /// </summary>
+        /// <param name="vertexBuffer">The vertex buffer that stores the mesh vertices.</param>
+        /// <param name="indexBuffer">The index buffer that stores the mesh indices.</param>
+        /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
+        /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
+        /// <returns>A reference to the current BLAS.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes.</exception>
+        template <typename TSelf>
+        inline auto withTriangleMesh(this TSelf&& self, SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) -> TSelf&& {
+            return self.withTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer, flags));
+        }
+
+        /// <summary>
+        /// Adds a buffer containing axis-aligned bounding boxes to the BLAS.
+        /// </summary>
+        /// <param name="aabb">The bounding box buffer to add to the BLAS.</param>
+        /// <returns>A reference to the current BLAS.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes.</exception>
+        template <typename TSelf>
+        inline auto withBoundingBox(this TSelf&& self, const BoundingBoxes& aabb) -> TSelf&& {
+            self.addBoundingBox(aabb);
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds a buffer containing axis-aligned bounding boxes to the BLAS.
+        /// </summary>
+        /// <param name="buffer">A buffer containing the bounding box definitions.</param>
+        /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
+        /// <returns>A reference to the current BLAS.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes.</exception>
+        template <typename TSelf>
+        inline auto withBoundingBox(this TSelf&& self, SharedPtr<const IBuffer> buffer, GeometryFlags flags = GeometryFlags::None) -> TSelf&& {
+            return self.withBoundingBox(BoundingBoxes { .Buffer = buffer, .Flags = flags });
+        }
+
+    private:
+        virtual void doCopy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const = 0;
+    };
+
+    /// <summary>
+    /// A structure that stores the instance data for a <see cref="IBottomLevelAccelerationStructure" />.
+    /// </summary>
+    /// <seealso cref="IBottomLevelAccelerationStructure" />
+    class LITEFX_RENDERING_API ITopLevelAccelerationStructure : public IAccelerationStructure {
+    public:
+        /// <summary>
+        /// Represents an instance of an <see cref="IBottomLevelAccelerationStructure" />.
+        /// </summary>
+        struct alignas(16) Instance final {
+            /// <summary>
+            /// The bottom-level acceleration structure that contains the geometries of this instance.
+            /// </summary>
+            SharedPtr<const IBottomLevelAccelerationStructure> BottomLevelAccelerationStructure;
+
+            /// <summary>
+            /// The transformation matrix for the instance.
+            /// </summary>
+            TMatrix3x4<Float> Transform = TMatrix3x4<Float>::identity();
+
+            /// <summary>
+            /// The instance ID used in shaders to identify the instance.
+            /// </summary>
+            UInt32 Id : 24 = 0;
+
+            /// <summary>
+            /// A user-defined mask value that is matched with another mask value during ray-tracing to include or discard the instance.
+            /// </summary>
+            Byte Mask : 8 = 0xFF;
+
+            /// <summary>
+            /// An offset added to the address of the shader-local data of the shader record that is invoked for the instance, *after* the <see cref="IBottomLevelAccelerationStructure" /> indexing
+            /// rules have been applied.
+            /// </summary>
+            /// <remarks>
+            /// Shader-local data is a piece of constant data that is available to the shader during invocation. During a ray hit/miss event, the shader record is selected based on geometry 
+            /// (<see cref="IBottomLevelAccelerationStructure" />), instance (<see cref="ITopLevelAccelerationStructure" /> and an implementation-specific offset. The selected record is then used 
+            /// to load the shader and pass the shader local data to it.
+            /// 
+            /// The first part of the address is determined from the geometry index within the TLAS and a user-defined multiplier and base index specified in the shader when calling `TraceRay`. After 
+            /// this index is calculated the value of this property is added to it. The result is an offset into the shader-local data for the selected shader record.
+            /// </remarks>
+            /// <seealso cref="https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#addressing-calculations-within-shader-tables" />
+            /// <seealso cref="https://docs.vulkan.org/spec/latest/chapters/raytracing.html#shader-binding-table-indexing-rules" />
+            UInt32 HitGroupOffset : 24 = 0;
+
+            /// <summary>
+            /// The flags that control the behavior of this instance.
+            /// </summary>
+            InstanceFlags Flags : 8 = InstanceFlags::None;
+        };
+    public:
+        virtual ~ITopLevelAccelerationStructure() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns an array of instances in the TLAS.
+        /// </summary>
+        /// <returns>The array of instances in the TLAS.</returns>
+        virtual const Array<Instance>& instances() const noexcept = 0;
+
+        /// <summary>
+        /// Adds an instance to the TLAS.
+        /// </summary>
+        /// <param name="instance">The instance to add to the TLAS.</param>
+        /// <exception cref="RuntimeException">Thrown, if the acceleration structure buffers have already been allocated.</exception>
+        virtual void addInstance(const Instance& instance) = 0;
+
+        /// <summary>
+        /// Adds an instance to the TLAS.
+        /// </summary>
+        /// <param name="blas">The bottom-level acceleration structure that contains the geometries of the instance.</param>
+        /// <param name="id">The instance ID used in shaders to identify the instance.</param>
+        /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
+        /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
+        /// <param name="flags">The flags that control the behavior of the instance.</param>
+        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept {
+            this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
+        }
+        
+        /// <summary>
+        /// Adds an instance to the TLAS.
+        /// </summary>
+        /// <param name="blas">The bottom-level acceleration structure that contains the geometries of the instance.</param>
+        /// <param name="transform">The transformation matrix applied to the instance geometry.</param>
+        /// <param name="id">The instance ID used in shaders to identify the instance.</param>
+        /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
+        /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
+        /// <param name="flags">The flags that control the behavior of the instance.</param>
+        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept {
+            this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
+        }
+
+        /// <summary>
+        /// Clears all instances from the acceleration structure.
+        /// </summary>
+        virtual void clear() noexcept = 0;
+
+        /// <summary>
+        /// Removes an instance from the acceleration structure.
+        /// </summary>
+        /// <param name="instance">The instance to remove from the acceleration structure.</param>
+        /// <returns>`true`, if the instance has been removed, otherwise `false`.</returns>
+        virtual bool remove(const Instance& instance) noexcept = 0;
+
+        /// <summary>
+        /// Copies the acceleration structure into the acceleration structure provided by <paramref name="destination" />.
+        /// </summary>
+        /// <remarks>
+        /// This method copies the acceleration structure into another one, which is especially useful for compression. If called without any arguments besides <paramref name="commandBuffer" /> and
+        /// <paramref name="destination" />, the method will create a clone of the current acceleration structure, including any build info (i.e., triangle mesh or bounding box data). If the destination
+        /// acceleration structure already contains a buffer and the buffer contains enough memory to store the copy, it will be re-used and its contents will be overwritten. Otherwise, a new buffer with enough
+        /// memory to store the copy will be allocated.
+        /// 
+        /// If the <paramref name="compress" /> option is set to `true`, the copy will be compressed. Note that this is only possible, if the acceleration structure was created with the 
+        /// <see cref="AccelerationStructureFlags::AllowCompaction" /> flag enabled. Note that compression requires a query for the size of the compressed data, which can only be determined *after* the 
+        /// acceleration structure was built or updated. This implies that a copy command that is used for compression is not valid on the same command buffer that did also record the build or update commands
+        /// for it. You have to use a fence to wait for the build to finish before attempting a compression.
+        /// 
+        /// It is possible to provide a buffer for the destination acceleration structure to use after copying. This buffer can be set by providing the <paramref name="buffer" /> parameter. This allows to
+        /// re-use memory from another acceleration structure, that no longer uses the memory. It is possible to store the buffer from an acceleration structure (acquired by calling <see cref="buffer" />) and 
+        /// destroy it afterwards, which enables re-use scenarios for example for caching. Alternatively, it is possible store multiple acceleration structures within the same buffer, reducing overall memory 
+        /// consumption. This is done by also providing the <paramref name="offset" /> parameter to address where the copy should be stored. Note that the pointer passed to the <see cref="buffer" /> parameter 
+        /// must have been initialized with the <see cref="BufferType::AccelerationStructure" /> buffer type and must be writable (<see cref="ResourceUsage::AllowWrite" />).
+        /// 
+        /// To reduce memory consumption, the build info (i.e., triangle mesh and bounding box data) is not copied to the destination acceleration structure by default. However, this also implies that further
+        /// updates to it are inconvenient, requiring to manually copy the data in an additional pass. To also include build data in the copy, the <paramref name="copyBuildInfo" /> setting can be set to `true`.
+        /// 
+        /// After a successful copy, the buffer pointer is stored by the acceleration structure <paramref name="destination" /> and can be accessed by calling <see cref="buffer" /> on it.
+        /// </remarks>
+        /// <param name="commandBuffer">The command buffer used to record the acceleration structure copy commands.</param>
+        /// <param name="destination">The acceleration structure to copy the current one into.</param>
+        /// <param name="compress">If `true`, the acceleration structure data will be compressed.</param>
+        /// <param name="buffer">If not `nullptr`, the destination acceleration structure will be written into the provided buffer. Otherwise a new buffer is allocated, or the existing one is used depending on the available size.</param>
+        /// <param name="offset">The offset at which to store the copy within <paramref name="buffer" />. Must be a multiple of 256. Ignored if <paramref name="buffer" /> is `nullptr`.</param>
+        /// <param name="copyBuildInfo">If `true`, the mesh data or bounding box data is copied into the acceleration structure.</param>
+        /// <excetpion cref="InvalidArgumentException">Thrown, if <paramref name="compress" /> is set to `true`, but the current acceleration structure has not been created with the <see cref="AccelerationStructureFlags::AllowCompaction" /> flag.</exception>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and does not fully contain the required memory to store the copy, starting at <paramref name="offset" />.</exception>
+        inline void copy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const {
+            this->doCopy(commandBuffer, destination, compress, buffer, offset, copyBuildInfo);
+        }
+
+    public:
+        /// <summary>
+        /// Adds an instance to the current TLAS.
+        /// </summary>
+        /// <param name="instance">The instance to add to the TLAS.</param>
+        /// <returns>A reference to the current TLAS.</returns>
+        template<typename TSelf>
+        inline auto withInstance(this TSelf&& self, const Instance& instance) noexcept -> TSelf&& {
+            self.addInstance(instance);
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds an instance to the current TLAS.
+        /// </summary>
+        /// <param name="blas">The bottom-level acceleration structure that contains the geometries of the instance.</param>
+        /// <param name="id">The instance ID used in shaders to identify the instance.</param>
+        /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
+        /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
+        /// <param name="flags">The flags that control the behavior of the instance.</param>
+        /// <returns>A reference to the current TLAS.</returns>
+        template<typename TSelf>
+        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& {
+            self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds an instance to the current TLAS.
+        /// </summary>
+        /// <param name="blas">The bottom-level acceleration structure that contains the geometries of the instance.</param>
+        /// <param name="transform">The transformation matrix applied to the instance geometry.</param>
+        /// <param name="id">The instance ID used in shaders to identify the instance.</param>
+        /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
+        /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
+        /// <param name="flags">The flags that control the behavior of the instance.</param>
+        /// <returns>A reference to the current TLAS.</returns>
+        template<typename TSelf>
+        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& {
+            self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
+            return std::forward<TSelf>(self);
+        }
+
+    private:
+        virtual void doCopy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const = 0;
     };
 
     /// <summary>
@@ -3125,13 +4582,13 @@ namespace LiteFX::Rendering {
         /// Returns the stage that all previous commands need to reach before continuing execution.
         /// </summary>
         /// <returns>The stage that all previous commands need to reach before continuing execution.</returns>
-        virtual const PipelineStage& syncBefore() const noexcept = 0;
+        constexpr inline virtual PipelineStage syncBefore() const noexcept = 0;
         
         /// <summary>
         /// Returns the stage all subsequent commands need to wait for before continuing execution.
         /// </summary>
         /// <returns>The stage all subsequent commands need to wait for before continuing execution.</returns>
-        virtual const PipelineStage& syncAfter() const noexcept = 0;
+        constexpr inline virtual PipelineStage syncAfter() const noexcept = 0;
 
         /// <summary>
         /// Inserts a global barrier that waits for previous commands to finish accesses described by <paramref name="accessBefore" /> before subsequent commands can continue
@@ -3139,7 +4596,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="accessBefore">The access types previous commands have to finish.</param>
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
-        virtual void wait(const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) noexcept = 0;
+        constexpr inline virtual void wait(ResourceAccess accessBefore, ResourceAccess accessAfter) noexcept = 0;
 
         /// <summary>
         /// Inserts a buffer barrier that blocks access to <paramref name="buffer"/> of types contained in <paramref name="accessAfter" /> for subsequent commands until 
@@ -3148,7 +4605,7 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">The buffer resource to transition.</param>
         /// <param name="accessBefore">The access types previous commands have to finish.</param>
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
-        void transition(IBuffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) {
+        constexpr inline void transition(const IBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) {
             this->doTransition(buffer, accessBefore, accessAfter);
         };
 
@@ -3164,7 +4621,7 @@ namespace LiteFX::Rendering {
         /// <param name="element">The element of the resource to transition.</param>
         /// <param name="accessBefore">The access types previous commands have to finish.</param>
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
-        void transition(IBuffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) {
+        constexpr inline void transition(const IBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) {
             this->doTransition(buffer, element, accessBefore, accessAfter);
         }
 
@@ -3177,7 +4634,7 @@ namespace LiteFX::Rendering {
         /// <param name="accessBefore">The access types previous commands have to finish.</param>
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
         /// <param name="layout">The image layout to transition into.</param>
-        void transition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) {
+        constexpr inline void transition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) {
             this->doTransition(image, accessBefore, accessAfter, layout);
         }
 
@@ -3195,7 +4652,7 @@ namespace LiteFX::Rendering {
         /// <param name="accessBefore">The access types previous commands have to finish.</param>
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
         /// <param name="layout">The image layout to transition into.</param>
-        void transition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) {
+        constexpr inline void transition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) {
             this->doTransition(image, level, levels, layer, layers, plane, accessBefore, accessAfter, layout);
         }
 
@@ -3213,7 +4670,7 @@ namespace LiteFX::Rendering {
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
         /// <param name="fromLayout">The image layout to transition from.</param>
         /// <param name="toLayout">The image layout to transition into.</param>
-        void transition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) {
+        constexpr inline void transition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) {
             this->doTransition(image, accessBefore, accessAfter, fromLayout, toLayout);
         }
 
@@ -3236,17 +4693,17 @@ namespace LiteFX::Rendering {
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
         /// <param name="fromLayout">The image layout to transition from.</param>
         /// <param name="toLayout">The image layout to transition into.</param>
-        void transition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) {
+        constexpr inline void transition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) {
             this->doTransition(image, level, levels, layer, layers, plane, accessBefore, accessAfter, fromLayout, toLayout);
         }
 
     private:
-        virtual void doTransition(IBuffer& buffer, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) = 0;
-        virtual void doTransition(IBuffer& buffer, const UInt32& element, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter) = 0;
-        virtual void doTransition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) = 0;
-        virtual void doTransition(IImage& image, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) = 0;
-        virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& layout) = 0;
-        virtual void doTransition(IImage& image, const UInt32& level, const UInt32& levels, const UInt32& layer, const UInt32& layers, const UInt32& plane, const ResourceAccess& accessBefore, const ResourceAccess& accessAfter, const ImageLayout& fromLayout, const ImageLayout& toLayout) = 0;
+        constexpr inline virtual void doTransition(const IBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
+        constexpr inline virtual void doTransition(const IBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
+        constexpr inline virtual void doTransition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
+        constexpr inline virtual void doTransition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
+        constexpr inline virtual void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
+        constexpr inline virtual void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
     };
 
     /// <summary>
@@ -3258,19 +4715,19 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
-        /// Updates a constant buffer within the current descriptor set.
+        /// Updates one or more buffer descriptors within the current descriptor set.
         /// </summary>
         /// <param name="binding">The buffer binding point.</param>
-        /// <param name="buffer">The constant buffer to write to the descriptor set.</param>
+        /// <param name="buffer">The buffer to write to the descriptor set.</param>
         /// <param name="bufferElement">The index of the first element in the buffer to bind to the descriptor set.</param>
         /// <param name="elements">The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at <paramref name="bufferElement" />.</param>
         /// <param name="firstDescriptor">The index of the first descriptor in the descriptor array to update.</param>
-        void update(const UInt32& binding, const IBuffer& buffer, const UInt32& bufferElement = 0, const UInt32& elements = 0, const UInt32& firstDescriptor = 0) const {
+        void update(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0) const {
             this->doUpdate(binding, buffer, bufferElement, elements, firstDescriptor);
         }
 
         /// <summary>
-        /// Updates a texture within the current descriptor set.
+        /// Updates one or more texture descriptors within the current descriptor set.
         /// </summary>
         /// <remarks>
         /// The exact representation of the level and layer parameters depends on the dimension of the provided texture, as well as the type of the descriptor identified by the 
@@ -3290,34 +4747,35 @@ namespace LiteFX::Rendering {
         /// <param name="levels">The number of mip-map levels to bind. A value of `0` binds all available levels, starting at <paramref name="firstLevel" />.</param>
         /// <param name="firstLayer">The index of the first layer to bind.</param>
         /// <param name="layers">The number of layers to bind. A value of `0` binds all available layers, starting at <paramref name="firstLayer" />.</param>
-        void update(const UInt32& binding, const IImage& texture, const UInt32& descriptor = 0, const UInt32& firstLevel = 0, const UInt32& levels = 0, const UInt32& firstLayer = 0, const UInt32& layers = 0) const {
+        void update(UInt32 binding, const IImage& texture, UInt32 descriptor = 0, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const {
             this->doUpdate(binding, texture, descriptor, firstLevel, levels, firstLayer, layers);
         }
 
         /// <summary>
-        /// Updates a sampler within the current descriptor set.
+        /// Updates one or more sampler descriptors within the current descriptor set.
         /// </summary>
         /// <param name="binding">The sampler binding point.</param>
         /// <param name="sampler">The sampler to write to the descriptor set.</param>
         /// <param name="descriptor">The index of the descriptor in the descriptor array to bind the sampler to.</param>
-        void update(const UInt32& binding, const ISampler& sampler, const UInt32& descriptor = 0) const {
+        void update(UInt32 binding, const ISampler& sampler, UInt32 descriptor = 0) const {
             this->doUpdate(binding, sampler, descriptor);
         }
 
         /// <summary>
-        /// Attaches an image as an input attachment to a descriptor bound at <paramref cref="binding" />.
+        /// Updates an acceleration structure within the current descriptor set.
         /// </summary>
-        /// <param name="binding">The input attachment binding point.</param>
-        /// <param name="image">The image to bind to the input attachment descriptor.</param>
-        void attach(const UInt32& binding, const IImage& image) const {
-            this->doAttach(binding, image);
+        /// <param name="binding">The acceleration structure binding point.</param>
+        /// <param name="accelerationStructure">The acceleration structure to write to the descriptor set.</param>
+        /// <param name="descriptor">The index of the descriptor in the descriptor array to bind the acceleration structure to.</param>
+        void update(UInt32 binding, const IAccelerationStructure& accelerationStructure, UInt32 descriptor = 0) const {
+            this->doUpdate(binding, accelerationStructure, descriptor);
         }
 
     private:
-        virtual void doUpdate(const UInt32& binding, const IBuffer& buffer, const UInt32& bufferElement, const UInt32& elements, const UInt32& firstDescriptor) const = 0;
-        virtual void doUpdate(const UInt32& binding, const IImage& texture, const UInt32& descriptor, const UInt32& firstLevel, const UInt32& levels, const UInt32& firstLayer, const UInt32& layers) const = 0;
-        virtual void doUpdate(const UInt32& binding, const ISampler& sampler, const UInt32& descriptor) const = 0;
-        virtual void doAttach(const UInt32& binding, const IImage& image) const = 0;
+        virtual void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const = 0;
+        virtual void doUpdate(UInt32 binding, const IImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const = 0;
+        virtual void doUpdate(UInt32 binding, const ISampler& sampler, UInt32 descriptor) const = 0;
+        virtual void doUpdate(UInt32 binding, const IAccelerationStructure& accelerationStructure, UInt32 descriptor) const = 0;
     };
 
     /// <summary>
@@ -3327,27 +4785,32 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IDescriptorSetLayout" />
     struct LITEFX_RENDERING_API DescriptorBinding {
     public:
-        using resource_container = Variant<Ref<IBuffer>, Ref<IImage>, Ref<ISampler>>;
+        using resource_container = Variant<std::monostate, Ref<const IBuffer>, Ref<const IImage>, Ref<const ISampler>, Ref<const IAccelerationStructure>>;
         
     public:
         /// <summary>
-        /// The binding point to bind the resource at.
+        /// The binding point to bind the resource at. If not provided (i.e., `std::nullopt`), the index within the collection of `DescriptorBindings` is used.
         /// </summary>
-        UInt32 binding;
+        Optional<UInt32> binding = std::nullopt;
 
         /// <summary>
-        /// The resource to bind.
+        /// The resource to bind or `std::monostate` if no resource should be bound.
         /// </summary>
+        /// <remarks>
+        /// Note that not providing any resource does not perform any binding, in which case a resource needs to be manually bound to the descriptor set later 
+        /// (<see cref="IDescriptorSet::update" />). This is useful in situations where you frequently update the resource bound to a descriptor set or where you do no have
+        /// access to the resource at the time the descriptor set is allocated.
+        /// </remarks>
         /// <seealso cref="IBuffer" />
         /// <seealso cref="IImage" />
         /// <seealso cref="ISampler" />
-        resource_container resource;
+        resource_container resource = {};
 
         /// <summary>
         /// The index of the descriptor in a descriptor array at which binding the resource arrays starts.
         /// </summary>
         /// <remarks>
-        /// If the resource contains an array, the individual elements (*layers* for images) will be be bound, starting at this descriptor. The first element/layer to be
+        /// If the resource contains an array, the individual elements (*layers* for images) will be bound, starting at this descriptor. The first element/layer to be
         /// bound is identified by <see cref="firstElement" />. The number of elements/layers to be bound is stored in <see cref="elements" />.
         /// </remarks>
         /// <seealso cref="firstElement" />
@@ -3401,7 +4864,7 @@ namespace LiteFX::Rendering {
         /// Returns the layouts of the descriptors within the descriptor set.
         /// </summary>
         /// <returns>The layouts of the descriptors within the descriptor set.</returns>
-        Enumerable<const IDescriptorLayout*> descriptors() const noexcept {
+        inline Enumerable<const IDescriptorLayout*> descriptors() const noexcept {
             return this->getDescriptors();
         }
 
@@ -3410,7 +4873,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="binding">The binding point of the requested descriptor layout.</param>
         /// <returns>The descriptor layout for the descriptor bound to the binding point provided with <paramref name="binding" />.</returns>
-        virtual const IDescriptorLayout& descriptor(const UInt32& binding) const = 0;
+        virtual const IDescriptorLayout& descriptor(UInt32 binding) const = 0;
 
         /// <summary>
         /// Returns the space index of the descriptor set.
@@ -3419,13 +4882,13 @@ namespace LiteFX::Rendering {
         /// The descriptor set space maps to the space index in HLSL and the set index in GLSL.
         /// </remarks>
         /// <returns>The space index of the descriptor set.</returns>
-        virtual const UInt32& space() const noexcept = 0;
+        virtual UInt32 space() const noexcept = 0;
 
         /// <summary>
         /// Returns the shader stages, the descriptor set is used in.
         /// </summary>
         /// <returns>The shader stages, the descriptor set is used in.</returns>
-        virtual const ShaderStage& shaderStages() const noexcept = 0;
+        virtual ShaderStage shaderStages() const noexcept = 0;
 
         /// <summary>
         /// Returns the number of uniform/constant buffer descriptors within the descriptor set.
@@ -3498,7 +4961,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The instance of the descriptor set.</returns>
         /// <seealso cref="IDescriptorLayout" />
-        UniquePtr<IDescriptorSet> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const {
+        inline UniquePtr<IDescriptorSet> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const {
             return this->allocate(0, bindings);
         }
 
@@ -3509,7 +4972,7 @@ namespace LiteFX::Rendering {
         /// <param name="bindings">Optional default bindings for descriptors in the descriptor set.</param>
         /// <returns>The instance of the descriptor set.</returns>
         /// <seealso cref="IDescriptorLayout" />
-        UniquePtr<IDescriptorSet> allocate(const UInt32& descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const {
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const {
             return this->getDescriptorSet(descriptors, bindings);
         }
 
@@ -3520,7 +4983,7 @@ namespace LiteFX::Rendering {
         /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
-        Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const {
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const {
             return this->allocateMultiple(descriptorSets, 0, bindings);
         }
 
@@ -3531,7 +4994,7 @@ namespace LiteFX::Rendering {
         /// <param name="bindingFactory">A factory function that is called for each descriptor set in order to provide the default bindings.</param>
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
-        Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const {
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const {
             return this->allocateMultiple(descriptorSets, 0, bindingFactory);
         }
 
@@ -3543,7 +5006,7 @@ namespace LiteFX::Rendering {
         /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
-        Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const {
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const {
             return this->getDescriptorSets(descriptorSets, descriptors, bindings);
         }
 
@@ -3555,7 +5018,7 @@ namespace LiteFX::Rendering {
         /// <param name="bindingFactory">A factory function that is called for each descriptor set in order to provide the default bindings.</param>
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
-        Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const {
+        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const {
             return this->getDescriptorSets(descriptorSets, descriptors, bindingFactory);
         }
 
@@ -3563,15 +5026,15 @@ namespace LiteFX::Rendering {
         /// Marks a descriptor set as unused, so that it can be handed out again instead of allocating a new one.
         /// </summary>
         /// <seealso cref="allocate" />
-        void free(const IDescriptorSet& descriptorSet) const noexcept {
+        inline void free(const IDescriptorSet& descriptorSet) const noexcept {
             this->releaseDescriptorSet(descriptorSet);
         }
 
     private:
         virtual Enumerable<const IDescriptorLayout*> getDescriptors() const noexcept = 0;
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(const UInt32& descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const = 0;
-        virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const = 0;
-        virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(const UInt32& descriptorSets, const UInt32& descriptors, std::function<Enumerable<DescriptorBinding>(const UInt32&)> bindingFactory) const = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const = 0;
+        virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const = 0;
+        virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
         virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept = 0;
     };
 
@@ -3587,33 +5050,33 @@ namespace LiteFX::Rendering {
         /// Returns the shader space the push constants can be accessed from.
         /// </summary>
         /// <returns>The shader space the push constants can be accessed from.</returns>
-        virtual const UInt32& space() const noexcept = 0;
+        virtual UInt32 space() const noexcept = 0;
 
         /// <summary>
         /// Returns the binding point or register, the push constants are made available at.
         /// </summary>
         /// <returns>The binding point or register, the push constants are made available at.</returns>
-        virtual const UInt32& binding() const noexcept = 0;
+        virtual UInt32 binding() const noexcept = 0;
 
         /// <summary>
         /// Returns the offset from the push constants backing memory block, the range starts at.
         /// </summary>
         /// <returns>The offset from the push constants backing memory block, the range starts at.</returns>
         /// <seealso cref="size" />
-        virtual const UInt32& offset() const noexcept = 0;
+        virtual UInt32 offset() const noexcept = 0;
 
         /// <summary>
         /// Returns the size (in bytes) of the range.
         /// </summary>
         /// <returns>The size (in bytes) of the range.</returns>
         /// <seealso cref="offset" />
-        virtual const UInt32& size() const noexcept = 0;
+        virtual UInt32 size() const noexcept = 0;
 
         /// <summary>
         /// Returns the shader stage(s), the range is accessible from.
         /// </summary>
         /// <returns>The shader stage(s), the range is accessible from.</returns>
-        virtual const ShaderStage& stage() const noexcept = 0;
+        virtual ShaderStage stage() const noexcept = 0;
     };
 
     /// <summary>
@@ -3628,7 +5091,7 @@ namespace LiteFX::Rendering {
         /// Returns the size (in bytes) of the push constants backing memory.
         /// </summary>
         /// <returns>The size (in bytes) of the push constants backing memory.</returns>
-        virtual const UInt32& size() const noexcept = 0;
+        virtual UInt32 size() const noexcept = 0;
 
         /// <summary>
         /// Returns the push constant range associated with the shader stage provided in <paramref name="stage" />.
@@ -3638,14 +5101,14 @@ namespace LiteFX::Rendering {
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if no range is mapped to the provided shader stage.</exception>
         /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="stage" /> contains multiple shader stages.</exception>
         /// <seealso cref="ranges" />
-        virtual const IPushConstantsRange& range(const ShaderStage& stage) const = 0;
+        virtual const IPushConstantsRange& range(ShaderStage stage) const = 0;
 
         /// <summary>
         /// Returns all push constant ranges.
         /// </summary>
         /// <returns>All push constant ranges.</returns>
         /// <seealso cref="range" />
-        Enumerable<const IPushConstantsRange*> ranges() const noexcept {
+        inline Enumerable<const IPushConstantsRange*> ranges() const noexcept {
             return this->getRanges();
         }
 
@@ -3654,19 +5117,615 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Describes a record within a shader binding table.
+    /// </summary>
+    /// <remarks>
+    /// A shader record contains a shader group, that is either a single shader of type <see cref="ShaderStage::RayGeneration" />, <see cref="ShaderStage::Intersection" />,
+    /// <see cref="ShaderStage::Miss" /> or <see cref="ShaderStage::Callable" />, or a pair of types <see cref="ShaderStage::ClosestHit" /> and <see cref="ShaderStage::AnyHit" />,
+    /// where at least one of them needs to be set.
+    /// 
+    /// Typically you do not want to implement this interface itself. Prefer using the <see cref="ShaderRecord" /> template to create shader records instead.
+    /// </remarks>
+    /// <seealso cref="ShaderRecord" />
+    /// <seealso cref="IShaderProgram::buildShaderBindingTable" />
+    struct LITEFX_RENDERING_API IShaderRecord {
+    public:
+        /// <summary>
+        /// Describes a hit group for a triangle mesh geometry.
+        /// </summary>
+        /// <remarks>
+        /// Note that when using this structure, at least one of the contained shaders must be set. A shader record containing a mesh geometry hit group must 
+        /// only be ever called by triangle mesh bottom-level acceleration structures.
+        /// </remarks>
+        /// <seealso cref="IBottomLevelAccelerationStructure" />
+        struct MeshGeometryHitGroup {
+            /// <summary>
+            /// The closest hit shader for the triangle mesh.
+            /// </summary>
+            const IShaderModule* ClosestHitShader;
+
+            /// <summary>
+            /// The any hit shader for the triangle mesh.
+            /// </summary>
+            const IShaderModule* AnyHitShader;
+        };
+
+        /// <summary>
+        /// Defines the type that stores the shaders of the shader group.
+        /// </summary>
+        using shader_group_type = Variant<const IShaderModule*, MeshGeometryHitGroup>;
+
+    public:
+        /// <summary>
+        /// Returns the type of the shader record.
+        /// </summary>
+        /// <returns>The type of the shader record.</returns>
+        inline ShaderRecordType type() const noexcept {
+            const auto& group = this->shaderGroup();
+
+            if (std::holds_alternative<MeshGeometryHitGroup>(group))
+            {
+                return ShaderRecordType::HitGroup;
+            }
+            else if (std::holds_alternative<const IShaderModule*>(group))
+            {
+                switch (std::get<const IShaderModule*>(group)->type())
+                {
+                case ShaderStage::RayGeneration: return ShaderRecordType::RayGeneration;
+                case ShaderStage::Miss: return ShaderRecordType::Miss;
+                case ShaderStage::Callable: return ShaderRecordType::Callable;
+                case ShaderStage::Intersection: return ShaderRecordType::Intersection;
+                default: return ShaderRecordType::Invalid;
+                }
+            }
+
+            std::unreachable();
+        }
+
+    public:
+        /// <summary>
+        /// Returns the shader group containing the modules for this record.
+        /// </summary>
+        virtual const shader_group_type& shaderGroup() const noexcept = 0;
+
+        /// <summary>
+        /// Returns a pointer to the shader-local data of the record.
+        /// </summary>
+        /// <remarks>
+        /// Shader-local data is a piece of constant data that is available to the shader during invocation. During a ray hit/miss event, the shader record is selected
+        /// based on geometry (<see cref="IBottomLevelAccelerationStructure" />), instance (<see cref="ITopLevelAccelerationStructure" /> and an implementation-specific
+        /// offset. The selected record is then used to load the shader and pass the shader local data to it.
+        /// </remarks>
+        /// <returns>A pointer to the shader-local data of the record.</returns>
+        /// <seealso cref="localDataSize" />
+        virtual const void* localData() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the size of the shader-local data of the record.
+        /// </summary>
+        /// <returns>The size of the shader-local data of the record.</returns>
+        /// <seealso cref="localData" />
+        virtual UInt64 localDataSize() const noexcept = 0;
+
+    public:
+        virtual ~IShaderRecord() noexcept = default;
+    };
+
+    /// <summary>
+    /// Defines a generic shader record.
+    /// </summary>
+    /// <seealso cref="ShaderRecord{{}}" />
+    /// <seealso cref="ShaderRecord{{typename TLocalData}}" />
+    template <typename... TLocalData>
+    struct ShaderRecord;
+
+    /// <summary>
+    /// Denotes a shader record containing shader-local data.
+    /// </summary>
+    /// <remarks>
+    /// The <typeparamref name="TLocalData" /> defines the data that is passed to a shader's local resource bindings upon invocation. Two types of elements are 
+    /// allowed: buffer references and constants. Buffer references can be obtained by calling <see cref="IBuffer::virtualAddress" /> and are always 8 bytes
+    /// long. Constants do not strictly need to follow 8 byte alignment rules, but rather can also be smaller, in which case they should be defined as an
+    /// aligned array, aligned to 8 bytes within the shader-local data.
+    /// </remarks>
+    /// <seealso cref="https://github.com/crud89/LiteFX/wiki/Raytracing#local-resource-bindings" />
+    template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+    struct ShaderRecord<TLocalData> final : public IShaderRecord {
+    public:
+        using shader_group_type = IShaderRecord::shader_group_type;
+
+    private:
+        /// <summary>
+        /// Stores the shader-local data of the shader record, that gets passed to the shader local data.
+        /// </summary>
+        TLocalData m_payload;
+        
+        /// <summary>
+        /// Stores the shader group.
+        /// </summary>
+        shader_group_type m_shaderGroup;
+
+    public:
+        /// <inheritdoc />
+        const shader_group_type& shaderGroup() const noexcept override {
+            return m_shaderGroup;
+        }
+
+        /// <inheritdoc />
+        const void* localData() const noexcept override {
+            return reinterpret_cast<const void*>(&m_payload);
+        }
+
+        /// <inheritdoc />
+        UInt64 localDataSize() const noexcept override {
+            return sizeof(TLocalData);
+        }
+
+    public:
+        ShaderRecord() = delete;
+        virtual ~ShaderRecord() noexcept = default;
+
+        /// <summary>
+        /// Initializes a shader record.
+        /// </summary>
+        /// <param name="group">The shader group containing the modules to invoke.</param>
+        /// <param name="payload">The shader-local data to pass to the shader's local resource bindings.</param>
+        ShaderRecord(const shader_group_type& group, TLocalData payload) noexcept :
+            m_shaderGroup(group), m_payload(payload) { }
+
+        /// <summary>
+        /// Copies another shader record.
+        /// </summary>
+        /// <param name="_other">The shader record to copy.</param>
+        ShaderRecord(const ShaderRecord& _other) :
+            m_shaderGroup(_other.m_shaderGroup), m_payload(_other.m_payload) { }
+
+        /// <summary>
+        /// Takes over another shader record.
+        /// </summary>
+        /// <param name="_other">The shader record to take over.</param>
+        ShaderRecord(ShaderRecord&& _other) :
+            m_shaderGroup(std::move(_other.m_shaderGroup)), m_payload(std::move(_other.m_payload)) { }
+
+        /// <summary>
+        /// Copies another shader record.
+        /// </summary>
+        /// <param name="_other">The shader record to copy.</param>
+        /// <returns>A reference to the current shader record.</returns>
+        auto& operator=(const ShaderRecord& _other) {
+            m_shaderGroup = _other.m_shaderGroup;
+            m_payload = _other.m_payload;
+            return *this;
+        }
+
+        /// <summary>
+        /// Takes over another shader record.
+        /// </summary>
+        /// <param name="_other">The shader record to take over.</param>
+        /// <returns>A reference to the current shader record.</returns>
+        auto& operator=(ShaderRecord&& _other) {
+            m_shaderGroup = std::move(_other.m_shaderGroup);
+            m_payload = std::move(_other.m_payload);
+            return *this;
+        }
+    };
+
+    /// <summary>
+    /// Denotes a shader record containing no shader-local data.
+    /// </summary>
+    template <>
+    struct ShaderRecord<> final : public IShaderRecord {
+    public:
+        using shader_group_type = IShaderRecord::shader_group_type;
+
+    private:
+        /// <summary>
+        /// Stores the shader group.
+        /// </summary>
+        shader_group_type m_shaderGroup;
+
+    public:
+        /// <inheritdoc />
+        const shader_group_type& shaderGroup() const noexcept override {
+            return m_shaderGroup;
+        }
+
+        /// <inheritdoc />
+        const void* localData() const noexcept override {
+            return nullptr;
+        }
+
+        /// <inheritdoc />
+        UInt64 localDataSize() const noexcept override {
+            return 0_ui64;
+        }
+
+    public:
+        ShaderRecord() = delete;
+        virtual ~ShaderRecord() noexcept = default;
+
+        /// <summary>
+        /// Initializes a shader record.
+        /// </summary>
+        /// <param name="group">The shader group containing the modules to invoke.</param>
+        ShaderRecord(const shader_group_type& group) noexcept :
+            m_shaderGroup(group) { }
+
+        /// <summary>
+        /// Copies another shader record.
+        /// </summary>
+        /// <param name="_other">The shader record to copy.</param>
+        ShaderRecord(const ShaderRecord& _other) :
+            m_shaderGroup(_other.m_shaderGroup) { }
+
+        /// <summary>
+        /// Takes over another shader record.
+        /// </summary>
+        /// <param name="_other">The shader record to take over.</param>
+        ShaderRecord(ShaderRecord&& _other) :
+            m_shaderGroup(std::move(_other.m_shaderGroup)) { }
+
+        /// <summary>
+        /// Copies another shader record.
+        /// </summary>
+        /// <param name="_other">The shader record to copy.</param>
+        /// <returns>A reference to the current shader record.</returns>
+        auto& operator=(const ShaderRecord& _other) {
+            m_shaderGroup = _other.m_shaderGroup;
+            return *this;
+        }
+
+        /// <summary>
+        /// Takes over another shader record.
+        /// </summary>
+        /// <param name="_other">The shader record to take over.</param>
+        /// <returns>A reference to the current shader record.</returns>
+        auto& operator=(ShaderRecord&& _other) {
+            m_shaderGroup = std::move(_other.m_shaderGroup);
+            return *this;
+        }
+    };
+
+    /// <summary>
+    /// Stores a set of <see cref="IShaderRecord" />s in that later form a shader binding table used for ray-tracing.
+    /// </summary>
+    class LITEFX_RENDERING_API ShaderRecordCollection final {
+        friend class IShaderProgram;
+
+    private:
+        SharedPtr<const IShaderProgram> m_program;
+        Array<UniquePtr<const IShaderRecord>> m_records;
+
+        /// <summary>
+        /// Initializes a new shader record collection.
+        /// </summary>
+        /// <param name="shaderProgram">The shader program that contains the shader modules</param>
+        ShaderRecordCollection(SharedPtr<const IShaderProgram> shaderProgram) noexcept : 
+            m_program(shaderProgram) 
+        {
+            // This can only be built from a shader program, which passes the pointer to itself, which must not be nullptr. If more factory methods are added,
+            // we must validate the program pointer here.
+        }
+
+    public:
+        ShaderRecordCollection() = delete;
+        ShaderRecordCollection(const ShaderRecordCollection&) = delete;
+        ShaderRecordCollection(ShaderRecordCollection&&) = default;
+        ~ShaderRecordCollection() noexcept = default;
+
+    private:
+        /// <summary>
+        /// Finds a shader module in the parent shader program.
+        /// </summary>
+        /// <param name="name">The case-sensitive name of the shader module to find.</param>
+        /// <returns>A pointer to the shader module, or `nullptr`, if no module with the specified name was found in the parent program.</returns>
+        const IShaderModule* findShaderModule(StringView name) const noexcept;
+
+    public:
+        /// <summary>
+        /// Returns the parent shader program of the collection.
+        /// </summary>
+        /// <returns>The parent shader program of the collection.</returns>
+        inline SharedPtr<const IShaderProgram> program() const noexcept {
+            return m_program;
+        }
+
+        /// <summary>
+        /// Returns an array of all shader records within the shader record collection.
+        /// </summary>
+        /// <returns>The array containing all shader records within the shader record collection.</returns>
+        const Array<UniquePtr<const IShaderRecord>>& shaderRecords() const noexcept;
+
+        /// <summary>
+        /// Adds a new shader record to the shader record collection.
+        /// </summary>
+        /// <param name="record">The shader record to add to the shader record collection.</param>
+        /// <exception cref="ArgumentNotInitializedException">Thrown, if the shader record was not initialized.</exception>
+        /// <exception cref="InvalidArgumentException">Thrown, if the shader module(s) within the shader record are of invalid type, or the parent shader program does not contain the shader module(s).</exception>
+        void addShaderRecord(UniquePtr<const IShaderRecord>&& record);
+
+    public:
+        /// <summary>
+        /// Adds a new shader record based on the name of a shader module in the parent shader program.
+        /// </summary>
+        /// <remarks>
+        /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an 
+        /// any and closest hit shader, use <see cref="addMeshGeometryShaderHitGroupRecord" /> instead.
+        /// </remarks>
+        /// <param name="shaderName">The name of the shader module.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if no shader module with the provided name was found in the parent shader program.</exception>
+        inline void addShaderRecord(StringView shaderName) {
+            auto shaderModule = this->findShaderModule(shaderName);
+
+            if (shaderModule == nullptr) [[unlikely]]
+                throw InvalidArgumentException("shaderName", "The parent shader program does not contain a shader named \"{}\".", shaderName);
+
+            if (shaderModule->type() == ShaderStage::AnyHit)
+                this->addShaderRecord(makeUnique<ShaderRecord<>>(IShaderRecord::MeshGeometryHitGroup{ .AnyHitShader = shaderModule }));
+            else if (shaderModule->type() == ShaderStage::ClosestHit)
+                this->addShaderRecord(makeUnique<ShaderRecord<>>(IShaderRecord::MeshGeometryHitGroup{ .ClosestHitShader = shaderModule }));
+            else
+                this->addShaderRecord(makeUnique<ShaderRecord<>>(shaderModule));
+        }
+
+        /// <summary>
+        /// Adds a new shader record based on the name of a shader module in the parent shader program.
+        /// </summary>
+        /// <remarks>
+        /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an 
+        /// any and closest hit shader, use <see cref="addMeshGeometryShaderHitGroupRecord" /> instead.
+        /// </remarks>
+        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
+        /// <param name="shaderName">The name of the shader module.</param>
+        /// <param name="payload">The shader-local data of the shader record.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if no shader module with the provided name was found in the parent shader program.</exception>
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        inline void addShaderRecord(StringView shaderName, TLocalData payload) {
+            auto shaderModule = this->findShaderModule(shaderName);
+
+            if (shaderModule == nullptr) [[unlikely]]
+                throw InvalidArgumentException("shaderName", "The parent shader program does not contain a shader named \"{}\".", shaderName);
+                
+            if (shaderModule->type() == ShaderStage::AnyHit)
+                this->addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(IShaderRecord::MeshGeometryHitGroup{ .AnyHitShader = shaderModule }, payload));
+            else if (shaderModule->type() == ShaderStage::ClosestHit)
+                this->addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(IShaderRecord::MeshGeometryHitGroup{ .ClosestHitShader = shaderModule }, payload));
+            else
+                this->addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(shaderModule, payload));
+        }
+
+        /// <summary>
+        /// Adds a new mesh geometry hit group record based on names of the shader modules.
+        /// </summary>
+        /// <param name="anyHitShaderName">The name of the any hit shader module.</param>
+        /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if both provided shader names are empty or not found, the shaders are not of the right type or do not belong to the parent shader program.</exception>
+        inline void addMeshGeometryShaderHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName) {
+            IShaderRecord::MeshGeometryHitGroup hitGroup = { 
+                .ClosestHitShader = closestHitShaderName.has_value() ? this->findShaderModule(closestHitShaderName.value()) : nullptr,
+                .AnyHitShader = anyHitShaderName.has_value() ? this->findShaderModule(anyHitShaderName.value()) : nullptr
+            };
+
+            this->addShaderRecord(makeUnique<ShaderRecord<>>(hitGroup));
+        }
+
+        /// <summary>
+        /// Adds a new mesh geometry hit group record based on names of the shader modules.
+        /// </summary>
+        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
+        /// <param name="anyHitShaderName">The name of the any hit shader module.</param>
+        /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
+        /// <param name="payload">The shader-local data of the shader record.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if both provided shader names are empty or not found, the shaders are not of the right type or do not belong to the parent shader program.</exception>
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        inline void addMeshGeometryShaderHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName, TLocalData payload) {
+            IShaderRecord::MeshGeometryHitGroup hitGroup = { 
+                .ClosestHitShader = closestHitShaderName.has_value() ? this->findShaderModule(closestHitShaderName.value()) : nullptr,
+                .AnyHitShader = anyHitShaderName.has_value() ? this->findShaderModule(anyHitShaderName.value()) : nullptr
+            };
+
+            this->addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(hitGroup, payload));
+        }
+
+        /// <summary>
+        /// Adds a new shader record to the shader record collection.
+        /// </summary>
+        /// <param name="shaderGroup">The shader module or hit group.</param>
+        inline void addShaderRecord(const ShaderRecord<>::shader_group_type& shaderGroup) {
+            this->addShaderRecord(makeUnique<ShaderRecord<>>(shaderGroup));
+        }
+
+        /// <summary>
+        /// Adds a new shader record to the shader record collection.
+        /// </summary>
+        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
+        /// <param name="shaderGroup">The shader module or hit group.</param>
+        /// <param name="payload">The shader-local data of the shader record.</param>
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        inline void addShaderRecord(ShaderRecord<TLocalData>::shader_group_type shaderGroup, TLocalData payload) {
+            this->addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(shaderGroup, payload));
+        }
+
+        /// <summary>
+        /// Adds a new shader record based on the name of a shader module in the parent shader program.
+        /// </summary>
+        /// <remarks>
+        /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an 
+        /// any and closest hit shader, use <see cref="withMeshGeometryShaderHitGroupRecord" /> instead.
+        /// </remarks>
+        /// <param name="shaderName">The name of the shader module.</param>
+        /// <returns>A reference to the current shader record collection.</returns>
+        inline ShaderRecordCollection&& withShaderRecord(StringView shaderName) {
+            this->addShaderRecord(shaderName);
+            return std::forward<ShaderRecordCollection>(*this);
+        }
+
+        /// <summary>
+        /// Adds a new shader record based on the name of a shader module in the parent shader program.
+        /// </summary>
+        /// <remarks>
+        /// Note that this will create a new shader record for every invocation. If you want to create a shader record with a mesh geometry hit group with containing both, an 
+        /// any and closest hit shader, use <see cref="withMeshGeometryShaderHitGroupRecord" /> instead.
+        /// </remarks>
+        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
+        /// <param name="shaderName"></param>
+        /// <param name="payload">The shader-local data of the shader record.</param>
+        /// <returns>A reference to the current shader record collection.</returns>
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        inline ShaderRecordCollection&& withShaderRecord(StringView shaderName, TLocalData payload) {
+            this->addShaderRecord(shaderName, payload);
+            return std::forward<ShaderRecordCollection>(*this);
+        }
+
+        /// <summary>
+        /// Adds a new mesh geometry hit group record based on names of the shader modules.
+        /// </summary>
+        /// <param name="anyHitShaderName">The name of the any hit shader module.</param>
+        /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
+        /// <returns>A reference to the current shader record collection.</returns>
+        inline ShaderRecordCollection&& withMeshGeometryHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName) {
+            this->addMeshGeometryShaderHitGroupRecord(anyHitShaderName, closestHitShaderName);
+            return std::forward<ShaderRecordCollection>(*this);
+        }
+
+        /// <summary>
+        /// Adds a new mesh geometry hit group record based on names of the shader modules.
+        /// </summary>
+        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
+        /// <param name="anyHitShaderName">The name of the any hit shader module.</param>
+        /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
+        /// <param name="payload">The shader-local data of the shader record.</param>
+        /// <returns>A reference to the current shader record collection.</returns>
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        inline ShaderRecordCollection&& withMeshGeometryHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName, TLocalData payload) {
+            this->addMeshGeometryShaderHitGroupRecord(anyHitShaderName, closestHitShaderName, payload);
+            return std::forward<ShaderRecordCollection>(*this);
+        }
+
+        /// <summary>
+        /// Adds a new shader record to the shader record collection.
+        /// </summary>
+        /// <param name="shaderGroup">The shader module or hit group.</param>
+        /// <returns>A reference to the current shader record collection.</returns>
+        inline ShaderRecordCollection&& withShaderRecord(ShaderRecord<>::shader_group_type shaderGroup) {
+            this->addShaderRecord(shaderGroup);
+            return std::forward<ShaderRecordCollection>(*this);
+        }
+
+        /// <summary>
+        /// Adds a new shader record to the shader record collection.
+        /// </summary>
+        /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
+        /// <param name="shaderGroup">The shader module or hit group.</param>
+        /// <param name="payload">The shader-local data of the shader record.</param>
+        /// <returns>A reference to the current shader record collection.</returns>
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        inline ShaderRecordCollection&& withShaderRecord(ShaderRecord<TLocalData>::shader_group_type shaderGroup, TLocalData payload) {
+            this->addShaderRecord(shaderGroup, payload);
+            return std::forward<ShaderRecordCollection>(*this);
+        }
+    };
+
+    /// <summary>
     /// The interface for a shader program.
     /// </summary>
+    /// <remarks>
+    /// A shader program differs in it's functionality as well as the contained shader modules, depending on the pipeline type it gets assigned to. A shader program can be
+    /// of any of the following types:
+    /// 
+    /// <list type="bullet">
+    /// <item>
+    /// <description>
+    /// **Rasterization:** A rasterization pipeline is a traditional pipeline, that can contain at maximum one module of the following stages: *Vertex*, *Tessellation Control*, 
+    /// *Tessellation Evaluation*, *Geometry*, *Fragment*. A vertex and fragment shader are required for rasterization programs.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// **Mesh shading:** If mesh shader support is enabled (through the device feature <see cref="GraphicsDeviceFeatures::MeshShaders" />), a mesh shading program can contain 
+    /// at maximum one module of the following stages: *Task*, *Mesh*, *Fragment*. A mesh and fragment shader are required for a mesh shading program.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// **Compute:** A compute shader program must only contain a single module for the *Compute* stage.
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <description>
+    /// **Ray-tracing:** If ray tracing support is enabled (through the device feature <see cref="GraphicsDeviceFeatures::RayTracing" />), a ray tracing program can contain 
+    /// modules of the following stages: *Ray Generation*, *Any Hit*, *Closest Hit*, *Intersection*, *Miss*, *Callable*. There must be exactly one *Ray Generation* module. All 
+    /// other modules can occur multiple times. To build a ray tracing pipeline, all shaders should be added to a single shader program, which is then passed to the pipeline 
+    /// during creation.
+    /// </description>
+    /// </item>
+    /// </list>
+    /// 
+    /// Shaders from different program types must not be mixed. For example, it is not valid to add a compute module to a rasterization program. The only exception to this
+    /// is the <see cref="ShaderStage::Fragment" /> module, which can be added to a mesh pipeline, as well as a rasterization pipeline.
+    /// </remarks>
     /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
-    class LITEFX_RENDERING_API IShaderProgram {
+    class LITEFX_RENDERING_API IShaderProgram : public std::enable_shared_from_this<IShaderProgram> {
     public:
         virtual ~IShaderProgram() noexcept = default;
 
     public:
         /// <summary>
+        /// Returns a pointer with shared ownership to the current instance.
+        /// </summary>
+        /// <returns>A pointer with shared ownership to the current instance.</returns>
+        inline std::shared_ptr<const IShaderProgram> getptr() const {
+            return shared_from_this();
+        }
+
+        /// <summary>
+        /// Returns a pointer with shared ownership to the current instance.
+        /// </summary>
+        /// <returns>A pointer with shared ownership to the current instance.</returns>
+        inline std::shared_ptr<IShaderProgram> getptr() {
+            return shared_from_this();
+        }
+
+    public:
+        /// <summary>
+        /// Returns a pointer to shader module based on its (case-sensitive) name.
+        /// </summary>
+        /// <param name="name">The name or file name of the shader module.</param>
+        /// <returns>A pointer to the shader module, or `nullptr`, if it was not found.</returns>
+        inline const IShaderModule* operator[](StringView name) const noexcept {
+            auto modules = this->getModules();
+
+            if (auto match = std::ranges::find_if(modules, [name](auto module) { return std::strcmp(module->fileName().c_str(), name.data()) == 0; }); match != modules.end())
+                return *match;
+
+            return nullptr;
+        }
+
+        /// <summary>
+        /// Returns `true`, if the program contains a shader module with the provided name or file name and `false` otherwise.
+        /// </summary>
+        /// <param name="name">The case-sensitive name or file name of the shader module to look up.</param>
+        /// <returns>`true`, if the program contains a shader module with the provided name or file name and `false` otherwise.</returns>
+        inline bool contains(StringView name) const noexcept {
+            auto modules = this->getModules();
+            return std::ranges::find_if(modules, [name](auto module) { return std::strcmp(module->fileName().c_str(), name.data()) == 0; }) != modules.end();
+        };
+
+        /// <summary>
+        /// Returns `true`, if the program contains the provided shader module and `false` otherwise.
+        /// </summary>
+        /// <param name="module">The module to look up in the shader program.</param>
+        /// <returns>`true`, if the program contains the provided shader module and `false` otherwise.</returns>
+        inline bool contains(const IShaderModule& module) const noexcept {
+            auto modules = this->getModules();
+            return std::ranges::find_if(modules, [&module](auto m) { return m == &module; }) != modules.end();
+        };
+
+        /// <summary>
         /// Returns the modules, the shader program is build from.
         /// </summary>
         /// <returns>The modules, the shader program is build from.</returns>
-        Enumerable<const IShaderModule*> modules() const noexcept {
+        inline Enumerable<const IShaderModule*> modules() const noexcept {
             return this->getModules();
         }
 
@@ -3694,9 +5753,17 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The pipeline layout extracted from shader reflection.</returns>
         /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
-        SharedPtr<IPipelineLayout> reflectPipelineLayout() const {
+        inline SharedPtr<IPipelineLayout> reflectPipelineLayout() const {
             return this->parsePipelineLayout();
         };
+
+        /// <summary>
+        /// Builds a shader record collection based on the current shader program.
+        /// </summary>
+        /// <returns>The shader record collection instance.</returns>
+        inline [[nodiscard]] ShaderRecordCollection buildShaderRecordCollection() const noexcept {
+            return ShaderRecordCollection(this->getptr());
+        }
 
     private:
         virtual Enumerable<const IShaderModule*> getModules() const noexcept = 0;
@@ -3716,13 +5783,13 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="space">The space to request the descriptor set layout for.</param>
         /// <returns>The descriptor set layout for the descriptor set that is bound to the space provided by <paramref name="space" />.</returns>
-        virtual const IDescriptorSetLayout& descriptorSet(const UInt32& space) const = 0;
+        virtual const IDescriptorSetLayout& descriptorSet(UInt32 space) const = 0;
 
         /// <summary>
         /// Returns all descriptor set layouts, the pipeline has been initialized with.
         /// </summary>
         /// <returns>All descriptor set layouts, the pipeline has been initialized with.</returns>
-        Enumerable<const IDescriptorSetLayout*> descriptorSets() const noexcept {
+        inline Enumerable<const IDescriptorSetLayout*> descriptorSets() const noexcept {
             return this->getDescriptorSets();
         }
 
@@ -3737,36 +5804,6 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// The interface for a vertex buffer.
-    /// </summary>
-    class LITEFX_RENDERING_API IVertexBuffer : public virtual IBuffer {
-    public:
-        virtual ~IVertexBuffer() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Gets the layout of the vertex buffer.
-        /// </summary>
-        /// <returns>The layout of the vertex buffer.</returns>
-        virtual const IVertexBufferLayout& layout() const noexcept = 0;
-    };
-
-    /// <summary>
-    /// The interface for an index buffer.
-    /// </summary>
-    class LITEFX_RENDERING_API IIndexBuffer : public virtual IBuffer {
-    public:
-        virtual ~IIndexBuffer() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Gets the layout of the index buffer.
-        /// </summary>
-        /// <returns>The layout of the index buffer.</returns>
-        virtual const IIndexBufferLayout& layout() const noexcept = 0;
-    };
-
-    /// <summary>
     /// The interface for an input assembler state.
     /// </summary>
     class LITEFX_RENDERING_API IInputAssembler {
@@ -3778,28 +5815,29 @@ namespace LiteFX::Rendering {
         /// Returns all vertex buffer layouts of the input assembly.
         /// </summary>
         /// <returns>All vertex buffer layouts of the input assembly.</returns>
-        Enumerable<const IVertexBufferLayout*> vertexBufferLayouts() const noexcept {
+        inline Enumerable<const IVertexBufferLayout*> vertexBufferLayouts() const noexcept {
             return this->getVertexBufferLayouts();
         }
 
         /// <summary>
-        /// Returns the vertex buffer layout for binding provided with <paramref name="binding" />.
+        /// Returns a pointer the vertex buffer layout for binding provided with <paramref name="binding" />.
         /// </summary>
         /// <param name="binding">The binding point of the vertex buffer layout.</param>
         /// <returns>The vertex buffer layout for binding provided with <paramref name="binding" />.</returns>
-        virtual const IVertexBufferLayout& vertexBufferLayout(const UInt32& binding) const = 0;
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if no vertex buffer layout is bound to <paramref name="binding" />.</exception>
+        virtual const IVertexBufferLayout* vertexBufferLayout(UInt32 binding) const = 0;
 
         /// <summary>
-        /// Returns the index buffer layout.
+        /// Returns a pointer to the index buffer layout, or `nullptr` if the input assembler does not handle indices.
         /// </summary>
-        /// <returns>The index buffer layout.</returns>
-        virtual const IIndexBufferLayout& indexBufferLayout() const = 0;
+        /// <returns>The index buffer layout, or `nullptr` if the input assembler does not handle indices.</returns>
+        virtual const IIndexBufferLayout* indexBufferLayout() const noexcept = 0;
 
         /// <summary>
         /// Returns the primitive topology.
         /// </summary>
         /// <returns>The primitive topology.</returns>
-        virtual const PrimitiveTopology& topology() const noexcept = 0;
+        virtual PrimitiveTopology topology() const noexcept = 0;
 
     private:
         virtual Enumerable<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept = 0;
@@ -3808,6 +5846,9 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// The interface for a pipeline.
     /// </summary>
+    /// <seealso cref="IComputePipeline" />
+    /// <seealso cref="IRenderPipeline" />
+    /// <seealso cref="IRayTracingPipeline" />
     class LITEFX_RENDERING_API IPipeline : public virtual IStateResource {
     public:
         virtual ~IPipeline() noexcept = default;
@@ -3817,7 +5858,7 @@ namespace LiteFX::Rendering {
         /// Returns the shader program used by the pipeline.
         /// </summary>
         /// <returns>The shader program used by the pipeline.</returns>
-        SharedPtr<const IShaderProgram> program() const noexcept {
+        inline SharedPtr<const IShaderProgram> program() const noexcept {
             return this->getProgram();
         }
 
@@ -3825,7 +5866,7 @@ namespace LiteFX::Rendering {
         /// Returns the layout of the render pipeline.
         /// </summary>
         /// <returns>The layout of the render pipeline.</returns>
-        SharedPtr<const IPipelineLayout> layout() const noexcept {
+        inline SharedPtr<const IPipelineLayout> layout() const noexcept {
             return this->getLayout();
         }
 
@@ -3845,6 +5886,12 @@ namespace LiteFX::Rendering {
         virtual ~ICommandBuffer() noexcept = default;
 
     public:
+        /// <summary>
+        /// Gets a reference to the command queue that this command buffer was allocated from.
+        /// </summary>
+        /// <returns>A reference to the command queue that this command buffer was allocated from.</returns>
+        virtual const ICommandQueue& queue() const noexcept = 0;
+
         /// <summary>
         /// Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <see cref="CommandQueue" />.
         /// </summary>
@@ -3868,9 +5915,19 @@ namespace LiteFX::Rendering {
         /// Returns `true`, if the command buffer is a secondary command buffer, or `false` otherwise.
         /// </summary>
         /// <returns>`true`, if the command buffer is a secondary command buffer, or `false` otherwise.</returns>
-        virtual const bool& isSecondary() const noexcept = 0;
+        virtual bool isSecondary() const noexcept = 0;
 
     public:
+        /// <summary>
+        /// Creates a new barrier instance.
+        /// </summary>
+        /// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
+        /// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
+        /// <returns>The instance of the barrier.</returns>
+        inline [[nodiscard]] UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
+            return this->getBarrier(syncBefore, syncAfter);
+        }
+
         /// <summary>
         /// Executes the transitions that have been added to <paramref name="barrier" />.
         /// </summary>
@@ -3880,7 +5937,7 @@ namespace LiteFX::Rendering {
         /// order. You might have to manually synchronize barrier execution.
         /// </remarks>
         /// <param name="barrier">The barrier containing the transitions to perform.</param>
-        void barrier(const IBarrier& barrier) const noexcept {
+        inline void barrier(const IBarrier& barrier) const noexcept {
             this->cmdBarrier(barrier);
         }
 
@@ -3897,7 +5954,7 @@ namespace LiteFX::Rendering {
         /// Note that generating mip maps might require the texture to be writable. You can transfer the texture into a non-writable resource afterwards to improve performance.
         /// </remarks>
         /// <param name="commandBuffer">The command buffer used to issue the transition and transfer operations.</param>
-        void generateMipMaps(IImage& image) noexcept {
+        inline void generateMipMaps(IImage& image) noexcept {
             this->cmdGenerateMipMaps(image);
         }
 
@@ -3915,7 +5972,7 @@ namespace LiteFX::Rendering {
         /// <param name="elements">The number of elements to copy from the source buffer into the target buffer.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
         /// <seealso cref="IBarrier" />
-        void transfer(IBuffer& source, IBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const {
+        inline void transfer(const IBuffer& source, const IBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, targetElement, elements);
         }
         
@@ -3939,8 +5996,41 @@ namespace LiteFX::Rendering {
         /// <param name="targetElement">The index of the first element in the target buffer to copy to.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target buffer.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(SharedPtr<IBuffer> source, IBuffer& target, const UInt32& sourceElement = 0, const UInt32& targetElement = 0, const UInt32& elements = 1) const {
+        inline void transfer(SharedPtr<const IBuffer> source, const IBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, targetElement, elements);
+        }
+
+        /// <summary>
+        /// Performs a buffer-to-buffer transfer from a temporary buffer into <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// This method creates a temporary buffer and maps <paramref name="data" /> into it, before transferring it into <paramref name="target" />. A reference of the temporary buffer is stored 
+        /// until the parent command queue finished using the command buffer. At this point, the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this
+        /// is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been executed. 
+        /// </remarks>
+        /// <param name="data">The address that marks the beginning of the data to map.</param>
+        /// <param name="size">The number of bytes to map.</param>
+        /// <param name="target">The target buffer to transfer data to.</param>
+        /// <param name="targetElement">The array element to map the data to.</param>
+        /// <param name="elements">The number of elements to copy.</param>
+        inline void transfer(const void* const data, size_t size, const IBuffer& target, UInt32 targetElement = 0, UInt32 elements = 1) const {
+            this->cmdTransfer(data, size, target, targetElement, elements);
+        }
+
+        /// <summary>
+        /// Performs a buffer-to-buffer transfer from a temporary buffer into <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// This method creates a temporary buffer and maps <paramref name="data" /> into it, before transferring it into <paramref name="target" />. A reference of the temporary buffer is stored 
+        /// until the parent command queue finished using the command buffer. At this point, the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this
+        /// is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been executed. 
+        /// </remarks>
+        /// <param name="data">The addresses that mark the beginning of the element data to map.</param>
+        /// <param name="elementSize">The number of bytes to map for each element.</param>
+        /// <param name="target">The target buffer to transfer data to.</param>
+        /// <param name="targetElement">The first array element to transfer the data to.</param>
+        inline void transfer(Span<const void* const> data, size_t elementSize, const IBuffer& target, UInt32 targetElement = 0) const {
+            this->cmdTransfer(data, elementSize, target, targetElement);
         }
 
         /// <summary>
@@ -3978,7 +6068,7 @@ namespace LiteFX::Rendering {
         /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(IBuffer& source, IImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const {
+        inline void transfer(const IBuffer& source, const IImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, firstSubresource, elements);
         }
 
@@ -4024,8 +6114,42 @@ namespace LiteFX::Rendering {
         /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(SharedPtr<IBuffer> source, IImage& target, const UInt32& sourceElement = 0, const UInt32& firstSubresource = 0, const UInt32& elements = 1) const {
+        inline void transfer(SharedPtr<const IBuffer> source, const IImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, firstSubresource, elements);
+        }
+
+        /// <summary>
+        /// Performs a buffer-to-buffer transfer from a temporary buffer into <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// This method creates a temporary buffer and maps <paramref name="data" /> into it, before transferring it into <paramref name="target" />. A reference of the temporary buffer is stored 
+        /// until the parent command queue finished using the command buffer. At this point, the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this
+        /// is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been executed. 
+        /// </remarks>
+        /// <param name="data">The address that marks the beginning of the data to map.</param>
+        /// <param name="size">The number of bytes to map.</param>
+        /// <param name="target">The target buffer to transfer data to.</param>
+        /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
+        /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
+        inline void transfer(const void* const data, size_t size, const IImage& target, UInt32 subresource = 0) const {
+            this->cmdTransfer(data, size, target, subresource);
+        }
+
+        /// <summary>
+        /// Performs a buffer-to-buffer transfer from a temporary buffer into <paramref name="target" />.
+        /// </summary>
+        /// <remarks>
+        /// This method creates a temporary buffer and maps <paramref name="data" /> into it, before transferring it into <paramref name="target" />. A reference of the temporary buffer is stored 
+        /// until the parent command queue finished using the command buffer. At this point, the command queue calls <see cref="releaseSharedState" /> to release all shared references. Note that this
+        /// is a relaxed constraint. It is only guaranteed, that the queue calls this method at some point after the command buffer has been executed. 
+        /// </remarks>
+        /// <param name="data">The addresses that mark the beginning of the element data to map.</param>
+        /// <param name="elementSize">The number of bytes to map for each element.</param>
+        /// <param name="target">The target buffer to transfer data to.</param>
+        /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
+        /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
+        inline void transfer(Span<const void* const> data, size_t elementSize, const IImage& target, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
+            this->cmdTransfer(data, elementSize, target, firstSubresource, elements);
         }
 
         /// <summary>
@@ -4041,7 +6165,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetSubresource">The image of the first sub-resource in the target image to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy between the images.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(IImage& source, IImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const {
+        inline void transfer(const IImage& source, const IImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, sourceSubresource, targetSubresource, subresources);
         }
 
@@ -4065,7 +6189,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetSubresource">The image of the first sub-resource in the target image to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy between the images.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(SharedPtr<IImage> source, IImage& target, const UInt32& sourceSubresource = 0, const UInt32& targetSubresource = 0, const UInt32& subresources = 1) const {
+        inline void transfer(SharedPtr<const IImage> source, const IImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, sourceSubresource, targetSubresource, subresources);
         }
 
@@ -4104,7 +6228,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetElement">The index of the first target element to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(IImage& source, IBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const {
+        inline void transfer(const IImage& source, const IBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, firstSubresource, targetElement, subresources);
         }
 
@@ -4150,27 +6274,127 @@ namespace LiteFX::Rendering {
         /// <param name="targetElement">The index of the first target element to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        void transfer(SharedPtr<IImage> source, IBuffer& target, const UInt32& firstSubresource = 0, const UInt32& targetElement = 0, const UInt32& subresources = 1) const {
+        inline void transfer(SharedPtr<const IImage> source, const IBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, firstSubresource, targetElement, subresources);
         }
 
         /// <summary>
         /// Sets the active pipeline state.
         /// </summary>
-        void use(const IPipeline& pipeline) const noexcept {
+        inline void use(const IPipeline& pipeline) const noexcept {
             this->cmdUse(pipeline);
         }
 
-        // TODO: Allow bind to last used pipeline (throw, if no pipeline is in use).
-        //void bind(const IDescriptorSet& descriptorSet) const;
+        /// <summary>
+        /// Binds the provided descriptor to the last pipeline that was used by the command buffer.
+        /// </summary>
+        /// <param name="descriptorSet">The descriptor set to bind.</param>
+        /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
+        /// <seealso cref="use" />
+        inline void bind(const IDescriptorSet& descriptorSet) const {
+            this->cmdBind(descriptorSet);
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <typeparam name="T">The type of the descriptor sets.</typeparam>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
+        template <typename TSelf, typename T>
+        inline void bind(this const TSelf& self, std::initializer_list<const T*> descriptorSets) requires
+            std::derived_from<T, IDescriptorSet>
+        {
+            // NOTE: In the future we might be able to remove this method, if P2447R4 is added to the language.
+            Array<const T*> sets = descriptorSets;
+            self.bind(Span<const T*>(sets));
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
+        template <typename TSelf>
+        inline void bind(this const TSelf& self, std::ranges::input_range auto&& descriptorSets) requires 
+            std::derived_from<std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>, IDescriptorSet>
+        {
+            using descriptor_set_type = std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>;
+            auto sets = descriptorSets | std::ranges::to<Array<const descriptor_set_type*>>();
+            self.bind(Span<const descriptor_set_type*>(sets));
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        inline void bind(Span<const IDescriptorSet*> descriptorSets) const noexcept {
+            this->cmdBind(descriptorSets);
+        }
 
         /// <summary>
         /// Binds the provided descriptor set to the provided pipeline.
         /// </summary>
         /// <param name="descriptorSet">The descriptor set to bind.</param>
         /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
-        void bind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept {
+        inline void bind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept {
             this->cmdBind(descriptorSet, pipeline);
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the last pipeline that was used by the command buffer.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <typeparam name="T">The type of the descriptor sets.</typeparam>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
+        /// <exception cref="RuntimeException">Thrown, if no pipeline has been used before attempting to bind the descriptor set.</exception>
+        template <typename TSelf, typename T>
+        inline void bind(this const TSelf& self, std::initializer_list<const T*> descriptorSets, const typename TSelf::pipeline_type& pipeline) noexcept
+        {
+            // NOTE: In the future we might be able to remove this method, if P2447R4 is added to the language.
+            Array<const T*> sets = descriptorSets;
+            self.bind(Span<const T*>(sets), pipeline);
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the provided pipeline.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
+        template <typename TSelf>
+        inline void bind(this const TSelf& self, std::ranges::input_range auto&& descriptorSets, const typename TSelf::pipeline_type& pipeline) noexcept requires 
+            std::derived_from<std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>, IDescriptorSet>
+        {
+            using descriptor_set_type = std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>;
+            auto sets = descriptorSets | std::ranges::to<Array<const descriptor_set_type*>>();
+            self.bind(Span<const descriptor_set_type*>(sets), pipeline);
+        }
+
+        /// <summary>
+        /// Binds an arbitrary input range of descriptor sets to the provided pipeline.
+        /// </summary>
+        /// <remarks>
+        /// Note that if an element of <paramref name="descriptorSets" /> is `nullptr`, it will be ignored.
+        /// </remarks>
+        /// <param name="descriptorSets">The pointers to the descriptor sets to bind.</param>
+        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
+        inline void bind(Span<const IDescriptorSet*> descriptorSets, const IPipeline& pipeline) const noexcept {
+            this->cmdBind(descriptorSets, pipeline);
         }
 
         /// <summary>
@@ -4183,7 +6407,7 @@ namespace LiteFX::Rendering {
         /// <seealso cref="VertexBuffer" />
         /// <seealso cref="draw" />
         /// <seealso cref="drawIndexed" />
-        void bind(const IVertexBuffer& buffer) const noexcept {
+        inline void bind(const IVertexBuffer& buffer) const noexcept {
             this->cmdBind(buffer);
         }
 
@@ -4196,15 +6420,117 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">The index buffer to bind to the pipeline.</param>
         /// <seealso cref="IndexBuffer" />
         /// <seealso cref="drawIndexed" />
-        void bind(const IIndexBuffer& buffer) const noexcept {
+        inline void bind(const IIndexBuffer& buffer) const noexcept {
             this->cmdBind(buffer);
         }
 
         /// <summary>
         /// Executes a compute shader.
         /// </summary>
-        /// <param name="threadCount">The number of thread groups per axis.</param>
-        virtual void dispatch(const Vector3u& threadCount) const noexcept = 0;
+        /// <param name="threadCount">The number of thread groups per dimension.</param>
+        /// <seealso cref="dispatchIndirect" />
+        virtual void dispatch(const Vector3u& threadGroupCount) const noexcept = 0;
+
+        /// <summary>
+        /// Executes a compute shader.
+        /// </summary>
+        /// <param name="x">The number of thread groups along the x dimension.</param>
+        /// <param name="y">The number of thread groups along the y dimension.</param>
+        /// <param name="z">The number of thread groups along the z dimension.</param>
+        inline void dispatch(UInt32 x, UInt32 y, UInt32 z) const noexcept {
+            this->dispatch({ x, y, z });
+        }
+
+        /// <summary>
+        /// Executes a set of indirect dispatches.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="batchCount">The number of batches in the buffer to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <seealso cref="dispatch" />
+        inline void dispatchIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept {
+            this->cmdDispatchIndirect(batchBuffer, batchCount, offset);
+        }
+        
+        /// <summary>
+        /// Executes a mesh shader pipeline.
+        /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::MeshShaders" /> feature is enabled.
+        /// </remarks>
+        /// <param name="threadCount">The number of thread groups per dimension.</param>
+        virtual void dispatchMesh(const Vector3u& threadGroupCount) const noexcept = 0;
+
+        /// <summary>
+        /// Executes a mesh shader pipeline.
+        /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::MeshShaders" /> feature is enabled.
+        /// </remarks>
+        /// <param name="x">The number of thread groups along the x dimension.</param>
+        /// <param name="y">The number of thread groups along the y dimension.</param>
+        /// <param name="z">The number of thread groups along the z dimension.</param>
+        inline void dispatchMesh(UInt32 x, UInt32 y, UInt32 z) const noexcept {
+            this->dispatchMesh({ x, y, z });
+        }
+
+        /// <summary>
+        /// Executes a set of indirect mesh shader dispatches.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="batchCount">The number of batches in the buffer to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <seealso cref="dispatchMesh" />
+        inline void dispatchMeshIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept {
+            this->cmdDispatchMeshIndirect(batchBuffer, batchCount, offset);
+        }
+
+        /// <summary>
+        /// Executes a set of indirect mesh shader dispatches.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="countBuffer">The buffer that contains the number of batches to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <param name="countOffset">The offset (in bytes) to the number of batches in the <paramref name="countBuffer" />.</param>
+        /// <param name="maxBatches">The maximum number of batches executed, even if there are more batches in <paramref name="countBuffer"/>.</param>
+        /// <seealso cref="dispatch" />
+        inline void dispatchMeshIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept {
+            this->cmdDispatchMeshIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
+        }
+
+        /// <summary>
+        /// Executes a query on a ray-tracing pipeline.
+        /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="width">The width of the ray-tracing query.</param>
+        /// <param name="height">The height of the ray-tracing query.</param>
+        /// <param name="depth">The depth of the ray-tracing query.</param>
+        /// <param name="offsets">The offsets, sizes and strides for each shader binding table.</param>
+        /// <param name="rayGenerationShaderBindingTable">The shader binding table that contains the ray generation shader.</param>
+        /// <param name="missShaderBindingTable">The shader binding table that contains the miss shaders.</param>
+        /// <param name="hitShaderBindingTable">The shader binding table that contains the hit shaders.</param>
+        /// <param name="callableShaderBindingTable">The shader binding table that contains the callable shaders.</param>
+        inline void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable = nullptr, const IBuffer* hitShaderBindingTable = nullptr, const IBuffer* callableShaderBindingTable = nullptr) const noexcept {
+            this->cmdTraceRays(width, height, depth, offsets, rayGenerationShaderBindingTable, missShaderBindingTable, hitShaderBindingTable, callableShaderBindingTable);
+        }
+
+        /// <summary>
+        /// Executes a query on a ray-tracing pipeline.
+        /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="dimensions">The dimensions of the ray-tracing query.</param>
+        /// <param name="offsets">The offsets, sizes and strides for each shader binding table.</param>
+        /// <param name="rayGenerationShaderBindingTable">The shader binding table that contains the ray generation shader.</param>
+        /// <param name="missShaderBindingTable">The shader binding table that contains the miss shaders.</param>
+        /// <param name="hitShaderBindingTable">The shader binding table that contains the hit shaders.</param>
+        /// <param name="callableShaderBindingTable">The shader binding table that contains the callable shaders.</param>
+        inline void traceRays(const Vector3u& dimensions, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable = nullptr, const IBuffer* hitShaderBindingTable = nullptr, const IBuffer* callableShaderBindingTable = nullptr) const noexcept {
+            this->traceRays(dimensions.x(), dimensions.y(), dimensions.z(), offsets, rayGenerationShaderBindingTable, missShaderBindingTable, hitShaderBindingTable, callableShaderBindingTable);
+        }
 
         /// <summary>
         /// Draws a number of vertices from the currently bound vertex buffer.
@@ -4213,26 +6539,8 @@ namespace LiteFX::Rendering {
         /// <param name="instances">The number of instances to draw.</param>
         /// <param name="firstVertex">The index of the first vertex to start drawing from.</param>
         /// <param name="firstInstance">The index of the first instance to draw.</param>
-        virtual void draw(const UInt32& vertices, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const noexcept = 0;
-
-        /// <summary>
-        /// Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.
-        /// </summary>
-        /// <param name="indices">The number of indices to draw.</param>
-        /// <param name="instances">The number of instances to draw.</param>
-        /// <param name="firstIndex">The index of the first element of the index buffer to start drawing from.</param>
-        /// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
-        /// <param name="firstInstance">The index of the first instance to draw.</param>
-        virtual void drawIndexed(const UInt32& indices, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const noexcept = 0;
-
-        /// <summary>
-        /// Pushes a block of memory into the push constants backing memory.
-        /// </summary>
-        /// <param name="layout">The layout of the push constants to update.</param>
-        /// <param name="memory">A pointer to the source memory.</param>
-        void pushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept {
-            this->cmdPushConstants(layout, memory);
-        }
+        /// <seealso cref="drawIndirect" />
+        virtual void draw(UInt32 vertices, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const noexcept = 0;
 
         /// <summary>
         /// Draws all vertices from the vertex buffer provided in <paramref name="vertexBuffer" />.
@@ -4244,9 +6552,44 @@ namespace LiteFX::Rendering {
         /// <param name="instances">The number of instances to draw.</param>
         /// <param name="firstVertex">The index of the first vertex to start drawing from.</param>
         /// <param name="firstInstance">The index of the first instance to draw.</param>
-        void draw(const IVertexBuffer& vertexBuffer, const UInt32& instances = 1, const UInt32& firstVertex = 0, const UInt32& firstInstance = 0) const {
+        inline void draw(const IVertexBuffer& vertexBuffer, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const {
             this->cmdDraw(vertexBuffer, instances, firstVertex, firstInstance);
         }
+
+        /// <summary>
+        /// Executes a set of indirect non-indexed draw calls.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="batchCount">The number of batches in the buffer to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <seealso cref="draw" />
+        inline void drawIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept {
+            this->cmdDrawIndirect(batchBuffer, batchCount, offset);
+        }
+
+        /// <summary>
+        /// Executes a set of indirect non-indexed draw calls.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="countBuffer">The buffer that contains the number of batches to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <param name="countOffset">The offset (in bytes) to the number of batches in the <paramref name="countBuffer" />.</param>
+        /// <param name="maxBatches">The maximum number of batches executed, even if there are more batches in <paramref name="countBuffer"/>.</param>
+        /// <seealso cref="draw" />
+        inline void drawIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept {
+            this->cmdDrawIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
+        }
+
+        /// <summary>
+        /// Draws the currently bound vertex buffer with a set of indices from the currently bound index buffer.
+        /// </summary>
+        /// <param name="indices">The number of indices to draw.</param>
+        /// <param name="instances">The number of instances to draw.</param>
+        /// <param name="firstIndex">The index of the first element of the index buffer to start drawing from.</param>
+        /// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
+        /// <param name="firstInstance">The index of the first instance to draw.</param>
+        /// <seealso cref="drawIndexedIndirect" />
+        virtual void drawIndexed(UInt32 indices, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const noexcept = 0;
 
         /// <summary>
         /// Draws the currently bound vertex buffer using the index buffer provided in <paramref name="indexBuffer" />.
@@ -4259,7 +6602,7 @@ namespace LiteFX::Rendering {
         /// <param name="firstIndex">The index of the first element of the index buffer to start drawing from.</param>
         /// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
         /// <param name="firstInstance">The index of the first instance to draw.</param>
-        void drawIndexed(const IIndexBuffer& indexBuffer, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const {
+        inline void drawIndexed(const IIndexBuffer& indexBuffer, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const {
             this->cmdDrawIndexed(indexBuffer, instances, firstIndex, vertexOffset, firstInstance);
         }
 
@@ -4275,8 +6618,41 @@ namespace LiteFX::Rendering {
         /// <param name="firstIndex">The index of the first element of the index buffer to start drawing from.</param>
         /// <param name="vertexOffset">The offset added to each index to find the corresponding vertex.</param>
         /// <param name="firstInstance">The index of the first instance to draw.</param>
-        void drawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, const UInt32& instances = 1, const UInt32& firstIndex = 0, const Int32& vertexOffset = 0, const UInt32& firstInstance = 0) const {
+        inline void drawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const {
             this->cmdDrawIndexed(vertexBuffer, indexBuffer, instances, firstIndex, vertexOffset, firstInstance);
+        }
+
+        /// <summary>
+        /// Executes a set of indirect indexed draw calls.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="batchCount">The number of batches in the buffer to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <seealso cref="drawIndexed" />
+        inline void drawIndexedIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept {
+            this->cmdDrawIndexedIndirect(batchBuffer, batchCount, offset);
+        }
+
+        /// <summary>
+        /// Executes a set of indirect indexed draw calls.
+        /// </summary>
+        /// <param name="batchBuffer">The buffer that contains the batches.</param>
+        /// <param name="countBuffer">The buffer that contains the number of batches to execute.</param>
+        /// <param name="offset">The offset (in bytes) to the first batch in the <paramref name="batchBuffer" />.</param>
+        /// <param name="countOffset">The offset (in bytes) to the number of batches in the <paramref name="countBuffer" />.</param>
+        /// <param name="maxBatches">The maximum number of batches executed, even if there are more batches in <paramref name="countBuffer"/>.</param>
+        /// <seealso cref="drawIndexed" />
+        inline void drawIndexedIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept {
+            this->cmdDrawIndexedIndirect(batchBuffer, countBuffer, offset, countOffset, maxBatches);
+        }
+
+        /// <summary>
+        /// Pushes a block of memory into the push constants backing memory.
+        /// </summary>
+        /// <param name="layout">The layout of the push constants to update.</param>
+        /// <param name="memory">A pointer to the source memory.</param>
+        inline void pushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept {
+            this->cmdPushConstants(layout, memory);
         }
 
         /// <summary>
@@ -4317,7 +6693,13 @@ namespace LiteFX::Rendering {
         /// Sets the stencil reference for the subsequent draw calls.
         /// </summary>
         /// <param name="stencilRef">The stencil reference for the subsequent draw calls.</param>
-        virtual void setStencilRef(const UInt32& stencilRef) const noexcept = 0;
+        virtual void setStencilRef(UInt32 stencilRef) const noexcept = 0;
+
+        /// <summary>
+        /// Submits the command buffer to parent command
+        /// </summary>
+        /// <exception cref="RuntimeException">Thrown, if the command buffer is a secondary command buffer.</exception>
+        virtual UInt64 submit() const = 0;
 
         /// <summary>
         /// Writes the current GPU time stamp value for the timing event.
@@ -4329,7 +6711,7 @@ namespace LiteFX::Rendering {
         /// Executes a secondary command buffer/bundle.
         /// </summary>
         /// <param name="commandBuffer">The secondary command buffer/bundle to execute.</param>
-        void execute(SharedPtr<const ICommandBuffer> commandBuffer) const {
+        inline void execute(SharedPtr<const ICommandBuffer> commandBuffer) const {
             this->cmdExecute(commandBuffer);
         }
 
@@ -4337,36 +6719,157 @@ namespace LiteFX::Rendering {
         /// Executes a series of secondary command buffers/bundles.
         /// </summary>
         /// <param name="commandBuffers">The command buffers to execute.</param>
-        void execute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const {
+        inline void execute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const {
             this->cmdExecute(commandBuffers);
         }
 
-    private:
-        virtual void cmdBarrier(const IBarrier& barrier) const noexcept = 0;
-        virtual void cmdGenerateMipMaps(IImage& image) noexcept = 0;
-        virtual void cmdTransfer(IBuffer& source, IBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const = 0;
-        virtual void cmdTransfer(IBuffer& source, IImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const = 0;
-        virtual void cmdTransfer(IImage& source, IImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const = 0;
-        virtual void cmdTransfer(IImage& source, IBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const = 0;
-        virtual void cmdTransfer(SharedPtr<IBuffer> source, IBuffer& target, const UInt32& sourceElement, const UInt32& targetElement, const UInt32& elements) const = 0;
-        virtual void cmdTransfer(SharedPtr<IBuffer> source, IImage& target, const UInt32& sourceElement, const UInt32& firstSubresource, const UInt32& elements) const = 0;
-        virtual void cmdTransfer(SharedPtr<IImage> source, IImage& target, const UInt32& sourceSubresource, const UInt32& targetSubresource, const UInt32& subresources) const = 0;
-        virtual void cmdTransfer(SharedPtr<IImage> source, IBuffer& target, const UInt32& firstSubresource, const UInt32& targetElement, const UInt32& subresources) const = 0;
-        virtual void cmdUse(const IPipeline& pipeline) const noexcept = 0;
-        virtual void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept = 0;
-        virtual void cmdBind(const IVertexBuffer& buffer) const noexcept = 0;
-        virtual void cmdBind(const IIndexBuffer& buffer) const noexcept = 0;
-        virtual void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept = 0;
-        virtual void cmdDraw(const IVertexBuffer& vertexBuffer, const UInt32& instances, const UInt32& firstVertex, const UInt32& firstInstance) const = 0;
-        virtual void cmdDrawIndexed(const IIndexBuffer& indexBuffer, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const = 0;
-        virtual void cmdDrawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, const UInt32& instances, const UInt32& firstIndex, const Int32& vertexOffset, const UInt32& firstInstance) const = 0;
-        virtual void cmdExecute(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
-        virtual void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffer) const = 0;
+        /// <summary>
+        /// Builds a bottom-level acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="blas">The bottom-level acceleration structure to build.</param>
+        /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration structure.</param>
+        /// <param name="buffer">The buffer that contains the acceleration structure after the build.</param>
+        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
+        /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
+        /// <seealso cref="IAccelerationStructure::build" />
+        inline void buildAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
+            this->cmdBuildAccelerationStructure(blas, scratchBuffer, buffer, offset);
+        }
 
+        /// <summary>
+        /// Builds a top-level acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="tlas">The top-level acceleration structure to build.</param>
+        /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration structure.</param>
+        /// <param name="buffer">The buffer that contains the acceleration structure after the build.</param>
+        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
+        /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
+        /// <seealso cref="IAccelerationStructure::build" />
+        inline void buildAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
+            this->cmdBuildAccelerationStructure(tlas, scratchBuffer, buffer, offset);
+        }
+
+        /// <summary>
+        /// Updates a bottom-level acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="blas">The bottom-level acceleration structure to build.</param>
+        /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration structure.</param>
+        /// <param name="buffer">The buffer that contains the acceleration structure after the build.</param>
+        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
+        /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
+        /// <seealso cref="IAccelerationStructure::build" />
+        inline void updateAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
+            this->cmdUpdateAccelerationStructure(blas, scratchBuffer, buffer, offset);
+        }
+
+        /// <summary>
+        /// Updates a top-level acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="tlas">The top-level acceleration structure to build.</param>
+        /// <param name="scratchBuffer">The scratch buffer to use for building the acceleration structure.</param>
+        /// <param name="buffer">The buffer that contains the acceleration structure after the build.</param>
+        /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
+        /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
+        /// <seealso cref="IAccelerationStructure::build" />
+        inline void updateAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
+            this->cmdUpdateAccelerationStructure(tlas, scratchBuffer, buffer, offset);
+        }
+
+        /// <summary>
+        /// Copies the acceleration structure <paramref name="from" /> into the acceleration structure <paramref name="to" />.
+        /// </summary>
+        /// <remarks>
+        /// Prefer calling <see cref="IBottomLevelAccelerationStructure::copy" /> over directly issuing copy commands on a command buffer, as this will make sure that the destination buffer will 
+        /// be properly allocated and contains enough memory to store the copy. Only issue copies on the command buffer directly, if you want to retain the destination buffer and know for certain,
+        /// that it contains a sufficient amount of memory.
+        /// 
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="from">The source acceleration structure to copy from.</param>
+        /// <param name="to">The destination acceleration structure to copy to.</param>
+        /// <param name="compress">If set to `true`, the acceleration structure will be compressed.</param>
+        inline void copyAccelerationStructure(const IBottomLevelAccelerationStructure& from, const IBottomLevelAccelerationStructure& to, bool compress = false) const noexcept {
+            this->cmdCopyAccelerationStructure(from, to, compress);
+        }
+
+        /// <summary>
+        /// Copies the acceleration structure <paramref name="from" /> into the acceleration structure <paramref name="to" />.
+        /// </summary>
+        /// <remarks>
+        /// Prefer calling <see cref="ITopLevelAccelerationStructure::copy" /> over directly issuing copy commands on a command buffer, as this will make sure that the destination buffer will be 
+        /// properly allocated and contains enough memory to store the copy. Only issue copies on the command buffer directly, if you want to retain the destination buffer and know for certain,
+        /// that it contains a sufficient amount of memory.
+        /// 
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="from">The source acceleration structure to copy from.</param>
+        /// <param name="to">The destination acceleration structure to copy to.</param>
+        /// <param name="compress">If set to `true`, the acceleration structure will be compressed.</param>
+        inline void copyAccelerationStructure(const ITopLevelAccelerationStructure& from, const ITopLevelAccelerationStructure& to, bool compress = false) const noexcept {
+            this->cmdCopyAccelerationStructure(from, to, compress);
+        }
+
+    protected:
         /// <summary>
         /// Called by the parent command queue to signal that the command buffer should release it's shared state.
         /// </summary>
         virtual void releaseSharedState() const = 0;
+
+    private:
+        virtual UniquePtr<IBarrier> getBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
+        virtual void cmdBarrier(const IBarrier& barrier) const noexcept = 0;
+        virtual void cmdGenerateMipMaps(IImage& image) noexcept = 0;
+        virtual void cmdTransfer(const IBuffer& source, const IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const = 0;
+        virtual void cmdTransfer(const IBuffer& source, const IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const = 0;
+        virtual void cmdTransfer(const IImage& source, const IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const = 0;
+        virtual void cmdTransfer(const IImage& source, const IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const = 0;
+        virtual void cmdTransfer(SharedPtr<const IBuffer> source, const IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const = 0;
+        virtual void cmdTransfer(SharedPtr<const IBuffer> source, const IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const = 0;
+        virtual void cmdTransfer(SharedPtr<const IImage> source, const IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const = 0;
+        virtual void cmdTransfer(SharedPtr<const IImage> source, const IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const = 0;
+        virtual void cmdTransfer(const void* const data, size_t size, const IBuffer& target, UInt32 targetElement, UInt32 elements) const = 0;
+        virtual void cmdTransfer(Span<const void* const> data, size_t elementSize, const IBuffer& target, UInt32 targetElement) const = 0;
+        virtual void cmdTransfer(const void* const data, size_t size, const IImage& target, UInt32 subresource) const = 0;
+        virtual void cmdTransfer(Span<const void* const> data, size_t elementSize, const IImage& target, UInt32 firstSubresource, UInt32 elements) const = 0;
+        virtual void cmdUse(const IPipeline& pipeline) const noexcept = 0;
+        virtual void cmdBind(const IDescriptorSet& descriptorSet) const = 0;
+        virtual void cmdBind(Span<const IDescriptorSet*> descriptorSets) const = 0;
+        virtual void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept = 0;
+        virtual void cmdBind(Span<const IDescriptorSet*> descriptorSets, const IPipeline& pipeline) const noexcept = 0;
+        virtual void cmdBind(const IVertexBuffer& buffer) const noexcept = 0;
+        virtual void cmdBind(const IIndexBuffer& buffer) const noexcept = 0;
+        virtual void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept = 0;
+        virtual void cmdDispatchIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
+        virtual void cmdDispatchMeshIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
+        virtual void cmdDispatchMeshIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept = 0;
+        virtual void cmdDraw(const IVertexBuffer& vertexBuffer, UInt32 instances, UInt32 firstVertex, UInt32 firstInstance) const = 0;
+        virtual void cmdDrawIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
+        virtual void cmdDrawIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept = 0;
+        virtual void cmdDrawIndexed(const IIndexBuffer& indexBuffer, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const = 0;
+        virtual void cmdDrawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const = 0;
+        virtual void cmdDrawIndexedIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
+        virtual void cmdDrawIndexedIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept = 0;
+        virtual void cmdExecute(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
+        virtual void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffer) const = 0;
+        virtual void cmdBuildAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
+        virtual void cmdBuildAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
+        virtual void cmdUpdateAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
+        virtual void cmdUpdateAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
+        virtual void cmdCopyAccelerationStructure(const IBottomLevelAccelerationStructure& from, const IBottomLevelAccelerationStructure& to, bool compress) const noexcept = 0;
+        virtual void cmdCopyAccelerationStructure(const ITopLevelAccelerationStructure& from, const ITopLevelAccelerationStructure& to, bool compress) const noexcept = 0;
+        virtual void cmdTraceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable, const IBuffer* hitShaderBindingTable, const IBuffer* callableShaderBindingTable) const noexcept = 0;
     };
 
     /// <summary>
@@ -4381,7 +6884,7 @@ namespace LiteFX::Rendering {
         /// Returns the input assembler state used by the render pipeline.
         /// </summary>
         /// <returns>The input assembler state used by the render pipeline.</returns>
-        SharedPtr<IInputAssembler> inputAssembler() const noexcept {
+        inline SharedPtr<IInputAssembler> inputAssembler() const noexcept {
             return this->getInputAssembler();
         }
 
@@ -4389,7 +6892,7 @@ namespace LiteFX::Rendering {
         /// Returns the rasterizer state used by the render pipeline.
         /// </summary>
         /// <returns>The rasterizer state used by the render pipeline.</returns>
-        SharedPtr<IRasterizer> rasterizer() const noexcept {
+        inline SharedPtr<IRasterizer> rasterizer() const noexcept {
             return this->getRasterizer();
         }
 
@@ -4406,7 +6909,26 @@ namespace LiteFX::Rendering {
         /// <seealso href="https://en.wikipedia.org/wiki/Alpha_to_coverage" />
         /// <seealso href="https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#fragops-covg" />
         /// <seealso href="https://docs.microsoft.com/en-us/windows/win32/direct3d11/d3d10-graphics-programming-guide-blend-state#alpha-to-coverage" />
-        virtual const bool& alphaToCoverage() const noexcept = 0;
+        virtual bool alphaToCoverage() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the multi-sampling level of the pipeline.
+        /// </summary>
+        /// <remarks>
+        /// When using the pipeline, the multi-sampling level must match the level of the render target images.
+        /// </remarks>
+        /// <returns>The multi-sampling level of the pipeline.</returns>
+        /// <seealso cref="updateSamples" />
+        virtual MultiSamplingLevel samples() const noexcept = 0;
+
+        /// <summary>
+        /// Changes the multi-sampling level of the pipeline.
+        /// </summary>
+        /// <remarks>
+        /// Changing the multi-sampling level of a pipeline causes it to be re-created, which is considered an expensive operation. Don't use this method to change 
+        /// samples frequently, for example when binding frame buffers with different sample levels. Instead, use multiple pipelines for this purpose.
+        /// </remarks>
+        virtual void updateSamples(MultiSamplingLevel samples) = 0;
 
     private:
         virtual SharedPtr<IInputAssembler> getInputAssembler() const noexcept = 0;
@@ -4422,23 +6944,161 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// The interface for a frame buffer.
+    /// The interface for a ray tracing pipeline.
     /// </summary>
-    class LITEFX_RENDERING_API IFrameBuffer {
+    class LITEFX_RENDERING_API IRayTracingPipeline : public virtual IPipeline {
     public:
-        virtual ~IFrameBuffer() noexcept = default;
+        virtual ~IRayTracingPipeline() noexcept = default;
 
     public:
         /// <summary>
-        /// Returns the index of the buffer within the <see cref="RenderPass" />.
+        /// Returns the shader record collection of the ray tracing pipeline.
+        /// </summary>
+        /// <returns>The shader record collection of the ray tracing pipeline.</returns>
+        virtual const ShaderRecordCollection& shaderRecords() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the maximum number of ray bounces.
+        /// </summary>
+        /// <returns>The shader record collection of the ray tracing pipeline.</returns>
+        virtual UInt32 maxRecursionDepth() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the maximum size of a single ray payload.
         /// </summary>
         /// <remarks>
-        /// A render pass stores multiple frame buffers, each with their own index. Calling <see cref="RenderPass::frameBuffer" /> with this index on the frame buffers render
-        /// pass returns the current frame buffer instance (i.e. the same instance, as the one, the index has been requested from).
+        /// A ray payload is the data that is passed down the `TraceRay` function call chain. It can be zero, if 
+        /// [Ray Payload Qualifiers](https://microsoft.github.io/DirectX-Specs/d3d/Raytracing.html#payload-access-qualifiers) are used. Otherwise it must be set to the largest ray
+        /// payload size used in the ray-tracing pipeline. 
+        /// 
+        /// This property can currently not be queried from reflection.
         /// </remarks>
-        /// <returns>the index of the buffer within the <see cref="RenderPass" />.</returns>
-        virtual const UInt32& bufferIndex() const noexcept = 0;
+        /// <returns>The maximum size of a single ray payload.</returns>
+        virtual UInt32 maxPayloadSize() const noexcept = 0;
 
+        /// <summary>
+        /// Returns the maximum size of a single ray attribute.
+        /// </summary>
+        /// A ray attribute is the data that is passed to a hit shader for a specific event. Different to ray payloads, it only contains the data that describe the event (such as 
+        /// the hit coordinates, etc.).
+        /// 
+        /// This property can currently not be queried from reflection.
+        /// </remarks>
+        /// <returns></returns>
+        virtual UInt32 maxAttributeSize() const noexcept = 0;
+
+        /// <summary>
+        /// Allocates a buffer that contains the shader binding table containing the shader groups specified by the <paramref name="groups" /> parameter.
+        /// </summary>
+        /// <remarks>
+        /// The shader binding table consists out of individual shader records, where each record refers to a shader record plus its local data, as specified in the shader record 
+        /// collection that was passed to the ray-tracing pipeline during creation. The size of a record within the shader binding table is determined by the largest local data
+        /// size of all records of the groups to be included. It makes sense to pack multiple records into the same buffer for efficiency, however it may generally be a good
+        /// idea to separate groups that require large amount of local shader data into their own buffers to keep the other buffers smaller.
+        /// 
+        /// The shader binding table is created on the default resource heap (<see cref="ResourceHeap::Dynamic" />). However, for best performance, consider transferring it to a
+        /// buffer on the GPU resource heap (<see cref="ResourceHeap::Resource" />) afterwards.
+        /// </remarks>
+        /// <param name="offsets">A reference to a structure that receives the offsets and sizes to the groups within the shader binding table.</param>
+        /// <param name="groups">The groups to include into the shader binding table.</param>
+        /// <returns>The buffer that stores the shader binding table.</returns>
+        inline UniquePtr<IBuffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups = ShaderBindingGroup::All) const noexcept {
+            return this->getShaderBindingTable(offsets, groups);
+        }
+
+    private:
+        virtual UniquePtr<IBuffer> getShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const noexcept = 0;
+    };
+
+    /// <summary>
+    /// The interface for a frame buffer.
+    /// </summary>
+    /// <remarks>
+    /// A frame buffer is a set of images of equal size, that are used by render targets and/or input attachments in a <see cref="IRenderPass" />. When creating a new frame buffer,
+    /// it is empty by default and needs images to be added into it. When beginning a render pass during rendering, a frame buffer instance needs to be passed to it. The render 
+    /// pass then tries to obtain an image for each render target from the frame buffer. It does this by resolving it's render targets (<see cref="IRenderPass::renderTargets" />).
+    /// A render target stores a unique identifier (<see cref="IRenderTarget::identifier" />), that is used to obtain the image. Before this resolution process can be successful, 
+    /// the render targets must first be mapped to the images in the frame buffer by calling <see cref="IFrameBuffer::mapRenderTarget" />. Calling this method multiple times will
+    /// overwrite the mapping. It is also possible to remove a render target mapping by calling <see cref="IFrameBuffer::unmapRenderTarget" />. This will result in future attempts
+    /// to resolve this render target using the frame buffer instance to fail.
+    /// </remarks>
+    class LITEFX_RENDERING_API IFrameBuffer : public virtual IStateResource {
+    public:
+        /// <summary>
+        /// Event arguments that are published to subscribers when a frame buffer gets resized.
+        /// </summary>
+        /// <seealso cref="IFrameBuffer::resize" />
+        /// <seealso cref="IFrameBuffer::resized" />
+        struct ResizeEventArgs : public EventArgs {
+        private:
+            const Size2d& m_newSize;
+
+        public:
+            ResizeEventArgs(const Size2d& newSize) : 
+                EventArgs(), m_newSize(newSize) { }
+            ResizeEventArgs(const ResizeEventArgs&) = default;
+            ResizeEventArgs(ResizeEventArgs&&) = default;
+            virtual ~ResizeEventArgs() noexcept = default;
+
+        public:
+            ResizeEventArgs& operator=(const ResizeEventArgs&) = default;
+            ResizeEventArgs& operator=(ResizeEventArgs&&) = default;
+
+        public:
+            /// <summary>
+            /// Returns the new size of the frame buffer.
+            /// </summary>
+            /// <returns>The new size of the frame buffer.</returns>
+            inline const Size2d& newSize() const noexcept {
+                return m_newSize;
+            }
+        };
+
+        /// <summary>
+        /// Event arguments that are published to subscribers when a frame buffer gets released.
+        /// </summary>
+        /// <seealso cref="IFrameBuffer::~IFrameBuffer" />
+        /// <seealso cref="IFrameBuffer::released" />
+        struct ReleasedEventArgs : public EventArgs {
+        public:
+            ReleasedEventArgs() : 
+                EventArgs() { }
+            ReleasedEventArgs(const ReleasedEventArgs&) = default;
+            ReleasedEventArgs(ReleasedEventArgs&&) = default;
+            virtual ~ReleasedEventArgs() noexcept = default;
+
+        public:
+            ReleasedEventArgs& operator=(const ReleasedEventArgs&) = default;
+            ReleasedEventArgs& operator=(ReleasedEventArgs&&) = default;
+        };
+
+    public:
+        /// <summary>
+        /// Releases the frame buffer.
+        /// </summary>
+        virtual inline ~IFrameBuffer() noexcept {
+            released.invoke(this, { });
+        }
+
+    public:
+        /// <summary>
+        /// Invoked when the frame buffer gets resized.
+        /// </summary>
+        /// <seealso cref="resize" />
+        mutable Event<ResizeEventArgs> resized;
+
+        /// <summary>
+        /// Invoked when the frame buffer gets released.
+        /// </summary>
+        /// <remarks>
+        /// Note that it is no longer valid to access the frame buffer when receiving this event. The only thing that can be assumed to still be valid is the pointer to the frame 
+        /// buffer. The intent of this event is to release any resources that depend on the frame buffer instance. Internally, render passes and pipelines use this event to release
+        /// cached frame buffer states they hold, such as descriptor sets for input attachment bindings or command buffers associated with the frame buffer.
+        /// </remarks>
+        /// <seealso cref="~IFrameBuffer" />
+        mutable Event<ReleasedEventArgs> released;
+
+    public:
         /// <summary>
         /// Returns the current size of the frame buffer.
         /// </summary>
@@ -4467,55 +7127,248 @@ namespace LiteFX::Rendering {
         virtual size_t getHeight() const noexcept = 0;
 
         /// <summary>
-        /// Returns all command buffers, the frame buffer stores.
+        /// Maps a render target to a frame buffer image.
         /// </summary>
-        /// <returns>All command buffers, the frame buffer stores.</returns>
-        /// <seealso cref="commandBuffer" />
-        Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers() const noexcept {
-            return this->getCommandBuffers();
+        /// <remarks>
+        /// When calling <see cref="IRenderPass::begin" />, passing a frame buffer, the render pass attempts to resolve all render target images. In order for this resolution to be 
+        /// successful, a mapping first needs to be established between the render target and the image. This method establishes this mapping.
+        /// 
+        /// Calling this method multiple times will overwrite the mapped index.
+        /// </remarks>
+        /// <param name="renderTarget">The render target to map the image to.</param>
+        /// <param name="index">The index of the image to map to the render target.</param>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="index" /> does not address an image in the frame buffer.</exception>
+        /// <seealso cref="unmapRenderTarget" />
+        virtual void mapRenderTarget(const RenderTarget& renderTarget, UInt32 index) = 0;
+
+        /// <summary>
+        /// Maps a render target to a frame buffer image.
+        /// </summary>
+        /// <remarks>
+        /// When calling <see cref="IRenderPass::begin" />, passing a frame buffer, the render pass attempts to resolve all render target images. In order for this resolution to be 
+        /// successful, a mapping first needs to be established between the render target and the image. This method establishes this mapping.
+        /// 
+        /// Calling this method multiple times will overwrite the mapped index.
+        /// </remarks>
+        /// <param name="renderTarget">The render target to map the image to.</param>
+        /// <param name="imageName">The name of the image the render target maps to.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if the frame buffer does not contain an image with the name specified in <paramref name="imageName" />.</exception>
+        /// <seealso cref="unmapRenderTarget" />
+        virtual void mapRenderTarget(const RenderTarget& renderTarget, StringView imageName) = 0;
+
+        /// <summary>
+        /// Maps a render target to a frame buffer image using the render targets name to look up the image.
+        /// </summary>
+        /// <remarks>
+        /// When calling <see cref="IRenderPass::begin" />, passing a frame buffer, the render pass attempts to resolve all render target images. In order for this resolution to be 
+        /// successful, a mapping first needs to be established between the render target and the image. This method establishes this mapping.
+        /// 
+        /// Calling this method multiple times will overwrite the mapped index.
+        /// </remarks>
+        /// <param name="renderTarget">The render target to map the image to.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if the frame buffer does not contain an image with the same name as the render target.</exception>
+        /// <seealso cref="unmapRenderTarget" />
+        inline void mapRenderTarget(const RenderTarget& renderTarget) {
+            this->mapRenderTarget(renderTarget, renderTarget.name());
         }
 
         /// <summary>
-        /// Returns a command buffer that records draw commands for the frame buffer.
+        /// Maps a set of render targets to the frame buffer images, using the names of the render targets to look up the images.
         /// </summary>
-        /// <param name="index">The index of the command buffer.</param>
-        /// <returns>A command buffer that records draw commands for the frame buffer</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the frame buffer does not store a command buffer at <paramref name="index" />.</exception>
-        /// <seealso cref="commandBuffers" />
-        SharedPtr<const ICommandBuffer> commandBuffer(const UInt32& index) const {
-            return this->getCommandBuffer(index);
+        /// <param name="renderTargets">The render targets to map to the frame buffer.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if the frame buffer cannot map the name of one or more render targets to images.</exception>
+        /// <seealso cref="mapRenderTarget" />
+        /// <seealso cref="unmapRenderTarget" />
+        inline void mapRenderTargets(Span<const RenderTarget> renderTargets) {
+            std::ranges::for_each(renderTargets, [this](auto& renderTarget) { this->mapRenderTarget(renderTarget); });
         }
 
         /// <summary>
-        /// Returns the images that store the output attachments for the render targets of the <see cref="RenderPass" />.
+        /// Removes a mapping between a render target and an image in the frame buffer.
         /// </summary>
-        /// <returns>The images that store the output attachments for the render targets of the <see cref="RenderPass" />.</returns>
-        Enumerable<const IImage*> images() const noexcept {
+        /// <remarks>
+        /// If no image in the frame buffer is currently mapped to <paramref name="renderTarget" />, calling this method will have no effect.
+        /// </remarks>
+        /// <param name="renderTarget">The render target to remove the mapping for.</param>
+        /// <seealso cref="mapRenderTarget" />
+        virtual void unmapRenderTarget(const RenderTarget& renderTarget) noexcept = 0;
+
+        /// <summary>
+        /// Returns all images contained by the frame buffer.
+        /// </summary>
+        /// <returns>A set of pointers to the images contained by the frame buffer.</returns>
+        inline Enumerable<const IImage*> images() const noexcept {
             return this->getImages();
         }
 
         /// <summary>
-        /// Returns the image that stores the output attachment for the render target mapped the location passed with <paramref name="location" />.
+        /// Returns an image from the frame buffer.
         /// </summary>
-        /// <returns>The image that stores the output attachment for the render target mapped the location passed with <paramref name="location" />.</returns>
-        virtual const IImage& image(const UInt32& location) const = 0;
+        /// <param name="index">The index of the image.</param>
+        /// <returns>The image from the frame buffer with the index <paramref name="index" />.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the <paramref name="index" /> does not address an image in the frame buffer.</exception>
+        virtual const IImage& operator[](UInt32 index) const = 0;
 
-    public:
+        /// <summary>
+        /// Returns an image from the frame buffer.
+        /// </summary>
+        /// <param name="index">The index of the image.</param>
+        /// <returns>The image from the frame buffer with the index <paramref name="index" />.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the <paramref name="index" /> does not address an image in the frame buffer.</exception>
+        virtual const IImage& image(UInt32 index) const = 0;
+
+        /// <summary>
+        /// Resolves a render target and returns the image mapped to it.
+        /// </summary>
+        /// <param name="renderTarget">The render target to resolve.</param>
+        /// <returns>The image mapped to the render target.</returns>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="renderTarget" /> is not mapped to an image in the frame buffer.</exception>
+        virtual const IImage& operator[](const RenderTarget& renderTarget) const = 0;
+
+        /// <summary>
+        /// Resolves a render target and returns the image mapped to it.
+        /// </summary>
+        /// <param name="renderTarget">The render target to resolve.</param>
+        /// <returns>The image mapped to the render target.</returns>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="renderTarget" /> is not mapped to an image in the frame buffer.</exception>
+        virtual const IImage& image(const RenderTarget& renderTarget) const = 0;
+
+        /// <summary>
+        /// Resolves a render target name and returns the image mapped to it.
+        /// </summary>
+        /// <param name="renderTargetName">The render target name to resolve.</param>
+        /// <returns>The image mapped to the render target.</returns>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="renderTargetName" /> is not mapped to an image in the frame buffer.</exception>
+        virtual const IImage& operator[](StringView renderTargetName) const = 0;
+
+        /// <summary>
+        /// Resolves a render target name and returns the image mapped to it.
+        /// </summary>
+        /// <param name="renderTargetName">The render target name to resolve.</param>
+        /// <returns>The image mapped to the render target.</returns>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="renderTargetName" /> is not mapped to an image in the frame buffer.</exception>
+        virtual const IImage& image(StringView renderTargetName) const = 0;
+
+        /// <summary>
+        /// Resolves a render target name hash and returns the image mapped to it.
+        /// </summary>
+        /// <param name="hash">The render target name hash to resolve.</param>
+        /// <returns>The image mapped to the render target.</returns>
+        /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="hash" /> is not mapped to an image in the frame buffer.</exception>
+        /// <seealso cref="image" />
+        virtual const IImage& resolveImage(UInt64 hash) const = 0;
+
+        /// <summary>
+        /// Adds an image to the frame buffer.
+        /// </summary>
+        /// <param name="format">The format of the image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        template <typename TSelf>
+        inline auto addImage(this TSelf&& self, Format format, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
+            self.addImage(format, samples, usage);
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds an image to the frame buffer.
+        /// </summary>
+        /// <param name="format">The format of the image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        inline void addImage(Format format, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) {
+            this->addImage("", format, samples, usage);
+        }
+
+        /// <summary>
+        /// Adds an image to the frame buffer.
+        /// </summary>
+        /// <param name="name">The name of the image.</param>
+        /// <param name="format">The format of the image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        template <typename TSelf>
+        inline auto addImage(this TSelf&& self, StringView name, Format format, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
+            self.addImage(name, format, samples, usage);
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds an image to the frame buffer.
+        /// </summary>
+        /// <param name="name">The name of the image.</param>
+        /// <param name="format">The format of the image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if another image with the same name as provided in <paramref name="name" /> has already been added to the frame buffer.</exception>
+        virtual void addImage(const String& name, Format format, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) = 0;
+
+        /// <summary>
+        /// Adds an image for a render target to the frame buffer.
+        /// </summary>
+        /// <param name="renderTarget">The render target for which to add an image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        template <typename TSelf>
+        inline auto addImage(this TSelf&& self, const RenderTarget& renderTarget, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
+            self.addImage(renderTarget, samples, usage);
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds an image for a render target to the frame buffer.
+        /// </summary>
+        /// <param name="renderTarget">The render target for which to add an image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        inline void addImage(const RenderTarget& renderTarget, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) {
+            this->addImage(renderTarget.name(), renderTarget, samples, usage);
+        }
+
+        /// <summary>
+        /// Adds an image for a render target to the frame buffer.
+        /// </summary>
+        /// <param name="name">The name of the image.</param>
+        /// <param name="renderTarget">The render target for which to add an image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        template <typename TSelf>
+        inline auto addImage(this TSelf&& self, StringView name, const RenderTarget& renderTarget, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
+            self.addImage(name, renderTarget, samples, usage);
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds an image for a render target to the frame buffer.
+        /// </summary>
+        /// <param name="name">The name of the image.</param>
+        /// <param name="renderTarget">The render target for which to add an image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        virtual void addImage(const String& name, const RenderTarget& renderTarget, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) = 0;
+
+        /// <summary>
+        /// Adds multiple images for a set of render targets to the frame buffer.
+        /// </summary>
+        /// <remarks>
+        /// Note that the names of the images are built from the render target names.
+        /// </remarks>
+        /// <param name="renderTargets">The render targets for which to add an image.</param>
+        /// <param name="samples">The number of samples of the image.</param>
+        /// <param name="usage">The desired resource usage flags for the image.</param>
+        template <typename TSelf>
+        inline auto addImages(this TSelf&& self, Span<const RenderTarget> renderTargets, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::FrameBufferImage) -> TSelf&& {
+            std::ranges::for_each(renderTargets, [&](auto& renderTarget) { self.addImage(renderTarget.name(), renderTarget, samples, usage); });
+            return std::forward<TSelf>(self);
+        }
+
         /// <summary>
         /// Causes the frame buffer to be invalidated and recreated with a new size.
         /// </summary>
-        /// <remarks>
-        /// A frame buffer resize causes all render target resources (i.e. images) to be re-created. This is done by the implementation itself, except for present targets, which require
-        /// a view of an image created on a <see cref="ISwapChain" />. If the frame buffer has a present target, it calls <see cref="ISwapChain::images" /> on the parent devices' swap 
-        /// chain. Note that there should only be one render pass, that contains present targets, otherwise the images are written by different render passes, which may result in 
-        /// undefined behavior.
-        /// </remarks>
         /// <param name="renderArea">The new dimensions of the frame buffer.</param>
         virtual void resize(const Size2d& renderArea) = 0;
 
     private:
-        virtual SharedPtr<const ICommandBuffer> getCommandBuffer(const UInt32& index) const noexcept = 0;
-        virtual Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept = 0;
         virtual Enumerable<const IImage*> getImages() const noexcept = 0;
     };
 
@@ -4528,33 +7381,46 @@ namespace LiteFX::Rendering {
         /// Event arguments that are published to subscribers when a render pass is beginning.
         /// </summary>
         /// <seealso cref="IRenderPass::beginning" />
-        struct BeginRenderPassEventArgs : public EventArgs {
+        struct BeginEventArgs : public EventArgs {
         private:
-            const UInt32& m_backBuffer;
+            const IFrameBuffer& m_frameBuffer;
 
         public:
-            BeginRenderPassEventArgs(const UInt32& backBuffer) : 
-                EventArgs(), m_backBuffer(backBuffer) { }
-            BeginRenderPassEventArgs(const BeginRenderPassEventArgs&) = default;
-            BeginRenderPassEventArgs(BeginRenderPassEventArgs&&) = default;
-            virtual ~BeginRenderPassEventArgs() noexcept = default;
+            BeginEventArgs(const IFrameBuffer& frameBuffer) : 
+                EventArgs(), m_frameBuffer(frameBuffer) { }
+            BeginEventArgs(const BeginEventArgs&) = default;
+            BeginEventArgs(BeginEventArgs&&) = default;
+            virtual ~BeginEventArgs() noexcept = default;
 
         public:
-            BeginRenderPassEventArgs& operator=(const BeginRenderPassEventArgs&) = default;
-            BeginRenderPassEventArgs& operator=(BeginRenderPassEventArgs&&) = default;
+            BeginEventArgs& operator=(const BeginEventArgs&) = default;
+            BeginEventArgs& operator=(BeginEventArgs&&) = default;
 
         public:
             /// <summary>
-            /// Gets the index of the next back-buffer used in the render pass.
+            /// Gets the frame buffer on which the render pass is executing.
             /// </summary>
-            /// <returns>The index of the next back-buffer used in the render pass.</returns>
-            const UInt32& backBuffer() const noexcept {
-                return m_backBuffer;
+            /// <returns>The buffer on which the render pass is executing.</returns>
+            inline const IFrameBuffer& frameBuffer() const noexcept {
+                return m_frameBuffer;
             }
         };
 
     public:
         virtual ~IRenderPass() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Invoked, when the render pass is beginning.
+        /// </summary>
+        /// <seealso cref="begin" />
+        mutable Event<BeginEventArgs> beginning;
+
+        /// <summary>
+        /// Invoked, when the render pass is ending.
+        /// </summary>
+        /// <seealso cref="end" />
+        mutable Event<EventArgs> ending;
 
     public:
         /// <summary>
@@ -4566,31 +7432,54 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="buffer">The index of the frame buffer.</param>
         /// <returns>A back buffer used by the render pass.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the render pass has not started.</exception>
+        /// <seealso cref="begin" />
         virtual const IFrameBuffer& activeFrameBuffer() const = 0;
 
         /// <summary>
-        /// Returns a list of all frame buffers.
+        /// Returns the command queue, the render pass is executing on.
         /// </summary>
-        /// <returns>A list of all frame buffers. </returns>
-        Enumerable<const IFrameBuffer*> frameBuffers() const noexcept {
-            return this->getFrameBuffers();
-        }
+        /// <returns>A reference of the command queue, the render pass is executing on.</returns>
+        virtual const ICommandQueue& commandQueue() const noexcept = 0;
 
         /// <summary>
         /// Returns an array of all render pipelines, owned by the render pass.
         /// </summary>
         /// <returns>An array of all render pipelines, owned by the render pass.</returns>
         /// <seealso cref="IRenderPipeline" />
-        Enumerable<const IRenderPipeline*> pipelines() const noexcept {
+        inline Enumerable<const IRenderPipeline*> pipelines() const noexcept {
             return this->getPipelines();
         }
 
         /// <summary>
-        /// Returns the render target mapped to the location provided by <paramref name="location" />.
+        /// Returns all command buffers, that can be currently used for recording multi-threaded commands in the render pass.
         /// </summary>
-        /// <param name="location">The location to return the render target for.</param>
-        /// <returns>The render target mapped to the location provided by <paramref name="location" />.</returns>
-        virtual const RenderTarget& renderTarget(const UInt32& location) const = 0;
+        /// <returns>
+        /// All command buffers, that can be currently used for recording multi-threaded commands in the render pass, or an empty set, if the render pass has not been 
+        /// initialized with additional command buffers, or the render pass is currently not active.
+        /// </returns>
+        /// <seealso cref="commandBuffer" />
+        inline Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers() const noexcept {
+            return this->getCommandBuffers();
+        }
+
+        /// <summary>
+        /// Returns a command buffer that can be currently used for recording multi-threaded commands in the render pass.
+        /// </summary>
+        /// <param name="index">The index of the command buffer.</param>
+        /// <returns>A command buffer that can be currently used for recording multi-threaded commands in the render pass.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the render pass has not been begun.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the frame buffer does not store a command buffer at <paramref name="index" />.</exception>
+        /// <seealso cref="commandBuffers" />
+        inline SharedPtr<const ICommandBuffer> commandBuffer(UInt32 index) const {
+            return this->getCommandBuffer(index);
+        }
+
+        /// <summary>
+        /// Returns the number of secondary command buffers the render pass stores for multi-threaded command recording.
+        /// </summary>
+        /// <returns>The number of secondary command buffers the render pass stores for multi-threaded command recording.</returns>
+        virtual UInt32 secondaryCommandBuffers() const noexcept = 0;
 
         /// <summary>
         /// Returns the list of render targets, the render pass renders into.
@@ -4599,9 +7488,15 @@ namespace LiteFX::Rendering {
         /// Note that the actual render target image resources are stored within the individual <see cref="FrameBuffer" />s of the render pass.
         /// </remarks>
         /// <returns>A list of render targets, the render pass renders into.</returns>
-        /// <seealso cref="FrameBuffer" />
-        /// <seealso cref="frameBuffer" />
-        virtual Span<const RenderTarget> renderTargets() const noexcept = 0;
+        /// <seealso cref="IFrameBuffer" />
+        virtual const Array<RenderTarget>& renderTargets() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the render target mapped to the location provided by <paramref name="location" />.
+        /// </summary>
+        /// <param name="location">The location to return the render target for.</param>
+        /// <returns>The render target mapped to the location provided by <paramref name="location" />.</returns>
+        virtual const RenderTarget& renderTarget(UInt32 location) const = 0;
 
         /// <summary>
         /// Returns <c>true</c>, if one of the render targets is used for presentation on a swap chain.
@@ -4614,32 +7509,31 @@ namespace LiteFX::Rendering {
         /// Returns the input attachment the render pass is consuming.
         /// </summary>
         /// <returns>An array of input attachment mappings, that are mapped to the render pass.</returns>
-        //virtual Span<const IInputAttachmentMapping> inputAttachments() const noexcept = 0;
+        virtual const Array<RenderPassDependency>& inputAttachments() const noexcept = 0;
 
         /// <summary>
-        /// Returns the number of samples, the render targets are sampled with.
+        /// Returns the input attachment at a <paramref name="location" />.
         /// </summary>
-        /// <returns>The number of samples, the render targets are sampled with.</returns>
-        virtual const MultiSamplingLevel& multiSamplingLevel() const noexcept = 0;
-
-    public:
-        /// <summary>
-        /// Invoked, when the render pass is beginning.
-        /// </summary>
-        /// <seealso cref="begin" />
-        mutable Event<BeginRenderPassEventArgs> beginning;
+        /// <returns>The input attachment at a <paramref name="location" />.</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown, if no input attachment is defined at the specified <paramref name="location" />.</exception>
+        virtual const RenderPassDependency& inputAttachment(UInt32 location) const = 0;
 
         /// <summary>
-        /// Invoked, when the render pass is ending.
+        /// Returns the binding point for input attachment samplers.
         /// </summary>
-        /// <seealso cref="end" />
-        mutable Event<EventArgs> ending;
+        /// <remarks>
+        /// Note that in Vulkan this is ignored, as render pass inputs are mapped to sub-pass inputs directly, which do not need to be sampled.
+        /// </remarks>
+        /// <returns>The binding point for input attachment samplers.</returns>
+        virtual const Optional<DescriptorBindingPoint>& inputAttachmentSamplerBinding() const noexcept = 0;
 
         /// <summary>
         /// Begins the render pass.
         /// </summary>
-        /// <param name="buffer">The back buffer to use. Typically this is the same as the value returned from <see cref="ISwapChain::swapBackBuffer" />.</param>
-        virtual void begin(const UInt32& buffer) = 0;
+        /// <param name="frameBuffer">The frame buffer to obtain input attachments and render targets from.</param>
+        inline void begin(const IFrameBuffer& frameBuffer) const {
+            this->beginRenderPass(frameBuffer);
+        };
 
         /// <summary>
         /// Ends the render pass.
@@ -4647,39 +7541,14 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// If the frame buffer has a present render target, this causes the render pass to synchronize with the swap chain and issue a present command.
         /// </remarks>
-        /// <param name="buffer">The back buffer to use. Typically this is the same as the value returned from <see cref="ISwapChain::swapBackBuffer" />.</param>
-        virtual void end() const = 0;
-
-        /// <summary>
-        /// Resets the frame buffers of the render pass.
-        /// </summary>
-        /// <param name="renderArea">The size of the render area, the frame buffers will be resized to.</param>
-        virtual void resizeFrameBuffers(const Size2d& renderArea) = 0;
-
-        /// <summary>
-        /// Changes the multi sampling level of the render pass.
-        /// </summary>
-        /// <remarks>
-        /// The method causes the frame buffers to be re-created. It checks, if the <paramref name="samples" /> are supported by the device for each render target 
-        /// format. If not, an exception will be thrown. To prevent this, call <see cref=IGraphicsDevice::maximumMultiSamplingLevel" /> for each render target format on 
-        /// your own, in order to request the maximum number of samples supported.
-        /// </remarks>
-        /// <param name="samples">The number of samples per edge pixel.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if one or more of the render targets have a format, that does not support the provided multi-sampling level.</exception>
-        virtual void changeMultiSamplingLevel(const MultiSamplingLevel& samples) = 0;
-
-        /// <summary>
-        /// Resolves the input attachments mapped to the render pass and updates them on the descriptor set provided with <see cref="descriptorSet" />.
-        /// </summary>
-        /// <param name="descriptorSet">The descriptor set to update the input attachments on.</param>
-        void updateAttachments(const IDescriptorSet& descriptorSet) const {
-            this->setAttachments(descriptorSet);
-        }
+        /// <returns>The value of the fence that indicates the end of the render pass.</returns>
+        virtual UInt64 end() const = 0;
 
     private:
-        virtual Enumerable<const IFrameBuffer*> getFrameBuffers() const noexcept = 0;
+        virtual void beginRenderPass(const IFrameBuffer& frameBuffer) const = 0;
+        virtual SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept = 0;
+        virtual Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept = 0;
         virtual Enumerable<const IRenderPipeline*> getPipelines() const noexcept = 0;
-        virtual void setAttachments(const IDescriptorSet& descriptorSet) const = 0;
     };
 
     /// <summary>
@@ -4690,29 +7559,30 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Event arguments for a <see cref="ISwapChain::reseted" /> event.
         /// </summary>
-        struct SwapChainResetEventArgs : public EventArgs {
+        struct ResetEventArgs : public EventArgs {
         private:
-            const Format& m_surfaceFormat;
+            Format m_surfaceFormat;
             const Size2d& m_renderArea;
-            const UInt32& m_buffers;
+            UInt32 m_buffers;
+            bool m_vsync;
 
         public:
-            SwapChainResetEventArgs(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) :
-                EventArgs(), m_surfaceFormat(surfaceFormat), m_renderArea(renderArea), m_buffers(buffers) { }
-            SwapChainResetEventArgs(const SwapChainResetEventArgs&) = default;
-            SwapChainResetEventArgs(SwapChainResetEventArgs&&) = default;
-            virtual ~SwapChainResetEventArgs() noexcept = default;
+            ResetEventArgs(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers, bool enableVsync) :
+                EventArgs(), m_surfaceFormat(surfaceFormat), m_renderArea(renderArea), m_buffers(buffers), m_vsync(enableVsync) { }
+            ResetEventArgs(const ResetEventArgs&) = default;
+            ResetEventArgs(ResetEventArgs&&) = default;
+            virtual ~ResetEventArgs() noexcept = default;
 
         public:
-            SwapChainResetEventArgs& operator=(const SwapChainResetEventArgs&) = default;
-            SwapChainResetEventArgs& operator=(SwapChainResetEventArgs&&) = default;
+            ResetEventArgs& operator=(const ResetEventArgs&) = default;
+            ResetEventArgs& operator=(ResetEventArgs&&) = default;
 
         public:
             /// <summary>
             /// Gets the new surface format of the swap chain back-buffers.
             /// </summary>
             /// <returns>The new surface format of the swap chain back-buffers.</returns>
-            const Format& surfaceFormat() const noexcept {
+            inline Format surfaceFormat() const noexcept {
                 return m_surfaceFormat;
             }
 
@@ -4720,7 +7590,7 @@ namespace LiteFX::Rendering {
             /// Gets the new render area of the swap chain back-buffers.
             /// </summary>
             /// <returns>The size of the new render area of the swap chain back-buffers.</returns>
-            const Size2d& renderArea() const noexcept {
+            inline const Size2d& renderArea() const noexcept {
                 return m_renderArea;
             }
 
@@ -4728,8 +7598,16 @@ namespace LiteFX::Rendering {
             /// Gets the number of back-buffers in the swap chain.
             /// </summary>
             /// <returns>The number of back-buffers in the swap chain.</returns>
-            const UInt32& buffers() const noexcept {
+            inline UInt32 buffers() const noexcept {
                 return m_buffers;
+            }
+
+            /// <summary>
+            /// Returns `true` if vertical synchronization is enabled or `false` otherwise.
+            /// </summary>
+            /// <returns>`true` if vertical synchronization is enabled or `false` otherwise.</returns>
+            inline bool enableVsync() const noexcept {
+                return m_vsync;
             }
         };
 
@@ -4746,7 +7624,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="name">The name of the timing event.</param>
         /// <returns>A pointer with shared ownership to the newly created timing event instance.</returns>
-        [[nodiscard]] std::shared_ptr<TimingEvent> registerTimingEvent(StringView name = "") noexcept {
+        [[nodiscard]] inline std::shared_ptr<TimingEvent> registerTimingEvent(StringView name = "") noexcept {
             auto timingEvent = SharedPtr<TimingEvent>(new TimingEvent(*this, name));
             this->addTimingEvent(timingEvent);
             return timingEvent;
@@ -4763,7 +7641,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="queryId">The query ID of the timing event.</param>
         /// <returns>The timing event registered for <paramref name="queryId" />.</returns>
-        virtual SharedPtr<TimingEvent> timingEvent(const UInt32& queryId) const = 0;
+        virtual SharedPtr<TimingEvent> timingEvent(UInt32 queryId) const = 0;
 
         /// <summary>
         /// Reads the current time stamp value (in ticks) of a timing event.
@@ -4790,13 +7668,13 @@ namespace LiteFX::Rendering {
         /// Returns the swap chain image format.
         /// </summary>
         /// <returns>The swap chain image format.</returns>
-        virtual const Format& surfaceFormat() const noexcept = 0;
+        virtual Format surfaceFormat() const noexcept = 0;
 
         /// <summary>
         /// Returns the number of images in the swap chain.
         /// </summary>
         /// <returns>The number of images in the swap chain.</returns>
-        virtual const UInt32& buffers() const noexcept = 0;
+        virtual UInt32 buffers() const noexcept = 0;
 
         /// <summary>
         /// Returns the size of the render area.
@@ -4805,25 +7683,43 @@ namespace LiteFX::Rendering {
         virtual const Size2d& renderArea() const noexcept = 0;
 
         /// <summary>
+        /// Returns `true`, if vertical synchronization should be used, otherwise `false`.
+        /// </summary>
+        /// <returns>`true`, if vertical synchronization should be used, otherwise `false`.</returns>
+        virtual bool verticalSynchronization() const noexcept = 0;
+
+        /// <summary>
         /// Returns the swap chain present image for <paramref name="backBuffer" />.
         /// </summary>
         /// <param name="backBuffer">The index of the back buffer for which to return the swap chain present image.</param>
         /// <returns>A pointer to the back buffers swap chain present image.</returns>
-        virtual const IImage* image(const UInt32& backBuffer) const = 0;
+        virtual IImage* image(UInt32 backBuffer) const = 0;
+
+        /// <summary>
+        /// Returns the current swap chain back buffer image.
+        /// </summary>
+        /// <returns>A reference of the current swap chain back buffer image.</returns>
+        virtual const IImage& image() const noexcept = 0;
 
         /// <summary>
         /// Returns an array of the swap chain present images.
         /// </summary>
         /// <returns>Returns an array of the swap chain present images.</returns>
-        Enumerable<const IImage*> images() const noexcept {
+        inline Enumerable<IImage*> images() const noexcept {
             return this->getImages();
         };
 
         /// <summary>
-        /// Queues a present that gets executed after <paramref name="frameBuffer" /> signals its readiness.
+        /// Queues a present that gets executed after <paramref name="fence" /> has been signaled on the default graphics queue.
         /// </summary>
-        /// <param name="frameBuffer">The frame buffer for which the present should wait.</param>
-        virtual void present(const IFrameBuffer& frameBuffer) const = 0;
+        /// <remarks>
+        /// You can use this overload in situations where you do not have an <see cref="IRenderPass" /> or <see cref="IFrameBuffer" /> to render into before presenting. Instead, you typically
+        /// copy into the swap chain back buffer images directly (<see cref="image" />). This copy is done in a command buffer that must be submitted to the default graphics queue. The swap
+        /// chain can then wait for the copy to finish before presenting it. Example scenarios where this is useful are, where you want to write to the back buffer from a compute shader, that
+        /// does not have an equivalent to render passes.
+        /// </remarks>
+        /// <param name="fence">The fence to pass on the default graphics queue after which the present is executed.</param>
+        virtual void present(UInt64 fence) const = 0;
 
     public:
         /// <summary>
@@ -4836,7 +7732,7 @@ namespace LiteFX::Rendering {
         /// Invoked, after the swap chain has been reseted.
         /// </summary>
         /// <seealso cref="reset" />
-       mutable Event<SwapChainResetEventArgs> reseted;
+       mutable Event<ResetEventArgs> reseted;
 
         /// <summary>
         /// Returns an array of supported formats, that can be drawn to the surface.
@@ -4859,8 +7755,9 @@ namespace LiteFX::Rendering {
         /// <param name="surfaceFormat">The swap chain image format.</param>
         /// <param name="renderArea">The dimensions of the frame buffers.</param>
         /// <param name="buffers">The number of buffers in the swap chain.</param>
+        /// <param name="enableVsync">`true`, if vertical synchronization should be used, otherwise `false`.</param>
         /// <seealso cref="multiSamplingLevel" />
-        virtual void reset(const Format& surfaceFormat, const Size2d& renderArea, const UInt32& buffers) = 0;
+        virtual void reset(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers, bool enableVsync = false) = 0;
 
         /// <summary>
         /// Swaps the front buffer with the next back buffer in order.
@@ -4869,7 +7766,7 @@ namespace LiteFX::Rendering {
         [[nodiscard]] virtual UInt32 swapBackBuffer() const = 0;
 
     private:
-        virtual Enumerable<const IImage*> getImages() const noexcept = 0;
+        virtual Enumerable<IImage*> getImages() const noexcept = 0;
         virtual void addTimingEvent(SharedPtr<TimingEvent> timingEvent) = 0;
     };
 
@@ -4901,7 +7798,7 @@ namespace LiteFX::Rendering {
             /// Gets the command buffers that are about to be submitted to the queue.
             /// </summary>
             /// <returns>An array containing the command buffers that are about to be submitted to the queue.</returns>
-            const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers() const noexcept {
+            inline const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers() const noexcept {
                 return m_commandBuffers;
             }
         };
@@ -4911,10 +7808,10 @@ namespace LiteFX::Rendering {
         /// </summary>
         struct QueueSubmittedEventArgs : public EventArgs {
         private:
-            const UInt64& m_fence;
+            UInt64 m_fence;
 
         public:
-            QueueSubmittedEventArgs(const UInt64& fence) :
+            QueueSubmittedEventArgs(UInt64 fence) :
                 EventArgs(), m_fence(fence) { }
             QueueSubmittedEventArgs(const QueueSubmittedEventArgs&) = default;
             QueueSubmittedEventArgs(QueueSubmittedEventArgs&&) = default;
@@ -4929,7 +7826,7 @@ namespace LiteFX::Rendering {
             /// Gets the fence that is triggered, if the command buffers have been executed.
             /// </summary>
             /// <returns>The fence that is triggered, if the command buffers have been executed.</returns>
-            const UInt64& fence() const noexcept {
+            inline UInt64 fence() const noexcept {
                 return m_fence;
             }
         };
@@ -4939,28 +7836,16 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
-        /// Returns <c>true</c>, if the command queue is bound on the parent device.
-        /// </summary>
-        /// <remarks>
-        /// Before a command queue can receive commands, it needs to be bound to a device. This ensures, that the queue is actually able to allocate commands. A 
-        /// command queue starts in unbound state until <see cref="bind" /> gets called. Destroying the queue also releases it by calling <see cref="release" />.
-        /// </remarks>
-        /// <seealso cref="bind" />
-        /// <seealso cref="release" />
-        /// <returns><c>true</c>, if the command queue is bound on a device.</returns>
-        virtual bool isBound() const noexcept = 0;
-
-        /// <summary>
         /// Returns the priority of the queue.
         /// </summary>
         /// <returns>The priority of the queue.</returns>
-        virtual const QueuePriority& priority() const noexcept = 0;
+        virtual QueuePriority priority() const noexcept = 0;
 
         /// <summary>
         /// Returns the type of the queue.
         /// </summary>
         /// <returns>The type of the queue.</returns>
-        virtual const QueueType& type() const noexcept = 0;
+        virtual QueueType type() const noexcept = 0;
 
     public:
         /// <summary>
@@ -4971,7 +7856,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="label">The name of the debug region.</param>
         /// <param name="color">The color of the debug region.</param>
-        virtual void BeginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
+        virtual void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
         
         /// <summary>
         /// Ends the current debug region.
@@ -4979,7 +7864,7 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// This is a debug helper, that is not required to be implemented. In the built-in backends, it will no-op by default in non-debug builds.
         /// </remarks>
-        virtual void EndDebugRegion() const noexcept { };
+        virtual void endDebugRegion() const noexcept { };
 
         /// <summary>
         /// Inserts a debug marker.
@@ -4989,19 +7874,9 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="label">The name of the debug marker.</param>
         /// <param name="color">The color of the debug marker.</param>
-        virtual void SetDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
+        virtual void setDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
 
     public:
-        /// <summary>
-        /// Invoked, when the queue has been bound on the parent device.
-        /// </summary>
-        mutable Event<EventArgs> bound;
-
-        /// <summary>
-        /// Invoked, when the queue is released from the parent device.
-        /// </summary>
-        mutable Event<EventArgs> released;
-
         /// <summary>
         /// Invoked, when one or more command buffers are submitted to the queue.
         /// </summary>
@@ -5011,17 +7886,6 @@ namespace LiteFX::Rendering {
         /// Invoked, after one or more command buffers have been submitted to the queue.
         /// </summary>
         mutable Event<QueueSubmittedEventArgs> submitted;
-
-        /// <summary>
-        /// Binds the queue on the parent device.
-        /// </summary>
-        /// <seealso cref="isBound" />
-        virtual void bind() = 0;
-
-        /// <summary>
-        /// Releases the queue from the parent device.
-        /// </summary>
-        virtual void release() = 0;
 
         /// <summary>
         /// Creates a command buffer that can be used to allocate commands on the queue.
@@ -5036,7 +7900,7 @@ namespace LiteFX::Rendering {
         /// <param name="beginRecording">If set to <c>true</c>, the command buffer will be initialized in recording state and can receive commands straight away.</param>
         /// <param name="secondary">If set to `true`, the method will create a secondary command buffer/bundle.</param>
         /// <returns>The instance of the command buffer.</returns>
-        SharedPtr<ICommandBuffer> createCommandBuffer(const bool& beginRecording = false, const bool& secondary = false) const {
+        inline SharedPtr<ICommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const {
             return this->getCommandBuffer(beginRecording, secondary);
         }
 
@@ -5052,7 +7916,7 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffer.</returns>
         /// <seealso cref="waitFor" />
-        UInt64 submit(SharedPtr<const ICommandBuffer> commandBuffer) const {
+        inline UInt64 submit(SharedPtr<const ICommandBuffer> commandBuffer) const {
             return this->submitCommandBuffer(commandBuffer);
         }
 
@@ -5068,7 +7932,7 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffer.</returns>
         /// <seealso cref="waitFor" />
-        UInt64 submit(SharedPtr<ICommandBuffer> commandBuffer) const {
+        inline UInt64 submit(SharedPtr<ICommandBuffer> commandBuffer) const {
             return this->submitCommandBuffer(commandBuffer);
         }
 
@@ -5084,7 +7948,7 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffers.</returns>
         /// <seealso cref="waitFor" />
-        UInt64 submit(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const {
+        inline UInt64 submit(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const {
             return this->submitCommandBuffers(commandBuffers);
         }
 
@@ -5100,26 +7964,32 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffers.</returns>
         /// <seealso cref="waitFor" />
-        UInt64 submit(const Enumerable<SharedPtr<ICommandBuffer>>& commandBuffers) const {
+        inline UInt64 submit(const Enumerable<SharedPtr<ICommandBuffer>>& commandBuffers) const {
             return this->submitCommandBuffers(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const ICommandBuffer>>>());
         }
 
         /// <summary>
-        /// Waits for a certain fence value to complete on the command queue.
+        /// Lets the CPU wait for a certain fence value to complete on the command queue.
         /// </summary>
         /// <remarks>
-        /// Each time one or more command buffers are submitted to the queue, a fence is inserted and its value will be returned. By calling this method, it is possible to
-        /// wait for this fence. A fence value is guaranteed to be larger than earlier fences, so the method returns, if the latest signaled fence value is larger or equal
-        /// to the value specified in <paramref name="fence" />. 
-        /// 
-        /// Note that this behavior can cause overflows when performing *excessive* fencing! Take for example a scenario, where each frame requires 80 fences to be signaled
-        /// and an application that runs at 60 frames per second in average. In this case, each second 4.800 fences are inserted into the queue. Given the limit of an 64
-        /// bit unsigned integer fence value, the application can run ~2.9 billion years before overflowing. Drop me an e-mail or open an issue, if you ever happen to run 
-        /// into such a situation.
+        /// This overload performs a CPU-side wait, i.e., the CPU blocks until the current queue has passed the fence value provided by the <paramref name="fence" /> parameter.
         /// </remarks>
         /// <param name="fence">The value of the fence to wait for.</param>
         /// <seealso cref="submit" />
-        virtual void waitFor(const UInt64& fence) const noexcept = 0;
+        virtual void waitFor(UInt64 fence) const noexcept = 0;
+
+        /// <summary>
+        /// Lets the command queue wait for a certain fence value to complete on another queue.
+        /// </summary>
+        /// <remarks>
+        /// This overload performs a GPU-side wait, i.e., the current command queue waits until <paramref name="queue" /> has passed the fence value provided by the <paramref name="fence" />
+        /// parameter. This overload does return immediately and does not block the CPU.
+        /// </remarks>
+        /// <param name="queue">The queue to wait upon.</param>
+        /// <param name="fence">The value of the fence to wait upon on the other queue.</param>
+        inline void waitFor(const ICommandQueue& queue, UInt64 fence) const {
+            this->waitForQueue(queue, fence);
+        }
 
         /// <summary>
         /// Returns the value of the latest fence inserted into the queue.
@@ -5129,12 +7999,13 @@ namespace LiteFX::Rendering {
         virtual UInt64 currentFence() const noexcept = 0;
 
     private:
-        virtual SharedPtr<ICommandBuffer> getCommandBuffer(const bool& beginRecording, const bool& secondary) const = 0;
+        virtual SharedPtr<ICommandBuffer> getCommandBuffer(bool beginRecording, bool secondary) const = 0;
         virtual UInt64 submitCommandBuffer(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
         virtual UInt64 submitCommandBuffers(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const = 0;
+        virtual void waitForQueue(const ICommandQueue& queue, UInt64 fence) const = 0;
         
     protected:
-        void releaseSharedState(const ICommandBuffer& commandBuffer) const {
+        inline void releaseSharedState(const ICommandBuffer& commandBuffer) const {
             commandBuffer.releaseSharedState();
         }
     };
@@ -5151,13 +8022,13 @@ namespace LiteFX::Rendering {
         /// Creates a buffer of type <paramref name="type" />.
         /// </summary>
         /// <param name="type">The type of the buffer.</param>
-        /// <param name="usage">The buffer usage.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const {
-            return this->getBuffer(type, usage, elementSize, elements, allowWrite);
+        inline UniquePtr<IBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
+            return this->getBuffer(type, heap, elementSize, elements, usage);
         };
 
         /// <summary>
@@ -5165,13 +8036,13 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
         /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="usage">The buffer usage.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
-            return this->createBuffer(descriptor.type(), usage, descriptor.elementSize(), elements, allowWrite);
+            return this->createBuffer(descriptor.type(), heap, descriptor.elementSize(), elements, usage);
         };
 
         /// <summary>
@@ -5179,13 +8050,13 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
         /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="usage">The buffer usage.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, const UInt32& binding, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements, const bool& allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
-            return this->createBuffer(descriptor.type(), usage, elementSize, elements, allowWrite);
+            return this->createBuffer(descriptor.type(), heap, elementSize, elements, usage);
         };
 
         /// <summary>
@@ -5194,12 +8065,12 @@ namespace LiteFX::Rendering {
         /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
         /// <param name="space">The space, the descriptor set is bound to.</param>
         /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="usage">The buffer usage.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, const UInt32& space, const UInt32& binding, const BufferUsage& usage, const UInt32& elementSize, const UInt32& elements, const bool& allowWrite = false) const {
-            return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, usage, elementSize, elements, allowWrite);
+        inline UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
+            return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, heap, elementSize, elements, usage);
         };
 
         /// <summary>
@@ -5208,12 +8079,12 @@ namespace LiteFX::Rendering {
         /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
         /// <param name="space">The space, the descriptor set is bound to.</param>
         /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="usage">The buffer usage.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, const UInt32& space, const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
-            return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, usage, elements, allowWrite);
+        inline UniquePtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
+            return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, heap, elements, usage);
         };
 
         /// <summary>
@@ -5221,13 +8092,13 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="name">The name of the buffer.</param>
         /// <param name="type">The type of the buffer.</param>
-        /// <param name="usage">The buffer usage.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const String& name, const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite = false) const {
-            return this->getBuffer(name, type, usage, elementSize, elements, allowWrite);
+        inline UniquePtr<IBuffer> createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
+            return this->getBuffer(name, type, heap, elementSize, elements, usage);
         };
 
         /// <summary>
@@ -5236,13 +8107,13 @@ namespace LiteFX::Rendering {
         /// <param name="name">The name of the buffer.</param>
         /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
         /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="usage">The buffer usage.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
-            return this->createBuffer(name, descriptor.type(), usage, descriptor.elementSize(), elements, allowWrite);
+            return this->createBuffer(name, descriptor.type(), heap, descriptor.elementSize(), elements, usage);
         };
         
         /// <summary>
@@ -5251,14 +8122,14 @@ namespace LiteFX::Rendering {
         /// <param name="name">The name of the buffer.</param>
         /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
         /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="usage">The buffer usage.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, const UInt32& binding, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite = false) const {
+        inline UniquePtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
-            return this->createBuffer(name, descriptor.type(), usage, elementSize, elements, allowWrite);
+            return this->createBuffer(name, descriptor.type(), heap, elementSize, elements, usage);
         };
 
         /// <summary>
@@ -5268,12 +8139,12 @@ namespace LiteFX::Rendering {
         /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
         /// <param name="space">The space, the descriptor set is bound to.</param>
         /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="usage">The buffer usage.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, const UInt32& space, const UInt32& binding, const BufferUsage& usage, const UInt32& elements = 1, const bool& allowWrite = false) const {
-            return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, usage, elements, allowWrite);
+        inline UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
+            return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, heap, elements, usage);
         };
 
         /// <summary>
@@ -5283,13 +8154,13 @@ namespace LiteFX::Rendering {
         /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
         /// <param name="space">The space, the descriptor set is bound to.</param>
         /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
-        /// <param name="usage">The buffer usage.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
-        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
         /// <returns>The instance of the buffer.</returns>
-        UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, const UInt32& space, const UInt32& binding, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements = 1, const bool& allowWrite = false) const {
-            return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, usage, elementSize, elements, allowWrite);
+        inline UniquePtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
+            return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, heap, elementSize, elements, usage);
         };
 
         /// <summary>
@@ -5301,11 +8172,12 @@ namespace LiteFX::Rendering {
         /// The size of the buffer is computed from the element size vertex buffer layout, times the number of elements given by the <paramref name="elements" /> parameter.
         /// </remarks>
         /// <param name="layout">The layout of the vertex buffer.</param>
-        /// <param name="usage">The buffer usage.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
         /// <returns>The instance of the vertex buffer.</returns>
-        UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const {
-            return this->getVertexBuffer(layout, usage, elements);
+        inline UniquePtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
+            return this->getVertexBuffer(layout, heap, elements, usage);
         }
 
         /// <summary>
@@ -5318,11 +8190,12 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="name">The name of the buffer.</param>
         /// <param name="layout">The layout of the vertex buffer.</param>
-        /// <param name="usage">The buffer usage.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
         /// <returns>The instance of the vertex buffer.</returns>
-        UniquePtr<IVertexBuffer> createVertexBuffer(const String& name, const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements = 1) const {
-            return this->getVertexBuffer(name, layout, usage, elements);
+        inline UniquePtr<IVertexBuffer> createVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
+            return this->getVertexBuffer(name, layout, heap, elements, usage);
         }
 
         /// <summary>
@@ -5334,11 +8207,12 @@ namespace LiteFX::Rendering {
         /// The size of the buffer is computed from the element size index buffer layout, times the number of elements given by the <paramref name="elements" /> parameter.
         /// </remarks>
         /// <param name="layout">The layout of the index buffer.</param>
-        /// <param name="usage">The buffer usage.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
         /// <returns>The instance of the index buffer.</returns>
-        UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const {
-            return this->getIndexBuffer(layout, usage, elements);
+        inline UniquePtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
+            return this->getIndexBuffer(layout, heap, elements, usage);
         }
 
         /// <summary>
@@ -5351,34 +8225,12 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="name">The name of the buffer.</param>
         /// <param name="layout">The layout of the index buffer.</param>
-        /// <param name="usage">The buffer usage.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
         /// <returns>The instance of the index buffer.</returns>
-        UniquePtr<IIndexBuffer> createIndexBuffer(const String& name, const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const {
-            return this->getIndexBuffer(name, layout, usage, elements);
-        }
-
-        /// <summary>
-        /// Creates an image that is used as render target attachment.
-        /// </summary>
-        /// <param name="format">The format of the image.</param>
-        /// <param name="size">The extent of the image.</param>
-        /// <param name="samples">The number of samples, the image should be sampled with.</param>
-        /// <returns>The instance of the attachment image.</returns>
-        UniquePtr<IImage> createAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const {
-            return this->getAttachment(format, size, samples);
-        }
-
-        /// <summary>
-        /// Creates an image that is used as render target attachment.
-        /// </summary>
-        /// <param name="name">The name of the image.</param>
-        /// <param name="format">The format of the image.</param>
-        /// <param name="size">The extent of the image.</param>
-        /// <param name="samples">The number of samples, the image should be sampled with.</param>
-        /// <returns>The instance of the attachment image.</returns>
-        UniquePtr<IImage> createAttachment(const String& name, const Format& format, const Size2d& size, const MultiSamplingLevel& samples = MultiSamplingLevel::x1) const {
-            return this->getAttachment(name, format, size, samples);
+        inline UniquePtr<IIndexBuffer> createIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
+            return this->getIndexBuffer(name, layout, heap, elements, usage);
         }
 
         /// <summary>
@@ -5394,11 +8246,11 @@ namespace LiteFX::Rendering {
         /// <param name="layers">The number of layers (slices) in this texture.</param>
         /// <param name="levels">The number of mip map levels of the texture.</param>
         /// <param name="samples">The number of samples, the texture should be sampled with.</param>
-        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
         /// <returns>The instance of the texture.</returns>
         /// <seealso cref="createTextures" />
-        UniquePtr<IImage> createTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const {
-            return this->getTexture(format, size, dimension, levels, layers, samples, allowWrite);
+        inline UniquePtr<IImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const {
+            return this->getTexture(format, size, dimension, levels, layers, samples, usage);
         }
 
         /// <summary>
@@ -5415,11 +8267,11 @@ namespace LiteFX::Rendering {
         /// <param name="layers">The number of layers (slices) in this texture.</param>
         /// <param name="levels">The number of mip map levels of the texture.</param>
         /// <param name="samples">The number of samples, the texture should be sampled with.</param>
-        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
         /// <returns>The instance of the texture.</returns>
         /// <seealso cref="createTextures" />
-        UniquePtr<IImage> createTexture(const String& name, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& levels = 1, const UInt32& layers = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const {
-            return this->getTexture(name, format, size, dimension, levels, layers, samples, allowWrite);
+        inline UniquePtr<IImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const {
+            return this->getTexture(name, format, size, dimension, levels, layers, samples, usage);
         }
 
         /// <summary>
@@ -5432,11 +8284,11 @@ namespace LiteFX::Rendering {
         /// <param name="layers">The number of layers (slices) in this texture.</param>
         /// <param name="levels">The number of mip map levels of the textures.</param>
         /// <param name="samples">The number of samples, the textures should be sampled with.</param>
-        /// <param name="allowWrite">Allows the resource to be bound to a read/write descriptor.</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
         /// <returns>An array of texture instances.</returns>
         /// <seealso cref="createTexture" />
-        Enumerable<UniquePtr<IImage>> createTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension = ImageDimensions::DIM_2, const UInt32& layers = 1, const UInt32& levels = 1, const MultiSamplingLevel& samples = MultiSamplingLevel::x1, const bool& allowWrite = false) const {
-            return this->getTextures(elements, format, size, dimension, layers, levels, samples, allowWrite);
+        inline Enumerable<UniquePtr<IImage>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const {
+            return this->getTextures(elements, format, size, dimension, layers, levels, samples, usage);
         }
 
         /// <summary>
@@ -5454,7 +8306,7 @@ namespace LiteFX::Rendering {
         /// <param name="anisotropy">The level of anisotropic filtering.</param>
         /// <returns>The instance of the sampler.</returns>
         /// <seealso cref="createSamplers" />
-        UniquePtr<ISampler> createSampler(const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const {
+        inline UniquePtr<ISampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const {
             return this->getSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
@@ -5474,7 +8326,7 @@ namespace LiteFX::Rendering {
         /// <param name="anisotropy">The level of anisotropic filtering.</param>
         /// <returns>The instance of the sampler.</returns>
         /// <seealso cref="createSamplers" />
-        UniquePtr<ISampler> createSampler(const String& name, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const {
+        inline UniquePtr<ISampler> createSampler(const String& name, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const {
             return this->getSampler(name, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
@@ -5494,25 +8346,112 @@ namespace LiteFX::Rendering {
         /// <param name="anisotropy">The level of anisotropic filtering.</param>
         /// <returns>An array of sampler instances.</returns>
         /// <seealso cref="createSampler" />
-        Enumerable<UniquePtr<ISampler>> createSamplers(const UInt32& elements, const FilterMode& magFilter = FilterMode::Nearest, const FilterMode& minFilter = FilterMode::Nearest, const BorderMode& borderU = BorderMode::Repeat, const BorderMode& borderV = BorderMode::Repeat, const BorderMode& borderW = BorderMode::Repeat, const MipMapMode& mipMapMode = MipMapMode::Nearest, const Float& mipMapBias = 0.f, const Float& maxLod = std::numeric_limits<Float>::max(), const Float& minLod = 0.f, const Float& anisotropy = 0.f) const {
+        inline Enumerable<UniquePtr<ISampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const {
             return this->getSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
+        /// <summary>
+        /// Creates a bottom-level acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
+        /// <returns>The bottom-level acceleration structure instance.</returns>
+        /// <seealso cref="IBottomLevelAccelerationStructure" />
+        inline UniquePtr<IBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None) const {
+            return this->createBottomLevelAccelerationStructure("", flags);
+        }
+
+        /// <summary>
+        /// Creates a bottom-level acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="name">The name of the acceleration structure resource.</param>
+        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
+        /// <returns>The bottom-level acceleration structure instance.</returns>
+        /// <seealso cref="IBottomLevelAccelerationStructure" />
+        inline UniquePtr<IBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const {
+            return this->getBlas(name, flags);
+        }
+
+        /// <summary>
+        /// Creates a top-level acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
+        /// <returns>The top-level acceleration structure instance.</returns>
+        /// <seealso cref="ITopLevelAccelerationStructure" />
+        inline UniquePtr<ITopLevelAccelerationStructure> createTopLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None) const {
+            return this->createTopLevelAccelerationStructure("", flags);
+        }
+
+        /// <summary>
+        /// Creates a top-level acceleration structure.
+        /// </summary>
+        /// <remarks>
+        /// This method is only supported if the <see cref="GraphicsDeviceFeature::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="name">The name of the acceleration structure resource.</param>
+        /// <param name="flags">The flags that define how the acceleration structure is built.</param>
+        /// <returns>The top-level acceleration structure instance.</returns>
+        /// <seealso cref="ITopLevelAccelerationStructure" />
+        inline UniquePtr<ITopLevelAccelerationStructure> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const {
+            return this->getTlas(name, flags);
+        }
+
     private:
-        virtual UniquePtr<IBuffer> getBuffer(const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const = 0;
-        virtual UniquePtr<IBuffer> getBuffer(const String& name, const BufferType& type, const BufferUsage& usage, const size_t& elementSize, const UInt32& elements, const bool& allowWrite) const = 0;
-        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
-        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
-        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
-        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, const BufferUsage& usage, const UInt32& elements) const = 0;
-        virtual UniquePtr<IImage> getAttachment(const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const = 0;
-        virtual UniquePtr<IImage> getAttachment(const String& name, const Format& format, const Size2d& size, const MultiSamplingLevel& samples) const = 0;
-        virtual UniquePtr<IImage> getTexture(const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const = 0;
-        virtual UniquePtr<IImage> getTexture(const String& name, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& levels, const UInt32& layers, const MultiSamplingLevel& samples, const bool& allowWrite) const = 0;
-        virtual Enumerable<UniquePtr<IImage>> getTextures(const UInt32& elements, const Format& format, const Size3d& size, const ImageDimensions& dimension, const UInt32& layers, const UInt32& levels, const MultiSamplingLevel& samples, const bool& allowWrite) const = 0;
-        virtual UniquePtr<ISampler> getSampler(const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const = 0;
-        virtual UniquePtr<ISampler> getSampler(const String& name, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const = 0;
-        virtual Enumerable<UniquePtr<ISampler>> getSamplers(const UInt32& elements, const FilterMode& magFilter, const FilterMode& minFilter, const BorderMode& borderU, const BorderMode& borderV, const BorderMode& borderW, const MipMapMode& mipMapMode, const Float& mipMapBias, const Float& maxLod, const Float& minLod, const Float& anisotropy) const = 0;
+        virtual UniquePtr<IBuffer> getBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const = 0;
+        virtual UniquePtr<IBuffer> getBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const = 0;
+        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
+        virtual UniquePtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
+        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
+        virtual UniquePtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
+        virtual UniquePtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
+        virtual UniquePtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
+        virtual Enumerable<UniquePtr<IImage>> getTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
+        virtual UniquePtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
+        virtual UniquePtr<ISampler> getSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
+        virtual Enumerable<UniquePtr<ISampler>> getSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
+        virtual UniquePtr<IBottomLevelAccelerationStructure> getBlas(StringView name, AccelerationStructureFlags flags) const = 0;
+        virtual UniquePtr<ITopLevelAccelerationStructure> getTlas(StringView name, AccelerationStructureFlags flags) const = 0;
+    };
+
+    /// <summary>
+    /// Describes optional features that can be supported by a device.
+    /// </summary>
+    /// <remarks>
+    /// Device features are evaluated when creating a <see cref="IGraphicsDevice" />. If a feature is not supported by the device, an exception is raised.
+    /// 
+    /// Note that feature support is not strictly enforced by the engine. For example, if you are calling any feature-related API, the call may succeed even if the feature is not enabled, if the GPU 
+    /// supports it. Graphics API validation may warn about it and the same program may fail on GPUs that do not support this feature. Enabling a feature through the settings in this structure makes
+    /// the device check for support creation, resulting in a clear fail path, if a required extension is not supported by the system hardware.
+    /// </remarks>
+    struct LITEFX_RENDERING_API GraphicsDeviceFeatures {
+    public:
+        /// <summary>
+        /// Enables or disables mesh shader support.
+        /// </summary>
+        bool MeshShaders { false };
+
+        /// <summary>
+        /// Enables or disables ray-tracing support.
+        /// </summary>
+        bool RayTracing { false };
+
+        /// <summary>
+        /// Enables or disables ray query and inline ray-tracing support.
+        /// </summary>
+        bool RayQueries { false };
+
+        /// <summary>
+        /// Enables or disables support for indirect draw.
+        /// </summary>
+        bool DrawIndirect { false };
     };
 
     /// <summary>
@@ -5560,46 +8499,71 @@ namespace LiteFX::Rendering {
         virtual const IGraphicsFactory& factory() const noexcept = 0;
 
         /// <summary>
-        /// Returns the instance of the queue, used to process draw calls.
+        /// Returns the instance of the default <see cref="ICommandQueue" /> that supports the combination of queue types specified by the <paramref name="type" /> parameter.
         /// </summary>
+        /// <remarks>
+        /// When the device is created, it attempts to create a queue for each singular queue type. Each GPU is expected to provide at least one queue that is capable of supporting all
+        /// queue types. This queue is used as a fallback queue, if no dedicated queue for a certain type is supported. For example, if no dedicated <see cref="QueueType::Transfer" />
+        /// queue can be created, calling this method for the default transfer queue will return the same queue instance as the default graphics queue, which implicitly always supports
+        /// transfer operations. The same is true for compute queues. This default graphics queue is ensured to support presentation and is also created with the highest queue priority.
+        /// </remarks>
+        /// <param name="type">The type or a combination of types that specifies the operation the queue should support.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if no default queue for the combination of queue types specified with the <paramref name="type" /> parameter has been created.</exception>
         /// <returns>The instance of the queue, used to process draw calls.</returns>
-        virtual const ICommandQueue& graphicsQueue() const noexcept = 0;
+        /// <seealso cref="createQueue" />
+        inline const ICommandQueue& defaultQueue(QueueType type) const {
+            return this->getDefaultQueue(type);
+        }
 
         /// <summary>
-        /// Returns the instance of the queue used for device-device transfers (e.g. between render-passes).
+        /// Attempts to create a new queue that supports the combination of queue types specified by the <paramref name="type" /> parameter.
         /// </summary>
         /// <remarks>
-        /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
+        /// Note that a queue is not guaranteed to represent an *actual* hardware queue that runs in parallel to other hardware queues. Backends might create *virtual* queues, that map
+        /// the same hardware queue. In this case, creating a new queue is always possible but might not yield performance benefits. As a good practice, it is advised to create only as
+        /// few queues as required.
+        /// 
+        /// If this method is not able to create a new queue (i.e., it returns `nullptr`), you can either fall back to the default queue (<see cref="defaultQueue" />) or use any queue
+        /// that you created earlier instead.
+        /// 
+        /// The <paramref name="priority" /> parameter can be specified to request a queue with a certain priority. However, the backend is not required to return a queue with that 
+        /// actual priority. The default queues are always prioritized highest.
         /// </remarks>
-        /// <returns>The instance of the queue used for device-device transfers (e.g. between render-passes).</returns>
-        virtual const ICommandQueue& transferQueue() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the instance of the queue used for host-device transfers.
-        /// </summary>
-        /// <remarks>
-        /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated transfer queues are supported on the device.
-        /// </remarks>
-        /// <returns>The instance of the queue used for host-device transfers.</returns>
-        virtual const ICommandQueue& bufferQueue() const noexcept = 0;
-
-        /// <summary>
-        /// Returns the instance of the queue used for compute calls.
-        /// </summary>
-        /// <remarks>
-        /// Note that this can be the same as <see cref="graphicsQueue" />, if no dedicated compute queues are supported on the device.
-        /// </remarks>
-        /// <returns>The instance of the queue used for compute calls.</returns>
-        virtual const ICommandQueue& computeQueue() const noexcept = 0;
+        /// <param name="type">The type of the queue or a combination of capabilities the queue is required to support.</param>
+        /// <param name="priority">The preferred priority of the queue.</param>
+        /// <returns>A pointer to the newly created queue, or `nullptr`, if no queue could be created.</returns>
+        /// <seealso cref="defaultQueue" />
+        inline const ICommandQueue* createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) noexcept {
+            return this->getNewQueue(type, priority);
+        }
 
         /// <summary>
         /// Creates a memory barrier instance.
         /// </summary>
-		/// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
-		/// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
+        /// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
+        /// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
         /// <returns>The instance of the memory barrier.</returns>
-        UniquePtr<IBarrier> makeBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept {
+        inline [[nodiscard]] UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
             return this->getNewBarrier(syncBefore, syncAfter);
+        }
+
+        /// <summary>
+        /// Creates a new frame buffer instance.
+        /// </summary>
+        /// <param name="renderArea">The initial render area of the frame buffer.</param>
+        /// <returns>The instance of the frame buffer.</returns>
+        inline [[nodiscard]] UniquePtr<IFrameBuffer> makeFrameBuffer(const Size2d& renderArea) const noexcept {
+            return this->makeFrameBuffer("", renderArea);
+        }
+
+        /// <summary>
+        /// Creates a new frame buffer instance.
+        /// </summary>
+        /// <param name="name">The name of the frame buffer.</param>
+        /// <param name="renderArea">The initial render area of the frame buffer.</param>
+        /// <returns>The instance of the frame buffer.</returns>
+        inline [[nodiscard]] UniquePtr<IFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept {
+            return this->getNewFrameBuffer(name, renderArea);
         }
 
         /// <summary>
@@ -5611,7 +8575,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="format">The target (i.e. back-buffer) format.</param>
         /// <returns>The maximum multi-sampling level.</returns>
-        virtual MultiSamplingLevel maximumMultiSamplingLevel(const Format& format) const noexcept = 0;
+        virtual MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept = 0;
 
         /// <summary>
         /// Returns the number of GPU ticks per milliseconds.
@@ -5620,18 +8584,61 @@ namespace LiteFX::Rendering {
         /// <seealso cref="TimingEvent" />
         virtual double ticksPerMillisecond() const noexcept = 0;
 
-    public:
         /// <summary>
-        /// Waits until the device is idle.
+        /// Computes the required amount of device memory for an <see cref="IBottomLevelAccelerationStructure" />.
         /// </summary>
         /// <remarks>
-        /// The complexity of this operation may depend on the graphics API that implements this method. Calling this method guarantees, that the device resources are in an unused state and 
-        /// may safely be released.
+        /// Acceleration structures are built on the GPU, which requires additional memory called *scratch memory*. When creating an acceleration structure (AS), you have to 
+        /// provide a temporary buffer containing the scratch memory, alongside the actual buffer that stores the AS itself. This method can be used to pre-compute the buffer
+        /// sizes for both buffers.
+        /// 
+        /// This method is only supported, if the <see cref="GraphicsDeviceFeatures::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="blas">The bottom-level acceleration structure to compute the memory requirements for.</param>
+        /// <param name="bufferSize">The size of the acceleration structure buffer.</param>
+        /// <param name="scratchSize">The size of the scratch memory buffer.</param>
+        /// <param name="forUpdate">If set to `true`, <paramref name="scratchSize" /> will contain the amount of scratch memory required for an update.</param>
+        inline void computeAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const {
+            this->getAccelerationStructureSizes(blas, bufferSize, scratchSize, forUpdate);
+        }
+
+        /// <summary>
+        /// Computes the required amount of device memory for an <see cref="ITopLevelAccelerationStructure" />.
+        /// </summary>
+        /// <remarks>
+        /// Acceleration structures are built on the GPU, which requires additional memory called *scratch memory*. When creating an acceleration structure (AS), you have to 
+        /// provide a temporary buffer containing the scratch memory, alongside the actual buffer that stores the AS itself. This method can be used to pre-compute the buffer
+        /// sizes for both buffers.
+        /// 
+        /// This method is only supported, if the <see cref="GraphicsDeviceFeatures::RayTracing" /> feature is enabled.
+        /// </remarks>
+        /// <param name="tlas">The top-level acceleration structure to compute the memory requirements for.</param>
+        /// <param name="bufferSize">The size of the acceleration structure buffer.</param>
+        /// <param name="scratchSize">The size of the scratch memory buffer.</param>
+        /// <param name="forUpdate">If set to `true`, <paramref name="scratchSize" /> will contain the amount of scratch memory required for an update.</param>
+        inline void computeAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const {
+            this->getAccelerationStructureSizes(tlas, bufferSize, scratchSize, forUpdate);
+        }
+
+    private:
+        virtual void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
+        virtual void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
+
+    public:
+        /// <summary>
+        /// Waits until all queues allocated from the device have finished the work issued prior to this point.
+        /// </summary>
+        /// <remarks>
+        /// Note that you must synchronize calls to this method, i.e., you have to ensure no other thread is submitting work on any queue while waiting. Calling this method only 
+        /// guarantees that all *prior* work is finished after returning. If any other thread submits work to any queue after calling this method, this workload is not waited on.
         /// </remarks>
         virtual void wait() const = 0;
 
     private:
-        virtual UniquePtr<IBarrier> getNewBarrier(const PipelineStage& syncBefore, const PipelineStage& syncAfter) const noexcept = 0;
+        virtual UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
+        virtual UniquePtr<IFrameBuffer> getNewFrameBuffer(StringView name, const Size2d& renderArea) const noexcept = 0;
+        virtual const ICommandQueue& getDefaultQueue(QueueType type) const = 0;
+        virtual const ICommandQueue* getNewQueue(QueueType type, QueuePriority priority) noexcept = 0;
     };
 
     /// <summary>
@@ -5646,7 +8653,7 @@ namespace LiteFX::Rendering {
         /// Lists all available graphics adapters.
         /// </summary>
         /// <returns>An array of pointers to all available graphics adapters.</returns>
-        Enumerable<const IGraphicsAdapter*> listAdapters() const {
+        inline Enumerable<const IGraphicsAdapter*> listAdapters() const {
             return this->getAdapters();
         }
 
@@ -5682,7 +8689,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="name">The name of the device.</param>
         /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
-        virtual const IGraphicsDevice* operator[](const String& name) const noexcept {
+        virtual inline const IGraphicsDevice* operator[](const String& name) const noexcept {
             return this->device(name);
         };
 
@@ -5691,7 +8698,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="name">The name of the device.</param>
         /// <returns>A pointer to the device or <c>nullptr</c>, if no device could be found.</returns>
-        virtual IGraphicsDevice* operator[](const String& name) noexcept {
+        virtual inline IGraphicsDevice* operator[](const String& name) noexcept {
             return this->device(name);
         };
 

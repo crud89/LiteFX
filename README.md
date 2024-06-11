@@ -3,7 +3,7 @@
 An extensible, descriptive, modern computer graphics and rendering engine, written in C++23.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/crud89/LiteFX/main/docs/img/banner_m.jpg?token=AEMKYX75E4UF4U6GAT5ZTIDA3C4GU">
+  <img src="https://raw.githubusercontent.com/crud89/LiteFX/main/docs/img/litefx_rm_banner.png">
 </p>
 
 <div align="center">
@@ -20,8 +20,8 @@ The engine design follows an descriptive approach, which means that an applicati
 
 ```cxx
 UniquePtr<RenderPass> renderPass = device->buildRenderPass("Geometry")
-    .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, { 0.f, 0.f, 0.f, 1.f }, true, false)
-    .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, MultiSamplingLevel::x1, { 1.f, 0.f, 0.f, 0.f }, true, false);
+    .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, RenderTargetFlags::Clear, { 0.f, 0.f, 0.f, 1.f })
+    .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, MultiSamplingLevel::x1, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
 UniquePtr<RenderPipeline> renderPipeline = device->buildRenderPipeline(*renderPass, "Geometry")
     .inputAssembler(inputAssembler)
@@ -48,7 +48,7 @@ LiteFX is written in modern C++23, following established design patterns to make
 
 ### Key Features
 
-- **State of the Art**: the engine makes use of some of the most recent techniques introduced to the supported APIs in order to help you to fully utilize the latest hardware. For example it uses features from the [DirectX 12 Agility SDK](https://devblogs.microsoft.com/directx/announcing-dx12agility/) and [Vulkan 1.3](https://www.khronos.org/news/press/vulkan-reduces-fragmentation-and-provides-roadmap-visibility-for-developers).
+- **State of the Art**: the engine makes use of some of the most recent techniques introduced to the supported APIs in order to help you to fully utilize the latest hardware. For example it uses features from the [DirectX 12 Agility SDK](https://devblogs.microsoft.com/directx/announcing-dx12agility/) and [Vulkan 1.3](https://www.khronos.org/news/press/vulkan-reduces-fragmentation-and-provides-roadmap-visibility-for-developers), such as *mesh shaders*, *ray tracing* and *enhanced barriers*.
 - **Streamlined API**: low-level graphics APIs typically involve a lot of boilerplate code to set them up. LiteFX provides different techniques to make this code less verbose. *Fluent Builders* can be used to setup and configure render graphs. *Shader Reflection* can be used in both, Vulkan and DirectX 12, to create pipeline layouts from a single line of code.
 - **Multi-Threading Support**: LiteFX comes with support for multi-threaded render passes in order to maximize throughput and prevent GPU stalls. It takes care of the necessary synchronization between threads and exposes interfaces for manual synchronization. 
 - **Descriptor and Memory Management**: descriptors and buffers can be hard to get around. LiteFX abstracts them away in a way that is both efficient and accessible.
@@ -72,15 +72,14 @@ You can also build the sources on your own. Currently only MSVC builds under Win
 
 In order for the project to be built, there are a few prerequisites that need to be present on your environment:
 
-- [C++23 compatible compiler](https://en.cppreference.com/w/cpp/compiler_support/23): At the moment only MSVC fully supports the required features.
-- [CMake](https://cmake.org/download/) (version 3.20 or higher). †
+- [C++23 compatible compiler](https://en.cppreference.com/w/cpp/compiler_support/23): At the moment only MSVC fully supports the required features. †
+- [CMake](https://cmake.org/download/) (version 3.20 or higher). ‡
 - Optional: [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later (required to build the Vulkan backend).
-- Optional: Custom [DXC](https://github.com/microsoft/DirectXShaderCompiler) build (required to build shaders for DirectX backend). ‡
 - Optional: Windows 10 SDK 10.0.19041.0 or later (required to build DirectX backend).
 
-† CMake 3.20 is part of Visual Studio 2019 version 16.10 and above. When using other compilers, CMake needs to be installed manually.
+† Note that at least Visual Studio 17.10 or later is required.
 
-‡ Note that the LunarG Vulkan SDK (1.3.204.1 and above) ships with a pre-built DXC binary, that supports DXIL and SPIR-V code generation and thus should be favored over the DXC binary shipped with the Windows SDK, which only supports DXIL.
+‡ CMake 3.20 is part of Visual Studio 2022. When using other compilers, CMake needs to be installed manually.
 
 #### Cloning the Repository
 
@@ -130,18 +129,18 @@ You can customize the engine build, according to your specific needs. The most s
 }
 ```
 
-Within the cache variables, you can override the build options, LiteFX exports. All customizable options have the `BUILD_` prefix and are described in detail below:
+Within the cache variables, you can override the build options, LiteFX exports. All customizable options have the `LITEFX_BUILD_` prefix and are described in detail below:
 
-- `BUILD_VULKAN_BACKEND` (default: `ON`): builds the Vulkan 🌋 backend (requires [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later to be installed on your system).
-- `BUILD_DX12_BACKEND` (default: `ON`): builds the DirectX 12 ❎ backend.
-- `BUILD_DEFINE_BUILDERS` (default: `ON`): enables the [builder architecture](https://github.com/crud89/LiteFX/wiki/Builders) for backends.
-- `BUILD_WITH_GLM` (default: `ON`): adds [glm](https://glm.g-truc.net/0.9.9/index.html) converters to math types. †
-- `BUILD_WITH_DIRECTX_MATH` (default: `ON`): adds [DirectX Math](https://github.com/microsoft/DirectXMath) converters to math types. †
-- `BUILD_HLSL_SHADER_MODEL` (default: `6_3`): specifies the default HLSL shader model.
-- `BUILD_EXAMPLES` (default: `ON`): builds the examples. Depending on which backends are built, some may be omitted.
-- `BUILD_EXAMPLES_DX12_PIX_LOADER` (default: `ON`): enables code that attempts to load the latest version of the [PIX GPU capturer](https://devblogs.microsoft.com/pix/) in the DirectX 12 samples, if available (and if the command line argument `--load-pix=true` is specified).
-- `BUILD_EXAMPLES_RENDERDOC_LOADER` (default: `OFF`): enables code in the samples, that loads the [RenderDoc](https://renderdoc.org/) runtime API, if the application is launched from within RenderDoc (and if the command line argument `--load-render-doc=true` is specified).
-- `BUILD_TESTS` (default: `OFF`): builds tests for the project.
+- `LITEFX_BUILD_VULKAN_BACKEND` (default: `ON`): builds the Vulkan 🌋 backend (requires [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later to be installed on your system).
+- `LITEFX_BUILD_DX12_BACKEND` (default: `ON`): builds the DirectX 12 ❎ backend.
+- `LITEFX_BUILD_DEFINE_BUILDERS` (default: `ON`): enables the [builder architecture](https://github.com/crud89/LiteFX/wiki/Builders) for backends.
+- `LITEFX_BUILD_WITH_GLM` (default: `ON`): adds [glm](https://glm.g-truc.net/0.9.9/index.html) converters to math types. †
+- `LITEFX_BUILD_WITH_DIRECTX_MATH` (default: `ON`): adds [DirectX Math](https://github.com/microsoft/DirectXMath) converters to math types. †
+- `LITEFX_BUILD_HLSL_SHADER_MODEL` (default: `6_5`): specifies the default HLSL shader model.
+- `LITEFX_BUILD_EXAMPLES` (default: `ON`): builds the examples. Depending on which backends are built, some may be omitted.
+- `LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER` (default: `ON`): enables code that attempts to load the latest version of the [PIX GPU capturer](https://devblogs.microsoft.com/pix/) in the DirectX 12 samples, if available (and if the command line argument `--load-pix=true` is specified).
+- `LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER` (default: `OFF`): enables code in the samples, that loads the [RenderDoc](https://renderdoc.org/) runtime API, if the application is launched from within RenderDoc (and if the command line argument `--load-render-doc=true` is specified).
+- `LITEFX_BUILD_TESTS` (default: `OFF`): builds tests for the project.
 
 For example, if you only want to build the Vulkan backend and samples and don't want to use DirectX Math, a preset would look like this:
 
@@ -158,8 +157,8 @@ For example, if you only want to build the Vulkan backend and samples and don't 
       "name": "win-x64-vulkan-only",
       "inherits": "windows-x64-release",
       "cacheVariables": {
-        "BUILD_DX12_BACKEND": "OFF",
-        "BUILD_WITH_DIRECTX_MATH": "OFF"
+        "LITEFX_BUILD_DX12_BACKEND": "OFF",
+        "LITEFX_BUILD_WITH_DIRECTX_MATH": "OFF"
       }
     }
   ]
@@ -181,12 +180,11 @@ If you are having problems building the project, you may find answers [in the wi
 
 ### Dependencies
 
-All dependencies are automatically installed using *vcpkg*, when performing a manual build. The engine only has two hard dependencies:
+All dependencies are automatically installed using *vcpkg*, when performing a manual build. The engine core by itself only has one hard dependency:
 
 - [spdlog](https://github.com/gabime/spdlog): Lightweight logging library.
-- [{fmt}](https://github.com/fmtlib/fmt): String formatting library and implicit dependency of *spdlog*.
 
-Depending on which rendering backends are build, the following dependencies are required:
+Depending on which rendering backends are build, the following dependencies are additionally linked against:
 
 - [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/): Required by the Vulkan backend.
 - [Vulkan Memory Allocator](https://gpuopen.com/vulkan-memory-allocator/): Required by the Vulkan backend. Handles memory allocations.
@@ -195,6 +193,7 @@ Depending on which rendering backends are build, the following dependencies are 
 - [DirectX Agility SDK](https://devblogs.microsoft.com/directx/directx12agility/): Required by the DirectX 12 backend.
 - [WinPixEventRuntime](https://devblogs.microsoft.com/pix/winpixeventruntime/): Required by the DirectX 12 backend.
 - [D3D12 Memory Allocator](https://gpuopen.com/d3d12-memory-allocator/): Required by the DirectX 12 backend. Handles memory allocations.
+- [DirectX Shader Compiler (DXC)](https://github.com/microsoft/DirectXShaderCompiler): Optional for Vulkan backend, but required for the DirectX 12 backend.
 
 The math module can optionally be built with converters for the following math and linear algebra libraries:
 

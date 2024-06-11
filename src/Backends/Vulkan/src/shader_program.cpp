@@ -7,6 +7,45 @@
 using namespace LiteFX::Rendering::Backends;
 
 // ------------------------------------------------------------------------------------------------
+// Formatter for SpvReflectResult.
+// ------------------------------------------------------------------------------------------------
+
+template <>
+struct LITEFX_VULKAN_API std::formatter<SpvReflectResult> : std::formatter<std::string_view> {
+    auto format(SpvReflectResult t, std::format_context& ctx) {
+        string_view name;
+
+        switch (t)
+        {
+        case SPV_REFLECT_RESULT_SUCCESS: name = "SPV_REFLECT_RESULT_SUCCESS"; break;
+        case SPV_REFLECT_RESULT_NOT_READY: name = "SPV_REFLECT_RESULT_NOT_READY"; break;
+        case SPV_REFLECT_RESULT_ERROR_PARSE_FAILED: name = "SPV_REFLECT_RESULT_ERROR_PARSE_FAILED"; break;
+        case SPV_REFLECT_RESULT_ERROR_ALLOC_FAILED: name = "SPV_REFLECT_RESULT_ERROR_ALLOC_FAILED"; break;
+        case SPV_REFLECT_RESULT_ERROR_RANGE_EXCEEDED: name = "SPV_REFLECT_RESULT_ERROR_RANGE_EXCEEDED"; break;
+        case SPV_REFLECT_RESULT_ERROR_NULL_POINTER: name = "SPV_REFLECT_RESULT_ERROR_NULL_POINTER"; break;
+        case SPV_REFLECT_RESULT_ERROR_INTERNAL_ERROR: name = "SPV_REFLECT_RESULT_ERROR_INTERNAL_ERROR"; break;
+        case SPV_REFLECT_RESULT_ERROR_COUNT_MISMATCH: name = "SPV_REFLECT_RESULT_ERROR_COUNT_MISMATCH"; break;
+        case SPV_REFLECT_RESULT_ERROR_ELEMENT_NOT_FOUND: name = "SPV_REFLECT_RESULT_ERROR_ELEMENT_NOT_FOUND"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_CODE_SIZE: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_CODE_SIZE"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_MAGIC_NUMBER: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_MAGIC_NUMBER"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_UNEXPECTED_EOF: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_UNEXPECTED_EOF"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_ID_REFERENCE: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_ID_REFERENCE"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_SET_NUMBER_OVERFLOW: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_SET_NUMBER_OVERFLOW"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_STORAGE_CLASS: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_STORAGE_CLASS"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_RECURSION: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_RECURSION"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_INSTRUCTION: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_INSTRUCTION"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_UNEXPECTED_BLOCK_DATA: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_UNEXPECTED_BLOCK_DATA"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_BLOCK_MEMBER_REFERENCE: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_BLOCK_MEMBER_REFERENCE"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_ENTRY_POINT: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_ENTRY_POINT"; break;
+        case SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_EXECUTION_MODE: name = "SPV_REFLECT_RESULT_ERROR_SPIRV_INVALID_EXECUTION_MODE"; break;
+        default: name = "Status: unknown"; break;
+        }
+
+        return formatter<string_view>::format(name, ctx);
+    }
+};
+
+// ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
@@ -25,6 +64,7 @@ private:
         UInt32 location;
         UInt32 elementSize;
         UInt32 elements;
+        UInt32 inputAttachmentIndex;
         DescriptorType type;
 
         bool equals(const DescriptorInfo& rhs)
@@ -64,6 +104,96 @@ public:
     }
 
 public:
+    void validate()
+    {
+        // First check if there are any modules at all, or any that are uninitialized.
+        if (m_modules.empty()) [[unlikely]]
+            return; // Not exactly a reason to throw, but rather an empty group cannot be meaningful used anyway.
+
+        if (std::ranges::contains(m_modules, nullptr)) [[unlikely]]
+            throw InvalidArgumentException("modules", "At least one of the shader modules is not initialized.");
+
+        // Check if there are combinations, that are not supported.
+        Dictionary<ShaderStage, UInt32> shaders = {
+            { ShaderStage::Compute, 0 },
+            { ShaderStage::Vertex, 0 },
+            { ShaderStage::Geometry, 0 },
+            { ShaderStage::TessellationControl, 0 },
+            { ShaderStage::TessellationEvaluation, 0 },
+            { ShaderStage::Fragment, 0 },
+            { ShaderStage::Task, 0 },
+            { ShaderStage::Mesh, 0 },
+            { ShaderStage::RayGeneration, 0 },
+            { ShaderStage::Miss, 0 },
+            { ShaderStage::Callable, 0 },
+            { ShaderStage::AnyHit, 0 },
+            { ShaderStage::ClosestHit, 0 },
+            { ShaderStage::Intersection, 0 }
+        };
+
+        std::ranges::for_each(m_modules, [&shaders](auto& module) { shaders[module->type()]++; });
+
+        bool containsComputeGroup    = shaders[ShaderStage::Compute] > 0;
+        bool containsGraphicsGroup   = shaders[ShaderStage::Vertex] > 0 || shaders[ShaderStage::Geometry] > 0 || shaders[ShaderStage::TessellationControl] > 0 || shaders[ShaderStage::TessellationEvaluation] > 0;
+        bool containsFragmentGroup   = shaders[ShaderStage::Fragment] > 0;
+        bool containsMeshGroup       = shaders[ShaderStage::Task] > 0 || shaders[ShaderStage::Mesh] > 0;
+        bool containsRaytracingGroup = shaders[ShaderStage::RayGeneration] > 0 || shaders[ShaderStage::Miss] > 0 || shaders[ShaderStage::Callable] > 0 || shaders[ShaderStage::AnyHit] > 0 || shaders[ShaderStage::ClosestHit] > 0 || shaders[ShaderStage::Intersection] > 0;
+
+        // Compute groups must be compute only.
+        if (containsComputeGroup)
+        {
+            if (containsGraphicsGroup || containsMeshGroup || containsFragmentGroup || containsRaytracingGroup) [[unlikely]]
+                throw InvalidArgumentException("modules", "The provided shader modules mix compute shaders with non-compute shaders.");
+            if (shaders[ShaderStage::Compute] > 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "If a shader program contains a compute shader, it must contain only one shader module.");
+
+            return;
+        }
+
+        // No compute shaders from this point - are we on a ray-tracing group?
+        if (containsRaytracingGroup)
+        {
+            if (containsGraphicsGroup || containsMeshGroup || containsFragmentGroup) [[unlikely]]
+                throw InvalidArgumentException("modules", "If a shader program contains ray-tracing shaders, it must only contain ray-tracing shaders.");
+            if (containsRaytracingGroup && shaders[ShaderStage::RayGeneration] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "If ray-tracing shaders are present, there must also be exactly one ray generation shader.");
+                
+            return;
+        }
+
+        // No ray-tracing from this point... next are mesh shaders.
+        if (containsMeshGroup)
+        {
+            if (containsGraphicsGroup) [[unlikely]]
+                throw InvalidArgumentException("modules", "Mesh shaders must not be combined with graphics shaders.");
+            if (shaders[ShaderStage::Fragment] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a mesh shader program, there must be exactly one fragment/pixel shader.");
+            if (shaders[ShaderStage::Mesh] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a mesh shader program, there must be exactly one mesh shader.");
+            if (shaders[ShaderStage::Task] > 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a mesh shader program, there must be at most one mesh shader.");
+
+            return;
+        }
+
+        // Now on to the standard graphics shaders.
+        if (containsGraphicsGroup)
+        {
+            if (shaders[ShaderStage::Fragment] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a graphics shader program, there must be exactly one fragment/pixel shader.");
+            if (shaders[ShaderStage::Vertex] != 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a graphics shader program, there must be exactly one vertex shader.");
+            if (shaders[ShaderStage::TessellationControl] > 1 || shaders[ShaderStage::TessellationEvaluation] > 1 || shaders[ShaderStage::Geometry] > 1) [[unlikely]]
+                throw InvalidArgumentException("modules", "In a graphics shader program, there must be at most one geometry, tessellation control/domain or tessellation evaluation/hull shader.");
+
+            return;
+        }
+
+        // Finally, let's check if there's a lonely fragment shader.
+        if (containsFragmentGroup) [[unlikely]]
+            throw InvalidArgumentException("modules", "A shader program that contains only a fragment/pixel shader is not valid.");
+    }
+
     SharedPtr<VulkanPipelineLayout> reflectPipelineLayout()
     {
         // First, filter the descriptor sets and push constant ranges.
@@ -78,26 +208,26 @@ public:
             auto result = reflection.GetResult();
 
             if (result != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
-                throw RuntimeException("Unable to reflect shader module (Error {0}).", reflection.GetResult());
+                throw RuntimeException("Unable to reflect shader module (Error {0:x}).", static_cast<UInt32>(reflection.GetResult()));
 
             // Get the number of descriptor sets and push constants.
             UInt32 descriptorSetCount, pushConstantCount;
 
             if ((result = reflection.EnumerateDescriptorSets(&descriptorSetCount, nullptr)) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
-                throw RuntimeException("Unable to get descriptor set count (Error {0}).", result);
+                throw RuntimeException("Unable to get descriptor set count (Error {0:x}).", static_cast<UInt32>(result));
 
             if ((result = reflection.EnumeratePushConstants(&pushConstantCount, nullptr)) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
-                throw RuntimeException("Unable to get push constants count (Error {0}).", result);
+                throw RuntimeException("Unable to get push constants count (Error {0:x}).", static_cast<UInt32>(result));
 
             // Acquire the descriptor sets and push constants.
             Array<SpvReflectDescriptorSet*> descriptorSets(descriptorSetCount);
             Array<SpvReflectBlockVariable*> pushConstants(pushConstantCount);
 
             if ((result = reflection.EnumerateDescriptorSets(&descriptorSetCount, descriptorSets.data())) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
-                throw RuntimeException("Unable to enumerate descriptor sets (Error {0}).", result);
+                throw RuntimeException("Unable to enumerate descriptor sets (Error {0:x}).", static_cast<UInt32>(result));
 
             if ((result = reflection.EnumeratePushConstants(&pushConstantCount, pushConstants.data())) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
-                throw RuntimeException("Unable to enumerate push constants (Error {0}).", result);
+                throw RuntimeException("Unable to enumerate push constants (Error {0:x}).", static_cast<UInt32>(result));
 
             // Parse the descriptor sets.
             std::ranges::for_each(descriptorSets, [this, &shaderModule, &reflection, &descriptorSetLayouts](const SpvReflectDescriptorSet* descriptorSet) {
@@ -109,47 +239,37 @@ public:
 
                     // Filter the descriptor type.
                     DescriptorType type;
+                    UInt32 inputAttachmentIndex = 0;
 
                     switch (descriptor->descriptor_type)
                     {
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:    throw RuntimeException("The shader exposes a combined image samplers, which is currently not supported.");
-                    case SPV_REFLECT_TYPE_FLAG_EXTERNAL_ACCELERATION_STRUCTURE: throw RuntimeException("The shader exposes an acceleration structure, which is currently not supported.");
+                    default: throw RuntimeException("Unsupported descriptor type detected.");
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER:     throw RuntimeException("The shader exposes a combined image samplers, which is currently not supported.");
                     case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC:
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:    throw RuntimeException("The shader exposes a dynamic buffer, which is currently not supported.");
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLER:                   type = DescriptorType::Sampler; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE:             type = DescriptorType::Texture; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_IMAGE:             type = DescriptorType::RWTexture; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER:            type = DescriptorType::ConstantBuffer; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:          type = DescriptorType::InputAttachment; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:      type = DescriptorType::Buffer; break;
-                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:      type = DescriptorType::RWBuffer; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC:     throw RuntimeException("The shader exposes a dynamic buffer, which is currently not supported.");
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:           type = DescriptorType::InputAttachment; inputAttachmentIndex = descriptor->input_attachment_index; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLER:                    type = DescriptorType::Sampler; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE:              type = DescriptorType::Texture; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_IMAGE:              type = DescriptorType::RWTexture; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER:             type = DescriptorType::ConstantBuffer; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:       type = DescriptorType::Buffer; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:       type = DescriptorType::RWBuffer; break;
+                    case SPV_REFLECT_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR: type = DescriptorType::AccelerationStructure; break;
                     case SPV_REFLECT_DESCRIPTOR_TYPE_STORAGE_BUFFER:
                     {
                         // NOTE: Storage buffers need special care here. For more information see: 
                         //       https://github.com/microsoft/DirectXShaderCompiler/blob/main/docs/SPIR-V.rst#constant-texture-structured-byte-buffers.
+                        //       Structured buffers and byte address buffers all translate into storage buffers, which in Vulkan terms only differ in how they are bound. We still try to approximate 
+                        //       which buffer type was used for compilation, but at least for how Vulkan is concerned it does not matter anyway.
                         // TODO: There's also  `TextureBuffer`/`tbuffer`, that lands here. But how does it relate to texel buffers?
-                        // TODO: `AppendStructuredBuffer`/`ConsumeStructuredBuffer` implicitly define an additional counter variable, where this gets invoked twice. Counted resources are currently 
-                        //       unsupported, so two separate descriptors are exposed in this case, Both of them are of the same type `StructuredBuffer`/`RWStructuredBuffer`. The second one should
-                        //       only contain a 4 byte counter integer. Counter variable association requires an extension. More info: 
-                        //       https://github.com/microsoft/DirectXShaderCompiler/blob/main/docs/SPIR-V.rst#counter-buffers-for-rw-append-consume-structuredbuffer.
                         
                         // All buffers should have at least one member that stores the type info about the contained type. Descriptor arrays are of type `SpvOpTypeRuntimeArray`. To differentiate
                         // between `ByteAddressBuffer` and `StructuredBuffer`, we check the type flags of the first member. If it identifies an array of DWORDs, we treat the descriptor as 
                         // `ByteAddressBuffer`, though it could be a flavor of `StructuredBuffer<int>`. This is conceptually identical, so it ultimately makes no difference.
-                        if (descriptor->type_description->op != SpvOp::SpvOpTypeRuntimeArray)
-                        {
-                            if ((descriptor->type_description->members[0].type_flags & (SPV_REFLECT_TYPE_FLAG_ARRAY | SPV_REFLECT_TYPE_FLAG_INT)) != 0)
-                                type = descriptor->resource_type == SPV_REFLECT_RESOURCE_FLAG_SRV ? DescriptorType::ByteAddressBuffer : DescriptorType::RWByteAddressBuffer;
-                            else
-                                type = descriptor->resource_type == SPV_REFLECT_RESOURCE_FLAG_SRV ? DescriptorType::StructuredBuffer : DescriptorType::RWStructuredBuffer;
-                        }
+                        if ((descriptor->type_description->members[0].type_flags & SPV_REFLECT_TYPE_FLAG_STRUCT) == SPV_REFLECT_TYPE_FLAG_STRUCT)
+                            type = (descriptor->resource_type & SPV_REFLECT_RESOURCE_FLAG_SRV) == SPV_REFLECT_RESOURCE_FLAG_SRV ? DescriptorType::StructuredBuffer : DescriptorType::RWStructuredBuffer;
                         else
-                        {
-                            if ((descriptor->type_description->members[0].type_flags & (SPV_REFLECT_TYPE_FLAG_ARRAY | SPV_REFLECT_TYPE_FLAG_INT)) != 0)
-                                type = descriptor->resource_type == SPV_REFLECT_RESOURCE_FLAG_SRV ? DescriptorType::ByteAddressBuffer : DescriptorType::RWByteAddressBuffer;
-                            else // Assume SPV_REFLECT_RESOURCE_FLAG_SRV resource type, since UAV arrays are not allowed.
-                                type = DescriptorType::StructuredBuffer;
-                        }
+                            type = (descriptor->resource_type & SPV_REFLECT_RESOURCE_FLAG_SRV) == SPV_REFLECT_RESOURCE_FLAG_SRV ? DescriptorType::ByteAddressBuffer : DescriptorType::RWByteAddressBuffer;
 
                         break;
                     }
@@ -157,7 +277,7 @@ public:
 
                     // Count the array elements.
                     // NOTE: Actually there is a difference between declaring a descriptor an array (e.g. `StructuredBuffer<T> buffers[10]`) and declaring an array of descriptors 
-                    //       (e.g. `StructuredBuffer<T> buffers[10]`). The first variant only takes up a single descriptor, to which a buffer array can be bound. The second variant describes an 
+                    //       (e.g. `StructuredBuffer<T> buffers[]`). The first variant only takes up a single descriptor, to which a buffer array can be bound. The second variant describes an 
                     //       variable-sized array of descriptors (aka runtime array). In the engine we treat both identically. A runtime array is defined as a descriptor with 0xFFFFFFFF elements.
                     //       Theoretically, we could bind a buffer array to an descriptor within a descriptor array, which is currently an unsupported use case. In the future, we might want to have
                     //       a separate descriptor flag for descriptor arrays and array descriptors and also provide methods to bind them both.
@@ -170,11 +290,11 @@ public:
                             descriptors *= descriptor->array.dims[i];
 
                     // Create the descriptor layout.
-                    return DescriptorInfo{ .location = descriptor->binding, .elementSize = descriptor->block.padded_size, .elements = descriptors, .type = type };
+                    return DescriptorInfo{ .location = descriptor->binding, .elementSize = descriptor->block.padded_size, .elements = descriptors, .inputAttachmentIndex = inputAttachmentIndex, .type = type };
                 });
 
                 if (!descriptorSetLayouts.contains(descriptorSet->set))
-                    descriptorSetLayouts.insert(std::make_pair(descriptorSet->set, DescriptorSetInfo{ .space = descriptorSet->set, .stage = shaderModule->type(), .descriptors = descriptors}));
+                    descriptorSetLayouts.insert(std::make_pair(descriptorSet->set, DescriptorSetInfo{ .space = descriptorSet->set, .stage = shaderModule->type(), .descriptors = descriptors }));
                 else
                 {
                     // If the set already exists in another stage, merge it.
@@ -186,7 +306,7 @@ public:
                         if (auto match = std::ranges::find_if(layout.descriptors, [&descriptor](const DescriptorInfo& element) { return element.location == descriptor.location; }); match == layout.descriptors.end())
                             layout.descriptors.push_back(descriptor);
                         else if (!descriptor.equals(*match))
-                            LITEFX_WARNING(VULKAN_LOG, "Mismatching descriptors detected: the descriptor at location {0} ({3} elements with size of {4} bytes) of the descriptor set {1} in shader stage {2} conflicts with a descriptor from at least one other shader stage and will be dropped (conflicts with descriptor of type {9} in stage/s {6} with {7} elements of {8} bytes).",
+                            LITEFX_WARNING(VULKAN_LOG, "Mismatching descriptors detected: the descriptor at location {0} ({3} elements with size of {4} bytes) of the descriptor set {1} in shader stage {2} conflicts with a descriptor from at least one other shader stage and will be dropped (conflicts with descriptor of type {8} in stage/s {5} with {6} elements of {7} bytes).",
                                 descriptor.location, descriptorSet->set, shaderModule->type(), descriptor.elements, descriptor.elementSize, layout.stage, match->elements, match->elementSize, match->type);
                     }
 
@@ -215,7 +335,9 @@ public:
                 // Create the descriptor layouts.
                 auto descriptorLayouts = [&descriptorSet]() -> std::generator<UniquePtr<VulkanDescriptorLayout>> {
                     for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor)
-                        co_yield makeUnique<VulkanDescriptorLayout>(descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements);
+                        co_yield descriptor->type == DescriptorType::InputAttachment ?
+                            makeUnique<VulkanDescriptorLayout>(descriptor->type, descriptor->location, descriptor->inputAttachmentIndex) :
+                            makeUnique<VulkanDescriptorLayout>(descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements);
                 }() | std::views::as_rvalue;
 
                 co_yield makeUnique<VulkanDescriptorSetLayout>(m_device, std::move(descriptorLayouts), descriptorSet.space, descriptorSet.stage);
@@ -243,6 +365,7 @@ public:
 VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules) :
     m_impl(makePimpl<VulkanShaderProgramImpl>(this, device, std::move(modules)))
 {
+    m_impl->validate();
 }
 
 VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device) noexcept :
@@ -251,6 +374,11 @@ VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device) noexcept :
 }
 
 VulkanShaderProgram::~VulkanShaderProgram() noexcept = default;
+
+SharedPtr<VulkanShaderProgram> VulkanShaderProgram::create(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules)
+{
+    return SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device, std::move(modules)));
+}
 
 Enumerable<const VulkanShaderModule*> VulkanShaderProgram::modules() const noexcept
 {
@@ -262,9 +390,9 @@ SharedPtr<VulkanPipelineLayout> VulkanShaderProgram::reflectPipelineLayout() con
     return m_impl->reflectPipelineLayout();
 }
 
-#if defined(BUILD_DEFINE_BUILDERS)
+#if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
-// Graphics shader program builder implementation.
+// Shader program builder implementation.
 // ------------------------------------------------------------------------------------------------
 
 class VulkanShaderProgramBuilder::VulkanShaderProgramBuilderImpl : public Implement<VulkanShaderProgramBuilder> {
@@ -272,7 +400,6 @@ public:
     friend class VulkanShaderProgramBuilder;
 
 private:
-    Array<UniquePtr<VulkanShaderModule>> m_modules;
     const VulkanDevice& m_device;
 
 public:
@@ -283,91 +410,29 @@ public:
 };
 
 // ------------------------------------------------------------------------------------------------
-// Graphics shader program builder shared interface.
+// Shader program builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(const VulkanDevice& device) :
+constexpr VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(const VulkanDevice& device) :
     m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this, device)), ShaderProgramBuilder(SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device)))
 {
 }
 
-VulkanShaderProgramBuilder::~VulkanShaderProgramBuilder() noexcept = default;
+constexpr VulkanShaderProgramBuilder::~VulkanShaderProgramBuilder() noexcept = default;
 
 void VulkanShaderProgramBuilder::build()
 {
-    auto instance = this->instance();
-    instance->m_impl->m_modules = std::move(m_impl->m_modules);
+    this->instance()->m_impl->m_modules = std::move(m_state.modules);
+    this->instance()->m_impl->validate();
 }
 
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withShaderModule(const ShaderStage& type, const String& fileName, const String& entryPoint)
+constexpr UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
-    m_impl->m_modules.push_back(makeUnique<VulkanShaderModule>(m_impl->m_device, type, fileName, entryPoint));
-    return *this;
+    return makeUnique<VulkanShaderModule>(m_impl->m_device, type, fileName, entryPoint, shaderLocalDescriptor);
 }
 
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withShaderModule(const ShaderStage& type, std::istream& stream, const String& name, const String& entryPoint)
+constexpr UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
-    m_impl->m_modules.push_back(makeUnique<VulkanShaderModule>(m_impl->m_device, type, stream, name, entryPoint));
-    return *this;
+    return makeUnique<VulkanShaderModule>(m_impl->m_device, type, stream, name, entryPoint, shaderLocalDescriptor);
 }
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withVertexShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Vertex, fileName, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withVertexShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Vertex, stream, name, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withTessellationControlShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::TessellationControl, fileName, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withTessellationControlShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::TessellationControl, stream, name, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withTessellationEvaluationShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::TessellationEvaluation, fileName, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withTessellationEvaluationShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::TessellationEvaluation, stream, name, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withGeometryShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Geometry, fileName, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withGeometryShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Geometry, stream, name, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withFragmentShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Fragment, fileName, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withFragmentShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Fragment, stream, name, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withComputeShaderModule(const String& fileName, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Compute, fileName, entryPoint);
-}
-
-VulkanShaderProgramBuilder& VulkanShaderProgramBuilder::withComputeShaderModule(std::istream& stream, const String& name, const String& entryPoint)
-{
-    return this->withShaderModule(ShaderStage::Compute, stream, name, entryPoint);
-}
-#endif // defined(BUILD_DEFINE_BUILDERS)
+#endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

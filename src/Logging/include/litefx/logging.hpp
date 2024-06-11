@@ -15,7 +15,6 @@
 #endif
 
 #include <litefx/core.h>
-#include <fmt/core.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/sinks/sink.h>
 
@@ -59,43 +58,43 @@ namespace LiteFX::Logging {
         LITEFX_IMPLEMENTATION(ConsoleSinkImpl);
 
     public:
-        ConsoleSink(const LogLevel& level = LogLevel::Info, const String& pattern = "%+");
+        ConsoleSink(LogLevel level = LogLevel::Info, const String& pattern = "%+");
         ConsoleSink(const ConsoleSink&) = delete;
         ConsoleSink(ConsoleSink&&) = delete;
         virtual ~ConsoleSink() noexcept;
 
     public:
         /// <inheritdoc />
-        virtual LogLevel getLevel() const override;
+        LogLevel getLevel() const override;
 
         /// <inheritdoc />
-        virtual String getName() const override;
+        String getName() const override;
 
         /// <inheritdoc />
-        virtual String getPattern() const override;
+        String getPattern() const override;
 
     protected:
-        virtual spdlog::sink_ptr get() const override;
+        spdlog::sink_ptr get() const override;
     };
 
     class LITEFX_LOGGING_API RollingFileSink : public ISink {
         LITEFX_IMPLEMENTATION(RollingFileSinkImpl);
 
     public:
-        RollingFileSink(const String& fileName, const LogLevel& level = LogLevel::Info, const String& pattern = "%+", const bool& truncate = false, const int& maxFiles = 0);
+        RollingFileSink(const String& fileName, LogLevel level = LogLevel::Info, const String& pattern = "%+", bool truncate = false, int maxFiles = 0);
         RollingFileSink(const RollingFileSink&) = delete;
         RollingFileSink(RollingFileSink&&) = delete;
         virtual ~RollingFileSink() noexcept;
 
     public:
         /// <inheritdoc />
-        virtual LogLevel getLevel() const override;
+        LogLevel getLevel() const override;
 
         /// <inheritdoc />
-        virtual String getName() const override;
+        String getName() const override;
 
         /// <inheritdoc />
-        virtual String getPattern() const override;
+        String getPattern() const override;
 
         virtual String getFileName() const;
 
@@ -104,7 +103,7 @@ namespace LiteFX::Logging {
         virtual int getMaxFiles() const;
 
     protected:
-        virtual spdlog::sink_ptr get() const override;
+        spdlog::sink_ptr get() const override;
     };
 
     class LITEFX_LOGGING_API Log {
@@ -123,45 +122,45 @@ namespace LiteFX::Logging {
         virtual inline const String& getName() const noexcept;
 
     protected:
-        virtual void log(const LogLevel& level, StringView message);
+        virtual void log(LogLevel level, StringView message);
 
     public:
         template<typename ...TArgs>
-        inline void log(const LogLevel& level, StringView format, TArgs&&... args) {
-            this->log(level, fmt::format(fmt::runtime(format), std::forward<TArgs>(args)...));
+        inline void log(LogLevel level, std::format_string<TArgs...> format, TArgs&&... args) {
+            this->log(level, std::format(format, std::forward<TArgs>(args)...));
         }
 
         template<typename ...TArgs>
-        inline void trace(StringView format, TArgs&&... args) {
+        inline void trace(std::format_string<TArgs...> format, TArgs&&... args) {
 #ifndef NDEBUG
             this->log(LogLevel::Trace, format, std::forward<TArgs>(args)...);
 #endif
         }
 
         template<typename ...TArgs>
-        inline void debug(StringView format, TArgs&&... args) {
+        inline void debug(std::format_string<TArgs...> format, TArgs&&... args) {
 #ifndef NDEBUG
             this->log(LogLevel::Debug, format, std::forward<TArgs>(args)...);
 #endif
         }
 
         template<typename ...TArgs>
-        inline void info(StringView format, TArgs&&... args) {
+        inline void info(std::format_string<TArgs...> format, TArgs&&... args) {
             this->log(LogLevel::Info, format, std::forward<TArgs>(args)...);
         }
 
         template<typename ...TArgs>
-        inline void warning(StringView format, TArgs&&... args) {
+        inline void warning(std::format_string<TArgs...> format, TArgs&&... args) {
             this->log(LogLevel::Warning, format, std::forward<TArgs>(args)...);
         }
 
         template<typename ...TArgs>
-        inline void error(StringView format, TArgs&&... args) {
+        inline void error(std::format_string<TArgs...> format, TArgs&&... args) {
             this->log(LogLevel::Error, format, std::forward<TArgs>(args)...);
         }
 
         template<typename ...TArgs>
-        inline void fatal(StringView format, TArgs&&... args) {
+        inline void fatal(std::format_string<TArgs...> format, TArgs&&... args) {
             this->log(LogLevel::Fatal, format, std::forward<TArgs>(args)...);
         }
     };

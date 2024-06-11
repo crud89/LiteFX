@@ -56,27 +56,27 @@ using namespace LiteFX::Rendering::Backends;
 
 class SimpleApp : public LiteFX::App {
 public:
-	String getName() const noexcept override { return "Simple App"; }
-	AppVersion getVersion() const noexcept override { return AppVersion(1, 0, 0, 0); }
+    String getName() const noexcept override { return "Simple App"; }
+    AppVersion getVersion() const noexcept override { return AppVersion(1, 0, 0, 0); }
 
 private:
     GLFWwindow* m_window;
 
 public:
-	SimpleApp(GLFWwindow* window) : 
-		App(), m_window(window)
-	{
-		this->initializing += std::bind(&SampleApp::onInit, this);
-		this->startup += std::bind(&SampleApp::onStartup, this);
-		this->resized += std::bind(&SampleApp::onResize, this, std::placeholders::_1, std::placeholders::_2);
+    SimpleApp(GLFWwindow* window) : 
+        App(), m_window(window)
+    {
+        this->initializing += std::bind(&SampleApp::onInit, this);
+        this->startup += std::bind(&SampleApp::onStartup, this);
+        this->resized += std::bind(&SampleApp::onResize, this, std::placeholders::_1, std::placeholders::_2);
         this->shutdown += std::bind(&SampleApp::onShutdown, this);
-	}
+    }
 
 private:
-	void onInit();
-	void onStartup();
-	void onShutdown();
-	void onResize(const void* sender, ResizeEventArgs e);
+    void onInit();
+    void onStartup();
+    void onShutdown();
+    void onResize(const void* sender, ResizeEventArgs e);
 };
 
 static void resize(GLFWwindow* window, int width, int height)
@@ -108,18 +108,18 @@ void SimpleApp::onResize(const void* sender, ResizeEventArgs e)
 int main(const int argc, const char** argv)
 {
     // Create glfw window.
-	if (!::glfwInit())
+    if (!::glfwInit())
     {
         std::cout << "Unable to initialize glfw." << std::endl;
-		return EXIT_FAILURE;
+        return EXIT_FAILURE;
     }
 
-	::glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	::glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+    ::glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+    ::glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-	GLFWwindow* window = ::glfwCreateWindow(800, 600, "Simple App", nullptr, nullptr);
+    GLFWwindow* window = ::glfwCreateWindow(800, 600, "Simple App", nullptr, nullptr);
 
-	// The next lines are Vulkan-specific:
+    // The next lines are Vulkan-specific:
     UInt32 extensions = 0;
     const char** extensionNames = ::glfwGetRequiredInstanceExtensions(&extensions);
     Array<String> requiredExtensions(extensions);
@@ -133,13 +133,13 @@ int main(const int argc, const char** argv)
             .go();
     }
     catch (const LiteFX::Exception& ex)
-	{
-		std::cerr << "An unhandled exception occurred: " << ex.what() << std::endl;
-		return EXIT_FAILURE;
-	}
+    {
+        std::cerr << "An unhandled exception occurred: " << ex.what() << std::endl;
+        return EXIT_FAILURE;
+    }
     
     ::glfwDestroyWindow(window);
-	return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }
 ```
 
@@ -187,10 +187,10 @@ void SimpleApp::onInit()
 
     // For Vulkan:
     auto surface = backend->createSurface([this](const VkInstance& instance) {
-	    VkSurfaceKHR surface;
-	    raiseIfFailed<RuntimeException>(::glfwCreateWindowSurface(instance, m_window, nullptr, &surface), "Unable to create GLFW window surface.");
+        VkSurfaceKHR surface;
+        raiseIfFailed(::glfwCreateWindowSurface(instance, m_window, nullptr, &surface), "Unable to create GLFW window surface.");
 
-	    return surface;
+        return surface;
     });
 
     // For DX12 (and Vulkan under Windows):
@@ -237,13 +237,11 @@ The other values that are provided to a render target are:
 
 - The render target format, which in our example is dictated by the swap chain format we've chosen earlier.
 - A clear value vector, which contains the values that the render target will be cleared with when starting the render pass. For our *BGRA* image, we want to clear it with black and an alpha value of `0.0`.
-- A boolean switch to enable or disable clearing the values, which we set to true, since we want to clear our image with the clear values specified earlier.
-- A boolean switch to enable clearing for stencil buffers. This switch is only used, if the render target is a `DepthStencil` target and the format supports stencil values. It can be used to disable clearing stencil values and only clear depth values for depth/stencil targets.
-- A boolean switch that states, if we want to preserve the contents of the image after the render pass has finished. Since we do not want to use our render target as input attachment for another render pass, we also set this value to `false`.
+- A flag set that in our example enables clearing the render target when starting the render pass.
 
 ```cxx
 m_renderPass = m_device->buildRenderPass()
-	.renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, { 0.f, 0.f, 0.f, 0.f }, true, false, false);
+    .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_SRGB, RenderTargetFlags::Clear, { 0.f, 0.f, 0.f, 0.f });
 ```
 
 #### Creating a Render Pipeline
@@ -264,12 +262,12 @@ Finally, we define out vertex buffer layout. This means, that we tell the input 
 
 ```cxx
     .inputAssembler(device->buildInputAssembler()
-		.withTopology(PrimitiveTopology::TriangleList)
-		.withIndexType(IndexType::UInt16)
-		.vertexBuffer(sizeof(Vertex), 0)
-			.withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
-			.withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
-			.add())
+        .withTopology(PrimitiveTopology::TriangleList)
+        .withIndexType(IndexType::UInt16)
+        .vertexBuffer(sizeof(Vertex), 0)
+            .withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position))
+            .withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color))
+            .add())
 ```
 
 ##### Rasterizer State
@@ -277,10 +275,10 @@ Finally, we define out vertex buffer layout. This means, that we tell the input 
 Next, we tell the pipeline about how those primitives (i.e. triangles in our example) should be drawn. We want to draw solid faces, so we set the `PolygonMode` to `Solid`. Another property of the rasterizer state is the face culling state. First, we set the order of vertices, which dictates which side of the primitive is interpreted as *front* and which one is the *back*. We set the `CullOrder` to `ClockWise` to tell the pipeline to treat this ordering as *front face*. Finally, we tell the pipeline  to draw both sides of a polygon, by setting the `CullMode` to `Disabled`.
 
 ```cxx
-	.rasterizer(device->buildRasterizer()
-		.withPolygonMode(PolygonMode::Solid)
-		.withCullOrder(CullOrder::ClockWise)
-		.withCullMode(CullMode::Disabled))
+    .rasterizer(device->buildRasterizer()
+        .withPolygonMode(PolygonMode::Solid)
+        .withCullOrder(CullOrder::ClockWise)
+        .withCullMode(CullMode::Disabled))
 ```
 
 ##### Render Pipeline Layout
@@ -288,9 +286,9 @@ Next, we tell the pipeline about how those primitives (i.e. triangles in our exa
 Each pipeline is defined using a *Shader Program* and a *Pipeline Layout*. We start by defining the shader program, which in our simple example should contain two stages: *Vertex* and *Fragment* shaders (those are also called *Pixel* shaders in DirectX). A program is built from multiple modules, where each module type may only exist once within a program. The modules are loaded from files and must be in a compatible binary format. For Vulkan this format is *SPIR-V*, for DirectX it's *DXIL*. We define those shaders later, for now it is only important that they are written to the *shaders* directory and called *vs.spv* (vertex shader) and *fs.spv* (fragment shader).
 
 ```cxx
-	.shaderProgram(device->buildShaderProgram()
-		.withVertexShaderModule("shaders/vs.spv")		// .dxi for DXIL
-		.withFragmentShaderModule("shaders/fs.spv"))
+    .shaderProgram(device->buildShaderProgram()
+        .withVertexShaderModule("shaders/vs.spv") // .dxi for DXIL
+        .withFragmentShaderModule("shaders/fs.spv"))
 ```
 
 Finally we need to tell the pipeline layout about the buffers that are used by the shader. Buffers are grouped into descriptor sets. Each descriptor set can contain multiple buffers and is visible to a pre-defined range of shader stages. Each buffer is bound to a certain location within the descriptor set. It is a good pracitce to group buffers into descriptor sets, based on update frequency. We have two buffers in our example, that are updated in different frequencies:
@@ -301,13 +299,13 @@ Finally we need to tell the pipeline layout about the buffers that are used by t
 For now, we will only define the descriptor sets and take a look at the `CameraBuffer` and `TransformBuffer` objects later.
 
 ```cxx
-	.layout(device->buildPipelineLayout()
-		.descriptorSet(0, ShaderStage::Vertex | ShaderStage::Fragment)
-			.withConstantBuffer(0, sizeof(CameraBuffer))
-			.add()
-		.descriptorSet(1, ShaderStage::Vertex)
-			.withConstantBuffer(0, sizeof(TransformBuffer))
-			.add())
+    .layout(device->buildPipelineLayout()
+        .descriptorSet(0, ShaderStage::Vertex | ShaderStage::Fragment)
+            .withConstantBuffer(0, sizeof(CameraBuffer))
+            .add()
+        .descriptorSet(1, ShaderStage::Vertex)
+            .withConstantBuffer(0, sizeof(TransformBuffer))
+            .add())
 ```
 
 For more details about buffers and descriptor sets, kindly refer to the [project wiki](https://github.com/crud89/LiteFX/wiki/Resource-Bindings) or read the API documentation about descriptor sets.
@@ -435,30 +433,30 @@ Next, let's transfer the buffers to the GPU. We start of by storing the input as
 
 ```cxx
 auto inputAssembler = m_pipeline->inputAssembler();
-auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 ```
 
 We then create a CPU visible vertex buffer and copy the vertex data into it:
 
 ```cxx
-auto stagedVertices = m_device->factory().createVertexBuffer(inputAssembler->vertexBufferLayout(0), BufferUsage::Staging, vertices.size());
+auto stagedVertices = m_device->factory().createVertexBuffer(inputAssembler->vertexBufferLayout(0), ResourceHeap::Staging, vertices.size());
 stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
 ```
 
-The `BufferUsage` defines where the buffer should be visible from. `Staging` corresponds to a CPU-only visible buffer, whilst `Resource` is used for GPU-only visible buffers. We will use another buffer type (`Dynamic`) later to represent *Write once/Read once* scenarios. Finally, we copy the data to the vertex buffer by calling `map`. After this, we can create the GPU-visible vertex buffer and issue a transfer command:
+The `ResourceHeap` defines where the buffer should be visible from. `Staging` corresponds to a CPU-only visible buffer, whilst `Resource` is used for GPU-only visible buffers. We will use another buffer type (`Dynamic`) later to represent *Write once/Read once* scenarios. Finally, we copy the data to the vertex buffer by calling `map`. After this, we can create the GPU-visible vertex buffer and issue a transfer command:
 
 ```cxx
-m_vertexBuffer = m_device->factory().createVertexBuffer(inputAssembler->vertexBufferLayout(0), BufferUsage::Resource, vertices.size());
+m_vertexBuffer = m_device->factory().createVertexBuffer(inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, vertices.size());
 commandBuffer->transfer(*stagedVertices, *m_vertexBuffer, 0, 0, vertices.size());
 ```
 
 We store the vertex buffer in a member variable. We then go ahead and repeat the same process for the index buffer:
 
 ```cxx
-auto stagedIndices = m_device->factory().createIndexBuffer(inputAssembler->indexBufferLayout(), BufferUsage::Staging, indices.size());
+auto stagedIndices = m_device->factory().createIndexBuffer(inputAssembler->indexBufferLayout(), ResourceHeap::Staging, indices.size());
 stagedIndices->map(indices.data(), indices.size() * inputAssembler->indexBufferLayout().elementSize(), 0);
 
-m_indexBuffer = m_device->factory().createIndexBuffer(inputAssembler->indexBufferLayout(), BufferUsage::Resource, indices.size());
+m_indexBuffer = m_device->factory().createIndexBuffer(inputAssembler->indexBufferLayout(), ResourceHeap::Resource, indices.size());
 commandBuffer->transfer(*stagedIndices, *m_indexBuffer, 0, 0, indices.size());
 ```
 
@@ -493,8 +491,8 @@ Next, we create the two buffers that should store the camera data:
 ```cxx
 auto& cameraBindingLayout = m_pipeline->layout()->descriptorSet(0);
 auto& cameraBufferLayout = cameraBindingLayout.descriptor(0);
-m_cameraStagingBuffer = m_device->factory().createBuffer(cameraBufferLayout.type(), BufferUsage::Staging, cameraBufferLayout.elementSize(), 1);
-m_cameraBuffer = m_device->factory().createBuffer(cameraBufferLayout.type(), BufferUsage::Resource, cameraBufferLayout.elementSize(), 1);
+m_cameraStagingBuffer = m_device->factory().createBuffer(cameraBufferLayout.type(), ResourceHeap::Staging, cameraBufferLayout.elementSize(), 1);
+m_cameraBuffer = m_device->factory().createBuffer(cameraBufferLayout.type(), ResourceHeap::Resource, cameraBufferLayout.elementSize(), 1);
 ```
 
 First, we request a reference of the descriptor set layout (at space *0*), that contains the camera buffer descriptor layout (at binding point 0). We then create two constant buffers for and store them in a member variable, since we want to be able to update the camera buffer later (for example, if a resize-event occurs). The camera buffer is still static, since such events occur infrequently.
@@ -525,7 +523,7 @@ m_cameraBindings->update(cameraBufferLayout.binding(), *m_cameraBuffer, 0);
 Here we first allocate a descriptor set that holds our descriptor for the camera buffer. We then update the descriptor bound to register *0* to point to the GPU-visible camera buffer. Finally, with all the transfer commands being recorded to the command buffer, we can submit the buffer and wait for it to be executed:
 
 ```cxx
-auto fence = m_device->bufferQueue().submit(commandBuffer);
+auto fence = commandBuffer->submit();
 m_device->bufferQueue().waitFor(fence);
 commandBuffer = nullptr;
 stagedVertices = nullptr;
@@ -552,7 +550,7 @@ Next, we create three `Dynamic` buffers and map them to the descriptor set at sp
 auto& transformBindingLayout = m_pipeline->layout()->descriptorSet(1);
 auto& transformBufferLayout = transformBindingLayout.descriptor(0);
 m_perFrameBindings = transformBindingLayout.allocateMultiple(3);
-m_transformBuffer = m_device->factory().createBuffer(transformBufferLayout.type(), BufferUsage::Dynamic, transformBufferLayout.elementSize(), 3);
+m_transformBuffer = m_device->factory().createBuffer(transformBufferLayout.type(), ResourceHeap::Dynamic, transformBufferLayout.elementSize(), 3);
 std::ranges::for_each(m_perFrameBindings, [this, &transformBufferLayout, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *m_transformBuffer, i++, 1); });
 ```
 
@@ -661,11 +659,10 @@ auto surfaceFormat = m_device->swapChain().surfaceFormat();
 auto renderArea = Size2d(width, height);
 ```
 
-Again, we first wait for the device to finish all submitted work. This ensures that we do not destroy any back buffers, that might be still used by command buffers that are yet to be executed. Next we request the surface format from the current swap chain and initialize the new render area extent. We then can go ahead and re-create the swap chain, which causes the back buffers to be re-allocated with the new size and format. Furthermore, we can resize the frame buffers of our render pass. Note that you have to decide whether or not you want to do this, because you might have a render pass, that renders into a target that is deliberately at a different size than the swap chain back buffer. However, you almost certainly want to at least resize the frame buffer of the render pass that writes your present target.
+Again, we first wait for the device to finish all submitted work. This ensures that we do not destroy any back buffers, that might be still used by command buffers that are yet to be executed. Next we request the surface format from the current swap chain and initialize the new render area extent. We then can go ahead and re-create the swap chain, which causes the back buffers to be re-allocated with the new size and format.
 
 ```cxx
 m_device->swapChain().reset(surfaceFormat, renderArea, 3);
-m_renderPass->resizeFrameBuffers(renderArea);
 ```
 
 We then also resize the viewport and scissor rectangles, so that the image is drawn over the whole area of our resized window:
@@ -684,7 +681,7 @@ glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001
 projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
 camera.ViewProjection = projection * view;
 
-auto commandBuffer = m_device->bufferQueue().createCommandBuffer(true);
+auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
 commandBuffer->transfer(*m_cameraStagingBuffer, *m_cameraBuffer);
 commandBuffer->end(true, true);

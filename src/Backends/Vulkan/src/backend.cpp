@@ -38,10 +38,10 @@ public:
     {
         m_extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
-#ifdef BUILD_DIRECTX_12_BACKEND
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
         // Interop swap chain requires external memory access.
         m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
-#endif // BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 #ifndef NDEBUG
         // Debugging extension should be guaranteed to be available.
@@ -52,6 +52,7 @@ public:
 #ifndef NDEBUG
 private:
     VkDebugUtilsMessengerEXT m_debugMessenger{ VK_NULL_HANDLE };
+    VkDebugUtilsMessengerEXT m_debugBreaker{ VK_NULL_HANDLE };
     VkInstance m_instance{ nullptr };
 
 private:    
@@ -76,6 +77,19 @@ private:
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: LITEFX_TRACE(VULKAN_LOG, "{1}: {0}", callbackData->pMessage, t); break;
         }
 
+        // Write to debug output.
+        OutputDebugString(callbackData->pMessage);
+
+        return VK_FALSE;
+    }
+
+    static VKAPI_ATTR VkBool32 VKAPI_CALL onDebugBreak(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* callbackData, void* userData)
+    {
+        // Ignore layer loader errors.
+        if (callbackData->messageIdNumber == 0x79DE34D4)
+            return VK_FALSE;
+
+        __debugbreak();
         return VK_FALSE;
     }
 
@@ -84,6 +98,9 @@ public:
     {
         if (m_debugMessenger != VK_NULL_HANDLE && vkDestroyDebugUtilsMessenger != nullptr)
             vkDestroyDebugUtilsMessenger(m_instance, m_debugMessenger, nullptr);
+
+        if (m_debugBreaker != VK_NULL_HANDLE && vkDestroyDebugUtilsMessenger != nullptr)
+            vkDestroyDebugUtilsMessenger(m_instance, m_debugBreaker, nullptr);
     }
 #endif
 
@@ -92,13 +109,13 @@ public:
     {
         // Check if all extensions are available.
         if (!VulkanBackend::validateInstanceExtensions(m_extensions))
-            throw InvalidArgumentException("Some required Vulkan extensions are not supported by the system.");
+            throw InvalidArgumentException("extensions", "Some required Vulkan extensions are not supported by the system.");
 
         auto requiredExtensions = m_extensions | std::views::transform([this](const auto& extension) { return extension.c_str(); }) | std::ranges::to<Array<const char*>>();
 
         // Check if all extensions are available.
         if (!VulkanBackend::validateInstanceLayers(m_layers))
-            throw InvalidArgumentException("Some required Vulkan layers are not supported by the system.");
+            throw InvalidArgumentException("validationLayers", "Some required Vulkan layers are not supported by the system.");
 
         auto enabledLayers = m_layers | std::views::transform([this](const auto& layer) { return layer.c_str(); }) | std::ranges::to<Array<const char*>>();
 
@@ -126,16 +143,25 @@ public:
         createInfo.ppEnabledLayerNames = enabledLayers.data();
 
 #ifndef NDEBUG
-        VkDebugUtilsMessengerCreateInfoEXT debugCallbackInfo = {};
-        debugCallbackInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        debugCallbackInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        debugCallbackInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        debugCallbackInfo.pfnUserCallback = onDebugMessage;
+        VkDebugUtilsMessengerCreateInfoEXT debugMessageCallbackInfo = {
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+            .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+            .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+            .pfnUserCallback = &onDebugMessage
+        };
 
-        createInfo.pNext = &debugCallbackInfo;
+        VkDebugUtilsMessengerCreateInfoEXT debugBreakCallbackInfo = {
+            .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
+            .pNext = &debugMessageCallbackInfo,
+            .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+            .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT,
+            .pfnUserCallback = &onDebugBreak
+        };
+
+        createInfo.pNext = &debugBreakCallbackInfo;
 #endif
         VkInstance instance;
-        raiseIfFailed<RuntimeException>(::vkCreateInstance(&createInfo, nullptr, &instance), "Unable to create Vulkan instance.");
+        raiseIfFailed(::vkCreateInstance(&createInfo, nullptr, &instance), "Unable to create Vulkan instance.");
 
 #ifndef NDEBUG
         vkCreateDebugUtilsMessenger     = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
@@ -150,12 +176,15 @@ public:
             LITEFX_WARNING(VULKAN_LOG, "The debug messenger factory \"vkDestroyDebugUtilsMessengerEXT\" could not be loaded. Debug utilities will not be enabled.");
         else
         {
-            auto result = vkCreateDebugUtilsMessenger(instance, &debugCallbackInfo, nullptr, &m_debugMessenger);
+            auto result = vkCreateDebugUtilsMessenger(instance, &debugMessageCallbackInfo, nullptr, &m_debugMessenger);
 
             if (result == VK_ERROR_EXTENSION_NOT_PRESENT)
                 LITEFX_WARNING(VULKAN_LOG, "The extension \"{0}\" is not present. Debug utilities will not be enabled.", VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
             else
-                raiseIfFailed<RuntimeException>(result, "Unable to initialize debug callback.");
+                raiseIfFailed(result, "Unable to initialize debug message callback.");
+
+            debugBreakCallbackInfo.pNext = nullptr; // Reset pNext to comply with validation requirements.
+            raiseIfFailed(vkCreateDebugUtilsMessenger(instance, &debugBreakCallbackInfo, nullptr, &m_debugBreaker), "Unable to initialize debug break callback.");
 
             // Remember the instance so we can destroy the debug messenger.
             m_instance = instance;
@@ -241,7 +270,7 @@ const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& 
 void VulkanBackend::registerDevice(String name, UniquePtr<VulkanDevice>&& device)
 {
     if (m_impl->m_devices.contains(name))
-        throw InvalidArgumentException("The backend already contains a device with the name \"{0}\".", name);
+        throw InvalidArgumentException("name", "The backend already contains a device with the name \"{0}\".", name);
 
 #ifndef NDEBUG
     device->setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*device).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT, name);
@@ -297,7 +326,7 @@ UniquePtr<VulkanSurface> VulkanBackend::createSurface(const HWND& hwnd) const
     createInfo.hinstance = ::GetModuleHandle(nullptr);
 
     VkSurfaceKHR surface;
-    raiseIfFailed<RuntimeException>(::vkCreateWin32SurfaceKHR(this->handle(), &createInfo, nullptr, &surface), "Unable to create vulkan surface for provided window.");
+    raiseIfFailed(::vkCreateWin32SurfaceKHR(this->handle(), &createInfo, nullptr, &surface), "Unable to create vulkan surface for provided window.");
 
     return makeUnique<VulkanSurface>(surface, this->handle(), hwnd);
 }

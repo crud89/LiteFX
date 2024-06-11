@@ -10,14 +10,14 @@ Rect::Rect() noexcept : Vector<scalar_type, vec_size>() {}
 Rect::Rect(const Rect& _other) noexcept : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>>(_other)) {}
 Rect::Rect(Rect&& _other) noexcept : Vector<scalar_type, vec_size>(std::move(static_cast<Vector<scalar_type, vec_size>>(_other))) {}
 
-Rect::Rect(const Vector<size_t, 2>& pos, const size_t& w, const size_t& h) noexcept : Vector<scalar_type, vec_size>() {
+Rect::Rect(const Vector<size_t, 2>& pos, size_t w, size_t h) noexcept : Vector<scalar_type, vec_size>() {
 	this->x() = pos.x();
 	this->y() = pos.y();
 	this->z() = w;
 	this->w() = h;
 }
 
-Rect::Rect(const size_t& x, const size_t& y, const size_t& w, const size_t& h) noexcept : Vector<scalar_type, vec_size>() {
+Rect::Rect(size_t x, size_t y, size_t w, size_t h) noexcept : Vector<scalar_type, vec_size>() {
 	this->x() = x;
 	this->y() = y;
 	this->z() = w;
@@ -45,7 +45,7 @@ Size2d Rect::extent() const noexcept {
 	return Size2d(this->z(), this->w());
 }
 
-const size_t& Rect::width() const noexcept {
+size_t Rect::width() const noexcept {
 	return this->z();
 }
 
@@ -53,7 +53,7 @@ size_t& Rect::width() noexcept {
 	return this->z();
 }
 
-const size_t& Rect::height() const noexcept {
+size_t Rect::height() const noexcept {
 	return this->w();
 }
 
@@ -69,14 +69,14 @@ RectI::RectI() noexcept : Vector<scalar_type, vec_size>() {}
 RectI::RectI(const RectI& _other) noexcept : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>>(_other)) {}
 RectI::RectI(RectI&& _other) noexcept : Vector<scalar_type, vec_size>(std::move(static_cast<Vector<scalar_type, vec_size>>(_other))) {}
 
-RectI::RectI(const Vector<Int32, 2>& pos, const Int32& w, const Int32& h) noexcept : Vector<scalar_type, vec_size>() {
+RectI::RectI(const Vector<Int32, 2>& pos, Int32 w, Int32 h) noexcept : Vector<scalar_type, vec_size>() {
 	this->x() = pos.x();
 	this->y() = pos.y();
 	this->z() = w;
 	this->w() = h;
 }
 
-RectI::RectI(const Int32& x, const Int32& y, const Int32& w, const Int32& h) noexcept : Vector<scalar_type, vec_size>() {
+RectI::RectI(Int32 x, Int32 y, Int32 w, Int32 h) noexcept : Vector<scalar_type, vec_size>() {
 	this->x() = x;
 	this->y() = y;
 	this->z() = w;
@@ -101,7 +101,7 @@ Size2d RectI::extent() const noexcept {
 	return Size2d(this->z(), this->w());
 }
 
-const Int32& RectI::width() const noexcept {
+Int32 RectI::width() const noexcept {
 	return this->z();
 }
 
@@ -109,7 +109,7 @@ Int32& RectI::width() noexcept {
 	return this->z();
 }
 
-const Int32& RectI::height() const noexcept {
+Int32 RectI::height() const noexcept {
 	return this->w();
 }
 
@@ -125,14 +125,14 @@ RectF::RectF() noexcept : Vector<scalar_type, vec_size>() {}
 RectF::RectF(const RectF& _other) noexcept : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>>(_other)) {}
 RectF::RectF(RectF&& _other) noexcept : Vector<scalar_type, vec_size>(std::move(static_cast<Vector<scalar_type, vec_size>>(_other))) {}
 
-RectF::RectF(const Vector<Float, 2>& pos, const Float& w, const Float& h) noexcept : Vector<scalar_type, vec_size>() {
+RectF::RectF(const Vector<Float, 2>& pos, Float w, Float h) noexcept : Vector<scalar_type, vec_size>() {
 	this->x() = pos.x();
 	this->y() = pos.y();
 	this->z() = w;
 	this->w() = h;
 }
 
-RectF::RectF(const Float& x, const Float& y, const Float& w, const Float& h) noexcept : Vector<scalar_type, vec_size>() {
+RectF::RectF(Float x, Float y, Float w, Float h) noexcept : Vector<scalar_type, vec_size>() {
 	this->x() = x;
 	this->y() = y;
 	this->z() = w;
@@ -157,7 +157,7 @@ Size2d RectF::extent() const noexcept {
 	return Size2d(this->z(), this->w());
 }
 
-const Float& RectF::width() const noexcept {
+Float RectF::width() const noexcept {
 	return this->z();
 }
 
@@ -165,7 +165,7 @@ Float& RectF::width() noexcept {
 	return this->z();
 }
 
-const Float& RectF::height() const noexcept {
+Float RectF::height() const noexcept {
 	return this->w();
 }
 

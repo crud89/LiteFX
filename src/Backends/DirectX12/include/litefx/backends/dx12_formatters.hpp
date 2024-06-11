@@ -3,9 +3,8 @@
 #include "dx12_api.hpp"
 
 template <>
-struct LITEFX_DIRECTX12_API fmt::formatter<D3D12_MESSAGE_ID> : formatter<string_view> {
-    template <typename FormatContext>
-    auto format(D3D12_MESSAGE_ID t, FormatContext& ctx) {
+struct LITEFX_DIRECTX12_API std::formatter<D3D12_MESSAGE_ID> : std::formatter<std::string_view> {
+    auto format(D3D12_MESSAGE_ID t, std::format_context& ctx) const {
         string_view name;
 
         switch (t)
@@ -852,6 +851,53 @@ struct LITEFX_DIRECTX12_API fmt::formatter<D3D12_MESSAGE_ID> : formatter<string_
         case D3D12_MESSAGE_ID_CREATE_ROOT_SIGNATURE_UNBOUNDED_STATIC_DESCRIPTORS: name = "D3D12_MESSAGE_ID_CREATE_ROOT_SIGNATURE_UNBOUNDED_STATIC_DESCRIPTORS"; break;
         case D3D12_MESSAGE_ID_CREATEAMPLIFICATIONSHADER_INVALIDSHADERBYTECODE: name = "D3D12_MESSAGE_ID_CREATEAMPLIFICATIONSHADER_INVALIDSHADERBYTECODE"; break;
         case D3D12_MESSAGE_ID_CREATEAMPLIFICATIONSHADER_OUTOFMEMORY: name = "D3D12_MESSAGE_ID_CREATEAMPLIFICATIONSHADER_OUTOFMEMORY"; break;
+        }
+
+        return formatter<string_view>::format(name, ctx);
+    }
+};
+
+template <>
+struct LITEFX_DIRECTX12_API std::formatter<D3D12_ROOT_PARAMETER_TYPE> : std::formatter<std::string_view> {
+    auto format(D3D12_ROOT_PARAMETER_TYPE t, std::format_context& ctx) const {
+        std::string_view name;
+
+        switch (t)
+        {
+        case D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE: name = "D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE"; break;
+        case D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS: name = "D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS"; break;
+        case D3D12_ROOT_PARAMETER_TYPE_CBV: name = "D3D12_ROOT_PARAMETER_TYPE_CBV"; break;
+        case D3D12_ROOT_PARAMETER_TYPE_SRV: name = "D3D12_ROOT_PARAMETER_TYPE_SRV"; break;
+        case D3D12_ROOT_PARAMETER_TYPE_UAV: name = "D3D12_ROOT_PARAMETER_TYPE_UAV"; break;
+        default: name = "Invalid"; break;
+        }
+
+        return formatter<string_view>::format(name, ctx);
+    }
+};
+
+template <>
+struct LITEFX_DIRECTX12_API std::formatter<D3D_SHADER_INPUT_TYPE> : std::formatter<std::string_view> {
+    auto format(D3D_SHADER_INPUT_TYPE t, std::format_context& ctx) const {
+        std::string_view name;
+
+        switch (t)
+        {
+        case D3D_SIT_CBUFFER: name = "D3D_SIT_CBUFFER"; break;
+        case D3D_SIT_TBUFFER: name = "D3D_SIT_TBUFFER"; break;
+        case D3D_SIT_TEXTURE: name = "D3D_SIT_TEXTURE"; break;
+        case D3D_SIT_SAMPLER: name = "D3D_SIT_SAMPLER"; break;
+        case D3D_SIT_UAV_RWTYPED: name = "D3D_SIT_UAV_RWTYPED"; break;
+        case D3D_SIT_STRUCTURED: name = "D3D_SIT_STRUCTURED"; break;
+        case D3D_SIT_UAV_RWSTRUCTURED: name = "D3D_SIT_UAV_RWSTRUCTURED"; break;
+        case D3D_SIT_BYTEADDRESS: name = "D3D_SIT_BYTEADDRESS"; break;
+        case D3D_SIT_UAV_RWBYTEADDRESS: name = "D3D_SIT_UAV_RWBYTEADDRESS"; break;
+        case D3D_SIT_UAV_APPEND_STRUCTURED: name = "D3D_SIT_UAV_APPEND_STRUCTURED"; break;
+        case D3D_SIT_UAV_CONSUME_STRUCTURED: name = "D3D_SIT_UAV_CONSUME_STRUCTURED"; break;
+        case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER: name = "D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER"; break;
+        case D3D_SIT_RTACCELERATIONSTRUCTURE: name = "D3D_SIT_RTACCELERATIONSTRUCTURE"; break;
+        case D3D_SIT_UAV_FEEDBACKTEXTURE: name = "D3D_SIT_UAV_FEEDBACKTEXTURE"; break;
+        default: name = "Unknown"; break;
         }
 
         return formatter<string_view>::format(name, ctx);

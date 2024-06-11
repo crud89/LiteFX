@@ -16,7 +16,7 @@ private:
     BufferType m_bufferType{ BufferType::Index };
 
 public:
-    VulkanIndexBufferLayoutImpl(VulkanIndexBufferLayout* parent, const IndexType& type) : 
+    VulkanIndexBufferLayoutImpl(VulkanIndexBufferLayout* parent, IndexType type) : 
         base(parent), m_indexType(type)
     {
     }
@@ -26,7 +26,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanIndexBufferLayout::VulkanIndexBufferLayout(const IndexType& type) :
+VulkanIndexBufferLayout::VulkanIndexBufferLayout(IndexType type) :
     m_impl(makePimpl<VulkanIndexBufferLayoutImpl>(this, type))
 {
 }
@@ -38,17 +38,17 @@ size_t VulkanIndexBufferLayout::elementSize() const noexcept
     return static_cast<UInt32>(m_impl->m_indexType) >> 3;
 }
 
-const UInt32& VulkanIndexBufferLayout::binding() const noexcept
+UInt32 VulkanIndexBufferLayout::binding() const noexcept
 {
     return m_impl->m_binding;
 }
 
-const BufferType& VulkanIndexBufferLayout::type() const noexcept
+BufferType VulkanIndexBufferLayout::type() const noexcept
 {
     return m_impl->m_bufferType;
 }
 
-const IndexType& VulkanIndexBufferLayout::indexType() const noexcept
+IndexType VulkanIndexBufferLayout::indexType() const noexcept
 {
     return m_impl->m_indexType;
 }

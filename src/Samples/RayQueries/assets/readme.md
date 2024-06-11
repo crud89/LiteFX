@@ -1,0 +1,1 @@
+Thanks to ambientCG for the skybox: https://ambientcg.com/view?id=DayEnvironmentHDRI013.
