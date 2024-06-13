@@ -73,6 +73,15 @@ jobs:
             console.log('HEAD SHA = ' + pull_request.data.head.sha + ', REF = ' + pull_request.data.head.ref)
             core.exportVariable('HEAD_SHA', pull_request.data.head.sha)
             core.exportVariable('HEAD_REF', pull_request.data.head.ref)
+            
+      - name: Create checks
+        uses: LouisBrunner/checks-action@v2.0.0
+        id: create-checks
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: run-tests (${{ matrix.os }})
+          sha: ${{ env.HEAD_SHA }}
+          status: in_progress
     
       - name: Checking out sources
         uses: actions/checkout@master
@@ -186,11 +195,12 @@ jobs:
           name: LiteFX-${{ matrix.triplet }}-install
           path: '${{ github.workspace }}/out/install/${{ matrix.configuration }}'
 
-      - uses: LouisBrunner/checks-action@v2.0.0
+      - name: Update checks
+        uses: LouisBrunner/checks-action@v2.0.0
         if: always()
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          name: run-tests (${{ matrix.os }})
+          check_id: ${{ steps.create-checks.outputs.check_id }}
           sha: ${{ env.HEAD_SHA }}
           conclusion: ${{ job.status }}
           output: |
