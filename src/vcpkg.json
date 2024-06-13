@@ -23,7 +23,7 @@
     "d3d12-memory-allocator",
     "winpixeventruntime",
     "directx-agility-sdk",
-    "directx-dxc"
+    "directx-dxc",
     "directx-warp"
   ]
 }
