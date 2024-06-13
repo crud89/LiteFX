@@ -993,14 +993,6 @@ namespace LiteFX::Rendering {
             UInt32 space;
             
             /// <summary>
-            /// The maximum size of unbounded (i.e., bindless) descriptor arrays.
-            /// </summary>
-            /// <remarks>
-            /// This setting is only required in Vulkan. For DirectX 12 it is ignored.
-            /// </remarks>
-            UInt32 maxUnboundedArraySize;
-
-            /// <summary>
             /// The shader stages, the descriptor set is accessible from.
             /// </summary>
             ShaderStage stages;

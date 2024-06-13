@@ -56,7 +56,7 @@ public:
         if (!emptySets.empty())
         {
             for (auto s : emptySets)
-                m_descriptorSetLayouts.push_back(UniquePtr<VulkanDescriptorSetLayout>{ new VulkanDescriptorSetLayout(m_device, { }, s, ShaderStage::Any, 0) }); // No descriptor can ever be allocated from an empty descriptor set.
+                m_descriptorSetLayouts.push_back(UniquePtr<VulkanDescriptorSetLayout>{ new VulkanDescriptorSetLayout(m_device, { }, s, ShaderStage::Any) }); // No descriptor can ever be allocated from an empty descriptor set.
 
             // Re-order them.
             std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<VulkanDescriptorSetLayout>& a, const UniquePtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
@@ -175,9 +175,9 @@ void VulkanPipelineLayoutBuilder::build()
     instance->handle() = instance->m_impl->initialize();
 }
 
-constexpr VulkanDescriptorSetLayoutBuilder VulkanPipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages, UInt32 maxUnboundedArraySize)
+constexpr VulkanDescriptorSetLayoutBuilder VulkanPipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages)
 {
-    return VulkanDescriptorSetLayoutBuilder(*this, space, stages, maxUnboundedArraySize);
+    return VulkanDescriptorSetLayoutBuilder(*this, space, stages);
 }
 
 constexpr VulkanPushConstantsLayoutBuilder VulkanPipelineLayoutBuilder::pushConstants(UInt32 size)

@@ -138,7 +138,7 @@ void loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampler
 
     // Create a barrier to ensure the texture is readable.
     barrier = device.buildBarrier()
-        .waitFor(PipelineStage::None).toContinueWith(PipelineStage::Fragment)
+        .waitFor(PipelineStage::All).toContinueWith(PipelineStage::Fragment)
         .blockAccessTo(*texture, ResourceAccess::ShaderRead).transitionLayout(ImageLayout::ShaderResource).whenFinishedWith(ResourceAccess::None);
 
     commandBuffer->barrier(*barrier);

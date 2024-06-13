@@ -1000,9 +1000,12 @@ namespace LiteFX::Rendering::Backends {
     public:
         using base_type = CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>;
         using base_type::dispatch;
+        using base_type::dispatchIndirect;
         using base_type::dispatchMesh;
         using base_type::draw;
+        using base_type::drawIndirect;
         using base_type::drawIndexed;
+        using base_type::drawIndexedIndirect;
         using base_type::barrier;
         using base_type::transfer;
         using base_type::generateMipMaps;
@@ -1143,13 +1146,37 @@ namespace LiteFX::Rendering::Backends {
         void dispatch(const Vector3u& threadCount) const noexcept override;
 
         /// <inheritdoc />
-        void dispatchMesh (const Vector3u& threadCount) const noexcept override;
+        void dispatchIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void dispatchIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept;
+
+        /// <inheritdoc />
+        void dispatchMesh(const Vector3u& threadCount) const noexcept override;
+
+        /// <inheritdoc />
+        void dispatchMeshIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void dispatchMeshIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept override;
 
         /// <inheritdoc />
         void draw(UInt32 vertices, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const noexcept override;
 
         /// <inheritdoc />
+        void drawIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void drawIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept override;
+
+        /// <inheritdoc />
         void drawIndexed(UInt32 indices, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void drawIndexedIndirect(const IDirectX12Buffer& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept override;
+
+        /// <inheritdoc />
+        void drawIndexedIndirect(const IDirectX12Buffer& batchBuffer, const IDirectX12Buffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept override;
         
         /// <inheritdoc />
         void pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept override;
@@ -1983,6 +2010,15 @@ namespace LiteFX::Rendering::Backends {
         /// <returns>The compute pipeline that can be invoked to blit an image resource.</returns>
         /// <seealso cref="DirectX12Texture::generateMipMaps" />
         virtual DirectX12ComputePipeline& blitPipeline() const noexcept;
+
+        /// <summary>
+        /// Returns the command signatures for indirect dispatch and draw calls.
+        /// </summary>
+        /// <param name="dispatchSignature">The command signature used to execute indirect dispatches.</param>
+        /// <param name="dispatchMeshSignature">The command signature used to execute indirect mesh shader dispatches.</param>
+        /// <param name="drawSignature">The command signature used to execute indirect non-indexed draw calls.</param>
+        /// <param name="drawIndexedSignature">The command signature used to execute indirect indexed draw calls.</param>
+        virtual void indirectDrawSignatures(ComPtr<ID3D12CommandSignature>& dispatchSignature, ComPtr<ID3D12CommandSignature>& dispatchMeshSignature, ComPtr<ID3D12CommandSignature>& drawSignature, ComPtr<ID3D12CommandSignature>& drawIndexedSignature) const noexcept;
 
         // GraphicsDevice interface.
     public:

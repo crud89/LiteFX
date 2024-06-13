@@ -296,7 +296,7 @@ void DirectX12PipelineLayoutBuilder::build()
     instance->handle() = instance->m_impl->initialize();
 }
 
-constexpr DirectX12DescriptorSetLayoutBuilder DirectX12PipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages, UInt32 /*maxUnboundedArraySize*/)
+constexpr DirectX12DescriptorSetLayoutBuilder DirectX12PipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages)
 {
     return DirectX12DescriptorSetLayoutBuilder(*this, space, stages);
 }
