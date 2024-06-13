@@ -73,6 +73,15 @@ jobs:
             console.log('HEAD SHA = ' + pull_request.data.head.sha + ', REF = ' + pull_request.data.head.ref)
             core.exportVariable('HEAD_SHA', pull_request.data.head.sha)
             core.exportVariable('HEAD_REF', pull_request.data.head.ref)
+            
+      - name: Create checks
+        uses: LouisBrunner/checks-action@v2.0.0
+        id: create-checks
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: run-tests (${{ matrix.os }})
+          sha: ${{ env.HEAD_SHA }}
+          status: in_progress
     
       - name: Checking out sources
         uses: actions/checkout@master
@@ -150,6 +159,7 @@ jobs:
         id: test-with-coverage
         run: |
           OpenCppCoverage.exe --quiet --export_type=html:__coverage\html --export_type=binary:__coverage\bin --cover_children --sources='${{ github.workspace }}\src\' --modules=binaries\ -- ctest.exe ${{ matrix.configuration }} --output-on-failure --timeout 10
+          $env:GITHUB_STEP_SUMMARY = Get-Content "${{ github.workspace }}/out/build/${{ matrix.configuration }}/Testing/Temporary/LastTest.log"
           
       - name: Upload test results
         if: success() || failure()
@@ -185,12 +195,13 @@ jobs:
           name: LiteFX-${{ matrix.triplet }}-install
           path: '${{ github.workspace }}/out/install/${{ matrix.configuration }}'
 
-      - uses: LouisBrunner/checks-action@v2.0.0
+      - name: Update checks
+        uses: LouisBrunner/checks-action@v2.0.0
         if: always()
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          name: run-tests (${{ matrix.os }})
+          check_id: ${{ steps.create-checks.outputs.check_id }}
           sha: ${{ env.HEAD_SHA }}
           conclusion: ${{ job.status }}
           output: |
-            { "summary": "${{ steps.checkout.outputs.summary }}" }
+            { "summary": "${{ steps.tests-with-coverage.outputs.summary }}" }
