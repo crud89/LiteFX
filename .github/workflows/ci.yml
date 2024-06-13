@@ -121,7 +121,7 @@ jobs:
       - name: Install Mesa3D driver
         working-directory: '${{ github.workspace }}/dep/mesa/'
         run: |
-          7z x '${{ github.workspace }}/dep/mesa/mesa3d-${{ env.mesaDriverVersion }}-rc1-release-msvc.7z'
+          7z x '${{ github.workspace }}/dep/mesa/mesa3d-${{ env.mesaDriverVersion }}-release-msvc.7z'
           reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v '${{ github.workspace }}\dep\mesa\x64\lvp_icd.x86_64.json' /t REG_DWORD /d 0
           reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin\VkLayer_khronos_synchronization2.json' /t REG_DWORD /d 0
           reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin\VkLayer_khronos_validation.json' /t REG_DWORD /d 0
