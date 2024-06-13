@@ -150,6 +150,7 @@ jobs:
         id: test-with-coverage
         run: |
           OpenCppCoverage.exe --quiet --export_type=html:__coverage\html --export_type=binary:__coverage\bin --cover_children --sources='${{ github.workspace }}\src\' --modules=binaries\ -- ctest.exe ${{ matrix.configuration }} --output-on-failure --timeout 10
+          $env:GITHUB_STEP_SUMMARY = Get-Content "${{ github.workspace }}/out/build/${{ matrix.configuration }}/Testing/Temporary/LastTest.log"
           
       - name: Upload test results
         if: success() || failure()
