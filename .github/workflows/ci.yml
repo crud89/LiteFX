@@ -153,12 +153,18 @@ jobs:
           #testPreset: '${{ matrix.configuration }}'
           #testPresetAdditionalArgs: "[ '--output-on-failure', '--timeout', '10' ]"
 
-      - name: Run Tests
+      - name: Run tests
         working-directory: "${{ github.workspace }}/out/build/${{ matrix.configuration }}"
-        id: test-with-coverage
-        shell: bash
+        shell: pwsh
         run: |
           OpenCppCoverage.exe --quiet --export_type=html:__coverage\html --export_type=binary:__coverage\bin --cover_children --sources='${{ github.workspace }}\src\' --modules=binaries\ -- ctest.exe ${{ matrix.configuration }} --output-on-failure --timeout 10
+  
+      - name: Collect test results
+        id: collect-test-results
+        if: always()
+        shell: bash
+        working-directory: "${{ github.workspace }}/out/build/${{ matrix.configuration }}"
+        run: |
           test_results=$(cat Testing/Temporary/LastTest.log)
           echo "summary<<EOF"$'\n'"# Test Results 🧪"$'\n'"$test_results"$'\n'EOF >> "$GITHUB_OUTPUT"
           
@@ -200,7 +206,7 @@ jobs:
         uses: LouisBrunner/checks-action@v2.0.0
         if: always()
         env:
-          SUMMARY: ${{ steps.test-with-coverage.outputs.summary }}
+          SUMMARY: ${{ steps.collect-test-results.outputs.summary }}
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           check_id: ${{ steps.create-checks.outputs.check_id }}
