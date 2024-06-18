@@ -166,7 +166,7 @@ jobs:
         working-directory: "${{ github.workspace }}/out/build/${{ matrix.configuration }}"
         run: |
           test_results=$(cat Testing/Temporary/LastTest.log)
-          echo "summary<<EOF"$'\n'"# Test Results 🧪"$'\n'"$test_results"$'\n'EOF >> "$GITHUB_OUTPUT"
+          echo "summary<<EOF"$'\n'"# Test Results 🧪"$'\n'"```"$'\n'"$test_results"$'\n'"```"$'\n'EOF >> "$GITHUB_OUTPUT"
           
       - name: Upload test results
         if: success() || failure()
