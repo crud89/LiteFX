@@ -1,6 +1,8 @@
 #pragma once
 
-#if !defined (LITEFX_DIRECTX12_API)
+#include <litefx/config.h>
+
+#if !defined (LITEFX_DIRECTX12_API) && defined(LITEFX_BUILD_AS_SHARED)
 #  if defined(LiteFX_Backends_DirectX12_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_DIRECTX12_API __declspec(dllexport)
 #  elif (defined(LiteFX_Backends_DirectX12_EXPORTS) || defined(__APPLE__)) && defined __GNUC__ && __GNUC__ >= 4

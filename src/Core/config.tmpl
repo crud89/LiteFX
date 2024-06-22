@@ -1,5 +1,12 @@
 #pragma once
 
+#cmakedefine BUILD_SHARED_LIBS
+
+#ifdef  BUILD_SHARED_LIBS
+#define LITEFX_BUILD_AS_SHARED
+#undef  BUILD_SHARED_LIBS
+#endif  // BUILD_SHARED_LIBS
+
 #cmakedefine LITEFX_BUILD_VULKAN_BACKEND
 #cmakedefine LITEFX_BUILD_DIRECTX_12_BACKEND
 

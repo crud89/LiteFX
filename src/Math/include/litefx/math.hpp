@@ -2,7 +2,7 @@
 
 #include <litefx/core.h>
 
-#if !defined (LITEFX_MATH_API)
+#if !defined (LITEFX_MATH_API) && defined(LITEFX_BUILD_AS_SHARED)
 #  if defined(LiteFX_Math_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_MATH_API __declspec(dllexport)
 #  elif (defined(LiteFX_Math_EXPORTS) || defined(__APPLE__)) && defined __GNUC__ && __GNUC__ >= 4

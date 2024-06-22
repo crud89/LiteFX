@@ -1,6 +1,8 @@
 #pragma once
 
-#if !defined (LITEFX_LOGGING_API)
+#include <litefx/config.h>
+
+#if !defined (LITEFX_LOGGING_API) && defined(LITEFX_BUILD_AS_SHARED)
 #  if defined(LiteFX_Logging_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_LOGGING_API __declspec(dllexport)
 #  elif (defined(LiteFX_Logging_EXPORTS) || defined(__APPLE__)) && defined __GNUC__ && __GNUC__ >= 4
