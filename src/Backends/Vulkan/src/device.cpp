@@ -187,7 +187,7 @@ private:
             m_extensions.push_back(VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME);
         }
 
-#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
+#if defined(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN) && defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
         // Interop swap chain requires external memory access.
         m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
         m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
@@ -196,9 +196,9 @@ private:
         // Required to synchronize Vulkan command execution with D3D presentation.
         m_extensions.push_back(VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME);
         //m_extensions.push_back(VK_KHR_EXTERNAL_FENCE_WIN32_EXTENSION_NAME);
-#else
+#else // defined(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN) && defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
         m_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
+#endif // defined(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN) && defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
 
 #ifndef NDEBUG
         auto availableExtensions = m_adapter.getAvailableDeviceExtensions();
@@ -275,22 +275,33 @@ public:
                 };
             }) | std::ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
+
+        // Enable requested features.
+        // NOTE: We keep track of the last feature set with this pointer, as it is against the standard to include features in the pNext chain without requiring the extension.
+        void* lastFeature = nullptr;
+
         // Enable ray-tracing features.
         VkPhysicalDeviceRayQueryFeaturesKHR rayQueryFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR,
             .rayQuery = features.RayQueries
         };
 
+        if (features.RayQueries)
+            lastFeature = &rayQueryFeatures;
+
         VkPhysicalDeviceRayTracingMaintenance1FeaturesKHR rayTracingMaintenanceFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_MAINTENANCE_1_FEATURES_KHR,
-            .pNext = &rayQueryFeatures,
+            .pNext = lastFeature,
             .rayTracingMaintenance1 = features.RayTracing || features.RayQueries,
             .rayTracingPipelineTraceRaysIndirect2 = features.RayQueries
         };
 
+        if (features.RayQueries || features.RayTracing)
+            lastFeature = &rayTracingMaintenanceFeatures;
+
         VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR,
-            .pNext = &rayTracingMaintenanceFeatures,
+            .pNext = lastFeature,
             .rayTracingPipeline = features.RayTracing
         };
 
@@ -301,21 +312,30 @@ public:
             .descriptorBindingAccelerationStructureUpdateAfterBind = features.RayTracing || features.RayQueries
         };
 
+        if (features.RayTracing)
+            lastFeature = &accelerationStructureFeatures;
+
         // Enable task and mesh shaders.
         VkPhysicalDeviceMeshShaderFeaturesEXT meshShaderFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT,
-            .pNext = &accelerationStructureFeatures,
+            .pNext = lastFeature,
             .taskShader = features.MeshShaders,
             .meshShader = features.MeshShaders
         };
 
+        if (features.MeshShaders)
+            lastFeature = &meshShaderFeatures;
+
         // Allow geometry and tessellation shader stages.
+        // NOTE: ... except when building tests, as they are not supported by SwiftShader.
         VkPhysicalDeviceFeatures2 deviceFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
-            .pNext = &meshShaderFeatures,
+            .pNext = lastFeature,
             .features = {
+#ifndef LITEFX_BUILD_TESTS
                 .geometryShader = true,
                 .tessellationShader = true,
+#endif // LITEFX_BUILD_TESTS
                 .drawIndirectFirstInstance = features.DrawIndirect,
                 .samplerAnisotropy = true
             }
@@ -331,22 +351,23 @@ public:
         };
 
         // Enable various descriptor related features, as well as timeline semaphores and other little QoL improvements.
+        // NOTE: Input attachment features are disabled, as they are not supported by Intel ARC drivers and SwiftShader and since we're now using dynamic rendering anyway, this became (even) less important.
         VkPhysicalDeviceVulkan12Features deviceFeatures12 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES,
             .pNext = &deviceFeatures13,
             .drawIndirectCount = features.DrawIndirect,
             .descriptorIndexing = true,
-            .shaderInputAttachmentArrayDynamicIndexing = true,
+            //.shaderInputAttachmentArrayDynamicIndexing = true,
             .shaderUniformTexelBufferArrayDynamicIndexing = true,
             .shaderStorageTexelBufferArrayDynamicIndexing = true,
             .shaderUniformBufferArrayNonUniformIndexing = true,
             .shaderSampledImageArrayNonUniformIndexing = true,
             .shaderStorageBufferArrayNonUniformIndexing = true,
             .shaderStorageImageArrayNonUniformIndexing = true,
-            .shaderInputAttachmentArrayNonUniformIndexing = true,
+            //.shaderInputAttachmentArrayNonUniformIndexing = true,
             .shaderUniformTexelBufferArrayNonUniformIndexing = true,
             .shaderStorageTexelBufferArrayNonUniformIndexing = true,
-            .descriptorBindingUniformBufferUpdateAfterBind = true, // On NVidia cards this requires Turing or later.
+            //.descriptorBindingUniformBufferUpdateAfterBind = true, // Not supported on NVidia Pascal and earlier, as well as SwiftShader.
             .descriptorBindingSampledImageUpdateAfterBind = true,
             .descriptorBindingStorageImageUpdateAfterBind = true,
             .descriptorBindingStorageBufferUpdateAfterBind = true,

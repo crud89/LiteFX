@@ -54,12 +54,14 @@ jobs:
         id: setup-environment
         run: |
           echo "VCPKG_FEATURE_FLAGS=manifests" >> $env:GITHUB_ENV
-
+          
       - name: Setup Vulkan SDK 
-        uses: humbletim/install-vulkan-sdk@v1.1.1
+        uses: jakoch/install-vulkan-sdk-action@v1.0.0
         with:
-          version: ${{ env.vulkanSdkVersion }}
+          vulkan_version: ${{ env.vulkanSdkVersion }}
+          install_runtime: true
           cache: true
+          stripdown: true
 
       - name: Retrieve latest CMake build
         uses: lukka/get-cmake@latest
