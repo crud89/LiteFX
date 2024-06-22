@@ -34,6 +34,18 @@
       }
     },
     {
+      "name": "windows-x64-debug-static",
+      "inherits": "windows",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_SHARED_LIBS": "OFF"
+      }
+    },
+    {
       "name": "windows-x64-test",
       "inherits": "windows",
       "architecture": {
@@ -121,6 +133,10 @@
     {
       "name": "windows-x64-debug",
       "configurePreset": "windows-x64-debug"
+    },
+    {
+      "name": "windows-x64-debug-static",
+      "configurePreset": "windows-x64-debug-static"
     },
     {
       "name": "windows-x86-release",
