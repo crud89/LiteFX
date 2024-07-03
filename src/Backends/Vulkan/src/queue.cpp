@@ -41,7 +41,7 @@ public:
 	{
 		m_submittedCommandBuffers.clear();
 
-		if (m_timelineSemaphore != nullptr)
+		if (m_timelineSemaphore != VK_NULL_HANDLE)
 			::vkDestroySemaphore(m_device.handle(), m_timelineSemaphore, nullptr);
 
 		m_timelineSemaphore = {};
