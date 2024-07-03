@@ -1,9 +1,20 @@
 {
-    "name": "winpixeventruntime",
-    "version": "1.0.220810001",
-    "description": "Allows applications to be instrumented with marker events, for use with Microsoft PIX.",
-    "homepage": "https://devblogs.microsoft.com/pix/winpixeventruntime/",
-    "documentation": "https://devblogs.microsoft.com/pix/winpixeventruntime/",
-    "license": null,
-    "supports": "(windows & (x64 | arm64)) & !uwp & !staticcrt"
+  "name": "winpixeventruntime",
+  "version": "1.0.240308001",
+  "description": "Allows applications to be instrumented with marker events, for use with Microsoft PIX.",
+  "homepage": "https://devblogs.microsoft.com/pix/winpixeventruntime/",
+  "documentation": "https://devblogs.microsoft.com/pix/winpixeventruntime/",
+  "license": "MIT",
+  "supports": "windows & !uwp",
+  "dependencies": [
+    "directx-headers",
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    },
+    {
+      "name": "vcpkg-cmake-config",
+      "host": true
+    }
+  ]
 }
