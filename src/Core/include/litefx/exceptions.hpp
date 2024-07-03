@@ -132,13 +132,13 @@ namespace LiteFX {
 		/// </summary>
 		/// <typeparam name="T">The type of the argument that was out of range.</typeparam>
 		/// <param name="argument">The name of the argument that was out of range.</param>
-		/// <param name="fromIncluse">The lower bound of the valid range.</param>
+		/// <param name="fromInclusive">The lower bound of the valid range.</param>
 		/// <param name="toExclusive">The upper bound of the valid range.</param>
 		/// <param name="value">The actual value of provided to the argument.</param>
 		/// <param name="message">The error message.</param>
 		template <typename T>
-		explicit ArgumentOutOfRangeException(std::string_view argument, T fromIncluse, T toExclusive, T value, std::string_view message) noexcept :
-			Exception(std::format("Argument was out of range: {} (valid range is [{}, {}) but actual value was {}). {}", argument, fromIncluse, toExclusive, value, message), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
+		explicit ArgumentOutOfRangeException(std::string_view argument, T fromInclusive, T toExclusive, T value, std::string_view message) noexcept :
+			Exception(std::format("Argument was out of range: {} (valid range is [{}, {}) but actual value was {}). {}", argument, fromInclusive, toExclusive, value, message), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
 
 		/// <summary>
 		/// Initializes a new exception.
@@ -155,14 +155,14 @@ namespace LiteFX {
 		/// </summary>
 		/// <typeparam name="T">The type of the argument that was out of range.</typeparam>
 		/// <param name="argument">The name of the argument that was out of range.</param>
-		/// <param name="fromIncluse">The lower bound of the valid range.</param>
+		/// <param name="fromInclusive">The lower bound of the valid range.</param>
 		/// <param name="toExclusive">The upper bound of the valid range.</param>
 		/// <param name="value">The actual value of provided to the argument.</param>
 		/// <param name="format">The format string for the error message.</param>
 		/// <param name="args">The arguments passed to the error message format string.</param>
 		template <typename T, typename ...TArgs>
-		explicit ArgumentOutOfRangeException(std::string_view argument, T fromIncluse, T toExclusive, T value, std::string_view format, TArgs&&... args) noexcept :
-			Exception(std::format("Argument was out of range: {} (valid range is [{}, {}) but actual value was {}). {}", argument, fromIncluse, toExclusive, value, std::vformat(format, std::make_format_args(args...))), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
+		explicit ArgumentOutOfRangeException(std::string_view argument, T fromInclusive, T toExclusive, T value, std::string_view format, TArgs&&... args) noexcept :
+			Exception(std::format("Argument was out of range: {} (valid range is [{}, {}) but actual value was {}). {}", argument, fromInclusive, toExclusive, value, std::vformat(format, std::make_format_args(args...))), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
 
 		ArgumentOutOfRangeException(const ArgumentOutOfRangeException&) = default;
 		ArgumentOutOfRangeException(ArgumentOutOfRangeException&&) = default;
