@@ -11,7 +11,6 @@ MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 FIND_PACKAGE(directx-headers CONFIG REQUIRED)
 FIND_PACKAGE(directx-agility-sdk CONFIG REQUIRED)
 FIND_PACKAGE(d3d12-memory-allocator CONFIG REQUIRED)
-FIND_PACKAGE(WinPixEventRuntime CONFIG REQUIRED)
 FIND_PACKAGE(directx-dxc CONFIG REQUIRED)
 
 # Collect header & source files.
@@ -89,8 +88,19 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
     PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi Microsoft::DirectXAgilitySDK Microsoft::DirectXShaderCompiler Microsoft::DXIL 
-    PRIVATE unofficial::d3d12-memory-allocator Microsoft::WinPixEventRuntime
+    PRIVATE unofficial::d3d12-memory-allocator
 )
+
+# Link PIX runtime, if available.
+IF("pix-support" IN_LIST VCPKG_MANIFEST_FEATURES)
+    FIND_PACKAGE(WinPixEventRuntime CONFIG)
+
+    IF(WinPixEventRuntime_FOUND)
+        TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE Microsoft::WinPixEventRuntime)
+    ELSE()
+        MESSAGE(WARNING "PIX runtime was not found and will not be linked.")
+    ENDIF(WinPixEventRuntime_FOUND)
+ENDIF("pix-support" IN_LIST VCPKG_MANIFEST_FEATURES)
 
 # Add shader modules.
 ADD_SHADER_LIBRARY(${PROJECT_NAME}.Shaders SOURCE_FILE "shader_resources.hpp" NAMESPACE "LiteFX::Backends::DirectX12::Shaders")
