@@ -30,7 +30,8 @@
         "strategy": "external"
       },
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
       }
     },
     {
@@ -42,7 +43,8 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "BUILD_SHARED_LIBS": "OFF"
+        "BUILD_SHARED_LIBS": "OFF",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static"
       }
     },
     {
@@ -54,7 +56,8 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "LITEFX_BUILD_TESTS": "ON"
+        "LITEFX_BUILD_TESTS": "ON",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-rel"
       }
     },
     {
@@ -65,7 +68,8 @@
         "strategy": "external"
       },
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-rel"
       }
     },
     {
@@ -76,7 +80,8 @@
         "strategy": "external"
       },
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-rel"
       }
     },
     {
@@ -87,7 +92,8 @@
         "strategy": "external"
       },
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "VCPKG_TARGET_TRIPLET": "x86-windows"
       }
     },
     {
@@ -99,7 +105,8 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "LITEFX_BUILD_TESTS": "ON"
+        "LITEFX_BUILD_TESTS": "ON",
+        "VCPKG_TARGET_TRIPLET": "x86-windows-rel"
       }
     },
     {
@@ -110,7 +117,8 @@
         "strategy": "external"
       },
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_TARGET_TRIPLET": "x86-windows-rel"
       }
     },
     {
@@ -121,7 +129,8 @@
         "strategy": "external"
       },
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release"
+        "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_TARGET_TRIPLET": "x86-windows-rel"
       }
     }
   ],
