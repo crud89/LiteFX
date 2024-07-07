@@ -4,6 +4,8 @@
 #####                                                                                         #####
 ###################################################################################################
 
+OPTION(BUILD_SHARED_LIBS "Link libraries as shared objects." ON)
+
 OPTION(LITEFX_BUILD_VULKAN_BACKEND "Builds the Vulkan backend." ON)
 OPTION(LITEFX_BUILD_DIRECTX_12_BACKEND "Builds the DirectX 12 backend." ON)
 
