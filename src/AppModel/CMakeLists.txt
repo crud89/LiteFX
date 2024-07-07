@@ -50,6 +50,11 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
     PUBLIC LiteFX.Core LiteFX.Logging
 )
 
+# Pre-define export specifier, to prevent dllimport/dllexport from being be emitted.
+IF(NOT BUILD_SHARED_LIBS)
+    TARGET_COMPILE_DEFINITIONS(${PROJECT_NAME} PUBLIC "LITEFX_APPMODEL_API")
+ENDIF(NOT BUILD_SHARED_LIBS)
+
 # Re-use pre-compiled core header.
 IF(LITEFX_BUILD_PRECOMPILED_HEADERS)
     TARGET_PRECOMPILE_HEADERS(${PROJECT_NAME} REUSE_FROM LiteFX.Core)

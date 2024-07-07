@@ -90,6 +90,11 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
     PRIVATE GPUOpen::VulkanMemoryAllocator unofficial::spirv-reflect
 )
 
+# Pre-define export specifier, to prevent dllimport/dllexport from being be emitted.
+IF(NOT BUILD_SHARED_LIBS)
+    TARGET_COMPILE_DEFINITIONS(${PROJECT_NAME} PUBLIC "LITEFX_VULKAN_API")
+ENDIF(NOT BUILD_SHARED_LIBS)
+
 # Link against D3D12 to enable flip-model swap chains.
 IF(LITEFX_BUILD_DIRECTX_12_BACKEND)
     TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC LiteFX.Backends.DirectX12)

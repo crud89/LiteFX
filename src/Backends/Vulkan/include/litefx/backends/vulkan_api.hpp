@@ -2,7 +2,7 @@
 
 #include <litefx/config.h>
 
-#if !defined (LITEFX_VULKAN_API) && defined(LITEFX_BUILD_AS_SHARED)
+#if !defined (LITEFX_VULKAN_API)
 #  if defined(LiteFX_Backends_Vulkan_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_VULKAN_API __declspec(dllexport)
 #  elif (defined(LiteFX_Backends_Vulkan_EXPORTS) || defined(__APPLE__)) && defined __GNUC__ && __GNUC__ >= 4
@@ -10,7 +10,10 @@
 #  elif !defined(LiteFX_Backends_Vulkan_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_VULKAN_API __declspec(dllimport)
 #  endif
-#endif
+#else
+#  undef LITEFX_VULKAN_API
+#  define LITEFX_VULKAN_API
+#endif 
 
 #ifndef LITEFX_VULKAN_API
 #  define LITEFX_VULKAN_API

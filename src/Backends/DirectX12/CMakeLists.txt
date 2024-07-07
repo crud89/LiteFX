@@ -92,6 +92,11 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
     PRIVATE unofficial::d3d12-memory-allocator Microsoft::WinPixEventRuntime
 )
 
+# Pre-define export specifier, to prevent dllimport/dllexport from being be emitted.
+IF(NOT BUILD_SHARED_LIBS)
+    TARGET_COMPILE_DEFINITIONS(${PROJECT_NAME} PUBLIC "LITEFX_DIRECTX12_API")
+ENDIF(NOT BUILD_SHARED_LIBS)
+
 # Add shader modules.
 ADD_SHADER_LIBRARY(${PROJECT_NAME}.Shaders SOURCE_FILE "shader_resources.hpp" NAMESPACE "LiteFX::Backends::DirectX12::Shaders")
 ADD_SHADER_MODULE(${PROJECT_NAME}.Blit SOURCE "shaders/blit.hlsl" LANGUAGE HLSL TYPE COMPUTE COMPILE_AS DXIL SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC LIBRARY ${PROJECT_NAME}.Shaders)

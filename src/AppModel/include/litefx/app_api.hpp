@@ -2,7 +2,7 @@
 
 #include <litefx/config.h>
 
-#if !defined (LITEFX_APPMODEL_API) && defined(LITEFX_BUILD_AS_SHARED)
+#if !defined (LITEFX_APPMODEL_API)
 #  if defined(LiteFX_AppModel_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_APPMODEL_API __declspec(dllexport)
 #  elif (defined(LiteFX_AppModel_EXPORTS) || defined(__APPLE__)) && defined __GNUC__ && __GNUC__ >= 4
@@ -10,7 +10,10 @@
 #  elif !defined(LiteFX_AppModel_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_APPMODEL_API __declspec(dllimport)
 #  endif
-#endif
+#else
+#  undef LITEFX_APPMODEL_API
+#  define LITEFX_APPMODEL_API
+#endif 
 
 #ifndef LITEFX_APPMODEL_API
 #  define LITEFX_APPMODEL_API
