@@ -841,7 +841,7 @@ namespace LiteFX::Rendering {
     template <typename TPipelineLayout, typename TShaderProgram, typename TInputAssembler, typename TRasterizer> requires
         meta::implements<TInputAssembler, InputAssembler<typename TInputAssembler::vertex_buffer_layout_type, typename TInputAssembler::index_buffer_layout_type>> &&
         meta::implements<TRasterizer, Rasterizer>
-    class RenderPipeline : public IRenderPipeline, public Pipeline<TPipelineLayout, TShaderProgram> {
+        class RenderPipeline : public IRenderPipeline, public virtual Pipeline<TPipelineLayout, TShaderProgram> {
     public:
         using input_assembler_type = TInputAssembler;
         using rasterizer_type = TRasterizer;
@@ -873,7 +873,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
     /// <seealso cref="ComputePipelineBuilder" />
     template <typename TPipelineLayout, typename TShaderProgram>
-    class ComputePipeline : public IComputePipeline, public Pipeline<TPipelineLayout, TShaderProgram> {
+    class ComputePipeline : public IComputePipeline, public virtual Pipeline<TPipelineLayout, TShaderProgram> {
     public:
         virtual ~ComputePipeline() noexcept = default;
     };
@@ -885,7 +885,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
     /// <seealso cref="RayTracingPipelineBuilder" />
     template <typename TPipelineLayout, typename TShaderProgram>
-    class RayTracingPipeline : public IRayTracingPipeline, public Pipeline<TPipelineLayout, TShaderProgram> {
+    class RayTracingPipeline : public IRayTracingPipeline, public virtual Pipeline<TPipelineLayout, TShaderProgram> {
     public:
         using base_type = Pipeline<TPipelineLayout, TShaderProgram>;
         using descriptor_set_layout_type = base_type::pipeline_layout_type::descriptor_set_layout_type;
@@ -1291,15 +1291,15 @@ namespace LiteFX::Rendering {
         virtual const command_queue_type* createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) noexcept = 0;
 
         /// <inheritdoc />
-        virtual [[nodiscard]] UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
+        [[nodiscard]] virtual UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
 
         /// <inheritdoc />
-        inline [[nodiscard]] UniquePtr<frame_buffer_type> makeFrameBuffer(const Size2d& renderArea) const noexcept {
+        [[nodiscard]] inline UniquePtr<frame_buffer_type> makeFrameBuffer(const Size2d& renderArea) const noexcept {
             return this->makeFrameBuffer("", renderArea);
         }
 
         /// <inheritdoc />
-        virtual [[nodiscard]] UniquePtr<frame_buffer_type> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept = 0;
+        [[nodiscard]] virtual UniquePtr<frame_buffer_type> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept = 0;
 
     private:
         inline UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override {
@@ -1512,7 +1512,7 @@ namespace LiteFX::Rendering {
         };
 
         /// <inheritdoc />
-        virtual inline device_type* operator[](const String& name) noexcept {
+        virtual inline device_type* operator[](const String& name) noexcept override {
             return this->device(name);
         };
 
