@@ -92,15 +92,10 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
 )
 
 # Link PIX runtime, if available.
-IF("pix-support" IN_LIST VCPKG_MANIFEST_FEATURES)
-    FIND_PACKAGE(WinPixEventRuntime CONFIG)
-
-    IF(WinPixEventRuntime_FOUND)
-        TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE Microsoft::WinPixEventRuntime)
-    ELSE()
-        MESSAGE(WARNING "PIX runtime was not found and will not be linked.")
-    ENDIF(WinPixEventRuntime_FOUND)
-ENDIF("pix-support" IN_LIST VCPKG_MANIFEST_FEATURES)
+IF(LITEFX_BUILD_WITH_PIX_RUNTIME)
+    FIND_PACKAGE(WinPixEventRuntime CONFIG REQUIRED)
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE Microsoft::WinPixEventRuntime)
+ENDIF(LITEFX_BUILD_WITH_PIX_RUNTIME)
 
 # Add shader modules.
 ADD_SHADER_LIBRARY(${PROJECT_NAME}.Shaders SOURCE_FILE "shader_resources.hpp" NAMESPACE "LiteFX::Backends::DirectX12::Shaders")
