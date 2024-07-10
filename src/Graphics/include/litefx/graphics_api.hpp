@@ -21,7 +21,7 @@
 namespace LiteFX::Graphics {
 	using namespace LiteFX;
 
-	enum class LITEFX_GRAPHICS_API PrimitiveTopology {
+	enum class PrimitiveTopology {
 		PointList = 0x00010001,
 		LineList = 0x00020001,
 		TriangleList = 0x00040001,
