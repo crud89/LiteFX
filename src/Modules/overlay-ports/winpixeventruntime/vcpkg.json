@@ -5,9 +5,8 @@
   "homepage": "https://devblogs.microsoft.com/pix/winpixeventruntime/",
   "documentation": "https://devblogs.microsoft.com/pix/winpixeventruntime/",
   "license": "MIT",
-  "supports": "windows & !uwp",
+  "supports": "windows & x64 & !uwp",
   "dependencies": [
-    "directx-headers",
     {
       "name": "vcpkg-cmake",
       "host": true

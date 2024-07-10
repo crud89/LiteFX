@@ -1263,7 +1263,7 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         QueueType type() const noexcept override;
 
-#ifndef NDEBUG
+#ifdef LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
     public:
         /// <inheritdoc />
         void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
@@ -1273,7 +1273,7 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void setDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
-#endif
+#endif // LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
 
     public:
         /// <inheritdoc />
