@@ -109,7 +109,7 @@ namespace LiteFX {
 		/// <param name="fn">The delegate function.</param>
 		/// <param name="t">The unique token of the delegate within the parent event.</param>
 		inline Delegate(function_type fn, token_type t) noexcept : m_target(fn), m_token(t) { }
-		
+
 	public:
 		/// <summary>
 		/// Invokes the delegate function.
@@ -242,8 +242,8 @@ namespace LiteFX {
 		const delegate_type& handler(event_token_type token) const {
 			if (auto match = std::find_if(m_subscribers.begin(), m_subscribers.end(), [&token](const auto& d) { return d.token() == token; }); match != m_subscribers.end()) [[likely]]
 				return *match;
-				
-			throw InvalidArgumentException("token", "The event does not contain the provided token.");
+
+				throw InvalidArgumentException("token", "The event does not contain the provided token.");
 		}
 
 	public:
@@ -394,7 +394,7 @@ namespace LiteFX {
 		/// <param name="type">The type index of the requested backend.</param>
 		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
 		virtual const IBackend* getBackend(std::type_index type) const;
-		
+
 		/// <summary>
 		/// Returns all registered backend instances of a backend type.
 		/// </summary>
@@ -417,7 +417,7 @@ namespace LiteFX {
 		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
 		template <typename TBackend> requires
 			meta::implements<TBackend, IBackend>
-		TBackend* findBackend() {
+			TBackend* findBackend() {
 			return dynamic_cast<TBackend*>(this->getBackend(typeid(TBackend)));
 		}
 
@@ -509,7 +509,7 @@ namespace LiteFX {
 		/// <seealso cref="backendStarted" />
 		template <typename TBackend> requires
 			meta::implements<TBackend, IBackend>
-		void onBackendStart(const std::function<bool(TBackend*)>& callback) {
+			void onBackendStart(const std::function<bool(TBackend*)>& callback) {
 			this->registerStartCallback(typeid(TBackend), [this, callback]() {
 				auto backend = this->findBackend<TBackend>();
 
@@ -536,7 +536,7 @@ namespace LiteFX {
 		/// <seealso cref="backendStopped" />
 		template <typename TBackend> requires
 			meta::implements<TBackend, IBackend>
-		void onBackendStop(const std::function<void(TBackend*)>& callback) {
+			void onBackendStop(const std::function<void(TBackend*)>& callback) {
 			this->registerStopCallback(typeid(TBackend), [this, callback]() {
 				auto backend = this->findBackend<TBackend>();
 
@@ -556,7 +556,7 @@ namespace LiteFX {
 		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
 		template <typename TBackend> requires
 			meta::implements<TBackend, IBackend>
-		const TBackend* findBackend() const {
+			const TBackend* findBackend() const {
 			return dynamic_cast<const TBackend*>(this->getBackend(typeid(TBackend)));
 		}
 
@@ -567,7 +567,7 @@ namespace LiteFX {
 		/// <exception cref="InvalidArgumentException">Thrown, if no backend of type <typeparamref name="TBackend" /> is registered.</exception>
 		template <typename TBackend> requires
 			meta::implements<TBackend, IBackend>
-		void startBackend() {
+			void startBackend() {
 			this->startBackend(typeid(TBackend));
 		}
 
@@ -578,7 +578,7 @@ namespace LiteFX {
 		/// <exception cref="InvalidArgumentException">Thrown, if no backend of type <typeparamref name="TBackend" /> is registered.</exception>
 		template <typename TBackend> requires
 			meta::implements<TBackend, IBackend>
-		void stopBackend() {
+			void stopBackend() {
 			this->stopBackend(typeid(TBackend));
 		}
 
@@ -628,9 +628,7 @@ namespace LiteFX {
 		/// Creates a new application builder.
 		/// </summary>
 		template <typename TApp, typename ...TArgs>
-		static AppBuilder build(TArgs&&... _args) { 
-			return AppBuilder(makeUnique<TApp>(std::forward<TArgs>(_args)...)); 
-		}
+		[[nodiscard]] static AppBuilder build(TArgs&&... _args);
 	};
 
 	/// <summary>
@@ -649,7 +647,7 @@ namespace LiteFX {
 		/// </summary>
 		template <typename TSink, typename ...TArgs> requires
 			std::convertible_to<TSink*, ISink*>
-		AppBuilder& logTo(TArgs&&... args) {
+			AppBuilder& logTo(TArgs&&... args) {
 			auto sink = makeUnique<TSink>(std::forward<TArgs>(args)...);
 			Logger::sinkTo(sink.get());
 			return *this;
@@ -660,10 +658,15 @@ namespace LiteFX {
 		/// </summary>
 		template <typename TBackend, typename ...TArgs> requires
 			meta::implements<TBackend, IBackend>
-		AppBuilder& useBackend(TArgs&&... args) {
+			AppBuilder& useBackend(TArgs&&... args) {
 			this->use(makeUnique<TBackend>(*this->instance(), std::forward<TArgs>(args)...));
 			return *this;
 		}
 	};
 
+	template<typename TApp, typename ...TArgs>
+	inline AppBuilder App::build(TArgs && ..._args)
+	{
+		return AppBuilder(makeUnique<TApp>(std::forward<TArgs>(_args)...));
+	}
 }
