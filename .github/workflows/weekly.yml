@@ -17,8 +17,8 @@ env:
 
 jobs:
   job:
-    name: ${{ matrix.os }}-weekly
-    runs-on: ${{ matrix.os }}
+    name: windows-latest-weekly
+    runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
