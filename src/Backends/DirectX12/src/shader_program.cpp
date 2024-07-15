@@ -486,13 +486,13 @@ public:
 
                 co_yield makeUnique<DirectX12DescriptorSetLayout>(m_device, std::move(descriptors), descriptorSet.space, descriptorSet.stage);
             }
-        }() | std::views::as_rvalue;
+        }() | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>>();
 
         // Create the push constants layout.
         auto pushConstants = [&pushConstantRanges]() -> std::generator<UniquePtr<DirectX12PushConstantsRange>> {
             for (auto range = pushConstantRanges.begin(); range != pushConstantRanges.end(); ++range)
                 co_yield makeUnique<DirectX12PushConstantsRange>(range->stage, range->offset, range->size, range->space, range->location);
-        }() | std::views::as_rvalue;
+        }() | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>();
 
         auto overallSize = std::accumulate(pushConstantRanges.begin(), pushConstantRanges.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range.size; });
         auto pushConstantsLayout = makeUnique<DirectX12PushConstantsLayout>(std::move(pushConstants), overallSize);
