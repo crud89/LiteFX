@@ -22,12 +22,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-latest ]
+        profile: [ windows-x64, windows-x86 ]
         include:
-          - os: windows-latest
+          - profile: windows-x64
             triplet: x64-windows
-            configuration: windows-x64-publish
+            configuration: windows-x64-release
             architecture: x64
+          - profile: windows-x86
+            triplet: x86-windows
+            configuration: windows-x86-release
+            architecture: x86
 
     steps:
       - name: Checking out sources
