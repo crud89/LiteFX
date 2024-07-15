@@ -1,5 +1,8 @@
 #include <litefx/backends/dx12.hpp>
+
+#if defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
 #include <pix3.h>
+#endif defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
 
 using namespace LiteFX::Rendering::Backends;
 

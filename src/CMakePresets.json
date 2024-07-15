@@ -99,11 +99,11 @@
   ],
   "buildPresets": [
     {
-      "name": "windows-x86-publish",
+      "name": "windows-x86-release",
       "configurePreset": "windows-x86-release"
     },
     {
-      "name": "windows-x64-publish",
+      "name": "windows-x64-release",
       "configurePreset": "windows-x64-release"
     }
   ],

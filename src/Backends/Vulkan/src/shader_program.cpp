@@ -342,13 +342,13 @@ public:
 
                 co_yield makeUnique<VulkanDescriptorSetLayout>(m_device, std::move(descriptorLayouts), descriptorSet.space, descriptorSet.stage);
             }
-        }() | std::views::as_rvalue;
+        }() | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<VulkanDescriptorSetLayout>>>();
 
         // Create the push constants layout.
         auto pushConstants = [&pushConstantRanges]() -> std::generator<UniquePtr<VulkanPushConstantsRange>> {
             for (auto it = pushConstantRanges.begin(); it != pushConstantRanges.end(); ++it)
                 co_yield makeUnique<VulkanPushConstantsRange>(it->stage, it->offset, it->size, 0, 0);   // No space or binding for Vulkan push constants.
-        }() | std::views::as_rvalue;
+        }() | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<VulkanPushConstantsRange>>>();
 
         auto overallSize = std::accumulate(pushConstantRanges.begin(), pushConstantRanges.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range.size; });
         auto pushConstantsLayout = makeUnique<VulkanPushConstantsLayout>(std::move(pushConstants), overallSize);
