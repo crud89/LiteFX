@@ -20,6 +20,7 @@ private:
     UInt32 m_apiVersion;
     GraphicsAdapterType m_type;
     UInt64 m_deviceLocalMemory{ 0 };
+    Array<String> m_deviceExtensions, m_deviceLayers;
 
 public:
     VulkanGraphicsAdapterImpl(VulkanGraphicsAdapter* parent) : 
@@ -68,16 +69,22 @@ public:
         for (const auto& heap : heaps)
             if ((heap.flags & VkMemoryHeapFlagBits::VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) == VkMemoryHeapFlagBits::VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
                 m_deviceLocalMemory += heap.size;
-    }
 
-public:
+        // Load supported device extensions.
+        UInt32 extensions = 0;
+        ::vkEnumerateDeviceExtensionProperties(m_parent->handle(), nullptr, &extensions, nullptr);
 
-    VkPhysicalDeviceFeatures getFeatures() const noexcept
-    {
-        VkPhysicalDeviceFeatures features;
-        ::vkGetPhysicalDeviceFeatures(m_parent->handle(), &features);
+        Array<VkExtensionProperties> availableExtensions(extensions);
+        ::vkEnumerateDeviceExtensionProperties(m_parent->handle(), nullptr, &extensions, availableExtensions.data());
+        m_deviceExtensions = availableExtensions | std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); }) | std::ranges::to<Array<String>>();
 
-        return features;
+        // Load available device layers.
+        UInt32 layers = 0;
+        ::vkEnumerateDeviceLayerProperties(m_parent->handle(), &layers, nullptr);
+
+        Array<VkLayerProperties> availableLayers(layers);
+        ::vkEnumerateDeviceLayerProperties(m_parent->handle(), &layers, availableLayers.data());
+        m_deviceLayers = availableLayers | std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); }) | std::ranges::to<Array<String>>();
     }
 };
 
@@ -157,13 +164,7 @@ bool VulkanGraphicsAdapter::validateDeviceExtensions(Span<const String> extensio
 
 Enumerable<String> VulkanGraphicsAdapter::getAvailableDeviceExtensions() const noexcept
 {
-    UInt32 extensions = 0;
-    ::vkEnumerateDeviceExtensionProperties(this->handle(), nullptr, &extensions, nullptr);
-
-    Array<VkExtensionProperties> availableExtensions(extensions);
-    ::vkEnumerateDeviceExtensionProperties(this->handle(), nullptr, &extensions, availableExtensions.data());
-
-    return availableExtensions | std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); });
+    return m_impl->m_deviceExtensions;
 }
 
 bool VulkanGraphicsAdapter::validateDeviceLayers(Span<const String> layers) const noexcept
@@ -186,11 +187,5 @@ bool VulkanGraphicsAdapter::validateDeviceLayers(Span<const String> layers) cons
 
 Enumerable<String> VulkanGraphicsAdapter::deviceValidationLayers() const noexcept
 {
-    UInt32 layers = 0;
-    ::vkEnumerateDeviceLayerProperties(this->handle(), &layers, nullptr);
-
-    Array<VkLayerProperties> availableLayers(layers);
-    ::vkEnumerateDeviceLayerProperties(this->handle(), &layers, availableLayers.data());
-
-    return availableLayers | std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); });
+    return m_impl->m_deviceLayers;
 }

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<!-- Graphics Adapter -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanGraphicsAdapter">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">empty</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">{{ Name = { m_impl.m_ptr._Mypair._Myval2->m_name } (Device ID = { m_impl.m_ptr._Mypair._Myval2->m_deviceId }, LUID = { m_impl.m_ptr._Mypair._Myval2->m_luid }) }}</DisplayString>
+
+		<Expand>
+			<Item Name="Name">m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Synthetic Name="Memory">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_deviceLocalMemory / 1048576 } Mb</DisplayString>
+			</Synthetic>
+			<Item Name="Type">m_impl.m_ptr._Mypair._Myval2->m_type</Item>
+			<Item Name="Luid">m_impl.m_ptr._Mypair._Myval2->m_luid,nvoXb</Item>
+			<Synthetic Name="Vendor ID">
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x1002">AMD (0x{ m_impl.m_ptr._Mypair._Myval2->m_deviceId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x1010">ImgTec (0x{ m_impl.m_ptr._Mypair._Myval2->m_deviceId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x10DE">NVidia (0x{ m_impl.m_ptr._Mypair._Myval2->m_deviceId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x13B5">ARM (0x{ m_impl.m_ptr._Mypair._Myval2->m_deviceId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x5143">Qualcom (0x{ m_impl.m_ptr._Mypair._Myval2->m_deviceId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x8086">Intel (0x{ m_impl.m_ptr._Mypair._Myval2->m_deviceId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x1002 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x1010 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x10DE &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x13B5 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x5143 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x8086">Other (0x{ m_impl.m_ptr._Mypair._Myval2->m_deviceId,nvoXb })</DisplayString>
+			</Synthetic>
+			<Item Name="Device ID">m_impl.m_ptr._Mypair._Myval2->m_deviceId</Item>
+			<Synthetic Name="Driver Version">
+				<!-- NVidia format -->
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x10DE">{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &gt;&gt; 22) &amp; 0x3FFF }.{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &gt;&gt; 14) &amp; 0x00FF }.{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &gt;&gt; 6) &amp; 0x00FF }.{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion) &amp; 0x003F } (0x{ m_impl.m_ptr._Mypair._Myval2->m_driverVersion,nvoXb })</DisplayString>
+				<!-- Intel format (NOTE: windows only, may print wrong version on other OS) -->
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x8086">{ m_impl.m_ptr._Mypair._Myval2->m_driverVersion &gt;&gt; 14 }.{ m_impl.m_ptr._Mypair._Myval2->m_driverVersion &amp; 0x3FFFF } (0x{ m_impl.m_ptr._Mypair._Myval2->m_driverVersion,nvoXb })</DisplayString>
+				<!-- Vulkan default format (AMD and others) -->
+				<DisplayString Condition="(m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x8086) &amp;&amp; (m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x1F96)">{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &amp; 0xFF000000) &gt;&gt; 24 }.{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &amp; 0x00FF0000) &gt;&gt; 16 }.{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &amp; 0x0000FF00) &gt;&gt; 8 }.{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &amp; 0x000000FF) } (0x{ m_impl.m_ptr._Mypair._Myval2->m_driverVersion,nvoXb })</DisplayString>
+			</Synthetic>
+			<Synthetic Name="API Version">
+				<DisplayString>{ (m_impl.m_ptr._Mypair._Myval2->m_apiVersion &gt;&gt; 22) &amp; 0x007F }.{ (m_impl.m_ptr._Mypair._Myval2->m_apiVersion &gt;&gt; 12) &amp; 0x03FF }.{ m_impl.m_ptr._Mypair._Myval2->m_apiVersion &amp; 0x0FFF } (Variant { m_impl.m_ptr._Mypair._Myval2->m_apiVersion &gt;&gt; 29 }, 0x{ m_impl.m_ptr._Mypair._Myval2->m_apiVersion,nvoXb })</DisplayString>
+			</Synthetic>
+			<Item Name="Limits">m_impl.m_ptr._Mypair._Myval2->m_limits</Item>
+			<Item Name="Device Extensions">m_impl.m_ptr._Mypair._Myval2->m_deviceExtensions</Item>
+			<Item Name="Device Layers">m_impl.m_ptr._Mypair._Myval2->m_deviceLayers</Item>
+		</Expand>
+	</Type>
+</AutoVisualizer>
