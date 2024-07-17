@@ -12,33 +12,65 @@ public:
 
 private:
     VkPhysicalDeviceLimits m_limits;
+    String m_name;
+    UInt64 m_luid;
+    UInt32 m_vendorId;
+    UInt32 m_deviceId;
+    UInt32 m_driverVersion;
+    UInt32 m_apiVersion;
+    GraphicsAdapterType m_type;
+    UInt64 m_deviceLocalMemory{ 0 };
 
 public:
     VulkanGraphicsAdapterImpl(VulkanGraphicsAdapter* parent) : 
         base(parent) 
     {
-        m_limits = this->getProperties().limits;
-    }
-
-public:
-    VkPhysicalDeviceProperties getProperties() const noexcept
-    {
-        VkPhysicalDeviceProperties properties;
-        ::vkGetPhysicalDeviceProperties(m_parent->handle(), &properties);
-
-        return properties;
-    }
-
-    VkPhysicalDeviceIDProperties getIdProperties() const noexcept
-    {
-        // After obtaining VkPhysicalDevice of your choice:
-        VkPhysicalDeviceIDProperties deviceIdProperties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES };
-        VkPhysicalDeviceProperties2 deviceProperties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2 };
+        // Cache device properties.
+        VkPhysicalDeviceIDProperties deviceIdProperties{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES };
+        VkPhysicalDeviceProperties2 deviceProperties{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2 };
         deviceProperties.pNext = &deviceIdProperties;
         ::vkGetPhysicalDeviceProperties2(m_parent->handle(), &deviceProperties);
 
-        return deviceIdProperties;
+        const auto& properties = deviceProperties.properties;
+        m_limits = properties.limits;
+        m_name = String(properties.deviceName);
+        m_vendorId = properties.vendorID;
+        m_deviceId = properties.deviceID;
+        m_driverVersion = properties.driverVersion;
+        m_apiVersion = properties.apiVersion;
+
+        // Get the LUID.
+        m_luid = *reinterpret_cast<UInt64*>(&deviceIdProperties.deviceLUID);
+
+        // Get device type.
+        switch (properties.deviceType)
+        {
+        case VK_PHYSICAL_DEVICE_TYPE_CPU:
+            m_type = GraphicsAdapterType::CPU;
+            break;
+        case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
+        case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
+        case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
+            m_type = GraphicsAdapterType::GPU;
+            break;
+        default:
+            m_type = GraphicsAdapterType::Other;
+            break;
+        }
+
+        // Get available dedicated (device-local) memory.
+        VkPhysicalDeviceMemoryProperties memoryProperties{};
+        ::vkGetPhysicalDeviceMemoryProperties(m_parent->handle(), &memoryProperties);
+
+        auto memoryHeaps = memoryProperties.memoryHeaps;
+        auto heaps = Span<VkMemoryHeap>(memoryHeaps, memoryHeaps + memoryProperties.memoryHeapCount);
+
+        for (const auto& heap : heaps)
+            if ((heap.flags & VkMemoryHeapFlagBits::VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) == VkMemoryHeapFlagBits::VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
+                m_deviceLocalMemory += heap.size;
     }
+
+public:
 
     VkPhysicalDeviceFeatures getFeatures() const noexcept
     {
@@ -62,55 +94,37 @@ VulkanGraphicsAdapter::~VulkanGraphicsAdapter() noexcept = default;
 
 String VulkanGraphicsAdapter::name() const noexcept
 {
-    auto properties = m_impl->getProperties();
-    return String(properties.deviceName);
+    return m_impl->m_name;
 }
 
 UInt64 VulkanGraphicsAdapter::uniqueId() const noexcept
 {
-    auto properties = m_impl->getIdProperties();
-    return *reinterpret_cast<UInt64*>(&properties.deviceLUID);
+    return m_impl->m_luid;
 }
 
 UInt32 VulkanGraphicsAdapter::vendorId() const noexcept
 {
-    auto properties = m_impl->getProperties();
-    return properties.vendorID;
+    return m_impl->m_vendorId;
 }
 
 UInt32 VulkanGraphicsAdapter::deviceId() const noexcept
 {
-    auto properties = m_impl->getProperties();
-    return properties.deviceID;
+    return m_impl->m_deviceId;
 }
 
 GraphicsAdapterType VulkanGraphicsAdapter::type() const noexcept
 {
-    auto properties = m_impl->getProperties();
-    
-    switch (properties.deviceType)
-    {
-    case VK_PHYSICAL_DEVICE_TYPE_CPU:
-        return GraphicsAdapterType::CPU;
-    case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-    case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-    case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-        return GraphicsAdapterType::GPU;
-    default:
-        return GraphicsAdapterType::Other;
-    }
+    return m_impl->m_type;
 }
 
 UInt32 VulkanGraphicsAdapter::driverVersion() const noexcept
 {
-    auto properties = m_impl->getProperties();
-    return properties.driverVersion;
+    return m_impl->m_driverVersion;
 }
 
 UInt32 VulkanGraphicsAdapter::apiVersion() const noexcept
 {
-    auto properties = m_impl->getProperties();
-    return properties.apiVersion;
+    return m_impl->m_apiVersion;
 }
 
 VkPhysicalDeviceLimits VulkanGraphicsAdapter::limits() const noexcept
@@ -120,19 +134,7 @@ VkPhysicalDeviceLimits VulkanGraphicsAdapter::limits() const noexcept
 
 UInt64 VulkanGraphicsAdapter::dedicatedMemory() const noexcept
 {
-    VkPhysicalDeviceMemoryProperties memoryProperties{};
-    ::vkGetPhysicalDeviceMemoryProperties(this->handle(), &memoryProperties);
-
-    auto memoryHeaps = memoryProperties.memoryHeaps;
-    auto heaps = Array<VkMemoryHeap>(memoryHeaps, memoryHeaps + memoryProperties.memoryHeapCount);
-
-    size_t heapSize = 0;
-
-    for (const auto& heap : heaps)
-        if (heap.flags & VkMemoryHeapFlagBits::VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
-            heapSize += heap.size;
-
-    return heapSize;
+    return m_impl->m_deviceLocalMemory;
 }
 
 bool VulkanGraphicsAdapter::validateDeviceExtensions(Span<const String> extensions) const noexcept
