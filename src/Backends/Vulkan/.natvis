@@ -2,7 +2,7 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 	<!-- Graphics Adapter -->
 	<Type Name="LiteFX::Rendering::Backends::VulkanGraphicsAdapter">
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">empty</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
 		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">{{ Name = { m_impl.m_ptr._Mypair._Myval2->m_name } (Device ID = { m_impl.m_ptr._Mypair._Myval2->m_deviceId }, LUID = { m_impl.m_ptr._Mypair._Myval2->m_luid }) }}</DisplayString>
 
 		<Expand>
@@ -36,6 +36,76 @@
 			<Item Name="Limits">m_impl.m_ptr._Mypair._Myval2->m_limits</Item>
 			<Item Name="Device Extensions">m_impl.m_ptr._Mypair._Myval2->m_deviceExtensions</Item>
 			<Item Name="Device Layers">m_impl.m_ptr._Mypair._Myval2->m_deviceLayers</Item>
+		</Expand>
+	</Type>
+	
+	<!-- Surface -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanSurface">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">{{ hWnd = { m_impl.m_ptr._Mypair._Myval2->m_hwnd } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Window">m_impl.m_ptr._Mypair._Myval2->m_hwnd</Item>
+		</Expand>
+	</Type>
+
+	<!-- Vertex Buffer Layout -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanVertexBufferLayout">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">{{ Binding = { m_impl.m_ptr._Mypair._Myval2->m_binding }, Size = { m_impl.m_ptr._Mypair._Myval2->m_vertexSize } ({ m_impl.m_ptr._Mypair._Myval2->m_attributes._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_attributes._Mypair._Myval2._Myfirst } Attributes) }}</DisplayString>
+
+		<Expand>
+			<Item Name="Binding">m_impl.m_ptr._Mypair._Myval2->m_binding</Item>
+			<Item Name="Buffer Type">m_impl.m_ptr._Mypair._Myval2->m_bufferType</Item>
+			<Item Name="Vertex Size">m_impl.m_ptr._Mypair._Myval2->m_vertexSize</Item>
+			<Item Name="Attributes">m_impl.m_ptr._Mypair._Myval2->m_attributes</Item>
+		</Expand>
+	</Type>
+
+	<!-- Index Buffer Layout -->
+	<!-- 
+	     TODO: For some reason this visualizer is unable to resolve some pImpl members in some circumstances due to this bug: https://developercommunity.visualstudio.com/t/Opaque-types-are-not-expandable-by-defau/513715.
+               To fix this we will have to provide different natvis files depending on the library type (static/shared).	
+	-->
+	<!--
+	<Type Name="LiteFX::Rendering::Backends::VulkanIndexBufferLayout">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">{{ Binding = { ((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_binding }, Index Type = { ((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_indexType } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Binding">((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_binding</Item>
+			<Item Name="Buffer Type">((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_bufferType</Item>
+			<Item Name="Index Type">((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_indexType</Item>
+			<Synthetic Name="Element Size">
+				<DisplayString>{ ((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_indexType &gt;&gt; 3 } Bytes</DisplayString>
+			</Synthetic>
+		</Expand>
+	</Type>
+	-->
+	<Type Name="LiteFX::Rendering::Backends::VulkanIndexBufferLayout">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">{{ Binding = { m_impl.m_ptr._Mypair._Myval2->m_binding }, Index Type = { m_impl.m_ptr._Mypair._Myval2->m_indexType } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Binding">m_impl.m_ptr._Mypair._Myval2->m_binding</Item>
+			<Item Name="Buffer Type">m_impl.m_ptr._Mypair._Myval2->m_bufferType</Item>
+			<Item Name="Index Type">m_impl.m_ptr._Mypair._Myval2->m_indexType</Item>
+			<Synthetic Name="Element Size">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_indexType &gt;&gt; 3 } Bytes</DisplayString>
+			</Synthetic>
+		</Expand>
+	</Type>
+	
+	<!-- Input assembler -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanInputAssembler">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">{{ Topology = { m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology }, Index Type = { m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout._Mypair._Myval2->m_impl.m_ptr._Mypair._Myval2->m_indexType } ({ m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts)</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout._Mypair._Myval2 == 0">{{ Topology = { m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology }, Index Type = None ({ m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts)</DisplayString>
+
+		<Expand>
+			<Item Name="Primitive Topology">m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology</Item>
+			<Item Name="Index Buffer Layout">m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout</Item>
+			<Item Name="Vertex Buffer Layouts">m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts</Item>
 		</Expand>
 	</Type>
 </AutoVisualizer>

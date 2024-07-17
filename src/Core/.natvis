@@ -7,7 +7,7 @@
 			<ExpandedItem>_Mypair._Myval2</ExpandedItem>
 		</Expand>
 	</Type>
-	
+
 	<!-- LiteFX::SharedPtr -->
 	<Type Name="std::shared_ptr&lt;*&gt;">
 		<DisplayString>shared_ptr { *_Ptr } [refs: {_Rep->_Uses}, weak refs: {_Rep->_Weaks}]</DisplayString>
