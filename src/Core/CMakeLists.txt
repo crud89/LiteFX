@@ -31,6 +31,8 @@ ADD_LIBRARY(${PROJECT_NAME} STATIC
     "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/config.h"
     "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/version.h"
     "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/core.h"
+
+    ".natvis"
 )
 
 # Create source groups for better code organization.
