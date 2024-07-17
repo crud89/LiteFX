@@ -31,7 +31,9 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "VCPKG_TARGET_TRIPLET": "x64-windows"
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
     },
     {
@@ -44,7 +46,9 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "BUILD_SHARED_LIBS": "OFF",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
     },
     {
@@ -57,7 +61,9 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "LITEFX_BUILD_TESTS": "ON",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-rel"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-rel",
+        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
     },
     {
@@ -73,7 +79,7 @@
       }
     },
     {
-      "name": "windows-x64-publish",
+      "name": "windows-x64-test",
       "inherits": "windows",
       "architecture": {
         "value": "x64",
@@ -81,7 +87,9 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-rel"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-rel",
+        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
     },
     {
@@ -93,7 +101,9 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "VCPKG_TARGET_TRIPLET": "x86-windows"
+        "VCPKG_TARGET_TRIPLET": "x86-windows",
+        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
     },
     {
@@ -106,7 +116,9 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "LITEFX_BUILD_TESTS": "ON",
-        "VCPKG_TARGET_TRIPLET": "x86-windows-rel"
+        "VCPKG_TARGET_TRIPLET": "x86-windows-rel",
+        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
     },
     {
@@ -122,7 +134,7 @@
       }
     },
     {
-      "name": "windows-x86-publish",
+      "name": "windows-x86-test",
       "inherits": "windows",
       "architecture": {
         "value": "x86",
@@ -152,16 +164,8 @@
       "configurePreset": "windows-x86-release"
     },
     {
-      "name": "windows-x86-debug",
-      "configurePreset": "windows-x86-debug"
-    },
-    {
-      "name": "windows-x86-publish",
-      "configurePreset": "windows-x86-publish"
-    },
-    {
-      "name": "windows-x64-publish",
-      "configurePreset": "windows-x64-publish"
+      "name": "windows-x64-release",
+      "configurePreset": "windows-x64-release"
     }
   ],
   "testPresets": [

@@ -1,5 +1,8 @@
 #include <litefx/backends/dx12.hpp>
+
+#if defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
 #include <pix3.h>
+#endif defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -111,7 +114,7 @@ QueueType DirectX12Queue::type() const noexcept
 	return m_impl->m_type;
 }
 
-#if !defined(NDEBUG) && defined(_WIN64)
+#if defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
 void DirectX12Queue::beginDebugRegion(const String& label, const Vectors::ByteVector3& color) const noexcept
 {
 	::PIXBeginEvent(this->handle().Get(), PIX_COLOR(color.x(), color.y(), color.z()), label.c_str());
@@ -126,7 +129,7 @@ void DirectX12Queue::setDebugMarker(const String& label, const Vectors::ByteVect
 {
 	::PIXSetMarker(this->handle().Get(), PIX_COLOR(color.x(), color.y(), color.z()), label.c_str());
 }
-#endif // !defined(NDEBUG) && defined(_WIN64)
+#endif // defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
 
 QueuePriority DirectX12Queue::priority() const noexcept
 {
