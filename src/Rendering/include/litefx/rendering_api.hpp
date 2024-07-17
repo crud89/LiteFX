@@ -76,12 +76,12 @@ namespace LiteFX::Rendering {
         None = 0x00000000,
         
         /// <summary>
-        /// The adapter is a dedicated GPU adapter.
+        /// The adapter is a dedicated GPU or integrated CPU adapter.
         /// </summary>
         GPU = 0x00000001,
 
         /// <summary>
-        /// The adapter is an integrated CPU.
+        /// The adapter is a software driver.
         /// </summary>
         CPU = 0x00000002,
 
