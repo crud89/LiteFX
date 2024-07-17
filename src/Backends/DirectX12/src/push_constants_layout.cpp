@@ -93,19 +93,19 @@ Enumerable<DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() 
 // Push constants layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr DirectX12PushConstantsLayoutBuilder::DirectX12PushConstantsLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 size) :
+DirectX12PushConstantsLayoutBuilder::DirectX12PushConstantsLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 size) :
     PushConstantsLayoutBuilder(parent, UniquePtr<DirectX12PushConstantsLayout>(new DirectX12PushConstantsLayout(size)))
 {
 }
 
-constexpr DirectX12PushConstantsLayoutBuilder::~DirectX12PushConstantsLayoutBuilder() noexcept = default;
+DirectX12PushConstantsLayoutBuilder::~DirectX12PushConstantsLayoutBuilder() noexcept = default;
 
 void DirectX12PushConstantsLayoutBuilder::build()
 {
     this->instance()->m_impl->setRanges(std::move(m_state.ranges | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>()));
 }
 
-constexpr UniquePtr<DirectX12PushConstantsRange> DirectX12PushConstantsLayoutBuilder::makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding)
+UniquePtr<DirectX12PushConstantsRange> DirectX12PushConstantsLayoutBuilder::makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding)
 {
     return makeUnique<DirectX12PushConstantsRange>(shaderStages, offset, size, space, binding);
 }

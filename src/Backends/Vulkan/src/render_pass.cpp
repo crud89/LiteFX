@@ -534,18 +534,18 @@ UInt64 VulkanRenderPass::end() const
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const String& name) noexcept :
+VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const String& name) noexcept :
     VulkanRenderPassBuilder(device, 1, name)
 {
 }
 
-constexpr VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, UInt32 commandBuffers, const String& name) noexcept :
+VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, UInt32 commandBuffers, const String& name) noexcept :
     RenderPassBuilder(UniquePtr<VulkanRenderPass>(new VulkanRenderPass(device, name)))
 {
     m_state.commandBufferCount = commandBuffers;
 }
 
-constexpr VulkanRenderPassBuilder::~VulkanRenderPassBuilder() noexcept = default;
+VulkanRenderPassBuilder::~VulkanRenderPassBuilder() noexcept = default;
 
 void VulkanRenderPassBuilder::build()
 {

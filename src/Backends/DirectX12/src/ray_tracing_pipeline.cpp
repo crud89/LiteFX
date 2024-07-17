@@ -567,13 +567,13 @@ void DirectX12RayTracingPipeline::use(const DirectX12CommandBuffer& commandBuffe
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr DirectX12RayTracingPipelineBuilder::DirectX12RayTracingPipelineBuilder(const DirectX12Device& device, ShaderRecordCollection&& shaderRecords, const String& name) :
+DirectX12RayTracingPipelineBuilder::DirectX12RayTracingPipelineBuilder(const DirectX12Device& device, ShaderRecordCollection&& shaderRecords, const String& name) :
 	RayTracingPipelineBuilder(UniquePtr<DirectX12RayTracingPipeline>(new DirectX12RayTracingPipeline(device, std::move(shaderRecords))))
 {
 	this->instance()->name() = name;
 }
 
-constexpr DirectX12RayTracingPipelineBuilder::~DirectX12RayTracingPipelineBuilder() noexcept = default;
+DirectX12RayTracingPipelineBuilder::~DirectX12RayTracingPipelineBuilder() noexcept = default;
 
 void DirectX12RayTracingPipelineBuilder::build()
 {

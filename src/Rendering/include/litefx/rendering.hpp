@@ -22,49 +22,49 @@ namespace LiteFX::Rendering {
         using image_type = TImage;
 
     public:
-        constexpr inline virtual ~Barrier() noexcept = default;
+        constexpr virtual ~Barrier() noexcept = default;
 
     public:
         /// <inheritdoc />
-        constexpr inline virtual void transition(const buffer_type& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
+        constexpr virtual void transition(const buffer_type& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
 
         /// <inheritdoc />
-        constexpr inline virtual void transition(const buffer_type& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
+        constexpr virtual void transition(const buffer_type& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
 
         /// <inheritdoc />
-        constexpr inline virtual void transition(const image_type& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
+        constexpr virtual void transition(const image_type& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
 
         /// <inheritdoc />
-        constexpr inline virtual void transition(const image_type& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
+        constexpr virtual void transition(const image_type& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
 
         /// <inheritdoc />
-        constexpr inline virtual void transition(const image_type& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
+        constexpr virtual void transition(const image_type& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
 
         /// <inheritdoc />
-        constexpr inline virtual void transition(const image_type& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
+        constexpr virtual void transition(const image_type& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
 
     private:
-        constexpr inline void doTransition(const IBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) override {
+        constexpr void doTransition(const IBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) override {
             this->transition(dynamic_cast<const buffer_type&>(buffer), accessBefore, accessAfter);
         }
 
-        constexpr inline void doTransition(const IBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) override {
+        constexpr void doTransition(const IBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) override {
             this->transition(dynamic_cast<const buffer_type&>(buffer), element, accessBefore, accessAfter);
         }
 
-        constexpr inline void doTransition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override {
+        constexpr void doTransition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override {
             this->transition(dynamic_cast<const image_type&>(image), accessBefore, accessAfter, layout);
         }
 
-        constexpr inline void doTransition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override {
+        constexpr void doTransition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override {
             this->transition(dynamic_cast<const image_type&>(image), accessBefore, accessAfter, fromLayout, toLayout);
         }
 
-        constexpr inline void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override {
+        constexpr void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override {
             this->transition(dynamic_cast<const image_type&>(image), level, levels, layer, layers, plane, accessBefore, accessAfter, layout);
         }
 
-        constexpr inline void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override {
+        constexpr void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override {
             this->transition(dynamic_cast<const image_type&>(image), level, levels, layer, layers, plane, accessBefore, accessAfter, fromLayout, toLayout);
         }
     };
@@ -319,7 +319,7 @@ namespace LiteFX::Rendering {
         virtual Enumerable<const shader_module_type*> modules() const noexcept = 0;
 
     private:
-        inline virtual Enumerable<const IShaderModule*> getModules() const noexcept {
+        virtual inline Enumerable<const IShaderModule*> getModules() const noexcept {
             return this->modules();
         }
     };
@@ -608,19 +608,19 @@ namespace LiteFX::Rendering {
         virtual void drawIndexedIndirect(const buffer_type& batchBuffer, const buffer_type& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept = 0;
 
         /// <inheritdoc />
-        inline virtual void draw(const vertex_buffer_type& vertexBuffer, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const {
+        virtual inline void draw(const vertex_buffer_type& vertexBuffer, UInt32 instances = 1, UInt32 firstVertex = 0, UInt32 firstInstance = 0) const {
             this->bind(vertexBuffer);
             this->draw(vertexBuffer.elements(), instances, firstVertex, firstInstance);
         }
 
         /// <inheritdoc />
-        inline virtual void drawIndexed(const index_buffer_type& indexBuffer, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const {
+        virtual inline void drawIndexed(const index_buffer_type& indexBuffer, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const {
             this->bind(indexBuffer);
             this->drawIndexed(indexBuffer.elements(), instances, firstIndex, vertexOffset, firstInstance);
         }
 
         /// <inheritdoc />
-        inline virtual void drawIndexed(const vertex_buffer_type& vertexBuffer, const index_buffer_type& indexBuffer, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const {
+        virtual inline void drawIndexed(const vertex_buffer_type& vertexBuffer, const index_buffer_type& indexBuffer, UInt32 instances = 1, UInt32 firstIndex = 0, Int32 vertexOffset = 0, UInt32 firstInstance = 0) const {
             this->bind(vertexBuffer);
             this->bind(indexBuffer);
             this->drawIndexed(indexBuffer.elements(), instances, firstIndex, vertexOffset, firstInstance);
@@ -955,7 +955,7 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<command_buffer_type> createCommandBuffer(bool beginRecording = false, bool secondary = false) const = 0;
 
         /// <inheritdoc />
-        inline virtual UInt64 submit(SharedPtr<command_buffer_type> commandBuffer) const {
+        virtual inline UInt64 submit(SharedPtr<command_buffer_type> commandBuffer) const {
             return this->submit(std::static_pointer_cast<const command_buffer_type>(commandBuffer));
         }
 
@@ -963,7 +963,7 @@ namespace LiteFX::Rendering {
         virtual UInt64 submit(SharedPtr<const command_buffer_type> commandBuffer) const = 0;
 
         /// <inheritdoc />
-        inline virtual UInt64 submit(const Enumerable<SharedPtr<command_buffer_type>>& commandBuffers) const {
+        virtual inline UInt64 submit(const Enumerable<SharedPtr<command_buffer_type>>& commandBuffers) const {
             return this->submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const command_buffer_type>>>());
         }
 
@@ -1517,12 +1517,12 @@ namespace LiteFX::Rendering {
         virtual const device_type* device(const String& name) const noexcept = 0;
 
         /// <inheritdoc />
-        inline virtual const device_type* operator[](const String& name) const noexcept {
+        virtual inline const device_type* operator[](const String& name) const noexcept {
             return this->device(name);
         };
 
         /// <inheritdoc />
-        inline virtual device_type* operator[](const String& name) noexcept {
+        virtual inline device_type* operator[](const String& name) noexcept {
             return this->device(name);
         };
 

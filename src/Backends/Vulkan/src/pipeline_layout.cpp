@@ -160,12 +160,12 @@ public:
 // Pipeline layout builder interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr VulkanPipelineLayoutBuilder::VulkanPipelineLayoutBuilder(const VulkanDevice& parent) :
+VulkanPipelineLayoutBuilder::VulkanPipelineLayoutBuilder(const VulkanDevice& parent) :
     m_impl(makePimpl<VulkanPipelineLayoutBuilderImpl>(this, parent)), PipelineLayoutBuilder(SharedPtr<VulkanPipelineLayout>(new VulkanPipelineLayout(parent)))
 {
 }
 
-constexpr VulkanPipelineLayoutBuilder::~VulkanPipelineLayoutBuilder() noexcept = default;
+VulkanPipelineLayoutBuilder::~VulkanPipelineLayoutBuilder() noexcept = default;
 
 void VulkanPipelineLayoutBuilder::build()
 {
@@ -175,17 +175,17 @@ void VulkanPipelineLayoutBuilder::build()
     instance->handle() = instance->m_impl->initialize();
 }
 
-constexpr VulkanDescriptorSetLayoutBuilder VulkanPipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages)
+VulkanDescriptorSetLayoutBuilder VulkanPipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages)
 {
     return VulkanDescriptorSetLayoutBuilder(*this, space, stages);
 }
 
-constexpr VulkanPushConstantsLayoutBuilder VulkanPipelineLayoutBuilder::pushConstants(UInt32 size)
+VulkanPushConstantsLayoutBuilder VulkanPipelineLayoutBuilder::pushConstants(UInt32 size)
 {
     return VulkanPushConstantsLayoutBuilder(*this, size);
 }
 
-constexpr const VulkanDevice& VulkanPipelineLayoutBuilder::device() const noexcept
+const VulkanDevice& VulkanPipelineLayoutBuilder::device() const noexcept
 {
     return m_impl->m_device;
 }

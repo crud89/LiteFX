@@ -116,7 +116,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="...args">The arguments passed to the function.</param>
 		/// <returns>The result of the delegate function call.</returns>
-		TResult inline invoke(TArgs... args) const {
+		inline TResult invoke(TArgs... args) const {
 			return m_target(args...);
 		}
 
@@ -124,7 +124,7 @@ namespace LiteFX {
 		/// Returns the unique token of the delegate.
 		/// </summary>
 		/// <returns>The unique token of the delegate.</returns>
-		token_type inline token() const {
+		inline token_type token() const {
 			return m_token;
 		}
 
@@ -134,7 +134,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="...args">The arguments passed to the function.</param>
 		/// <returns>The result of the delegate function call.</returns>
-		TResult inline operator()(TArgs... args) const {
+		inline TResult operator()(TArgs... args) const {
 			return this->invoke(args...);
 		}
 	};
@@ -642,14 +642,14 @@ namespace LiteFX {
 
 	public:
 		/// <inheritdoc />
-		constexpr inline void use(UniquePtr<IBackend>&& backend);
+		void use(UniquePtr<IBackend>&& backend);
 
 		/// <summary>
 		/// Registers a sink for logging.
 		/// </summary>
 		template <typename TSink, typename ...TArgs> requires
 			std::convertible_to<TSink*, ISink*>
-		constexpr inline AppBuilder& logTo(TArgs&&... args) {
+		AppBuilder& logTo(TArgs&&... args) {
 			auto sink = makeUnique<TSink>(std::forward<TArgs>(args)...);
 			Logger::sinkTo(sink.get());
 			return *this;
@@ -660,7 +660,7 @@ namespace LiteFX {
 		/// </summary>
 		template <typename TBackend, typename ...TArgs> requires
 			meta::implements<TBackend, IBackend>
-		constexpr inline AppBuilder& useBackend(TArgs&&... args) {
+		AppBuilder& useBackend(TArgs&&... args) {
 			this->use(makeUnique<TBackend>(*this->instance(), std::forward<TArgs>(args)...));
 			return *this;
 		}

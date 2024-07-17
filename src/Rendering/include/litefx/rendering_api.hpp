@@ -1879,7 +1879,7 @@ namespace LiteFX::Rendering {
     /// Returns the number of channels for a buffer format.
     /// </summary>
     /// <seealso cref="BufferFormat" />
-    constexpr inline UInt32 getBufferFormatChannels(BufferFormat format) {
+    constexpr UInt32 getBufferFormatChannels(BufferFormat format) {
         return static_cast<UInt32>(format) & 0x000000FF;
     }
 
@@ -1887,7 +1887,7 @@ namespace LiteFX::Rendering {
     /// Returns the number of bytes used by a channel of a buffer format.
     /// </summary>
     /// <seealso cref="BufferFormat" />
-    constexpr inline UInt32 getBufferFormatChannelSize(BufferFormat format) {
+    constexpr UInt32 getBufferFormatChannelSize(BufferFormat format) {
         return (static_cast<UInt32>(format) & 0xFF000000) >> 24;
     }
 
@@ -1895,26 +1895,26 @@ namespace LiteFX::Rendering {
     /// Returns the underlying data type of a buffer format.
     /// </summary>
     /// <seealso cref="BufferFormat" />
-    constexpr inline UInt32 getBufferFormatType(BufferFormat format) {
+    constexpr UInt32 getBufferFormatType(BufferFormat format) {
         return (static_cast<UInt32>(format) & 0x0000FF00) >> 8;
     }
 
     /// <summary>
     /// Returns the size of an element of a specified format.
     /// </summary>
-    constexpr inline size_t LITEFX_RENDERING_API getSize(Format format);
+    size_t LITEFX_RENDERING_API getSize(Format format);
 
     /// <summary>
     /// Returns <c>true</c>, if the format contains a depth channel.
     /// </summary>
     /// <seealso cref="DepthStencilState" />
-    constexpr inline bool LITEFX_RENDERING_API hasDepth(Format format);
+    bool LITEFX_RENDERING_API hasDepth(Format format);
 
     /// <summary>
     /// Returns <c>true</c>, if the format contains a stencil channel.
     /// </summary>
     /// <seealso cref="DepthStencilState" />
-    constexpr inline bool LITEFX_RENDERING_API hasStencil(Format format);
+    bool LITEFX_RENDERING_API hasStencil(Format format);
 
 #pragma endregion
 
@@ -2732,14 +2732,14 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="_other">The render target instance to copy.</param>
         /// <returns>A reference to the current render target instance.</returns>
-        inline RenderTarget& operator=(const RenderTarget& _other) noexcept;
+        RenderTarget& operator=(const RenderTarget& _other) noexcept;
 
         /// <summary>
         /// Assigns a render target by taking it over.
         /// </summary>
         /// <param name="_other">The render target to take over.</param>
         /// <returns>A reference to the current render target instance.</returns>
-        inline RenderTarget& operator=(RenderTarget&& _other) noexcept;
+        RenderTarget& operator=(RenderTarget&& _other) noexcept;
 
     public:
         /// <inheritdoc />
@@ -3797,7 +3797,7 @@ namespace LiteFX::Rendering {
         /// <param name="plane">The plane of the sub-resource.</param>
         /// <returns>The sub-resource ID for the sub-resource.</returns>
         /// <seealso cref="resolveSubresource" />
-        inline virtual UInt32 subresourceId(UInt32 level, UInt32 layer, UInt32 plane) const noexcept {
+        virtual inline UInt32 subresourceId(UInt32 level, UInt32 layer, UInt32 plane) const noexcept {
             return level + (layer * this->levels()) + (plane * this->levels() * this->layers());
         }
 
@@ -3809,7 +3809,7 @@ namespace LiteFX::Rendering {
         /// <param name="layer">The array layer of the sub-resource.</param>
         /// <param name="level">The mip-map level of the sub-resource.</param>
         /// <seealso cref="subresourceId" />
-        inline virtual void resolveSubresource(UInt32 subresource, UInt32& plane, UInt32& layer, UInt32& level) const noexcept {
+        virtual inline void resolveSubresource(UInt32 subresource, UInt32& plane, UInt32& layer, UInt32& level) const noexcept {
             const auto levels = this->levels();
             const UInt32 resourcesPerPlane = levels * this->layers();
             plane = subresource / resourcesPerPlane;
@@ -4584,13 +4584,13 @@ namespace LiteFX::Rendering {
         /// Returns the stage that all previous commands need to reach before continuing execution.
         /// </summary>
         /// <returns>The stage that all previous commands need to reach before continuing execution.</returns>
-        constexpr inline virtual PipelineStage syncBefore() const noexcept = 0;
+        constexpr virtual PipelineStage syncBefore() const noexcept = 0;
         
         /// <summary>
         /// Returns the stage all subsequent commands need to wait for before continuing execution.
         /// </summary>
         /// <returns>The stage all subsequent commands need to wait for before continuing execution.</returns>
-        constexpr inline virtual PipelineStage syncAfter() const noexcept = 0;
+        constexpr virtual PipelineStage syncAfter() const noexcept = 0;
 
         /// <summary>
         /// Inserts a global barrier that waits for previous commands to finish accesses described by <paramref name="accessBefore" /> before subsequent commands can continue
@@ -4598,7 +4598,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="accessBefore">The access types previous commands have to finish.</param>
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
-        constexpr inline virtual void wait(ResourceAccess accessBefore, ResourceAccess accessAfter) noexcept = 0;
+        constexpr virtual void wait(ResourceAccess accessBefore, ResourceAccess accessAfter) noexcept = 0;
 
         /// <summary>
         /// Inserts a buffer barrier that blocks access to <paramref name="buffer"/> of types contained in <paramref name="accessAfter" /> for subsequent commands until 
@@ -4607,7 +4607,7 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">The buffer resource to transition.</param>
         /// <param name="accessBefore">The access types previous commands have to finish.</param>
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
-        constexpr inline void transition(const IBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) {
+        constexpr void transition(const IBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) {
             this->doTransition(buffer, accessBefore, accessAfter);
         };
 
@@ -4623,7 +4623,7 @@ namespace LiteFX::Rendering {
         /// <param name="element">The element of the resource to transition.</param>
         /// <param name="accessBefore">The access types previous commands have to finish.</param>
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
-        constexpr inline void transition(const IBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) {
+        constexpr void transition(const IBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) {
             this->doTransition(buffer, element, accessBefore, accessAfter);
         }
 
@@ -4636,7 +4636,7 @@ namespace LiteFX::Rendering {
         /// <param name="accessBefore">The access types previous commands have to finish.</param>
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
         /// <param name="layout">The image layout to transition into.</param>
-        constexpr inline void transition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) {
+        constexpr void transition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) {
             this->doTransition(image, accessBefore, accessAfter, layout);
         }
 
@@ -4654,7 +4654,7 @@ namespace LiteFX::Rendering {
         /// <param name="accessBefore">The access types previous commands have to finish.</param>
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
         /// <param name="layout">The image layout to transition into.</param>
-        constexpr inline void transition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) {
+        constexpr void transition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) {
             this->doTransition(image, level, levels, layer, layers, plane, accessBefore, accessAfter, layout);
         }
 
@@ -4672,7 +4672,7 @@ namespace LiteFX::Rendering {
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
         /// <param name="fromLayout">The image layout to transition from.</param>
         /// <param name="toLayout">The image layout to transition into.</param>
-        constexpr inline void transition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) {
+        constexpr void transition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) {
             this->doTransition(image, accessBefore, accessAfter, fromLayout, toLayout);
         }
 
@@ -4695,17 +4695,17 @@ namespace LiteFX::Rendering {
         /// <param name="accessAfter">The access types that subsequent commands continue with.</param>
         /// <param name="fromLayout">The image layout to transition from.</param>
         /// <param name="toLayout">The image layout to transition into.</param>
-        constexpr inline void transition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) {
+        constexpr void transition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) {
             this->doTransition(image, level, levels, layer, layers, plane, accessBefore, accessAfter, fromLayout, toLayout);
         }
 
     private:
-        constexpr inline virtual void doTransition(const IBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
-        constexpr inline virtual void doTransition(const IBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
-        constexpr inline virtual void doTransition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
-        constexpr inline virtual void doTransition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
-        constexpr inline virtual void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
-        constexpr inline virtual void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
+        constexpr virtual void doTransition(const IBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
+        constexpr virtual void doTransition(const IBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) = 0;
+        constexpr virtual void doTransition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
+        constexpr virtual void doTransition(const IImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
+        constexpr virtual void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) = 0;
+        constexpr virtual void doTransition(const IImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) = 0;
     };
 
     /// <summary>

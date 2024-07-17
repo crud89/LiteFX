@@ -26,13 +26,13 @@ namespace LiteFX {
     using StringView = std::string_view;
     using WStringView = std::wstring_view;
 
-    constexpr inline auto Join(std::ranges::input_range auto&& elements, StringView delimiter = ""sv) noexcept requires
+    constexpr auto Join(std::ranges::input_range auto&& elements, StringView delimiter = ""sv) noexcept requires
         std::convertible_to<std::ranges::range_value_t<decltype(elements)>, String>
     {
         return std::ranges::fold_left(elements | std::views::join_with(delimiter), String{}, std::plus<>{});
     }
 
-    constexpr inline auto WJoin(std::ranges::input_range auto&& elements, WStringView delimiter = L""sv) noexcept requires
+    constexpr auto WJoin(std::ranges::input_range auto&& elements, WStringView delimiter = L""sv) noexcept requires
         std::convertible_to<std::ranges::range_value_t<decltype(elements)>, String>
     {
         return std::ranges::fold_left(elements | std::views::join_with(delimiter), WString{}, std::plus<>{});
@@ -43,7 +43,7 @@ namespace LiteFX {
     /// </summary>
     /// <param name="string">The string to hash.</param>
     /// <returns>The FNVa hash for <paramref name="string" />.</returns>
-    constexpr static inline std::uint64_t hash(StringView string) noexcept 
+    constexpr static std::uint64_t hash(StringView string) noexcept 
     {
         const std::uint64_t prime = 0x00000100000001b3;
         std::uint64_t seed  = 0xcbf29ce484222325;
@@ -59,7 +59,7 @@ namespace LiteFX {
     /// </summary>
     /// <param name="string">The string to hash.</param>
     /// <returns>The FNVa hash for <paramref name="string" />.</returns>
-    constexpr static inline std::uint64_t hash(WStringView string) noexcept 
+    constexpr static std::uint64_t hash(WStringView string) noexcept 
     {
         const std::uint64_t prime = 0x00000100000001b3;
         std::uint64_t seed  = 0xcbf29ce484222325;
@@ -76,7 +76,7 @@ namespace LiteFX {
     /// <param name="string">The string to hash.</param>
     /// <param name="chars">The number of characters in the string.</param>
     /// <returns>The FNVa hash for <paramref name="string" />.</returns>
-    consteval inline std::uint64_t operator"" _hash(const char* string, size_t chars) noexcept 
+    consteval std::uint64_t operator"" _hash(const char* string, size_t chars) noexcept 
     {
         return hash(StringView(string, chars));
     }
@@ -87,7 +87,7 @@ namespace LiteFX {
     /// <param name="string">The string to hash.</param>
     /// <param name="chars">The number of characters in the string.</param>
     /// <returns>The FNVa hash for <paramref name="string" />.</returns>
-    consteval inline std::uint64_t operator"" _hash(const wchar_t* string, size_t chars) noexcept 
+    consteval std::uint64_t operator"" _hash(const wchar_t* string, size_t chars) noexcept 
     {
         return hash(WStringView(string, chars));
     }

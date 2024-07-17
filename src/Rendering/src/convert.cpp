@@ -3,7 +3,7 @@
 
 using namespace LiteFX::Rendering;
 
-constexpr size_t LiteFX::Rendering::getSize(Format format)
+size_t LiteFX::Rendering::getSize(Format format)
 {
 	switch (format) {
 	using enum Format;
@@ -170,7 +170,7 @@ constexpr size_t LiteFX::Rendering::getSize(Format format)
 	}
 }
 
-constexpr bool LiteFX::Rendering::hasDepth(Format format)
+bool LiteFX::Rendering::hasDepth(Format format)
 {
 	const Array<Format> depthFormats = {
 		Format::D16_UNORM,
@@ -184,7 +184,7 @@ constexpr bool LiteFX::Rendering::hasDepth(Format format)
 	return std::any_of(std::begin(depthFormats), std::end(depthFormats), [&](Format f) { return f == format; });
 }
 
-constexpr bool LiteFX::Rendering::hasStencil(Format format)
+bool LiteFX::Rendering::hasStencil(Format format)
 {
 	const Array<Format> stencilFormats = {
 		Format::D16_UNORM_S8_UINT,

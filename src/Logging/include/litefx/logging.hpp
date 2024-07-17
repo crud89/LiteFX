@@ -121,7 +121,7 @@ namespace LiteFX::Logging {
         /// <summary>
         /// Gets the name of the logger.
         /// </summary>
-        virtual inline const String& getName() const noexcept;
+        virtual const String& getName() const noexcept;
 
     protected:
         virtual void log(LogLevel level, StringView message);

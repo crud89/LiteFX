@@ -531,13 +531,13 @@ void VulkanRenderPipeline::bind(const VulkanCommandBuffer& commandBuffer, Span<c
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilder(const VulkanRenderPass& renderPass, const String& name) :
+VulkanRenderPipelineBuilder::VulkanRenderPipelineBuilder(const VulkanRenderPass& renderPass, const String& name) :
 	RenderPipelineBuilder(UniquePtr<VulkanRenderPipeline>(new VulkanRenderPipeline(renderPass)))
 {
 	this->instance()->name() = name;
 }
 
-constexpr VulkanRenderPipelineBuilder::~VulkanRenderPipelineBuilder() noexcept = default;
+VulkanRenderPipelineBuilder::~VulkanRenderPipelineBuilder() noexcept = default;
 
 void VulkanRenderPipelineBuilder::build()
 {
