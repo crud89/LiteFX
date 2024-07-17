@@ -284,7 +284,7 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// An exception that is thrown, if a requested D3D12 operation could not be executed.
     /// </summary>
-    class DX12PlatformException : public RuntimeException {
+    class LITEFX_DIRECTX12_API DX12PlatformException : public RuntimeException {
     private:
         _com_error m_error;
         HRESULT m_code;
