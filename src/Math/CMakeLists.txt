@@ -69,7 +69,7 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
 
 # Pre-define export specifier, to prevent dllimport/dllexport from being be emitted.
 IF(NOT BUILD_SHARED_LIBS)
-    TARGET_COMPILE_DEFINITIONS(${PROJECT_NAME} PUBLIC "LITEFX_MATH_API")
+    TARGET_COMPILE_DEFINITIONS(${PROJECT_NAME} PUBLIC -DLITEFX_MATH_API=)
 ENDIF(NOT BUILD_SHARED_LIBS)
 
 # Re-use pre-compiled core header.

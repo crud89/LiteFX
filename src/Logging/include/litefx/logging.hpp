@@ -10,9 +10,6 @@
 #  elif !defined(LiteFX_Logging_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_LOGGING_API __declspec(dllimport)
 #  endif
-#else
-#  undef LITEFX_LOGGING_API
-#  define LITEFX_LOGGING_API
 #endif 
 
 #ifndef LITEFX_LOGGING_API

@@ -10,9 +10,6 @@
 #  elif !defined(LiteFX_Backends_Vulkan_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_VULKAN_API __declspec(dllimport)
 #  endif
-#else
-#  undef LITEFX_VULKAN_API
-#  define LITEFX_VULKAN_API
 #endif 
 
 #ifndef LITEFX_VULKAN_API

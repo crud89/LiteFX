@@ -10,9 +10,6 @@
 #  elif !defined(LiteFX_Rendering_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_RENDERING_API __declspec(dllimport)
 #  endif
-#else
-#  undef LITEFX_RENDERING_API
-#  define LITEFX_RENDERING_API
 #endif 
 
 #ifndef LITEFX_RENDERING_API

@@ -10,9 +10,6 @@
 #  elif !defined(LiteFX_Graphics_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_GRAPHICS_API __declspec(dllimport)
 #  endif
-#else
-#  undef LITEFX_GRAPHICS_API
-#  define LITEFX_GRAPHICS_API
 #endif 
 
 #ifndef LITEFX_GRAPHICS_API

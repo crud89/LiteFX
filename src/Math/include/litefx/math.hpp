@@ -10,9 +10,6 @@
 #  elif !defined(LiteFX_Math_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_MATH_API __declspec(dllimport)
 #  endif
-#else
-#  undef LITEFX_MATH_API
-#  define LITEFX_MATH_API
 #endif 
 
 #ifndef LITEFX_MATH_API
