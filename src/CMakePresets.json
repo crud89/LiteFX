@@ -79,6 +79,19 @@
       }
     },
     {
+      "name": "windows-x64-release-static",
+      "inherits": "windows",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_SHARED_LIBS": "OFF",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-rel"
+      }
+    },
+    {
       "name": "windows-x86-debug",
       "inherits": "windows",
       "architecture": {
@@ -130,12 +143,29 @@
         "CMAKE_BUILD_TYPE": "Release",
         "VCPKG_TARGET_TRIPLET": "x86-windows-rel"
       }
+    },
+    {
+      "name": "windows-x86-release-static",
+      "inherits": "windows",
+      "architecture": {
+        "value": "x86",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_SHARED_LIBS": "OFF",
+        "VCPKG_TARGET_TRIPLET": "x86-windows-static-rel"
+      }
     }
   ],
   "buildPresets": [
     {
       "name": "windows-x64-release",
       "configurePreset": "windows-x64-release"
+    },
+    {
+      "name": "windows-x64-release-static",
+      "configurePreset": "windows-x64-release-static"
     },
     {
       "name": "windows-x64-test",
@@ -152,6 +182,10 @@
     {
       "name": "windows-x86-release",
       "configurePreset": "windows-x86-release"
+    },
+    {
+      "name": "windows-x86-release-static",
+      "configurePreset": "windows-x86-release-static"
     },
     {
       "name": "windows-x86-test",
