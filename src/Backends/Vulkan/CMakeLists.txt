@@ -59,7 +59,7 @@ SET(VULKAN_BACKEND_SOURCES
 )
 
 # Add shared library project.
-ADD_LIBRARY(${PROJECT_NAME} SHARED
+ADD_LIBRARY(${PROJECT_NAME}
     ${VULKAN_BACKEND_HEADERS}
     ${VULKAN_BACKEND_SOURCES}
 )
@@ -91,6 +91,11 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
     PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Vulkan::Vulkan
     PRIVATE GPUOpen::VulkanMemoryAllocator unofficial::spirv-reflect
 )
+
+# Pre-define export specifier, to prevent dllimport/dllexport from being be emitted.
+IF(NOT BUILD_SHARED_LIBS)
+    TARGET_COMPILE_DEFINITIONS(${PROJECT_NAME} PUBLIC -DLITEFX_VULKAN_API=)
+ENDIF(NOT BUILD_SHARED_LIBS)
 
 # Link against D3D12 to enable flip-model swap chains.
 IF(LITEFX_BUILD_DIRECTX_12_BACKEND)

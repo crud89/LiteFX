@@ -27,10 +27,10 @@
 
 #ifndef LITEFX_DEFINE_FLAGS
 #  define LITEFX_DEFINE_FLAGS(T) \
-	inline T operator| (const T lhs, const T rhs) { using _base_t = std::underlying_type_t<T>; return static_cast<T>(static_cast<_base_t>(lhs) | static_cast<_base_t>(rhs)); } \
-	inline T& operator|= (T& lhs, const T& rhs) { lhs = lhs | rhs; return lhs; } \
-	inline T operator& (const T lhs, const T rhs) { using _base_t = std::underlying_type_t<T>; return static_cast<T>(static_cast<_base_t>(lhs) & static_cast<_base_t>(rhs)); } \
-	inline T& operator&= (T& lhs, const T& rhs) { lhs = lhs & rhs; return lhs; }
+	constexpr T operator| (const T lhs, const T rhs) { using _base_t = std::underlying_type_t<T>; return static_cast<T>(static_cast<_base_t>(lhs) | static_cast<_base_t>(rhs)); } \
+	constexpr T& operator|= (T& lhs, const T& rhs) { lhs = lhs | rhs; return lhs; } \
+	constexpr T operator& (const T lhs, const T rhs) { using _base_t = std::underlying_type_t<T>; return static_cast<T>(static_cast<_base_t>(lhs) & static_cast<_base_t>(rhs)); } \
+	constexpr T& operator&= (T& lhs, const T& rhs) { lhs = lhs & rhs; return lhs; }
 #endif
 
 #ifndef LITEFX_FLAG_IS_SET
@@ -137,7 +137,7 @@ namespace LiteFX {
 	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
 	/// <returns>A new unique pointer.</returns>
 	template <class T>
-	constexpr inline [[nodiscard]] UniquePtr<T> makeUnique() {
+	constexpr [[nodiscard]] UniquePtr<T> makeUnique() {
 		return std::make_unique<T>();
 	}
 
@@ -147,7 +147,7 @@ namespace LiteFX {
 	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
 	/// <returns>A new unique pointer.</returns>
 	template <class T, class... TArgs>
-	constexpr inline [[nodiscard]] UniquePtr<T> makeUnique(TArgs&&... _args) {
+	constexpr [[nodiscard]] UniquePtr<T> makeUnique(TArgs&&... _args) {
 		return std::make_unique<T>(std::forward<TArgs>(_args)...);
 	}
 
@@ -157,7 +157,7 @@ namespace LiteFX {
 	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
 	/// <returns>A new shared pointer.</returns>
 	template <class T>
-	constexpr inline [[nodiscard]] SharedPtr<T> makeShared() {
+	constexpr [[nodiscard]] SharedPtr<T> makeShared() {
 		return std::make_shared<T>();
 	}
 
@@ -167,7 +167,7 @@ namespace LiteFX {
 	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
 	/// <returns>A new shared pointer.</returns>
 	template <class T, class... TArgs>
-	constexpr inline [[nodiscard]] SharedPtr<T> makeShared(TArgs&&... _args) {
+	constexpr [[nodiscard]] SharedPtr<T> makeShared(TArgs&&... _args) {
 		return std::make_shared<T>(std::forward<TArgs>(_args)...);
 	}
 
@@ -178,7 +178,7 @@ namespace LiteFX {
 	/// <param name="ptr">The unique pointer that should be turned into a shared pointer.</param>
 	/// <returns>A new shared pointer.</returns>
 	template <class T>
-	constexpr inline [[nodiscard]] SharedPtr<T> asShared(UniquePtr<T>&& ptr) {
+	constexpr [[nodiscard]] SharedPtr<T> asShared(UniquePtr<T>&& ptr) {
 		return SharedPtr<T>(ptr.release());
 	}
 
@@ -249,7 +249,7 @@ namespace LiteFX {
 		/// <typeparam name="...TArgs">The types of the arguments.</typeparam>
 		/// <param name="...args">The arguments.</param>
 		template <typename... TArgs> requires meta::are_same<T, TArgs...>
-		constexpr explicit inline Enumerable(TArgs&&... args) noexcept
+		constexpr explicit Enumerable(TArgs&&... args) noexcept
 		{
 			auto input = std::to_array({ std::forward<TArgs>(args)... });
 			m_size = input.size();
@@ -425,7 +425,7 @@ namespace LiteFX {
 		/// <summary>
 		/// Initializes a new pointer to an uninitialized implementation instance.
 		/// </summary>
-		constexpr inline PimplPtr() noexcept = default;
+		constexpr PimplPtr() noexcept = default;
 
 		/// <summary>
 		/// Initializes a new pointer to a copy of the implementation instance managed by <paramref name="src" />.
@@ -435,13 +435,13 @@ namespace LiteFX {
 		/// of both implementation pointers manually!
 		/// </remarks>
 		/// <param name="src">The source pointer to copy the implementation instance from.</param>
-		constexpr inline PimplPtr(const PimplPtr& src) noexcept : m_ptr(new pImpl(*src.m_ptr)) { }
+		constexpr PimplPtr(const PimplPtr& src) noexcept : m_ptr(new pImpl(*src.m_ptr)) { }
 
 		/// <summary>
 		/// Initializes a new pointer by taking over the implementation instance managed by <paramref name="src" />.
 		/// </summary>
 		/// <param name="src">The source pointer to take over.</param>
-		constexpr inline PimplPtr(PimplPtr&& src) noexcept = default;
+		constexpr PimplPtr(PimplPtr&& src) noexcept = default;
 
 		/// <summary>
 		/// Initializes a new pointer to a copy of the implementation instance managed by <paramref name="src" />.
@@ -452,58 +452,58 @@ namespace LiteFX {
 		/// </remarks>
 		/// <param name="src">The source pointer to copy the implementation instance from.</param>
 		/// <returns>A new pointer to the provided implementation instance.</returns>
-		constexpr inline PimplPtr& operator= (const PimplPtr& src) noexcept { m_ptr.reset(new pImpl(*src.m_ptr)); return *this; }
+		constexpr PimplPtr& operator= (const PimplPtr& src) noexcept { m_ptr.reset(new pImpl(*src.m_ptr)); return *this; }
 
 		/// <summary>
 		/// Initializes a new pointer by taking over the implementation instance managed by <paramref name="src" />.
 		/// </summary>
 		/// <param name="src">The source pointer to take over.</param>
 		/// /// <returns>A new pointer to the provided implementation instance.</returns>
-		constexpr inline PimplPtr& operator= (PimplPtr&& src) noexcept = default;
+		constexpr PimplPtr& operator= (PimplPtr&& src) noexcept = default;
 
-		constexpr inline ~PimplPtr() noexcept = default;
+		constexpr ~PimplPtr() noexcept = default;
 
 	private:
 		/// <summary>
 		/// Initializes a new pointer from the raw pointer provided with <paramref name="pimpl" />.
 		/// </summary>
 		/// <param name="pimpl">The raw pointer to take ownership over.</param>
-		constexpr inline PimplPtr(pImpl* pimpl) noexcept : m_ptr(pimpl) { }
+		constexpr PimplPtr(pImpl* pimpl) noexcept : m_ptr(pimpl) { }
 
 	public:
 		/// <summary>
 		/// Destroys the implementation instance managed by this pointer.
 		/// </summary>
-		constexpr inline void destroy() { m_ptr = nullptr; }
+		constexpr void destroy() { m_ptr = nullptr; }
 
 		/// <summary>
 		/// Releases the implementation instance managed by this pointer and returns it.
 		/// </summary>
 		/// <returns>The pointer to the managed implementation instance.</returns>
-		constexpr inline pImpl* release() noexcept { m_ptr.release(); }
+		constexpr pImpl* release() noexcept { m_ptr.release(); }
 
 		/// <summary>
 		/// Returns a pointer to the managed implementation instance.
 		/// </summary>
 		/// <returns>A pointer to the managed implementation instance.</returns>
-		constexpr inline pImpl* get() const noexcept { return m_ptr.get(); }
+		constexpr pImpl* get() const noexcept { return m_ptr.get(); }
 
 	public:
 		/// <summary>
 		/// Returns a reference to the managed implementation instance.
 		/// </summary>
 		/// <returns>A reference to the managed implementation instance.</returns>
-		constexpr inline pImpl& operator* () const noexcept { return *m_ptr; }
+		constexpr pImpl& operator* () const noexcept { return *m_ptr; }
 
 		/// <summary>
 		/// Returns a pointer to the managed implementation instance.
 		/// </summary>
 		/// <returns>A pointer to the managed implementation instance.</returns>
-		constexpr inline pImpl* operator-> () const noexcept { return m_ptr.get(); }
+		constexpr pImpl* operator-> () const noexcept { return m_ptr.get(); }
 
 	public:
 		template <class T, class... Arg>
-		friend constexpr inline PimplPtr<T> makePimpl(Arg&&... arg);
+		friend constexpr PimplPtr<T> makePimpl(Arg&&... arg);
 	};
 
 	/// <summary>
@@ -514,7 +514,7 @@ namespace LiteFX {
 	/// <param name="...arg">The arguments forwarded to the implementation classes' constructor.</param>
 	/// <returns>The pointer to the implementation class instance.</returns>
 	template <class T, class... Arg>
-	constexpr inline [[nodiscard]] PimplPtr<T> makePimpl(Arg&&... arg) {
+	constexpr [[nodiscard]] PimplPtr<T> makePimpl(Arg&&... arg) {
 		return PimplPtr<T>(new T(std::forward<Arg>(arg)...));
 	}
 
@@ -550,14 +550,14 @@ namespace LiteFX {
 		/// Initializes the implementation instance.
 		/// </summary>
 		/// <param name="parent">The pointer to the parent public interface instance.</param>
-		constexpr inline Implement(TInterface* parent) : m_parent(parent) {
+		constexpr Implement(TInterface* parent) : m_parent(parent) {
 			if (parent == nullptr)
 				throw std::runtime_error("Initializing an implementation requires the parent to be provided.");
 		}
 
 		Implement(Implement<TInterface>&&) = delete;
 		Implement(const Implement<TInterface>&) = delete;
-		constexpr inline virtual ~Implement() = default;
+		constexpr virtual ~Implement() = default;
 	};
 
 	/// <summary>
@@ -660,36 +660,36 @@ namespace LiteFX {
 		/// Returns a pointer to the current instance of the object that is built by the builder.
 		/// </summary>
 		/// <returns>A pointer to the current object instance.</returns>
-		constexpr inline const T* instance() const noexcept { return m_instance.get(); }
+		constexpr const T* instance() const noexcept { return m_instance.get(); }
 
 	protected:
 		/// <summary>
 		/// Returns a pointer to the current instance of the object that is built by the builder.
 		/// </summary>
 		/// <returns>A pointer to the current object instance.</returns>
-		constexpr inline T* instance() noexcept { return m_instance.get(); }
+		constexpr T* instance() noexcept { return m_instance.get(); }
 
 	public:
 		/// <summary>
 		/// Initializes the builder instance.
 		/// </summary>
 		/// <param name="instance">The instance of the object to build.</param>
-		constexpr inline explicit Builder(TPointer&& instance) noexcept : m_instance(std::move(instance)) { }
+		constexpr explicit Builder(TPointer&& instance) noexcept : m_instance(std::move(instance)) { }
 
 		/// <summary>
 		/// Initializes the builder instance by taking over another instance.
 		/// </summary>
 		/// <param name="_other">The instance of another builder object to take over.</param>
-		constexpr inline Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)) { }
+		constexpr Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)) { }
 
-		constexpr inline Builder(const Builder&) = delete;
-		constexpr inline virtual ~Builder() noexcept = default;
+		constexpr Builder(const Builder&) = delete;
+		constexpr virtual ~Builder() noexcept = default;
 
 	protected:
 		/// <summary>
 		/// Can be overwritten to perform any pre-construction work before the builder returns the final object instance.
 		/// </summary>
-		constexpr inline virtual void build() { };
+		constexpr virtual void build() { };
 
 	public:
 		// TODO: Provide concept (`is_buildable<TBuilder>`)
@@ -706,7 +706,7 @@ namespace LiteFX {
 		/// <summary>
 		/// Calls <see cref="build" /> and returns the instance.
 		/// </summary>
-		constexpr inline [[nodiscard]] operator TPointer&& () {
+		constexpr [[nodiscard]] operator TPointer&& () {
 			this->build();
 			return std::move(m_instance);
 		}
@@ -734,20 +734,20 @@ namespace LiteFX {
 		/// Returns a pointer to the current instance of the object that is built by the builder.
 		/// </summary>
 		/// <returns>A pointer to the current object instance.</returns>
-		constexpr inline const T* instance() const noexcept { return m_instance.get(); }
+		constexpr const T* instance() const noexcept { return m_instance.get(); }
 
 		/// <summary>
 		/// Returns a reference of the parent builder.
 		/// </summary>
 		/// <returns>A reference of the parent builder.</returns>
-		constexpr inline const TParent& parent() const noexcept { return m_parent; }
+		constexpr const TParent& parent() const noexcept { return m_parent; }
 
 	protected:
 		/// <summary>
 		/// Returns a pointer to the current instance of the object that is built by the builder.
 		/// </summary>
 		/// <returns>A pointer to the current object instance.</returns>
-		constexpr inline T* instance() noexcept { return m_instance.get(); }
+		constexpr T* instance() noexcept { return m_instance.get(); }
 
 	public:
 		/// <summary>
@@ -755,22 +755,22 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="parent">The instance of the parent builder.</param>
 		/// <param name="instance">The instance of the object to build.</param>
-		constexpr inline explicit Builder(TParent& parent, TPointer&& instance) noexcept : m_parent(parent), m_instance(std::move(instance)) { }
+		constexpr explicit Builder(TParent& parent, TPointer&& instance) noexcept : m_parent(parent), m_instance(std::move(instance)) { }
 		
 		/// <summary>
 		/// Initializes the builder instance by taking over another instance.
 		/// </summary>
 		/// <param name="_other">The instance of another builder object to take over.</param>
-		constexpr inline Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)), m_parent(_other.m_parent) { }
+		constexpr Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)), m_parent(_other.m_parent) { }
 		
-		constexpr inline Builder(const Builder&) = delete;
-		constexpr inline virtual ~Builder() noexcept = default;
+		constexpr Builder(const Builder&) = delete;
+		constexpr virtual ~Builder() noexcept = default;
 
 	protected:
 		/// <summary>
 		/// Can be overwritten to perform any pre-construction work before the builder returns the final object instance.
 		/// </summary>
-		constexpr inline virtual void build() { };
+		constexpr virtual void build() { };
 
 	public:
 		// TODO: Provide concept (`is_buildable<TBuilder>`)
@@ -787,7 +787,7 @@ namespace LiteFX {
 		/// <summary>
 		/// First, calls <see cref="build" />, then `use` on the parent builder using the current object instance and finally returns the parent builder.
 		/// </summary>
-		constexpr inline [[nodiscard]] TParent& add() {
+		constexpr [[nodiscard]] TParent& add() {
 			this->build();
 			m_parent.use(std::move(m_instance));
 			return m_parent;

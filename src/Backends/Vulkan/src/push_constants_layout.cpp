@@ -103,12 +103,12 @@ Enumerable<const VulkanPushConstantsRange*> VulkanPushConstantsLayout::ranges() 
 // Push constants layout builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr VulkanPushConstantsLayoutBuilder::VulkanPushConstantsLayoutBuilder(VulkanPipelineLayoutBuilder& parent, UInt32 size) :
+VulkanPushConstantsLayoutBuilder::VulkanPushConstantsLayoutBuilder(VulkanPipelineLayoutBuilder& parent, UInt32 size) :
     PushConstantsLayoutBuilder(parent, UniquePtr<VulkanPushConstantsLayout>(new VulkanPushConstantsLayout(size)))
 {
 }
 
-constexpr VulkanPushConstantsLayoutBuilder::~VulkanPushConstantsLayoutBuilder() noexcept = default;
+VulkanPushConstantsLayoutBuilder::~VulkanPushConstantsLayoutBuilder() noexcept = default;
 
 void VulkanPushConstantsLayoutBuilder::build()
 {

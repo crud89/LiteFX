@@ -413,12 +413,12 @@ public:
 // Shader program builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(const VulkanDevice& device) :
+VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(const VulkanDevice& device) :
     m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this, device)), ShaderProgramBuilder(SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device)))
 {
 }
 
-constexpr VulkanShaderProgramBuilder::~VulkanShaderProgramBuilder() noexcept = default;
+VulkanShaderProgramBuilder::~VulkanShaderProgramBuilder() noexcept = default;
 
 void VulkanShaderProgramBuilder::build()
 {
@@ -426,12 +426,12 @@ void VulkanShaderProgramBuilder::build()
     this->instance()->m_impl->validate();
 }
 
-constexpr UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
+UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
     return makeUnique<VulkanShaderModule>(m_impl->m_device, type, fileName, entryPoint, shaderLocalDescriptor);
 }
 
-constexpr UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
+UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
     return makeUnique<VulkanShaderModule>(m_impl->m_device, type, stream, name, entryPoint, shaderLocalDescriptor);
 }

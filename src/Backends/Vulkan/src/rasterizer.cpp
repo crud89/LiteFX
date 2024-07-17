@@ -29,12 +29,12 @@ void VulkanRasterizer::updateLineWidth(Float lineWidth) noexcept
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr VulkanRasterizerBuilder::VulkanRasterizerBuilder() noexcept :
+VulkanRasterizerBuilder::VulkanRasterizerBuilder() noexcept :
     RasterizerBuilder(SharedPtr<VulkanRasterizer>(new VulkanRasterizer()))
 {
 }
 
-constexpr VulkanRasterizerBuilder::~VulkanRasterizerBuilder() noexcept = default;
+VulkanRasterizerBuilder::~VulkanRasterizerBuilder() noexcept = default;
 
 void VulkanRasterizerBuilder::build()
 {

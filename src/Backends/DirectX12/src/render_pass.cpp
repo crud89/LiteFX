@@ -500,18 +500,18 @@ UInt64 DirectX12RenderPass::end() const
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const String& name) noexcept :
+DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const String& name) noexcept :
     DirectX12RenderPassBuilder(device, 1, name)
 {
 }
 
-constexpr DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, const String& name) noexcept :
+DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, const String& name) noexcept :
     RenderPassBuilder(UniquePtr<DirectX12RenderPass>(new DirectX12RenderPass(device, name)))
 {
     m_state.commandBufferCount = commandBuffers;
 }
 
-constexpr DirectX12RenderPassBuilder::~DirectX12RenderPassBuilder() noexcept = default;
+DirectX12RenderPassBuilder::~DirectX12RenderPassBuilder() noexcept = default;
 
 void DirectX12RenderPassBuilder::build()
 {

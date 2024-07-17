@@ -108,13 +108,13 @@ void DirectX12ComputePipeline::use(const DirectX12CommandBuffer& commandBuffer) 
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr DirectX12ComputePipelineBuilder::DirectX12ComputePipelineBuilder(const DirectX12Device& device, const String& name) :
+DirectX12ComputePipelineBuilder::DirectX12ComputePipelineBuilder(const DirectX12Device& device, const String& name) :
 	ComputePipelineBuilder(UniquePtr<DirectX12ComputePipeline>(new DirectX12ComputePipeline(device)))
 {
 	this->instance()->name() = name;
 }
 
-constexpr DirectX12ComputePipelineBuilder::~DirectX12ComputePipelineBuilder() noexcept = default;
+DirectX12ComputePipelineBuilder::~DirectX12ComputePipelineBuilder() noexcept = default;
 
 void DirectX12ComputePipelineBuilder::build()
 {
