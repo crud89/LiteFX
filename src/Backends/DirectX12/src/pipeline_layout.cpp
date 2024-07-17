@@ -281,12 +281,12 @@ public:
 // Pipeline layout builder interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr DirectX12PipelineLayoutBuilder::DirectX12PipelineLayoutBuilder(const DirectX12Device& parent) :
+DirectX12PipelineLayoutBuilder::DirectX12PipelineLayoutBuilder(const DirectX12Device& parent) :
     m_impl(makePimpl<DirectX12PipelineLayoutBuilderImpl>(this, parent)), PipelineLayoutBuilder(SharedPtr<DirectX12PipelineLayout>(new DirectX12PipelineLayout(parent)))
 {
 }
 
-constexpr DirectX12PipelineLayoutBuilder::~DirectX12PipelineLayoutBuilder() noexcept = default;
+DirectX12PipelineLayoutBuilder::~DirectX12PipelineLayoutBuilder() noexcept = default;
 
 void DirectX12PipelineLayoutBuilder::build()
 {
@@ -296,17 +296,17 @@ void DirectX12PipelineLayoutBuilder::build()
     instance->handle() = instance->m_impl->initialize();
 }
 
-constexpr DirectX12DescriptorSetLayoutBuilder DirectX12PipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages)
+DirectX12DescriptorSetLayoutBuilder DirectX12PipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages)
 {
     return DirectX12DescriptorSetLayoutBuilder(*this, space, stages);
 }
 
-constexpr DirectX12PushConstantsLayoutBuilder DirectX12PipelineLayoutBuilder::pushConstants(UInt32 size)
+DirectX12PushConstantsLayoutBuilder DirectX12PipelineLayoutBuilder::pushConstants(UInt32 size)
 {
     return DirectX12PushConstantsLayoutBuilder(*this, size);
 }
 
-constexpr const DirectX12Device& DirectX12PipelineLayoutBuilder::device() const noexcept
+const DirectX12Device& DirectX12PipelineLayoutBuilder::device() const noexcept
 {
     return m_impl->m_device;
 }

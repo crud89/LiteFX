@@ -359,13 +359,13 @@ void VulkanRayTracingPipeline::bind(const VulkanCommandBuffer& commandBuffer, Sp
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr VulkanRayTracingPipelineBuilder::VulkanRayTracingPipelineBuilder(const VulkanDevice& device, ShaderRecordCollection&& shaderRecords, const String& name) :
+VulkanRayTracingPipelineBuilder::VulkanRayTracingPipelineBuilder(const VulkanDevice& device, ShaderRecordCollection&& shaderRecords, const String& name) :
 	RayTracingPipelineBuilder(UniquePtr<VulkanRayTracingPipeline>(new VulkanRayTracingPipeline(device, std::move(shaderRecords))))
 {
 	this->instance()->name() = name;
 }
 
-constexpr VulkanRayTracingPipelineBuilder::~VulkanRayTracingPipelineBuilder() noexcept = default;
+VulkanRayTracingPipelineBuilder::~VulkanRayTracingPipelineBuilder() noexcept = default;
 
 void VulkanRayTracingPipelineBuilder::build()
 {

@@ -58,7 +58,7 @@ SET(DIRECTX12_BACKEND_SOURCES
 )
 
 # Add shared library project.
-ADD_LIBRARY(${PROJECT_NAME} SHARED
+ADD_LIBRARY(${PROJECT_NAME}
     ${DIRECTX12_BACKEND_HEADERS}
     ${DIRECTX12_BACKEND_SOURCES}
 )
@@ -90,6 +90,11 @@ TARGET_LINK_LIBRARIES(${PROJECT_NAME}
     PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi Microsoft::DirectXAgilitySDK Microsoft::DirectXShaderCompiler Microsoft::DXIL 
     PRIVATE unofficial::d3d12-memory-allocator
 )
+
+# Pre-define export specifier, to prevent dllimport/dllexport from being be emitted.
+IF(NOT BUILD_SHARED_LIBS)
+    TARGET_COMPILE_DEFINITIONS(${PROJECT_NAME} PUBLIC -DLITEFX_DIRECTX12_API=)
+ENDIF(NOT BUILD_SHARED_LIBS)
 
 # Link PIX runtime, if available.
 IF(LITEFX_BUILD_WITH_PIX_RUNTIME)

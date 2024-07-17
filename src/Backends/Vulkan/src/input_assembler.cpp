@@ -104,19 +104,19 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr VulkanInputAssemblerBuilder::VulkanInputAssemblerBuilder() noexcept :
+VulkanInputAssemblerBuilder::VulkanInputAssemblerBuilder() noexcept :
     m_impl(makePimpl<VulkanInputAssemblerBuilderImpl>(this)), InputAssemblerBuilder(SharedPtr<VulkanInputAssembler>(new VulkanInputAssembler()))
 {
 }
 
-constexpr VulkanInputAssemblerBuilder::~VulkanInputAssemblerBuilder() noexcept = default;
+VulkanInputAssemblerBuilder::~VulkanInputAssemblerBuilder() noexcept = default;
 
 void VulkanInputAssemblerBuilder::build()
 {
     this->instance()->m_impl->initialize(m_state.vertexBufferLayouts | std::views::as_rvalue, std::move(m_state.indexBufferLayout), m_state.topology);
 }
 
-constexpr VulkanVertexBufferLayoutBuilder VulkanInputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)
+VulkanVertexBufferLayoutBuilder VulkanInputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)
 {
     return VulkanVertexBufferLayoutBuilder(*this, makeUnique<VulkanVertexBufferLayout>(elementSize, binding));
 }

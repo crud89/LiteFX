@@ -58,7 +58,7 @@ const String FileExtensions<VulkanBackend>::SHADER = "spv";
 const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
-static constexpr inline glm::vec4 normalizePlane(const glm::vec4& plane) {
+static constexpr glm::vec4 normalizePlane(const glm::vec4& plane) {
     return plane / glm::length(glm::vec3(plane));
 }
 
