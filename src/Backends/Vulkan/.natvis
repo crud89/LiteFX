@@ -34,8 +34,9 @@
 				<DisplayString>{ (m_impl.m_ptr._Mypair._Myval2->m_apiVersion &gt;&gt; 22) &amp; 0x007F }.{ (m_impl.m_ptr._Mypair._Myval2->m_apiVersion &gt;&gt; 12) &amp; 0x03FF }.{ m_impl.m_ptr._Mypair._Myval2->m_apiVersion &amp; 0x0FFF } (Variant { m_impl.m_ptr._Mypair._Myval2->m_apiVersion &gt;&gt; 29 }, 0x{ m_impl.m_ptr._Mypair._Myval2->m_apiVersion,nvoXb })</DisplayString>
 			</Synthetic>
 			<Item Name="Limits">m_impl.m_ptr._Mypair._Myval2->m_limits</Item>
-			<Item Name="Device Extensions">m_impl.m_ptr._Mypair._Myval2->m_deviceExtensions</Item>
-			<Item Name="Device Layers">m_impl.m_ptr._Mypair._Myval2->m_deviceLayers</Item>
+			<Item Name="Device Extensions">m_impl.m_ptr._Mypair._Myval2->m_deviceExtensions,view(simple)</Item>
+			<Item Name="Device Layers">m_impl.m_ptr._Mypair._Myval2->m_deviceLayers,view(simple)</Item>
+			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 	
@@ -46,6 +47,7 @@
 
 		<Expand>
 			<Item Name="Window">m_impl.m_ptr._Mypair._Myval2->m_hwnd</Item>
+			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
@@ -58,7 +60,8 @@
 			<Item Name="Binding">m_impl.m_ptr._Mypair._Myval2->m_binding</Item>
 			<Item Name="Buffer Type">m_impl.m_ptr._Mypair._Myval2->m_bufferType</Item>
 			<Item Name="Vertex Size">m_impl.m_ptr._Mypair._Myval2->m_vertexSize</Item>
-			<Item Name="Attributes">m_impl.m_ptr._Mypair._Myval2->m_attributes</Item>
+			<Item Name="Attributes">m_impl.m_ptr._Mypair._Myval2->m_attributes,view(simple)</Item>
+			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 
@@ -79,6 +82,7 @@
 			<Synthetic Name="Element Size">
 				<DisplayString>{ ((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_indexType &gt;&gt; 3 } Bytes</DisplayString>
 			</Synthetic>
+			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 	-->
@@ -93,6 +97,7 @@
 			<Synthetic Name="Element Size">
 				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_indexType &gt;&gt; 3 } Bytes</DisplayString>
 			</Synthetic>
+			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 	
@@ -105,7 +110,14 @@
 		<Expand>
 			<Item Name="Primitive Topology">m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology</Item>
 			<Item Name="Index Buffer Layout">m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout</Item>
-			<Item Name="Vertex Buffer Layouts">m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts</Item>
+			<Synthetic Name="Vertex Buffer Layouts">
+				<DisplayString>{{ Elements = { m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } }}</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
 </AutoVisualizer>
