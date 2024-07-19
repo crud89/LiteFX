@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<!-- Vector -->
+	<Type Name="LiteFX::Math::Vector&lt;*,*&gt;" Inheritable="true">
+		<DisplayString Condition="$T2 == 1">{{ Vector{ "$T2",sb }&lt;{ "$T1",sb }&gt; {{ { m_elements[0] } }} }}</DisplayString>
+		<DisplayString Condition="$T2 == 2">{{ Vector{ "$T2",sb }&lt;{ "$T1",sb }&gt; {{ { m_elements[0] }, { m_elements[1] } }} }}</DisplayString>
+		<DisplayString Condition="$T2 == 3">{{ Vector{ "$T2",sb }&lt;{ "$T1",sb }&gt; {{ { m_elements[0] }, { m_elements[1] }, { m_elements[2] } }} }}</DisplayString>
+		<DisplayString Condition="$T2 == 4">{{ Vector{ "$T2",sb }&lt;{ "$T1",sb }&gt; {{ { m_elements[0] }, { m_elements[1] }, { m_elements[2] }, { m_elements[3] } }} }}</DisplayString>
+		<DisplayString Condition="$T2 &gt; 4 || $T2 == 0">{{ Vector&lt;{ "$T1",sb },{ "$T2",sb }&gt; }}</DisplayString>
+
+		<Expand>
+			<ExpandedItem>m_elements,view(simple)</ExpandedItem>
+		</Expand>
+	</Type>
+	
+	<!-- Matrix -->
+	<Type Name="LiteFX::Math::Matrix&lt;*,*,*&gt;" Inheritable="true">
+		<DisplayString>{{ Matrix{ "$T2",sb }x{ "$T3",sb }&lt;{ "$T1",sb }&gt; }}</DisplayString>
+
+		<Expand>
+			<CustomListItems>
+				<Variable Name="row" InitialValue="0"/>
+				<Loop Condition="row &lt; $T2">
+					<Item Name="Row {row}">&amp;m_elements[row * $T3],$T3na</Item>
+					<Exec>++row</Exec>
+				</Loop>
+			</CustomListItems>
+		</Expand>
+	</Type>
+	
+	<!-- Rect -->
+	<Type Name="LiteFX::Math::Rect" Inheritable="true">
+		<DisplayString>{{ Position = [ { m_elements[0] }, { m_elements[1] } ], Extent = [ { m_elements[2] }, { m_elements[3] } ] }}</DisplayString>
+		
+		<Expand>
+			<Synthetic Name="[Position]">
+				<DisplayString>{{ x = { m_elements[0] }, y = { m_elements[1] } }}</DisplayString>
+			</Synthetic>
+			<Synthetic Name="[Extent]">
+				<DisplayString>{{ width = { m_elements[2] }, height = { m_elements[3] } }}</DisplayString>
+			</Synthetic>
+			<Item Name="[Base]">(LiteFX::Math::Vector&lt;size_t,4&gt;*)this,na</Item>
+		</Expand>
+	</Type>
+	<Type Name="LiteFX::Math::RectI" Inheritable="true">
+		<DisplayString>{{ Position = [ { m_elements[0] }, { m_elements[1] } ], Extent = [ { m_elements[2] }, { m_elements[3] } ] }}</DisplayString>
+
+		<Expand>
+			<Synthetic Name="[Position]">
+				<DisplayString>{{ x = { m_elements[0] }, y = { m_elements[1] } }}</DisplayString>
+			</Synthetic>
+			<Synthetic Name="[Extent]">
+				<DisplayString>{{ width = { m_elements[2] }, height = { m_elements[3] } }}</DisplayString>
+			</Synthetic>
+			<Item Name="[Base]">(LiteFX::Math::Vector&lt;int,4&gt;*)this,na</Item>
+		</Expand>
+	</Type>
+	<Type Name="LiteFX::Math::RectF" Inheritable="true">
+		<DisplayString>{{ Position = [ { m_elements[0] }, { m_elements[1] } ], Extent = [ { m_elements[2] }, { m_elements[3] } ] }}</DisplayString>
+
+		<Expand>
+			<Synthetic Name="[Position]">
+				<DisplayString>{{ x = { m_elements[0] }, y = { m_elements[1] } }}</DisplayString>
+			</Synthetic>
+			<Synthetic Name="[Extent]">
+				<DisplayString>{{ width = { m_elements[2] }, height = { m_elements[3] } }}</DisplayString>
+			</Synthetic>
+			<Item Name="[Base]">(LiteFX::Math::Vector&lt;float,4&gt;*)this,na</Item>
+		</Expand>
+	</Type>
+</AutoVisualizer>
