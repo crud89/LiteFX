@@ -22,6 +22,8 @@ SET(APP_MODEL_SOURCES
 ADD_LIBRARY(${PROJECT_NAME}
     ${APP_MODEL_HEADERS}
     ${APP_MODEL_SOURCES}
+
+    ".natvis"
 )
 
 # Create source groups for better code organization.

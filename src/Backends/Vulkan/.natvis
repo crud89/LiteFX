@@ -3,7 +3,7 @@
 	<!-- Graphics Adapter -->
 	<Type Name="LiteFX::Rendering::Backends::VulkanGraphicsAdapter">
 		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">{{ Name = { m_impl.m_ptr._Mypair._Myval2->m_name } (Device ID = { m_impl.m_ptr._Mypair._Myval2->m_deviceId }, LUID = { m_impl.m_ptr._Mypair._Myval2->m_luid }) }}</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanGraphicsAdapter {{ Name = { m_impl.m_ptr._Mypair._Myval2->m_name } (Device ID = { m_impl.m_ptr._Mypair._Myval2->m_deviceId }, LUID = { m_impl.m_ptr._Mypair._Myval2->m_luid }) }}</DisplayString>
 
 		<Expand>
 			<Item Name="Name">m_impl.m_ptr._Mypair._Myval2->m_name</Item>
@@ -43,7 +43,7 @@
 	<!-- Surface -->
 	<Type Name="LiteFX::Rendering::Backends::VulkanSurface">
 		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">{{ hWnd = { m_impl.m_ptr._Mypair._Myval2->m_hwnd } }}</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanSurface {{ hWnd = { m_impl.m_ptr._Mypair._Myval2->m_hwnd } }}</DisplayString>
 
 		<Expand>
 			<Item Name="Window">m_impl.m_ptr._Mypair._Myval2->m_hwnd</Item>
@@ -54,7 +54,7 @@
 	<!-- Vertex Buffer Layout -->
 	<Type Name="LiteFX::Rendering::Backends::VulkanVertexBufferLayout">
 		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">{{ Binding = { m_impl.m_ptr._Mypair._Myval2->m_binding }, Size = { m_impl.m_ptr._Mypair._Myval2->m_vertexSize } ({ m_impl.m_ptr._Mypair._Myval2->m_attributes._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_attributes._Mypair._Myval2._Myfirst } Attributes) }}</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanVertexBufferLayout {{ Binding = { m_impl.m_ptr._Mypair._Myval2->m_binding }, Size = { m_impl.m_ptr._Mypair._Myval2->m_vertexSize } ({ m_impl.m_ptr._Mypair._Myval2->m_attributes._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_attributes._Mypair._Myval2._Myfirst } Attributes) }}</DisplayString>
 
 		<Expand>
 			<Item Name="Binding">m_impl.m_ptr._Mypair._Myval2->m_binding</Item>
@@ -73,7 +73,7 @@
 	<!--
 	<Type Name="LiteFX::Rendering::Backends::VulkanIndexBufferLayout">
 		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">{{ Binding = { ((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_binding }, Index Type = { ((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_indexType } }}</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanIndexBufferLayout {{ Binding = { ((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_binding }, Index Type = { ((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_indexType } }}</DisplayString>
 
 		<Expand>
 			<Item Name="Binding">((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_binding</Item>
@@ -88,7 +88,7 @@
 	-->
 	<Type Name="LiteFX::Rendering::Backends::VulkanIndexBufferLayout">
 		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">{{ Binding = { m_impl.m_ptr._Mypair._Myval2->m_binding }, Index Type = { m_impl.m_ptr._Mypair._Myval2->m_indexType } }}</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanIndexBufferLayout {{ Binding = { m_impl.m_ptr._Mypair._Myval2->m_binding }, Index Type = { m_impl.m_ptr._Mypair._Myval2->m_indexType } }}</DisplayString>
 
 		<Expand>
 			<Item Name="Binding">m_impl.m_ptr._Mypair._Myval2->m_binding</Item>
@@ -104,8 +104,8 @@
 	<!-- Input assembler -->
 	<Type Name="LiteFX::Rendering::Backends::VulkanInputAssembler">
 		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">{{ Topology = { m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology }, Index Type = { m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout._Mypair._Myval2->m_impl.m_ptr._Mypair._Myval2->m_indexType } ({ m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts)</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout._Mypair._Myval2 == 0">{{ Topology = { m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology }, Index Type = None ({ m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts)</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanInputAssembler {{ Topology = { m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology }, Index Type = { m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout._Mypair._Myval2->m_impl.m_ptr._Mypair._Myval2->m_indexType } ({ m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts)</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout._Mypair._Myval2 == 0">VulkanInputAssembler {{ Topology = { m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology }, Index Type = None ({ m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts)</DisplayString>
 
 		<Expand>
 			<Item Name="Primitive Topology">m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology</Item>

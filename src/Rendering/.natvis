@@ -2,7 +2,7 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 	<!-- Buffer attribute -->
 	<Type Name="LiteFX::Rendering::BufferAttribute">
-		<DisplayString>{{ Location = { m_impl.m_ptr._Mypair._Myval2->m_location }, Offset = { m_impl.m_ptr._Mypair._Myval2->m_offset }, Format = { m_impl.m_ptr._Mypair._Myval2->m_format } }}</DisplayString>
+		<DisplayString>BufferAttribute {{ Location = { m_impl.m_ptr._Mypair._Myval2->m_location }, Offset = { m_impl.m_ptr._Mypair._Myval2->m_offset }, Format = { m_impl.m_ptr._Mypair._Myval2->m_format } }}</DisplayString>
 
 		<Expand>
 			<Item Name="Location">m_impl.m_ptr._Mypair._Myval2->m_location</Item>

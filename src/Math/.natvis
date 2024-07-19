@@ -2,10 +2,10 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 	<!-- Vector -->
 	<Type Name="LiteFX::Math::Vector&lt;*,*&gt;" Inheritable="true">
-		<DisplayString Condition="$T2 == 1">{{ Vector{ "$T2",sb }&lt;{ "$T1",sb }&gt; {{ { m_elements[0] } }} }}</DisplayString>
-		<DisplayString Condition="$T2 == 2">{{ Vector{ "$T2",sb }&lt;{ "$T1",sb }&gt; {{ { m_elements[0] }, { m_elements[1] } }} }}</DisplayString>
-		<DisplayString Condition="$T2 == 3">{{ Vector{ "$T2",sb }&lt;{ "$T1",sb }&gt; {{ { m_elements[0] }, { m_elements[1] }, { m_elements[2] } }} }}</DisplayString>
-		<DisplayString Condition="$T2 == 4">{{ Vector{ "$T2",sb }&lt;{ "$T1",sb }&gt; {{ { m_elements[0] }, { m_elements[1] }, { m_elements[2] }, { m_elements[3] } }} }}</DisplayString>
+		<DisplayString Condition="$T2 == 1">Vector{ "$T2",sb }&lt;{ "$T1",sb }&gt; {{ { m_elements[0] } }}</DisplayString>
+		<DisplayString Condition="$T2 == 2">Vector{ "$T2",sb }&lt;{ "$T1",sb }&gt; {{ { m_elements[0] }, { m_elements[1] } }}</DisplayString>
+		<DisplayString Condition="$T2 == 3">Vector{ "$T2",sb }&lt;{ "$T1",sb }&gt; {{ { m_elements[0] }, { m_elements[1] }, { m_elements[2] } }}</DisplayString>
+		<DisplayString Condition="$T2 == 4">Vector{ "$T2",sb }&lt;{ "$T1",sb }&gt; {{ { m_elements[0] }, { m_elements[1] }, { m_elements[2] }, { m_elements[3] } }}</DisplayString>
 		<DisplayString Condition="$T2 &gt; 4 || $T2 == 0">{{ Vector&lt;{ "$T1",sb },{ "$T2",sb }&gt; }}</DisplayString>
 
 		<Expand>
@@ -15,7 +15,7 @@
 	
 	<!-- Matrix -->
 	<Type Name="LiteFX::Math::Matrix&lt;*,*,*&gt;" Inheritable="true">
-		<DisplayString>{{ Matrix{ "$T2",sb }x{ "$T3",sb }&lt;{ "$T1",sb }&gt; }}</DisplayString>
+		<DisplayString>Matrix{ "$T2",sb }x{ "$T3",sb }&lt;{ "$T1",sb }&gt;</DisplayString>
 
 		<Expand>
 			<CustomListItems>
@@ -30,7 +30,7 @@
 	
 	<!-- Rect -->
 	<Type Name="LiteFX::Math::Rect" Inheritable="true">
-		<DisplayString>{{ Position = [ { m_elements[0] }, { m_elements[1] } ], Extent = [ { m_elements[2] }, { m_elements[3] } ] }}</DisplayString>
+		<DisplayString>Rect {{ Position = [ { m_elements[0] }, { m_elements[1] } ], Extent = [ { m_elements[2] }, { m_elements[3] } ] }}</DisplayString>
 		
 		<Expand>
 			<Synthetic Name="[Position]">
@@ -43,7 +43,7 @@
 		</Expand>
 	</Type>
 	<Type Name="LiteFX::Math::RectI" Inheritable="true">
-		<DisplayString>{{ Position = [ { m_elements[0] }, { m_elements[1] } ], Extent = [ { m_elements[2] }, { m_elements[3] } ] }}</DisplayString>
+		<DisplayString>RectI {{ Position = [ { m_elements[0] }, { m_elements[1] } ], Extent = [ { m_elements[2] }, { m_elements[3] } ] }}</DisplayString>
 
 		<Expand>
 			<Synthetic Name="[Position]">
@@ -56,7 +56,7 @@
 		</Expand>
 	</Type>
 	<Type Name="LiteFX::Math::RectF" Inheritable="true">
-		<DisplayString>{{ Position = [ { m_elements[0] }, { m_elements[1] } ], Extent = [ { m_elements[2] }, { m_elements[3] } ] }}</DisplayString>
+		<DisplayString>RectF {{ Position = [ { m_elements[0] }, { m_elements[1] } ], Extent = [ { m_elements[2] }, { m_elements[3] } ] }}</DisplayString>
 
 		<Expand>
 			<Synthetic Name="[Position]">
