@@ -34,7 +34,7 @@ jobs:
             architecture: x86
             
     env:
-      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}-release
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}-rel
 
     steps:
       - name: Checking out sources
