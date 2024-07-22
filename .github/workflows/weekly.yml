@@ -32,6 +32,9 @@ jobs:
             triplet: x86-windows
             configuration: windows-x86-release
             architecture: x86
+            
+    env:
+      - VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}-release
 
     steps:
       - name: Checking out sources
