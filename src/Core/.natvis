@@ -53,7 +53,7 @@
 		<DisplayString>IResource&lt;{ "$T1",sb }&gt;</DisplayString>
 		
 		<Expand>
-			<Item Name="Handle">m_handle</Item>
+			<Item Name="Handle">m_handle,handle</Item>
 		</Expand>
 	</Type>
 </AutoVisualizer>

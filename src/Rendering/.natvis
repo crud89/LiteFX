@@ -2,13 +2,13 @@
 <AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
 	<!-- Buffer attribute -->
 	<Type Name="LiteFX::Rendering::BufferAttribute">
-		<DisplayString>BufferAttribute {{ Location = { m_impl.m_ptr._Mypair._Myval2->m_location }, Offset = { m_impl.m_ptr._Mypair._Myval2->m_offset }, Format = { m_impl.m_ptr._Mypair._Myval2->m_format } }}</DisplayString>
+		<DisplayString>BufferAttribute {{ Location = { m_impl.m_ptr._Mypair._Myval2->m_location }, Offset = { m_impl.m_ptr._Mypair._Myval2->m_offset }, Format = { m_impl.m_ptr._Mypair._Myval2->m_format,en } }}</DisplayString>
 
 		<Expand>
 			<Item Name="Location">m_impl.m_ptr._Mypair._Myval2->m_location</Item>
 			<Item Name="Offset">m_impl.m_ptr._Mypair._Myval2->m_offset</Item>
-			<Item Name="Format">m_impl.m_ptr._Mypair._Myval2->m_format</Item>
-			<Item Name="Semantic">m_impl.m_ptr._Mypair._Myval2->m_semantic</Item>
+			<Item Name="Format">m_impl.m_ptr._Mypair._Myval2->m_format,en</Item>
+			<Item Name="Semantic">m_impl.m_ptr._Mypair._Myval2->m_semantic,en</Item>
 			<Item Name="Semantic Index">m_impl.m_ptr._Mypair._Myval2->m_semanticIndex</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
