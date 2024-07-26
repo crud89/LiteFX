@@ -158,10 +158,10 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new DirectX 12 pipeline layout builder.
 		/// </summary>
-		constexpr DirectX12PipelineLayoutBuilder(const DirectX12Device& device);
+		DirectX12PipelineLayoutBuilder(const DirectX12Device& device);
 		DirectX12PipelineLayoutBuilder(DirectX12PipelineLayoutBuilder&&) = delete;
 		DirectX12PipelineLayoutBuilder(const DirectX12PipelineLayoutBuilder&) = delete;
-		constexpr virtual ~DirectX12PipelineLayoutBuilder() noexcept;
+		virtual ~DirectX12PipelineLayoutBuilder() noexcept;
 
 		// Builder interface.
 	protected:
@@ -175,20 +175,20 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="space">The space, the descriptor set is bound to.</param>
 		/// <param name="stages">The stages, the descriptor set will be accessible from.</param>
-		constexpr DirectX12DescriptorSetLayoutBuilder descriptorSet(UInt32 space = 0, ShaderStage stages = ShaderStage::Any);
+		DirectX12DescriptorSetLayoutBuilder descriptorSet(UInt32 space = 0, ShaderStage stages = ShaderStage::Any);
 
 		/// <summary>
 		/// Builds a new push constants layout for the pipeline layout.
 		/// </summary>
 		/// <param name="size">The size of the push constants backing memory.</param>
-		constexpr inline DirectX12PushConstantsLayoutBuilder pushConstants(UInt32 size);
+		DirectX12PushConstantsLayoutBuilder pushConstants(UInt32 size);
 
 	private:
 		/// <summary>
 		/// Returns the device, the builder has been initialized with.
 		/// </summary>
 		/// <returns>A reference of the device, the builder has been initialized with.</returns>
-		constexpr const DirectX12Device& device() const noexcept;
+		const DirectX12Device& device() const noexcept;
 	};
 
 	/// <summary>
