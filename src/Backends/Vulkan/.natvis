@@ -263,4 +263,92 @@
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
+	
+	<!-- Barrier -->
+	<Type Name="std::tuple&lt;*&gt;" IncludeView="GlobalBarrier">
+		<DisplayString>{{ { _Myfirst._Val,en } -> { ((_Mybase *)this)->_Myfirst._Val,en } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Access Before">_Myfirst._Val,en</Item>
+			<Item Name="Access After">((_Mybase *)this)->_Myfirst._Val,en</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="std::tuple&lt;*&gt;" IncludeView="BufferBarrier">
+		<DisplayString>{{ { _Myfirst._Val,en } -> { ((_Mybase *)this)->_Myfirst._Val,en } }}</DisplayString>
+		
+		<Expand>
+			<Item Name="Access Before">_Myfirst._Val,en</Item>
+			<Item Name="Access After">((_Mybase *)this)->_Myfirst._Val,en</Item>
+			<!--<Item Name="Buffer">dynamic_cast&lt;const LiteFX::Rendering::Backends::VulkanBuffer *&gt;(&amp;((_Mybase::_Mybase *)this)->_Myfirst._Val)</Item>-->
+			<Item Name="Buffer">((_Mybase::_Mybase *)this)->_Myfirst._Val</Item>
+			<Item Name="Element">((_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="std::tuple&lt;*&gt;" IncludeView="ImageBarrier">
+		<DisplayString>{{ { _Myfirst._Val,en } -> { ((_Mybase *)this)->_Myfirst._Val,en } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Access Before">_Myfirst._Val,en</Item>
+			<Item Name="Access After">((_Mybase *)this)->_Myfirst._Val,en</Item>
+			<Item Name="Buffer">((_Mybase::_Mybase *)this)->_Myfirst._Val</Item>
+			<Item Name="Source Before">((_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val</Item>
+			<Item Name="Target Before">((_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val</Item>
+			<Synthetic Name="Levels" Condition="((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val &gt; 1">
+				<DisplayString>{ ((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val }-{ ((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val + ((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val }</DisplayString>
+			</Synthetic>
+			<Synthetic Name="Level" Condition="((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val == 1">
+				<DisplayString>{ ((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val }</DisplayString>
+			</Synthetic>
+			<Synthetic Name="Layers" Condition="((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val &gt; 1">
+				<DisplayString>{ ((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val }-{ ((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val + ((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val }</DisplayString>
+			</Synthetic>
+			<Synthetic Name="Layer" Condition="((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val == 1">
+				<DisplayString>{ ((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val }</DisplayString>
+			</Synthetic>
+			<Item Name="Plane">((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="LiteFX::Rendering::Backends::VulkanBarrier">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanBarrier {{ Sync Before = { m_impl.m_ptr._Mypair._Myval2->m_syncBefore,en }, Sync After = { m_impl.m_ptr._Mypair._Myval2->m_syncAfter,en } ({ m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Myfirst } Global Barriers, { m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Myfirst } Buffer Barriers, { m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Myfirst } Image Barriers) }}</DisplayString>
+
+		<Expand>
+			<Item Name="Sync Before">m_impl.m_ptr._Mypair._Myval2->m_syncBefore,en</Item>
+			<Item Name="Sync After">m_impl.m_ptr._Mypair._Myval2->m_syncAfter,en</Item>
+			<Synthetic Name="Global Barriers">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Myfirst } Elements</DisplayString>
+
+				<Expand>
+					<IndexListItems>
+						<Size>m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Myfirst</Size>
+						<ValueNode>m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Myfirst,view(GlobalBarrier)</ValueNode>
+					</IndexListItems>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Buffer Barriers">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Myfirst } Elements</DisplayString>
+
+				<Expand>
+					<IndexListItems>
+						<Size>m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Myfirst</Size>
+						<ValueNode>m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Myfirst,view(BufferBarrier)</ValueNode>
+					</IndexListItems>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Image Barriers">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Myfirst } Elements</DisplayString>
+
+				<Expand>
+					<IndexListItems>
+						<Size>m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Myfirst</Size>
+						<ValueNode>m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Myfirst,view(ImageBarrier)</ValueNode>
+					</IndexListItems>
+				</Expand>
+			</Synthetic>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
 </AutoVisualizer>
