@@ -104,8 +104,8 @@
 	<!-- Input assembler -->
 	<Type Name="LiteFX::Rendering::Backends::VulkanInputAssembler">
 		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanInputAssembler {{ Topology = { m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology,en }, Index Type = { m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout._Mypair._Myval2->m_impl.m_ptr._Mypair._Myval2->m_indexType,en } ({ m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts)</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout._Mypair._Myval2 == 0">VulkanInputAssembler {{ Topology = { m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology,en }, Index Type = None ({ m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts)</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanInputAssembler {{ Topology = { m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology,en }, Index Type = { m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout._Mypair._Myval2->m_impl.m_ptr._Mypair._Myval2->m_indexType,en } ({ m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts) }}</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout._Mypair._Myval2 == 0">VulkanInputAssembler {{ Topology = { m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology,en }, Index Type = None ({ m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts) }}</DisplayString>
 
 		<Expand>
 			<Item Name="Primitive Topology">m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology,en</Item>
@@ -195,22 +195,72 @@
 	</Type>
 	
 	<!-- BLAS -->
-	<!--<Type Name="LiteFX::Rendering::Backends::VulkanBottomLevelAccelerationStructure">
+	<Type Name="LiteFX::Rendering::Backends::VulkanBottomLevelAccelerationStructure">
 		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanBottomLevelAccelerationStructure {{ Topology = { m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology }, Index Type = { m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout._Mypair._Myval2->m_impl.m_ptr._Mypair._Myval2->m_indexType } ({ m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts)</DisplayString>
-		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout._Mypair._Myval2 == 0">VulkanInputAssembler {{ Topology = { m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology }, Index Type = None ({ m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts)</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanBottomLevelAccelerationStructure {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, empty, Size = { m_impl.m_ptr._Mypair._Myval2->m_size }, Flags = { m_impl.m_ptr._Mypair._Myval2->m_flags,en } }}</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Myfirst != m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Mylast">VulkanBottomLevelAccelerationStructure {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Myfirst } Triangle Meshes, Size = { m_impl.m_ptr._Mypair._Myval2->m_size }, Flags = { m_impl.m_ptr._Mypair._Myval2->m_flags,en } }}</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Myfirst == m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Mylast">VulkanBottomLevelAccelerationStructure {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Myfirst } Bounding Boxes, Size = { m_impl.m_ptr._Mypair._Myval2->m_size }, Flags = { m_impl.m_ptr._Mypair._Myval2->m_flags,en } }}</DisplayString>
 
 		<Expand>
-			<Item Name="Primitive Topology">m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology</Item>
-			<Item Name="Index Buffer Layout">m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout</Item>
-			<Synthetic Name="Vertex Buffer Layouts">
-				<DisplayString>{{ Elements = { m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } }}</DisplayString>
-
+			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Synthetic Name="Triangle Meshes" Condition="m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Myfirst != m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Mylast">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Myfirst } Triangle Meshes</DisplayString>
+				
 				<Expand>
-					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List,view(DictionaryHelper)</ExpandedItem>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes,view(simple)</ExpandedItem>
 				</Expand>
 			</Synthetic>
+			<Synthetic Name="Bounding Boxes" Condition="m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Myfirst != m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Mylast">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Myfirst } Bounding Boxes</DisplayString>
+				
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes,view(simple)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="Flags">m_impl.m_ptr._Mypair._Myval2->m_flags,en</Item>
+			<Synthetic Name="GPU Buffer">
+				<DisplayString>{{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_size } Bytes at offset { m_impl.m_ptr._Mypair._Myval2->m_offset,X } }}</DisplayString>
+
+				<Expand>
+					<Item Name="Buffer">m_impl.m_ptr._Mypair._Myval2->m_buffer</Item>
+					<Item Name="Offset">m_impl.m_ptr._Mypair._Myval2->m_offset,X</Item>
+					<Item Name="Size">m_impl.m_ptr._Mypair._Myval2->m_size</Item>
+				</Expand>
+			</Synthetic>
+			<Item Name="Query Pool">m_impl.m_ptr._Mypair._Myval2->m_queryPool</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkAccelerationStructureKHR_T *&gt;*)this</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
-	</Type>-->
+	</Type>
+
+	<!-- TLAS -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanTopLevelAccelerationStructure">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanTopLevelAccelerationStructure {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, empty, Size = { m_impl.m_ptr._Mypair._Myval2->m_size }, Flags = { m_impl.m_ptr._Mypair._Myval2->m_flags,en } }}</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Myfirst != m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Mylast">VulkanTopLevelAccelerationStructure {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Myfirst } Instances, Size = { m_impl.m_ptr._Mypair._Myval2->m_size }, Flags = { m_impl.m_ptr._Mypair._Myval2->m_flags,en } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Synthetic Name="Instances">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Myfirst } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_instances,view(simple)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="Flags">m_impl.m_ptr._Mypair._Myval2->m_flags,en</Item>
+			<Synthetic Name="GPU Buffer">
+				<DisplayString>{{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_size } Bytes at offset { m_impl.m_ptr._Mypair._Myval2->m_offset,X } }}</DisplayString>
+
+				<Expand>
+					<Item Name="Buffer">m_impl.m_ptr._Mypair._Myval2->m_buffer</Item>
+					<Item Name="Offset">m_impl.m_ptr._Mypair._Myval2->m_offset,X</Item>
+					<Item Name="Size">m_impl.m_ptr._Mypair._Myval2->m_size</Item>
+				</Expand>
+			</Synthetic>
+			<Item Name="Query Pool">m_impl.m_ptr._Mypair._Myval2->m_queryPool</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkAccelerationStructureKHR_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
 </AutoVisualizer>
