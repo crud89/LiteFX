@@ -90,21 +90,6 @@ namespace LiteFX::Rendering::Backends {
 	};
 
 	/// <summary>
-	/// Builds a see <see cref="VulkanVertexBufferLayout" />.
-	/// </summary>
-	/// <seealso cref="VulkanVertexBuffer" />
-	/// <seealso cref="VulkanVertexBufferLayout" />
-	class LITEFX_VULKAN_API [[nodiscard]] VulkanVertexBufferLayoutBuilder final : public VertexBufferLayoutBuilder<VulkanVertexBufferLayout, VulkanInputAssemblerBuilder> {
-	public:
-		using VertexBufferLayoutBuilder<VulkanVertexBufferLayout, VulkanInputAssemblerBuilder>::VertexBufferLayoutBuilder;
-
-		// Builder interface.
-	protected:
-		/// <inheritdoc />
-		void build() override;
-	};
-
-	/// <summary>
 	/// Builds a <see cref="VulkanInputAssembler" />.
 	/// </summary>
 	/// <seealso cref="VulkanInputAssembler" />
@@ -142,6 +127,68 @@ namespace LiteFX::Rendering::Backends {
 			self.use(makeUnique<VulkanIndexBufferLayout>(type));
 			return std::forward<TSelf>(self);
 		}
+	};
+	
+	/// <summary>
+	/// Builds a see <see cref="VulkanVertexBufferLayout" />.
+	/// </summary>
+	/// <seealso cref="VulkanVertexBuffer" />
+	/// <seealso cref="VulkanVertexBufferLayout" />
+	class LITEFX_VULKAN_API [[nodiscard]] VulkanVertexBufferLayoutBuilder final : public VertexBufferLayoutBuilder<VulkanVertexBufferLayout, VulkanInputAssemblerBuilder> {
+	public:
+		using VertexBufferLayoutBuilder<VulkanVertexBufferLayout, VulkanInputAssemblerBuilder>::VertexBufferLayoutBuilder;
+
+		// Builder interface.
+	protected:
+		/// <inheritdoc />
+		void build() override;
+	};
+
+	/// <summary>
+	/// Builds a Vulkan <see cref="PipelineLayout" /> for a pipeline.
+	/// </summary>
+	/// <seealso cref="VulkanPipelineLayout" />
+	/// <seealso cref="VulkanRenderPipeline" />
+	/// <seealso cref="VulkanComputePipeline" />
+	class LITEFX_VULKAN_API [[nodiscard]] VulkanPipelineLayoutBuilder final : public PipelineLayoutBuilder<VulkanPipelineLayout> {
+		LITEFX_IMPLEMENTATION(VulkanPipelineLayoutBuilderImpl);
+		friend class VulkanDescriptorSetLayoutBuilder;
+
+	public:
+		/// <summary>
+		/// Initializes a new Vulkan pipeline layout builder.
+		/// </summary>
+		constexpr VulkanPipelineLayoutBuilder(const VulkanDevice& device);
+		VulkanPipelineLayoutBuilder(VulkanPipelineLayoutBuilder&&) = delete;
+		VulkanPipelineLayoutBuilder(const VulkanPipelineLayoutBuilder&) = delete;
+		constexpr virtual ~VulkanPipelineLayoutBuilder() noexcept;
+
+		// Builder interface.
+	protected:
+		/// <inheritdoc />
+		void build() override;
+
+		// VulkanPipelineLayoutBuilder.
+	public:
+		/// <summary>
+		/// Builds a new descriptor set for the pipeline layout.
+		/// </summary>
+		/// <param name="space">The space, the descriptor set is bound to.</param>
+		/// <param name="stages">The stages, the descriptor set will be accessible from.</param>
+		constexpr VulkanDescriptorSetLayoutBuilder descriptorSet(UInt32 space = 0, ShaderStage stages = ShaderStage::Any);
+
+		/// <summary>
+		/// Builds a new push constants layout for the pipeline layout.
+		/// </summary>
+		/// <param name="size">The size of the push constants backing memory.</param>
+		constexpr VulkanPushConstantsLayoutBuilder pushConstants(UInt32 size);
+
+	private:
+		/// <summary>
+		/// Returns the device, the builder has been initialized with.
+		/// </summary>
+		/// <returns>A reference of the device, the builder has been initialized with.</returns>
+		constexpr const VulkanDevice& device() const noexcept;
 	};
 
 	/// <summary>
@@ -202,53 +249,6 @@ namespace LiteFX::Rendering::Backends {
 	protected:
 		/// <inheritdoc />
 		UniquePtr<VulkanPushConstantsRange> makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) override;
-	};
-
-	/// <summary>
-	/// Builds a Vulkan <see cref="PipelineLayout" /> for a pipeline.
-	/// </summary>
-	/// <seealso cref="VulkanPipelineLayout" />
-	/// <seealso cref="VulkanRenderPipeline" />
-	/// <seealso cref="VulkanComputePipeline" />
-	class LITEFX_VULKAN_API [[nodiscard]] VulkanPipelineLayoutBuilder final : public PipelineLayoutBuilder<VulkanPipelineLayout> {
-		LITEFX_IMPLEMENTATION(VulkanPipelineLayoutBuilderImpl);
-		friend class VulkanDescriptorSetLayoutBuilder;
-
-	public:
-		/// <summary>
-		/// Initializes a new Vulkan pipeline layout builder.
-		/// </summary>
-		VulkanPipelineLayoutBuilder(const VulkanDevice& device);
-		VulkanPipelineLayoutBuilder(VulkanPipelineLayoutBuilder&&) = delete;
-		VulkanPipelineLayoutBuilder(const VulkanPipelineLayoutBuilder&) = delete;
-		virtual ~VulkanPipelineLayoutBuilder() noexcept;
-
-		// Builder interface.
-	protected:
-		/// <inheritdoc />
-		void build() override;
-
-		// VulkanPipelineLayoutBuilder.
-	public:
-		/// <summary>
-		/// Builds a new descriptor set for the pipeline layout.
-		/// </summary>
-		/// <param name="space">The space, the descriptor set is bound to.</param>
-		/// <param name="stages">The stages, the descriptor set will be accessible from.</param>
-		VulkanDescriptorSetLayoutBuilder descriptorSet(UInt32 space = 0, ShaderStage stages = ShaderStage::Any);
-
-		/// <summary>
-		/// Builds a new push constants layout for the pipeline layout.
-		/// </summary>
-		/// <param name="size">The size of the push constants backing memory.</param>
-		VulkanPushConstantsLayoutBuilder pushConstants(UInt32 size);
-
-	private:
-		/// <summary>
-		/// Returns the device, the builder has been initialized with.
-		/// </summary>
-		/// <returns>A reference of the device, the builder has been initialized with.</returns>
-		const VulkanDevice& device() const noexcept;
 	};
 
 	/// <summary>

@@ -90,21 +90,6 @@ namespace LiteFX::Rendering::Backends {
 	};
 	
 	/// <summary>
-	/// Builds a see <see cref="DirectX12VertexBufferLayout" />.
-	/// </summary>
-	/// <seealso cref="DirectX12VertexBuffer" />
-	/// <seealso cref="DirectX12VertexBufferLayout" />
-	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12VertexBufferLayoutBuilder final : public VertexBufferLayoutBuilder<DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder> {
-	public:
-		using VertexBufferLayoutBuilder<DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder>::VertexBufferLayoutBuilder;
-
-		// Builder interface.
-	protected:
-		/// <inheritdoc />
-		void build() override;
-	};
-
-	/// <summary>
 	/// Builds a <see cref="DirectX12InputAssembler" />.
 	/// </summary>
 	/// <seealso cref="DirectX12InputAssembler" />
@@ -142,6 +127,68 @@ namespace LiteFX::Rendering::Backends {
 			self.use(makeUnique<DirectX12IndexBufferLayout>(type));
 			return std::forward<TSelf>(self);
 		}
+	};
+
+	/// <summary>
+	/// Builds a see <see cref="DirectX12VertexBufferLayout" />.
+	/// </summary>
+	/// <seealso cref="DirectX12VertexBuffer" />
+	/// <seealso cref="DirectX12VertexBufferLayout" />
+	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12VertexBufferLayoutBuilder final : public VertexBufferLayoutBuilder<DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder> {
+	public:
+		using VertexBufferLayoutBuilder<DirectX12VertexBufferLayout, DirectX12InputAssemblerBuilder>::VertexBufferLayoutBuilder;
+
+		// Builder interface.
+	protected:
+		/// <inheritdoc />
+		void build() override;
+	};
+
+	/// <summary>
+	/// Builds a DirectX 12 <see cref="PipelineLayout" /> for a pipeline.
+	/// </summary>
+	/// <seealso cref="DirectX12PipelineLayout" />
+	/// <seealso cref="DirectX12RenderPipeline" />
+	/// <seealso cref="DirectX12ComputePipeline" />
+	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12PipelineLayoutBuilder final : public PipelineLayoutBuilder<DirectX12PipelineLayout> {
+		LITEFX_IMPLEMENTATION(DirectX12PipelineLayoutBuilderImpl);
+		friend class DirectX12DescriptorSetLayoutBuilder;
+
+	public:
+		/// <summary>
+		/// Initializes a new DirectX 12 pipeline layout builder.
+		/// </summary>
+		constexpr DirectX12PipelineLayoutBuilder(const DirectX12Device& device);
+		DirectX12PipelineLayoutBuilder(DirectX12PipelineLayoutBuilder&&) = delete;
+		DirectX12PipelineLayoutBuilder(const DirectX12PipelineLayoutBuilder&) = delete;
+		constexpr virtual ~DirectX12PipelineLayoutBuilder() noexcept;
+
+		// Builder interface.
+	protected:
+		/// <inheritdoc />
+		void build() override;
+
+		// DirectX12PipelineLayoutBuilder.
+	public:
+		/// <summary>
+		/// Builds a new descriptor set for the pipeline layout.
+		/// </summary>
+		/// <param name="space">The space, the descriptor set is bound to.</param>
+		/// <param name="stages">The stages, the descriptor set will be accessible from.</param>
+		constexpr DirectX12DescriptorSetLayoutBuilder descriptorSet(UInt32 space = 0, ShaderStage stages = ShaderStage::Any);
+
+		/// <summary>
+		/// Builds a new push constants layout for the pipeline layout.
+		/// </summary>
+		/// <param name="size">The size of the push constants backing memory.</param>
+		constexpr inline DirectX12PushConstantsLayoutBuilder pushConstants(UInt32 size);
+
+	private:
+		/// <summary>
+		/// Returns the device, the builder has been initialized with.
+		/// </summary>
+		/// <returns>A reference of the device, the builder has been initialized with.</returns>
+		constexpr const DirectX12Device& device() const noexcept;
 	};
 
 	/// <summary>
@@ -202,53 +249,6 @@ namespace LiteFX::Rendering::Backends {
 	protected:
 		/// <inheritdoc />
 		UniquePtr<DirectX12PushConstantsRange> makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) override;
-	};
-
-	/// <summary>
-	/// Builds a DirectX 12 <see cref="PipelineLayout" /> for a pipeline.
-	/// </summary>
-	/// <seealso cref="DirectX12PipelineLayout" />
-	/// <seealso cref="DirectX12RenderPipeline" />
-	/// <seealso cref="DirectX12ComputePipeline" />
-	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12PipelineLayoutBuilder final : public PipelineLayoutBuilder<DirectX12PipelineLayout> {
-		LITEFX_IMPLEMENTATION(DirectX12PipelineLayoutBuilderImpl);
-		friend class DirectX12DescriptorSetLayoutBuilder;
-
-	public:
-		/// <summary>
-		/// Initializes a new DirectX 12 pipeline layout builder.
-		/// </summary>
-		DirectX12PipelineLayoutBuilder(const DirectX12Device& device);
-		DirectX12PipelineLayoutBuilder(DirectX12PipelineLayoutBuilder&&) = delete;
-		DirectX12PipelineLayoutBuilder(const DirectX12PipelineLayoutBuilder&) = delete;
-		virtual ~DirectX12PipelineLayoutBuilder() noexcept;
-
-		// Builder interface.
-	protected:
-		/// <inheritdoc />
-		void build() override;
-
-		// DirectX12PipelineLayoutBuilder.
-	public:
-		/// <summary>
-		/// Builds a new descriptor set for the pipeline layout.
-		/// </summary>
-		/// <param name="space">The space, the descriptor set is bound to.</param>
-		/// <param name="stages">The stages, the descriptor set will be accessible from.</param>
-		DirectX12DescriptorSetLayoutBuilder descriptorSet(UInt32 space = 0, ShaderStage stages = ShaderStage::Any);
-
-		/// <summary>
-		/// Builds a new push constants layout for the pipeline layout.
-		/// </summary>
-		/// <param name="size">The size of the push constants backing memory.</param>
-		DirectX12PushConstantsLayoutBuilder pushConstants(UInt32 size);
-
-	private:
-		/// <summary>
-		/// Returns the device, the builder has been initialized with.
-		/// </summary>
-		/// <returns>A reference of the device, the builder has been initialized with.</returns>
-		const DirectX12Device& device() const noexcept;
 	};
 
 	/// <summary>
