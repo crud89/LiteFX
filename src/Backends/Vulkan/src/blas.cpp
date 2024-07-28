@@ -161,9 +161,9 @@ void VulkanBottomLevelAccelerationStructure::build(const VulkanCommandBuffer& co
     if (buffer == nullptr)
         buffer = m_impl->m_buffer && m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
     else if (maxSize < requiredMemory) [[unlikely]]
-        throw ArgumentOutOfRangeException("maxSize", 0ull, maxSize, requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
+        throw ArgumentOutOfRangeException("maxSize", std::make_pair(0ull, maxSize), requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
-        throw ArgumentOutOfRangeException("buffer", 0ull, (UInt64)buffer->size(), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
+        throw ArgumentOutOfRangeException("buffer", std::make_pair(0ull, (UInt64)buffer->size()), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
 
     // If the acceleration structure allows for compaction, create a query pool in order to query the compacted size later.
     if (LITEFX_FLAG_IS_SET(m_impl->m_flags, AccelerationStructureFlags::AllowCompaction))
@@ -227,9 +227,9 @@ void VulkanBottomLevelAccelerationStructure::update(const VulkanCommandBuffer& c
     if (buffer == nullptr)
         buffer = m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
     else if (maxSize < requiredMemory) [[unlikely]]
-        throw ArgumentOutOfRangeException("maxSize", 0ull, maxSize, requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
+        throw ArgumentOutOfRangeException("maxSize", std::make_pair(0ull, maxSize), requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
-        throw ArgumentOutOfRangeException("buffer", 0ull, (UInt64)buffer->size(), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
+        throw ArgumentOutOfRangeException("buffer", std::make_pair(0ull, (UInt64)buffer->size()), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
 
     // If the acceleration structure allows for compaction, reset the query pool.
     if (LITEFX_FLAG_IS_SET(m_impl->m_flags, AccelerationStructureFlags::AllowCompaction))
@@ -280,7 +280,7 @@ void VulkanBottomLevelAccelerationStructure::copy(const VulkanCommandBuffer& com
     if (buffer == nullptr)
         buffer = destination.m_impl->m_buffer->size() >= requiredMemory[0] ? destination.m_impl->m_buffer : device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory[0], 1, ResourceUsage::AllowWrite);
     else if (buffer->size() < offset + requiredMemory[0]) [[unlikely]]
-        throw ArgumentOutOfRangeException("buffer", 0ull, (UInt64)buffer->size(), offset + requiredMemory[0], "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
+        throw ArgumentOutOfRangeException("buffer", std::make_pair(0ull, (UInt64)buffer->size()), offset + requiredMemory[0], "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
 
     // Create or reset query pool on destination, if required. 
     if (LITEFX_FLAG_IS_SET(destination.flags(), AccelerationStructureFlags::AllowCompaction))

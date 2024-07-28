@@ -994,7 +994,7 @@ Enumerable<SharedPtr<TimingEvent>> VulkanSwapChain::timingEvents() const noexcep
 SharedPtr<TimingEvent> VulkanSwapChain::timingEvent(UInt32 queryId) const
 {
 	if (queryId >= m_impl->m_timingEvents.size())
-		throw ArgumentOutOfRangeException("queryId", 0u, static_cast<UInt32>(m_impl->m_timingEvents.size()), queryId, "No timing event has been registered for query ID {0}.", queryId);
+		throw ArgumentOutOfRangeException("queryId", std::make_pair(0ull, (UInt64)m_impl->m_timingEvents.size()), queryId, "No timing event has been registered for query ID {0}.", queryId);
 
 	return m_impl->m_timingEvents[queryId];
 }
@@ -1050,7 +1050,7 @@ bool VulkanSwapChain::verticalSynchronization() const noexcept
 IVulkanImage* VulkanSwapChain::image(UInt32 backBuffer) const
 {
 	if (backBuffer >= m_impl->m_presentImages.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("backBuffer", 0u, static_cast<UInt32>(m_impl->m_presentImages.size()), backBuffer, "The back buffer must be a valid index.");
+		throw ArgumentOutOfRangeException("backBuffer", std::make_pair(0ull, (UInt64)m_impl->m_presentImages.size()), backBuffer, "The back buffer must be a valid index.");
 
 	return m_impl->m_presentImages[backBuffer].get();
 }

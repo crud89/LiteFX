@@ -292,10 +292,10 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 		throw InvalidArgumentException("usage", "Invalid resource usage has been specified: image resources cannot be used as build inputs for other acceleration structures.");
 
 	if (dimension == ImageDimensions::CUBE && layers != 6) [[unlikely]]
-		throw ArgumentOutOfRangeException("layers", 6u, 6u, layers, "A cube map must be defined with 6 layers, but {0} are provided.", layers);
+		throw ArgumentOutOfRangeException("layers", std::make_pair(6u, 6u), layers, "A cube map must be defined with 6 layers, but {0} are provided.", layers);
 
 	if (dimension == ImageDimensions::DIM_3 && layers != 1) [[unlikely]]
-		throw ArgumentOutOfRangeException("layers", 1u, 1u, layers, "A 3D texture can only have one layer, but {0} are provided.", layers);
+		throw ArgumentOutOfRangeException("layers", std::make_pair(1u, 1u), layers, "A 3D texture can only have one layer, but {0} are provided.", layers);
 
 	auto width = std::max<UInt32>(1, size.width());
 	auto height = std::max<UInt32>(1, size.height());
