@@ -13,4 +13,32 @@
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
+
+	<!-- Rasterizer -->
+	<Type Name="LiteFX::Rendering::Rasterizer" Inheritable="true">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">Rasterizer {{ Polygon Mode = { m_impl.m_ptr._Mypair._Myval2->m_polygonMode,en }, Cull Mode = { m_impl.m_ptr._Mypair._Myval2->m_cullMode,en }, Cull Order = { m_impl.m_ptr._Mypair._Myval2->m_cullOrder,en } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Polygon Mode">m_impl.m_ptr._Mypair._Myval2->m_polygonMode,en</Item>
+			<Item Name="Cull Mode">m_impl.m_ptr._Mypair._Myval2->m_cullMode,en</Item>
+			<Item Name="Cull Order">m_impl.m_ptr._Mypair._Myval2->m_cullOrder,en</Item>
+			<Item Name="Depth/Stencil State">m_impl.m_ptr._Mypair._Myval2->m_depthStencilState</Item>
+			<Item Name="Line Width">m_impl.m_ptr._Mypair._Myval2->m_lineWidth</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Depth/Stencil State -->
+	<Type Name="LiteFX::Rendering::DepthStencilState" Inheritable="true">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DepthStencilState {{ Depth Test = { m_impl.m_ptr._Mypair._Myval2->m_depthState.Enable }, Stencil Test = { m_impl.m_ptr._Mypair._Myval2->m_stencilState.Enable }, Depth Bias = { m_impl.m_ptr._Mypair._Myval2->m_depthBias.Enable } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Depth State">m_impl.m_ptr._Mypair._Myval2->m_depthState</Item>
+			<Item Name="Depth Bias">m_impl.m_ptr._Mypair._Myval2->m_depthBias</Item>
+			<Item Name="Stencil State">m_impl.m_ptr._Mypair._Myval2->m_stencilState</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
 </AutoVisualizer>
