@@ -588,4 +588,25 @@
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
+
+	<!-- Frame Buffer -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanFrameBuffer">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanFrameBuffer {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_images._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_images._Mypair._Myval2._Myfirst } Render Targets, Size = { m_impl.m_ptr._Mypair._Myval2->m_size,view(simple) } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Item Name="Images">m_impl.m_ptr._Mypair._Myval2->m_images,view(simple)</Item>
+			<Synthetic Name="Mapped Render Targets">
+				<DisplayString>{{ { m_impl.m_ptr._Mypair._Myval2->m_mappedRenderTargets._List._Mypair._Myval2._Mysize } Render Targets }}</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_mappedRenderTargets._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="Size">m_impl.m_ptr._Mypair._Myval2->m_size,view(simple)</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
 </AutoVisualizer>
