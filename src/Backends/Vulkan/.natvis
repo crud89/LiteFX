@@ -144,6 +144,7 @@
 			</Synthetic>
 			<Item Name="Allocator">m_impl.m_ptr._Mypair._Myval2->m_allocator</Item>
 			<Item Name="Allocation">m_impl.m_ptr._Mypair._Myval2->m_allocation</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
 			<Item Name="[Resource]">(LiteFX::Resource&lt;VkBuffer_T *&gt;*)this</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
@@ -169,6 +170,7 @@
 			<Item Name="Usage">m_impl.m_ptr._Mypair._Myval2->m_usage</Item>
 			<Item Name="Allocator">m_impl.m_ptr._Mypair._Myval2->m_allocator</Item>
 			<Item Name="Allocation">m_impl.m_ptr._Mypair._Myval2->m_allocationInfo</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
 			<Item Name="[Resource]">(LiteFX::Resource&lt;VkImage_T *&gt;*)this</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
@@ -189,6 +191,7 @@
 			<Item Name="Min LOD">m_impl.m_ptr._Mypair._Myval2->m_minLod,g</Item>
 			<Item Name="Max LOD">m_impl.m_ptr._Mypair._Myval2->m_maxLod,g</Item>
 			<Item Name="Anisotropy">m_impl.m_ptr._Mypair._Myval2->m_anisotropy,g</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
 			<Item Name="[Resource]">(LiteFX::Resource&lt;VkSampler_T *&gt;*)this</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
@@ -228,6 +231,7 @@
 				</Expand>
 			</Synthetic>
 			<Item Name="Query Pool">m_impl.m_ptr._Mypair._Myval2->m_queryPool</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
 			<Item Name="[Resource]">(LiteFX::Resource&lt;VkAccelerationStructureKHR_T *&gt;*)this</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
@@ -259,6 +263,7 @@
 				</Expand>
 			</Synthetic>
 			<Item Name="Query Pool">m_impl.m_ptr._Mypair._Myval2->m_queryPool</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
 			<Item Name="[Resource]">(LiteFX::Resource&lt;VkAccelerationStructureKHR_T *&gt;*)this</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
@@ -348,6 +353,35 @@
 					</IndexListItems>
 				</Expand>
 			</Synthetic>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Shader Module -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanShaderModule">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanShaderModule {{ Type = { m_impl.m_ptr._Mypair._Myval2->m_type,en }, File Name = { m_impl.m_ptr._Mypair._Myval2->m_fileName }, Entry Point = { m_impl.m_ptr._Mypair._Myval2->m_entryPoint } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Type">m_impl.m_ptr._Mypair._Myval2->m_type,en</Item>
+			<Item Name="File Name">m_impl.m_ptr._Mypair._Myval2->m_fileName</Item>
+			<Item Name="Entry Point">m_impl.m_ptr._Mypair._Myval2->m_entryPoint</Item>
+			<Item Name="Shader Local Descriptor">m_impl.m_ptr._Mypair._Myval2->m_shaderLocalDescriptor</Item>
+			<Item Name="Bytecode">m_impl.m_ptr._Mypair._Myval2->m_bytecode,sb</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkShaderModule_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Shader Program -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanShaderProgram">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanShaderProgram {{ Modules = { m_impl.m_ptr._Mypair._Myval2->m_modules._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_modules._Mypair._Myval2._Myfirst } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Modules">m_impl.m_ptr._Mypair._Myval2->m_modules,view(simple)</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
