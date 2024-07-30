@@ -385,4 +385,113 @@
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
+
+	<!-- Descriptor Set -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanDescriptorSet">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanDescriptorSet {{ Buffer Views = { m_impl.m_ptr._Mypair._Myval2->m_bufferViews._List._Mypair._Myval2._Mysize }, Image Views = { m_impl.m_ptr._Mypair._Myval2->m_imageViews._List._Mypair._Myval2._Mysize } }}</DisplayString>
+
+		<Expand>
+			<Synthetic Name="Buffer Views">
+				<DisplayString>{{ Elements = { m_impl.m_ptr._Mypair._Myval2->m_bufferViews._List._Mypair._Myval2._Mysize } }}</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_bufferViews._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Image Views">
+				<DisplayString>{{ Elements = { m_impl.m_ptr._Mypair._Myval2->m_imageViews._List._Mypair._Myval2._Mysize } }}</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_imageViews._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="Layout">m_impl.m_ptr._Mypair._Myval2->m_layout</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkDescriptorSet_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Descriptor Layout -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanDescriptorLayout">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanDescriptorLayout {{ Type = { m_impl.m_ptr._Mypair._Myval2->m_descriptorType,en }, Binding = { m_impl.m_ptr._Mypair._Myval2->m_binding }, Descriptors = { m_impl.m_ptr._Mypair._Myval2->m_descriptors } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Type">m_impl.m_ptr._Mypair._Myval2->m_descriptorType,en</Item>
+			<Item Name="Binding">m_impl.m_ptr._Mypair._Myval2->m_binding</Item>
+			<Item Name="Descriptors">m_impl.m_ptr._Mypair._Myval2->m_descriptors</Item>
+			<Item Name="Buffer Type">m_impl.m_ptr._Mypair._Myval2->m_bufferType,en</Item>
+			<Item Name="Element Size">m_impl.m_ptr._Mypair._Myval2->m_elementSize</Item>
+			<Item Name="Static Sampler">m_impl.m_ptr._Mypair._Myval2->m_staticSampler</Item>
+			<Item Name="Input Attachment">m_impl.m_ptr._Mypair._Myval2->m_inputAttachmentIndex</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Descriptor Set Layout -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanDescriptorSetLayout">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanDescriptorSetLayout {{ Space = { m_impl.m_ptr._Mypair._Myval2->m_space }, Descriptors = { m_impl.m_ptr._Mypair._Myval2->m_descriptorLayouts._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_descriptorLayouts._Mypair._Myval2._Myfirst }, Stages = { m_impl.m_ptr._Mypair._Myval2->m_stages,en } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Descriptor Layouts">m_impl.m_ptr._Mypair._Myval2->m_descriptorLayouts,view(simple)</Item>
+			<Item Name="Space">m_impl.m_ptr._Mypair._Myval2->m_space</Item>
+			<Item Name="Stages">m_impl.m_ptr._Mypair._Myval2->m_stages,en</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="Descriptor Indexing">m_impl.m_ptr._Mypair._Myval2->m_usesDescriptorIndexing</Item>
+			<Item Name="Pool Sizes">m_impl.m_ptr._Mypair._Myval2->m_poolSizes,view(simple)</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkDescriptorSetLayout_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+	
+	<!-- Push Constants Range -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanPushConstantsRange">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanPushConstantsRange {{ Stage = { m_impl.m_ptr._Mypair._Myval2->m_stage,en }, Binding = { m_impl.m_ptr._Mypair._Myval2->m_binding }, Space = { m_impl.m_ptr._Mypair._Myval2->m_space } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Stage">m_impl.m_ptr._Mypair._Myval2->m_stage,en</Item>
+			<Item Name="Space">m_impl.m_ptr._Mypair._Myval2->m_space</Item>
+			<Item Name="Binding">m_impl.m_ptr._Mypair._Myval2->m_binding</Item>
+			<Item Name="Size">m_impl.m_ptr._Mypair._Myval2->m_size</Item>
+			<Item Name="Offset">m_impl.m_ptr._Mypair._Myval2->m_offset,X</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Push Constants Layout -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanPushConstantsLayout">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanPushConstantsLayout {{ Ranges = { m_impl.m_ptr._Mypair._Myval2->m_ranges._List._Mypair._Myval2._Mysize }, Size = { m_impl.m_ptr._Mypair._Myval2->m_size } Bytes }}</DisplayString>
+
+		<Expand>
+			<Item Name="Size">m_impl.m_ptr._Mypair._Myval2->m_size</Item>
+			<Synthetic Name="Ranges">
+				<DisplayString>{{ Elements = { m_impl.m_ptr._Mypair._Myval2->m_ranges._List._Mypair._Myval2._Mysize } }}</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_ranges._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="Pipeline Layout">m_impl.m_ptr._Mypair._Myval2->m_pipelineLayout</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Pipeline Layout -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanPipelineLayout">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_pushConstantsLayout._Mypair._Myval2 == nullptr">VulkanPipelineLayout {{ { m_impl.m_ptr._Mypair._Myval2->m_descriptorSetLayouts._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_descriptorSetLayouts._Mypair._Myval2._Myfirst } Descriptor Sets }}</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_pushConstantsLayout._Mypair._Myval2 != nullptr">VulkanPipelineLayout {{ { m_impl.m_ptr._Mypair._Myval2->m_descriptorSetLayouts._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_descriptorSetLayouts._Mypair._Myval2._Myfirst } Descriptor Sets + Push Constants }}</DisplayString>
+
+		<Expand>
+			<Item Name="Descriptor Set Layouts">m_impl.m_ptr._Mypair._Myval2->m_descriptorSetLayouts,view(simple)</Item>
+			<Item Name="Push Constant Layout">m_impl.m_ptr._Mypair._Myval2->m_pushConstantsLayout</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkPipelineLayout_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
 </AutoVisualizer>
