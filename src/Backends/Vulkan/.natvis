@@ -631,4 +631,24 @@
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
+
+	<!-- Swap Chain -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanSwapChain">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanSwapChain {{ Back Buffers = { m_impl.m_ptr._Mypair._Myval2->m_buffers }, Format = { m_impl.m_ptr._Mypair._Myval2->m_format,en }, Render Area = { m_impl.m_ptr._Mypair._Myval2->m_renderArea,view(simple) } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Back Buffers">m_impl.m_ptr._Mypair._Myval2->m_buffers</Item>
+			<Item Name="Images">m_impl.m_ptr._Mypair._Myval2->m_presentImages,view(simple)</Item>
+			<Item Name="Format">m_impl.m_ptr._Mypair._Myval2->m_format,en</Item>
+			<Item Name="Render Area">m_impl.m_ptr._Mypair._Myval2->m_renderArea,view(simple)</Item>
+			<Item Name="Vertical Sync">m_impl.m_ptr._Mypair._Myval2->m_vsync</Item>
+			<Item Name="Current Image">m_impl.m_ptr._Mypair._Myval2->m_currentImage</Item>
+			<Item Name="Supports Timing">m_impl.m_ptr._Mypair._Myval2->m_supportsTiming</Item>
+			<Item Name="Timing Events">m_impl.m_ptr._Mypair._Myval2->m_timingEvents,view(simple)</Item>
+			<Item Name="Timestamps">m_impl.m_ptr._Mypair._Myval2->m_timestamps,view(simple)</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
 </AutoVisualizer>

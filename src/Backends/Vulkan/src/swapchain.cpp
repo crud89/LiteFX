@@ -4,6 +4,8 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+// NOTE: It is important to keep private variable names equal between implementation classes in order for the debug visualizers to work.
+
 #if !defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
 // ------------------------------------------------------------------------------------------------
 // Default implementation.
