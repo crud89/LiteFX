@@ -554,4 +554,38 @@
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
+
+	<!-- Command Buffer -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanCommandBuffer">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanCommandBuffer {{ Recording = { m_impl.m_ptr._Mypair._Myval2->m_recording }, Secondary = { m_impl.m_ptr._Mypair._Myval2->m_secondary } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Queue">m_impl.m_ptr._Mypair._Myval2->m_queue</Item>
+			<Item Name="Recording">m_impl.m_ptr._Mypair._Myval2->m_recording</Item>
+			<Item Name="Secondary">m_impl.m_ptr._Mypair._Myval2->m_secondary</Item>
+			<Item Name="Shared Resources">m_impl.m_ptr._Mypair._Myval2->m_sharedResources,view(simple)</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_queue.m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkCommandBuffer_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Command Queue -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanQueue">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanQueue {{ Type = { m_impl.m_ptr._Mypair._Myval2->m_type,en }, Priority = { m_impl.m_ptr._Mypair._Myval2->m_priority,en } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Type">m_impl.m_ptr._Mypair._Myval2->m_type,en</Item>
+			<Item Name="Priority">m_impl.m_ptr._Mypair._Myval2->m_priority,en</Item>
+			<Item Name="Family ID">m_impl.m_ptr._Mypair._Myval2->m_familyId</Item>
+			<Item Name="Queue ID">m_impl.m_ptr._Mypair._Myval2->m_queueId</Item>
+			<Item Name="Last Fence">m_impl.m_ptr._Mypair._Myval2->m_fenceValue</Item>
+			<Item Name="Submitted Command Buffers">m_impl.m_ptr._Mypair._Myval2->m_submittedCommandBuffers,view(simple)</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkQueue_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
 </AutoVisualizer>
