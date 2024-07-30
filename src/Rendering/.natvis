@@ -72,4 +72,45 @@
 			</Synthetic>
 		</Expand>
 	</Type>
+
+	<!-- Render Target -->
+	<Type Name="LiteFX::Rendering::RenderTarget">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">RenderTarget {{ Name = { m_impl.m_ptr._Mypair._Myval2->m_name }, Type = { m_impl.m_ptr._Mypair._Myval2->m_type,en }, Format = { m_impl.m_ptr._Mypair._Myval2->m_format,en }, Location = { m_impl.m_ptr._Mypair._Myval2->m_location } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Name">m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Item Name="Type">m_impl.m_ptr._Mypair._Myval2->m_type,en</Item>
+			<Item Name="Format">m_impl.m_ptr._Mypair._Myval2->m_format,en</Item>
+			<Item Name="Location">m_impl.m_ptr._Mypair._Myval2->m_location</Item>
+			<Item Name="Flags">m_impl.m_ptr._Mypair._Myval2->m_flags,en</Item>
+			<Item Name="Blend State">m_impl.m_ptr._Mypair._Myval2->m_blendState</Item>
+			<Item Name="Clear Values">m_impl.m_ptr._Mypair._Myval2->m_clearValues</Item>
+			<Item Name="Identifier">m_impl.m_ptr._Mypair._Myval2->m_identifier</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Descriptor Binding Point -->
+	<Type Name="LiteFX::Rendering::DescriptorBindingPoint">
+		<DisplayString ExcludeView="simple">DescriptorBindingPoint {{ Register = { Register }, Space = { Space } }}</DisplayString>
+		<DisplayString IncludeView="simple">{{ Register = { Register }, Space = { Space } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Register">Register</Item>
+			<Item Name="Space">Space</Item>
+		</Expand>
+	</Type>
+	
+	<!-- Render Pass Dependency -->
+	<Type Name="LiteFX::Rendering::RenderPassDependency">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">RenderPassDependency {{ Render Target = { m_impl.m_ptr._Mypair._Myval2->m_renderTarget.m_impl.m_ptr._Mypair._Myval2->m_name }, Binding = { m_impl.m_ptr._Mypair._Myval2->m_descriptorBinding,view(simple) } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Render Target">m_impl.m_ptr._Mypair._Myval2->m_renderTarget</Item>
+			<Item Name="Binding Point">m_impl.m_ptr._Mypair._Myval2->m_descriptorBinding</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
 </AutoVisualizer>

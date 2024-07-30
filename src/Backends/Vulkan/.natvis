@@ -609,4 +609,26 @@
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
+	
+	<!-- Render Pass -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanRenderPass">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanRenderPass {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_renderTargets._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_renderTargets._Mypair._Myval2._Myfirst } Render Targets }}</DisplayString>
+
+		<Expand>
+			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Item Name="Render Targets">m_impl.m_ptr._Mypair._Myval2->m_renderTargets,view(simple)</Item>
+			<Item Name="Input Attachments">m_impl.m_ptr._Mypair._Myval2->m_inputAttachments,view(simple)</Item>
+			<Item Name="Input Attachments Sampler Binding">m_impl.m_ptr._Mypair._Myval2->m_inputAttachmentSamplerBinding</Item>
+			<Item Name="Active Frame Buffer">m_impl.m_ptr._Mypair._Myval2->m_activeFrameBuffer</Item>
+			<Item Name="Present Target">m_impl.m_ptr._Mypair._Myval2->m_presentTarget</Item>
+			<Item Name="Depth/Stencil Target">m_impl.m_ptr._Mypair._Myval2->m_depthStencilTarget</Item>
+			<Item Name="Primary Command Buffers">m_impl.m_ptr._Mypair._Myval2->m_primaryCommandBuffers,view(simple)</Item>
+			<Item Name="Secondary Command Buffers">m_impl.m_ptr._Mypair._Myval2->m_secondaryCommandBuffers,view(simple)</Item>
+			<Item Name="Swap Chain">m_impl.m_ptr._Mypair._Myval2->m_swapChain</Item>
+			<Item Name="Command Queue">m_impl.m_ptr._Mypair._Myval2->m_queue</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
 </AutoVisualizer>
