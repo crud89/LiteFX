@@ -41,4 +41,35 @@
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
+
+	<!-- Shader Record Collection -->
+	<Type Name="LiteFX::Rendering::ShaderRecordCollection">
+		<DisplayString>ShaderRecordCollection {{ { m_records._Mypair._Myval2._Mylast - m_records._Mypair._Myval2._Myfirst } Records }}</DisplayString>
+
+		<Expand>
+			<Item Name="Shader Program">m_program</Item>
+			<Item Name="Records">m_records,view(simple)</Item>
+		</Expand>
+	</Type>
+
+	<!-- Shader Record -->
+	<Type Name="LiteFX::Rendering::ShaderRecord&lt;&gt;">
+		<DisplayString>ShaderRecord&lt;&gt; {{ Local Data Size = 0 Bytes }}</DisplayString>
+
+		<Expand>
+			<Item Name="Shader Group">m_shaderGroup,view(simple)</Item>
+		</Expand>
+	</Type>
+	
+	<Type Name="LiteFX::Rendering::ShaderRecord&lt;*&gt;">
+		<DisplayString>ShaderRecord&lt;{ "$T1",sb }&gt; {{ Local Data Size = { sizeof($T1) } Bytes }}</DisplayString>
+
+		<Expand>
+			<Item Name="Shader Group">m_shaderGroup,view(simple)</Item>
+			<Item Name="Local Data">m_payload</Item>
+			<Synthetic Name="Local Data Size">
+				<DisplayString>{ sizeof($T1) }</DisplayString>
+			</Synthetic>
+		</Expand>
+	</Type>
 </AutoVisualizer>
