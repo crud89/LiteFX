@@ -651,4 +651,62 @@
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
+	
+	<!-- Graphics Factory -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanGraphicsFactory">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanGraphicsFactory {{ }}</DisplayString>
+
+		<Expand>
+			<Item Name="Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="Allocator">m_impl.m_ptr._Mypair._Myval2->m_allocator</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Device -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanDevice">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanDevice {{ Adapter = { m_impl.m_ptr._Mypair._Myval2->m_adapter.m_impl.m_ptr._Mypair._Myval2->m_name }, Surface = { m_impl.m_ptr._Mypair._Myval2->m_surface._Mypair._Myval2->m_impl.m_ptr._Mypair._Myval2->m_hwnd,handle } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Device State">m_impl.m_ptr._Mypair._Myval2->m_deviceState</Item>
+			<Item Name="Swap Chain">m_impl.m_ptr._Mypair._Myval2->m_swapChain</Item>
+			<Item Name="Adapter">m_impl.m_ptr._Mypair._Myval2->m_adapter</Item>
+			<Item Name="Surface">m_impl.m_ptr._Mypair._Myval2->m_surface</Item>
+			<Synthetic Name="Default Queues">
+				<DisplayString>3 Elements</DisplayString>
+				
+				<Expand>
+					<Item Name="Graphics Queue">m_impl.m_ptr._Mypair._Myval2->m_graphicsQueue</Item>
+					<Item Name="Transfer Queue">m_impl.m_ptr._Mypair._Myval2->m_transferQueue</Item>
+					<Item Name="Compute Queue">m_impl.m_ptr._Mypair._Myval2->m_computeQueue</Item>
+				</Expand>
+			</Synthetic>
+			<Item Name="Extensions">m_impl.m_ptr._Mypair._Myval2->m_extensions,view(simple)</Item>
+			<Item Name="Factory">m_impl.m_ptr._Mypair._Myval2->m_factory</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+	
+	<!-- Backend -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanBackend">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanBackend {{ { m_impl.m_ptr._Mypair._Myval2->m_devices._List._Mypair._Myval2._Mysize } Devices, { m_impl.m_ptr._Mypair._Myval2->m_adapters._Mypair._Myval2._Mylast -  m_impl.m_ptr._Mypair._Myval2->m_adapters._Mypair._Myval2._Myfirst } Adapters }}</DisplayString>
+
+		<Expand>
+			<Synthetic Name="Devices">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_devices._List._Mypair._Myval2._Mysize } Elements</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_devices._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="Adapters">m_impl.m_ptr._Mypair._Myval2->m_adapters,view(simple)</Item>
+			<Item Name="App">m_impl.m_ptr._Mypair._Myval2->m_app</Item>
+			<Item Name="Extensions">m_impl.m_ptr._Mypair._Myval2->m_extensions,view(simple)</Item>
+			<Item Name="Layers">m_impl.m_ptr._Mypair._Myval2->m_layers,view(simple)</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
 </AutoVisualizer>

@@ -113,4 +113,84 @@
 			<Item Name="[m_impl]">m_impl</Item>
 		</Expand>
 	</Type>
+	
+	<!-- Device State -->
+	<Type Name="LiteFX::Rendering::DeviceState">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0"> DeviceState {{ { m_impl.m_ptr._Mypair._Myval2->m_renderPasses._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_frameBuffers._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_pipelines._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_buffers._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_vertexBuffers._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_indexBuffers._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_images._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_samplers._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_accelerationStructures._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_descriptorSets._List._Mypair._Myval2._Mysize } Instances }}</DisplayString>
+
+		<Expand>
+			<Synthetic Name="Buffers">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_buffers._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_buffers._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Vertex Buffers">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_vertexBuffers._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_vertexBuffers._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Index Buffers">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_indexBuffers._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_indexBuffers._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Images">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_images._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_images._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Samplers">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_samplers._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_samplers._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Acceleration Structures">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_accelerationStructures._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_accelerationStructures._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Descriptor Sets">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_descriptorSets._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_descriptorSets._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Pipelines">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_pipelines._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_pipelines._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Render Passes">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_renderPasses._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_renderPasses._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Frame Buffers">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_frameBuffers._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_frameBuffers._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
 </AutoVisualizer>
