@@ -1597,12 +1597,12 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a DirectX 12 render pass.
     /// </summary>
     /// <seealso cref="DirectX12RenderPassBuilder" />
-    class LITEFX_DIRECTX12_API DirectX12RenderPass final : public RenderPass<DirectX12RenderPipeline, DirectX12Queue, DirectX12FrameBuffer> {
+    class LITEFX_DIRECTX12_API DirectX12RenderPass final : public RenderPass<DirectX12Queue, DirectX12FrameBuffer> {
         LITEFX_IMPLEMENTATION(DirectX12RenderPassImpl);
         LITEFX_BUILDER(DirectX12RenderPassBuilder);
 
     public:
-        using base_type = RenderPass<DirectX12RenderPipeline, DirectX12Queue, DirectX12FrameBuffer>;
+        using base_type = RenderPass<DirectX12Queue, DirectX12FrameBuffer>;
 
     public:
         /// <summary>
@@ -1685,9 +1685,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         const DirectX12Queue& commandQueue() const noexcept override;
-
-        /// <inheritdoc />
-        Enumerable<const DirectX12RenderPipeline*> pipelines() const noexcept override;
 
         /// <inheritdoc />
         Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers() const noexcept override;
@@ -1892,7 +1889,7 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// Implements a DirectX 12 graphics device.
     /// </summary>
-    class LITEFX_DIRECTX12_API DirectX12Device final : public GraphicsDevice<DirectX12GraphicsFactory, DirectX12Surface, DirectX12GraphicsAdapter, DirectX12SwapChain, DirectX12Queue, DirectX12RenderPass, DirectX12ComputePipeline, DirectX12RayTracingPipeline, DirectX12Barrier>, public ComResource<ID3D12Device10> {
+    class LITEFX_DIRECTX12_API DirectX12Device final : public GraphicsDevice<DirectX12GraphicsFactory, DirectX12Surface, DirectX12GraphicsAdapter, DirectX12SwapChain, DirectX12Queue, DirectX12RenderPass, DirectX12RenderPipeline, DirectX12ComputePipeline, DirectX12RayTracingPipeline, DirectX12Barrier>, public ComResource<ID3D12Device10> {
         LITEFX_IMPLEMENTATION(DirectX12DeviceImpl);
 
     public:

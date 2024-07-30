@@ -7445,15 +7445,6 @@ namespace LiteFX::Rendering {
         virtual const ICommandQueue& commandQueue() const noexcept = 0;
 
         /// <summary>
-        /// Returns an array of all render pipelines, owned by the render pass.
-        /// </summary>
-        /// <returns>An array of all render pipelines, owned by the render pass.</returns>
-        /// <seealso cref="IRenderPipeline" />
-        inline Enumerable<const IRenderPipeline*> pipelines() const noexcept {
-            return this->getPipelines();
-        }
-
-        /// <summary>
         /// Returns all command buffers, that can be currently used for recording multi-threaded commands in the render pass.
         /// </summary>
         /// <returns>
@@ -7550,7 +7541,6 @@ namespace LiteFX::Rendering {
         virtual void beginRenderPass(const IFrameBuffer& frameBuffer) const = 0;
         virtual SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept = 0;
         virtual Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept = 0;
-        virtual Enumerable<const IRenderPipeline*> getPipelines() const noexcept = 0;
     };
 
     /// <summary>

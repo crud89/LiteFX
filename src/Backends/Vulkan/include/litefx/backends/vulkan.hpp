@@ -1603,12 +1603,12 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a Vulkan render pass.
     /// </summary>
     /// <seealso cref="VulkanRenderPassBuilder" />
-    class LITEFX_VULKAN_API VulkanRenderPass final : public RenderPass<VulkanRenderPipeline, VulkanQueue, VulkanFrameBuffer> {
+    class LITEFX_VULKAN_API VulkanRenderPass final : public RenderPass<VulkanQueue, VulkanFrameBuffer> {
         LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
         LITEFX_BUILDER(VulkanRenderPassBuilder);
 
     public:
-        using base_type = RenderPass<VulkanRenderPipeline, VulkanQueue, VulkanFrameBuffer>;
+        using base_type = RenderPass<VulkanQueue, VulkanFrameBuffer>;
 
     public:
         /// <summary>
@@ -1686,9 +1686,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         const VulkanQueue& commandQueue() const noexcept override;
-
-        /// <inheritdoc />
-        Enumerable<const VulkanRenderPipeline*> pipelines() const noexcept override;
 
         /// <inheritdoc />
         Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers() const noexcept override;
@@ -1883,7 +1880,7 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// Implements a Vulkan graphics device.
     /// </summary>
-    class LITEFX_VULKAN_API VulkanDevice final : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanComputePipeline, VulkanRayTracingPipeline, VulkanBarrier>, public Resource<VkDevice> {
+    class LITEFX_VULKAN_API VulkanDevice final : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanRenderPipeline, VulkanComputePipeline, VulkanRayTracingPipeline, VulkanBarrier>, public Resource<VkDevice> {
         LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
     public:

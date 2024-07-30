@@ -1640,7 +1640,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TRenderPass">The type of the render pass. Must implement <see cref="RenderPass" />.</typeparam>
     /// <seealso cref="RenderPass" />
     template <typename TRenderPass> requires
-        meta::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, typename TRenderPass::command_queue_type, typename TRenderPass::frame_buffer_type>>
+        meta::implements<TRenderPass, RenderPass<typename TRenderPass::command_queue_type, typename TRenderPass::frame_buffer_type>>
     class RenderPassBuilder : public Builder<TRenderPass> {
     public:
         using Builder<TRenderPass>::Builder;

@@ -18,7 +18,6 @@ public:
     using RenderPassContext = Tuple<Array<D3D12_RENDER_PASS_RENDER_TARGET_DESC>, Optional<D3D12_RENDER_PASS_DEPTH_STENCIL_DESC>>;
 
 private:
-    Array<UniquePtr<DirectX12RenderPipeline>> m_pipelines;
     Array<RenderTarget> m_renderTargets;
     Array<RenderPassDependency> m_inputAttachments;
     Dictionary<const IFrameBuffer*, size_t> m_frameBufferTokens;
@@ -259,11 +258,6 @@ const DirectX12FrameBuffer& DirectX12RenderPass::activeFrameBuffer() const
 const DirectX12Queue& DirectX12RenderPass::commandQueue() const noexcept 
 {
     return *m_impl->m_queue;
-}
-
-Enumerable<const DirectX12RenderPipeline*> DirectX12RenderPass::pipelines() const noexcept
-{
-    return m_impl->m_pipelines | std::views::transform([](const UniquePtr<DirectX12RenderPipeline>& pipeline) { return pipeline.get(); }) | std::ranges::to<Array<const DirectX12RenderPipeline*>>();
 }
 
 SharedPtr<const DirectX12CommandBuffer> DirectX12RenderPass::commandBuffer(UInt32 index) const
