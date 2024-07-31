@@ -13,13 +13,13 @@
 			<Item Name="Type">m_impl.m_ptr._Mypair._Myval2->m_type,en</Item>
 			<Item Name="Luid">m_impl.m_ptr._Mypair._Myval2->m_luid,nvoXb</Item>
 			<Synthetic Name="Vendor ID">
-				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x1002">AMD (0x{ m_impl.m_ptr._Mypair._Myval2->m_deviceId,nvoXb })</DisplayString>
-				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x1010">ImgTec (0x{ m_impl.m_ptr._Mypair._Myval2->m_deviceId,nvoXb })</DisplayString>
-				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x10DE">NVidia (0x{ m_impl.m_ptr._Mypair._Myval2->m_deviceId,nvoXb })</DisplayString>
-				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x13B5">ARM (0x{ m_impl.m_ptr._Mypair._Myval2->m_deviceId,nvoXb })</DisplayString>
-				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x5143">Qualcom (0x{ m_impl.m_ptr._Mypair._Myval2->m_deviceId,nvoXb })</DisplayString>
-				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x8086">Intel (0x{ m_impl.m_ptr._Mypair._Myval2->m_deviceId,nvoXb })</DisplayString>
-				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x1002 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x1010 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x10DE &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x13B5 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x5143 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x8086">Other (0x{ m_impl.m_ptr._Mypair._Myval2->m_deviceId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x1002">AMD (0x{ m_impl.m_ptr._Mypair._Myval2->m_vendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x1010">ImgTec (0x{ m_impl.m_ptr._Mypair._Myval2->m_vendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x10DE">NVidia (0x{ m_impl.m_ptr._Mypair._Myval2->m_vendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x13B5">ARM (0x{ m_impl.m_ptr._Mypair._Myval2->m_vendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x5143">Qualcom (0x{ m_impl.m_ptr._Mypair._Myval2->m_vendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x8086">Intel (0x{ m_impl.m_ptr._Mypair._Myval2->m_vendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x1002 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x1010 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x10DE &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x13B5 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x5143 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x8086">Other (0x{ m_impl.m_ptr._Mypair._Myval2->m_vendorId,nvoXb })</DisplayString>
 			</Synthetic>
 			<Item Name="Device ID">m_impl.m_ptr._Mypair._Myval2->m_deviceId</Item>
 			<Synthetic Name="Driver Version">
@@ -163,7 +163,7 @@
 			<Item Name="Format">m_impl.m_ptr._Mypair._Myval2->m_format</Item>
 			<Item Name="Samples">m_impl.m_ptr._Mypair._Myval2->m_samples</Item>
 			<Item Name="Dimensions">m_impl.m_ptr._Mypair._Myval2->m_dimensions</Item>
-			<Item Name="Extent">m_impl.m_ptr._Mypair._Myval2->m_extent</Item>
+			<Item Name="Extent">m_impl.m_ptr._Mypair._Myval2->m_extent,view(simple)</Item>
 			<Item Name="Layers">m_impl.m_ptr._Mypair._Myval2->m_layers</Item>
 			<Item Name="Levels">m_impl.m_ptr._Mypair._Myval2->m_levels</Item>
 			<Item Name="Planes">m_impl.m_ptr._Mypair._Myval2->m_planes</Item>
