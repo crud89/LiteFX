@@ -55,6 +55,8 @@ SET(DIRECTX12_BACKEND_SOURCES
     "src/push_constants_layout.cpp"
     "src/blas.cpp"
     "src/tlas.cpp"
+
+    ".natvis"
 )
 
 # Add shared library project.
