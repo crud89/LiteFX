@@ -124,7 +124,7 @@ GraphicsAdapterType VulkanGraphicsAdapter::type() const noexcept
     return m_impl->m_type;
 }
 
-UInt32 VulkanGraphicsAdapter::driverVersion() const noexcept
+UInt64 VulkanGraphicsAdapter::driverVersion() const noexcept
 {
     return m_impl->m_driverVersion;
 }

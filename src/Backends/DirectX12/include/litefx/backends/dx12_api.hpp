@@ -253,15 +253,9 @@ namespace LiteFX::Rendering::Backends {
         GraphicsAdapterType type() const noexcept override;
 
         /// <inheritdoc />
-        /// <remarks>
-        /// This property is not supported by DirectX 12. The method always returns `0`.
-        /// </remarks>
-        UInt32 driverVersion() const noexcept override;
+        UInt64 driverVersion() const noexcept override;
 
         /// <inheritdoc />
-        /// <remarks>
-        /// This property is not supported by DirectX 12. The method always returns `0`.
-        /// </remarks>
         UInt32 apiVersion() const noexcept override;
 
         /// <inheritdoc />

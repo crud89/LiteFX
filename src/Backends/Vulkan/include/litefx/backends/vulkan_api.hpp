@@ -239,7 +239,7 @@ namespace LiteFX::Rendering::Backends {
         GraphicsAdapterType type() const noexcept override;
 
         /// <inheritdoc />
-        UInt32 driverVersion() const noexcept override;
+        UInt64 driverVersion() const noexcept override;
 
         /// <inheritdoc />
         UInt32 apiVersion() const noexcept override;

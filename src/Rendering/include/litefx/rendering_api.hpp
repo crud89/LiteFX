@@ -2420,8 +2420,12 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Returns the graphics driver version.
         /// </summary>
+        /// <remarks>
+        /// Note that this is a vendor and API specific identifier that can be used to compare against specific (known) versions. It is not recommended to parse
+        /// this into a front-facing version number for users, as it differs between backends. For this, use vendor-supplied APIs instead.
+        /// </remarks>
         /// <returns>The graphics driver version.</returns>
-        virtual UInt32 driverVersion() const noexcept = 0;
+        virtual UInt64 driverVersion() const noexcept = 0;
 
         /// <summary>
         /// Returns the graphics API version.
