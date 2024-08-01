@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<!-- LiteFX::Graphics::Vertex -->
+	<Type Name="LiteFX::Graphics::Vertex">
+		<DisplayString>Vertex {{ Position = { Position }, Color = { Color }, Normal = { Normal }, UV = { TextureCoordinate0 } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Position">Position</Item>
+			<Item Name="Color">Color</Item>
+			<Item Name="Normal">Normal</Item>
+			<Item Name="UV">TextureCoordinate0</Item>
+		</Expand>
+	</Type>
+</AutoVisualizer>

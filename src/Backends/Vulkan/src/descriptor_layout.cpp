@@ -19,7 +19,7 @@ private:
 
 public:
     VulkanDescriptorLayoutImpl(VulkanDescriptorLayout* parent, DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors) :
-        base(parent), m_descriptorType(type), m_binding(binding), m_elementSize(elementSize), m_descriptors(descriptors)
+        base(parent), m_descriptorType(type), m_binding(binding), m_elementSize(elementSize), m_descriptors(descriptors), m_inputAttachmentIndex(0)
     {
         switch (m_descriptorType)
         {

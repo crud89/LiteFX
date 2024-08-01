@@ -253,15 +253,9 @@ namespace LiteFX::Rendering::Backends {
         GraphicsAdapterType type() const noexcept override;
 
         /// <inheritdoc />
-        /// <remarks>
-        /// This property is not supported by DirectX 12. The method always returns `0`.
-        /// </remarks>
-        UInt32 driverVersion() const noexcept override;
+        UInt64 driverVersion() const noexcept override;
 
         /// <inheritdoc />
-        /// <remarks>
-        /// This property is not supported by DirectX 12. The method always returns `0`.
-        /// </remarks>
         UInt32 apiVersion() const noexcept override;
 
         /// <inheritdoc />
@@ -286,7 +280,7 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// An exception that is thrown, if a requested D3D12 operation could not be executed.
     /// </summary>
-    class DX12PlatformException : public RuntimeException {
+    class LITEFX_DIRECTX12_API DX12PlatformException : public RuntimeException {
     private:
         _com_error m_error;
         HRESULT m_code;

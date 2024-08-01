@@ -38,6 +38,8 @@ SET(VULKAN_MATH_SOURCES
 ADD_LIBRARY(${PROJECT_NAME}
     ${VULKAN_MATH_HEADERS}
     ${VULKAN_MATH_SOURCES}
+
+    ".natvis"
 )
 
 # Create source groups for better code organization.

@@ -239,7 +239,7 @@ namespace LiteFX::Rendering::Backends {
         GraphicsAdapterType type() const noexcept override;
 
         /// <inheritdoc />
-        UInt32 driverVersion() const noexcept override;
+        UInt64 driverVersion() const noexcept override;
 
         /// <inheritdoc />
         UInt32 apiVersion() const noexcept override;
@@ -331,7 +331,7 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// An exception that is thrown, if a requested Vulkan operation could not be executed.
     /// </summary>
-    class VulkanPlatformException : public RuntimeException {
+    class LITEFX_VULKAN_API VulkanPlatformException : public RuntimeException {
     private:
         VkResult m_code;
 

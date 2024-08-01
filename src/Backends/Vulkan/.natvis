@@ -1,0 +1,712 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<!-- Graphics Adapter -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanGraphicsAdapter">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanGraphicsAdapter {{ Name = { m_impl.m_ptr._Mypair._Myval2->m_name } (Device ID = { m_impl.m_ptr._Mypair._Myval2->m_deviceId }, LUID = { m_impl.m_ptr._Mypair._Myval2->m_luid }) }}</DisplayString>
+
+		<Expand>
+			<Item Name="Name">m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Synthetic Name="Memory">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_deviceLocalMemory / 1048576 } Mb</DisplayString>
+			</Synthetic>
+			<Item Name="Type">m_impl.m_ptr._Mypair._Myval2->m_type,en</Item>
+			<Item Name="Luid">m_impl.m_ptr._Mypair._Myval2->m_luid,nvoXb</Item>
+			<Synthetic Name="Vendor ID">
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x1002">AMD (0x{ m_impl.m_ptr._Mypair._Myval2->m_vendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x1010">ImgTec (0x{ m_impl.m_ptr._Mypair._Myval2->m_vendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x10DE">NVidia (0x{ m_impl.m_ptr._Mypair._Myval2->m_vendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x13B5">ARM (0x{ m_impl.m_ptr._Mypair._Myval2->m_vendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x5143">Qualcom (0x{ m_impl.m_ptr._Mypair._Myval2->m_vendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x8086">Intel (0x{ m_impl.m_ptr._Mypair._Myval2->m_vendorId,nvoXb })</DisplayString>
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x1002 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x1010 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x10DE &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x13B5 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x5143 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x8086">Other (0x{ m_impl.m_ptr._Mypair._Myval2->m_vendorId,nvoXb })</DisplayString>
+			</Synthetic>
+			<Item Name="Device ID">m_impl.m_ptr._Mypair._Myval2->m_deviceId</Item>
+			<Synthetic Name="Driver Version">
+				<!-- NVidia format -->
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x10DE">{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &gt;&gt; 22) &amp; 0x3FFF }.{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &gt;&gt; 14) &amp; 0x00FF }.{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &gt;&gt; 6) &amp; 0x00FF }.{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion) &amp; 0x003F } (0x{ m_impl.m_ptr._Mypair._Myval2->m_driverVersion,nvoXb })</DisplayString>
+				<!-- Intel format (NOTE: windows only, may print wrong version on other OS) -->
+				<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2->m_vendorId == 0x8086">{ m_impl.m_ptr._Mypair._Myval2->m_driverVersion &gt;&gt; 14 }.{ m_impl.m_ptr._Mypair._Myval2->m_driverVersion &amp; 0x3FFFF } (0x{ m_impl.m_ptr._Mypair._Myval2->m_driverVersion,nvoXb })</DisplayString>
+				<!-- Vulkan default format (AMD and others) -->
+				<DisplayString Condition="(m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x8086) &amp;&amp; (m_impl.m_ptr._Mypair._Myval2->m_vendorId != 0x1F96)">{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &amp; 0xFF000000) &gt;&gt; 24 }.{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &amp; 0x00FF0000) &gt;&gt; 16 }.{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &amp; 0x0000FF00) &gt;&gt; 8 }.{ (m_impl.m_ptr._Mypair._Myval2->m_driverVersion &amp; 0x000000FF) } (0x{ m_impl.m_ptr._Mypair._Myval2->m_driverVersion,nvoXb })</DisplayString>
+			</Synthetic>
+			<Synthetic Name="API Version">
+				<DisplayString>{ (m_impl.m_ptr._Mypair._Myval2->m_apiVersion &gt;&gt; 22) &amp; 0x007F }.{ (m_impl.m_ptr._Mypair._Myval2->m_apiVersion &gt;&gt; 12) &amp; 0x03FF }.{ m_impl.m_ptr._Mypair._Myval2->m_apiVersion &amp; 0x0FFF } (Variant { m_impl.m_ptr._Mypair._Myval2->m_apiVersion &gt;&gt; 29 }, 0x{ m_impl.m_ptr._Mypair._Myval2->m_apiVersion,nvoXb })</DisplayString>
+			</Synthetic>
+			<Item Name="Limits">m_impl.m_ptr._Mypair._Myval2->m_limits</Item>
+			<Item Name="Device Extensions">m_impl.m_ptr._Mypair._Myval2->m_deviceExtensions,view(simple)</Item>
+			<Item Name="Device Layers">m_impl.m_ptr._Mypair._Myval2->m_deviceLayers,view(simple)</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+	
+	<!-- Surface -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanSurface">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanSurface {{ hWnd = { m_impl.m_ptr._Mypair._Myval2->m_hwnd,handle } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Window">m_impl.m_ptr._Mypair._Myval2->m_hwnd,handle</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Vertex Buffer Layout -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanVertexBufferLayout">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanVertexBufferLayout {{ Binding = { m_impl.m_ptr._Mypair._Myval2->m_binding }, Size = { m_impl.m_ptr._Mypair._Myval2->m_vertexSize } ({ m_impl.m_ptr._Mypair._Myval2->m_attributes._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_attributes._Mypair._Myval2._Myfirst } Attributes) }}</DisplayString>
+
+		<Expand>
+			<Item Name="Binding">m_impl.m_ptr._Mypair._Myval2->m_binding</Item>
+			<Item Name="Buffer Type">m_impl.m_ptr._Mypair._Myval2->m_bufferType,en</Item>
+			<Item Name="Vertex Size">m_impl.m_ptr._Mypair._Myval2->m_vertexSize</Item>
+			<Item Name="Attributes">m_impl.m_ptr._Mypair._Myval2->m_attributes,view(simple)</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Index Buffer Layout -->
+	<!-- 
+	     TODO: For some reason this visualizer is unable to resolve some pImpl members in some circumstances due to this bug: https://developercommunity.visualstudio.com/t/Opaque-types-are-not-expandable-by-defau/513715.
+               To fix this we will have to provide different natvis files depending on the library type (static/shared).	
+	-->
+	<!--
+	<Type Name="LiteFX::Rendering::Backends::VulkanIndexBufferLayout">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanIndexBufferLayout {{ Binding = { ((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_binding }, Index Type = { ((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_indexType } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Binding">((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_binding</Item>
+			<Item Name="Buffer Type">((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_bufferType</Item>
+			<Item Name="Index Type">((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_indexType</Item>
+			<Synthetic Name="Element Size">
+				<DisplayString>{ ((LiteFX.Backends.Vulkand.dll!LiteFX::Rendering::Backends::VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl*)m_impl.m_ptr._Mypair._Myval2)->m_indexType &gt;&gt; 3 } Bytes</DisplayString>
+			</Synthetic>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+	-->
+	<Type Name="LiteFX::Rendering::Backends::VulkanIndexBufferLayout">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanIndexBufferLayout {{ Binding = { m_impl.m_ptr._Mypair._Myval2->m_binding }, Index Type = { m_impl.m_ptr._Mypair._Myval2->m_indexType,en } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Binding">m_impl.m_ptr._Mypair._Myval2->m_binding</Item>
+			<Item Name="Buffer Type">m_impl.m_ptr._Mypair._Myval2->m_bufferType,en</Item>
+			<Item Name="Index Type">m_impl.m_ptr._Mypair._Myval2->m_indexType,en</Item>
+			<Synthetic Name="Element Size">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_indexType &gt;&gt; 3 } Bytes</DisplayString>
+			</Synthetic>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+	
+	<!-- Input assembler -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanInputAssembler">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanInputAssembler {{ Topology = { m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology,en }, Index Type = { m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout._Mypair._Myval2->m_impl.m_ptr._Mypair._Myval2->m_indexType,en } ({ m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts) }}</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout._Mypair._Myval2 == 0">VulkanInputAssembler {{ Topology = { m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology,en }, Index Type = None ({ m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } Vertex Buffer Layouts) }}</DisplayString>
+
+		<Expand>
+			<Item Name="Primitive Topology">m_impl.m_ptr._Mypair._Myval2->m_primitiveTopology,en</Item>
+			<Item Name="Index Buffer Layout">m_impl.m_ptr._Mypair._Myval2->m_indexBufferLayout</Item>
+			<Synthetic Name="Vertex Buffer Layouts">
+				<DisplayString>{{ Elements = { m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List._Mypair._Myval2._Mysize } }}</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_vertexBufferLayouts._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Buffer -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanBuffer">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanBuffer {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, Type = { m_impl.m_ptr._Mypair._Myval2->m_type,en }, Total Size = { (m_impl.m_ptr._Mypair._Myval2->m_alignment == 0 ? m_impl.m_ptr._Mypair._Myval2->m_elementSize : (m_impl.m_ptr._Mypair._Myval2->m_elementSize + m_impl.m_ptr._Mypair._Myval2->m_alignment - 1) &amp; ~(m_impl.m_ptr._Mypair._Myval2->m_alignment - 1)) * m_impl.m_ptr._Mypair._Myval2->m_elements } Bytes ({ m_impl.m_ptr._Mypair._Myval2->m_elements } Elements), Usage = { m_impl.m_ptr._Mypair._Myval2->m_usage,en } }}</DisplayString>
+
+		<Expand>
+			<ExpandedItem>(LiteFX::Rendering::Backends::IVulkanBuffer*)this,nd</ExpandedItem>
+			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Item Name="Type">m_impl.m_ptr._Mypair._Myval2->m_type,en</Item>
+			<Item Name="Layout" Condition="m_impl.m_ptr._Mypair._Myval2->m_type == LiteFX::Rendering::BufferType::Vertex">((LiteFX::Rendering::Backends::VulkanVertexBuffer*)this)->m_impl.m_ptr._Mypair._Myval2->m_layout</Item>
+			<Item Name="Layout" Condition="m_impl.m_ptr._Mypair._Myval2->m_type == LiteFX::Rendering::BufferType::Index">((LiteFX::Rendering::Backends::VulkanIndexBuffer*)this)->m_impl.m_ptr._Mypair._Myval2->m_layout</Item>
+			<Item Name="Usage">m_impl.m_ptr._Mypair._Myval2->m_usage,en</Item>
+			<Item Name="Element Size">m_impl.m_ptr._Mypair._Myval2->m_elementSize</Item>
+			<Item Name="Elements">m_impl.m_ptr._Mypair._Myval2->m_elements</Item>
+			<Item Name="Alignment">m_impl.m_ptr._Mypair._Myval2->m_alignment</Item>
+			<Synthetic Name="Aligned Element Size">
+				<DisplayString>{ (m_impl.m_ptr._Mypair._Myval2->m_alignment == 0 ? m_impl.m_ptr._Mypair._Myval2->m_elementSize : (m_impl.m_ptr._Mypair._Myval2->m_elementSize + m_impl.m_ptr._Mypair._Myval2->m_alignment - 1) &amp; ~(m_impl.m_ptr._Mypair._Myval2->m_alignment - 1)) }</DisplayString>
+			</Synthetic>
+			<Synthetic Name="Total Size Size">
+				<DisplayString>{ (m_impl.m_ptr._Mypair._Myval2->m_alignment == 0 ? m_impl.m_ptr._Mypair._Myval2->m_elementSize : (m_impl.m_ptr._Mypair._Myval2->m_elementSize + m_impl.m_ptr._Mypair._Myval2->m_alignment - 1) &amp; ~(m_impl.m_ptr._Mypair._Myval2->m_alignment - 1)) * m_impl.m_ptr._Mypair._Myval2->m_elements }</DisplayString>
+			</Synthetic>
+			<Item Name="Allocator">m_impl.m_ptr._Mypair._Myval2->m_allocator</Item>
+			<Item Name="Allocation">m_impl.m_ptr._Mypair._Myval2->m_allocation</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkBuffer_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+	
+	<!-- Image -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanImage">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_dimensions == LiteFX::Rendering::ImageDimensions::DIM_1">VulkanImage {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_extent.m_elements[0] } Px, Format = { m_impl.m_ptr._Mypair._Myval2->m_format }, Elements = { m_impl.m_ptr._Mypair._Myval2->m_elements } (Layers: { m_impl.m_ptr._Mypair._Myval2->m_layers }, Levels: { m_impl.m_ptr._Mypair._Myval2->m_levels }, Planes: { m_impl.m_ptr._Mypair._Myval2->m_planes }), Usage = { m_impl.m_ptr._Mypair._Myval2->m_usage } }}</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_dimensions == LiteFX::Rendering::ImageDimensions::DIM_2">VulkanImage {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_extent.m_elements[0] }x{ m_impl.m_ptr._Mypair._Myval2->m_extent.m_elements[1] } Px, Format = { m_impl.m_ptr._Mypair._Myval2->m_format }, Elements = { m_impl.m_ptr._Mypair._Myval2->m_elements } (Layers: { m_impl.m_ptr._Mypair._Myval2->m_layers }, Levels: { m_impl.m_ptr._Mypair._Myval2->m_levels }, Planes: { m_impl.m_ptr._Mypair._Myval2->m_planes }), Usage = { m_impl.m_ptr._Mypair._Myval2->m_usage } }}</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_dimensions == LiteFX::Rendering::ImageDimensions::DIM_3">VulkanImage {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_extent.m_elements[0] }x{ m_impl.m_ptr._Mypair._Myval2->m_extent.m_elements[1] }x{ m_impl.m_ptr._Mypair._Myval2->m_extent.m_elements[2] } Px, Format = { m_impl.m_ptr._Mypair._Myval2->m_format }, Elements = { m_impl.m_ptr._Mypair._Myval2->m_elements } (Layers: { m_impl.m_ptr._Mypair._Myval2->m_layers }, Levels: { m_impl.m_ptr._Mypair._Myval2->m_levels }, Planes: { m_impl.m_ptr._Mypair._Myval2->m_planes }), Usage = { m_impl.m_ptr._Mypair._Myval2->m_usage } }}</DisplayString>
+
+		<Expand>
+			<ExpandedItem>(LiteFX::Rendering::Backends::IVulkanImage*)this,nd</ExpandedItem>
+			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Item Name="Format">m_impl.m_ptr._Mypair._Myval2->m_format</Item>
+			<Item Name="Samples">m_impl.m_ptr._Mypair._Myval2->m_samples</Item>
+			<Item Name="Dimensions">m_impl.m_ptr._Mypair._Myval2->m_dimensions</Item>
+			<Item Name="Extent">m_impl.m_ptr._Mypair._Myval2->m_extent,view(simple)</Item>
+			<Item Name="Layers">m_impl.m_ptr._Mypair._Myval2->m_layers</Item>
+			<Item Name="Levels">m_impl.m_ptr._Mypair._Myval2->m_levels</Item>
+			<Item Name="Planes">m_impl.m_ptr._Mypair._Myval2->m_planes</Item>
+			<Item Name="Usage">m_impl.m_ptr._Mypair._Myval2->m_usage</Item>
+			<Item Name="Allocator">m_impl.m_ptr._Mypair._Myval2->m_allocator</Item>
+			<Item Name="Allocation">m_impl.m_ptr._Mypair._Myval2->m_allocationInfo</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkImage_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Sampler -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanSampler">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanSampler {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, Filter = { m_impl.m_ptr._Mypair._Myval2->m_magFilter,en } | { m_impl.m_ptr._Mypair._Myval2->m_minFilter,en }, MipMapping = { m_impl.m_ptr._Mypair._Myval2->m_mipMapMode,en }, Anisotropy = { m_impl.m_ptr._Mypair._Myval2->m_anisotropy,g } }}</DisplayString>
+
+		<Expand>
+			<ExpandedItem>(LiteFX::Rendering::Backends::IVulkanSampler*)this,nd</ExpandedItem>
+			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Item Name="Mag Filter">m_impl.m_ptr._Mypair._Myval2->m_magFilter</Item>
+			<Item Name="Min Filter">m_impl.m_ptr._Mypair._Myval2->m_minFilter</Item>
+			<Item Name="MipMap Mode">m_impl.m_ptr._Mypair._Myval2->m_mipMapMode</Item>
+			<Item Name="MipMap Bias">m_impl.m_ptr._Mypair._Myval2->m_mipMapBias,g</Item>
+			<Item Name="Min LOD">m_impl.m_ptr._Mypair._Myval2->m_minLod,g</Item>
+			<Item Name="Max LOD">m_impl.m_ptr._Mypair._Myval2->m_maxLod,g</Item>
+			<Item Name="Anisotropy">m_impl.m_ptr._Mypair._Myval2->m_anisotropy,g</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkSampler_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+	
+	<!-- BLAS -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanBottomLevelAccelerationStructure">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanBottomLevelAccelerationStructure {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, empty, Size = { m_impl.m_ptr._Mypair._Myval2->m_size }, Flags = { m_impl.m_ptr._Mypair._Myval2->m_flags,en } }}</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Myfirst != m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Mylast">VulkanBottomLevelAccelerationStructure {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Myfirst } Triangle Meshes, Size = { m_impl.m_ptr._Mypair._Myval2->m_size }, Flags = { m_impl.m_ptr._Mypair._Myval2->m_flags,en } }}</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Myfirst == m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Mylast">VulkanBottomLevelAccelerationStructure {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Myfirst } Bounding Boxes, Size = { m_impl.m_ptr._Mypair._Myval2->m_size }, Flags = { m_impl.m_ptr._Mypair._Myval2->m_flags,en } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Synthetic Name="Triangle Meshes" Condition="m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Myfirst != m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Mylast">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes._Mypair._Myval2._Myfirst } Triangle Meshes</DisplayString>
+				
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_triangleMeshes,view(simple)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Bounding Boxes" Condition="m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Myfirst != m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Mylast">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes._Mypair._Myval2._Myfirst } Bounding Boxes</DisplayString>
+				
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_boundingBoxes,view(simple)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="Flags">m_impl.m_ptr._Mypair._Myval2->m_flags,en</Item>
+			<Synthetic Name="GPU Buffer">
+				<DisplayString>{{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_size } Bytes at offset { m_impl.m_ptr._Mypair._Myval2->m_offset,X } }}</DisplayString>
+
+				<Expand>
+					<Item Name="Buffer">m_impl.m_ptr._Mypair._Myval2->m_buffer</Item>
+					<Item Name="Offset">m_impl.m_ptr._Mypair._Myval2->m_offset,X</Item>
+					<Item Name="Size">m_impl.m_ptr._Mypair._Myval2->m_size</Item>
+				</Expand>
+			</Synthetic>
+			<Item Name="Query Pool">m_impl.m_ptr._Mypair._Myval2->m_queryPool</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkAccelerationStructureKHR_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- TLAS -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanTopLevelAccelerationStructure">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanTopLevelAccelerationStructure {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, empty, Size = { m_impl.m_ptr._Mypair._Myval2->m_size }, Flags = { m_impl.m_ptr._Mypair._Myval2->m_flags,en } }}</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Myfirst != m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Mylast">VulkanTopLevelAccelerationStructure {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Myfirst } Instances, Size = { m_impl.m_ptr._Mypair._Myval2->m_size }, Flags = { m_impl.m_ptr._Mypair._Myval2->m_flags,en } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Synthetic Name="Instances">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_instances._Mypair._Myval2._Myfirst } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_instances,view(simple)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="Flags">m_impl.m_ptr._Mypair._Myval2->m_flags,en</Item>
+			<Synthetic Name="GPU Buffer">
+				<DisplayString>{{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_size } Bytes at offset { m_impl.m_ptr._Mypair._Myval2->m_offset,X } }}</DisplayString>
+
+				<Expand>
+					<Item Name="Buffer">m_impl.m_ptr._Mypair._Myval2->m_buffer</Item>
+					<Item Name="Offset">m_impl.m_ptr._Mypair._Myval2->m_offset,X</Item>
+					<Item Name="Size">m_impl.m_ptr._Mypair._Myval2->m_size</Item>
+				</Expand>
+			</Synthetic>
+			<Item Name="Query Pool">m_impl.m_ptr._Mypair._Myval2->m_queryPool</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkAccelerationStructureKHR_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+	
+	<!-- Barrier -->
+	<Type Name="std::tuple&lt;*&gt;" IncludeView="GlobalBarrier">
+		<DisplayString>{{ { _Myfirst._Val,en } -> { ((_Mybase *)this)->_Myfirst._Val,en } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Access Before">_Myfirst._Val,en</Item>
+			<Item Name="Access After">((_Mybase *)this)->_Myfirst._Val,en</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="std::tuple&lt;*&gt;" IncludeView="BufferBarrier">
+		<DisplayString>{{ { _Myfirst._Val,en } -> { ((_Mybase *)this)->_Myfirst._Val,en } }}</DisplayString>
+		
+		<Expand>
+			<Item Name="Access Before">_Myfirst._Val,en</Item>
+			<Item Name="Access After">((_Mybase *)this)->_Myfirst._Val,en</Item>
+			<!--<Item Name="Buffer">dynamic_cast&lt;const LiteFX::Rendering::Backends::VulkanBuffer *&gt;(&amp;((_Mybase::_Mybase *)this)->_Myfirst._Val)</Item>-->
+			<Item Name="Buffer">((_Mybase::_Mybase *)this)->_Myfirst._Val</Item>
+			<Item Name="Element">((_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="std::tuple&lt;*&gt;" IncludeView="ImageBarrier">
+		<DisplayString>{{ { _Myfirst._Val,en } -> { ((_Mybase *)this)->_Myfirst._Val,en } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Access Before">_Myfirst._Val,en</Item>
+			<Item Name="Access After">((_Mybase *)this)->_Myfirst._Val,en</Item>
+			<Item Name="Buffer">((_Mybase::_Mybase *)this)->_Myfirst._Val</Item>
+			<Item Name="Source Before">((_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val</Item>
+			<Item Name="Target Before">((_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val</Item>
+			<Synthetic Name="Levels" Condition="((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val &gt; 1">
+				<DisplayString>{ ((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val }-{ ((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val + ((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val }</DisplayString>
+			</Synthetic>
+			<Synthetic Name="Level" Condition="((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val == 1">
+				<DisplayString>{ ((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val }</DisplayString>
+			</Synthetic>
+			<Synthetic Name="Layers" Condition="((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val &gt; 1">
+				<DisplayString>{ ((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val }-{ ((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val + ((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val }</DisplayString>
+			</Synthetic>
+			<Synthetic Name="Layer" Condition="((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val == 1">
+				<DisplayString>{ ((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val }</DisplayString>
+			</Synthetic>
+			<Item Name="Plane">((_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase::_Mybase *)this)->_Myfirst._Val</Item>
+		</Expand>
+	</Type>
+
+	<Type Name="LiteFX::Rendering::Backends::VulkanBarrier">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanBarrier {{ Sync Before = { m_impl.m_ptr._Mypair._Myval2->m_syncBefore,en }, Sync After = { m_impl.m_ptr._Mypair._Myval2->m_syncAfter,en } ({ m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Myfirst } Global Barriers, { m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Myfirst } Buffer Barriers, { m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Myfirst } Image Barriers) }}</DisplayString>
+
+		<Expand>
+			<Item Name="Sync Before">m_impl.m_ptr._Mypair._Myval2->m_syncBefore,en</Item>
+			<Item Name="Sync After">m_impl.m_ptr._Mypair._Myval2->m_syncAfter,en</Item>
+			<Synthetic Name="Global Barriers">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Myfirst } Elements</DisplayString>
+
+				<Expand>
+					<IndexListItems>
+						<Size>m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Myfirst</Size>
+						<ValueNode>m_impl.m_ptr._Mypair._Myval2->m_globalBarriers._Mypair._Myval2._Myfirst,view(GlobalBarrier)</ValueNode>
+					</IndexListItems>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Buffer Barriers">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Myfirst } Elements</DisplayString>
+
+				<Expand>
+					<IndexListItems>
+						<Size>m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Myfirst</Size>
+						<ValueNode>m_impl.m_ptr._Mypair._Myval2->m_bufferBarriers._Mypair._Myval2._Myfirst,view(BufferBarrier)</ValueNode>
+					</IndexListItems>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Image Barriers">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Myfirst } Elements</DisplayString>
+
+				<Expand>
+					<IndexListItems>
+						<Size>m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Myfirst</Size>
+						<ValueNode>m_impl.m_ptr._Mypair._Myval2->m_imageBarriers._Mypair._Myval2._Myfirst,view(ImageBarrier)</ValueNode>
+					</IndexListItems>
+				</Expand>
+			</Synthetic>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Shader Module -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanShaderModule">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanShaderModule {{ Type = { m_impl.m_ptr._Mypair._Myval2->m_type,en }, File Name = { m_impl.m_ptr._Mypair._Myval2->m_fileName }, Entry Point = { m_impl.m_ptr._Mypair._Myval2->m_entryPoint } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Type">m_impl.m_ptr._Mypair._Myval2->m_type,en</Item>
+			<Item Name="File Name">m_impl.m_ptr._Mypair._Myval2->m_fileName</Item>
+			<Item Name="Entry Point">m_impl.m_ptr._Mypair._Myval2->m_entryPoint</Item>
+			<Item Name="Shader Local Descriptor">m_impl.m_ptr._Mypair._Myval2->m_shaderLocalDescriptor</Item>
+			<Item Name="Bytecode">m_impl.m_ptr._Mypair._Myval2->m_bytecode,sb</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkShaderModule_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Shader Program -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanShaderProgram">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanShaderProgram {{ Modules = { m_impl.m_ptr._Mypair._Myval2->m_modules._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_modules._Mypair._Myval2._Myfirst } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Modules">m_impl.m_ptr._Mypair._Myval2->m_modules,view(simple)</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Descriptor Set -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanDescriptorSet">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanDescriptorSet {{ Buffer Views = { m_impl.m_ptr._Mypair._Myval2->m_bufferViews._List._Mypair._Myval2._Mysize }, Image Views = { m_impl.m_ptr._Mypair._Myval2->m_imageViews._List._Mypair._Myval2._Mysize } }}</DisplayString>
+
+		<Expand>
+			<Synthetic Name="Buffer Views">
+				<DisplayString>{{ Elements = { m_impl.m_ptr._Mypair._Myval2->m_bufferViews._List._Mypair._Myval2._Mysize } }}</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_bufferViews._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Image Views">
+				<DisplayString>{{ Elements = { m_impl.m_ptr._Mypair._Myval2->m_imageViews._List._Mypair._Myval2._Mysize } }}</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_imageViews._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="Layout">m_impl.m_ptr._Mypair._Myval2->m_layout</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkDescriptorSet_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Descriptor Layout -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanDescriptorLayout">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanDescriptorLayout {{ Type = { m_impl.m_ptr._Mypair._Myval2->m_descriptorType,en }, Binding = { m_impl.m_ptr._Mypair._Myval2->m_binding }, Descriptors = { m_impl.m_ptr._Mypair._Myval2->m_descriptors } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Type">m_impl.m_ptr._Mypair._Myval2->m_descriptorType,en</Item>
+			<Item Name="Binding">m_impl.m_ptr._Mypair._Myval2->m_binding</Item>
+			<Item Name="Descriptors">m_impl.m_ptr._Mypair._Myval2->m_descriptors</Item>
+			<Item Name="Buffer Type">m_impl.m_ptr._Mypair._Myval2->m_bufferType,en</Item>
+			<Item Name="Element Size">m_impl.m_ptr._Mypair._Myval2->m_elementSize</Item>
+			<Item Name="Static Sampler">m_impl.m_ptr._Mypair._Myval2->m_staticSampler</Item>
+			<Item Name="Input Attachment">m_impl.m_ptr._Mypair._Myval2->m_inputAttachmentIndex</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Descriptor Set Layout -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanDescriptorSetLayout">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanDescriptorSetLayout {{ Space = { m_impl.m_ptr._Mypair._Myval2->m_space }, Descriptors = { m_impl.m_ptr._Mypair._Myval2->m_descriptorLayouts._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_descriptorLayouts._Mypair._Myval2._Myfirst }, Stages = { m_impl.m_ptr._Mypair._Myval2->m_stages,en } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Descriptor Layouts">m_impl.m_ptr._Mypair._Myval2->m_descriptorLayouts,view(simple)</Item>
+			<Item Name="Space">m_impl.m_ptr._Mypair._Myval2->m_space</Item>
+			<Item Name="Stages">m_impl.m_ptr._Mypair._Myval2->m_stages,en</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="Descriptor Indexing">m_impl.m_ptr._Mypair._Myval2->m_usesDescriptorIndexing</Item>
+			<Item Name="Pool Sizes">m_impl.m_ptr._Mypair._Myval2->m_poolSizes,view(simple)</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkDescriptorSetLayout_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+	
+	<!-- Push Constants Range -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanPushConstantsRange">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanPushConstantsRange {{ Stage = { m_impl.m_ptr._Mypair._Myval2->m_stage,en }, Binding = { m_impl.m_ptr._Mypair._Myval2->m_binding }, Space = { m_impl.m_ptr._Mypair._Myval2->m_space } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Stage">m_impl.m_ptr._Mypair._Myval2->m_stage,en</Item>
+			<Item Name="Space">m_impl.m_ptr._Mypair._Myval2->m_space</Item>
+			<Item Name="Binding">m_impl.m_ptr._Mypair._Myval2->m_binding</Item>
+			<Item Name="Size">m_impl.m_ptr._Mypair._Myval2->m_size</Item>
+			<Item Name="Offset">m_impl.m_ptr._Mypair._Myval2->m_offset,X</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Push Constants Layout -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanPushConstantsLayout">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanPushConstantsLayout {{ Ranges = { m_impl.m_ptr._Mypair._Myval2->m_ranges._List._Mypair._Myval2._Mysize }, Size = { m_impl.m_ptr._Mypair._Myval2->m_size } Bytes }}</DisplayString>
+
+		<Expand>
+			<Item Name="Size">m_impl.m_ptr._Mypair._Myval2->m_size</Item>
+			<Synthetic Name="Ranges">
+				<DisplayString>{{ Elements = { m_impl.m_ptr._Mypair._Myval2->m_ranges._List._Mypair._Myval2._Mysize } }}</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_ranges._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="Pipeline Layout">m_impl.m_ptr._Mypair._Myval2->m_pipelineLayout</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Pipeline Layout -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanPipelineLayout">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; (m_impl.m_ptr._Mypair._Myval2->m_pushConstantsLayout._Mypair._Myval2 == nullptr || m_impl.m_ptr._Mypair._Myval2->m_pushConstantsLayout._Mypair._Myval2->m_impl.m_ptr._Mypair._Myval2->m_ranges._List._Mypair._Myval2._Mysize == 0)">VulkanPipelineLayout {{ { m_impl.m_ptr._Mypair._Myval2->m_descriptorSetLayouts._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_descriptorSetLayouts._Mypair._Myval2._Myfirst } Descriptor Sets }}</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0 &amp;&amp; m_impl.m_ptr._Mypair._Myval2->m_pushConstantsLayout._Mypair._Myval2 != nullptr">VulkanPipelineLayout {{ { m_impl.m_ptr._Mypair._Myval2->m_descriptorSetLayouts._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_descriptorSetLayouts._Mypair._Myval2._Myfirst } Descriptor Sets + Push Constants }}</DisplayString>
+
+		<Expand>
+			<Item Name="Descriptor Set Layouts">m_impl.m_ptr._Mypair._Myval2->m_descriptorSetLayouts,view(simple)</Item>
+			<Item Name="Push Constant Layout">m_impl.m_ptr._Mypair._Myval2->m_pushConstantsLayout</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkPipelineLayout_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+	
+	<!-- Render Pipeline -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanRenderPipeline">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanRenderPipeline {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Item Name="Layout">m_impl.m_ptr._Mypair._Myval2->m_layout</Item>
+			<Item Name="Shader Program">m_impl.m_ptr._Mypair._Myval2->m_program</Item>
+			<Item Name="Input Assembler State">m_impl.m_ptr._Mypair._Myval2->m_inputAssembler</Item>
+			<Item Name="Rasterizer State">m_impl.m_ptr._Mypair._Myval2->m_rasterizer</Item>
+			<Item Name="Render Pass">m_impl.m_ptr._Mypair._Myval2->m_renderPass</Item>
+			<Synthetic Name="Input Attachment Bindings">
+				<DisplayString>{{ Elements = { m_impl.m_ptr._Mypair._Myval2->m_inputAttachmentBindings._List._Mypair._Myval2._Mysize } }}</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_inputAttachmentBindings._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="Input Attachment Sampler State">m_impl.m_ptr._Mypair._Myval2->m_inputAttachmentSampler</Item>
+			<Item Name="Alpha To Coverage">m_impl.m_ptr._Mypair._Myval2->m_alphaToCoverage</Item>
+			<Item Name="Samples">m_impl.m_ptr._Mypair._Myval2->m_samples,en</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_renderPass.m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkPipeline_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Compute Pipeline -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanComputePipeline">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanComputePipeline {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Item Name="Layout">m_impl.m_ptr._Mypair._Myval2->m_layout</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkPipeline_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Ray Tracing Pipeline -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanRayTracingPipeline">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanRayTracingPipeline {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Item Name="Layout">m_impl.m_ptr._Mypair._Myval2->m_layout</Item>
+			<Item Name="Shader Records">m_impl.m_ptr._Mypair._Myval2->m_shaderRecordCollection</Item>
+			<Item Name="Maximum Recursion Depth">m_impl.m_ptr._Mypair._Myval2->m_maxRecursionDepth</Item>
+			<Item Name="Maximum Payload Size">m_impl.m_ptr._Mypair._Myval2->m_maxPayloadSize</Item>
+			<Item Name="Maximum Attribute Size">m_impl.m_ptr._Mypair._Myval2->m_maxAttributeSize</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkPipeline_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Command Buffer -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanCommandBuffer">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanCommandBuffer {{ Recording = { m_impl.m_ptr._Mypair._Myval2->m_recording }, Secondary = { m_impl.m_ptr._Mypair._Myval2->m_secondary } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Queue">m_impl.m_ptr._Mypair._Myval2->m_queue</Item>
+			<Item Name="Recording">m_impl.m_ptr._Mypair._Myval2->m_recording</Item>
+			<Item Name="Secondary">m_impl.m_ptr._Mypair._Myval2->m_secondary</Item>
+			<Item Name="Shared Resources">m_impl.m_ptr._Mypair._Myval2->m_sharedResources,view(simple)</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_queue.m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkCommandBuffer_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Command Queue -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanQueue">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanQueue {{ Type = { m_impl.m_ptr._Mypair._Myval2->m_type,en }, Priority = { m_impl.m_ptr._Mypair._Myval2->m_priority,en } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Type">m_impl.m_ptr._Mypair._Myval2->m_type,en</Item>
+			<Item Name="Priority">m_impl.m_ptr._Mypair._Myval2->m_priority,en</Item>
+			<Item Name="Family ID">m_impl.m_ptr._Mypair._Myval2->m_familyId</Item>
+			<Item Name="Queue ID">m_impl.m_ptr._Mypair._Myval2->m_queueId</Item>
+			<Item Name="Last Fence">m_impl.m_ptr._Mypair._Myval2->m_fenceValue</Item>
+			<Item Name="Submitted Command Buffers">m_impl.m_ptr._Mypair._Myval2->m_submittedCommandBuffers,view(simple)</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[Resource]">(LiteFX::Resource&lt;VkQueue_T *&gt;*)this</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Frame Buffer -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanFrameBuffer">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanFrameBuffer {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_images._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_images._Mypair._Myval2._Myfirst } Render Targets, Size = { m_impl.m_ptr._Mypair._Myval2->m_size,view(simple) } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Item Name="Images">m_impl.m_ptr._Mypair._Myval2->m_images,view(simple)</Item>
+			<Synthetic Name="Mapped Render Targets">
+				<DisplayString>{{ { m_impl.m_ptr._Mypair._Myval2->m_mappedRenderTargets._List._Mypair._Myval2._Mysize } Render Targets }}</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_mappedRenderTargets._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="Size">m_impl.m_ptr._Mypair._Myval2->m_size,view(simple)</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+	
+	<!-- Render Pass -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanRenderPass">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanRenderPass {{ Name = { ((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name }, { m_impl.m_ptr._Mypair._Myval2->m_renderTargets._Mypair._Myval2._Mylast - m_impl.m_ptr._Mypair._Myval2->m_renderTargets._Mypair._Myval2._Myfirst } Render Targets }}</DisplayString>
+
+		<Expand>
+			<Item Name="Name">((LiteFX::Rendering::StateResource*)this)->m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Item Name="Render Targets">m_impl.m_ptr._Mypair._Myval2->m_renderTargets,view(simple)</Item>
+			<Item Name="Input Attachments">m_impl.m_ptr._Mypair._Myval2->m_inputAttachments,view(simple)</Item>
+			<Item Name="Input Attachments Sampler Binding">m_impl.m_ptr._Mypair._Myval2->m_inputAttachmentSamplerBinding</Item>
+			<Item Name="Active Frame Buffer">m_impl.m_ptr._Mypair._Myval2->m_activeFrameBuffer</Item>
+			<Item Name="Present Target">m_impl.m_ptr._Mypair._Myval2->m_presentTarget</Item>
+			<Item Name="Depth/Stencil Target">m_impl.m_ptr._Mypair._Myval2->m_depthStencilTarget</Item>
+			<Item Name="Primary Command Buffers">m_impl.m_ptr._Mypair._Myval2->m_primaryCommandBuffers,view(simple)</Item>
+			<Item Name="Secondary Command Buffers">m_impl.m_ptr._Mypair._Myval2->m_secondaryCommandBuffers,view(simple)</Item>
+			<Item Name="Swap Chain">m_impl.m_ptr._Mypair._Myval2->m_swapChain</Item>
+			<Item Name="Command Queue">m_impl.m_ptr._Mypair._Myval2->m_queue</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Swap Chain -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanSwapChain">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanSwapChain {{ Back Buffers = { m_impl.m_ptr._Mypair._Myval2->m_buffers }, Format = { m_impl.m_ptr._Mypair._Myval2->m_format,en }, Render Area = { m_impl.m_ptr._Mypair._Myval2->m_renderArea,view(simple) } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Back Buffers">m_impl.m_ptr._Mypair._Myval2->m_buffers</Item>
+			<Item Name="Images">m_impl.m_ptr._Mypair._Myval2->m_presentImages,view(simple)</Item>
+			<Item Name="Format">m_impl.m_ptr._Mypair._Myval2->m_format,en</Item>
+			<Item Name="Render Area">m_impl.m_ptr._Mypair._Myval2->m_renderArea,view(simple)</Item>
+			<Item Name="Vertical Sync">m_impl.m_ptr._Mypair._Myval2->m_vsync</Item>
+			<Item Name="Current Image">m_impl.m_ptr._Mypair._Myval2->m_currentImage</Item>
+			<Item Name="Supports Timing">m_impl.m_ptr._Mypair._Myval2->m_supportsTiming</Item>
+			<Item Name="Timing Events">m_impl.m_ptr._Mypair._Myval2->m_timingEvents,view(simple)</Item>
+			<Item Name="Timestamps">m_impl.m_ptr._Mypair._Myval2->m_timestamps,view(simple)</Item>
+			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+	
+	<!-- Graphics Factory -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanGraphicsFactory">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanGraphicsFactory {{ }}</DisplayString>
+
+		<Expand>
+			<Item Name="Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
+			<Item Name="Allocator">m_impl.m_ptr._Mypair._Myval2->m_allocator</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Device -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanDevice">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanDevice {{ Adapter = { m_impl.m_ptr._Mypair._Myval2->m_adapter.m_impl.m_ptr._Mypair._Myval2->m_name }, Surface = { m_impl.m_ptr._Mypair._Myval2->m_surface._Mypair._Myval2->m_impl.m_ptr._Mypair._Myval2->m_hwnd,handle } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Device State">m_impl.m_ptr._Mypair._Myval2->m_deviceState</Item>
+			<Item Name="Swap Chain">m_impl.m_ptr._Mypair._Myval2->m_swapChain</Item>
+			<Item Name="Adapter">m_impl.m_ptr._Mypair._Myval2->m_adapter</Item>
+			<Item Name="Surface">m_impl.m_ptr._Mypair._Myval2->m_surface</Item>
+			<Synthetic Name="Default Queues">
+				<DisplayString>3 Elements</DisplayString>
+				
+				<Expand>
+					<Item Name="Graphics Queue">m_impl.m_ptr._Mypair._Myval2->m_graphicsQueue</Item>
+					<Item Name="Transfer Queue">m_impl.m_ptr._Mypair._Myval2->m_transferQueue</Item>
+					<Item Name="Compute Queue">m_impl.m_ptr._Mypair._Myval2->m_computeQueue</Item>
+				</Expand>
+			</Synthetic>
+			<Item Name="Extensions">m_impl.m_ptr._Mypair._Myval2->m_extensions,view(simple)</Item>
+			<Item Name="Factory">m_impl.m_ptr._Mypair._Myval2->m_factory</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+	
+	<!-- Backend -->
+	<Type Name="LiteFX::Rendering::Backends::VulkanBackend">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">VulkanBackend {{ { m_impl.m_ptr._Mypair._Myval2->m_devices._List._Mypair._Myval2._Mysize } Devices, { m_impl.m_ptr._Mypair._Myval2->m_adapters._Mypair._Myval2._Mylast -  m_impl.m_ptr._Mypair._Myval2->m_adapters._Mypair._Myval2._Myfirst } Adapters }}</DisplayString>
+
+		<Expand>
+			<Synthetic Name="Devices">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_devices._List._Mypair._Myval2._Mysize } Elements</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_devices._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="Adapters">m_impl.m_ptr._Mypair._Myval2->m_adapters,view(simple)</Item>
+			<Item Name="App">m_impl.m_ptr._Mypair._Myval2->m_app</Item>
+			<Item Name="Extensions">m_impl.m_ptr._Mypair._Myval2->m_extensions,view(simple)</Item>
+			<Item Name="Layers">m_impl.m_ptr._Mypair._Myval2->m_layers,view(simple)</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+</AutoVisualizer>

@@ -994,27 +994,19 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="RenderPipeline" />.</typeparam>
     /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="CommandQueue" />.</typeparam>
     /// <typeparam name="TFrameBuffer">The type of the frame buffer. Must implement <see cref="FrameBuffer" />.</typeparam>
-    template <typename TRenderPipeline, typename TCommandQueue, typename TFrameBuffer> requires
+    template <typename TCommandQueue, typename TFrameBuffer> requires
         meta::implements<TCommandQueue, CommandQueue<typename TCommandQueue::command_buffer_type>> &&
-        meta::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::image_type>> &&
-        meta::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>>
+        meta::implements<TFrameBuffer, FrameBuffer<typename TFrameBuffer::image_type>>
     class RenderPass : public virtual StateResource, public IRenderPass {
     public:
         using command_queue_type = TCommandQueue;
         using command_buffer_type = TCommandQueue::command_buffer_type;
         using frame_buffer_type = TFrameBuffer;
-        using render_pipeline_type = TRenderPipeline;
-        using pipeline_layout_type = render_pipeline_type::pipeline_layout_type;
-        using descriptor_set_layout_type = pipeline_layout_type::descriptor_set_layout_type;
-        using descriptor_set_type = descriptor_set_layout_type::descriptor_set_type;
 
     public:
         virtual ~RenderPass() noexcept = default;
 
     public:
-        /// <inheritdoc />
-        virtual Enumerable<const render_pipeline_type*> pipelines() const noexcept = 0;
-
         /// <inheritdoc />
         virtual Enumerable<SharedPtr<const command_buffer_type>> commandBuffers() const noexcept = 0;
 
@@ -1025,10 +1017,6 @@ namespace LiteFX::Rendering {
         virtual void begin(const frame_buffer_type& frameBuffer) const = 0;
 
     private:
-        inline Enumerable<const IRenderPipeline*> getPipelines() const noexcept override {
-            return this->pipelines();
-        }
-
         inline SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept override {
             return this->commandBuffer(index);
         }
@@ -1234,16 +1222,18 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TSwapChain">The type of the swap chain. Must implement <see cref="SwapChain" />.</typeparam>
     /// <typeparam name="TCommandQueue">The type of the command queue. Must implement <see cref="CommandQueue" />.</typeparam>
     /// <typeparam name="TRenderPass">The type of the render pass. Must implement <see cref="RenderPass" />.</typeparam>
+    /// <typeparam name="TRenderPipeline">The type of the render pipeline. Must implement <see cref="RenderPipeline" />.</typeparam>
     /// <typeparam name="TComputePipeline">The type of the compute pipeline. Must implement <see cref="ComputePipeline" />.</typeparam>
     /// <typeparam name="TRayTracingPipeline">The type of the ray-tracing pipeline. Must implement <see cref="RayTracingPipeline" />.</typeparam>
     /// <typeparam name="TBarrier">The type of the memory barrier. Must implement <see cref="Barrier" />.</typeparam>
-    template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TComputePipeline, typename TRayTracingPipeline, typename TBarrier> requires
+    template <typename TFactory, typename TSurface, typename TGraphicsAdapter, typename TSwapChain, typename TCommandQueue, typename TRenderPass, typename TRenderPipeline, typename TComputePipeline, typename TRayTracingPipeline, typename TBarrier> requires
         meta::implements<TSurface, ISurface> &&
         meta::implements<TGraphicsAdapter, IGraphicsAdapter> &&
         meta::implements<TSwapChain, SwapChain<typename TFactory::image_type>> &&
         meta::implements<TCommandQueue, CommandQueue<typename TCommandQueue::command_buffer_type>> &&
         meta::implements<TFactory, GraphicsFactory<typename TFactory::descriptor_layout_type, typename TFactory::buffer_type, typename TFactory::vertex_buffer_type, typename TFactory::index_buffer_type, typename TFactory::image_type, typename TFactory::sampler_type, typename TFactory::bottom_level_acceleration_structure_type, typename TFactory::top_level_acceleration_structure_type>> &&
-        meta::implements<TRenderPass, RenderPass<typename TRenderPass::render_pipeline_type, TCommandQueue, typename TRenderPass::frame_buffer_type>> &&
+        meta::implements<TRenderPass, RenderPass<TCommandQueue, typename TRenderPass::frame_buffer_type>> &&
+        meta::implements<TRenderPipeline, RenderPipeline<typename TRenderPipeline::pipeline_layout_type, typename TRenderPipeline::shader_program_type, typename TRenderPipeline::input_assembler_type, typename TRenderPipeline::rasterizer_type>> &&
         meta::implements<TComputePipeline, ComputePipeline<typename TComputePipeline::pipeline_layout_type, typename TComputePipeline::shader_program_type>> &&
         meta::implements<TRayTracingPipeline, RayTracingPipeline<typename TRayTracingPipeline::pipeline_layout_type, typename TRayTracingPipeline::shader_program_type>> &&
         meta::implements<TBarrier, Barrier<typename TFactory::buffer_type, typename TFactory::image_type>>
@@ -1266,7 +1256,7 @@ namespace LiteFX::Rendering {
         using top_level_acceleration_structure_type = factory_type::top_level_acceleration_structure_type;
         using render_pass_type = TRenderPass;
         using frame_buffer_type = render_pass_type::frame_buffer_type;
-        using render_pipeline_type = render_pass_type::render_pipeline_type;
+        using render_pipeline_type = TRenderPipeline;
         using compute_pipeline_type = TComputePipeline;
         using ray_tracing_pipeline_type = TRayTracingPipeline;
         using pipeline_layout_type = render_pipeline_type::pipeline_layout_type;
@@ -1451,7 +1441,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <typeparam name="TGraphicsDevice">The type of the graphics device. Must implement <see cref="GraphicsDevice" />.</typeparam>
     template <typename TGraphicsDevice> requires
-        meta::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::compute_pipeline_type, typename TGraphicsDevice::ray_tracing_pipeline_type, typename TGraphicsDevice::barrier_type>>
+        meta::implements<TGraphicsDevice, GraphicsDevice<typename TGraphicsDevice::factory_type, typename TGraphicsDevice::surface_type, typename TGraphicsDevice::adapter_type, typename TGraphicsDevice::swap_chain_type, typename TGraphicsDevice::command_queue_type, typename TGraphicsDevice::render_pass_type, typename TGraphicsDevice::render_pipeline_type, typename TGraphicsDevice::compute_pipeline_type, typename TGraphicsDevice::ray_tracing_pipeline_type, typename TGraphicsDevice::barrier_type>>
     class RenderBackend : public IRenderBackend {
     public:
         using device_type = TGraphicsDevice;

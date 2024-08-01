@@ -25,12 +25,14 @@ SET(CORE_SOURCES
     "src/core.cpp"
 )
 
-ADD_LIBRARY(${PROJECT_NAME}
+ADD_LIBRARY(${PROJECT_NAME} STATIC
     ${CORE_HEADERS}
     ${CORE_SOURCES}
     "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/config.h"
     "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/version.h"
     "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/core.h"
+
+    ".natvis"
 )
 
 # Create source groups for better code organization.

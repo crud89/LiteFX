@@ -78,12 +78,12 @@ namespace LiteFX::Rendering {
         None = 0x00000000,
         
         /// <summary>
-        /// The adapter is a dedicated GPU adapter.
+        /// The adapter is a dedicated GPU or integrated CPU adapter.
         /// </summary>
         GPU = 0x00000001,
 
         /// <summary>
-        /// The adapter is an integrated CPU.
+        /// The adapter is a software driver.
         /// </summary>
         CPU = 0x00000002,
 
@@ -2420,8 +2420,12 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Returns the graphics driver version.
         /// </summary>
+        /// <remarks>
+        /// Note that this is a vendor and API specific identifier that can be used to compare against specific (known) versions. It is not recommended to parse
+        /// this into a front-facing version number for users, as it differs between backends. For this, use vendor-supplied APIs instead.
+        /// </remarks>
         /// <returns>The graphics driver version.</returns>
-        virtual UInt32 driverVersion() const noexcept = 0;
+        virtual UInt64 driverVersion() const noexcept = 0;
 
         /// <summary>
         /// Returns the graphics API version.
@@ -7445,15 +7449,6 @@ namespace LiteFX::Rendering {
         virtual const ICommandQueue& commandQueue() const noexcept = 0;
 
         /// <summary>
-        /// Returns an array of all render pipelines, owned by the render pass.
-        /// </summary>
-        /// <returns>An array of all render pipelines, owned by the render pass.</returns>
-        /// <seealso cref="IRenderPipeline" />
-        inline Enumerable<const IRenderPipeline*> pipelines() const noexcept {
-            return this->getPipelines();
-        }
-
-        /// <summary>
         /// Returns all command buffers, that can be currently used for recording multi-threaded commands in the render pass.
         /// </summary>
         /// <returns>
@@ -7550,7 +7545,6 @@ namespace LiteFX::Rendering {
         virtual void beginRenderPass(const IFrameBuffer& frameBuffer) const = 0;
         virtual SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept = 0;
         virtual Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept = 0;
-        virtual Enumerable<const IRenderPipeline*> getPipelines() const noexcept = 0;
     };
 
     /// <summary>

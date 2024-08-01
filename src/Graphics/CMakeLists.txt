@@ -22,6 +22,8 @@ SET(GRAPHICS_SOURCES
 ADD_LIBRARY(${PROJECT_NAME}
     ${GRAPHICS_HEADERS}
     ${GRAPHICS_SOURCES}
+
+    ".natvis"
 )
 
 # Create source groups for better code organization.

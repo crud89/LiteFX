@@ -13,7 +13,6 @@ public:
     friend class VulkanRenderPass;
 
 private:
-    Array<UniquePtr<VulkanRenderPipeline>> m_pipelines;
     Array<RenderTarget> m_renderTargets;
     Array<RenderPassDependency> m_inputAttachments;
     Dictionary<const IFrameBuffer*, size_t> m_frameBufferTokens;
@@ -299,11 +298,6 @@ const VulkanFrameBuffer& VulkanRenderPass::activeFrameBuffer() const
 const VulkanQueue& VulkanRenderPass::commandQueue() const noexcept
 {
     return *m_impl->m_queue;
-}
-
-Enumerable<const VulkanRenderPipeline*> VulkanRenderPass::pipelines() const noexcept
-{
-    return m_impl->m_pipelines | std::views::transform([](const UniquePtr<VulkanRenderPipeline>& pipeline) { return pipeline.get(); });
 }
 
 SharedPtr<const VulkanCommandBuffer> VulkanRenderPass::commandBuffer(UInt32 index) const

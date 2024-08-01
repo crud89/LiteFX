@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<!-- Buffer attribute -->
+	<Type Name="LiteFX::Rendering::BufferAttribute">
+		<DisplayString>BufferAttribute {{ Location = { m_impl.m_ptr._Mypair._Myval2->m_location }, Offset = { m_impl.m_ptr._Mypair._Myval2->m_offset }, Format = { m_impl.m_ptr._Mypair._Myval2->m_format,en } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Location">m_impl.m_ptr._Mypair._Myval2->m_location</Item>
+			<Item Name="Offset">m_impl.m_ptr._Mypair._Myval2->m_offset</Item>
+			<Item Name="Format">m_impl.m_ptr._Mypair._Myval2->m_format,en</Item>
+			<Item Name="Semantic">m_impl.m_ptr._Mypair._Myval2->m_semantic,en</Item>
+			<Item Name="Semantic Index">m_impl.m_ptr._Mypair._Myval2->m_semanticIndex</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Rasterizer -->
+	<Type Name="LiteFX::Rendering::Rasterizer" Inheritable="true">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">Rasterizer {{ Polygon Mode = { m_impl.m_ptr._Mypair._Myval2->m_polygonMode,en }, Cull Mode = { m_impl.m_ptr._Mypair._Myval2->m_cullMode,en }, Cull Order = { m_impl.m_ptr._Mypair._Myval2->m_cullOrder,en } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Polygon Mode">m_impl.m_ptr._Mypair._Myval2->m_polygonMode,en</Item>
+			<Item Name="Cull Mode">m_impl.m_ptr._Mypair._Myval2->m_cullMode,en</Item>
+			<Item Name="Cull Order">m_impl.m_ptr._Mypair._Myval2->m_cullOrder,en</Item>
+			<Item Name="Depth/Stencil State">m_impl.m_ptr._Mypair._Myval2->m_depthStencilState</Item>
+			<Item Name="Line Width">m_impl.m_ptr._Mypair._Myval2->m_lineWidth</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Depth/Stencil State -->
+	<Type Name="LiteFX::Rendering::DepthStencilState" Inheritable="true">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">DepthStencilState {{ Depth Test = { m_impl.m_ptr._Mypair._Myval2->m_depthState.Enable }, Stencil Test = { m_impl.m_ptr._Mypair._Myval2->m_stencilState.Enable }, Depth Bias = { m_impl.m_ptr._Mypair._Myval2->m_depthBias.Enable } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Depth State">m_impl.m_ptr._Mypair._Myval2->m_depthState</Item>
+			<Item Name="Depth Bias">m_impl.m_ptr._Mypair._Myval2->m_depthBias</Item>
+			<Item Name="Stencil State">m_impl.m_ptr._Mypair._Myval2->m_stencilState</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Shader Record Collection -->
+	<Type Name="LiteFX::Rendering::ShaderRecordCollection">
+		<DisplayString>ShaderRecordCollection {{ { m_records._Mypair._Myval2._Mylast - m_records._Mypair._Myval2._Myfirst } Records }}</DisplayString>
+
+		<Expand>
+			<Item Name="Shader Program">m_program</Item>
+			<Item Name="Records">m_records,view(simple)</Item>
+		</Expand>
+	</Type>
+
+	<!-- Shader Record -->
+	<Type Name="LiteFX::Rendering::ShaderRecord&lt;&gt;">
+		<DisplayString>ShaderRecord&lt;&gt; {{ Local Data Size = 0 Bytes }}</DisplayString>
+
+		<Expand>
+			<Item Name="Shader Group">m_shaderGroup,view(simple)</Item>
+		</Expand>
+	</Type>
+	
+	<Type Name="LiteFX::Rendering::ShaderRecord&lt;*&gt;">
+		<DisplayString>ShaderRecord&lt;{ "$T1",sb }&gt; {{ Local Data Size = { sizeof($T1) } Bytes }}</DisplayString>
+
+		<Expand>
+			<Item Name="Shader Group">m_shaderGroup,view(simple)</Item>
+			<Item Name="Local Data">m_payload</Item>
+			<Synthetic Name="Local Data Size">
+				<DisplayString>{ sizeof($T1) }</DisplayString>
+			</Synthetic>
+		</Expand>
+	</Type>
+
+	<!-- Render Target -->
+	<Type Name="LiteFX::Rendering::RenderTarget">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">RenderTarget {{ Name = { m_impl.m_ptr._Mypair._Myval2->m_name }, Type = { m_impl.m_ptr._Mypair._Myval2->m_type,en }, Format = { m_impl.m_ptr._Mypair._Myval2->m_format,en }, Location = { m_impl.m_ptr._Mypair._Myval2->m_location } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Name">m_impl.m_ptr._Mypair._Myval2->m_name</Item>
+			<Item Name="Type">m_impl.m_ptr._Mypair._Myval2->m_type,en</Item>
+			<Item Name="Format">m_impl.m_ptr._Mypair._Myval2->m_format,en</Item>
+			<Item Name="Location">m_impl.m_ptr._Mypair._Myval2->m_location</Item>
+			<Item Name="Flags">m_impl.m_ptr._Mypair._Myval2->m_flags,en</Item>
+			<Item Name="Blend State">m_impl.m_ptr._Mypair._Myval2->m_blendState</Item>
+			<Item Name="Clear Values">m_impl.m_ptr._Mypair._Myval2->m_clearValues</Item>
+			<Item Name="Identifier">m_impl.m_ptr._Mypair._Myval2->m_identifier</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+
+	<!-- Descriptor Binding Point -->
+	<Type Name="LiteFX::Rendering::DescriptorBindingPoint">
+		<DisplayString ExcludeView="simple">DescriptorBindingPoint {{ Register = { Register }, Space = { Space } }}</DisplayString>
+		<DisplayString IncludeView="simple">{{ Register = { Register }, Space = { Space } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Register">Register</Item>
+			<Item Name="Space">Space</Item>
+		</Expand>
+	</Type>
+	
+	<!-- Render Pass Dependency -->
+	<Type Name="LiteFX::Rendering::RenderPassDependency">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0">RenderPassDependency {{ Render Target = { m_impl.m_ptr._Mypair._Myval2->m_renderTarget.m_impl.m_ptr._Mypair._Myval2->m_name }, Binding = { m_impl.m_ptr._Mypair._Myval2->m_descriptorBinding,view(simple) } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Render Target">m_impl.m_ptr._Mypair._Myval2->m_renderTarget</Item>
+			<Item Name="Binding Point">m_impl.m_ptr._Mypair._Myval2->m_descriptorBinding</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+	
+	<!-- Device State -->
+	<Type Name="LiteFX::Rendering::DeviceState">
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 == 0">uninitialized</DisplayString>
+		<DisplayString Condition="m_impl.m_ptr._Mypair._Myval2 != 0"> DeviceState {{ { m_impl.m_ptr._Mypair._Myval2->m_renderPasses._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_frameBuffers._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_pipelines._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_buffers._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_vertexBuffers._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_indexBuffers._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_images._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_samplers._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_accelerationStructures._List._Mypair._Myval2._Mysize + m_impl.m_ptr._Mypair._Myval2->m_descriptorSets._List._Mypair._Myval2._Mysize } Instances }}</DisplayString>
+
+		<Expand>
+			<Synthetic Name="Buffers">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_buffers._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_buffers._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Vertex Buffers">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_vertexBuffers._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_vertexBuffers._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Index Buffers">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_indexBuffers._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_indexBuffers._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Images">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_images._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_images._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Samplers">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_samplers._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_samplers._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Acceleration Structures">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_accelerationStructures._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_accelerationStructures._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Descriptor Sets">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_descriptorSets._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_descriptorSets._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Pipelines">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_pipelines._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_pipelines._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Render Passes">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_renderPasses._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_renderPasses._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Synthetic Name="Frame Buffers">
+				<DisplayString>{ m_impl.m_ptr._Mypair._Myval2->m_frameBuffers._List._Mypair._Myval2._Mysize } Instances</DisplayString>
+
+				<Expand>
+					<ExpandedItem>m_impl.m_ptr._Mypair._Myval2->m_frameBuffers._List,view(DictionaryHelper)</ExpandedItem>
+				</Expand>
+			</Synthetic>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+</AutoVisualizer>

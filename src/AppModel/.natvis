@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AutoVisualizer xmlns="http://schemas.microsoft.com/vstudio/debugger/natvis/2010">
+	<!-- IBackend -->
+	<Type Name="LiteFX::IBackend" Inheritable="false">
+		<DisplayString>IBackend {{ State = { m_state } }}</DisplayString>
+	</Type>
+
+	<!-- Event -->
+	<Type Name="LiteFX::Event&lt;*&gt;">
+		<DisplayString>Event&lt;{ "$T1",sb }&gt; {{ Subscribers = { (size_t)(m_subscribers._Mypair._Myval2._Mylast - m_subscribers._Mypair._Myval2._Myfirst) } }}</DisplayString>
+
+		<Expand>
+			<ExpandedItem>m_subscribers,view(simple)</ExpandedItem>
+		</Expand>
+	</Type>
+	
+	<!-- ResizeEventArgs -->
+	<Type Name="LiteFX::ResizeEventArgs">
+		<DisplayString>ResizeEventArgs {{ Width = { m_width }, Height = { m_height } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Width">m_width</Item>
+			<Item Name="Height">m_height</Item>
+		</Expand>
+	</Type>
+
+	<!-- App -->
+	<Type Name="LiteFX::App">
+		<DisplayString>App {{ Backends = { m_impl.m_ptr._Mypair._Myval2->m_backends._List._Mypair._Myval2._Mysize } }}</DisplayString>
+
+		<Expand>
+			<Item Name="Backends">m_impl.m_ptr._Mypair._Myval2->m_backends._List,view(DictionaryHelper)</Item>
+			<Item Name="[m_impl]">m_impl</Item>
+		</Expand>
+	</Type>
+</AutoVisualizer>

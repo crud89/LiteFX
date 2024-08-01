@@ -34,6 +34,8 @@ SET(RENDERING_SOURCES
 ADD_LIBRARY(${PROJECT_NAME}
     ${RENDERING_HEADERS}
     ${RENDERING_SOURCES}
+
+    ".natvis"
 )
 
 # Create source groups for better code organization.
