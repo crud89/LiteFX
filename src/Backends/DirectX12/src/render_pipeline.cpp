@@ -544,13 +544,13 @@ void DirectX12RenderPipeline::use(const DirectX12CommandBuffer& commandBuffer) c
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr DirectX12RenderPipelineBuilder::DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const String& name) :
+DirectX12RenderPipelineBuilder::DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const String& name) :
 	RenderPipelineBuilder(UniquePtr<DirectX12RenderPipeline>(new DirectX12RenderPipeline(renderPass)))
 {
 	this->instance()->name() = name;
 }
 
-constexpr DirectX12RenderPipelineBuilder::~DirectX12RenderPipelineBuilder() noexcept = default;
+DirectX12RenderPipelineBuilder::~DirectX12RenderPipelineBuilder() noexcept = default;
 
 void DirectX12RenderPipelineBuilder::build()
 {

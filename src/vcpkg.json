@@ -21,9 +21,15 @@
     "spirv-reflect",
     "vulkan-memory-allocator",
     "d3d12-memory-allocator",
-    "winpixeventruntime",
     "directx-agility-sdk",
     "directx-dxc",
     "directx-warp"
-  ]
+  ],
+  "features": {
+    "pix-support": {
+      "description": "Adds support for PIX runtime in the DirectX 12 backend.",
+      "supports": "windows & x64",
+      "dependencies": [ "winpixeventruntime" ]
+    }
+  }
 }

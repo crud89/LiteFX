@@ -24,12 +24,12 @@ DirectX12Rasterizer::~DirectX12Rasterizer() noexcept = default;
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr DirectX12RasterizerBuilder::DirectX12RasterizerBuilder() noexcept :
+DirectX12RasterizerBuilder::DirectX12RasterizerBuilder() noexcept :
     RasterizerBuilder(SharedPtr<DirectX12Rasterizer>(new DirectX12Rasterizer()))
 {
 }
 
-constexpr DirectX12RasterizerBuilder::~DirectX12RasterizerBuilder() noexcept = default;
+DirectX12RasterizerBuilder::~DirectX12RasterizerBuilder() noexcept = default;
 
 void DirectX12RasterizerBuilder::build()
 {

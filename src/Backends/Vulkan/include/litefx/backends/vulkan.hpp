@@ -342,44 +342,44 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
         /// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
-        constexpr inline explicit VulkanBarrier(PipelineStage syncBefore, PipelineStage syncAfter) noexcept;
+        explicit VulkanBarrier(PipelineStage syncBefore, PipelineStage syncAfter) noexcept;
         VulkanBarrier(const VulkanBarrier&) = delete;
         VulkanBarrier(VulkanBarrier&&) = delete;
-        constexpr inline virtual ~VulkanBarrier() noexcept;
+        virtual ~VulkanBarrier() noexcept;
 
     private:
-        constexpr inline explicit VulkanBarrier() noexcept;
-        constexpr inline PipelineStage& syncBefore() noexcept;
-        constexpr inline PipelineStage& syncAfter() noexcept;
+        explicit VulkanBarrier() noexcept;
+        PipelineStage& syncBefore() noexcept;
+        PipelineStage& syncAfter() noexcept;
 
         // Barrier interface.
     public:
         /// <inheritdoc />
-        constexpr inline PipelineStage syncBefore() const noexcept override;
+        PipelineStage syncBefore() const noexcept override;
 
         /// <inheritdoc />
-        constexpr inline PipelineStage syncAfter() const noexcept override;
+        PipelineStage syncAfter() const noexcept override;
 
         /// <inheritdoc />
-        constexpr inline void wait(ResourceAccess accessBefore, ResourceAccess accessAfter) noexcept override;
+        void wait(ResourceAccess accessBefore, ResourceAccess accessAfter) noexcept override;
 
         /// <inheritdoc />
-        constexpr inline void transition(const IVulkanBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) override;
+        void transition(const IVulkanBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) override;
 
         /// <inheritdoc />
-        constexpr inline void transition(const IVulkanBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) override;
+        void transition(const IVulkanBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter) override;
 
         /// <inheritdoc />
-        constexpr inline void transition(const IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override;
+        void transition(const IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override;
 
         /// <inheritdoc />
-        constexpr inline void transition(const IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override;
+        void transition(const IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override;
 
         /// <inheritdoc />
-        constexpr inline void transition(const IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override;
+        void transition(const IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout) override;
 
         /// <inheritdoc />
-        constexpr inline void transition(const IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override;
+        void transition(const IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout) override;
 
     public:
         /// <summary>
@@ -387,7 +387,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="commandBuffer">The command buffer to add the barriers to.</param>
         /// <exception cref="RuntimeException">Thrown, if any of the contained barriers is a image barrier that targets a sub-resource range that does not share the same <see cref="ImageLayout" /> in all sub-resources.</exception>
-        inline void execute(const VulkanCommandBuffer& commandBuffer) const noexcept;
+        void execute(const VulkanCommandBuffer& commandBuffer) const noexcept;
     };
 
     /// <summary>
@@ -1263,7 +1263,7 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         QueueType type() const noexcept override;
 
-#ifndef NDEBUG
+#ifdef LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
     public:
         /// <inheritdoc />
         void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
@@ -1273,7 +1273,7 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void setDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
-#endif
+#endif // LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
 
     public:
         /// <inheritdoc />
@@ -1603,12 +1603,12 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a Vulkan render pass.
     /// </summary>
     /// <seealso cref="VulkanRenderPassBuilder" />
-    class LITEFX_VULKAN_API VulkanRenderPass final : public RenderPass<VulkanRenderPipeline, VulkanQueue, VulkanFrameBuffer> {
+    class LITEFX_VULKAN_API VulkanRenderPass final : public RenderPass<VulkanQueue, VulkanFrameBuffer> {
         LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
         LITEFX_BUILDER(VulkanRenderPassBuilder);
 
     public:
-        using base_type = RenderPass<VulkanRenderPipeline, VulkanQueue, VulkanFrameBuffer>;
+        using base_type = RenderPass<VulkanQueue, VulkanFrameBuffer>;
 
     public:
         /// <summary>
@@ -1686,9 +1686,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         const VulkanQueue& commandQueue() const noexcept override;
-
-        /// <inheritdoc />
-        Enumerable<const VulkanRenderPipeline*> pipelines() const noexcept override;
 
         /// <inheritdoc />
         Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers() const noexcept override;
@@ -1883,7 +1880,7 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// Implements a Vulkan graphics device.
     /// </summary>
-    class LITEFX_VULKAN_API VulkanDevice final : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanComputePipeline, VulkanRayTracingPipeline, VulkanBarrier>, public Resource<VkDevice> {
+    class LITEFX_VULKAN_API VulkanDevice final : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanRenderPipeline, VulkanComputePipeline, VulkanRayTracingPipeline, VulkanBarrier>, public Resource<VkDevice> {
         LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
 
     public:

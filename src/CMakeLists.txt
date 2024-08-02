@@ -11,13 +11,11 @@ IF("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
    MESSAGE(SEND_ERROR "In-source builds are not allowed.")
 ENDIF("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 
-# Setup modules.
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/modules.cmake")
-
 # Declare top-level project.
 PROJECT(LiteFX LANGUAGES CXX)
 
 # Include configuration files.
+INCLUDE("${CMAKE_SOURCE_DIR}/cmake/modules.cmake")
 INCLUDE("${CMAKE_SOURCE_DIR}/cmake/version.cmake")
 INCLUDE("${CMAKE_SOURCE_DIR}/cmake/options.cmake")
 INCLUDE("${CMAKE_SOURCE_DIR}/cmake/config.cmake") 

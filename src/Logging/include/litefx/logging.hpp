@@ -1,5 +1,7 @@
 #pragma once
 
+#include <litefx/config.h>
+
 #if !defined (LITEFX_LOGGING_API)
 #  if defined(LiteFX_Logging_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_LOGGING_API __declspec(dllexport)
@@ -8,7 +10,7 @@
 #  elif !defined(LiteFX_Logging_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_LOGGING_API __declspec(dllimport)
 #  endif
-#endif
+#endif 
 
 #ifndef LITEFX_LOGGING_API
 #  define LITEFX_LOGGING_API
@@ -208,7 +210,7 @@ namespace LiteFX::Logging {
         /// <summary>
         /// Gets the name of the logger.
         /// </summary>
-        virtual inline const String& getName() const noexcept;
+        virtual const String& getName() const noexcept;
 
     protected:
         virtual void log(LogLevel level, StringView message);

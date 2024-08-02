@@ -4,10 +4,13 @@
 #####                                                                                         #####
 ###################################################################################################
 
+OPTION(BUILD_SHARED_LIBS "Link libraries as shared objects." ON)
+
 OPTION(LITEFX_BUILD_VULKAN_BACKEND "Builds the Vulkan backend." ON)
 OPTION(LITEFX_BUILD_DIRECTX_12_BACKEND "Builds the DirectX 12 backend." ON)
 
 OPTION(LITEFX_BUILD_DEFINE_BUILDERS "Defines builder types to allow to use builder syntax in applications." ON)
+OPTION(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS "Implements support for setting debug markers on device queues." OFF)
 
 OPTION(LITEFX_BUILD_EXAMPLES "When set to OFF, no samples will be built, regardless of their individual option." ON)
 OPTION(LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER "Add code to samples to load PIX GPU capture library when starting with --dx-load-pix=1 command line argument." ON)
@@ -41,3 +44,9 @@ IF(NOT MSVC OR (MSVC AND MSVC_VERSION LESS 1910))
     MESSAGE(WARNING "DirectX features may only be working with Visual Studio 2017 or newer.")
   ENDIF(LITEFX_BUILD_DIRECTX_12_BACKEND OR LITEFX_BUILD_WITH_DIRECTX_MATH)
 ENDIF(NOT MSVC OR (MSVC AND MSVC_VERSION LESS 1910))
+
+IF("pix-support" IN_LIST VCPKG_MANIFEST_FEATURES)
+  SET(LITEFX_BUILD_WITH_PIX_RUNTIME ON CACHE BOOL "Link DirectX 12 backend against PIX runtime (required for debug marker support).")
+ELSE()
+  SET(LITEFX_BUILD_WITH_PIX_RUNTIME OFF CACHE BOOL "Link DirectX 12 backend against PIX runtime (required for debug marker support).")
+ENDIF("pix-support" IN_LIST VCPKG_MANIFEST_FEATURES)

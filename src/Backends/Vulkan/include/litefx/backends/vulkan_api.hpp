@@ -1,5 +1,7 @@
 #pragma once
 
+#include <litefx/config.h>
+
 #if !defined (LITEFX_VULKAN_API)
 #  if defined(LiteFX_Backends_Vulkan_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_VULKAN_API __declspec(dllexport)
@@ -8,7 +10,7 @@
 #  elif !defined(LiteFX_Backends_Vulkan_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_VULKAN_API __declspec(dllimport)
 #  endif
-#endif
+#endif 
 
 #ifndef LITEFX_VULKAN_API
 #  define LITEFX_VULKAN_API
@@ -91,117 +93,117 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline Format LITEFX_VULKAN_API getFormat(const VkFormat& format);
+        Format LITEFX_VULKAN_API getFormat(const VkFormat& format);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkFormat LITEFX_VULKAN_API getFormat(Format format);
+        VkFormat LITEFX_VULKAN_API getFormat(Format format);
 
         /// <summary>
         /// 
         /// </summary>
-        //constexpr inline BufferFormat LITEFX_VULKAN_API getFormat(const VkFormat& format);
+        //BufferFormat LITEFX_VULKAN_API getFormat(const VkFormat& format);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkFormat LITEFX_VULKAN_API getFormat(BufferFormat format);
+        VkFormat LITEFX_VULKAN_API getFormat(BufferFormat format);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline PolygonMode LITEFX_VULKAN_API getPolygonMode(const VkPolygonMode& mode);
+        PolygonMode LITEFX_VULKAN_API getPolygonMode(const VkPolygonMode& mode);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkPolygonMode LITEFX_VULKAN_API getPolygonMode(PolygonMode mode);
+        VkPolygonMode LITEFX_VULKAN_API getPolygonMode(PolygonMode mode);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline CullMode LITEFX_VULKAN_API getCullMode(const VkCullModeFlags& mode);
+        CullMode LITEFX_VULKAN_API getCullMode(const VkCullModeFlags& mode);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkCullModeFlags LITEFX_VULKAN_API getCullMode(CullMode mode);
+        VkCullModeFlags LITEFX_VULKAN_API getCullMode(CullMode mode);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline PrimitiveTopology LITEFX_VULKAN_API getPrimitiveTopology(const VkPrimitiveTopology& topology);
+        PrimitiveTopology LITEFX_VULKAN_API getPrimitiveTopology(const VkPrimitiveTopology& topology);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkPrimitiveTopology LITEFX_VULKAN_API getPrimitiveTopology(PrimitiveTopology topology);
+        VkPrimitiveTopology LITEFX_VULKAN_API getPrimitiveTopology(PrimitiveTopology topology);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline ShaderStage LITEFX_VULKAN_API getShaderStage(const VkShaderStageFlagBits& shaderType);
+        ShaderStage LITEFX_VULKAN_API getShaderStage(const VkShaderStageFlagBits& shaderType);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkShaderStageFlagBits LITEFX_VULKAN_API getShaderStage(ShaderStage shaderType);
+        VkShaderStageFlagBits LITEFX_VULKAN_API getShaderStage(ShaderStage shaderType);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline MultiSamplingLevel LITEFX_VULKAN_API getSamples(const VkSampleCountFlagBits& samples);
+        MultiSamplingLevel LITEFX_VULKAN_API getSamples(const VkSampleCountFlagBits& samples);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkImageType LITEFX_VULKAN_API getImageType(ImageDimensions dimension);
+        VkImageType LITEFX_VULKAN_API getImageType(ImageDimensions dimension);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkImageViewType LITEFX_VULKAN_API getImageViewType(ImageDimensions dimension, UInt32 layers = 1);
+        VkImageViewType LITEFX_VULKAN_API getImageViewType(ImageDimensions dimension, UInt32 layers = 1);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkSampleCountFlagBits LITEFX_VULKAN_API getSamples(MultiSamplingLevel samples);
+        VkSampleCountFlagBits LITEFX_VULKAN_API getSamples(MultiSamplingLevel samples);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkCompareOp LITEFX_VULKAN_API getCompareOp(CompareOperation compareOp);
+        VkCompareOp LITEFX_VULKAN_API getCompareOp(CompareOperation compareOp);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkStencilOp LITEFX_VULKAN_API getStencilOp(StencilOperation stencilOp);
+        VkStencilOp LITEFX_VULKAN_API getStencilOp(StencilOperation stencilOp);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkBlendFactor LITEFX_VULKAN_API getBlendFactor(BlendFactor blendFactor);
+        VkBlendFactor LITEFX_VULKAN_API getBlendFactor(BlendFactor blendFactor);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkBlendOp LITEFX_VULKAN_API getBlendOperation(BlendOperation blendOperation);
+        VkBlendOp LITEFX_VULKAN_API getBlendOperation(BlendOperation blendOperation);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkPipelineStageFlags2 LITEFX_VULKAN_API getPipelineStage(PipelineStage pipelineStage);
+        VkPipelineStageFlags2 LITEFX_VULKAN_API getPipelineStage(PipelineStage pipelineStage);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkAccessFlags2 LITEFX_VULKAN_API getResourceAccess(ResourceAccess resourceAccess);
+        VkAccessFlags2 LITEFX_VULKAN_API getResourceAccess(ResourceAccess resourceAccess);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline VkImageLayout LITEFX_VULKAN_API getImageLayout(ImageLayout imageLayout);
+        VkImageLayout LITEFX_VULKAN_API getImageLayout(ImageLayout imageLayout);
     }
 
     /// <summary>
@@ -237,7 +239,7 @@ namespace LiteFX::Rendering::Backends {
         GraphicsAdapterType type() const noexcept override;
 
         /// <inheritdoc />
-        UInt32 driverVersion() const noexcept override;
+        UInt64 driverVersion() const noexcept override;
 
         /// <inheritdoc />
         UInt32 apiVersion() const noexcept override;
@@ -329,7 +331,7 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// An exception that is thrown, if a requested Vulkan operation could not be executed.
     /// </summary>
-    class VulkanPlatformException : public RuntimeException {
+    class LITEFX_VULKAN_API VulkanPlatformException : public RuntimeException {
     private:
         VkResult m_code;
 

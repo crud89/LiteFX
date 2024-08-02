@@ -1,30 +1,21 @@
-vcpkg_minimum_required(VERSION 2022-10-12) # for ${VERSION}
-vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY)
+set(VCPKG_POLICY_DLLS_IN_STATIC_LIBRARY enabled)
 
-vcpkg_download_distfile(ARCHIVE
-    URLS "https://www.nuget.org/api/v2/package/WinPixEventRuntime/${VERSION}"
-    FILENAME "winpixeventruntime.${VERSION}.zip"
-    SHA512 f33d55a8bb731e404370f75756fd41470b5c4eda12f18f5642cdda8d6bde054ea7aa4e78b6074a0fcb707bd5f026ec75d0245bb2328ec9f93fdfaffde4fdcf09
+vcpkg_from_github(
+    OUT_SOURCE_PATH SOURCE_PATH
+    REPO Microsoft/PixEvents
+    REF 3a7e70dde7bf54f02f9d2e9dd6d3350c6cfb962f
+    SHA512 91b7a2f8c83d8e848ec89866e8f30092a1e49f5d327fd5dd972bdb6f8848cef28fd135f6304df0811241a95f379089853edf98c451dc680fc6d7838a8be8edd1
+    HEAD_REF main
+    PATCHES win32compat.patch
 )
 
-vcpkg_extract_source_archive(
-    PACKAGE_PATH
-    ARCHIVE ${ARCHIVE}
-    NO_REMOVE_ONE_LEVEL
-)
+file(COPY ${CMAKE_CURRENT_LIST_DIR}/CMakeLists.txt DESTINATION ${SOURCE_PATH})
 
-file(INSTALL "${PACKAGE_PATH}/include/WinPixEventRuntime/pix3.h" DESTINATION "${CURRENT_PACKAGES_DIR}/include")
-file(INSTALL "${PACKAGE_PATH}/include/WinPixEventRuntime/pix3_win.h" DESTINATION "${CURRENT_PACKAGES_DIR}/include")
-file(INSTALL "${PACKAGE_PATH}/include/WinPixEventRuntime/PIXEvents.h" DESTINATION "${CURRENT_PACKAGES_DIR}/include")
-file(INSTALL "${PACKAGE_PATH}/include/WinPixEventRuntime/PIXEventsCommon.h" DESTINATION "${CURRENT_PACKAGES_DIR}/include")
+vcpkg_cmake_configure(SOURCE_PATH ${SOURCE_PATH})
+vcpkg_cmake_install()
+vcpkg_cmake_config_fixup(CONFIG_PATH share/cmake/)
 
-file(INSTALL "${PACKAGE_PATH}/bin/${VCPKG_TARGET_ARCHITECTURE}/WinPixEventRuntime.lib" DESTINATION "${CURRENT_PACKAGES_DIR}/lib")
+file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/debug/include")
 
-file(COPY "${PACKAGE_PATH}/bin/${VCPKG_TARGET_ARCHITECTURE}/WinPixEventRuntime.dll" DESTINATION "${CURRENT_PACKAGES_DIR}/bin")
-
-file(MAKE_DIRECTORY "${CURRENT_PACKAGES_DIR}/debug")
-file(COPY "${CURRENT_PACKAGES_DIR}/bin" "${CURRENT_PACKAGES_DIR}/lib" DESTINATION "${CURRENT_PACKAGES_DIR}/debug")
-
-file(INSTALL "${PACKAGE_PATH}/LICENSE.txt" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
-
-configure_file("${CMAKE_CURRENT_LIST_DIR}/winpixeventruntime-config.cmake.in" "${CURRENT_PACKAGES_DIR}/share/${PORT}/${PORT}-config.cmake" COPYONLY)
+file(INSTALL "${CMAKE_CURRENT_LIST_DIR}/usage" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}")
+vcpkg_install_copyright(FILE_LIST "${SOURCE_PATH}/LICENSE.txt")

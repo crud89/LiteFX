@@ -1,6 +1,9 @@
 #include <litefx/backends/dx12.hpp>
 #include <litefx/backends/dx12_builders.hpp>
+
+#if defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
 #include <pix3.h>
+#endif // defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -15,7 +18,6 @@ public:
     using RenderPassContext = Tuple<Array<D3D12_RENDER_PASS_RENDER_TARGET_DESC>, Optional<D3D12_RENDER_PASS_DEPTH_STENCIL_DESC>>;
 
 private:
-    Array<UniquePtr<DirectX12RenderPipeline>> m_pipelines;
     Array<RenderTarget> m_renderTargets;
     Array<RenderPassDependency> m_inputAttachments;
     Dictionary<const IFrameBuffer*, size_t> m_frameBufferTokens;
@@ -258,11 +260,6 @@ const DirectX12Queue& DirectX12RenderPass::commandQueue() const noexcept
     return *m_impl->m_queue;
 }
 
-Enumerable<const DirectX12RenderPipeline*> DirectX12RenderPass::pipelines() const noexcept
-{
-    return m_impl->m_pipelines | std::views::transform([](const UniquePtr<DirectX12RenderPipeline>& pipeline) { return pipeline.get(); }) | std::ranges::to<Array<const DirectX12RenderPipeline*>>();
-}
-
 SharedPtr<const DirectX12CommandBuffer> DirectX12RenderPass::commandBuffer(UInt32 index) const
 {
     if (m_impl->m_activeFrameBuffer == nullptr) [[unlikely]]
@@ -497,18 +494,18 @@ UInt64 DirectX12RenderPass::end() const
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const String& name) noexcept :
+DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const String& name) noexcept :
     DirectX12RenderPassBuilder(device, 1, name)
 {
 }
 
-constexpr DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, const String& name) noexcept :
+DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, const String& name) noexcept :
     RenderPassBuilder(UniquePtr<DirectX12RenderPass>(new DirectX12RenderPass(device, name)))
 {
     m_state.commandBufferCount = commandBuffers;
 }
 
-constexpr DirectX12RenderPassBuilder::~DirectX12RenderPassBuilder() noexcept = default;
+DirectX12RenderPassBuilder::~DirectX12RenderPassBuilder() noexcept = default;
 
 void DirectX12RenderPassBuilder::build()
 {

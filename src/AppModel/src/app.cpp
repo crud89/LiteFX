@@ -208,7 +208,7 @@ void App::resize(int width, int height)
 // Builder interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr void AppBuilder::use(UniquePtr<IBackend>&& backend)
+void AppBuilder::use(UniquePtr<IBackend>&& backend)
 {
 	this->instance()->use(std::move(backend));
 }

@@ -2,7 +2,7 @@
 
 using namespace LiteFX::Rendering::Backends;
 
-constexpr Format LiteFX::Rendering::Backends::DX12::getFormat(const DXGI_FORMAT& format)
+Format LiteFX::Rendering::Backends::DX12::getFormat(const DXGI_FORMAT& format)
 {
 	switch (format)
 	{
@@ -149,7 +149,7 @@ constexpr Format LiteFX::Rendering::Backends::DX12::getFormat(const DXGI_FORMAT&
 	}
 }
 
-constexpr DXGI_FORMAT LiteFX::Rendering::Backends::DX12::getFormat(Format format)
+DXGI_FORMAT LiteFX::Rendering::Backends::DX12::getFormat(Format format)
 {
 	switch (format)
 	{
@@ -294,7 +294,7 @@ constexpr DXGI_FORMAT LiteFX::Rendering::Backends::DX12::getFormat(Format format
 	}
 }
 
-constexpr DXGI_FORMAT LiteFX::Rendering::Backends::DX12::getFormat(BufferFormat format)
+DXGI_FORMAT LiteFX::Rendering::Backends::DX12::getFormat(BufferFormat format)
 {
 	switch (format)
 	{
@@ -345,7 +345,7 @@ constexpr DXGI_FORMAT LiteFX::Rendering::Backends::DX12::getFormat(BufferFormat 
 	}
 }
 
-constexpr bool LiteFX::Rendering::Backends::DX12::isSRGB(Format format)
+bool LiteFX::Rendering::Backends::DX12::isSRGB(Format format)
 {
 	return 
 		format == Format::A8B8G8R8_SRGB || 
@@ -362,7 +362,7 @@ constexpr bool LiteFX::Rendering::Backends::DX12::isSRGB(Format format)
 		format == Format::R8_SRGB;
 }
 
-constexpr D3D12_RESOURCE_DIMENSION LiteFX::Rendering::Backends::DX12::getImageType(ImageDimensions dimensions)
+D3D12_RESOURCE_DIMENSION LiteFX::Rendering::Backends::DX12::getImageType(ImageDimensions dimensions)
 {
 	switch (dimensions)
 	{
@@ -378,7 +378,7 @@ constexpr D3D12_RESOURCE_DIMENSION LiteFX::Rendering::Backends::DX12::getImageTy
 	}
 }
 
-constexpr PolygonMode LiteFX::Rendering::Backends::DX12::getPolygonMode(const D3D12_FILL_MODE& mode)
+PolygonMode LiteFX::Rendering::Backends::DX12::getPolygonMode(const D3D12_FILL_MODE& mode)
 {
 	switch (mode)
 	{
@@ -391,7 +391,7 @@ constexpr PolygonMode LiteFX::Rendering::Backends::DX12::getPolygonMode(const D3
 	}
 }
 
-constexpr D3D12_FILL_MODE LiteFX::Rendering::Backends::DX12::getPolygonMode(PolygonMode mode)
+D3D12_FILL_MODE LiteFX::Rendering::Backends::DX12::getPolygonMode(PolygonMode mode)
 {
 	switch (mode)
 	{
@@ -404,7 +404,7 @@ constexpr D3D12_FILL_MODE LiteFX::Rendering::Backends::DX12::getPolygonMode(Poly
 	}
 }
 
-constexpr CullMode LiteFX::Rendering::Backends::DX12::getCullMode(const D3D12_CULL_MODE& mode)
+CullMode LiteFX::Rendering::Backends::DX12::getCullMode(const D3D12_CULL_MODE& mode)
 {
 	switch (mode)
 	{
@@ -419,7 +419,7 @@ constexpr CullMode LiteFX::Rendering::Backends::DX12::getCullMode(const D3D12_CU
 	}
 }
 
-constexpr D3D12_CULL_MODE LiteFX::Rendering::Backends::DX12::getCullMode(CullMode mode)
+D3D12_CULL_MODE LiteFX::Rendering::Backends::DX12::getCullMode(CullMode mode)
 {
 	switch (mode)
 	{
@@ -434,7 +434,7 @@ constexpr D3D12_CULL_MODE LiteFX::Rendering::Backends::DX12::getCullMode(CullMod
 	}
 }
 
-constexpr PrimitiveTopology LiteFX::Rendering::Backends::DX12::getPrimitiveTopology(const D3D12_PRIMITIVE_TOPOLOGY& topology)
+PrimitiveTopology LiteFX::Rendering::Backends::DX12::getPrimitiveTopology(const D3D12_PRIMITIVE_TOPOLOGY& topology)
 {
 	switch (topology)
 	{
@@ -453,7 +453,7 @@ constexpr PrimitiveTopology LiteFX::Rendering::Backends::DX12::getPrimitiveTopol
 	}
 }
 
-constexpr D3D12_PRIMITIVE_TOPOLOGY LiteFX::Rendering::Backends::DX12::getPrimitiveTopology(PrimitiveTopology topology)
+D3D12_PRIMITIVE_TOPOLOGY LiteFX::Rendering::Backends::DX12::getPrimitiveTopology(PrimitiveTopology topology)
 {
 	switch (topology)
 	{
@@ -472,7 +472,7 @@ constexpr D3D12_PRIMITIVE_TOPOLOGY LiteFX::Rendering::Backends::DX12::getPrimiti
 	}
 }
 
-constexpr D3D12_PRIMITIVE_TOPOLOGY_TYPE LiteFX::Rendering::Backends::DX12::getPrimitiveTopologyType(PrimitiveTopology topology)
+D3D12_PRIMITIVE_TOPOLOGY_TYPE LiteFX::Rendering::Backends::DX12::getPrimitiveTopologyType(PrimitiveTopology topology)
 {
 	switch (topology)
 	{
@@ -489,7 +489,7 @@ constexpr D3D12_PRIMITIVE_TOPOLOGY_TYPE LiteFX::Rendering::Backends::DX12::getPr
 	}
 }
 
-constexpr LPCTSTR LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getSemanticName(AttributeSemantic semantic)
+LPCTSTR LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getSemanticName(AttributeSemantic semantic)
 {
 	switch (semantic)
 	{
@@ -518,7 +518,7 @@ constexpr LPCTSTR LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getSem
 	}
 }
 
-constexpr String LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getVendorName(UInt32 vendorId)
+String LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getVendorName(UInt32 vendorId)
 {
 	switch (vendorId)
 	{
@@ -538,7 +538,7 @@ constexpr String LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getVend
 	}
 }
 
-constexpr D3D12_COMPARISON_FUNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getCompareOp(CompareOperation compareOp)
+D3D12_COMPARISON_FUNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getCompareOp(CompareOperation compareOp)
 {
 	switch (compareOp) {
 	case CompareOperation::Never: return D3D12_COMPARISON_FUNC::D3D12_COMPARISON_FUNC_NEVER;
@@ -553,7 +553,7 @@ constexpr D3D12_COMPARISON_FUNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends
 	}
 }
 
-constexpr D3D12_STENCIL_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getStencilOp(StencilOperation stencilOp)
+D3D12_STENCIL_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getStencilOp(StencilOperation stencilOp)
 {
 	switch (stencilOp) {
 	case StencilOperation::Keep: return D3D12_STENCIL_OP::D3D12_STENCIL_OP_KEEP;
@@ -568,7 +568,7 @@ constexpr D3D12_STENCIL_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX1
 	}
 }
 
-constexpr D3D12_BLEND LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getBlendFactor(BlendFactor blendFactor)
+D3D12_BLEND LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getBlendFactor(BlendFactor blendFactor)
 {
 	switch (blendFactor) {
 	case BlendFactor::Zero: return D3D12_BLEND_ZERO;
@@ -594,7 +594,7 @@ constexpr D3D12_BLEND LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::ge
 	}
 }
 
-constexpr D3D12_BLEND_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getBlendOperation(BlendOperation blendOperation)
+D3D12_BLEND_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getBlendOperation(BlendOperation blendOperation)
 {
 	switch (blendOperation) {
 	case BlendOperation::Add: return D3D12_BLEND_OP_ADD;
@@ -606,7 +606,7 @@ constexpr D3D12_BLEND_OP LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12:
 	}
 }
 
-constexpr D3D12_BARRIER_SYNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getPipelineStage(PipelineStage pipelineStage)
+D3D12_BARRIER_SYNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getPipelineStage(PipelineStage pipelineStage)
 {
 	if (pipelineStage == PipelineStage::None)
 		return D3D12_BARRIER_SYNC_NONE;
@@ -658,7 +658,7 @@ constexpr D3D12_BARRIER_SYNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::D
 	return sync;
 }
 
-constexpr D3D12_BARRIER_ACCESS LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getResourceAccess(ResourceAccess resourceAccess)
+D3D12_BARRIER_ACCESS LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getResourceAccess(ResourceAccess resourceAccess)
 {
 	if (resourceAccess == ResourceAccess::None)
 		return D3D12_BARRIER_ACCESS_NO_ACCESS;
@@ -716,7 +716,7 @@ constexpr D3D12_BARRIER_ACCESS LITEFX_DIRECTX12_API LiteFX::Rendering::Backends:
 	return access;
 }
 
-constexpr D3D12_BARRIER_LAYOUT LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getImageLayout(ImageLayout imageLayout)
+D3D12_BARRIER_LAYOUT LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getImageLayout(ImageLayout imageLayout)
 {
 	switch (imageLayout) {
 	case ImageLayout::Common: return D3D12_BARRIER_LAYOUT_COMMON;

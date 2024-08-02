@@ -19,9 +19,11 @@ SET(APP_MODEL_SOURCES
     "src/appversion.cpp"
  )
 
-ADD_LIBRARY(${PROJECT_NAME} SHARED
+ADD_LIBRARY(${PROJECT_NAME}
     ${APP_MODEL_HEADERS}
     ${APP_MODEL_SOURCES}
+
+    ".natvis"
 )
 
 # Create source groups for better code organization.
@@ -49,6 +51,11 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
     PUBLIC LiteFX.Core LiteFX.Logging
 )
+
+# Pre-define export specifier, to prevent dllimport/dllexport from being be emitted.
+IF(NOT BUILD_SHARED_LIBS)
+    TARGET_COMPILE_DEFINITIONS(${PROJECT_NAME} PUBLIC -DLITEFX_APPMODEL_API=)
+ENDIF(NOT BUILD_SHARED_LIBS)
 
 # Re-use pre-compiled core header.
 IF(LITEFX_BUILD_PRECOMPILED_HEADERS)

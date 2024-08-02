@@ -8,6 +8,8 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+// NOTE: It is important to keep private variable names equal between implementation classes in order for the debug visualizers to work.
+
 #if !defined(USE_VULKAN_INTEROP_SWAP_CHAIN)
 // ------------------------------------------------------------------------------------------------
 // Default implementation.

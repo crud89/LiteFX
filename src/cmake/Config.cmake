@@ -10,7 +10,8 @@ SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Define C++ compile flags.
 IF(MSVC)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")       # Use multi core compiling to speed up compile times.
+    # Use multi core compiling to speed up compile times and enable "just-my-code" for debug builds.
+    ADD_COMPILE_OPTIONS(/MP $<$<CONFIG:Debug,RelWithDebInfo>:/JMC>)
 ENDIF(MSVC)
 
 # For debug builds, append the "d" suffix.
@@ -44,11 +45,6 @@ ELSE()
 ENDIF(CMAKE_INSTALL_INCLUDEDIR STREQUAL "")
 
 SET(CMAKE_INSTALL_EXPORT_DIR  "cmake")
-
-# Export all symbols automatically on Windows.
-IF(WIN32)
-    SET (CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
-ENDIF(WIN32)
 
 # Allow hot reload in MSVC.
 IF(POLICY CMP0141)

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <litefx/config.h>
+
 #if !defined (LITEFX_DIRECTX12_API)
 #  if defined(LiteFX_Backends_DirectX12_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_DIRECTX12_API __declspec(dllexport)
@@ -8,7 +10,7 @@
 #  elif !defined(LiteFX_Backends_DirectX12_EXPORTS) && (defined _WIN32 || defined WINCE)
 #    define LITEFX_DIRECTX12_API __declspec(dllimport)
 #  endif
-#endif
+#endif 
 
 #ifndef LITEFX_DIRECTX12_API
 #  define LITEFX_DIRECTX12_API
@@ -113,109 +115,109 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline Format LITEFX_DIRECTX12_API getFormat(const DXGI_FORMAT& format);
+        Format LITEFX_DIRECTX12_API getFormat(const DXGI_FORMAT& format);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline DXGI_FORMAT LITEFX_DIRECTX12_API getFormat(Format format);
+        DXGI_FORMAT LITEFX_DIRECTX12_API getFormat(Format format);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline DXGI_FORMAT LITEFX_DIRECTX12_API getFormat(BufferFormat format);
+        DXGI_FORMAT LITEFX_DIRECTX12_API getFormat(BufferFormat format);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline bool LITEFX_DIRECTX12_API isSRGB(Format format);
+        bool LITEFX_DIRECTX12_API isSRGB(Format format);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_RESOURCE_DIMENSION LITEFX_DIRECTX12_API getImageType(ImageDimensions dimensions);
+        D3D12_RESOURCE_DIMENSION LITEFX_DIRECTX12_API getImageType(ImageDimensions dimensions);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline PolygonMode LITEFX_DIRECTX12_API getPolygonMode(const D3D12_FILL_MODE& mode);
+        PolygonMode LITEFX_DIRECTX12_API getPolygonMode(const D3D12_FILL_MODE& mode);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_FILL_MODE LITEFX_DIRECTX12_API getPolygonMode(PolygonMode mode);
+        D3D12_FILL_MODE LITEFX_DIRECTX12_API getPolygonMode(PolygonMode mode);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline CullMode LITEFX_DIRECTX12_API getCullMode(const D3D12_CULL_MODE& mode);
+        CullMode LITEFX_DIRECTX12_API getCullMode(const D3D12_CULL_MODE& mode);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_CULL_MODE LITEFX_DIRECTX12_API getCullMode(CullMode mode);
+        D3D12_CULL_MODE LITEFX_DIRECTX12_API getCullMode(CullMode mode);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline PrimitiveTopology LITEFX_DIRECTX12_API getPrimitiveTopology(const D3D12_PRIMITIVE_TOPOLOGY& topology);
+        PrimitiveTopology LITEFX_DIRECTX12_API getPrimitiveTopology(const D3D12_PRIMITIVE_TOPOLOGY& topology);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_PRIMITIVE_TOPOLOGY LITEFX_DIRECTX12_API getPrimitiveTopology(PrimitiveTopology topology);
+        D3D12_PRIMITIVE_TOPOLOGY LITEFX_DIRECTX12_API getPrimitiveTopology(PrimitiveTopology topology);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_PRIMITIVE_TOPOLOGY_TYPE LITEFX_DIRECTX12_API getPrimitiveTopologyType(PrimitiveTopology topology);
+        D3D12_PRIMITIVE_TOPOLOGY_TYPE LITEFX_DIRECTX12_API getPrimitiveTopologyType(PrimitiveTopology topology);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline LPCTSTR LITEFX_DIRECTX12_API getSemanticName(AttributeSemantic semantic);
+        LPCTSTR LITEFX_DIRECTX12_API getSemanticName(AttributeSemantic semantic);
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="vendorId"></param>
         /// <returns></returns>
-        constexpr inline String LITEFX_DIRECTX12_API getVendorName(UInt32 vendorId);
+        String LITEFX_DIRECTX12_API getVendorName(UInt32 vendorId);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_COMPARISON_FUNC LITEFX_DIRECTX12_API getCompareOp(CompareOperation compareOp);
+        D3D12_COMPARISON_FUNC LITEFX_DIRECTX12_API getCompareOp(CompareOperation compareOp);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_STENCIL_OP LITEFX_DIRECTX12_API getStencilOp(StencilOperation stencilOp);
+        D3D12_STENCIL_OP LITEFX_DIRECTX12_API getStencilOp(StencilOperation stencilOp);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_BLEND LITEFX_DIRECTX12_API getBlendFactor(BlendFactor blendFactor);
+        D3D12_BLEND LITEFX_DIRECTX12_API getBlendFactor(BlendFactor blendFactor);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_BLEND_OP LITEFX_DIRECTX12_API getBlendOperation(BlendOperation blendOperation);
+        D3D12_BLEND_OP LITEFX_DIRECTX12_API getBlendOperation(BlendOperation blendOperation);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_BARRIER_SYNC LITEFX_DIRECTX12_API getPipelineStage(PipelineStage pipelineStage);
+        D3D12_BARRIER_SYNC LITEFX_DIRECTX12_API getPipelineStage(PipelineStage pipelineStage);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_BARRIER_ACCESS LITEFX_DIRECTX12_API getResourceAccess(ResourceAccess resourceAccess);
+        D3D12_BARRIER_ACCESS LITEFX_DIRECTX12_API getResourceAccess(ResourceAccess resourceAccess);
 
         /// <summary>
         /// 
         /// </summary>
-        constexpr inline D3D12_BARRIER_LAYOUT LITEFX_DIRECTX12_API getImageLayout(ImageLayout imageLayout);
+        D3D12_BARRIER_LAYOUT LITEFX_DIRECTX12_API getImageLayout(ImageLayout imageLayout);
     }
 
     /// <summary>
@@ -251,15 +253,9 @@ namespace LiteFX::Rendering::Backends {
         GraphicsAdapterType type() const noexcept override;
 
         /// <inheritdoc />
-        /// <remarks>
-        /// This property is not supported by DirectX 12. The method always returns `0`.
-        /// </remarks>
-        UInt32 driverVersion() const noexcept override;
+        UInt64 driverVersion() const noexcept override;
 
         /// <inheritdoc />
-        /// <remarks>
-        /// This property is not supported by DirectX 12. The method always returns `0`.
-        /// </remarks>
         UInt32 apiVersion() const noexcept override;
 
         /// <inheritdoc />
@@ -284,7 +280,7 @@ namespace LiteFX::Rendering::Backends {
     /// <summary>
     /// An exception that is thrown, if a requested D3D12 operation could not be executed.
     /// </summary>
-    class DX12PlatformException : public RuntimeException {
+    class LITEFX_DIRECTX12_API DX12PlatformException : public RuntimeException {
     private:
         _com_error m_error;
         HRESULT m_code;

@@ -41,7 +41,7 @@ public:
 	{
 		m_submittedCommandBuffers.clear();
 
-		if (m_timelineSemaphore != nullptr)
+		if (m_timelineSemaphore != VK_NULL_HANDLE)
 			::vkDestroySemaphore(m_device.handle(), m_timelineSemaphore, nullptr);
 
 		m_timelineSemaphore = {};
@@ -123,7 +123,7 @@ QueueType VulkanQueue::type() const noexcept
 	return m_impl->m_type;
 }
 
-#ifndef NDEBUG
+#ifdef LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
 void VulkanQueue::beginDebugRegion(const String& label, const Vectors::ByteVector3& color) const noexcept
 {
 	VkDebugUtilsLabelEXT labelInfo {
@@ -150,7 +150,7 @@ void VulkanQueue::setDebugMarker(const String& label, const Vectors::ByteVector3
 
 	::vkQueueInsertDebugUtilsLabel(this->handle(), &labelInfo);
 }
-#endif
+#endif // LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
 
 QueuePriority VulkanQueue::priority() const noexcept
 {

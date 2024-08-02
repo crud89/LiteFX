@@ -106,19 +106,19 @@ public:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr DirectX12InputAssemblerBuilder::DirectX12InputAssemblerBuilder() noexcept :
+DirectX12InputAssemblerBuilder::DirectX12InputAssemblerBuilder() noexcept :
     m_impl(makePimpl<DirectX12InputAssemblerBuilderImpl>(this)), InputAssemblerBuilder(SharedPtr<DirectX12InputAssembler>(new DirectX12InputAssembler()))
 {
 }
 
-constexpr DirectX12InputAssemblerBuilder::~DirectX12InputAssemblerBuilder() noexcept = default;
+DirectX12InputAssemblerBuilder::~DirectX12InputAssemblerBuilder() noexcept = default;
 
 void DirectX12InputAssemblerBuilder::build()
 {
     this->instance()->m_impl->initialize(m_state.vertexBufferLayouts | std::views::as_rvalue, std::move(m_state.indexBufferLayout), m_state.topology);
 }
 
-constexpr DirectX12VertexBufferLayoutBuilder DirectX12InputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)
+DirectX12VertexBufferLayoutBuilder DirectX12InputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)
 {
     return DirectX12VertexBufferLayoutBuilder(*this, makeUnique<DirectX12VertexBufferLayout>(elementSize, binding));
 }

@@ -97,19 +97,19 @@ jobs:
         uses: lukka/run-cmake@v10
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
-          configurePreset: '${{ matrix.profile }}-publish'
-          buildPreset: '${{ matrix.profile }}-publish'
+          configurePreset: '${{ matrix.profile }}-release'
+          buildPreset: '${{ matrix.profile }}-release'
 
       - name: Upload build artifacts (Release)
         uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: LiteFX-${{ matrix.triplet }}-build-rel
-          path: '${{ github.workspace }}/out/build/${{ matrix.profile }}-publish'
+          path: '${{ github.workspace }}/out/build/${{ matrix.profile }}-release'
 
       - name: Install with CMake (Release)
         run: |
-          Set-Location '${{ github.workspace }}/out/build/${{ matrix.profile }}-publish'
+          Set-Location '${{ github.workspace }}/out/build/${{ matrix.profile }}-release'
           cmake --install .
           
       - name: Sign binaries
@@ -124,7 +124,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: LiteFX-${{ matrix.triplet }}-install
-          path: '${{ github.workspace }}/out/install/${{ matrix.profile }}-publish'
+          path: '${{ github.workspace }}/out/install/${{ matrix.profile }}-release'
           if-no-files-found: error 
           
   publish:

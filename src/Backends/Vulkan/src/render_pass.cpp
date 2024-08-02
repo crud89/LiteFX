@@ -13,7 +13,6 @@ public:
     friend class VulkanRenderPass;
 
 private:
-    Array<UniquePtr<VulkanRenderPipeline>> m_pipelines;
     Array<RenderTarget> m_renderTargets;
     Array<RenderPassDependency> m_inputAttachments;
     Dictionary<const IFrameBuffer*, size_t> m_frameBufferTokens;
@@ -301,11 +300,6 @@ const VulkanQueue& VulkanRenderPass::commandQueue() const noexcept
     return *m_impl->m_queue;
 }
 
-Enumerable<const VulkanRenderPipeline*> VulkanRenderPass::pipelines() const noexcept
-{
-    return m_impl->m_pipelines | std::views::transform([](const UniquePtr<VulkanRenderPipeline>& pipeline) { return pipeline.get(); });
-}
-
 SharedPtr<const VulkanCommandBuffer> VulkanRenderPass::commandBuffer(UInt32 index) const
 {
     if (m_impl->m_activeFrameBuffer == nullptr) [[unlikely]]
@@ -534,18 +528,18 @@ UInt64 VulkanRenderPass::end() const
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-constexpr VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const String& name) noexcept :
+VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, const String& name) noexcept :
     VulkanRenderPassBuilder(device, 1, name)
 {
 }
 
-constexpr VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, UInt32 commandBuffers, const String& name) noexcept :
+VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, UInt32 commandBuffers, const String& name) noexcept :
     RenderPassBuilder(UniquePtr<VulkanRenderPass>(new VulkanRenderPass(device, name)))
 {
     m_state.commandBufferCount = commandBuffers;
 }
 
-constexpr VulkanRenderPassBuilder::~VulkanRenderPassBuilder() noexcept = default;
+VulkanRenderPassBuilder::~VulkanRenderPassBuilder() noexcept = default;
 
 void VulkanRenderPassBuilder::build()
 {
