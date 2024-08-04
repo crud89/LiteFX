@@ -1011,7 +1011,7 @@ namespace LiteFX::Rendering {
         /// <param name="descriptorSize">The size of a single descriptor.</param>
         /// <param name="descriptors">The number of descriptors to bind.</param>
         /// <returns>The descriptor layout instance.</returns>
-        constexpr virtual UniquePtr<descriptor_layout_type> makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors) = 0;
+        virtual UniquePtr<descriptor_layout_type> makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors) = 0;
 
         /// <summary>
         /// Creates a static sampler for the descriptor bound to <see cref="binding" />.
@@ -1028,7 +1028,7 @@ namespace LiteFX::Rendering {
         /// <param name="maxLod">The furthest mip map distance level. </param>
         /// <param name="anisotropy">The maximum anisotropy.</param>
         /// <returns>The descriptor layout instance for the static sampler.</returns>
-        constexpr virtual UniquePtr<descriptor_layout_type> makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) = 0;
+        virtual UniquePtr<descriptor_layout_type> makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) = 0;
 
     public:
         /// <summary>
@@ -1050,7 +1050,7 @@ namespace LiteFX::Rendering {
         /// <param name="descriptors">The number of descriptors to bind.</param>
         template <typename TSelf>
         constexpr [[nodiscard]] auto withDescriptor(this TSelf&& self, DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors = 1) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(type, binding, descriptorSize, descriptors)));
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(type, binding, descriptorSize, descriptors)));
             return std::forward<TSelf>(self);
         }
 
@@ -1070,7 +1070,7 @@ namespace LiteFX::Rendering {
         /// <param name="anisotropy">The maximum anisotropy.</param>
         template <typename TSelf>
         constexpr [[nodiscard]] auto withStaticSampler(this TSelf&& self, UInt32 binding, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float minLod = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float anisotropy = 0.f) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(binding, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy)));
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(binding, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy)));
             return std::forward<TSelf>(self);
         }
 
@@ -1082,7 +1082,7 @@ namespace LiteFX::Rendering {
         /// <param name="descriptors">The number of descriptors in the array.</param>
         template <typename TSelf>
         constexpr [[nodiscard]] auto withConstantBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors = 1) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(DescriptorType::ConstantBuffer, binding, descriptorSize, descriptors)));
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::ConstantBuffer, binding, descriptorSize, descriptors)));
             return std::forward<TSelf>(self);
         }
 
@@ -1094,7 +1094,7 @@ namespace LiteFX::Rendering {
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
         template <typename TSelf>
         constexpr [[nodiscard]] auto withBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(writable ? DescriptorType::RWBuffer : DescriptorType::Buffer, binding, 0, descriptors)));
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(writable ? DescriptorType::RWBuffer : DescriptorType::Buffer, binding, 0, descriptors)));
             return std::forward<TSelf>(self);
         }
 
@@ -1106,7 +1106,7 @@ namespace LiteFX::Rendering {
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
         template <typename TSelf>
         constexpr [[nodiscard]] auto withStructuredBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(writable ? DescriptorType::RWStructuredBuffer : DescriptorType::StructuredBuffer, binding, 0, descriptors)));
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(writable ? DescriptorType::RWStructuredBuffer : DescriptorType::StructuredBuffer, binding, 0, descriptors)));
             return std::forward<TSelf>(self);
         }
 
@@ -1118,7 +1118,7 @@ namespace LiteFX::Rendering {
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
         template <typename TSelf>
         constexpr [[nodiscard]] auto withByteAddressBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(writable ? DescriptorType::RWByteAddressBuffer : DescriptorType::ByteAddressBuffer, binding, 0, descriptors)));
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(writable ? DescriptorType::RWByteAddressBuffer : DescriptorType::ByteAddressBuffer, binding, 0, descriptors)));
             return std::forward<TSelf>(self);
         }
 
@@ -1130,7 +1130,7 @@ namespace LiteFX::Rendering {
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
         template <typename TSelf>
         constexpr [[nodiscard]] auto withTexture(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(writable ? DescriptorType::RWTexture : DescriptorType::Texture, binding, 0, descriptors)));
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(writable ? DescriptorType::RWTexture : DescriptorType::Texture, binding, 0, descriptors)));
             return std::forward<TSelf>(self);
         }
 
@@ -1140,7 +1140,7 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The binding point or register index of the descriptor.</param>
         template <typename TSelf>
         constexpr [[nodiscard]] auto withInputAttachment(this TSelf&& self, UInt32 binding) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(DescriptorType::InputAttachment, binding, 0)));
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::InputAttachment, binding, 0)));
             return std::forward<TSelf>(self);
         }
 
@@ -1153,7 +1153,7 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The binding point or register index of the descriptor.</param>
         template <typename TSelf>
         constexpr [[nodiscard]] auto withAccelerationStructure(this TSelf&& self, UInt32 binding) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(DescriptorType::AccelerationStructure, binding, 0)));
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::AccelerationStructure, binding, 0)));
             return std::forward<TSelf>(self);
         }
 
@@ -1164,7 +1164,7 @@ namespace LiteFX::Rendering {
         /// <param name="descriptors">The number of descriptors in the array.</param>
         template <typename TSelf>
         constexpr [[nodiscard]] auto withSampler(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(self.makeDescriptor(DescriptorType::Sampler, binding, 0, descriptors)));
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::Sampler, binding, 0, descriptors)));
             return std::forward<TSelf>(self);
         }
 
@@ -1247,7 +1247,7 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The binding point for the range.</param>
         template <typename TSelf>
         constexpr auto withRange(this TSelf&& self, ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) -> TSelf&& {
-            self.m_state.ranges.push_back(std::move(self.makeRange(shaderStages, offset, size, space, binding)));
+            self.m_state.ranges.push_back(std::move(static_cast<PushConstantsLayoutBuilder&>(self).makeRange(shaderStages, offset, size, space, binding)));
             return std::forward<TSelf>(self);
         }
     };
