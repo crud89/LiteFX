@@ -39,19 +39,19 @@ void TestApp::onInit()
 
         // Validate input assembler.
         if (inputAssembler->topology() != PrimitiveTopology::TriangleList)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->topology() != PrimitiveTopology::TriangleList");
+            LITEFX_TEST_FAIL("inputAssembler->topology() != PrimitiveTopology::TriangleList");
 
         if (inputAssembler->indexBufferLayout() == nullptr)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->indexBufferLayout() == nullptr");
+            LITEFX_TEST_FAIL("inputAssembler->indexBufferLayout() == nullptr");
         
         if (inputAssembler->indexBufferLayout()->indexType() != IndexType::UInt32)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->indexBufferLayout()->indexType() != IndexType::UInt32");
+            LITEFX_TEST_FAIL("inputAssembler->indexBufferLayout()->indexType() != IndexType::UInt32");
 
         if (inputAssembler->indexBufferLayout()->type() != BufferType::Index)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->indexBufferLayout()->type() != BufferType::Index");
+            LITEFX_TEST_FAIL("inputAssembler->indexBufferLayout()->type() != BufferType::Index");
 
         if (inputAssembler->vertexBufferLayouts().size() != 2)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayouts().size() != 2");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayouts().size() != 2");
 
         try
         {
@@ -59,61 +59,62 @@ void TestApp::onInit()
         }
         catch (const InvalidArgumentException& ex)
         {
+            LITEFX_TEST_FAIL(ex.what());
         }
 
         if (inputAssembler->vertexBufferLayout(1)->binding() != 1)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(1)->binding() != 1");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(1)->binding() != 1");
 
         if (inputAssembler->vertexBufferLayout(1)->elementSize() != sizeof(Vertex))
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(1)->elementSize() != sizeof(Vertex)");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(1)->elementSize() != sizeof(Vertex)");
 
         if (inputAssembler->vertexBufferLayout(1)->type() != BufferType::Vertex)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(1)->type() != BufferType::Vertex");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(1)->type() != BufferType::Vertex");
 
         if (inputAssembler->vertexBufferLayout(1)->attributes().size() != 2)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(1)->attributes().size() != 2");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(1)->attributes().size() != 2");
 
         if (inputAssembler->vertexBufferLayout(1)->attributes().front()->format() != BufferFormat::XYZ32F)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(1)->attributes().front()->format() != BufferFormat::XYZ32F");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(1)->attributes().front()->format() != BufferFormat::XYZ32F");
 
         if (inputAssembler->vertexBufferLayout(1)->attributes().front()->location() != 0)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(1)->attributes().front()->location() != 0");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(1)->attributes().front()->location() != 0");
 
         if (inputAssembler->vertexBufferLayout(1)->attributes().front()->offset() != 0)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(1)->attributes().front()->offset() != 0");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(1)->attributes().front()->offset() != 0");
 
         if (inputAssembler->vertexBufferLayout(1)->attributes().front()->semantic() != AttributeSemantic::Position)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(1)->attributes().front()->semantic() != AttributeSemantic::Position");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(1)->attributes().front()->semantic() != AttributeSemantic::Position");
 
         if (inputAssembler->vertexBufferLayout(1)->attributes().front()->semanticIndex() != 0)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(1)->attributes().front()->semanticIndex() != 0");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(1)->attributes().front()->semanticIndex() != 0");
 
         if (inputAssembler->vertexBufferLayout(4)->binding() != 4)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(4)->binding() != 4");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(4)->binding() != 4");
 
         if (inputAssembler->vertexBufferLayout(4)->elementSize() != sizeof(Vertex))
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(4)->elementSize() != sizeof(Vertex)");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(4)->elementSize() != sizeof(Vertex)");
 
         if (inputAssembler->vertexBufferLayout(4)->type() != BufferType::Vertex)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(4)->type() != BufferType::Vertex");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(4)->type() != BufferType::Vertex");
 
         if (inputAssembler->vertexBufferLayout(4)->attributes().size() != 2)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(4)->attributes().size() != 2");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(4)->attributes().size() != 2");
 
         if (inputAssembler->vertexBufferLayout(4)->attributes().front()->format() != BufferFormat::XYZW32F)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(4)->attributes().front()->format() != BufferFormat::XYZW32F");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(4)->attributes().front()->format() != BufferFormat::XYZW32F");
 
         if (inputAssembler->vertexBufferLayout(4)->attributes().front()->location() != 1)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(4)->attributes().front()->location() != 1");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(4)->attributes().front()->location() != 1");
 
         if (inputAssembler->vertexBufferLayout(4)->attributes().front()->offset() != 28) // addressof(Vertex, Normal)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(4)->attributes().front()->offset() != 28");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(4)->attributes().front()->offset() != 28");
 
         if (inputAssembler->vertexBufferLayout(4)->attributes().front()->semantic() != AttributeSemantic::Normal)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(4)->attributes().front()->semantic() != AttributeSemantic::Normal");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(4)->attributes().front()->semantic() != AttributeSemantic::Normal");
 
         if (inputAssembler->vertexBufferLayout(4)->attributes().front()->semanticIndex() != 0)
-            LITEFX_ERROR(TEST_LOG, "inputAssembler->vertexBufferLayout(4)->attributes().front()->semanticIndex() != 0");
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(4)->attributes().front()->semanticIndex() != 0");
 
         return true;
     };

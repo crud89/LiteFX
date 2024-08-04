@@ -18,6 +18,8 @@ using namespace LiteFX::Rendering::Backends;
 
 constexpr char TEST_LOG[] = "Tests";
 
+#define LITEFX_TEST_FAIL(msg) { LITEFX_ERROR(TEST_LOG, msg); throw LiteFX::RuntimeException("Test failed."); }
+
 class TestApp : public LiteFX::App {
 public:
 	static String Name() noexcept { return "LiteFX D3D12 Backend Test App"; }
