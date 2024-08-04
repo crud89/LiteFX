@@ -11,7 +11,9 @@ Are there any issues that relate to this PR? Please link them.
 - [ ] If this PR is work in progress, open it as a [draft PR](https://github.blog/2019-02-14-introducing-draft-pull-requests/).
 - [ ] If this PR fixes a bug, create a test that re-produces the bug.
 - [ ] If this PR implements a feature, create tests accordingly.
+- [ ] If required, update the `.natvis` file(s) of the altered projects to reflect your changes.
 - [ ] Before submitting the PR, make sure to update the `.docs/release-logs/` for the next version with a summary of the changes.
+  - Consider creating a draft PR to acquire it's URL.
   - If the PR has to break source compatibility †, a new minor release should be targeted;
   - Otherwise target a new patch release.
 
