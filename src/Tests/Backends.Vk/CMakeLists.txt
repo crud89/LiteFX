@@ -4,6 +4,11 @@
 #####                                                                                         #####
 ###################################################################################################
 
+ADD_SHADER_MODULE(Tests.Vk.Shaders.VS SOURCE "shaders/test_vs.hlsl" LANGUAGE HLSL TYPE VERTEX   COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
+ADD_SHADER_MODULE(Tests.Vk.Shaders.FS SOURCE "shaders/test_fs.hlsl" LANGUAGE HLSL TYPE FRAGMENT COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
+SET_TARGET_PROPERTIES(Tests.Vk.Shaders.VS PROPERTIES FOLDER "Tests/Shaders/Vulkan")
+SET_TARGET_PROPERTIES(Tests.Vk.Shaders.FS PROPERTIES FOLDER "Tests/Shaders/Vulkan")
+
 DEFINE_TEST("app_should_accept_vk_backend" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_app_init_test" 
 	SOURCES "common.h" "app_init.cpp"
 	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan 
@@ -32,4 +37,14 @@ DEFINE_TEST("device_resizes_vk_frame_buffer" FOLDER "Tests/Backends/Vk" EXECUTAB
 DEFINE_TEST("render_target_maps_to_vk_frame_buffer" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_map_render_target_to_frame_buffer_test" 
 	SOURCES "common.h" "map_frame_buffer_render_target.cpp"
 	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+)
+
+DEFINE_TEST("device_sets_up_vk_shader_program" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_create_shader_program_test" 
+	SOURCES "common.h" "create_shader_program.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+)
+    
+TARGET_LINK_SHADERS(vk_create_shader_program_test
+    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
+    SHADERS Tests.Vk.Shaders.VS Tests.Vk.Shaders.FS
 )
