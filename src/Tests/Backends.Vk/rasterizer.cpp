@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
 	try
 	{
 		UniquePtr<App> app = App::build<TestApp>()
-            .logTo<ConsoleSink>(LogLevel::Trace)
+            .logTo<ConsoleSink>(LogLevel::Error)
 			.logTo<TerminationSink>(LogLevel::Error) // Exit on error.
 			.useBackend<VulkanBackend>(extensions, layers);
 
