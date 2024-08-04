@@ -25,22 +25,90 @@ void TestApp::onInit()
         // Create the device.
         _device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, false);
 
+        // Create input assembler state.
+        SharedPtr<VulkanInputAssembler> inputAssembler = _device->buildInputAssembler()
+            .topology(PrimitiveTopology::TriangleList)
+            .indexType(IndexType::UInt16)
+            .vertexBuffer(sizeof(Vertex), 0)
+                .withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
+                .withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
+                .add();
+
+        // Create a rasterizer state.
+        SharedPtr<VulkanRasterizer> rasterizer = _device->buildRasterizer()
+            .polygonMode(PolygonMode::Solid)
+            .cullMode(CullMode::BackFaces)
+            .cullOrder(CullOrder::ClockWise)
+            .lineWidth(1.f);
+
+        // Create a geometry render pass.
+        UniquePtr<VulkanRenderPass> renderPass = _device->buildRenderPass("Opaque")
+            .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
+            .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
+
         // Create the shader program.
         SharedPtr<VulkanShaderProgram> shaderProgram = _device->buildShaderProgram()
             .withVertexShaderModule("shaders/test_vs.spv")
             .withFragmentShaderModule("shaders/test_fs.spv");
 
-        // Validate shader program.
-        if (shaderProgram->modules().size() != 2)
-            LITEFX_TEST_FAIL("shaderProgram->modules().size() != 2");
+        // Create a render pipeline.
+        UniquePtr<VulkanRenderPipeline> renderPipeline = _device->buildRenderPipeline(*renderPass, "Geometry")
+            .inputAssembler(inputAssembler)
+            .rasterizer(rasterizer)
+            .layout(shaderProgram->reflectPipelineLayout())
+            .shaderProgram(shaderProgram);
 
-        auto modules = shaderProgram->modules() | std::ranges::to<std::vector>();
+        // Validate render pipeline.
+        if (renderPipeline->inputAssembler().get() != inputAssembler.get())
+            LITEFX_TEST_FAIL("renderPipeline->inputAssembler().get() != inputAssembler.get()");
 
-        if (modules[0]->type() != ShaderStage::Vertex)
-            LITEFX_TEST_FAIL("modules[0]->type() != ShaderStage::Vertex");
+        if (renderPipeline->rasterizer().get() != rasterizer.get())
+            LITEFX_TEST_FAIL("renderPipeline->rasterizer().get() != rasterizer.get()");
 
-        if (modules[1]->type() != ShaderStage::Fragment)
-            LITEFX_TEST_FAIL("modules[1]->type() != ShaderStage::Fragment");
+        if (renderPipeline->program().get() != shaderProgram.get())
+            LITEFX_TEST_FAIL("renderPipeline->program().get() != shaderProgram.get()");
+
+        auto layout = renderPipeline->layout();
+
+        if (layout->pushConstants() != nullptr && layout->pushConstants()->size() > 0)
+            LITEFX_TEST_FAIL("layout->pushConstants() != nullptr && layout->pushConstants()->size() > 0");
+
+        auto descriptorSets = layout->descriptorSets() | std::ranges::to<std::vector>();
+
+        if (descriptorSets.size() != 2)
+            LITEFX_TEST_FAIL("descriptorSets.size() != 2");
+
+        {
+            if (descriptorSets[0]->space() != 0)
+                LITEFX_TEST_FAIL("descriptorSets[0]->space() != 0");
+
+            auto descriptors = descriptorSets[0]->descriptors() | std::ranges::to<std::vector>();
+
+            if (descriptors.size() != 1)
+                LITEFX_TEST_FAIL("descriptors.size() != 1");
+
+            if (descriptors[0]->binding() != 0)
+                LITEFX_TEST_FAIL("descriptors[0]->binding() != 0");
+
+            if (descriptors[0]->descriptorType() != DescriptorType::ConstantBuffer)
+                LITEFX_TEST_FAIL("descriptors[0]->descriptorType() != DescriptorType::ConstantBuffer");
+        }
+
+        {
+            if (descriptorSets[1]->space() != 1)
+                LITEFX_TEST_FAIL("descriptorSets[1]->space() != 1");
+
+            auto descriptors = descriptorSets[1]->descriptors() | std::ranges::to<std::vector>();
+
+            if (descriptors.size() != 1)
+                LITEFX_TEST_FAIL("descriptors.size() != 1");
+
+            if (descriptors[0]->binding() != 0)
+                LITEFX_TEST_FAIL("descriptors[0]->binding() != 0");
+
+            if (descriptors[0]->descriptorType() != DescriptorType::ConstantBuffer)
+                LITEFX_TEST_FAIL("descriptors[0]->descriptorType() != DescriptorType::ConstantBuffer");
+        }
 
         return true;
     };
