@@ -26,7 +26,7 @@ void TestApp::onInit()
 
         // Create a frame buffer and add targets to it.
         auto frameBuffer = _device->makeFrameBuffer("Frame Buffer", _viewport->getRectangle().extent());
-        frameBuffer->addImage("Image 0", Format::B8G8R8A8_UNORM, MultiSamplingLevel::x8);
+        frameBuffer->addImage("Image 0", Format::B8G8R8A8_UNORM, MultiSamplingLevel::x4);
 
         // Create a render target and map it to the image.
         RenderTarget renderTarget{ "Test Target", 0, RenderTargetType::Color, Format::B8G8R8A8_UNORM };

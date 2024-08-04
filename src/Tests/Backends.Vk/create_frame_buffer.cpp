@@ -26,7 +26,7 @@ void TestApp::onInit()
 
         // Create a frame buffer and add targets to it.
         auto frameBuffer = _device->makeFrameBuffer("Frame Buffer", _viewport->getRectangle().extent());
-        frameBuffer->addImage("Image 0", Format::B8G8R8A8_UNORM, MultiSamplingLevel::x8);
+        frameBuffer->addImage("Image 0", Format::B8G8R8A8_UNORM, MultiSamplingLevel::x4);
         frameBuffer->addImage("Image 1", Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, ResourceUsage::FrameBufferImage | ResourceUsage::AllowWrite);
 
         // Validate frame buffer.
@@ -60,8 +60,8 @@ void TestApp::onInit()
         if (image1.format() != Format::B8G8R8A8_UNORM)
             LITEFX_TEST_FAIL("image1.format() != Format::B8G8R8A8_UNORM");
 
-        if (image0.samples() != MultiSamplingLevel::x8)
-            LITEFX_TEST_FAIL("image0.samples() != MultiSamplingLevel::x8");
+        if (image0.samples() != MultiSamplingLevel::x4)
+            LITEFX_TEST_FAIL("image0.samples() != MultiSamplingLevel::x4");
 
         if (image1.samples() != MultiSamplingLevel::x1)
             LITEFX_TEST_FAIL("image1.samples() != MultiSamplingLevel::x1");
