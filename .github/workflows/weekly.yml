@@ -62,7 +62,7 @@ jobs:
         uses: lukka/run-vcpkg@v10
         with:
           vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
-          vcpkgJsonGlob: '**/vcpkg.json'
+          vcpkgJsonGlob: '${{ github.workspace }}/src/vcpkg.json'
 
       - name: Build with CMake and Ninja
         id: build-with-cmake
