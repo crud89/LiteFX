@@ -195,7 +195,7 @@ int main(int argc, char* argv[])
 
     // Setup instance extensions and validation layers.
     Array<String> extensions { VK_KHR_SURFACE_EXTENSION_NAME };
-    Array<String> layers { "VK_LAYER_KHRONOS_validation" };
+    Array<String> layers { "VK_LAYER_KHRONOS_validation", "VK_LAYER_KHRONOS_synchronization2" };
 
 #if defined(WIN32)
     // Enable Windows-specific extensions.
