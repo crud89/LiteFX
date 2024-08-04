@@ -579,6 +579,7 @@ size_t VulkanDescriptorSetLayout::pools() const noexcept
 VulkanDescriptorSetLayoutBuilder::VulkanDescriptorSetLayoutBuilder(VulkanPipelineLayoutBuilder& parent, UInt32 space, ShaderStage stages) :
     DescriptorSetLayoutBuilder(parent, UniquePtr<VulkanDescriptorSetLayout>(new VulkanDescriptorSetLayout(parent.device())))
 {
+    m_state = DescriptorSetLayoutState{ .space = space, .stages = stages, .descriptorLayouts = {} };
 }
 
 VulkanDescriptorSetLayoutBuilder::~VulkanDescriptorSetLayoutBuilder() noexcept = default;
@@ -589,7 +590,7 @@ void VulkanDescriptorSetLayoutBuilder::build()
     instance->m_impl->m_descriptorLayouts = std::move(m_state.descriptorLayouts);
     instance->m_impl->m_space = std::move(m_state.space);
     instance->m_impl->m_stages = std::move(m_state.stages);
-    instance->m_impl->initialize();
+    instance->handle() = instance->m_impl->initialize();
 }
 
 UniquePtr<VulkanDescriptorLayout> VulkanDescriptorSetLayoutBuilder::makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors)

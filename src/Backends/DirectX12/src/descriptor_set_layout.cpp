@@ -306,7 +306,9 @@ void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptor
 DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 space, ShaderStage stages) :
     DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(parent.device())))
 {
+    m_state = DescriptorSetLayoutState{ .space = space, .stages = stages, .descriptorLayouts = {} };
 }
+
 DirectX12DescriptorSetLayoutBuilder::~DirectX12DescriptorSetLayoutBuilder() noexcept = default;
 
 void DirectX12DescriptorSetLayoutBuilder::build()

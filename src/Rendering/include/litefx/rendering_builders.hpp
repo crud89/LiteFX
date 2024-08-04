@@ -372,7 +372,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The shader modules of the program.
             /// </summary>
-            Array<UniquePtr<shader_module_type>> modules;
+            Array<UniquePtr<shader_module_type>> modules{ };
         } m_state;
 
         /// <summary>
@@ -922,7 +922,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The vertex buffer attributes of the layout.
             /// </summary>
-            Array<UniquePtr<BufferAttribute>> attributes;
+            Array<UniquePtr<BufferAttribute>> attributes{ };
         } m_state;
 
     public:
@@ -990,17 +990,17 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The space of the descriptor set.
             /// </summary>
-            UInt32 space;
+            UInt32 space{ };
             
             /// <summary>
             /// The shader stages, the descriptor set is accessible from.
             /// </summary>
-            ShaderStage stages;
+            ShaderStage stages{ };
 
             /// <summary>
             /// The layouts of the descriptors within the descriptor set.
             /// </summary>
-            Array<UniquePtr<descriptor_layout_type>> descriptorLayouts;
+            Array<UniquePtr<descriptor_layout_type>> descriptorLayouts{ };
         } m_state;
 
         /// <summary>
@@ -1222,7 +1222,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The push constant ranges of the layout.
             /// </summary>
-            Array<UniquePtr<push_constants_range_type>> ranges;
+            Array<UniquePtr<push_constants_range_type>> ranges{ };
         } m_state;
 
         /// <summary>
@@ -1274,12 +1274,12 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The descriptor set layouts of the pipeline state.
             /// </summary>
-            Array<UniquePtr<descriptor_set_layout_type>> descriptorSetLayouts;
+            Array<UniquePtr<descriptor_set_layout_type>> descriptorSetLayouts{ };
 
             /// <summary>
             /// The push constant layout of the pipeline state.
             /// </summary>
-            UniquePtr<push_constants_layout_type> pushConstantsLayout;
+            UniquePtr<push_constants_layout_type> pushConstantsLayout{ };
         } m_state;
 
     public:
@@ -1328,17 +1328,17 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The primitive topology.
             /// </summary>
-            PrimitiveTopology topology;
+            PrimitiveTopology topology{ };
 
             /// <summary>
             /// The vertex buffer layouts.
             /// </summary>
-            Array<UniquePtr<vertex_buffer_layout_type>> vertexBufferLayouts;
+            Array<UniquePtr<vertex_buffer_layout_type>> vertexBufferLayouts{ };
             
             /// <summary>
             /// The index buffer layout.
             /// </summary>
-            UniquePtr<index_buffer_layout_type> indexBufferLayout;
+            UniquePtr<index_buffer_layout_type> indexBufferLayout{ };
         } m_state;
 
     public:
@@ -1398,22 +1398,22 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The shader program of the render pipeline.
             /// </summary>
-            SharedPtr<shader_program_type> shaderProgram;
+            SharedPtr<shader_program_type> shaderProgram{ };
 
             /// <summary>
             /// The render pipeline layout.
             /// </summary>
-            SharedPtr<pipeline_layout_type> pipelineLayout;
+            SharedPtr<pipeline_layout_type> pipelineLayout{ };
 
             /// <summary>
             /// The rasterizer state.
             /// </summary>
-            SharedPtr<rasterizer_type> rasterizer;
+            SharedPtr<rasterizer_type> rasterizer{ };
 
             /// <summary>
             /// The input assembler state.
             /// </summary>
-            SharedPtr<input_assembler_type> inputAssembler;
+            SharedPtr<input_assembler_type> inputAssembler{ };
 
             /// <summary>
             /// The alpha-to-coverage setting.
@@ -1517,12 +1517,12 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The compute pipeline shader program.
             /// </summary>
-            SharedPtr<shader_program_type> shaderProgram;
+            SharedPtr<shader_program_type> shaderProgram{ };
 
             /// <summary>
             /// The compute pipeline layout.
             /// </summary>
-            SharedPtr<pipeline_layout_type> pipelineLayout;
+            SharedPtr<pipeline_layout_type> pipelineLayout{ };
         } m_state;
 
     public:
