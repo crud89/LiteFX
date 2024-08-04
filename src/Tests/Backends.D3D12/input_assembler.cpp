@@ -56,10 +56,10 @@ void TestApp::onInit()
         try
         {
             inputAssembler->vertexBufferLayout(0);
+            LITEFX_TEST_FAIL("inputAssembler->vertexBufferLayout(0) was not expected to succeed.");
         }
         catch (const InvalidArgumentException& ex)
         {
-            LITEFX_TEST_FAIL(ex.what());
         }
 
         if (inputAssembler->vertexBufferLayout(1)->binding() != 1)
