@@ -21,6 +21,11 @@ DEFINE_TEST("device_sets_up_d3d12_input_assembler" FOLDER "Tests/Backends/D3D12"
 	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12 
 )
 
+DEFINE_TEST("device_sets_up_d3d12_rasterizer" FOLDER "Tests/Backends/D3D12" EXECUTABLE_NAME "d3d12_rasterizer_test" 
+	SOURCES "common.h" "rasterizer.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12 
+)
+
 DEFINE_TEST("device_sets_up_d3d12_render_pass" FOLDER "Tests/Backends/D3D12" EXECUTABLE_NAME "d3d12_create_render_pass_test" 
 	SOURCES "common.h" "create_render_pass.cpp"
 	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12
