@@ -61,7 +61,8 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "LITEFX_BUILD_TESTS": "ON",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-rel",
+        "LITEFX_BUILD_EXAMPLES": "OFF",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
         "VCPKG_MANIFEST_FEATURES": "pix-support",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
@@ -128,7 +129,8 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "LITEFX_BUILD_TESTS": "ON",
-        "VCPKG_TARGET_TRIPLET": "x86-windows-rel",
+        "LITEFX_BUILD_EXAMPLES": "OFF",
+        "VCPKG_TARGET_TRIPLET": "x86-windows",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
     },
@@ -168,16 +170,16 @@
       "configurePreset": "windows-x64-release-static"
     },
     {
-      "name": "windows-x64-test",
-      "configurePreset": "windows-x64-test"
-    },
-    {
       "name": "windows-x64-debug",
       "configurePreset": "windows-x64-debug"
     },
     {
       "name": "windows-x64-debug-static",
       "configurePreset": "windows-x64-debug-static"
+    },
+    {
+      "name": "windows-x64-test",
+      "configurePreset": "windows-x64-test"
     },
     {
       "name": "windows-x86-release",
@@ -188,12 +190,16 @@
       "configurePreset": "windows-x86-release-static"
     },
     {
-      "name": "windows-x86-test",
-      "configurePreset": "windows-x86-test"
-    },
-    {
       "name": "windows-x86-debug",
       "configurePreset": "windows-x86-debug"
+    },
+    {
+      "name": "windows-x86-debug-static",
+      "configurePreset": "windows-x86-debug-static"
+    },
+    {
+      "name": "windows-x86-test",
+      "configurePreset": "windows-x86-test"
     }
   ],
   "testPresets": [

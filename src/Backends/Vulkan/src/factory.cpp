@@ -143,7 +143,7 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 	UniquePtr<IVulkanBuffer> buffer;
 	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
 
-	bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	bufferInfo.sharingMode = queueFamilies.size() > 1 ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE; // Does not matter anyway if only one queue family is present, but satisfies validation layers.
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
@@ -203,7 +203,7 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 	UniquePtr<IVulkanVertexBuffer> buffer;
 	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
 
-	bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	bufferInfo.sharingMode = queueFamilies.size() > 1 ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE; // Does not matter anyway if only one queue family is present, but satisfies validation layers.
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
@@ -266,7 +266,7 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 	UniquePtr<IVulkanIndexBuffer> buffer;
 	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
 
-	bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	bufferInfo.sharingMode = queueFamilies.size() > 1 ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE; // Does not matter anyway if only one queue family is present, but satisfies validation layers.
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
@@ -329,7 +329,7 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	}
 
 	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
-	imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	imageInfo.sharingMode = queueFamilies.size() > 1 ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE; // Does not matter anyway if only one queue family is present, but satisfies validation layers.
 	imageInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	imageInfo.pQueueFamilyIndices = queueFamilies.data();
 
