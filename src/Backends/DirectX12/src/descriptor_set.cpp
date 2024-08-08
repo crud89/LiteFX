@@ -90,144 +90,144 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
     if (bufferElement + elementCount > buffer.elements()) [[unlikely]]
         LITEFX_WARNING(DIRECTX12_LOG, "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), elementCount, bufferElement);
 
-    // Find the descriptor.
-    auto descriptors = m_impl->m_layout.descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
+        // Find the descriptor.
+        auto descriptors = m_impl->m_layout.descriptors();
+        auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
 
-    if (match == descriptors.end()) [[unlikely]]
-    {
-        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
-        return;
-    }
-    
-    const auto& descriptorLayout = *(*match);
-    auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding) + firstDescriptor;
-    auto descriptorSize = m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, descriptorSize);
-    
-    switch (descriptorLayout.descriptorType())
-    {
-    case DescriptorType::ConstantBuffer:
-    {
-        for (UInt32 i(0); i < elementCount; ++i)
+        if (match == descriptors.end()) [[unlikely]]
         {
-            D3D12_CONSTANT_BUFFER_VIEW_DESC constantBufferView = {
-                .BufferLocation = buffer.handle()->GetGPUVirtualAddress() + static_cast<size_t>(bufferElement + i) * buffer.alignedElementSize(),
-                .SizeInBytes = static_cast<UInt32>(buffer.alignedElementSize())
-            };
-
-            m_impl->m_layout.device().handle()->CreateConstantBufferView(&constantBufferView, descriptorHandle);
-            descriptorHandle = descriptorHandle.Offset(descriptorSize);
+            LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+            return;
         }
 
-        break;
-    }
-    case DescriptorType::StructuredBuffer:
-    {
-        for (UInt32 i(0); i < elementCount; ++i)
-        {
-            D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
-                .Format = DXGI_FORMAT_UNKNOWN,
-                .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
-                .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-                .Buffer = { .FirstElement = bufferElement + i, .NumElements = 1, .StructureByteStride = static_cast<UInt32>(buffer.alignedElementSize()), .Flags = D3D12_BUFFER_SRV_FLAG_NONE }
-            };
+        const auto& descriptorLayout = *(*match);
+        auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding) + firstDescriptor;
+        auto descriptorSize = m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+        CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, descriptorSize);
 
-            m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
-            descriptorHandle = descriptorHandle.Offset(descriptorSize);
+        switch (descriptorLayout.descriptorType())
+        {
+        case DescriptorType::ConstantBuffer:
+        {
+            for (UInt32 i(0); i < elementCount; ++i)
+            {
+                D3D12_CONSTANT_BUFFER_VIEW_DESC constantBufferView = {
+                    .BufferLocation = buffer.handle()->GetGPUVirtualAddress() + static_cast<size_t>(bufferElement + i) * buffer.alignedElementSize(),
+                    .SizeInBytes = static_cast<UInt32>(buffer.alignedElementSize())
+                };
+
+                m_impl->m_layout.device().handle()->CreateConstantBufferView(&constantBufferView, descriptorHandle);
+                descriptorHandle = descriptorHandle.Offset(descriptorSize);
+            }
+
+            break;
+        }
+        case DescriptorType::StructuredBuffer:
+        {
+            for (UInt32 i(0); i < elementCount; ++i)
+            {
+                D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
+                    .Format = DXGI_FORMAT_UNKNOWN,
+                    .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
+                    .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+                    .Buffer = {.FirstElement = bufferElement + i, .NumElements = 1, .StructureByteStride = static_cast<UInt32>(buffer.alignedElementSize()), .Flags = D3D12_BUFFER_SRV_FLAG_NONE }
+                };
+
+                m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
+                descriptorHandle = descriptorHandle.Offset(descriptorSize);
+            }
+
+            break;
+        }
+        case DescriptorType::RWStructuredBuffer:
+        {
+            for (UInt32 i(0); i < elementCount; ++i)
+            {
+                D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
+                    .Format = DXGI_FORMAT_UNKNOWN,
+                    .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
+                    .Buffer = {.FirstElement = bufferElement + i, .NumElements = 1, .StructureByteStride = static_cast<UInt32>(buffer.alignedElementSize()), .CounterOffsetInBytes = 0, .Flags = D3D12_BUFFER_UAV_FLAG_NONE }
+                };
+
+                m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
+                descriptorHandle = descriptorHandle.Offset(descriptorSize);
+            }
+
+            break;
+        }
+        case DescriptorType::ByteAddressBuffer:
+        {
+            for (UInt32 i(0); i < elementCount; ++i)
+            {
+                // NOTE: One takes 4 byte size (sizeof(DWORD)) in DXGI_FORMAT_R32_TYPELESS format, which is required for raw buffers.
+                D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
+                    .Format = DXGI_FORMAT_R32_TYPELESS,
+                    .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
+                    .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+                    .Buffer = {.FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0, .Flags = D3D12_BUFFER_SRV_FLAG_RAW }
+                };
+
+                m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
+                descriptorHandle = descriptorHandle.Offset(descriptorSize);
+            }
+
+            break;
+        }
+        case DescriptorType::RWByteAddressBuffer:
+        {
+            for (UInt32 i(0); i < elementCount; ++i)
+            {
+                // NOTE: Individual fields in a buffer are always required to be 4 bytes wide, while alignment between elements is 16 bytes (D3D12_RAW_UAV_SRV_BYTE_ALIGNMENT).
+                D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
+                    .Format = DXGI_FORMAT_R32_TYPELESS,
+                    .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
+                    .Buffer = {.FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0, .CounterOffsetInBytes = 0, .Flags = D3D12_BUFFER_UAV_FLAG_RAW }
+                };
+
+                m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
+                descriptorHandle = descriptorHandle.Offset(descriptorSize);
+            }
+
+            break;
+        }
+        case DescriptorType::Buffer:
+        {
+            for (UInt32 i(0); i < elementCount; ++i)
+            {
+                D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
+                    .Format = DXGI_FORMAT_R32_TYPELESS, // TODO: Actually set the proper texel format.
+                    .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
+                    .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+                    .Buffer = {.FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0 }
+                };
+
+                m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
+                descriptorHandle = descriptorHandle.Offset(descriptorSize);
+            }
+
+            break;
+        }
+        case DescriptorType::RWBuffer:
+        {
+            for (UInt32 i(0); i < elementCount; ++i)
+            {
+                D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
+                    .Format = DXGI_FORMAT_R32_TYPELESS, // TODO: Actually set the proper texel format.
+                    .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
+                    .Buffer = {.FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0, .CounterOffsetInBytes = 0 }
+                };
+
+                m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
+                descriptorHandle = descriptorHandle.Offset(descriptorSize);
+            }
+
+            break;
+        }
+        default: [[unlikely]]
+                   throw InvalidArgumentException("binding", "The descriptor at binding point {0} does not reference a buffer, uniform or storage resource.", binding);
         }
 
-        break;
-    }
-    case DescriptorType::RWStructuredBuffer:
-    {
-        for (UInt32 i(0); i < elementCount; ++i)
-        {
-            D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
-                .Format = DXGI_FORMAT_UNKNOWN,
-                .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
-                .Buffer = { .FirstElement = bufferElement + i, .NumElements = 1, .StructureByteStride = static_cast<UInt32>(buffer.alignedElementSize()), .CounterOffsetInBytes = 0, .Flags = D3D12_BUFFER_UAV_FLAG_NONE }
-            };
-
-            m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
-            descriptorHandle = descriptorHandle.Offset(descriptorSize);
-        }
-
-        break;
-    }
-    case DescriptorType::ByteAddressBuffer:
-    {
-        for (UInt32 i(0); i < elementCount; ++i)
-        {
-            // NOTE: One takes 4 byte size (sizeof(DWORD)) in DXGI_FORMAT_R32_TYPELESS format, which is required for raw buffers.
-            D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
-                .Format = DXGI_FORMAT_R32_TYPELESS,
-                .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
-                .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-                .Buffer = { .FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0, .Flags = D3D12_BUFFER_SRV_FLAG_RAW }
-            };
-
-            m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
-            descriptorHandle = descriptorHandle.Offset(descriptorSize);
-        }
-
-        break;
-    }
-    case DescriptorType::RWByteAddressBuffer:
-    {
-        for (UInt32 i(0); i < elementCount; ++i)
-        {
-            // NOTE: Individual fields in a buffer are always required to be 4 bytes wide, while alignment between elements is 16 bytes (D3D12_RAW_UAV_SRV_BYTE_ALIGNMENT).
-            D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
-                .Format = DXGI_FORMAT_R32_TYPELESS,
-                .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
-                .Buffer = { .FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0, .CounterOffsetInBytes = 0, .Flags = D3D12_BUFFER_UAV_FLAG_RAW }
-            };
-
-            m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
-            descriptorHandle = descriptorHandle.Offset(descriptorSize);
-        }
-
-        break;
-    }
-    case DescriptorType::Buffer:
-    {
-        for (UInt32 i(0); i < elementCount; ++i)
-        {
-            D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
-                .Format = DXGI_FORMAT_R32_TYPELESS, // TODO: Actually set the proper texel format.
-                .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
-                .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-                .Buffer = { .FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0 }
-            };
-
-            m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
-            descriptorHandle = descriptorHandle.Offset(descriptorSize);
-        }
-
-        break;
-    }
-    case DescriptorType::RWBuffer:
-    {
-        for (UInt32 i(0); i < elementCount; ++i)
-        {
-            D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
-                .Format = DXGI_FORMAT_R32_TYPELESS, // TODO: Actually set the proper texel format.
-                .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
-                .Buffer = { .FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0, .CounterOffsetInBytes = 0 }
-            };
-
-            m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
-            descriptorHandle = descriptorHandle.Offset(descriptorSize);
-        }
-
-        break;
-    }
-    default: [[unlikely]]
-        throw InvalidArgumentException("binding", "The descriptor at binding point {0} does not reference a buffer, uniform or storage resource.", binding);
-    }
-
-    m_impl->updateGlobalBuffers(offset, elementCount);
+        m_impl->updateGlobalBuffers(offset, elementCount);
 }
 
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
@@ -268,8 +268,11 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
             case Format::D32_SFLOAT:            textureView.Format = DXGI_FORMAT_R32_FLOAT; break;
             case Format::D24_UNORM_S8_UINT:     textureView.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; break;
             case Format::D32_SFLOAT_S8_UINT:    textureView.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; break;
-            //case Format::D16_UNORM_S8_UINT: ??
-            //case Format::X8_D24_UNORM: ??
+            case Format::D16_UNORM_S8_UINT:
+            case Format::X8_D24_UNORM:
+                throw InvalidArgumentException("texture", "Unsupported format {0}.", texture.format());
+            default:
+                std::unreachable();
             }
         }
 
@@ -395,11 +398,11 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
         m_impl->m_layout.device().handle()->CreateUnorderedAccessView(texture.handle().Get(), nullptr, &textureView, descriptorHandle);
     }
     else [[unlikely]]
-    {
-        throw InvalidArgumentException("binding", "The provided texture is bound to a descriptor that is does neither describe a `Texture`, nor a `WritableTexture`.");
-    }
+        {
+            throw InvalidArgumentException("binding", "The provided texture is bound to a descriptor that is does neither describe a `Texture`, nor a `WritableTexture`.");
+        }
 
-    m_impl->updateGlobalBuffers(offset, 1);
+        m_impl->updateGlobalBuffers(offset, 1);
 }
 
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sampler, UInt32 descriptor) const
@@ -445,35 +448,35 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Acceleration
         LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
         return;
     }
-    
+
     const auto& layout = *(*match);
 
     if (layout.descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor.", binding);
 
-    auto buffer = accelerationStructure.buffer();
+        auto buffer = accelerationStructure.buffer();
 
-    if (buffer == nullptr) [[unlikely]]
-        throw InvalidArgumentException("accelerationStructure", "The acceleration structure buffer has not yet been allocated.");
+        if (buffer == nullptr) [[unlikely]]
+            throw InvalidArgumentException("accelerationStructure", "The acceleration structure buffer has not yet been allocated.");
 
-    auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
-    auto descriptorSize = m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, descriptorSize);
+            auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
+            auto descriptorSize = m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, descriptorSize);
 
-    D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
-        .Format = DXGI_FORMAT_UNKNOWN,
-        .ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
-        .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-        .RaytracingAccelerationStructure = { .Location = buffer->virtualAddress() }
-    };
+            D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
+                .Format = DXGI_FORMAT_UNKNOWN,
+                .ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
+                .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
+                .RaytracingAccelerationStructure = {.Location = buffer->virtualAddress() }
+            };
 
-    m_impl->m_layout.device().handle()->CreateShaderResourceView(nullptr, &bufferView, descriptorHandle);
-    descriptorHandle = descriptorHandle.Offset(descriptorSize);
+            m_impl->m_layout.device().handle()->CreateShaderResourceView(nullptr, &bufferView, descriptorHandle);
+            descriptorHandle = descriptorHandle.Offset(descriptorSize);
 
-    m_impl->updateGlobalBuffers(offset, 1);
+            m_impl->updateGlobalBuffers(offset, 1);
 }
 
-const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::bufferHeap() const noexcept 
+const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::bufferHeap() const noexcept
 {
     return m_impl->m_bufferHeap;
 }

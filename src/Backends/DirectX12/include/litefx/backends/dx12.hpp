@@ -2115,7 +2115,7 @@ namespace LiteFX::Rendering::Backends {
         explicit DirectX12Backend(const App& app, bool advancedSoftwareRasterizer = false);
         DirectX12Backend(const DirectX12Backend&) noexcept = delete;
         DirectX12Backend(DirectX12Backend&&) noexcept = delete;
-        virtual ~DirectX12Backend();
+        virtual ~DirectX12Backend() noexcept override;
 
         // IBackend interface.
     public:
