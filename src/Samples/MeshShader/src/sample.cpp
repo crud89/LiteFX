@@ -22,9 +22,11 @@ struct FileExtensions {
 };
 
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
+template<>
 const String FileExtensions<VulkanBackend>::SHADER = "spv";
 #endif // LITEFX_BUILD_VULKAN_BACKEND
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
+template<>
 const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
