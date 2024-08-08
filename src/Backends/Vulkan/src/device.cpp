@@ -4,18 +4,18 @@
 
 using namespace LiteFX::Rendering::Backends;
 
-extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks { nullptr }; 
-extern PFN_vkCmdDrawMeshTasksIndirectEXT vkCmdDrawMeshTasksIndirect { nullptr };
-extern PFN_vkCmdDrawMeshTasksIndirectCountEXT vkCmdDrawMeshTasksIndirectCount { nullptr };
-extern PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizes { nullptr };
-extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure { nullptr };
-extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure { nullptr };
-extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructures { nullptr };
-extern PFN_vkCmdCopyAccelerationStructureKHR vkCmdCopyAccelerationStructure { nullptr };
-extern PFN_vkCmdWriteAccelerationStructuresPropertiesKHR vkCmdWriteAccelerationStructuresProperties { nullptr };
-extern PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelines { nullptr };
-extern PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandles { nullptr };
-extern PFN_vkCmdTraceRaysKHR vkCmdTraceRays { nullptr };
+PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks{ nullptr };
+PFN_vkCmdDrawMeshTasksIndirectEXT vkCmdDrawMeshTasksIndirect{ nullptr };
+PFN_vkCmdDrawMeshTasksIndirectCountEXT vkCmdDrawMeshTasksIndirectCount{ nullptr };
+PFN_vkGetAccelerationStructureBuildSizesKHR vkGetAccelerationStructureBuildSizes{ nullptr };
+PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure{ nullptr };
+PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure{ nullptr };
+PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructures{ nullptr };
+PFN_vkCmdCopyAccelerationStructureKHR vkCmdCopyAccelerationStructure{ nullptr };
+PFN_vkCmdWriteAccelerationStructuresPropertiesKHR vkCmdWriteAccelerationStructuresProperties{ nullptr };
+PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelines{ nullptr };
+PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandles{ nullptr };
+PFN_vkCmdTraceRaysKHR vkCmdTraceRays{ nullptr };
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -42,27 +42,27 @@ private:
 
     public:
         QueueFamily(UInt32 id, UInt32 queueCount, QueueType type) :
-            m_id(id), m_queueCount(queueCount), m_type(type) 
+            m_id(id), m_queueCount(queueCount), m_type(type)
         {
             if (queueCount == 0) [[unlikely]]
                 throw InvalidArgumentException("queueCount", "An empty queue family is invalid.");
 
-            // Initialize queue priorities. First queue always has the highest priority possible, as those become the default queues. After this we fill up the space evenly 
-            // through all available priorities. Currently there are two priorities (`High` and `Normal`)
-            auto chunkSize = (queueCount - 1) / 2;
-            auto remainder = (queueCount - 1) % 2;
+                // Initialize queue priorities. First queue always has the highest priority possible, as those become the default queues. After this we fill up the space evenly 
+                // through all available priorities. Currently there are two priorities (`High` and `Normal`)
+                auto chunkSize = (queueCount - 1) / 2;
+                auto remainder = (queueCount - 1) % 2;
 
-            auto high = std::views::repeat(static_cast<Float>(QueuePriority::High) / 100.0f)   | std::views::take(chunkSize);
-            auto low  = std::views::repeat(static_cast<Float>(QueuePriority::Normal) / 100.0f) | std::views::take(chunkSize + remainder);
-            
-            m_queuePriorities.push_back(1.0f);
+                auto high = std::views::repeat(static_cast<Float>(QueuePriority::High) / 100.0f) | std::views::take(chunkSize);
+                auto low = std::views::repeat(static_cast<Float>(QueuePriority::Normal) / 100.0f) | std::views::take(chunkSize + remainder);
+
+                m_queuePriorities.push_back(1.0f);
 
 #ifdef __cpp_lib_containers_ranges
-            m_queuePriorities.append_range(high);
-            m_queuePriorities.append_range(low);
+                m_queuePriorities.append_range(high);
+                m_queuePriorities.append_range(low);
 #else
-            m_queuePriorities.insert(m_queuePriorities.end(), high.cbegin(), high.cend());
-            m_queuePriorities.insert(m_queuePriorities.end(), low.cbegin(), low.cend());
+                m_queuePriorities.insert(m_queuePriorities.end(), high.cbegin(), high.cend());
+                m_queuePriorities.insert(m_queuePriorities.end(), low.cbegin(), low.cend());
 #endif
         }
         QueueFamily(const QueueFamily& _other) = delete;
@@ -80,16 +80,16 @@ private:
     public:
         VulkanQueue* createQueue(const VulkanDevice& device, QueuePriority priority) {
             // First, list all queues with the requested priority.
-            auto left  = std::ranges::lower_bound(m_queuePriorities, static_cast<Float>(priority) / 100.0f, std::greater<float>{});
+            auto left = std::ranges::lower_bound(m_queuePriorities, static_cast<Float>(priority) / 100.0f, std::greater<float>{});
             auto right = std::ranges::upper_bound(m_queuePriorities, static_cast<Float>(priority) / 100.0f, std::greater<float>{});
 
             if (left == std::end(m_queuePriorities)) [[unlikely]]
             {
                 QueuePriority nextPriority;
-                
+
                 switch (priority)
                 {
-                using enum QueuePriority;
+                    using enum QueuePriority;
                 case Normal: nextPriority = QueuePriority::High; break;
                 case High: nextPriority = QueuePriority::Realtime; break; // This will find the default queue
                 case Realtime: [[unlikely]] // Should never actually happen, as there should be at least one queue in the family.
@@ -219,25 +219,25 @@ public:
         Array<VkQueueFamilyProperties> familyProperties(queueFamilies);
         ::vkGetPhysicalDeviceQueueFamilyProperties(m_adapter.handle(), &queueFamilies, familyProperties.data());
 
-        auto families = familyProperties | 
+        auto families = familyProperties |
             std::views::transform([i = 0](const VkQueueFamilyProperties& familyProperty) mutable -> Tuple<int, UInt32, QueueType> {
-                QueueType type = QueueType::None;
+            QueueType type = QueueType::None;
 
-                if (familyProperty.queueFlags & VK_QUEUE_COMPUTE_BIT)
-                    type |= QueueType::Compute;
-                if (familyProperty.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-                    type |= QueueType::Graphics;
-                if (familyProperty.queueFlags & VK_QUEUE_TRANSFER_BIT)
-                    type |= QueueType::Transfer;
-                if (familyProperty.queueFlags & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
-                    type |= QueueType::VideoDecode;
+            if (familyProperty.queueFlags & VK_QUEUE_COMPUTE_BIT)
+                type |= QueueType::Compute;
+            if (familyProperty.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+                type |= QueueType::Graphics;
+            if (familyProperty.queueFlags & VK_QUEUE_TRANSFER_BIT)
+                type |= QueueType::Transfer;
+            if (familyProperty.queueFlags & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
+                type |= QueueType::VideoDecode;
 
 #ifdef VK_ENABLE_BETA_EXTENSIONS
-                if (familyProperty.queueFlags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
-                    type |= QueueType::VideoEncode;
+            if (familyProperty.queueFlags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
+                type |= QueueType::VideoEncode;
 #endif // VK_ENABLE_BETA_EXTENSIONS
 
-                return { i++, familyProperty.queueCount, type };
+            return { i++, familyProperty.queueCount, type };
             }) | std::ranges::to<std::vector>();
 
         // Sort by flag popcount, so that the most specialized queues are always first.
@@ -255,7 +255,7 @@ public:
             throw InvalidArgumentException("extensions", "Some required device extensions are not supported by the system.");
 
         auto const requiredExtensions = m_extensions | std::views::transform([](const auto& extension) { return extension.c_str(); }) | std::ranges::to<Array<const char*>>();
-        
+
         // Creating queues in Vulkan is a bit odd in that we need to specify how many queues we want before actually allocating them. Since this is different to other APIs,
         // where we can create queues, as we need them, we allocate as many as possible and only hand them out if required. This will cause most of the queues to idle, in
         // which case it should not matter, that we created them in the first place. On NVidia it seems that all queues from one family are virtualized into a single queue
@@ -267,12 +267,12 @@ public:
 
         auto const queueCreateInfos = m_families |
             std::views::transform([&priorities](auto& family) {
-                return VkDeviceQueueCreateInfo {
-                    .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-                    .queueFamilyIndex = family.id(),
-                    .queueCount = family.total(),
-                    .pQueuePriorities = priorities.data()
-                };
+            return VkDeviceQueueCreateInfo{
+                .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                .queueFamilyIndex = family.id(),
+                .queueCount = family.total(),
+                .pQueuePriorities = priorities.data()
+            };
             }) | std::ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
         // Enable ray-tracing features.
@@ -461,12 +461,12 @@ public:
         return device;
     }
 
-    void initializeDefaultQueues() 
+    void initializeDefaultQueues()
     {
         // Initialize default queues.
         m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::Realtime, std::as_const(*m_surface).handle());
         m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Realtime);
-        m_computeQueue  = this->createQueue(QueueType::Compute,  QueuePriority::Realtime);
+        m_computeQueue = this->createQueue(QueueType::Compute, QueuePriority::Realtime);
 
         if (m_graphicsQueue == nullptr)
             throw RuntimeException("Unable to find a fitting command queue to present the specified surface.");
@@ -499,7 +499,7 @@ public:
     {
         // Find the queue that is most specialized for the provided queue type. Since the queues are ordered based on their type popcount (most specialized queues come first, as they have 
         // lower type flags set), we can simply pick the first one we find, that matches all the flags.
-        auto match = std::ranges::find_if(m_families, [&](const auto& family) { 
+        auto match = std::ranges::find_if(m_families, [&](const auto& family) {
             VkBool32 result = LITEFX_FLAG_IS_SET(family.type(), type);
 
             if (surface != VK_NULL_HANDLE) [[unlikely]]
@@ -575,7 +575,7 @@ void VulkanDevice::setDebugName(UInt64 handle, VkDebugReportObjectTypeEXT type, 
             .object = handle,
             .pObjectName = name.data()
         };
-        
+
         if (m_impl->debugMarkerSetObjectName(this->handle(), &nameInfo) != VK_SUCCESS)
             LITEFX_WARNING(VULKAN_LOG, "Unable to set object name for object handle {0}.", reinterpret_cast<void*>(handle));
     }
@@ -584,9 +584,9 @@ void VulkanDevice::setDebugName(UInt64 handle, VkDebugReportObjectTypeEXT type, 
 
 Enumerable<UInt32> VulkanDevice::queueFamilyIndices(QueueType type) const noexcept
 {
-    return m_impl->m_families | 
+    return m_impl->m_families |
         std::views::filter([type](const auto& family) { return type == QueueType::None || LITEFX_FLAG_IS_SET(family.type(), type); }) |
-        std::views::transform([](const auto& family) { return family.id(); }) | 
+        std::views::transform([](const auto& family) { return family.id(); }) |
         std::ranges::to<Enumerable<UInt32>>();
 }
 
@@ -690,7 +690,7 @@ const VulkanQueue& VulkanDevice::defaultQueue(QueueType type) const
         throw InvalidArgumentException("type", "No default queue for the provided queue type has was found.");
 }
 
-const VulkanQueue* VulkanDevice::createQueue(QueueType type, QueuePriority priority) noexcept 
+const VulkanQueue* VulkanDevice::createQueue(QueueType type, QueuePriority priority) noexcept
 {
     return m_impl->createQueue(type, priority);
 }
@@ -749,8 +749,8 @@ void VulkanDevice::computeAccelerationStructureSizes(const VulkanBottomLevelAcce
     auto descriptions = buildInfo | std::views::values | std::ranges::to<Array<VkAccelerationStructureGeometryKHR>>();
     auto sizes = buildInfo | std::views::keys | std::ranges::to<Array<UInt32>>();
 
-    VkAccelerationStructureBuildSizesInfoKHR prebuildInfo = { 
-        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR 
+    VkAccelerationStructureBuildSizesInfoKHR prebuildInfo = {
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR
     };
 
     VkAccelerationStructureBuildGeometryInfoKHR inputs = {
@@ -794,8 +794,8 @@ void VulkanDevice::computeAccelerationStructureSizes(const VulkanTopLevelAcceler
         }
     };
 
-    VkAccelerationStructureBuildSizesInfoKHR prebuildInfo = { 
-        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR 
+    VkAccelerationStructureBuildSizesInfoKHR prebuildInfo = {
+        .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_BUILD_SIZES_INFO_KHR
     };
 
     VkAccelerationStructureBuildGeometryInfoKHR inputs = {
