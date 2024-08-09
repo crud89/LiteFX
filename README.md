@@ -98,8 +98,8 @@ There are multiple ways of creating a build from scratch. In general, all *CMake
 Building from command line is the most straightforward way and is typically sufficient, if you only want to consume a fresh build.
 
 ```sh
-cmake src/ --preset windows-x64-release
-cmake --build out/build/windows-x64-release/ --target install
+cmake src/ --preset windows-msvc-x64-release
+cmake --build out/build/windows-msvc-x64-release/ --target install
 ```
 
 ##### Using Visual Studio
@@ -121,7 +121,7 @@ You can customize the engine build, according to your specific needs. The most s
   "configurePresets": [
     {
       "name": "win-x64-custom-preset",
-      "inherits": "windows-x64-release",
+      "inherits": "windows-msvc-x64-release",
       "cacheVariables": {
       }
     }
@@ -156,7 +156,7 @@ For example, if you only want to build the Vulkan backend and samples and don't 
   "configurePresets": [
     {
       "name": "win-x64-vulkan-only",
-      "inherits": "windows-x64-release",
+      "inherits": "windows-msvc-x64-release",
       "cacheVariables": {
         "LITEFX_BUILD_DX12_BACKEND": "OFF",
         "LITEFX_BUILD_WITH_DIRECTX_MATH": "OFF"

@@ -54,7 +54,7 @@ jobs:
         include:
           - os: windows-latest
             triplet: x64-windows
-            configuration: windows-x64-test
+            configuration: windows-msvc-x64-test
             architecture: x64
 
     steps:

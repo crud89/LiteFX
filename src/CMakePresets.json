@@ -23,7 +23,7 @@
       }
     },
     {
-      "name": "windows-x64-debug",
+      "name": "windows-msvc-x64-debug",
       "inherits": "windows",
       "architecture": {
         "value": "x64",
@@ -37,7 +37,7 @@
       }
     },
     {
-      "name": "windows-x64-debug-static",
+      "name": "windows-msvc-x64-debug-static",
       "inherits": "windows",
       "architecture": {
         "value": "x64",
@@ -52,7 +52,7 @@
       }
     },
     {
-      "name": "windows-x64-test",
+      "name": "windows-msvc-x64-test",
       "inherits": "windows",
       "architecture": {
         "value": "x64",
@@ -67,7 +67,7 @@
       }
     },
     {
-      "name": "windows-x64-release",
+      "name": "windows-msvc-x64-release",
       "inherits": "windows",
       "architecture": {
         "value": "x64",
@@ -79,7 +79,7 @@
       }
     },
     {
-      "name": "windows-x64-release-static",
+      "name": "windows-msvc-x64-release-static",
       "inherits": "windows",
       "architecture": {
         "value": "x64",
@@ -92,7 +92,7 @@
       }
     },
     {
-      "name": "windows-x86-debug",
+      "name": "windows-msvc-x86-debug",
       "inherits": "windows",
       "architecture": {
         "value": "x86",
@@ -105,7 +105,7 @@
       }
     },
     {
-      "name": "windows-x86-debug-static",
+      "name": "windows-msvc-x86-debug-static",
       "inherits": "windows",
       "architecture": {
         "value": "x86",
@@ -119,7 +119,7 @@
       }
     },
     {
-      "name": "windows-x86-test",
+      "name": "windows-msvc-x86-test",
       "inherits": "windows",
       "architecture": {
         "value": "x86",
@@ -133,7 +133,7 @@
       }
     },
     {
-      "name": "windows-x86-release",
+      "name": "windows-msvc-x86-release",
       "inherits": "windows",
       "architecture": {
         "value": "x86",
@@ -145,7 +145,7 @@
       }
     },
     {
-      "name": "windows-x86-release-static",
+      "name": "windows-msvc-x86-release-static",
       "inherits": "windows",
       "architecture": {
         "value": "x86",
@@ -160,50 +160,50 @@
   ],
   "buildPresets": [
     {
-      "name": "windows-x64-release",
-      "configurePreset": "windows-x64-release"
+      "name": "windows-msvc-x64-release",
+      "configurePreset": "windows-msvc-x64-release"
     },
     {
-      "name": "windows-x64-release-static",
-      "configurePreset": "windows-x64-release-static"
+      "name": "windows-msvc-x64-release-static",
+      "configurePreset": "windows-msvc-x64-release-static"
     },
     {
-      "name": "windows-x64-test",
-      "configurePreset": "windows-x64-test"
+      "name": "windows-msvc-x64-test",
+      "configurePreset": "windows-msvc-x64-test"
     },
     {
-      "name": "windows-x64-debug",
-      "configurePreset": "windows-x64-debug"
+      "name": "windows-msvc-x64-debug",
+      "configurePreset": "windows-msvc-x64-debug"
     },
     {
-      "name": "windows-x64-debug-static",
-      "configurePreset": "windows-x64-debug-static"
+      "name": "windows-msvc-x64-debug-static",
+      "configurePreset": "windows-msvc-x64-debug-static"
     },
     {
-      "name": "windows-x86-release",
-      "configurePreset": "windows-x86-release"
+      "name": "windows-msvc-x86-release",
+      "configurePreset": "windows-msvc-x86-release"
     },
     {
-      "name": "windows-x86-release-static",
-      "configurePreset": "windows-x86-release-static"
+      "name": "windows-msvc-x86-release-static",
+      "configurePreset": "windows-msvc-x86-release-static"
     },
     {
-      "name": "windows-x86-test",
-      "configurePreset": "windows-x86-test"
+      "name": "windows-msvc-x86-test",
+      "configurePreset": "windows-msvc-x86-test"
     },
     {
-      "name": "windows-x86-debug",
-      "configurePreset": "windows-x86-debug"
+      "name": "windows-msvc-x86-debug",
+      "configurePreset": "windows-msvc-x86-debug"
     }
   ],
   "testPresets": [
     {
-      "name": "windows-x64-test",
-      "configurePreset": "windows-x64-test"
+      "name": "windows-msvc-x64-test",
+      "configurePreset": "windows-msvc-x64-test"
     },
     {
-      "name": "windows-x86-test",
-      "configurePreset": "windows-x86-test"
+      "name": "windows-msvc-x86-test",
+      "configurePreset": "windows-msvc-x86-test"
     }
   ]
 }
