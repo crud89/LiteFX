@@ -23,8 +23,19 @@
       }
     },
     {
+      "name": "msvc",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl", 
+        "CMAKE_CXX_COMPILER": "cl"
+      }
+    },
+    {
       "name": "windows-msvc-x64-debug",
-      "inherits": "windows",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x64",
         "strategy": "external"
@@ -38,7 +49,10 @@
     },
     {
       "name": "windows-msvc-x64-debug-static",
-      "inherits": "windows",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x64",
         "strategy": "external"
@@ -53,7 +67,10 @@
     },
     {
       "name": "windows-msvc-x64-test",
-      "inherits": "windows",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x64",
         "strategy": "external"
@@ -68,7 +85,10 @@
     },
     {
       "name": "windows-msvc-x64-release",
-      "inherits": "windows",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x64",
         "strategy": "external"
@@ -80,7 +100,10 @@
     },
     {
       "name": "windows-msvc-x64-release-static",
-      "inherits": "windows",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x64",
         "strategy": "external"
@@ -93,7 +116,10 @@
     },
     {
       "name": "windows-msvc-x86-debug",
-      "inherits": "windows",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x86",
         "strategy": "external"
@@ -106,7 +132,10 @@
     },
     {
       "name": "windows-msvc-x86-debug-static",
-      "inherits": "windows",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x86",
         "strategy": "external"
@@ -120,7 +149,10 @@
     },
     {
       "name": "windows-msvc-x86-test",
-      "inherits": "windows",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x86",
         "strategy": "external"
@@ -134,7 +166,10 @@
     },
     {
       "name": "windows-msvc-x86-release",
-      "inherits": "windows",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x86",
         "strategy": "external"
@@ -146,7 +181,10 @@
     },
     {
       "name": "windows-msvc-x86-release-static",
-      "inherits": "windows",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x86",
         "strategy": "external"
