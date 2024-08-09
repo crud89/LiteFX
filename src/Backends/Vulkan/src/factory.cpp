@@ -112,6 +112,8 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 		usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
 		alignment = m_impl->m_device.adapter().limits().minStorageBufferOffsetAlignment;
 		break;
+	default:
+		throw InvalidArgumentException("type", "Specified buffer type '{0}' is not supported.", type);
 	}
 
 	if (alignment > 0)

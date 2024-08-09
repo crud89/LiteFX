@@ -306,7 +306,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="stage">The pipeline stages to wait for before executing the barrier.</param>
         template <typename TSelf>
-        constexpr [[nodiscard]] auto waitFor(this TSelf&& self, PipelineStage stage) -> SecondStageBuilder<TSelf> {
+        [[nodiscard]] constexpr auto waitFor(this TSelf&& self, PipelineStage stage) -> SecondStageBuilder<TSelf> {
             return SecondStageBuilder<TSelf>{ std::move(self), stage };
         }
 

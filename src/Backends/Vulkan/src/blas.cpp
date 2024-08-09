@@ -59,12 +59,18 @@ public:
                         .triangles = {
                             .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR,
                             .vertexFormat = Vk::getFormat((*positionAttribute)->format()),
-                            .vertexData = mesh.VertexBuffer->virtualAddress(),
+                            .vertexData = {
+                                .deviceAddress = mesh.VertexBuffer->virtualAddress(),
+                            },
                             .vertexStride = mesh.VertexBuffer->alignedElementSize(),
                             .maxVertex = mesh.VertexBuffer->elements(),
                             .indexType = mesh.IndexBuffer == nullptr ? VK_INDEX_TYPE_NONE_KHR : (mesh.IndexBuffer->layout().indexType() == IndexType::UInt16 ? VK_INDEX_TYPE_UINT16 : VK_INDEX_TYPE_UINT32),
-                            .indexData = mesh.IndexBuffer == nullptr ? 0 : mesh.IndexBuffer->virtualAddress(),
-                            .transformData = mesh.TransformBuffer == nullptr ? 0 : mesh.TransformBuffer->virtualAddress()
+                            .indexData = {
+                                .deviceAddress = mesh.IndexBuffer == nullptr ? 0 : mesh.IndexBuffer->virtualAddress(),
+                            },
+                            .transformData = {
+                                .deviceAddress = mesh.TransformBuffer == nullptr ? 0 : mesh.TransformBuffer->virtualAddress()
+                            },
                         }
                     },
                     .flags = std::bit_cast<VkGeometryFlagsKHR>(mesh.Flags)
@@ -85,7 +91,9 @@ public:
                     .geometry = {
                         .aabbs = {
                             .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_AABBS_DATA_KHR,
-                            .data = bb.Buffer->virtualAddress(),
+                            .data = {
+                                .deviceAddress = bb.Buffer->virtualAddress(),
+                            },
                             .stride = bb.Buffer->alignedElementSize()
                         }
                     },

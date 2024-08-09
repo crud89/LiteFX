@@ -110,7 +110,9 @@ public:
 			.dstAccelerationStructure = handle,
 			.geometryCount = static_cast<UInt32>(descriptions.size()),
 			.pGeometries = descriptions.data(),
-			.scratchData = scratchBuffer->virtualAddress()
+			.scratchData = {
+			    .deviceAddress = scratchBuffer->virtualAddress() 
+			}
 		};
 
 		::vkCmdBuildAccelerationStructures(m_parent->handle(), 1, &inputs, &rangePointer);
@@ -179,7 +181,9 @@ public:
 			.dstAccelerationStructure = handle,
 			.geometryCount = 1u,
 			.pGeometries = &geometryInfo,
-			.scratchData = scratchBuffer->virtualAddress()
+			.scratchData = {
+				.deviceAddress = scratchBuffer->virtualAddress()
+			}
 		};
 
 		::vkCmdBuildAccelerationStructures(m_parent->handle(), 1, &inputs, &rangePointer);
