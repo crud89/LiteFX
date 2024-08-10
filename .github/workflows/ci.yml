@@ -56,6 +56,10 @@ jobs:
             triplet: x64-windows
             configuration: windows-msvc-x64-test
             architecture: x64
+          - os: windows-latest
+            triplet: x64-windows
+            configuration: windows-clang-x64-test
+            architecture: x64
 
     steps:
       - name: Retrieve PR info
@@ -102,6 +106,11 @@ jobs:
         run: | 
           choco install opencppcoverage
           echo "C:\Program Files\OpenCppCoverage" >> $GITHUB_PATH
+
+      - name: Install LLVM and Clang
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "18.0"
 
       - name: Setup build and test environment
         id: setup-environment
