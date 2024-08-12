@@ -59,11 +59,16 @@ DEFINE_TEST("device_sets_up_vk_render_pipeline" FOLDER "Tests/Backends/Vk" EXECU
 	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
 )
 
+TARGET_LINK_SHADERS(vk_create_render_pipeline_test
+    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
+    SHADERS Tests.Vk.Shaders.VS Tests.Vk.Shaders.FS
+)
+
 DEFINE_TEST("shader_program_reflects_vk_render_pipeline" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_reflect_render_pipeline_test" 
 	SOURCES "common.h" "reflect_render_pipeline.cpp"
 	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
 )
-    
+
 TARGET_LINK_SHADERS(vk_reflect_render_pipeline_test
     INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
     SHADERS Tests.Vk.Shaders.VS Tests.Vk.Shaders.FS

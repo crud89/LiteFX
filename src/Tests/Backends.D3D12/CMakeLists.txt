@@ -61,6 +61,10 @@ DEFINE_TEST("device_sets_up_d3d12_render_pipeline" FOLDER "Tests/Backends/D3D12"
 	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12
 )
 
+TARGET_LINK_SHADERS(d3d12_create_render_pipeline_test
+    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
+    SHADERS Tests.Dx.Shaders.VS Tests.Dx.Shaders.PS
+)
 
 DEFINE_TEST("shader_program_reflects_d3d12_render_pipeline" FOLDER "Tests/Backends/D3D12" EXECUTABLE_NAME "d3d12_reflect_render_pipeline_test" 
 	SOURCES "common.h" "reflect_render_pipeline.cpp"
