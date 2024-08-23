@@ -228,13 +228,13 @@ namespace LiteFX::Rendering::Backends {
         void addBoundingBox(const BoundingBoxes& aabb) override;
 
         /// <inheritdoc />
-        virtual void clear() noexcept override;
+        void clear() noexcept override;
 
         /// <inheritdoc />
-        virtual bool remove(const TriangleMesh& mesh) noexcept override;
+        bool remove(const TriangleMesh& mesh) noexcept override;
 
         /// <inheritdoc />
-        virtual bool remove(const BoundingBoxes& aabb) noexcept override;
+        bool remove(const BoundingBoxes& aabb) noexcept override;
 
     private:
         Array<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> buildInfo() const;
@@ -305,10 +305,10 @@ namespace LiteFX::Rendering::Backends {
         void addInstance(const Instance& instance) override;
 
         /// <inheritdoc />
-        virtual void clear() noexcept override;
+        void clear() noexcept override;
 
         /// <inheritdoc />
-        virtual bool remove(const Instance& mesh) noexcept override;
+        bool remove(const Instance& mesh) noexcept override;
 
     private:
         Array<VkAccelerationStructureInstanceKHR> buildInfo() const noexcept;
@@ -1871,10 +1871,10 @@ namespace LiteFX::Rendering::Backends {
         Enumerable<UniquePtr<IVulkanSampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
 
         /// <inheritdoc />
-        virtual UniquePtr<VulkanBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
+        UniquePtr<VulkanBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
 
         /// <inheritdoc />
-        virtual UniquePtr<VulkanTopLevelAccelerationStructure> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
+        UniquePtr<VulkanTopLevelAccelerationStructure> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
     };
 
     /// <summary>

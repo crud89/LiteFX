@@ -213,7 +213,7 @@ namespace LiteFX::Rendering {
         virtual Enumerable<const descriptor_layout_type*> descriptors() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const descriptor_layout_type& descriptor(UInt32 binding) const override = 0;
+        const descriptor_layout_type& descriptor(UInt32 binding) const override = 0;
 
         /// <inheritdoc />
         virtual UniquePtr<descriptor_set_type> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const = 0;
@@ -342,13 +342,13 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual const descriptor_set_layout_type& descriptorSet(UInt32 space) const override = 0;
+        const descriptor_set_layout_type& descriptorSet(UInt32 space) const override = 0;
 
         /// <inheritdoc />
         virtual Enumerable<const descriptor_set_layout_type*> descriptorSets() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const push_constants_layout_type* pushConstants() const noexcept override = 0;
+        const push_constants_layout_type* pushConstants() const noexcept override = 0;
 
     private:
         inline Enumerable<const IDescriptorSetLayout*> getDescriptorSets() const noexcept override {
@@ -413,10 +413,10 @@ namespace LiteFX::Rendering {
         virtual Enumerable<const vertex_buffer_layout_type*> vertexBufferLayouts() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const vertex_buffer_layout_type* vertexBufferLayout(UInt32 binding) const override = 0;
+        const vertex_buffer_layout_type* vertexBufferLayout(UInt32 binding) const override = 0;
 
         /// <inheritdoc />
-        virtual const index_buffer_layout_type* indexBufferLayout() const noexcept override = 0;
+        const index_buffer_layout_type* indexBufferLayout() const noexcept override = 0;
 
     private:
         inline Enumerable<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept override {
@@ -1476,7 +1476,7 @@ namespace LiteFX::Rendering {
         virtual Enumerable<const adapter_type*> listAdapters() const = 0;
 
         /// <inheritdoc />
-        virtual const adapter_type* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override = 0;
+        const adapter_type* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override = 0;
 
         /// <inheritdoc />
         virtual void registerDevice(String name, UniquePtr<device_type>&& device) = 0;
@@ -1501,18 +1501,18 @@ namespace LiteFX::Rendering {
         virtual void releaseDevice(const String& name) = 0;
 
         /// <inheritdoc />
-        virtual device_type* device(const String& name) noexcept override = 0;
+        device_type* device(const String& name) noexcept override = 0;
 
         /// <inheritdoc />
-        virtual const device_type* device(const String& name) const noexcept override = 0;
+        const device_type* device(const String& name) const noexcept override = 0;
 
         /// <inheritdoc />
-        virtual inline const device_type* operator[](const String& name) const noexcept override {
+        inline const device_type* operator[](const String& name) const noexcept override {
             return this->device(name);
         };
 
         /// <inheritdoc />
-        virtual inline device_type* operator[](const String& name) noexcept override {
+        inline device_type* operator[](const String& name) noexcept override {
             return this->device(name);
         };
 

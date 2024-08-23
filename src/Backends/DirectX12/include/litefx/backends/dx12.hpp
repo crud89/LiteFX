@@ -219,13 +219,13 @@ namespace LiteFX::Rendering::Backends {
         void addBoundingBox(const BoundingBoxes& aabb) override;
         
         /// <inheritdoc />
-        virtual void clear() noexcept override;
+        void clear() noexcept override;
 
         /// <inheritdoc />
-        virtual bool remove(const TriangleMesh& mesh) noexcept override;
+        bool remove(const TriangleMesh& mesh) noexcept override;
 
         /// <inheritdoc />
-        virtual bool remove(const BoundingBoxes& aabb) noexcept override;
+        bool remove(const BoundingBoxes& aabb) noexcept override;
 
     private:
         Array<D3D12_RAYTRACING_GEOMETRY_DESC> buildInfo() const;
@@ -295,10 +295,10 @@ namespace LiteFX::Rendering::Backends {
         void addInstance(const Instance& instance) override;
 
         /// <inheritdoc />
-        virtual void clear() noexcept override;
+        void clear() noexcept override;
 
         /// <inheritdoc />
-        virtual bool remove(const Instance& instance) noexcept override;
+        bool remove(const Instance& instance) noexcept override;
 
     private:
         Array<D3D12_RAYTRACING_INSTANCE_DESC> buildInfo() const;
@@ -1880,10 +1880,10 @@ namespace LiteFX::Rendering::Backends {
         Enumerable<UniquePtr<IDirectX12Sampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
 
         /// <inheritdoc />
-        virtual UniquePtr<DirectX12BottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
+        UniquePtr<DirectX12BottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
 
         /// <inheritdoc />
-        virtual UniquePtr<DirectX12TopLevelAccelerationStructure> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
+        UniquePtr<DirectX12TopLevelAccelerationStructure> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
     };
 
     /// <summary>
@@ -2115,7 +2115,7 @@ namespace LiteFX::Rendering::Backends {
         explicit DirectX12Backend(const App& app, bool advancedSoftwareRasterizer = false);
         DirectX12Backend(const DirectX12Backend&) noexcept = delete;
         DirectX12Backend(DirectX12Backend&&) noexcept = delete;
-        virtual ~DirectX12Backend() noexcept override;
+        ~DirectX12Backend() noexcept override;
 
         // IBackend interface.
     public:
