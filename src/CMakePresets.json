@@ -258,6 +258,87 @@
         "BUILD_SHARED_LIBS": "OFF",
         "VCPKG_TARGET_TRIPLET": "x64-windows-static-rel"
       }
+    },
+    {
+      "name": "linux-gcc-x64-debug",
+      "inherits": [
+        "linux",
+        "gcc"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "VCPKG_TARGET_TRIPLET": "x64-linux",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
+      }
+    },
+    {
+      "name": "linux-gcc-x64-debug-static",
+      "inherits": [
+        "linux",
+        "gcc"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_SHARED_LIBS": "OFF",
+        "VCPKG_TARGET_TRIPLET": "x64-linux-static",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
+      }
+    },
+    {
+      "name": "linux-gcc-x64-test",
+      "inherits": [
+        "linux",
+        "gcc"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "LITEFX_BUILD_TESTS": "ON",
+        "VCPKG_TARGET_TRIPLET": "x64-linux-rel",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
+      }
+    },
+    {
+      "name": "linux-gcc-x64-release",
+      "inherits": [
+        "linux",
+        "gcc"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_TARGET_TRIPLET": "x64-linux-rel"
+      }
+    },
+    {
+      "name": "linux-gcc-x64-release-static",
+      "inherits": [
+        "linux",
+        "gcc"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_SHARED_LIBS": "OFF",
+        "VCPKG_TARGET_TRIPLET": "x64-linux-static-rel"
+      }
     }
   ],
   "buildPresets": [
@@ -316,6 +397,26 @@
     {
       "name": "windows-clang-x64-debug-static",
       "configurePreset": "windows-clang-x64-debug-static"
+    },
+    {
+      "name": "linux-gcc-x64-release",
+      "configurePreset": "linux-gcc-x64-release"
+    },
+    {
+      "name": "linux-gcc-x64-release-static",
+      "configurePreset": "linux-gcc-x64-release-static"
+    },
+    {
+      "name": "linux-gcc-x64-test",
+      "configurePreset": "linux-gcc-x64-test"
+    },
+    {
+      "name": "linux-gcc-x64-debug",
+      "configurePreset": "linux-gcc-x64-debug"
+    },
+    {
+      "name": "linux-gcc-x64-debug-static",
+      "configurePreset": "linux-gcc-x64-debug-static"
     }
   ],
   "testPresets": [
@@ -330,6 +431,10 @@
     {
       "name": "windows-clang-x64-test",
       "configurePreset": "windows-clang-x64-test"
+    },
+    {
+        "name": "linux-gcc-x64-test",
+        "configurePreset": "linux-gcc-x64-test"
     }
   ]
 }

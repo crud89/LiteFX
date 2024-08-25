@@ -21,6 +21,32 @@
                 "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/modules/vcpkg/scripts/buildsystems/vcpkg.cmake",
                 "X_VCPKG_APPLOCAL_DEPS_INSTALL": "ON"
             }
+        },
+        {
+            "name": "linux",
+            "hidden": true,
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/../out/build/${presetName}",
+            "installDir": "${sourceDir}/../out/install/${presetName}",
+            "toolchainFile": "/home/neva/vcpkg/scripts/buildsystems/vcpkg.cmake",
+            "cacheVariables": {
+                "X_VCPKG_APPLOCAL_DEPS_INSTALL": "OFF",
+                "LITEFX_BUILD_DIRECTX_12_BACKEND": "OFF",
+                "LITEFX_BUILD_WITH_DIRECTX_MATH": "OFF",
+                "LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER": "OFF" 
+            },
+            "microsoft.com/VisualStudioRemoteSettings/CMake/2.0": {
+                "copySourcesOptions": {
+                    "exclusionList": [
+                        "docs"
+                    ]
+                }
+            }
         }
     ],
     "buildPresets": [
@@ -32,6 +58,15 @@
                 "lhs": "${hostSystemName}",
                 "rhs": "Windows"
             }
+        },
+        {
+            "name": "linux",
+            "hidden": true,
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
         }
     ],
     "testPresets": [
@@ -42,6 +77,15 @@
                 "type": "equals",
                 "lhs": "${hostSystemName}",
                 "rhs": "Windows"
+            }
+        },
+        {
+            "name": "linux",
+            "hidden": true,
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
             }
         }
     ]

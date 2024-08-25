@@ -18,6 +18,14 @@
             }
         },
         {
+            "name": "gcc",
+            "hidden": true,
+            "inherits": "linux",
+            "cacheVariables": {
+                "CMAKE_CXX_COMPILER": "g++"
+            }
+        },
+        {
             "name": "clang",
             "hidden": true,
             "cacheVariables": {
