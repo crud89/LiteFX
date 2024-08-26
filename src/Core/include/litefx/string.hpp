@@ -113,8 +113,8 @@ namespace LiteFX {
 
         return result;
 #else
-        std::wstring_convert<std::codecvt_utf8_utf16<WCHAR>> conv;
-        return conv.from_bytes(utf8);
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+        return conv.from_bytes(utf8.data());
 #endif
     }
 
@@ -139,8 +139,8 @@ namespace LiteFX {
 
         return result;
 #else
-        std::wstring_convert<std::codecvt_utf8_utf16<WCHAR>> conv;
-        return conv.to_bytes(utf16);
+        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+        return conv.to_bytes(utf16.data());
 #endif
     }
 }
