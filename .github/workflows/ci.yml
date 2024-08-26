@@ -110,7 +110,7 @@ jobs:
         id: create-checks
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          name: run-tests (${{ matrix.os }})
+          name: run-tests (${{ matrix.name }})
           sha: ${{ env.HEAD_SHA }}
           status: in_progress
     
