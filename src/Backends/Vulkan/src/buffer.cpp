@@ -91,7 +91,7 @@ UInt64 VulkanBuffer::virtualAddress() const noexcept
 void VulkanBuffer::map(const void* const data, size_t size, UInt32 element)
 {
 	if (element >= m_impl->m_elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("element", 0u, m_impl->m_elements, element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
+		throw ArgumentOutOfRangeException("element", std::make_pair(0u, m_impl->m_elements), element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
 
 	char* buffer;		// A pointer to the whole (aligned) buffer memory.
 	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
@@ -111,7 +111,7 @@ void VulkanBuffer::map(Span<const void* const> data, size_t elementSize, UInt32 
 void VulkanBuffer::map(void* data, size_t size, UInt32 element, bool write)
 {
 	if (element >= m_impl->m_elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("element", 0u, m_impl->m_elements, element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
+		throw ArgumentOutOfRangeException("element", std::make_pair(0u, m_impl->m_elements), element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
 
 	char* buffer;		// A pointer to the whole (aligned) buffer memory.
 	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");

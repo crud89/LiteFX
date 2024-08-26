@@ -26,11 +26,11 @@ jobs:
         include:
           - profile: windows-x64
             triplet: x64-windows
-            configuration: windows-x64-release
+            configuration: windows-msvc-x64-release
             architecture: x64
           - profile: windows-x86
             triplet: x86-windows
-            configuration: windows-x86-release
+            configuration: windows-msvc-x86-release
             architecture: x86
             
     env:

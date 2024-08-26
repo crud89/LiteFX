@@ -109,7 +109,7 @@ namespace LiteFX {
 		/// <param name="fn">The delegate function.</param>
 		/// <param name="t">The unique token of the delegate within the parent event.</param>
 		inline Delegate(function_type fn, token_type t) noexcept : m_target(fn), m_token(t) { }
-		
+
 	public:
 		/// <summary>
 		/// Invokes the delegate function.
@@ -242,7 +242,7 @@ namespace LiteFX {
 		const delegate_type& handler(event_token_type token) const {
 			if (auto match = std::find_if(m_subscribers.begin(), m_subscribers.end(), [&token](const auto& d) { return d.token() == token; }); match != m_subscribers.end()) [[likely]]
 				return *match;
-				
+
 			throw InvalidArgumentException("token", "The event does not contain the provided token.");
 		}
 
@@ -394,7 +394,7 @@ namespace LiteFX {
 		/// <param name="type">The type index of the requested backend.</param>
 		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
 		virtual const IBackend* getBackend(std::type_index type) const;
-		
+
 		/// <summary>
 		/// Returns all registered backend instances of a backend type.
 		/// </summary>
@@ -628,9 +628,7 @@ namespace LiteFX {
 		/// Creates a new application builder.
 		/// </summary>
 		template <typename TApp, typename ...TArgs>
-		static AppBuilder build(TArgs&&... _args) { 
-			return AppBuilder(makeUnique<TApp>(std::forward<TArgs>(_args)...)); 
-		}
+		[[nodiscard]] static AppBuilder build(TArgs&&... _args);
 	};
 
 	/// <summary>
@@ -666,4 +664,9 @@ namespace LiteFX {
 		}
 	};
 
+	template<typename TApp, typename ...TArgs>
+	inline AppBuilder App::build(TArgs && ..._args)
+	{
+		return AppBuilder(makeUnique<TApp>(std::forward<TArgs>(_args)...));
+	}
 }

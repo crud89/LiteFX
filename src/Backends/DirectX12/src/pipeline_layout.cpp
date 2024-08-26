@@ -63,7 +63,7 @@ public:
         // Sort and check if there are duplicate space indices.
         std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<DirectX12DescriptorSetLayout>& a, const UniquePtr<DirectX12DescriptorSetLayout>& b) { return a->space() < b->space(); });
 
-        for (Tuple spaces : m_descriptorSetLayouts | std::views::transform([](const UniquePtr<DirectX12DescriptorSetLayout>& layout) { return layout->space(); }) | std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
+        for (Tuple<UInt32, UInt32> spaces : m_descriptorSetLayouts | std::views::transform([](const UniquePtr<DirectX12DescriptorSetLayout>& layout) { return layout->space(); }) | std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
         {
             auto [a, b] = spaces;
 
@@ -121,6 +121,7 @@ public:
             case ShaderStage::TessellationControl: shaderStages = D3D12_SHADER_VISIBILITY_HULL; break;
             case ShaderStage::Task: shaderStages = D3D12_SHADER_VISIBILITY_AMPLIFICATION; break;
             case ShaderStage::Mesh: shaderStages = D3D12_SHADER_VISIBILITY_MESH; break;
+            default: break;
             }
 
             // Define the root parameter ranges.

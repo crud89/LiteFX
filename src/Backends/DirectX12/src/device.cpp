@@ -38,7 +38,7 @@ public:
 			throw ArgumentNotInitializedException("surface", "The surface must be initialized.");
 
 		if (globalSamplerHeapSize > 2048) [[unlikely]]
-			throw ArgumentOutOfRangeException("globalSamplerHeapSize", 0u, 2048u, globalSamplerHeapSize, "Only 2048 samplers are allowed in the global sampler heap, but {0} have been specified.", globalSamplerHeapSize);
+			throw ArgumentOutOfRangeException("globalSamplerHeapSize", std::make_pair(0u, 2048u), globalSamplerHeapSize, "Only 2048 samplers are allowed in the global sampler heap, but {0} have been specified.", globalSamplerHeapSize);
 	}
 
 	~DirectX12DeviceImpl() noexcept

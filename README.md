@@ -66,13 +66,13 @@ If you are using vcpkg, you can use the [registry](https://github.com/crud89/Lit
 
 ### Manual Builds
 
-You can also build the sources on your own. Currently only MSVC builds under Windows are officially supported. However, the engine does use CMake and (besides the DirectX 12 backend) no Windows-specific features, so porting the Vulkan backend and engine architecture should be absolutely possible (pull requests are much appreciated!).
+You can also build the sources on your own. Currently only MSVC and Clang builds under Windows are officially supported. However, the engine does use CMake and (besides the DirectX 12 backend) no Windows-specific features, so porting the Vulkan backend and engine architecture should be absolutely possible (pull requests are much appreciated!).
 
 #### Prerequisites
 
 In order for the project to be built, there are a few prerequisites that need to be present on your environment:
 
-- [C++23 compatible compiler](https://en.cppreference.com/w/cpp/compiler_support/23): At the moment only MSVC fully supports the required features. †
+- [C++23 compatible compiler](https://en.cppreference.com/w/cpp/compiler_support/23): At the moment only MSVC and Clang 18+ fully supports the required features. †
 - [CMake](https://cmake.org/download/) (version 3.20 or higher). ‡
 - Optional: [LunarG Vulkan SDK](https://vulkan.lunarg.com/) 1.3.204.1 or later (required to build the Vulkan backend).
 - Optional: Windows 10 SDK 10.0.19041.0 or later (required to build DirectX backend).
@@ -98,8 +98,8 @@ There are multiple ways of creating a build from scratch. In general, all *CMake
 Building from command line is the most straightforward way and is typically sufficient, if you only want to consume a fresh build.
 
 ```sh
-cmake src/ --preset windows-x64-release
-cmake --build out/build/windows-x64-release/ --target install
+cmake src/ --preset windows-msvc-x64-release
+cmake --build out/build/windows-msvc-x64-release/ --target install
 ```
 
 ##### Using Visual Studio
@@ -121,7 +121,7 @@ You can customize the engine build, according to your specific needs. The most s
   "configurePresets": [
     {
       "name": "win-x64-custom-preset",
-      "inherits": "windows-x64-release",
+      "inherits": "windows-msvc-x64-release",
       "cacheVariables": {
       }
     }
@@ -156,7 +156,7 @@ For example, if you only want to build the Vulkan backend and samples and don't 
   "configurePresets": [
     {
       "name": "win-x64-vulkan-only",
-      "inherits": "windows-x64-release",
+      "inherits": "windows-msvc-x64-release",
       "cacheVariables": {
         "LITEFX_BUILD_DX12_BACKEND": "OFF",
         "LITEFX_BUILD_WITH_DIRECTX_MATH": "OFF"

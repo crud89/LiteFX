@@ -41,7 +41,7 @@ public:
         if (!m_descriptorSetLayouts.empty())
             emptySets.append_range(std::views::iota(0u, m_descriptorSetLayouts.front()->space()));
 
-        for (Tuple spaces : m_descriptorSetLayouts | std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout->space(); }) | std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
+        for (Tuple<UInt32, UInt32> spaces : m_descriptorSetLayouts | std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout->space(); }) | std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
         {
             auto [a, b] = spaces;
 

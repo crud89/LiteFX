@@ -175,6 +175,8 @@ public:
                 case VK_DESCRIPTOR_TYPE_SAMPLER:
                     maxSamplers -= binding.descriptorCount;
                     break;
+                default:
+                    break;
                 }
             }
             else
@@ -203,6 +205,8 @@ public:
                     break;
                 case VK_DESCRIPTOR_TYPE_SAMPLER:
                     binding.descriptorCount = maxSamplers;
+                    break;
+                default:
                     break;
                 }
             }
