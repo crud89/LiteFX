@@ -55,16 +55,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-latest ]
+        name: [ windows-latest-msvc, windows-latest-clang ]
         include:
-          - os: windows-latest
-            triplet: x64-windows
+          - name: windows-latest-msvc
+            os: windows-latest
             compiler: msvc
+            triplet: x64-windows
             configuration: windows-msvc-x64-test
             architecture: x64
-          - os: windows-latest
-            triplet: x64-windows
+          - name: windows-latest-clang
+            os: windows-latest
             compiler: clang
+            triplet: x64-windows
             configuration: windows-clang-x64-test
             architecture: x64
 
@@ -97,7 +99,7 @@ jobs:
             const pull_request = await github.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: ${{ github.event.issue.number }}
+              pull_number: ${{ github.event.inputs.pullRequest }}
             })
             console.log('HEAD SHA = ' + pull_request.data.head.sha + ', REF = ' + pull_request.data.head.ref)
             core.exportVariable('HEAD_SHA', pull_request.data.head.sha)
