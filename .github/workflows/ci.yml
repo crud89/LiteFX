@@ -139,7 +139,7 @@ jobs:
         if: ${{ matrix.compiler == 'clang' }}
         uses: KyleMayes/install-llvm-action@v2
         with:
-          version: "18.0"
+          version: "18"
 
       - name: Setup build and test environment
         id: setup-environment
