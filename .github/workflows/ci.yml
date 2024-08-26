@@ -55,16 +55,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ windows-latest ]
+        name: [ windows-latest-msvc, windows-latest-clang ]
         include:
-          - os: windows-latest
-            triplet: x64-windows
+          - name: windows-latest-msvc
+            os: windows-latest
             compiler: msvc
+            triplet: x64-windows
             configuration: windows-msvc-x64-test
             architecture: x64
-          - os: windows-latest
-            triplet: x64-windows
+          - name: windows-latest-clang
+            os: windows-latest
             compiler: clang
+            triplet: x64-windows
             configuration: windows-clang-x64-test
             architecture: x64
 
@@ -97,7 +99,7 @@ jobs:
             const pull_request = await github.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              pull_number: ${{ github.event.issue.number }}
+              pull_number: ${{ github.event.inputs.pullRequest }}
             })
             console.log('HEAD SHA = ' + pull_request.data.head.sha + ', REF = ' + pull_request.data.head.ref)
             core.exportVariable('HEAD_SHA', pull_request.data.head.sha)
@@ -137,7 +139,7 @@ jobs:
         if: ${{ matrix.compiler == 'clang' }}
         uses: KyleMayes/install-llvm-action@v2
         with:
-          version: "18.0"
+          version: "18"
 
       - name: Setup build and test environment
         id: setup-environment
@@ -165,12 +167,12 @@ jobs:
       - name: Install and Test Mesa3D driver
         working-directory: '${{ github.workspace }}/dep/mesa/'
         run: |         
-          reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v '${{ github.workspace }}\dep\mesa\x64\lvp_icd.x86_64.json' /t REG_DWORD /d 0
-          reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin\VkLayer_khronos_synchronization2.json' /t REG_DWORD /d 0
-          reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin\VkLayer_khronos_validation.json' /t REG_DWORD /d 0
-          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\Drivers" /v '${{ github.workspace }}\dep\mesa\x86\lvp_icd.x86.json' /t REG_DWORD /d 0
-          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin32\VkLayer_khronos_synchronization2.json' /t REG_DWORD /d 0
-          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin32\VkLayer_khronos_validation.json' /t REG_DWORD /d 0
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v '${{ github.workspace }}\dep\mesa\x64\lvp_icd.x86_64.json' /t REG_DWORD /d 0 /f /reg:64
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin\VkLayer_khronos_synchronization2.json' /t REG_DWORD /d 0 /f /reg:64
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin\VkLayer_khronos_validation.json' /t REG_DWORD /d 0 /f /reg:64
+          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\Drivers" /v '${{ github.workspace }}\dep\mesa\x86\lvp_icd.x86.json' /t REG_DWORD /d 0 /f /reg:64
+          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin32\VkLayer_khronos_synchronization2.json' /t REG_DWORD /d 0 /f /reg:64
+          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin32\VkLayer_khronos_validation.json' /t REG_DWORD /d 0 /f /reg:64
           C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkaninfo.exe --summary
 
       - name: Retrieve latest CMake build
