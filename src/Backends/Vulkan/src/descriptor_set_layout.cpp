@@ -150,7 +150,7 @@ public:
             // If the descriptor is an unbounded runtime array, disable validation warnings about partially bound elements.
             if (binding.descriptorCount != std::numeric_limits<UInt32>::max())
             {
-                bindingFlags.push_back({ VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT });
+                bindingFlags.push_back({ VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT });
 
                 // Track remaining descriptors towards limit.
                 switch (binding.descriptorType)
@@ -181,7 +181,7 @@ public:
             }
             else
             {
-                bindingFlags.push_back({ VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT });
+                bindingFlags.push_back({ VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT });
                 m_usesDescriptorIndexing = true;
 
                 switch (binding.descriptorType)
@@ -210,6 +210,10 @@ public:
                     break;
                 }
             }
+
+            // Allow update after binding for all buffers except constant/uniform buffers.
+            if (type != DescriptorType::ConstantBuffer)
+                bindingFlags.back() |= VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT;
 
             bindings.push_back(binding);
         });
@@ -579,6 +583,7 @@ size_t VulkanDescriptorSetLayout::pools() const noexcept
 VulkanDescriptorSetLayoutBuilder::VulkanDescriptorSetLayoutBuilder(VulkanPipelineLayoutBuilder& parent, UInt32 space, ShaderStage stages) :
     DescriptorSetLayoutBuilder(parent, UniquePtr<VulkanDescriptorSetLayout>(new VulkanDescriptorSetLayout(parent.device())))
 {
+    m_state = DescriptorSetLayoutState{ .space = space, .stages = stages, .descriptorLayouts = {} };
 }
 
 VulkanDescriptorSetLayoutBuilder::~VulkanDescriptorSetLayoutBuilder() noexcept = default;
@@ -589,7 +594,7 @@ void VulkanDescriptorSetLayoutBuilder::build()
     instance->m_impl->m_descriptorLayouts = std::move(m_state.descriptorLayouts);
     instance->m_impl->m_space = std::move(m_state.space);
     instance->m_impl->m_stages = std::move(m_state.stages);
-    instance->m_impl->initialize();
+    instance->handle() = instance->m_impl->initialize();
 }
 
 UniquePtr<VulkanDescriptorLayout> VulkanDescriptorSetLayoutBuilder::makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors)

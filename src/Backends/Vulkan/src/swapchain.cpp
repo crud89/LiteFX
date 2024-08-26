@@ -2,11 +2,15 @@
 #include <atomic>
 #include "image.h"
 
+#if defined(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN) && defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
+#define USE_VULKAN_INTEROP_SWAP_CHAIN
+#endif
+
 using namespace LiteFX::Rendering::Backends;
 
 // NOTE: It is important to keep private variable names equal between implementation classes in order for the debug visualizers to work.
 
-#if !defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
+#if !defined(USE_VULKAN_INTEROP_SWAP_CHAIN)
 // ------------------------------------------------------------------------------------------------
 // Default implementation.
 // ------------------------------------------------------------------------------------------------
@@ -74,7 +78,7 @@ public:
 		// Get the number of images in the swap chain.
 		VkSurfaceCapabilitiesKHR deviceCaps;
 		::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(adapter, surface, &deviceCaps);
-		UInt32 images = std::clamp(buffers, deviceCaps.minImageCount, deviceCaps.maxImageCount);
+		UInt32 images = std::clamp(buffers, deviceCaps.minImageCount, deviceCaps.maxImageCount == 0 ? buffers : deviceCaps.maxImageCount);
 
 		// Create a swap chain.
 		VkSwapchainCreateInfoKHR createInfo = {};
@@ -302,7 +306,7 @@ public:
 		return VK_COLOR_SPACE_MAX_ENUM_KHR;
 	}
 };
-#else
+#else // !defined(USE_VULKAN_INTEROP_SWAP_CHAIN)
 #include <litefx/backends/dx12_api.hpp>
 
 #if VK_HEADER_VERSION < 268
@@ -431,7 +435,7 @@ public:
 		// Get the number of images in the swap chain.
 		VkSurfaceCapabilitiesKHR deviceCaps;
 		::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_device.adapter().handle(), m_device.surface().handle(), &deviceCaps);
-		UInt32 images = std::clamp(buffers, deviceCaps.minImageCount, deviceCaps.maxImageCount);
+		UInt32 images = std::clamp(buffers, deviceCaps.minImageCount, deviceCaps.maxImageCount == 0 ? buffers : deviceCaps.maxImageCount);
 
 		[[unlikely]] if (images != buffers)
 			LITEFX_INFO(VULKAN_LOG, "The number of buffers has been adjusted from {0} to {1}.", buffers, images);
@@ -584,7 +588,7 @@ public:
 		// Get the number of images in the swap chain.
 		VkSurfaceCapabilitiesKHR deviceCaps;
 		::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_device.adapter().handle(), m_device.surface().handle(), &deviceCaps);
-		UInt32 images = std::clamp(buffers, deviceCaps.minImageCount, deviceCaps.maxImageCount);
+		UInt32 images = std::clamp(buffers, deviceCaps.minImageCount, deviceCaps.maxImageCount == 0 ? buffers : deviceCaps.maxImageCount);
 
 		[[unlikely]] if (images != buffers)
 			LITEFX_INFO(VULKAN_LOG, "The number of buffers has been adjusted from {0} to {1}.", buffers, images);
@@ -967,7 +971,9 @@ private:
 		::CloseHandle(eventHandle);
 	}
 };
-#endif // defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
+#endif // !defined(USE_VULKAN_INTEROP_SWAP_CHAIN)
+
+#undef USE_VULKAN_INTEROP_SWAP_CHAIN
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.
