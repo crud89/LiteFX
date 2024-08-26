@@ -214,14 +214,14 @@ jobs:
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
-          name: LiteFX-${{ matrix.triplet }}-test-results
+          name: LiteFX-${{ matrix.name }}-test-results
           path: '${{ github.workspace }}/out/build/${{ matrix.configuration }}/Testing/Temporary/LastTest.log'
 
       - name: Upload coverage results
         if: success() || failure()
         uses: actions/upload-artifact@v4
         with:
-          name: LiteFX-${{ matrix.triplet }}-coverage-results
+          name: LiteFX-${{ matrix.name }}-coverage-results
           path: '${{ github.workspace }}/out/build/${{ matrix.configuration }}/__coverage/'
           
       - name: Install with CMake
@@ -241,7 +241,7 @@ jobs:
         if: ${{ github.event.inputs.uploadArtifacts == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: LiteFX-${{ matrix.triplet }}-install
+          name: LiteFX-${{ matrix.name }}-install
           path: '${{ github.workspace }}/out/install/${{ matrix.configuration }}'
 
       - name: Update checks
