@@ -228,13 +228,13 @@ namespace LiteFX::Rendering::Backends {
         void addBoundingBox(const BoundingBoxes& aabb) override;
 
         /// <inheritdoc />
-        virtual void clear() noexcept override;
+        void clear() noexcept override;
 
         /// <inheritdoc />
-        virtual bool remove(const TriangleMesh& mesh) noexcept override;
+        bool remove(const TriangleMesh& mesh) noexcept override;
 
         /// <inheritdoc />
-        virtual bool remove(const BoundingBoxes& aabb) noexcept override;
+        bool remove(const BoundingBoxes& aabb) noexcept override;
 
     private:
         Array<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> buildInfo() const;
@@ -305,10 +305,10 @@ namespace LiteFX::Rendering::Backends {
         void addInstance(const Instance& instance) override;
 
         /// <inheritdoc />
-        virtual void clear() noexcept override;
+        void clear() noexcept override;
 
         /// <inheritdoc />
-        virtual bool remove(const Instance& mesh) noexcept override;
+        bool remove(const Instance& mesh) noexcept override;
 
     private:
         Array<VkAccelerationStructureInstanceKHR> buildInfo() const noexcept;
@@ -1561,7 +1561,7 @@ namespace LiteFX::Rendering::Backends {
         Enumerable<const IVulkanImage*> images() const noexcept override;
 
         /// <inheritdoc />
-        inline const IVulkanImage& operator[](UInt32 index) const {
+        inline const IVulkanImage& operator[](UInt32 index) const override {
             return this->image(index);
         }
 
@@ -1569,7 +1569,7 @@ namespace LiteFX::Rendering::Backends {
         const IVulkanImage& image(UInt32 index) const override;
 
         /// <inheritdoc />
-        inline const IVulkanImage& operator[](const RenderTarget& renderTarget) const {
+        inline const IVulkanImage& operator[](const RenderTarget& renderTarget) const override {
             return this->image(renderTarget);
         }
 
@@ -1682,43 +1682,43 @@ namespace LiteFX::Rendering::Backends {
         // RenderPass interface.
     public:
         /// <inheritdoc />
-        const VulkanFrameBuffer& activeFrameBuffer() const override;
+        const VulkanFrameBuffer& activeFrameBuffer() const;
 
         /// <inheritdoc />
-        const VulkanQueue& commandQueue() const noexcept override;
+        const VulkanQueue& commandQueue() const noexcept;
 
         /// <inheritdoc />
-        Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers() const noexcept override;
+        Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers() const noexcept;
 
         /// <inheritdoc />
-        SharedPtr<const VulkanCommandBuffer> commandBuffer(UInt32 index) const override;
+        SharedPtr<const VulkanCommandBuffer> commandBuffer(UInt32 index) const;
 
         /// <inheritdoc />
-        UInt32 secondaryCommandBuffers() const noexcept override;
+        UInt32 secondaryCommandBuffers() const noexcept;
 
         /// <inheritdoc />
-        const Array<RenderTarget>& renderTargets() const noexcept override;
+        const Array<RenderTarget>& renderTargets() const noexcept;
 
         /// <inheritdoc />
-        const RenderTarget& renderTarget(UInt32 location) const override;
+        const RenderTarget& renderTarget(UInt32 location) const;
 
         /// <inheritdoc />
-        bool hasPresentTarget() const noexcept override;
+        bool hasPresentTarget() const noexcept;
 
         /// <inheritdoc />
-        const Array<RenderPassDependency>& inputAttachments() const noexcept override;
+        const Array<RenderPassDependency>& inputAttachments() const noexcept;
 
         /// <inheritdoc />
-        const RenderPassDependency& inputAttachment(UInt32 location) const override;
+        const RenderPassDependency& inputAttachment(UInt32 location) const;
         
         /// <inheritdoc />
-        const Optional<DescriptorBindingPoint>& inputAttachmentSamplerBinding() const noexcept override;
+        const Optional<DescriptorBindingPoint>& inputAttachmentSamplerBinding() const noexcept;
 
         /// <inheritdoc />
-        void begin(const VulkanFrameBuffer& frameBuffer) const override;
+        void begin(const VulkanFrameBuffer& frameBuffer) const;
 
         /// <inheritdoc />
-        UInt64 end() const override;
+        UInt64 end() const;
     };
 
     /// <summary>
@@ -1871,10 +1871,10 @@ namespace LiteFX::Rendering::Backends {
         Enumerable<UniquePtr<IVulkanSampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
 
         /// <inheritdoc />
-        virtual UniquePtr<VulkanBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
+        UniquePtr<VulkanBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
 
         /// <inheritdoc />
-        virtual UniquePtr<VulkanTopLevelAccelerationStructure> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
+        UniquePtr<VulkanTopLevelAccelerationStructure> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
     };
 
     /// <summary>
@@ -1942,87 +1942,87 @@ namespace LiteFX::Rendering::Backends {
         // GraphicsDevice interface.
     public:
         /// <inheritdoc />
-        DeviceState& state() const noexcept override;
+        DeviceState& state() const noexcept;
 
         /// <inheritdoc />
-        const VulkanSwapChain& swapChain() const noexcept override;
+        const VulkanSwapChain& swapChain() const noexcept;
 
         /// <inheritdoc />
-        VulkanSwapChain& swapChain() noexcept override;
+        VulkanSwapChain& swapChain() noexcept;
 
         /// <inheritdoc />
-        const VulkanSurface& surface() const noexcept override;
+        const VulkanSurface& surface() const noexcept;
 
         /// <inheritdoc />
-        const VulkanGraphicsAdapter& adapter() const noexcept override;
+        const VulkanGraphicsAdapter& adapter() const noexcept;
 
         /// <inheritdoc />
-        const VulkanGraphicsFactory& factory() const noexcept override;
+        const VulkanGraphicsFactory& factory() const noexcept;
 
         /// <inheritdoc />
-        const VulkanQueue& defaultQueue(QueueType type) const override;
+        const VulkanQueue& defaultQueue(QueueType type) const;
 
         /// <inheritdoc />
-        const VulkanQueue* createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) noexcept override;
+        const VulkanQueue* createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) noexcept;
 
         /// <inheritdoc />
-        [[nodiscard]] UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
+        [[nodiscard]] UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept;
 
         /// <inheritdoc />
-        [[nodiscard]] UniquePtr<VulkanFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept override;
+        [[nodiscard]] UniquePtr<VulkanFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept;
 
         /// <inheritdoc />
-        MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept override;
+        MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept;
 
         /// <inheritdoc />
-        double ticksPerMillisecond() const noexcept override;
+        double ticksPerMillisecond() const noexcept;
 
         /// <inheritdoc />
-        void wait() const override;
+        void wait() const;
 
         /// <inheritdoc />
-        void computeAccelerationStructureSizes(const VulkanBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
+        void computeAccelerationStructureSizes(const VulkanBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const;
 
         /// <inheritdoc />
-        void computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
+        void computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const;
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:
         /// <inheritdoc />
-        [[nodiscard]] VulkanRenderPassBuilder buildRenderPass(UInt32 commandBuffers = 1) const override;
+        [[nodiscard]] VulkanRenderPassBuilder buildRenderPass(UInt32 commandBuffers = 1) const;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanRenderPassBuilder buildRenderPass(const String& name, UInt32 commandBuffers = 1) const override;
+        [[nodiscard]] VulkanRenderPassBuilder buildRenderPass(const String& name, UInt32 commandBuffers = 1) const;
 
         ///// <inheritdoc />
         //[[nodiscard]] VulkanRenderPipelineBuilder buildRenderPipeline(const String& name) const override;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanRenderPipelineBuilder buildRenderPipeline(const VulkanRenderPass& renderPass, const String& name) const override;
+        [[nodiscard]] VulkanRenderPipelineBuilder buildRenderPipeline(const VulkanRenderPass& renderPass, const String& name) const;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanComputePipelineBuilder buildComputePipeline(const String& name) const override;
+        [[nodiscard]] VulkanComputePipelineBuilder buildComputePipeline(const String& name) const;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanRayTracingPipelineBuilder buildRayTracingPipeline(ShaderRecordCollection&& shaderRecords) const override;
+        [[nodiscard]] VulkanRayTracingPipelineBuilder buildRayTracingPipeline(ShaderRecordCollection&& shaderRecords) const;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanRayTracingPipelineBuilder buildRayTracingPipeline(const String& name, ShaderRecordCollection&& shaderRecords) const override;
+        [[nodiscard]] VulkanRayTracingPipelineBuilder buildRayTracingPipeline(const String& name, ShaderRecordCollection&& shaderRecords) const;
         
         /// <inheritdoc />
-        [[nodiscard]] VulkanPipelineLayoutBuilder buildPipelineLayout() const override;
+        [[nodiscard]] VulkanPipelineLayoutBuilder buildPipelineLayout() const;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanInputAssemblerBuilder buildInputAssembler() const override;
+        [[nodiscard]] VulkanInputAssemblerBuilder buildInputAssembler() const;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanRasterizerBuilder buildRasterizer() const override;
+        [[nodiscard]] VulkanRasterizerBuilder buildRasterizer() const;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanShaderProgramBuilder buildShaderProgram() const override;
+        [[nodiscard]] VulkanShaderProgramBuilder buildShaderProgram() const;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanBarrierBuilder buildBarrier() const override;
+        [[nodiscard]] VulkanBarrierBuilder buildBarrier() const;
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
     };
 
@@ -2106,37 +2106,37 @@ namespace LiteFX::Rendering::Backends {
         // IBackend interface.
     public:
         /// <inheritdoc />
-        BackendType type() const noexcept override;
+        BackendType type() const noexcept;
 
         /// <inheritdoc />
-        String name() const noexcept override;
+        String name() const noexcept;
 
     protected:
         /// <inheritdoc />
-        void activate() override;
+        void activate();
 
         /// <inheritdoc />
-        void deactivate() override;
+        void deactivate();
 
         // RenderBackend interface.
     public:
         /// <inheritdoc />
-        Enumerable<const VulkanGraphicsAdapter*> listAdapters() const override;
+        Enumerable<const VulkanGraphicsAdapter*> listAdapters() const;
 
         /// <inheritdoc />
-        const VulkanGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override;
+        const VulkanGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const;
 
         /// <inheritdoc />
-        void registerDevice(String name, UniquePtr<VulkanDevice>&& device) override;
+        void registerDevice(String name, UniquePtr<VulkanDevice>&& device);
 
         /// <inheritdoc />
-        void releaseDevice(const String& name) override;
+        void releaseDevice(const String& name);
 
         /// <inheritdoc />
-        VulkanDevice* device(const String& name) noexcept override;
+        VulkanDevice* device(const String& name) noexcept;
 
         /// <inheritdoc />
-        const VulkanDevice* device(const String& name) const noexcept override;
+        const VulkanDevice* device(const String& name) const noexcept;
     };
 
 }

@@ -71,7 +71,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Defines different types of graphics adapters.
     /// </summary>
-    enum class LITEFX_RENDERING_API GraphicsAdapterType {
+    enum class GraphicsAdapterType {
         /// <summary>
         /// The adapter is not a valid graphics adapter.
         /// </summary>
@@ -109,7 +109,7 @@ namespace LiteFX::Rendering {
     /// graphics queue, you do not need to synchronize in order to wait for the result, however this also means that no rendering can take place until the workloads have
     /// finished.
     /// </remarks>
-    enum class LITEFX_RENDERING_API QueueType : UInt32 {
+    enum class QueueType : UInt32 {
         /// <summary>
         /// Describes an unspecified command queue. It is not valid to create a queue instance with this type.
         /// </summary>
@@ -155,7 +155,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Specifies the priority with which a queue is scheduled on the GPU.
     /// </summary>
-    enum class LITEFX_RENDERING_API QueuePriority {
+    enum class QueuePriority {
         /// <summary>
         /// The default queue priority.
         /// </summary>
@@ -178,7 +178,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes a texel format.
     /// </summary>
-    enum class LITEFX_RENDERING_API Format {
+    enum class Format {
         None = 0x00000000,
         R4G4_UNORM,
         R4G4B4A4_UNORM,
@@ -335,7 +335,7 @@ namespace LiteFX::Rendering {
     /// <seealso cref="getBufferFormatChannels" />
     /// <seealso cref="getBufferFormatChannelSize" />
     /// <seealso cref="getBufferFormatType" />
-    enum class LITEFX_RENDERING_API BufferFormat : UInt32 {
+    enum class BufferFormat : UInt32 {
         None = 0x00000000,
         X16F = 0x10000101,
         X16I = 0x10000201,
@@ -367,7 +367,7 @@ namespace LiteFX::Rendering {
     /// Describes the semantic of a buffer attribute.
     /// </summary>
     /// <seealso cref="BufferAttribute" />
-    enum class LITEFX_RENDERING_API AttributeSemantic : UInt32 {
+    enum class AttributeSemantic : UInt32 {
         /// <summary>
         /// The attribute contains a bi-normal vector.
         /// </summary>
@@ -432,7 +432,7 @@ namespace LiteFX::Rendering {
     /// </remarks>
     /// <seealso cref="IDescriptorLayout" />
     /// <seealso href="https://docs.microsoft.com/en-us/windows/win32/direct3d12/typed-unordered-access-view-loads#supported-formats-and-api-calls" />
-    enum class LITEFX_RENDERING_API DescriptorType {
+    enum class DescriptorType {
         /// <summary>
         /// A uniform buffer in Vulkan. Maps to a constant buffer in DirectX.
         /// </summary>
@@ -536,7 +536,7 @@ namespace LiteFX::Rendering {
     /// Describes the type of a <see cref="IBuffer" />.
     /// </summary>
     /// <seealso cref="IBufferLayout" />
-    enum class LITEFX_RENDERING_API BufferType {
+    enum class BufferType {
         /// <summary>
         /// Describes a vertex buffer.
         /// </summary>
@@ -645,7 +645,7 @@ namespace LiteFX::Rendering {
     /// </remarks>
     /// <seealso cref="IGraphicsFactory" />
     /// <seealso cref="IBuffer" />
-    enum class LITEFX_RENDERING_API ResourceHeap {
+    enum class ResourceHeap {
         /// <summary>
         /// Creates a resource that can be mapped from the CPU in order to be transferred to the GPU later.
         /// </summary>
@@ -686,7 +686,7 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IGraphicsFactory" />
     /// <seealso cref="IBuffer" />
     /// <seealso cref="IImage" />
-    enum class LITEFX_RENDERING_API ResourceUsage {
+    enum class ResourceUsage {
         /// <summary>
         /// The resource is created without any special usage settings.
         /// </summary>
@@ -746,7 +746,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes the element type of an index buffer.
     /// </summary>
-    enum class LITEFX_RENDERING_API IndexType {
+    enum class IndexType {
         /// <summary>
         /// Indices are stored as 2 byte unsigned integers.
         /// </summary>
@@ -761,7 +761,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes the valid shader stages of a graphics pipeline.
     /// </summary>
-    enum class LITEFX_RENDERING_API ShaderStage : UInt32 {
+    enum class ShaderStage : UInt32 {
         /// <summary>
         /// Represents the vertex shader stage.
         /// </summary>
@@ -865,7 +865,7 @@ namespace LiteFX::Rendering {
     /// Describes the type of a shader module record within a shader collection or shader binting table.
     /// </summary>
     /// <seealso cref="IShaderRecord" />
-    enum class LITEFX_RENDERING_API ShaderRecordType {
+    enum class ShaderRecordType {
         /// <summary>
         /// Represents a ray generation shader record.
         /// </summary>
@@ -901,7 +901,7 @@ namespace LiteFX::Rendering {
     /// Describes a group or combination of groups of a shader binding table.
     /// </summary>
     /// <seealso cref="IRayTracingPipeline::allocateShaderBindingTable" />
-    enum class LITEFX_RENDERING_API ShaderBindingGroup : UInt32 {
+    enum class ShaderBindingGroup : UInt32 {
         /// <summary>
         /// Refers to the group of the shader binding table that stores the ray generation shader.
         /// </summary>
@@ -932,7 +932,7 @@ namespace LiteFX::Rendering {
     /// Describes the draw mode for polygons.
     /// </summary>
     /// <seealso cref="InputAssembler" />
-    enum class LITEFX_RENDERING_API PolygonMode {
+    enum class PolygonMode {
         /// <summary>
         /// Polygons are drawn as solid surfaces.
         /// </summary>
@@ -953,7 +953,7 @@ namespace LiteFX::Rendering {
     /// Describes which faces are culled by the <see cref="Rasterizer" /> stage.
     /// </summary>
     /// <seealso cref="Rasterizer" />
-    enum class LITEFX_RENDERING_API CullMode {
+    enum class CullMode {
         /// <summary>
         /// The rasterizer will discard front-facing polygons.
         /// </summary>
@@ -980,7 +980,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <seealso cref="CullMode" />
     /// <seealso cref="Rasterizer" />
-    enum class LITEFX_RENDERING_API CullOrder {
+    enum class CullOrder {
         /// <summary>
         /// Vertices are evaluated in a clock-wise manner.
         /// </summary>
@@ -995,7 +995,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes the type of a render target.
     /// </summary>
-    enum class LITEFX_RENDERING_API RenderTargetType {
+    enum class RenderTargetType {
         /// <summary>
         /// Represents a color target.
         /// </summary>
@@ -1018,7 +1018,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes the behavior of render targets.
     /// </summary>
-    enum class LITEFX_RENDERING_API RenderTargetFlags {
+    enum class RenderTargetFlags {
         /// <summary>
         /// No flags are enabled.
         /// </summary>
@@ -1048,7 +1048,7 @@ namespace LiteFX::Rendering {
     /// Describes the dimensions of a image resource, i.e. the dimensions that are required to access a texel or describe the image extent.
     /// </summary>
     /// <seealso cref="IImage" />
-    enum class LITEFX_RENDERING_API ImageDimensions {
+    enum class ImageDimensions {
         /// <summary>
         /// Represents a 1D image.
         /// </summary>
@@ -1073,7 +1073,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes the number of samples with which a <see cref="IImage" /> is sampled.
     /// </summary>
-    enum class LITEFX_RENDERING_API MultiSamplingLevel : UInt32 {
+    enum class MultiSamplingLevel : UInt32 {
         /// <summary>
         /// The default number of samples. Multi-sampling will be deactivated, if this sampling level is used.
         /// </summary>
@@ -1114,7 +1114,7 @@ namespace LiteFX::Rendering {
     /// Describes the filter operation when accessing a pixel from a texture coordinate.
     /// </summary>
     /// <seealso cref="IImage" />
-    enum class LITEFX_RENDERING_API FilterMode {
+    enum class FilterMode {
         /// <summary>
         /// Take the nearest texel with respect to the texture coordinate.
         /// </summary>
@@ -1131,7 +1131,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <seealso cref="IImage" />
     /// <seealso cref="FilterMode" />
-    enum class LITEFX_RENDERING_API MipMapMode {
+    enum class MipMapMode {
         /// <summary>
         /// Take the texel from the mip-map level that is closest to the actual depth.
         /// </summary>
@@ -1146,7 +1146,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes how to treat texture coordinates that are outside the domain `[0..1]`.
     /// </summary>
-    enum class LITEFX_RENDERING_API BorderMode {
+    enum class BorderMode {
         /// <summary>
         /// Repeat the texture.
         /// </summary>
@@ -1177,7 +1177,7 @@ namespace LiteFX::Rendering {
     /// Describes the operation used to compare depth or stencil values during depth/stencil tests.
     /// </summary>
     /// <seealso cref="DepthStencilState" />
-    enum class LITEFX_RENDERING_API CompareOperation {
+    enum class CompareOperation {
         /// <summary>
         /// The test always fails.
         /// </summary>
@@ -1223,7 +1223,7 @@ namespace LiteFX::Rendering {
     /// An operation that is applied to the stencil buffer.
     /// </summary>
     /// <seealso cref="DepthStencilState" />
-    enum class LITEFX_RENDERING_API StencilOperation {
+    enum class StencilOperation {
         /// <summary>
         /// Keep the current stencil value.
         /// </summary>
@@ -1269,7 +1269,7 @@ namespace LiteFX::Rendering {
     /// Specifies a blend factor.
     /// </summary>
     /// <seealso cref="DepthStencilState" />
-    enum class LITEFX_RENDERING_API BlendFactor {
+    enum class BlendFactor {
         Zero = 0,
         One = 1,
         SourceColor = 2,
@@ -1295,7 +1295,7 @@ namespace LiteFX::Rendering {
     /// Specifies a write mask for a color buffer.
     /// </summary>
     /// <seealso cref="RenderTargetType" />
-    enum class LITEFX_RENDERING_API WriteMask {
+    enum class WriteMask {
         /// <summary>
         /// Write into the red channel.
         /// </summary>
@@ -1321,7 +1321,7 @@ namespace LiteFX::Rendering {
     /// Specifies a blend operation.
     /// </summary>
     /// <seealso cref="DepthStencilState" />
-    enum class LITEFX_RENDERING_API BlendOperation {
+    enum class BlendOperation {
         Add = 0x01,
         Subtract = 0x02,
         ReverseSubtract = 0x03,
@@ -1335,7 +1335,7 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IBarrier" />
     /// <seealso cref="ResourceAccess" />
     /// <seealso cref="ImageLayout" />
-    enum class LITEFX_RENDERING_API PipelineStage {
+    enum class PipelineStage {
         /// <summary>
         /// Represents no-blocking behavior.
         /// </summary>
@@ -1499,7 +1499,7 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IBuffer" />
     /// <seealso cref="PipelineStage" />
     /// <seealso cref="ImageLayout" />
-    enum class LITEFX_RENDERING_API ResourceAccess {
+    enum class ResourceAccess {
         /// <summary>
         /// Indicates that a resource is not accessed.
         /// </summary>
@@ -1648,7 +1648,7 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IBarrier" />
     /// <seealso cref="ResourceAccess" />
     /// <seealso cref="PipelineStage" />
-    enum class LITEFX_RENDERING_API ImageLayout {
+    enum class ImageLayout {
         /// <summary>
         /// A common image layout that allows for all types of access (shader resource, transfer destination, transfer source).
         /// </summary>
@@ -1756,7 +1756,7 @@ namespace LiteFX::Rendering {
     /// Controls how a geometry that is part of a bottom-level acceleration structure (BLAS) behaves during ray-tracing.
     /// </summary>
     /// <seealso cref="IBottomLevelAccelerationStructure" />
-    enum class LITEFX_RENDERING_API GeometryFlags {
+    enum class GeometryFlags {
         /// <summary>
         /// Implies no restrictions on the geometry.
         /// </summary>
@@ -1778,7 +1778,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <seealso cref="IBottomLevelAccelerationStructure" />
     /// <seealso cref="ITopLevelAccelerationStructure" />
-    enum class LITEFX_RENDERING_API AccelerationStructureFlags {
+    enum class AccelerationStructureFlags {
         /// <summary>
         /// Use default options for building the acceleration structure.
         /// </summary>
@@ -1819,7 +1819,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Controls how an instance within a <see cref="ITopLevelAccelerationStructure" /> behaves during ray-tracing.
     /// </summary>
-    enum class LITEFX_RENDERING_API InstanceFlags {
+    enum class InstanceFlags {
         /// <summary>
         /// The instance uses default behavior.
         /// </summary>
@@ -5767,7 +5767,7 @@ namespace LiteFX::Rendering {
         /// Builds a shader record collection based on the current shader program.
         /// </summary>
         /// <returns>The shader record collection instance.</returns>
-        inline [[nodiscard]] ShaderRecordCollection buildShaderRecordCollection() const noexcept {
+        [[nodiscard]] inline ShaderRecordCollection buildShaderRecordCollection() const noexcept {
             return ShaderRecordCollection(this->getptr());
         }
 
@@ -5930,7 +5930,7 @@ namespace LiteFX::Rendering {
         /// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
         /// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
         /// <returns>The instance of the barrier.</returns>
-        inline [[nodiscard]] UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
+        [[nodiscard]] inline UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
             return this->getBarrier(syncBefore, syncAfter);
         }
 
@@ -7047,8 +7047,8 @@ namespace LiteFX::Rendering {
             virtual ~ResizeEventArgs() noexcept = default;
 
         public:
-            ResizeEventArgs& operator=(const ResizeEventArgs&) = default;
-            ResizeEventArgs& operator=(ResizeEventArgs&&) = default;
+            ResizeEventArgs& operator=(const ResizeEventArgs&) = delete;
+            ResizeEventArgs& operator=(ResizeEventArgs&&) = delete;
 
         public:
             /// <summary>
@@ -7399,8 +7399,8 @@ namespace LiteFX::Rendering {
             virtual ~BeginEventArgs() noexcept = default;
 
         public:
-            BeginEventArgs& operator=(const BeginEventArgs&) = default;
-            BeginEventArgs& operator=(BeginEventArgs&&) = default;
+            BeginEventArgs& operator=(const BeginEventArgs&) = delete;
+            BeginEventArgs& operator=(BeginEventArgs&&) = delete;
 
         public:
             /// <summary>
@@ -7570,8 +7570,8 @@ namespace LiteFX::Rendering {
             virtual ~ResetEventArgs() noexcept = default;
 
         public:
-            ResetEventArgs& operator=(const ResetEventArgs&) = default;
-            ResetEventArgs& operator=(ResetEventArgs&&) = default;
+            ResetEventArgs& operator=(const ResetEventArgs&) = delete;
+            ResetEventArgs& operator=(ResetEventArgs&&) = delete;
 
         public:
             /// <summary>
@@ -7786,8 +7786,8 @@ namespace LiteFX::Rendering {
             virtual ~QueueSubmittingEventArgs() noexcept = default;
 
         public:
-            QueueSubmittingEventArgs& operator=(const QueueSubmittingEventArgs&) = default;
-            QueueSubmittingEventArgs& operator=(QueueSubmittingEventArgs&&) = default;
+            QueueSubmittingEventArgs& operator=(const QueueSubmittingEventArgs&) = delete;
+            QueueSubmittingEventArgs& operator=(QueueSubmittingEventArgs&&) = delete;
 
         public:
             /// <summary>
@@ -8539,7 +8539,7 @@ namespace LiteFX::Rendering {
         /// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
         /// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
         /// <returns>The instance of the memory barrier.</returns>
-        inline [[nodiscard]] UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
+        [[nodiscard]] inline UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
             return this->getNewBarrier(syncBefore, syncAfter);
         }
 
@@ -8548,7 +8548,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="renderArea">The initial render area of the frame buffer.</param>
         /// <returns>The instance of the frame buffer.</returns>
-        inline [[nodiscard]] UniquePtr<IFrameBuffer> makeFrameBuffer(const Size2d& renderArea) const noexcept {
+        [[nodiscard]] inline UniquePtr<IFrameBuffer> makeFrameBuffer(const Size2d& renderArea) const noexcept {
             return this->makeFrameBuffer("", renderArea);
         }
 
@@ -8558,7 +8558,7 @@ namespace LiteFX::Rendering {
         /// <param name="name">The name of the frame buffer.</param>
         /// <param name="renderArea">The initial render area of the frame buffer.</param>
         /// <returns>The instance of the frame buffer.</returns>
-        inline [[nodiscard]] UniquePtr<IFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept {
+        [[nodiscard]] inline UniquePtr<IFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept {
             return this->getNewFrameBuffer(name, renderArea);
         }
 

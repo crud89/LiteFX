@@ -213,7 +213,7 @@ namespace LiteFX::Rendering {
         virtual Enumerable<const descriptor_layout_type*> descriptors() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const descriptor_layout_type& descriptor(UInt32 binding) const = 0;
+        const descriptor_layout_type& descriptor(UInt32 binding) const override = 0;
 
         /// <inheritdoc />
         virtual UniquePtr<descriptor_set_type> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const = 0;
@@ -342,13 +342,13 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual const descriptor_set_layout_type& descriptorSet(UInt32 space) const = 0;
+        const descriptor_set_layout_type& descriptorSet(UInt32 space) const override = 0;
 
         /// <inheritdoc />
         virtual Enumerable<const descriptor_set_layout_type*> descriptorSets() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const push_constants_layout_type* pushConstants() const noexcept = 0;
+        const push_constants_layout_type* pushConstants() const noexcept override = 0;
 
     private:
         inline Enumerable<const IDescriptorSetLayout*> getDescriptorSets() const noexcept override {
@@ -413,10 +413,10 @@ namespace LiteFX::Rendering {
         virtual Enumerable<const vertex_buffer_layout_type*> vertexBufferLayouts() const noexcept = 0;
 
         /// <inheritdoc />
-        virtual const vertex_buffer_layout_type* vertexBufferLayout(UInt32 binding) const = 0;
+        const vertex_buffer_layout_type* vertexBufferLayout(UInt32 binding) const override = 0;
 
         /// <inheritdoc />
-        virtual const index_buffer_layout_type* indexBufferLayout() const noexcept = 0;
+        const index_buffer_layout_type* indexBufferLayout() const noexcept override = 0;
 
     private:
         inline Enumerable<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept override {
@@ -659,7 +659,7 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        inline UniquePtr<IBarrier> getBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
+        inline UniquePtr<IBarrier> getBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override {
             return this->makeBarrier(syncBefore, syncAfter);
         }
 
@@ -841,7 +841,7 @@ namespace LiteFX::Rendering {
     template <typename TPipelineLayout, typename TShaderProgram, typename TInputAssembler, typename TRasterizer> requires
         meta::implements<TInputAssembler, InputAssembler<typename TInputAssembler::vertex_buffer_layout_type, typename TInputAssembler::index_buffer_layout_type>> &&
         meta::implements<TRasterizer, Rasterizer>
-    class RenderPipeline : public IRenderPipeline, public Pipeline<TPipelineLayout, TShaderProgram> {
+        class RenderPipeline : public IRenderPipeline, public virtual Pipeline<TPipelineLayout, TShaderProgram> {
     public:
         using input_assembler_type = TInputAssembler;
         using rasterizer_type = TRasterizer;
@@ -873,7 +873,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
     /// <seealso cref="ComputePipelineBuilder" />
     template <typename TPipelineLayout, typename TShaderProgram>
-    class ComputePipeline : public IComputePipeline, public Pipeline<TPipelineLayout, TShaderProgram> {
+    class ComputePipeline : public IComputePipeline, public virtual Pipeline<TPipelineLayout, TShaderProgram> {
     public:
         virtual ~ComputePipeline() noexcept = default;
     };
@@ -885,7 +885,7 @@ namespace LiteFX::Rendering {
     /// <typeparam name="TShaderProgram">The type of the shader program. Must implement <see cref="ShaderProgram"/>.</typeparam>
     /// <seealso cref="RayTracingPipelineBuilder" />
     template <typename TPipelineLayout, typename TShaderProgram>
-    class RayTracingPipeline : public IRayTracingPipeline, public Pipeline<TPipelineLayout, TShaderProgram> {
+    class RayTracingPipeline : public IRayTracingPipeline, public virtual Pipeline<TPipelineLayout, TShaderProgram> {
     public:
         using base_type = Pipeline<TPipelineLayout, TShaderProgram>;
         using descriptor_set_layout_type = base_type::pipeline_layout_type::descriptor_set_layout_type;
@@ -1270,19 +1270,19 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual const surface_type& surface() const noexcept = 0;
+        const surface_type& surface() const noexcept override = 0;
 
         /// <inheritdoc />
-        virtual const adapter_type& adapter() const noexcept = 0;
+        const adapter_type& adapter() const noexcept override = 0;
 
         /// <inheritdoc />
-        virtual const swap_chain_type& swapChain() const noexcept = 0;
+        const swap_chain_type& swapChain() const noexcept override = 0;
 
         /// <inheritdoc />
-        virtual swap_chain_type& swapChain() noexcept = 0;
+        swap_chain_type& swapChain() noexcept override = 0;
 
         /// <inheritdoc />
-        virtual const factory_type& factory() const noexcept = 0;
+        const factory_type& factory() const noexcept override = 0;
 
         /// <inheritdoc />
         virtual const command_queue_type& defaultQueue(QueueType type) const = 0;
@@ -1291,15 +1291,15 @@ namespace LiteFX::Rendering {
         virtual const command_queue_type* createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) noexcept = 0;
 
         /// <inheritdoc />
-        virtual [[nodiscard]] UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
+        [[nodiscard]] virtual UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
 
         /// <inheritdoc />
-        inline [[nodiscard]] UniquePtr<frame_buffer_type> makeFrameBuffer(const Size2d& renderArea) const noexcept {
+        [[nodiscard]] inline UniquePtr<frame_buffer_type> makeFrameBuffer(const Size2d& renderArea) const noexcept {
             return this->makeFrameBuffer("", renderArea);
         }
 
         /// <inheritdoc />
-        virtual [[nodiscard]] UniquePtr<frame_buffer_type> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept = 0;
+        [[nodiscard]] virtual UniquePtr<frame_buffer_type> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept = 0;
 
     private:
         inline UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override {
@@ -1310,11 +1310,11 @@ namespace LiteFX::Rendering {
             return this->makeFrameBuffer(renderArea);
         }
 
-        inline const ICommandQueue& getDefaultQueue(QueueType type) const {
+        inline const ICommandQueue& getDefaultQueue(QueueType type) const override {
             return this->defaultQueue(type);
         }
 
-        inline const ICommandQueue* getNewQueue(QueueType type, QueuePriority priority) noexcept {
+        inline const ICommandQueue* getNewQueue(QueueType type, QueuePriority priority) noexcept override {
             return this->createQueue(type, priority);
         }
 
@@ -1326,11 +1326,11 @@ namespace LiteFX::Rendering {
         virtual void computeAccelerationStructureSizes(const top_level_acceleration_structure_type& tlas, UInt64 & bufferSize, UInt64 & scratchSize, bool forUpdate = false) const = 0;
 
     private:
-        inline void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const {
+        inline void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const override {
             this->computeAccelerationStructureSizes(dynamic_cast<const bottom_level_acceleration_structure_type&>(blas), bufferSize, scratchSize, forUpdate);
         }
 
-        inline void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const {
+        inline void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const override {
             this->computeAccelerationStructureSizes(dynamic_cast<const top_level_acceleration_structure_type&>(tlas), bufferSize, scratchSize, forUpdate);
         }
 
@@ -1476,7 +1476,7 @@ namespace LiteFX::Rendering {
         virtual Enumerable<const adapter_type*> listAdapters() const = 0;
 
         /// <inheritdoc />
-        virtual const adapter_type* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const = 0;
+        const adapter_type* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override = 0;
 
         /// <inheritdoc />
         virtual void registerDevice(String name, UniquePtr<device_type>&& device) = 0;
@@ -1501,18 +1501,18 @@ namespace LiteFX::Rendering {
         virtual void releaseDevice(const String& name) = 0;
 
         /// <inheritdoc />
-        virtual device_type* device(const String& name) noexcept = 0;
+        device_type* device(const String& name) noexcept override = 0;
 
         /// <inheritdoc />
-        virtual const device_type* device(const String& name) const noexcept = 0;
+        const device_type* device(const String& name) const noexcept override = 0;
 
         /// <inheritdoc />
-        virtual inline const device_type* operator[](const String& name) const noexcept {
+        inline const device_type* operator[](const String& name) const noexcept override {
             return this->device(name);
         };
 
         /// <inheritdoc />
-        virtual inline device_type* operator[](const String& name) noexcept {
+        inline device_type* operator[](const String& name) noexcept override {
             return this->device(name);
         };
 

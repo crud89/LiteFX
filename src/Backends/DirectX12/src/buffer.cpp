@@ -89,7 +89,7 @@ UInt64 DirectX12Buffer::virtualAddress() const noexcept
 void DirectX12Buffer::map(const void* const data, size_t size, UInt32 element)
 {
 	if (element >= m_impl->m_elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("element", 0u, m_impl->m_elements, element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
+		throw ArgumentOutOfRangeException("element", std::make_pair(0u, m_impl->m_elements), element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
 
 	D3D12_RANGE mappedRange = { };
 	char* buffer;
@@ -109,7 +109,7 @@ void DirectX12Buffer::map(Span<const void* const> data, size_t elementSize, UInt
 void DirectX12Buffer::map(void* data, size_t size, UInt32 element, bool write)
 {
 	if (element >= m_impl->m_elements) [[unlikely]]
-		throw ArgumentOutOfRangeException("element", 0u, m_impl->m_elements, element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
+		throw ArgumentOutOfRangeException("element", std::make_pair(0u, m_impl->m_elements), element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
 
 	D3D12_RANGE mappedRange = { };
 	char* buffer;

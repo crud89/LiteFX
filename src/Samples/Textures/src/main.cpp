@@ -65,7 +65,7 @@ bool loadRenderDocApi()
 
 int main(const int argc, const char** argv)
 {
-#if WIN32
+#ifdef WIN32
 	// Enable console colors.
 	HANDLE console = ::GetStdHandle(STD_OUTPUT_HANDLE);
 	DWORD consoleMode = 0;

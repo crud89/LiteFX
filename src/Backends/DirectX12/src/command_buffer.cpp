@@ -33,7 +33,8 @@ public:
 		// Create a command allocator.
 		D3D12_COMMAND_LIST_TYPE type;
 
-		if (m_secondary = !primary)
+		m_secondary = !primary;
+		if (m_secondary)
 			type = D3D12_COMMAND_LIST_TYPE_BUNDLE;
 		else
 		{
@@ -51,7 +52,8 @@ public:
 		// Create the actual command list.
 		ComPtr<ID3D12GraphicsCommandList7> commandList;
 
-		if (m_recording = begin)
+		m_recording = begin;
+		if (begin)
 			raiseIfFailed(m_queue.device().handle()->CreateCommandList(0, type, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
 		else
 			raiseIfFailed(m_queue.device().handle()->CreateCommandList1(0, type, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");

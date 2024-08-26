@@ -23,8 +23,27 @@
       }
     },
     {
-      "name": "windows-x64-debug",
-      "inherits": "windows",
+      "name": "msvc",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl", 
+        "CMAKE_CXX_COMPILER": "cl"
+      }
+    },
+    {
+      "name": "clang",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang", 
+        "CMAKE_CXX_COMPILER": "clang++"
+      }
+    },
+    {
+      "name": "windows-msvc-x64-debug",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x64",
         "strategy": "external"
@@ -37,8 +56,11 @@
       }
     },
     {
-      "name": "windows-x64-debug-static",
-      "inherits": "windows",
+      "name": "windows-msvc-x64-debug-static",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x64",
         "strategy": "external"
@@ -52,8 +74,11 @@
       }
     },
     {
-      "name": "windows-x64-test",
-      "inherits": "windows",
+      "name": "windows-msvc-x64-test",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x64",
         "strategy": "external"
@@ -68,8 +93,11 @@
       }
     },
     {
-      "name": "windows-x64-release",
-      "inherits": "windows",
+      "name": "windows-msvc-x64-release",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x64",
         "strategy": "external"
@@ -80,8 +108,11 @@
       }
     },
     {
-      "name": "windows-x64-release-static",
-      "inherits": "windows",
+      "name": "windows-msvc-x64-release-static",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x64",
         "strategy": "external"
@@ -93,8 +124,11 @@
       }
     },
     {
-      "name": "windows-x86-debug",
-      "inherits": "windows",
+      "name": "windows-msvc-x86-debug",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x86",
         "strategy": "external"
@@ -106,8 +140,11 @@
       }
     },
     {
-      "name": "windows-x86-debug-static",
-      "inherits": "windows",
+      "name": "windows-msvc-x86-debug-static",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x86",
         "strategy": "external"
@@ -120,8 +157,11 @@
       }
     },
     {
-      "name": "windows-x86-test",
-      "inherits": "windows",
+      "name": "windows-msvc-x86-test",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x86",
         "strategy": "external"
@@ -135,8 +175,11 @@
       }
     },
     {
-      "name": "windows-x86-release",
-      "inherits": "windows",
+      "name": "windows-msvc-x86-release",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x86",
         "strategy": "external"
@@ -147,8 +190,11 @@
       }
     },
     {
-      "name": "windows-x86-release-static",
-      "inherits": "windows",
+      "name": "windows-msvc-x86-release-static",
+      "inherits": [
+        "windows",
+        "msvc"
+      ],
       "architecture": {
         "value": "x86",
         "strategy": "external"
@@ -158,58 +204,162 @@
         "BUILD_SHARED_LIBS": "OFF",
         "VCPKG_TARGET_TRIPLET": "x86-windows-static-rel"
       }
+    },
+    {
+      "name": "windows-clang-x64-debug",
+      "inherits": [
+        "windows",
+        "clang"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
+      }
+    },
+    {
+      "name": "windows-clang-x64-debug-static",
+      "inherits": [
+        "windows",
+        "clang"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_SHARED_LIBS": "OFF",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
+      }
+    },
+    {
+      "name": "windows-clang-x64-test",
+      "inherits": [
+        "windows",
+        "clang"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "LITEFX_BUILD_TESTS": "ON",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
+      }
+    },
+    {
+      "name": "windows-clang-x64-release",
+      "inherits": [
+        "windows",
+        "clang"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-rel"
+      }
+    },
+    {
+      "name": "windows-clang-x64-release-static",
+      "inherits": [
+        "windows",
+        "clang"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_SHARED_LIBS": "OFF",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-rel"
+      }
     }
   ],
   "buildPresets": [
     {
-      "name": "windows-x64-release",
-      "configurePreset": "windows-x64-release"
+      "name": "windows-msvc-x64-release",
+      "configurePreset": "windows-msvc-x64-release"
     },
     {
-      "name": "windows-x64-release-static",
-      "configurePreset": "windows-x64-release-static"
+      "name": "windows-msvc-x64-release-static",
+      "configurePreset": "windows-msvc-x64-release-static"
     },
     {
-      "name": "windows-x64-debug",
-      "configurePreset": "windows-x64-debug"
+      "name": "windows-msvc-x64-test",
+      "configurePreset": "windows-msvc-x64-test"
     },
     {
-      "name": "windows-x64-debug-static",
-      "configurePreset": "windows-x64-debug-static"
+      "name": "windows-msvc-x64-debug",
+      "configurePreset": "windows-msvc-x64-debug"
     },
     {
-      "name": "windows-x64-test",
-      "configurePreset": "windows-x64-test"
+      "name": "windows-msvc-x64-debug-static",
+      "configurePreset": "windows-msvc-x64-debug-static"
     },
     {
-      "name": "windows-x86-release",
-      "configurePreset": "windows-x86-release"
+      "name": "windows-msvc-x86-release",
+      "configurePreset": "windows-msvc-x86-release"
     },
     {
-      "name": "windows-x86-release-static",
-      "configurePreset": "windows-x86-release-static"
+      "name": "windows-msvc-x86-release-static",
+      "configurePreset": "windows-msvc-x86-release-static"
     },
     {
-      "name": "windows-x86-debug",
-      "configurePreset": "windows-x86-debug"
+      "name": "windows-msvc-x86-test",
+      "configurePreset": "windows-msvc-x86-test"
     },
     {
-      "name": "windows-x86-debug-static",
-      "configurePreset": "windows-x86-debug-static"
+      "name": "windows-msvc-x86-debug",
+      "configurePreset": "windows-msvc-x86-debug"
     },
     {
-      "name": "windows-x86-test",
-      "configurePreset": "windows-x86-test"
+      "name": "windows-clang-x64-release",
+      "configurePreset": "windows-clang-x64-release"
+    },
+    {
+      "name": "windows-clang-x64-release-static",
+      "configurePreset": "windows-clang-x64-release-static"
+    },
+    {
+      "name": "windows-clang-x64-test",
+      "configurePreset": "windows-clang-x64-test"
+    },
+    {
+      "name": "windows-clang-x64-debug",
+      "configurePreset": "windows-clang-x64-debug"
+    },
+    {
+      "name": "windows-clang-x64-debug-static",
+      "configurePreset": "windows-clang-x64-debug-static"
     }
   ],
   "testPresets": [
     {
-      "name": "windows-x64-test",
-      "configurePreset": "windows-x64-test"
+      "name": "windows-msvc-x64-test",
+      "configurePreset": "windows-msvc-x64-test"
     },
     {
-      "name": "windows-x86-test",
-      "configurePreset": "windows-x86-test"
+      "name": "windows-msvc-x86-test",
+      "configurePreset": "windows-msvc-x86-test"
+    },
+    {
+      "name": "windows-clang-x64-test",
+      "configurePreset": "windows-clang-x64-test"
     }
   ]
 }

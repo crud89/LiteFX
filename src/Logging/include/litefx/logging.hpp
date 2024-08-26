@@ -26,7 +26,7 @@ namespace LiteFX::Logging {
     /// <summary>
     /// Defines the various log levels.
     /// </summary>
-    enum class LITEFX_LOGGING_API LogLevel {
+    enum class LogLevel {
         Trace = SPDLOG_LEVEL_TRACE,
         Debug = SPDLOG_LEVEL_DEBUG,
         Info = SPDLOG_LEVEL_INFO,

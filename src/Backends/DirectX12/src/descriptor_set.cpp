@@ -99,12 +99,12 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
         LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
         return;
     }
-    
+
     const auto& descriptorLayout = *(*match);
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding) + firstDescriptor;
     auto descriptorSize = m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, descriptorSize);
-    
+
     switch (descriptorLayout.descriptorType())
     {
     case DescriptorType::ConstantBuffer:
@@ -130,7 +130,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
                 .Format = DXGI_FORMAT_UNKNOWN,
                 .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
                 .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-                .Buffer = { .FirstElement = bufferElement + i, .NumElements = 1, .StructureByteStride = static_cast<UInt32>(buffer.alignedElementSize()), .Flags = D3D12_BUFFER_SRV_FLAG_NONE }
+                .Buffer = {.FirstElement = bufferElement + i, .NumElements = 1, .StructureByteStride = static_cast<UInt32>(buffer.alignedElementSize()), .Flags = D3D12_BUFFER_SRV_FLAG_NONE }
             };
 
             m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
@@ -146,7 +146,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
             D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
                 .Format = DXGI_FORMAT_UNKNOWN,
                 .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
-                .Buffer = { .FirstElement = bufferElement + i, .NumElements = 1, .StructureByteStride = static_cast<UInt32>(buffer.alignedElementSize()), .CounterOffsetInBytes = 0, .Flags = D3D12_BUFFER_UAV_FLAG_NONE }
+                .Buffer = {.FirstElement = bufferElement + i, .NumElements = 1, .StructureByteStride = static_cast<UInt32>(buffer.alignedElementSize()), .CounterOffsetInBytes = 0, .Flags = D3D12_BUFFER_UAV_FLAG_NONE }
             };
 
             m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
@@ -164,7 +164,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
                 .Format = DXGI_FORMAT_R32_TYPELESS,
                 .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
                 .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-                .Buffer = { .FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0, .Flags = D3D12_BUFFER_SRV_FLAG_RAW }
+                .Buffer = {.FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0, .Flags = D3D12_BUFFER_SRV_FLAG_RAW }
             };
 
             m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
@@ -181,7 +181,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
             D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
                 .Format = DXGI_FORMAT_R32_TYPELESS,
                 .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
-                .Buffer = { .FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0, .CounterOffsetInBytes = 0, .Flags = D3D12_BUFFER_UAV_FLAG_RAW }
+                .Buffer = {.FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0, .CounterOffsetInBytes = 0, .Flags = D3D12_BUFFER_UAV_FLAG_RAW }
             };
 
             m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
@@ -198,7 +198,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
                 .Format = DXGI_FORMAT_R32_TYPELESS, // TODO: Actually set the proper texel format.
                 .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
                 .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-                .Buffer = { .FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0 }
+                .Buffer = {.FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0 }
             };
 
             m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
@@ -214,7 +214,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
             D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
                 .Format = DXGI_FORMAT_R32_TYPELESS, // TODO: Actually set the proper texel format.
                 .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
-                .Buffer = { .FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0, .CounterOffsetInBytes = 0 }
+                .Buffer = {.FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0, .CounterOffsetInBytes = 0 }
             };
 
             m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
@@ -268,8 +268,11 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
             case Format::D32_SFLOAT:            textureView.Format = DXGI_FORMAT_R32_FLOAT; break;
             case Format::D24_UNORM_S8_UINT:     textureView.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS; break;
             case Format::D32_SFLOAT_S8_UINT:    textureView.Format = DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS; break;
-            //case Format::D16_UNORM_S8_UINT: ??
-            //case Format::X8_D24_UNORM: ??
+            case Format::D16_UNORM_S8_UINT:
+            case Format::X8_D24_UNORM:
+                throw InvalidArgumentException("texture", "Unsupported format {0}.", texture.format());
+            default:
+                std::unreachable();
             }
         }
 
@@ -445,7 +448,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Acceleration
         LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
         return;
     }
-    
+
     const auto& layout = *(*match);
 
     if (layout.descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
@@ -464,7 +467,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Acceleration
         .Format = DXGI_FORMAT_UNKNOWN,
         .ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE,
         .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
-        .RaytracingAccelerationStructure = { .Location = buffer->virtualAddress() }
+        .RaytracingAccelerationStructure = {.Location = buffer->virtualAddress() }
     };
 
     m_impl->m_layout.device().handle()->CreateShaderResourceView(nullptr, &bufferView, descriptorHandle);
@@ -473,7 +476,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Acceleration
     m_impl->updateGlobalBuffers(offset, 1);
 }
 
-const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::bufferHeap() const noexcept 
+const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::bufferHeap() const noexcept
 {
     return m_impl->m_bufferHeap;
 }

@@ -216,7 +216,7 @@ public:
             if ((result = reflection.EnumerateDescriptorSets(&descriptorSetCount, nullptr)) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
                 throw RuntimeException("Unable to get descriptor set count (Error {0:x}).", static_cast<UInt32>(result));
 
-            if ((result = reflection.EnumeratePushConstants(&pushConstantCount, nullptr)) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
+            if ((result = reflection.EnumeratePushConstantBlocks(&pushConstantCount, nullptr)) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
                 throw RuntimeException("Unable to get push constants count (Error {0:x}).", static_cast<UInt32>(result));
 
             // Acquire the descriptor sets and push constants.
@@ -226,7 +226,7 @@ public:
             if ((result = reflection.EnumerateDescriptorSets(&descriptorSetCount, descriptorSets.data())) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
                 throw RuntimeException("Unable to enumerate descriptor sets (Error {0:x}).", static_cast<UInt32>(result));
 
-            if ((result = reflection.EnumeratePushConstants(&pushConstantCount, pushConstants.data())) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
+            if ((result = reflection.EnumeratePushConstantBlocks(&pushConstantCount, pushConstants.data())) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
                 throw RuntimeException("Unable to enumerate push constants (Error {0:x}).", static_cast<UInt32>(result));
 
             // Parse the descriptor sets.

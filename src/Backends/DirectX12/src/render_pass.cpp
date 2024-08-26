@@ -266,7 +266,7 @@ SharedPtr<const DirectX12CommandBuffer> DirectX12RenderPass::commandBuffer(UInt3
         throw RuntimeException("Unable to lookup command buffers on a render pass that has not been begun.");
 
     if (index >= m_impl->m_secondaryCommandBufferCount) [[unlikely]]
-        throw ArgumentOutOfRangeException("index", 0u, m_impl->m_secondaryCommandBufferCount, index, "The render pass only contains {0} command buffers, but an index of {1} has been provided.", m_impl->m_secondaryCommandBufferCount, index);
+        throw ArgumentOutOfRangeException("index", std::make_pair(0u, m_impl->m_secondaryCommandBufferCount), index, "The render pass only contains {0} command buffers, but an index of {1} has been provided.", m_impl->m_secondaryCommandBufferCount, index);
 
     return m_impl->m_secondaryCommandBuffers[m_impl->m_activeFrameBuffer][index];
 }
@@ -310,7 +310,7 @@ const Array<RenderPassDependency>& DirectX12RenderPass::inputAttachments() const
 const RenderPassDependency& DirectX12RenderPass::inputAttachment(UInt32 location) const 
 {
     if (location >= m_impl->m_inputAttachments.size()) [[unlikely]]
-        throw ArgumentOutOfRangeException("location", 0u, static_cast<UInt32>(m_impl->m_inputAttachments.size()), location, "The render pass does not contain an input attachment at location {0}.", location);
+        throw ArgumentOutOfRangeException("location", std::make_pair(0ull, (UInt64)m_impl->m_inputAttachments.size()), location, "The render pass does not contain an input attachment at location {0}.", location);
 
     return m_impl->m_inputAttachments[location];
 }

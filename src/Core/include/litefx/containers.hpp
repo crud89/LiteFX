@@ -137,7 +137,7 @@ namespace LiteFX {
 	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
 	/// <returns>A new unique pointer.</returns>
 	template <class T>
-	constexpr [[nodiscard]] UniquePtr<T> makeUnique() {
+	[[nodiscard]] constexpr UniquePtr<T> makeUnique() {
 		return std::make_unique<T>();
 	}
 
@@ -147,7 +147,7 @@ namespace LiteFX {
 	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
 	/// <returns>A new unique pointer.</returns>
 	template <class T, class... TArgs>
-	constexpr [[nodiscard]] UniquePtr<T> makeUnique(TArgs&&... _args) {
+	[[nodiscard]] constexpr UniquePtr<T> makeUnique(TArgs&&... _args) {
 		return std::make_unique<T>(std::forward<TArgs>(_args)...);
 	}
 
@@ -157,7 +157,7 @@ namespace LiteFX {
 	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
 	/// <returns>A new shared pointer.</returns>
 	template <class T>
-	constexpr [[nodiscard]] SharedPtr<T> makeShared() {
+	[[nodiscard]] constexpr SharedPtr<T> makeShared() {
 		return std::make_shared<T>();
 	}
 
@@ -167,7 +167,7 @@ namespace LiteFX {
 	/// <typeparam name="T">The type of the object, the pointer points to.</typeparam>
 	/// <returns>A new shared pointer.</returns>
 	template <class T, class... TArgs>
-	constexpr [[nodiscard]] SharedPtr<T> makeShared(TArgs&&... _args) {
+	[[nodiscard]] constexpr SharedPtr<T> makeShared(TArgs&&... _args) {
 		return std::make_shared<T>(std::forward<TArgs>(_args)...);
 	}
 
@@ -178,7 +178,7 @@ namespace LiteFX {
 	/// <param name="ptr">The unique pointer that should be turned into a shared pointer.</param>
 	/// <returns>A new shared pointer.</returns>
 	template <class T>
-	constexpr [[nodiscard]] SharedPtr<T> asShared(UniquePtr<T>&& ptr) {
+	[[nodiscard]] constexpr SharedPtr<T> asShared(UniquePtr<T>&& ptr) {
 		return SharedPtr<T>(ptr.release());
 	}
 
@@ -514,7 +514,7 @@ namespace LiteFX {
 	/// <param name="...arg">The arguments forwarded to the implementation classes' constructor.</param>
 	/// <returns>The pointer to the implementation class instance.</returns>
 	template <class T, class... Arg>
-	constexpr [[nodiscard]] PimplPtr<T> makePimpl(Arg&&... arg) {
+	[[nodiscard]] constexpr PimplPtr<T> makePimpl(Arg&&... arg) {
 		return PimplPtr<T>(new T(std::forward<Arg>(arg)...));
 	}
 
@@ -646,7 +646,7 @@ namespace LiteFX {
 	/// <typeparam name="TPointer">The type of the pointer, used to access the instance of <typeparamref name="T" /> this builder builds.</typeparam>
 	/// <seealso href="https://github.com/crud89/LiteFX/wiki/Builders" />
 	template <typename T, typename TPointer>
-	class Builder<T, std::nullptr_t, typename TPointer> {
+	class Builder<T, std::nullptr_t, TPointer> {
 	private:
 		TPointer m_instance;
 
@@ -706,7 +706,7 @@ namespace LiteFX {
 		/// <summary>
 		/// Calls <see cref="build" /> and returns the instance.
 		/// </summary>
-		constexpr [[nodiscard]] operator TPointer&& () {
+		[[nodiscard]] constexpr operator TPointer&& () {
 			this->build();
 			return std::move(m_instance);
 		}
@@ -787,7 +787,7 @@ namespace LiteFX {
 		/// <summary>
 		/// First, calls <see cref="build" />, then `use` on the parent builder using the current object instance and finally returns the parent builder.
 		/// </summary>
-		constexpr [[nodiscard]] TParent& add() {
+		[[nodiscard]] constexpr TParent& add() {
 			this->build();
 			m_parent.use(std::move(m_instance));
 			return m_parent;
