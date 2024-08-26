@@ -47,22 +47,22 @@ private:
             if (queueCount == 0) [[unlikely]]
                 throw InvalidArgumentException("queueCount", "An empty queue family is invalid.");
 
-                // Initialize queue priorities. First queue always has the highest priority possible, as those become the default queues. After this we fill up the space evenly 
-                // through all available priorities. Currently there are two priorities (`High` and `Normal`)
-                auto chunkSize = (queueCount - 1) / 2;
-                auto remainder = (queueCount - 1) % 2;
+            // Initialize queue priorities. First queue always has the highest priority possible, as those become the default queues. After this we fill up the space evenly 
+            // through all available priorities. Currently there are two priorities (`High` and `Normal`)
+            auto chunkSize = (queueCount - 1) / 2;
+            auto remainder = (queueCount - 1) % 2;
 
-                auto high = std::views::repeat(static_cast<Float>(QueuePriority::High) / 100.0f) | std::views::take(chunkSize);
-                auto low = std::views::repeat(static_cast<Float>(QueuePriority::Normal) / 100.0f) | std::views::take(chunkSize + remainder);
+            auto high = std::views::repeat(static_cast<Float>(QueuePriority::High) / 100.0f) | std::views::take(chunkSize);
+            auto low = std::views::repeat(static_cast<Float>(QueuePriority::Normal) / 100.0f) | std::views::take(chunkSize + remainder);
 
-                m_queuePriorities.push_back(1.0f);
+            m_queuePriorities.push_back(1.0f);
 
 #ifdef __cpp_lib_containers_ranges
-                m_queuePriorities.append_range(high);
-                m_queuePriorities.append_range(low);
+            m_queuePriorities.append_range(high);
+            m_queuePriorities.append_range(low);
 #else
-                m_queuePriorities.insert(m_queuePriorities.end(), high.cbegin(), high.cend());
-                m_queuePriorities.insert(m_queuePriorities.end(), low.cbegin(), low.cend());
+            m_queuePriorities.insert(m_queuePriorities.end(), high.cbegin(), high.cend());
+            m_queuePriorities.insert(m_queuePriorities.end(), low.cbegin(), low.cend());
 #endif
         }
         QueueFamily(const QueueFamily& _other) = delete;
@@ -89,7 +89,7 @@ private:
 
                 switch (priority)
                 {
-                    using enum QueuePriority;
+                using enum QueuePriority;
                 case Normal: nextPriority = QueuePriority::High; break;
                 case High: nextPriority = QueuePriority::Realtime; break; // This will find the default queue
                 case Realtime: [[unlikely]] // Should never actually happen, as there should be at least one queue in the family.
@@ -221,23 +221,23 @@ public:
 
         auto families = familyProperties |
             std::views::transform([i = 0](const VkQueueFamilyProperties& familyProperty) mutable -> Tuple<int, UInt32, QueueType> {
-            QueueType type = QueueType::None;
+                QueueType type = QueueType::None;
 
-            if (familyProperty.queueFlags & VK_QUEUE_COMPUTE_BIT)
-                type |= QueueType::Compute;
-            if (familyProperty.queueFlags & VK_QUEUE_GRAPHICS_BIT)
-                type |= QueueType::Graphics;
-            if (familyProperty.queueFlags & VK_QUEUE_TRANSFER_BIT)
-                type |= QueueType::Transfer;
-            if (familyProperty.queueFlags & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
-                type |= QueueType::VideoDecode;
+                if (familyProperty.queueFlags & VK_QUEUE_COMPUTE_BIT)
+                    type |= QueueType::Compute;
+                if (familyProperty.queueFlags & VK_QUEUE_GRAPHICS_BIT)
+                    type |= QueueType::Graphics;
+                if (familyProperty.queueFlags & VK_QUEUE_TRANSFER_BIT)
+                    type |= QueueType::Transfer;
+                if (familyProperty.queueFlags & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
+                    type |= QueueType::VideoDecode;
 
 #ifdef VK_ENABLE_BETA_EXTENSIONS
-            if (familyProperty.queueFlags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
-                type |= QueueType::VideoEncode;
+                if (familyProperty.queueFlags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
+                    type |= QueueType::VideoEncode;
 #endif // VK_ENABLE_BETA_EXTENSIONS
 
-            return { i++, familyProperty.queueCount, type };
+                return { i++, familyProperty.queueCount, type };
             }) | std::ranges::to<std::vector>();
 
         // Sort by flag popcount, so that the most specialized queues are always first.
@@ -267,12 +267,12 @@ public:
 
         auto const queueCreateInfos = m_families |
             std::views::transform([&priorities](auto& family) {
-            return VkDeviceQueueCreateInfo{
-                .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-                .queueFamilyIndex = family.id(),
-                .queueCount = family.total(),
-                .pQueuePriorities = priorities.data()
-            };
+                return VkDeviceQueueCreateInfo{
+                    .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+                    .queueFamilyIndex = family.id(),
+                    .queueCount = family.total(),
+                    .pQueuePriorities = priorities.data()
+                };
             }) | std::ranges::to<Array<VkDeviceQueueCreateInfo>>();
 
         // Enable ray-tracing features.
