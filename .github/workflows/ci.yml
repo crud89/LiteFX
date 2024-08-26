@@ -6,6 +6,11 @@ on:
     types:
       - created
       - edited
+  workflow_dispatch:
+    inputs:
+      pullRequest:
+        description: 'Pull Request ID'
+        required: true
 
 env:
   vulkanSdkVersion: '1.3.283.0'
@@ -18,7 +23,7 @@ jobs:
     permissions:
       issues: write
       pull-requests: write
-    if: "${{ ( github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, 'Run: Tests') ) }}"
+    if: "${{ (github.event_name == 'workflow_dispatch') || ( github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, 'Run: Tests') ) }}"
 
     steps:
       - name: Check persmission
@@ -65,11 +70,30 @@ jobs:
 
     steps:
       - name: Retrieve PR info
+        id: retrieve-pr-from-issue-comment
         uses: actions/github-script@v3
+        if: ${{ github.event_name == 'issue_comment' }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             console.log('Retrieving HEAD REF for PR #${{ github.event.issue.number }}')
+            const pull_request = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ github.event.issue.number }}
+            })
+            console.log('HEAD SHA = ' + pull_request.data.head.sha + ', REF = ' + pull_request.data.head.ref)
+            core.exportVariable('HEAD_SHA', pull_request.data.head.sha)
+            core.exportVariable('HEAD_REF', pull_request.data.head.ref)
+
+      - name: Retrieve PR info
+        id: retrieve-pr-from-workflow-dispatch
+        uses: actions/github-script@v3
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            console.log('Retrieving HEAD REF for PR #${{ github.event.inputs.pullRequest }}')
             const pull_request = await github.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
