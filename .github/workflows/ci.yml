@@ -167,12 +167,12 @@ jobs:
       - name: Install and Test Mesa3D driver
         working-directory: '${{ github.workspace }}/dep/mesa/'
         run: |         
-          reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v '${{ github.workspace }}\dep\mesa\x64\lvp_icd.x86_64.json' /t REG_DWORD /d 0
-          reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin\VkLayer_khronos_synchronization2.json' /t REG_DWORD /d 0
-          reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin\VkLayer_khronos_validation.json' /t REG_DWORD /d 0
-          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\Drivers" /v '${{ github.workspace }}\dep\mesa\x86\lvp_icd.x86.json' /t REG_DWORD /d 0
-          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin32\VkLayer_khronos_synchronization2.json' /t REG_DWORD /d 0
-          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin32\VkLayer_khronos_validation.json' /t REG_DWORD /d 0
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\Drivers" /v '${{ github.workspace }}\dep\mesa\x64\lvp_icd.x86_64.json' /t REG_DWORD /d 0 /f /reg:64
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin\VkLayer_khronos_synchronization2.json' /t REG_DWORD /d 0 /f /reg:64
+          reg add "HKLM\SOFTWARE\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin\VkLayer_khronos_validation.json' /t REG_DWORD /d 0 /f /reg:64
+          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\Drivers" /v '${{ github.workspace }}\dep\mesa\x86\lvp_icd.x86.json' /t REG_DWORD /d 0 /f /reg:64
+          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin32\VkLayer_khronos_synchronization2.json' /t REG_DWORD /d 0 /f /reg:64
+          reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin32\VkLayer_khronos_validation.json' /t REG_DWORD /d 0 /f /reg:64
           C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkaninfo.exe --summary
 
       - name: Retrieve latest CMake build
