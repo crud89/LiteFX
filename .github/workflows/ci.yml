@@ -54,10 +54,12 @@ jobs:
         include:
           - os: windows-latest
             triplet: x64-windows
+            compiler: msvc
             configuration: windows-msvc-x64-test
             architecture: x64
           - os: windows-latest
             triplet: x64-windows
+            compiler: clang
             configuration: windows-clang-x64-test
             architecture: x64
 
@@ -108,6 +110,7 @@ jobs:
           echo "C:\Program Files\OpenCppCoverage" >> $GITHUB_PATH
 
       - name: Install LLVM and Clang
+        if: ${{ matrix.compiler == 'clang' }}
         uses: KyleMayes/install-llvm-action@v2
         with:
           version: "18.0"
