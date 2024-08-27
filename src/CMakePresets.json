@@ -26,7 +26,7 @@
       "name": "msvc",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "cl", 
+        "CMAKE_C_COMPILER": "cl",
         "CMAKE_CXX_COMPILER": "cl"
       }
     },
@@ -34,8 +34,16 @@
       "name": "clang",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang", 
+        "CMAKE_C_COMPILER": "clang",
         "CMAKE_CXX_COMPILER": "clang++"
+      }
+    },
+    {
+      "name": "mingw",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "gcc",
+        "CMAKE_CXX_COMPILER": "g++"
       }
     },
     {
@@ -286,6 +294,90 @@
         "BUILD_SHARED_LIBS": "OFF",
         "VCPKG_TARGET_TRIPLET": "x64-windows-static-rel"
       }
+    },
+    {
+      "name": "windows-mingw-x64-debug",
+      "inherits": [
+        "windows",
+        "mingw"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "VCPKG_TARGET_TRIPLET": "x64-mingw",
+        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
+      }
+    },
+    {
+      "name": "windows-mingw-x64-debug-static",
+      "inherits": [
+        "windows",
+        "mingw"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "BUILD_SHARED_LIBS": "OFF",
+        "VCPKG_TARGET_TRIPLET": "x64-mingw-static",
+        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
+      }
+    },
+    {
+      "name": "windows-mingw-x64-test",
+      "inherits": [
+        "windows",
+        "mingw"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "LITEFX_BUILD_TESTS": "ON",
+        "VCPKG_TARGET_TRIPLET": "x64-mingw",
+        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
+      }
+    },
+    {
+      "name": "windows-mingw-x64-release",
+      "inherits": [
+        "windows",
+        "mingw"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_TARGET_TRIPLET": "x64-mingw-rel"
+      }
+    },
+    {
+      "name": "windows-mingw-x64-release-static",
+      "inherits": [
+        "windows",
+        "mingw"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "BUILD_SHARED_LIBS": "OFF",
+        "VCPKG_TARGET_TRIPLET": "x64-mingw-static-rel"
+      }
     }
   ],
   "buildPresets": [
@@ -344,6 +436,26 @@
     {
       "name": "windows-clang-x64-debug-static",
       "configurePreset": "windows-clang-x64-debug-static"
+    },
+    {
+      "name": "windows-mingw-x64-release",
+      "configurePreset": "windows-mingw-x64-release"
+    },
+    {
+      "name": "windows-mingw-x64-release-static",
+      "configurePreset": "windows-mingw-x64-release-static"
+    },
+    {
+      "name": "windows-mingw-x64-test",
+      "configurePreset": "windows-mingw-x64-test"
+    },
+    {
+      "name": "windows-mingw-x64-debug",
+      "configurePreset": "windows-mingw-x64-debug"
+    },
+    {
+      "name": "windows-mingw-x64-debug-static",
+      "configurePreset": "windows-mingw-x64-debug-static"
     }
   ],
   "testPresets": [
@@ -358,6 +470,10 @@
     {
       "name": "windows-clang-x64-test",
       "configurePreset": "windows-clang-x64-test"
+    },
+    {
+      "name": "windows-mingw-x64-test",
+      "configurePreset": "windows-mingw-x64-test"
     }
   ]
 }
