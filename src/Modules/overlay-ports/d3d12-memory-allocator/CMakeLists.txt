@@ -11,7 +11,7 @@ add_library(${PROJECT_NAME} STATIC
 set_target_properties(${PROJECT_NAME} PROPERTIES PUBLIC_HEADER "include/D3D12MemAlloc.h")
 target_include_directories(${PROJECT_NAME} PRIVATE "include/")
 target_link_libraries(${PROJECT_NAME} PRIVATE Microsoft::DirectX-Headers)
-target_compile_definitions(${PROJECT_NAME} PUBLIC "USING_DIRECTX_HEADERS")
+target_compile_definitions(${PROJECT_NAME} PUBLIC "D3D12MA_USING_DIRECTX_HEADERS")
 
 install(
     TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-config
