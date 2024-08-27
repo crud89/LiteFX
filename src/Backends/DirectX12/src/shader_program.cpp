@@ -94,7 +94,7 @@ public:
         if (m_modules.empty()) [[unlikely]]
             return; // Not exactly a reason to throw, but rather an empty group cannot be meaningful used anyway.
 
-        if (std::ranges::contains(m_modules, nullptr)) [[unlikely]]
+        if (std::ranges::contains(m_modules | std::views::transform([](auto& ptr) { return ptr.get(); }), nullptr)) [[unlikely]]
             throw InvalidArgumentException("modules", "At least one of the shader modules is not initialized.");
 
         // Check if there are combinations, that are not supported.
