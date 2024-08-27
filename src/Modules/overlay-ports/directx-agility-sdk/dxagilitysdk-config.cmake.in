@@ -2,9 +2,14 @@ get_filename_component(_dxagilitysdk_root "${CMAKE_CURRENT_LIST_FILE}" PATH)
 get_filename_component(_dxagilitysdk_root "${_dxagilitysdk_root}" PATH)
 get_filename_component(_dxagilitysdk_root "${_dxagilitysdk_root}" PATH)
 
-set(_dxagilitysdk_root_lib "${_dxagilitysdk_root}/lib/d3d12.lib")
+if (EXISTS "${_dxagilitysdk_root}/bin/D3D12Core.dll")
+  
+  find_library(_dxagilitysdk_root_lib NAMES d3d12)
 
-if (EXISTS "${_dxagilitysdk_root_lib}")
+  if("${_dxagilitysdk_root_lib}" STREQUAL "_dxagilitysdk_root_lib-NOTFOUND")
+    message(FATAL_ERROR "Could not find d3d12.lib. Make sure a recent Windows SDK version is properly installed on the system.")
+  endif()
+
   add_library(Microsoft::DirectXAgilitySDK SHARED IMPORTED)
   set_target_properties(Microsoft::DirectXAgilitySDK PROPERTIES
       IMPORTED_LOCATION                    "${_dxagilitysdk_root}/bin/D3D12Core.dll"
@@ -36,5 +41,4 @@ else()
   set(dxagilitysdk_FOUND FALSE)
 endif()
 
-unset(_dxagilitysdk_root_lib)
 unset(_dxagilitysdk_root)

@@ -13,14 +13,6 @@ vcpkg_extract_source_archive(
     NO_REMOVE_ONE_LEVEL
 )
 
-set(_d3d12_implib "$ENV{WindowsSdkDir}/Lib/$ENV{WindowsSDKLibVersion}/um/$ENV{VSCMD_ARG_TGT_ARCH}/d3d12.lib")
-string(REPLACE "\\" "/" _d3d12_implib "${_d3d12_implib}")
-string(REPLACE "//" "/" _d3d12_implib "${_d3d12_implib}")
-
-if (NOT EXISTS "${_d3d12_implib}")
-    message(FATAL_ERROR "Could not find d3d12.lib. Make sure a recent Windows SDK version is properly installed on the system.")
-endif()
-
 #set(VCPKG_POLICY_DLLS_WITHOUT_LIBS enabled)
 
 file(INSTALL "${PACKAGE_PATH}/build/native/include/d3d12.h" DESTINATION "${CURRENT_PACKAGES_DIR}/include")
@@ -49,8 +41,6 @@ file(INSTALL "${PACKAGE_PATH}/build/native/include/d3dx12/d3dx12_state_object.h"
 
 file(INSTALL "${PACKAGE_PATH}/build/native/src/d3dx12/d3dx12_property_format_table.cpp" DESTINATION "${CURRENT_PACKAGES_DIR}/src/d3dx12")
 
-file(INSTALL "${_d3d12_implib}" DESTINATION "${CURRENT_PACKAGES_DIR}/lib")
-
 if(VCPKG_TARGET_ARCHITECTURE STREQUAL "x86")
     file(COPY "${PACKAGE_PATH}/build/native/bin/win32/D3D12Core.dll" DESTINATION "${CURRENT_PACKAGES_DIR}/bin")
     file(COPY "${PACKAGE_PATH}/build/native/bin/win32/d3d12SDKLayers.dll" DESTINATION "${CURRENT_PACKAGES_DIR}/bin")
@@ -70,7 +60,7 @@ unset(VERSION_LIST)
 
 # Create debug binaries as a copy of the release binaries
 file(MAKE_DIRECTORY "${CURRENT_PACKAGES_DIR}/debug")
-file(COPY "${CURRENT_PACKAGES_DIR}/bin" "${CURRENT_PACKAGES_DIR}/lib" DESTINATION "${CURRENT_PACKAGES_DIR}/debug")
+file(COPY "${CURRENT_PACKAGES_DIR}/bin" DESTINATION "${CURRENT_PACKAGES_DIR}/debug")
 
 file(INSTALL "${PACKAGE_PATH}/LICENSE.txt" DESTINATION "${CURRENT_PACKAGES_DIR}/share/${PORT}" RENAME copyright)
 
