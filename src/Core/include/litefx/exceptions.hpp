@@ -17,6 +17,7 @@ namespace LiteFX {
 	private:
 		std::source_location m_location;
 		std::stacktrace m_trace;
+		std::string m_message;
 
 	protected:
 		/// <summary>
@@ -26,7 +27,7 @@ namespace LiteFX {
 		/// <param name="location">The source location of the error.</param>
 		/// <param name="trace">The stack trace leading to the error.</param>
 		explicit Exception(std::string message, const std::source_location& location, std::stacktrace trace) noexcept :
-			std::exception(message.c_str()), m_location(location), m_trace(trace) { }
+			std::exception(), m_message(message), m_location(location), m_trace(trace) { }
 
 	public:
 		Exception(const Exception&) = default;
@@ -51,6 +52,15 @@ namespace LiteFX {
 		/// <returns>The stack trace of the exception.</returns>
 		const std::stacktrace& trace() const noexcept {
 			return m_trace;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <returns></returns>
+		[[nodiscard]] char const* what() const noexcept override
+		{
+			return m_message.c_str();
 		}
 	};
 
