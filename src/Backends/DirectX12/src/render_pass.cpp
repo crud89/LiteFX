@@ -63,12 +63,12 @@ public:
         std::ranges::sort(m_renderTargets, [this](const auto& a, const auto& b) { return a.location() < b.location(); });
 
         if (auto match = std::ranges::find_if(m_renderTargets, [](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::Present; }); match != m_renderTargets.end())
-            m_presentTarget = match._Ptr;
+            m_presentTarget = std::addressof(*match);
         else
             m_presentTarget = nullptr;
 
         if (auto match = std::ranges::find_if(m_renderTargets, [](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::DepthStencil; }); match != m_renderTargets.end())
-            m_depthStencilTarget = match._Ptr;
+            m_depthStencilTarget = std::addressof(*match);
         else
             m_depthStencilTarget = nullptr;
 
