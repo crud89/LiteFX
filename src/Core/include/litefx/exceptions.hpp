@@ -8,6 +8,15 @@
 #include <type_traits>
 #include <format>
 
+#ifndef __cpp_size_t_suffix
+// Implements C++23 P0330R8 for when compiler is missing support (MSVC only as of now)
+#pragma warning(suppress:4455)
+inline constexpr unsigned long long int operator"" uz(unsigned long long int k)
+{
+    return k;
+}
+#endif
+
 namespace LiteFX {
 
 	/// <summary>
