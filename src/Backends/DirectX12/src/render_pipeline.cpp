@@ -171,7 +171,7 @@ public:
 				// Setup the blend state.
 				auto& targetBlendState = blendState.RenderTarget[target];
 				targetBlendState.BlendEnable = renderTarget.blendState().Enable;
-				targetBlendState.RenderTargetWriteMask = static_cast<D3D12_COLOR_WRITE_ENABLE>(renderTarget.blendState().WriteMask);
+				targetBlendState.RenderTargetWriteMask = static_cast<D3D12_COLOR_WRITE_ENABLE>(renderTarget.blendState().ChannelWriteMask);
 				targetBlendState.SrcBlend = DX12::getBlendFactor(renderTarget.blendState().SourceColor);
 				targetBlendState.SrcBlendAlpha = DX12::getBlendFactor(renderTarget.blendState().SourceAlpha);
 				targetBlendState.DestBlend = DX12::getBlendFactor(renderTarget.blendState().DestinationColor);
