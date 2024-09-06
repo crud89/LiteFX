@@ -74,6 +74,8 @@ public:
 		// Get the number of images in the swap chain.
 		VkSurfaceCapabilitiesKHR deviceCaps;
 		::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(adapter, surface, &deviceCaps);
+        if (deviceCaps.maxImageCount == 0) // 0 means is unlimited.
+            deviceCaps.maxImageCount = std::numeric_limits<decltype(deviceCaps.maxImageCount)>::max();
 		UInt32 images = std::clamp(buffers, deviceCaps.minImageCount, deviceCaps.maxImageCount);
 
 		// Create a swap chain.
