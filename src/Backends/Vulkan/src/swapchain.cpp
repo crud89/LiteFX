@@ -74,6 +74,8 @@ public:
 		// Get the number of images in the swap chain.
 		VkSurfaceCapabilitiesKHR deviceCaps;
 		::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(adapter, surface, &deviceCaps);
+        if (deviceCaps.maxImageCount == 0) // 0 means is unlimited.
+            deviceCaps.maxImageCount = std::numeric_limits<decltype(deviceCaps.maxImageCount)>::max();
 		UInt32 images = std::clamp(buffers, deviceCaps.minImageCount, deviceCaps.maxImageCount);
 
 		// Create a swap chain.
@@ -994,7 +996,7 @@ Enumerable<SharedPtr<TimingEvent>> VulkanSwapChain::timingEvents() const noexcep
 SharedPtr<TimingEvent> VulkanSwapChain::timingEvent(UInt32 queryId) const
 {
 	if (queryId >= m_impl->m_timingEvents.size())
-		throw ArgumentOutOfRangeException("queryId", std::make_pair(0ull, (UInt64)m_impl->m_timingEvents.size()), queryId, "No timing event has been registered for query ID {0}.", queryId);
+		throw ArgumentOutOfRangeException("queryId", std::make_pair(0uz, m_impl->m_timingEvents.size()), queryId, "No timing event has been registered for query ID {0}.", queryId);
 
 	return m_impl->m_timingEvents[queryId];
 }
@@ -1050,7 +1052,7 @@ bool VulkanSwapChain::verticalSynchronization() const noexcept
 IVulkanImage* VulkanSwapChain::image(UInt32 backBuffer) const
 {
 	if (backBuffer >= m_impl->m_presentImages.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("backBuffer", std::make_pair(0ull, (UInt64)m_impl->m_presentImages.size()), backBuffer, "The back buffer must be a valid index.");
+		throw ArgumentOutOfRangeException("backBuffer", std::make_pair(0uz, m_impl->m_presentImages.size()), backBuffer, "The back buffer must be a valid index.");
 
 	return m_impl->m_presentImages[backBuffer].get();
 }

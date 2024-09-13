@@ -385,7 +385,16 @@ void SampleApp::onInit()
         if (adapter == nullptr)
             adapter = backend->findAdapter(std::nullopt);
 
+#ifdef GLFW_EXPOSE_NATIVE_WIN32
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
+#else
+        auto surface = backend->createSurface([&](const typename TBackend::handle_type& instance)
+                                                 {
+                                                     typename TBackend::surface_type::handle_type vk_surface = nullptr;
+                                                     glfwCreateWindowSurface(instance, window, nullptr, &vk_surface);
+                                                     return vk_surface;
+                                                 });
+#endif
 
         // Create viewport and scissors.
         m_viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));

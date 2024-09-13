@@ -394,7 +394,16 @@ void SampleApp::onInit()
         if (adapter == nullptr)
             adapter = backend->findAdapter(std::nullopt);
 
+#ifdef GLFW_EXPOSE_NATIVE_WIN32
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
+#else
+        auto surface = backend->createSurface([&](const typename TBackend::handle_type& instance)
+                                                 {
+                                                     typename TBackend::surface_type::handle_type vk_surface = nullptr;
+                                                     glfwCreateWindowSurface(instance, window, nullptr, &vk_surface);
+                                                     return vk_surface;
+                                                 });
+#endif
 
         // Create the device.
         m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, Size2d(static_cast<Float>(width), static_cast<Float>(height)), 3, false, GraphicsDeviceFeatures { .RayTracing = true });
@@ -439,7 +448,7 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
 
     // Recreate output images and re-bind them to the output descriptors.
     auto backBuffers = m_device->factory().createTexture("Back Buffers", m_device->swapChain().surfaceFormat(), m_device->swapChain().renderArea(), ImageDimensions::DIM_2, 1u, m_device->swapChain().buffers(), MultiSamplingLevel::x1, ResourceUsage::AllowWrite | ResourceUsage::TransferSource);
-    
+
     for (int i = 0; i < m_device->swapChain().buffers(); ++i)
     {
         auto& outputBindings = m_device->state().descriptorSet(std::format("Output Bindings {0}", i));

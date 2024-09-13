@@ -226,7 +226,7 @@ Enumerable<SharedPtr<TimingEvent>> DirectX12SwapChain::timingEvents() const noex
 SharedPtr<TimingEvent> DirectX12SwapChain::timingEvent(UInt32 queryId) const
 {
 	if (queryId >= m_impl->m_timingEvents.size())
-		throw ArgumentOutOfRangeException("queryId", std::make_pair(0ull, (UInt64)m_impl->m_timingEvents.size()), queryId, "No timing event has been registered for query ID {0}.", queryId);
+		throw ArgumentOutOfRangeException("queryId", std::make_pair(0uz, m_impl->m_timingEvents.size()), queryId, "No timing event has been registered for query ID {0}.", queryId);
 
 	return m_impl->m_timingEvents[queryId];
 }
@@ -276,7 +276,7 @@ bool DirectX12SwapChain::verticalSynchronization() const noexcept
 IDirectX12Image* DirectX12SwapChain::image(UInt32 backBuffer) const
 {
 	if (backBuffer >= m_impl->m_presentImages.size()) [[unlikely]]
-		throw ArgumentOutOfRangeException("backBuffer", std::make_pair(0ull, (UInt64)m_impl->m_presentImages.size()), backBuffer, "The back buffer must be a valid index.");
+		throw ArgumentOutOfRangeException("backBuffer", std::make_pair(0uz, m_impl->m_presentImages.size()), backBuffer, "The back buffer must be a valid index.");
 
 	return m_impl->m_presentImages[backBuffer].get();
 }

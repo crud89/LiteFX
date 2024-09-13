@@ -196,7 +196,7 @@ public:
 				.srcAlphaBlendFactor = Vk::getBlendFactor(renderTarget.blendState().SourceAlpha),
 				.dstAlphaBlendFactor = Vk::getBlendFactor(renderTarget.blendState().DestinationAlpha),
 				.alphaBlendOp = Vk::getBlendOperation(renderTarget.blendState().AlphaOperation),
-				.colorWriteMask = static_cast<VkColorComponentFlags>(renderTarget.blendState().WriteMask)
+				.colorWriteMask = static_cast<VkColorComponentFlags>(renderTarget.blendState().ChannelWriteMask)
 			});
 		});
 
@@ -216,13 +216,13 @@ public:
 		depthStencilState.depthCompareOp = Vk::getCompareOp(rasterizer.depthStencilState().depthState().Operation);
 		depthStencilState.stencilTestEnable = rasterizer.depthStencilState().stencilState().Enable;
 		depthStencilState.front.compareMask = rasterizer.depthStencilState().stencilState().ReadMask;
-		depthStencilState.front.writeMask = rasterizer.depthStencilState().stencilState().WriteMask;
+		depthStencilState.front.writeMask = rasterizer.depthStencilState().stencilState().ChannelWriteMask;
 		depthStencilState.front.compareOp = Vk::getCompareOp(rasterizer.depthStencilState().stencilState().FrontFace.Operation);
 		depthStencilState.front.failOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilFailOp);
 		depthStencilState.front.passOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilPassOp);
 		depthStencilState.front.depthFailOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.DepthFailOp);
 		depthStencilState.back.compareMask = rasterizer.depthStencilState().stencilState().ReadMask;
-		depthStencilState.back.writeMask = rasterizer.depthStencilState().stencilState().WriteMask;
+		depthStencilState.back.writeMask = rasterizer.depthStencilState().stencilState().ChannelWriteMask;
 		depthStencilState.back.compareOp = Vk::getCompareOp(rasterizer.depthStencilState().stencilState().BackFace.Operation);
 		depthStencilState.back.failOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilFailOp);
 		depthStencilState.back.passOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilPassOp);
@@ -329,7 +329,13 @@ public:
 		auto& bindings = m_inputAttachmentBindings[interfacePointer];
 
 		// Initialize the descriptor set bindings.
-		bindings.append_range(descriptorSets | std::views::transform([this](UInt32 set) { return std::move(m_layout->descriptorSet(set).allocate()); }));
+		auto range = descriptorSets | std::views::transform([this](UInt32 set) { return std::move(m_layout->descriptorSet(set).allocate()); });
+
+#ifdef __cpp_lib_containers_ranges
+		bindings.append_range(std::move(range));
+#else
+        bindings.insert(std::end(bindings), std::begin(range), std::end(range));
+#endif
 
 		// Listen to frame buffer events and update the bindings or remove the sets (on release).
 		m_frameBufferResizeTokens[interfacePointer] = frameBuffer.resized.add(std::bind(&VulkanRenderPipelineImpl::onFrameBufferResize, this, std::placeholders::_1, std::placeholders::_2));

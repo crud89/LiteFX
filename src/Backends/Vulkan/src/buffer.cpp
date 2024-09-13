@@ -95,12 +95,9 @@ void VulkanBuffer::map(const void* const data, size_t size, UInt32 element)
 
 	char* buffer;		// A pointer to the whole (aligned) buffer memory.
 	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
-	auto result = ::memcpy_s(reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), this->size(), data, size);
+	std::memcpy(reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), data, size);
 
 	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
-
-	if (result != 0) [[unlikely]]
-		throw RuntimeException("Error mapping buffer to device memory: {#X}.", result);
 }
 
 void VulkanBuffer::map(Span<const void* const> data, size_t elementSize, UInt32 firstElement)
@@ -115,14 +112,10 @@ void VulkanBuffer::map(void* data, size_t size, UInt32 element, bool write)
 
 	char* buffer;		// A pointer to the whole (aligned) buffer memory.
 	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
-	auto result = write ?
-		::memcpy_s(reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), this->size(), data, size) :
-		::memcpy_s(data, size, reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), size);
+    std::memcpy(reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), data, size);
+    std::memcpy(data, reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), size);
 
 	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
-
-	if (result != 0) [[unlikely]]
-		throw RuntimeException("Error mapping buffer to device memory: {#X}.", result);
 }
 
 void VulkanBuffer::map(Span<void*> data, size_t elementSize, UInt32 firstElement, bool write)

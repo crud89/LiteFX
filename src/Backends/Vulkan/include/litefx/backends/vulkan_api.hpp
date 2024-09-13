@@ -18,8 +18,6 @@
 
 #if (defined _WIN32 || defined WINCE)
 #  define VK_USE_PLATFORM_WIN32_KHR
-#else 
-#  pragma message ("Vulkan: No supported surface platform detected.")
 #endif
 
 #include <litefx/config.h>

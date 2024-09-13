@@ -182,7 +182,16 @@ void SampleApp::onInit()
         if (adapter == nullptr)
             adapter = backend->findAdapter(std::nullopt);
 
+#ifdef GLFW_EXPOSE_NATIVE_WIN32
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
+#else
+        auto surface = backend->createSurface([&](const typename TBackend::handle_type& instance)
+                                                 {
+                                                     typename TBackend::surface_type::handle_type vk_surface = nullptr;
+                                                     glfwCreateWindowSurface(instance, window, nullptr, &vk_surface);
+                                                     return vk_surface;
+                                                 });
+#endif
 
         // Create the device.
         m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3, false, GraphicsDeviceFeatures { .MeshShaders = true });

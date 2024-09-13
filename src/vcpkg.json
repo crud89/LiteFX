@@ -8,11 +8,9 @@
   "homepage": "https://litefx.crudolph.io/",
   "documentation": "https://litefx.crudolph.io/docs/",
   "license": "MIT",
-  "supports": "windows & !arm",
+  "supports": "windows & linux & !arm",
   "dependencies": [
     "cli11",
-    "directxmath",
-    "directx-headers",
     "glfw3",
     "glm",
     "spdlog",
@@ -20,9 +18,26 @@
     "vulkan",
     "spirv-reflect",
     "vulkan-memory-allocator",
-    "d3d12-memory-allocator",
-    "directx-agility-sdk",
-    "directx-dxc"
+    {
+      "name": "directxmath",
+      "platform": "windows"
+    },
+    {
+      "name": "directx-headers",
+      "platform": "windows"
+    },
+    {
+      "name": "d3d12-memory-allocator",
+      "platform": "windows"
+    },
+    {
+      "name": "directx-agility-sdk",
+      "platform": "windows"
+    },
+    {
+      "name": "directx-dxc",
+      "platform": "windows"
+    }
   ],
   "features": {
     "pix-support": {

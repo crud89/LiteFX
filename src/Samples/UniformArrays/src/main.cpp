@@ -10,9 +10,10 @@
 #include <CLI/CLI.hpp>
 #include <iostream>
 #include <filesystem>
-#include <shlobj.h>
 
 #ifdef LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER
+#include <shlobj.h>
+
 bool loadPixCapturer()
 {
 	// Check if Pix has already been loaded.

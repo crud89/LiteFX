@@ -5,8 +5,6 @@
 
 #if (defined _WIN32 || defined WINCE)
 #  define GLFW_EXPOSE_NATIVE_WIN32
-#else 
-#  pragma message ("Mesh Shader Sample: No supported surface platform detected.")
 #endif
 
 #include <GLFW/glfw3.h>

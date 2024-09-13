@@ -39,7 +39,14 @@ public:
         Array<UInt32> emptySets;
 
         if (!m_descriptorSetLayouts.empty())
-            emptySets.append_range(std::views::iota(0u, m_descriptorSetLayouts.front()->space()));
+        {
+            auto range = std::views::iota(0u, m_descriptorSetLayouts.front()->space());
+#ifdef __cpp_lib_containers_ranges
+            emptySets.append_range(std::move(range));
+#else
+            emptySets.insert(emptySets.end(), range.cbegin(), range.cend());
+#endif
+        }
 
         for (Tuple<UInt32, UInt32> spaces : m_descriptorSetLayouts | std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout->space(); }) | std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
         {
@@ -49,7 +56,12 @@ public:
                 throw InvalidArgumentException("descriptorSetLayouts", "Two layouts defined for the same descriptor set {}. Each descriptor set must use it's own space.", a);
 
             // Fill space until we reached the last descriptor set.
-            emptySets.append_range(std::views::iota(a + 1, b));
+            auto range = std::views::iota(a + 1, b);
+#ifdef __cpp_lib_containers_ranges
+            emptySets.append_range(std::move(range));
+#else
+            emptySets.insert(emptySets.end(), range.cbegin(), range.cend());
+#endif
         }
 
         // Add empty sets.

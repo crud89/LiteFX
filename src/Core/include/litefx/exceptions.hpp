@@ -8,12 +8,21 @@
 #include <type_traits>
 #include <format>
 
+#ifndef __cpp_size_t_suffix
+// Implements C++23 P0330R8 for when compiler is missing support (MSVC only as of now)
+#pragma warning(suppress:4455)
+inline constexpr unsigned long long int operator"" uz(unsigned long long int k)
+{
+    return k;
+}
+#endif
+
 namespace LiteFX {
 
 	/// <summary>
 	/// The base class for exceptions thrown by the SDK.
 	/// </summary>
-	class Exception : public std::exception {
+	class Exception : public std::runtime_error {
 	private:
 		std::source_location m_location;
 		std::stacktrace m_trace;
@@ -26,7 +35,7 @@ namespace LiteFX {
 		/// <param name="location">The source location of the error.</param>
 		/// <param name="trace">The stack trace leading to the error.</param>
 		explicit Exception(std::string message, const std::source_location& location, std::stacktrace trace) noexcept :
-			std::exception(message.c_str()), m_location(location), m_trace(trace) { }
+			std::runtime_error(message.c_str()), m_location(location), m_trace(trace) { }
 
 	public:
 		Exception(const Exception&) = default;

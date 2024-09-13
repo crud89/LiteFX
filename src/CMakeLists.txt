@@ -15,12 +15,12 @@ ENDIF("${CMAKE_SOURCE_DIR}" STREQUAL "${CMAKE_BINARY_DIR}")
 PROJECT(LiteFX LANGUAGES CXX)
 
 # Include configuration files.
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/modules.cmake")
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/version.cmake")
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/options.cmake")
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/config.cmake") 
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/shaders.cmake")
-INCLUDE("${CMAKE_SOURCE_DIR}/cmake/assets.cmake")
+INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Modules.cmake")
+INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Version.cmake")
+INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Options.cmake")
+INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Config.cmake") 
+INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Shaders.cmake")
+INCLUDE("${CMAKE_SOURCE_DIR}/cmake/Assets.cmake")
 
 # Include sub-projects.
 ADD_SUBDIRECTORY(Core)
