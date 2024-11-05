@@ -90,8 +90,14 @@ UInt64 VulkanBuffer::virtualAddress() const noexcept
 
 void VulkanBuffer::map(const void* const data, size_t size, UInt32 element)
 {
+	if (data == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("data", "The data pointer must be initialized.");
+
 	if (element >= m_impl->m_elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("element", std::make_pair(0u, m_impl->m_elements), element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
+		
+	if (size > this->alignedElementSize()) [[unlikely]]
+		throw InvalidArgumentException("size", "The provided buffer size {0} is too large to fit an element of {1} bytes.", size, this->alignedElementSize());
 
 	char* buffer;		// A pointer to the whole (aligned) buffer memory.
 	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
@@ -107,13 +113,22 @@ void VulkanBuffer::map(Span<const void* const> data, size_t elementSize, UInt32 
 
 void VulkanBuffer::map(void* data, size_t size, UInt32 element, bool write)
 {
+	if (data == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("data", "The data pointer must be initialized.");
+
 	if (element >= m_impl->m_elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("element", std::make_pair(0u, m_impl->m_elements), element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
+		
+	if (size > this->alignedElementSize()) [[unlikely]]
+		throw InvalidArgumentException("size", "The provided buffer size {0} is too large to fit an element of {1} bytes.", size, this->alignedElementSize());
 
 	char* buffer;		// A pointer to the whole (aligned) buffer memory.
 	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
-    std::memcpy(reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), data, size);
-    std::memcpy(data, reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), size);
+	
+	if (write)
+		std::memcpy(reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), data, size);
+	else
+		std::memcpy(data, reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), size);
 
 	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
 }
