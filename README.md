@@ -60,7 +60,7 @@ LiteFX is written in modern C++23, following established design patterns to make
 
 If you just want to start using LiteFX, you can acquire binaries of the latest version from the [releases page](https://github.com/crud89/LiteFX/releases) and follow the [project setup](https://litefx.crudolph.io/docs/md_docs_tutorials_project_setup.html) and [quick start](https://litefx.crudolph.io/docs/md_docs_tutorials_quick_start.html) guides. If you want to perform a custom build, check out the [building guide](https://github.com/crud89/LiteFX/wiki/Building-Guide). For a collection of tutorials and more in-depth information on how to use the engine and work with the code base, take a look at the [documentation](https://litefx.crudolph.io/docs/) and the [project wiki](https://github.com/crud89/LiteFX/wiki).
 
-### Dependencies
+## Dependencies
 
 All dependencies are automatically installed using *vcpkg*, when performing a manual build. The engine core by itself only has one hard dependency:
 
