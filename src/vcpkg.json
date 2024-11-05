@@ -17,6 +17,7 @@
     "stb",
     "vulkan",
     "spirv-reflect",
+    "directx-dxc",
     "vulkan-memory-allocator",
     {
       "name": "directxmath",
@@ -32,10 +33,6 @@
     },
     {
       "name": "directx-agility-sdk",
-      "platform": "windows"
-    },
-    {
-      "name": "directx-dxc",
       "platform": "windows"
     }
   ],
