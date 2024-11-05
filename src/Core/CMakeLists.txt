@@ -63,6 +63,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
         $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
 )
 
+# Link experimental libraries until <stacktrace> support is fully implemented by GCC.
 IF(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC -lstdc++exp)
 ENDIF(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
