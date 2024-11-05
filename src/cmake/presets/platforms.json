@@ -1,92 +1,108 @@
 {
-    "version": 4,
-    "cmakeMinimumRequired": {
-        "major": 3,
-        "minor": 20,
-        "patch": 0
+  "version": 4,
+  "configurePresets": [
+    {
+      "name": "windows",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/../out/build/${presetName}",
+      "cacheVariables": {
+        "CMAKE_INSTALL_PREFIX": "${sourceDir}/../out/install/${presetName}",
+        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/modules/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "X_VCPKG_APPLOCAL_DEPS_INSTALL": "ON"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [ "Windows" ]
+        }
+      }
     },
-    "configurePresets": [
-        {
-            "name": "windows",
-            "hidden": true,
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/../out/build/${presetName}",
-            "cacheVariables": {
-                "CMAKE_INSTALL_PREFIX": "${sourceDir}/../out/install/${presetName}",
-                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/modules/vcpkg/scripts/buildsystems/vcpkg.cmake",
-                "X_VCPKG_APPLOCAL_DEPS_INSTALL": "ON"
-            }
+    {
+      "name": "linux",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/../out/build/${presetName}",
+      "installDir": "${sourceDir}/../out/install/${presetName}",
+      "toolchainFile": "/home/neva/vcpkg/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "X_VCPKG_APPLOCAL_DEPS_INSTALL": "OFF",
+        "LITEFX_BUILD_DIRECTX_12_BACKEND": "OFF",
+        "LITEFX_BUILD_WITH_DIRECTX_MATH": "OFF",
+        "LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER": "OFF"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [ "Linux" ]
         },
-        {
-            "name": "linux",
-            "hidden": true,
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
-            "generator": "Ninja",
-            "binaryDir": "${sourceDir}/../out/build/${presetName}",
-            "installDir": "${sourceDir}/../out/install/${presetName}",
-            "toolchainFile": "/home/neva/vcpkg/scripts/buildsystems/vcpkg.cmake",
-            "cacheVariables": {
-                "X_VCPKG_APPLOCAL_DEPS_INSTALL": "OFF",
-                "LITEFX_BUILD_DIRECTX_12_BACKEND": "OFF",
-                "LITEFX_BUILD_WITH_DIRECTX_MATH": "OFF",
-                "LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER": "OFF" 
-            },
-            "microsoft.com/VisualStudioRemoteSettings/CMake/2.0": {
-                "copySourcesOptions": {
-                    "exclusionList": [
-                        "docs"
-                    ]
-                }
-            }
-        }
-    ],
-    "buildPresets": [
-        {
-            "name": "windows",
-            "hidden": true,
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            }
+        "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
+          "copySourcesOptions": {
+            "exclusionList": [
+              ".vs",
+              ".git",
+              "out",
+              ".github",
+              "docs",
+              "src/Modules/vcpkg/installed",
+              "src/Modules/vcpkg/downloads",
+              "src/Modules/vcpkg/buildtrees"
+            ]
+          }
         },
-        {
-            "name": "linux",
-            "hidden": true,
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            }
+        "microsoft.com/VisualStudioRemoteSettings/CMake/2.0": {
+          "sourceRootDir": "$ms{localSourceDir}\\..",
+          "remoteSourceRootDir": "$env{HOME}/.vs/litefx/"
         }
-    ],
-    "testPresets": [
-        {
-            "name": "windows",
-            "hidden": true,
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            }
-        },
-        {
-            "name": "linux",
-            "hidden": true,
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            }
-        }
-    ]
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "linux",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "windows",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "linux",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    }
+  ]
 }
