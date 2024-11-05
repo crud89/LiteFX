@@ -2,7 +2,7 @@
   "version": 4,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 20,
+    "minor": 23,
     "patch": 0
   },
   "include": [
@@ -433,8 +433,8 @@
       "configurePreset": "windows-clang-x64-test"
     },
     {
-        "name": "linux-gcc-x64-test",
-        "configurePreset": "linux-gcc-x64-test"
+      "name": "linux-gcc-x64-test",
+      "configurePreset": "linux-gcc-x64-test"
     }
   ]
 }
