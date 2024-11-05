@@ -11,11 +11,8 @@
       },
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/../out/build/${presetName}",
-      "cacheVariables": {
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/../out/install/${presetName}",
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/modules/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "X_VCPKG_APPLOCAL_DEPS_INSTALL": "ON"
-      },
+      "installDir": "${sourceDir}/../out/install/${presetName}",
+      "toolchainFile": "${sourceDir}/Modules/vcpkg/scripts/buildsystems/vcpkg.cmake",
       "vendor": {
         "microsoft.com/VisualStudioSettings/CMake/1.0": {
           "hostOS": [ "Windows" ]
@@ -33,9 +30,8 @@
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/../out/build/${presetName}",
       "installDir": "${sourceDir}/../out/install/${presetName}",
-      "toolchainFile": "/home/neva/vcpkg/scripts/buildsystems/vcpkg.cmake",
+      "toolchainFile": "${sourceDir}/Modules/vcpkg/scripts/buildsystems/vcpkg.cmake",
       "cacheVariables": {
-        "X_VCPKG_APPLOCAL_DEPS_INSTALL": "OFF",
         "LITEFX_BUILD_DIRECTX_12_BACKEND": "OFF",
         "LITEFX_BUILD_WITH_DIRECTX_MATH": "OFF",
         "LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER": "OFF"
