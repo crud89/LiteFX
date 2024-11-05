@@ -14,11 +14,14 @@ IF(MSVC)
         MESSAGE(FATAL_ERROR "The minimum required MSVC version is 17.10, but only ${CMAKE_CXX_COMPILER_VERSION} has been found.")
     ENDIF(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "17.10")
 
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")         # Use multi core compiling to speed up compile times.
+    # Use multi core compiling to speed up compile times and enable "just-my-code" for debug builds.
+    ADD_COMPILE_OPTIONS(/MP $<$<CONFIG:Debug,RelWithDebInfo>:/JMC>)
 ELSEIF(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     IF(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "14.2")
         MESSAGE(FATAL_ERROR "The minimum required GCC version is 14.2, but only ${CMAKE_CXX_COMPILER_VERSION} has been found.")
     ENDIF(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "14.2")
+    
+    MESSAGE(STATUS "GCC ${CMAKE_CXX_COMPILER_VERSION} has been found, but note that Linux support is currently experimental. Compilation may fail if GCC has no been compiled with -lstdc++exp set.")
 ENDIF(MSVC)
 
 # For debug builds, append the "d" suffix.
