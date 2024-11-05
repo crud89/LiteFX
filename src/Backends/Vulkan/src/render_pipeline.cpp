@@ -216,13 +216,13 @@ public:
 		depthStencilState.depthCompareOp = Vk::getCompareOp(rasterizer.depthStencilState().depthState().Operation);
 		depthStencilState.stencilTestEnable = rasterizer.depthStencilState().stencilState().Enable;
 		depthStencilState.front.compareMask = rasterizer.depthStencilState().stencilState().ReadMask;
-		depthStencilState.front.writeMask = rasterizer.depthStencilState().stencilState().ChannelWriteMask;
+		depthStencilState.front.writeMask = rasterizer.depthStencilState().stencilState().WriteMask;
 		depthStencilState.front.compareOp = Vk::getCompareOp(rasterizer.depthStencilState().stencilState().FrontFace.Operation);
 		depthStencilState.front.failOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilFailOp);
 		depthStencilState.front.passOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.StencilPassOp);
 		depthStencilState.front.depthFailOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().FrontFace.DepthFailOp);
 		depthStencilState.back.compareMask = rasterizer.depthStencilState().stencilState().ReadMask;
-		depthStencilState.back.writeMask = rasterizer.depthStencilState().stencilState().ChannelWriteMask;
+		depthStencilState.back.writeMask = rasterizer.depthStencilState().stencilState().WriteMask;
 		depthStencilState.back.compareOp = Vk::getCompareOp(rasterizer.depthStencilState().stencilState().BackFace.Operation);
 		depthStencilState.back.failOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilFailOp);
 		depthStencilState.back.passOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.StencilPassOp);
