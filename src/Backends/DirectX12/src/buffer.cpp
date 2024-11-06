@@ -94,8 +94,8 @@ void DirectX12Buffer::map(const void* const data, size_t size, UInt32 element)
 	if (element >= m_impl->m_elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("element", std::make_pair(0u, m_impl->m_elements), element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
 		
-	if (size > this->alignedElementSize()) [[unlikely]]
-		throw InvalidArgumentException("size", "The provided buffer size {0} is too large to fit an element of {1} bytes.", size, this->alignedElementSize());
+	if (this->size() - (element * this->alignedElementSize()) < size) [[unlikely]]
+		throw InvalidArgumentException("size", "The provided data size would overflow the buffer (buffer offset: 0x{1:X}; {2} bytes remaining but size was set to {0}).", size, element * this->alignedElementSize(), this->size() - (element * this->alignedElementSize()));
 
 	D3D12_RANGE mappedRange = { };
 	char* buffer;
@@ -117,8 +117,8 @@ void DirectX12Buffer::map(void* data, size_t size, UInt32 element, bool write)
 	if (element >= m_impl->m_elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("element", std::make_pair(0u, m_impl->m_elements), element, "The element {0} is out of range. The buffer only contains {1} elements.", element, m_impl->m_elements);
 		
-	if (size > this->alignedElementSize()) [[unlikely]]
-		throw InvalidArgumentException("size", "The provided buffer size {0} is too large to fit an element of {1} bytes.", size, this->alignedElementSize());
+	if (this->size() - (element * this->alignedElementSize()) < size) [[unlikely]]
+		throw InvalidArgumentException("size", "The provided data size would overflow the buffer (buffer offset: 0x{1:X}; {2} bytes remaining but size was set to {0}).", size, element * this->alignedElementSize(), this->size() - (element * this->alignedElementSize()));
 
 	D3D12_RANGE mappedRange = { };
 	char* buffer;
