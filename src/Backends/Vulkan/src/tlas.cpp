@@ -111,7 +111,7 @@ void VulkanTopLevelAccelerationStructure::build(const VulkanCommandBuffer& comma
     if (buffer == nullptr)
         buffer = m_impl->m_buffer != nullptr && m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
     else if (maxSize < requiredMemory) [[unlikely]]
-        throw ArgumentOutOfRangeException("maxSize", std::make_pair(0uz, maxSize), requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
+        throw ArgumentOutOfRangeException("maxSize", std::make_pair(0_ui64, maxSize), requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("buffer", std::make_pair(0uz, buffer->size()), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
         
@@ -172,7 +172,7 @@ void VulkanTopLevelAccelerationStructure::update(const VulkanCommandBuffer& comm
     if (buffer == nullptr)
         buffer = m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
     else if (maxSize < requiredMemory) [[unlikely]]
-        throw ArgumentOutOfRangeException("maxSize", std::make_pair(0uz, maxSize), requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
+        throw ArgumentOutOfRangeException("maxSize", std::make_pair(0_ui64, maxSize), requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("buffer", std::make_pair(0uz, buffer->size()), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
 
