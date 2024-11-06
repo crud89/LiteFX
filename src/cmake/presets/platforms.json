@@ -1,0 +1,104 @@
+{
+  "version": 4,
+  "configurePresets": [
+    {
+      "name": "windows",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      },
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/../out/build/${presetName}",
+      "installDir": "${sourceDir}/../out/install/${presetName}",
+      "toolchainFile": "${sourceDir}/Modules/vcpkg/scripts/buildsystems/vcpkg.cmake",
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [ "Windows" ]
+        }
+      }
+    },
+    {
+      "name": "linux",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      },
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/../out/build/${presetName}",
+      "installDir": "${sourceDir}/../out/install/${presetName}",
+      "toolchainFile": "${sourceDir}/Modules/vcpkg/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "LITEFX_BUILD_DIRECTX_12_BACKEND": "OFF",
+        "LITEFX_BUILD_WITH_DIRECTX_MATH": "OFF",
+        "LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER": "OFF"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "hostOS": [ "Linux" ]
+        },
+        "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
+          "copySourcesOptions": {
+            "exclusionList": [
+              ".vs",
+              ".git",
+              "out",
+              ".github",
+              "docs",
+              "src/Modules/vcpkg/installed",
+              "src/Modules/vcpkg/downloads",
+              "src/Modules/vcpkg/buildtrees"
+            ]
+          }
+        },
+        "microsoft.com/VisualStudioRemoteSettings/CMake/2.0": {
+          "sourceRootDir": "$ms{localSourceDir}\\..",
+          "remoteSourceRootDir": "$env{HOME}/.vs/litefx/"
+        }
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "linux",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "windows",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
+      "name": "linux",
+      "hidden": true,
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Linux"
+      }
+    }
+  ]
+}

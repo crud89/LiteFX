@@ -1,4 +1,5 @@
 #include <litefx/backends/vulkan.hpp>
+#include <litefx/logging.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -76,10 +77,12 @@ private:
         default:
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT: LITEFX_TRACE(VULKAN_LOG, "{1}: {0}", callbackData->pMessage, t); break;
         }
-
-        // Write to debug output.
+        // Write to debug output. (In the debugger output on windows, std::clog on linux since debugger output do not exist)
+#if (defined _WIN32 || defined WINCE)
         OutputDebugString(callbackData->pMessage);
-
+#else
+        LITEFX_DEBUG(VULKAN_LOG, "{}\n", callbackData->pMessage);
+#endif
         return VK_FALSE;
     }
 
@@ -89,7 +92,11 @@ private:
         if (callbackData->messageIdNumber == 0x79DE34D4)
             return VK_FALSE;
 
+#if (defined _WIN32 || defined WINCE)
         __debugbreak();
+#else
+        __builtin_trap();
+#endif
         return VK_FALSE;
     }
 

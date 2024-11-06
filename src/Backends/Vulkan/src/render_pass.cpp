@@ -67,12 +67,12 @@ public:
         std::ranges::sort(m_renderTargets, [this](const auto& a, const auto& b) { return a.location() < b.location(); });
 
         if (auto match = std::ranges::find_if(m_renderTargets, [](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::Present; }); match != m_renderTargets.end())
-            m_presentTarget = match._Ptr;
+            m_presentTarget = &*match;
         else
             m_presentTarget = nullptr;
 
         if (auto match = std::ranges::find_if(m_renderTargets, [](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::DepthStencil; }); match != m_renderTargets.end())
-            m_depthStencilTarget = match._Ptr;
+            m_depthStencilTarget = &*match;
         else
             m_depthStencilTarget = nullptr;
 
@@ -350,7 +350,7 @@ const Array<RenderPassDependency>& VulkanRenderPass::inputAttachments() const no
 const RenderPassDependency& VulkanRenderPass::inputAttachment(UInt32 location) const
 {
     if (location >= m_impl->m_inputAttachments.size()) [[unlikely]]
-        throw ArgumentOutOfRangeException("location", std::make_pair(0ull, (UInt64)m_impl->m_inputAttachments.size()), location, "The render pass does not contain an input attachment at location {0}.", location);
+        throw ArgumentOutOfRangeException("location", std::make_pair(0uz, m_impl->m_inputAttachments.size()), location, "The render pass does not contain an input attachment at location {0}.", location);
 
     return m_impl->m_inputAttachments[location];
 }
