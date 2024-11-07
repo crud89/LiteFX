@@ -1,0 +1,23 @@
+{
+  "version": 4,
+  "include": [
+    "platforms.json"
+  ],
+  "configurePresets": [
+    {
+      "name": "msvc",
+      "hidden": true,
+      "inherits": "windows",
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "cl"
+      }
+    },
+    {
+      "name": "clang",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_CXX_COMPILER": "clang++"
+      }
+    }
+  ]
+}

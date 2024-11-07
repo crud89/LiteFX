@@ -129,7 +129,7 @@ DirectX12FrameBuffer::~DirectX12FrameBuffer() noexcept = default;
 D3D12_CPU_DESCRIPTOR_HANDLE DirectX12FrameBuffer::descriptorHandle(UInt32 imageIndex) const
 {
     if (imageIndex >= m_impl->m_images.size()) [[unlikely]]
-        throw ArgumentOutOfRangeException("imageIndex", std::make_pair(0ull, (UInt64)m_impl->m_images.size()), imageIndex, "The frame buffer does not contain an image at index {0}.", imageIndex);
+        throw ArgumentOutOfRangeException("imageIndex", std::make_pair(0uz, m_impl->m_images.size()), imageIndex, "The frame buffer does not contain an image at index {0}.", imageIndex);
 
     return m_impl->m_renderTargetHandles.at(m_impl->m_images[imageIndex].get());
 }
@@ -170,7 +170,7 @@ size_t DirectX12FrameBuffer::getHeight() const noexcept
 void DirectX12FrameBuffer::mapRenderTarget(const RenderTarget& renderTarget, UInt32 index)
 {
     if (index >= m_impl->m_images.size()) [[unlikely]]
-        throw ArgumentOutOfRangeException("index", std::make_pair(0ull, (UInt64)m_impl->m_images.size()), index, "The frame buffer does not contain an image at index {0}.", index);
+        throw ArgumentOutOfRangeException("index", std::make_pair(0uz, m_impl->m_images.size()), index, "The frame buffer does not contain an image at index {0}.", index);
 
     if (m_impl->m_images[index]->format() != renderTarget.format()) [[unlikely]]
         LITEFX_WARNING(DIRECTX12_LOG, "The render target format {0} does not match the image format {1} for image {2}.", renderTarget.format(), m_impl->m_images[index]->format(), index);
@@ -201,7 +201,7 @@ Enumerable<const IDirectX12Image*> DirectX12FrameBuffer::images() const noexcept
 const IDirectX12Image& DirectX12FrameBuffer::image(UInt32 index) const
 {
     if (index >= m_impl->m_images.size()) [[unlikely]]
-        throw ArgumentOutOfRangeException("index", std::make_pair(0ull, (UInt64)m_impl->m_images.size()), index, "The frame buffer does not contain an image at index {0}.", index);
+        throw ArgumentOutOfRangeException("index", std::make_pair(0uz, m_impl->m_images.size()), index, "The frame buffer does not contain an image at index {0}.", index);
 
     return *m_impl->m_images[index];
 }
