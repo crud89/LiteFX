@@ -2577,7 +2577,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The channel write mask, determining which channels are written to (default: <c>WriteMask::R | WriteMask::G | WriteMask::B | WriteMask::A</c>).
             /// </summary>
-            WriteMask WriteMask{ WriteMask::R | WriteMask::G | WriteMask::B | WriteMask::A };
+            WriteMask ChannelWriteMask{ WriteMask::R | WriteMask::G | WriteMask::B | WriteMask::A };
         };
 
     public:

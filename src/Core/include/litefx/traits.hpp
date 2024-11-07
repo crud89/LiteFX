@@ -4,6 +4,15 @@
 #include <typeindex>
 #include <concepts>
 
+#ifndef __cpp_size_t_suffix
+// Implements C++23 P0330R8 for when compiler is missing support (MSVC only).
+#pragma warning(suppress: 4455) // Ignore warning about reserved suffix, as this is guarded anyway.
+inline constexpr std::size_t operator"" uz(unsigned long long int k)
+{
+    return static_cast<std::size_t>(k);
+}
+#endif
+
 /// <summary>
 /// Contains type traits and meta-programming features for compile-time evaluation.
 /// </summary>
