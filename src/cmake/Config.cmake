@@ -15,6 +15,9 @@ IF(MSVC)
 
     # Be more pedantic with warnings and treat them as errors for release builds.
     ADD_COMPILE_OPTIONS(/W4 $<$<CONFIG:Release,RelWithDebInfo>:/WX>)
+
+    # Exclude vcpkg-installed dependencies from code analysis.
+    ADD_COMPILE_OPTIONS(/external:I "${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed/" /external:W0)
 ENDIF(MSVC)
 
 # For debug builds, append the "d" suffix.

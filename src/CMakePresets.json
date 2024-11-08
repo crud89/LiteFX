@@ -26,16 +26,31 @@
       "name": "msvc",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "cl", 
+        "CMAKE_C_COMPILER": "cl",
         "CMAKE_CXX_COMPILER": "cl"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "enableMicrosoftCodeAnalysis": true,
+          "enableClangTidyCodeAnalysis": false,
+          "disableExternalAnalysis": true
+        }
       }
     },
     {
       "name": "clang",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang", 
+        "CMAKE_C_COMPILER": "clang",
         "CMAKE_CXX_COMPILER": "clang++"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "enableMicrosoftCodeAnalysis": false,
+          "enableClangTidyCodeAnalysis": true,
+          "disableExternalAnalysis": false,
+          "clangTidyChecks": "clang-analyzer-*, cppcoreguidelines-*"
+        }
       }
     },
     {
