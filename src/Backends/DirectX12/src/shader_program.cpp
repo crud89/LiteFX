@@ -188,7 +188,7 @@ public:
         auto description = deserializer->GetRootSignatureDesc();
 
         // Iterate the static samplers.
-        for (int i(0); i < description->NumStaticSamplers; ++i)
+        for (UInt32 i(0); i < description->NumStaticSamplers; ++i)
         {
             auto staticSampler = description->pStaticSamplers[i];
 
@@ -209,7 +209,7 @@ public:
         // Iterate the root parameters.
         UInt32 pushConstantOffset = 0;
 
-        for (int i(0); i < description->NumParameters; ++i)
+        for (UInt32 i(0); i < description->NumParameters; ++i)
         {
             auto rootParameter = description->pParameters[i];
 
@@ -345,7 +345,7 @@ public:
 
         // Unbounded arrays have a bind count of -1.
         if (inputDesc.BindCount == 0)
-            descriptor.elements = -1;
+            descriptor.elements = std::numeric_limits<UInt32>::max();
 
         return descriptor;
     }
@@ -399,13 +399,13 @@ public:
                 raiseIfFailed(shaderReflection->GetDesc(&shaderInfo), "Unable to acquire meta-data from shader module.");
                 
                 // Parse each function in the module.
-                for (int f(0); f < shaderInfo.FunctionCount; ++f)
+                for (UInt32 f(0); f < shaderInfo.FunctionCount; ++f)
                 {
                     D3D12_FUNCTION_DESC functionDesc;
                     auto functionReflection = shaderReflection->GetFunctionByIndex(f);
                     functionReflection->GetDesc(&functionDesc);
 
-                    for (int i(0); i < functionDesc.BoundResources; ++i)
+                    for (UInt32 i(0); i < functionDesc.BoundResources; ++i)
                     {
                         // Get the bound resource description.
                         D3D12_SHADER_INPUT_BIND_DESC inputDesc;
@@ -430,7 +430,7 @@ public:
                 raiseIfFailed(shaderReflection->GetDesc(&shaderInfo), "Unable to acquire meta-data from shader module.");
 
                 // Iterate the bound resources to extract the descriptor sets.
-                for (int i(0); i < shaderInfo.BoundResources; ++i)
+                for (UInt32 i(0); i < shaderInfo.BoundResources; ++i)
                 {
                     // Get the bound resource description.
                     D3D12_SHADER_INPUT_BIND_DESC inputDesc;

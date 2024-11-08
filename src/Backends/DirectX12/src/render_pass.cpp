@@ -112,7 +112,7 @@ public:
 
             // Create secondary command buffers.
             m_secondaryCommandBuffers[interfacePointer] = std::views::iota(0u, m_secondaryCommandBufferCount) |
-                std::views::transform([this](UInt32 i) {
+                std::views::transform([this]([[maybe_unused]] UInt32 i) {
                     auto commandBuffer = m_queue->createCommandBuffer(false);
 #ifndef NDEBUG
                     std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} Secondary Commands {1}", m_parent->name(), i)).c_str());
@@ -364,11 +364,11 @@ void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer) const
         m_impl->m_queue->beginDebugRegion(std::format("{0} Render Pass", this->name()));
 
     // Begin a suspending render pass for the transition and a suspend-the-resume render pass on each command buffer of the frame buffer.
-    std::as_const(*beginCommandBuffer).handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
+    std::as_const(*beginCommandBuffer).handle()->BeginRenderPass(static_cast<UINT>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
     std::as_const(*beginCommandBuffer).handle()->EndRenderPass();
     std::ranges::for_each(m_impl->getSecondaryCommandBuffers(frameBuffer), [&context](auto commandBuffer) { 
         commandBuffer->begin(); 
-        std::as_const(*commandBuffer).handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS | D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
+        std::as_const(*commandBuffer).handle()->BeginRenderPass(static_cast<UINT>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS | D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
     });
 
     // Publish beginning event.
@@ -392,7 +392,7 @@ UInt64 DirectX12RenderPass::end() const
     auto endCommandBuffer = m_impl->getEndCommandBuffer(frameBuffer);
     std::ranges::for_each(m_impl->getSecondaryCommandBuffers(frameBuffer), [&context](auto commandBuffer) { std::as_const(*commandBuffer).handle()->EndRenderPass(); });
     endCommandBuffer->begin();
-    std::as_const(*endCommandBuffer).handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
+    std::as_const(*endCommandBuffer).handle()->BeginRenderPass(static_cast<UInt32>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
     std::as_const(*endCommandBuffer).handle()->EndRenderPass();
 
     // If the present target is multi-sampled, we need to resolve it to the back buffer.
@@ -440,10 +440,10 @@ UInt64 DirectX12RenderPass::end() const
         std::as_const(*endCommandBuffer).handle()->ResolveSubresource(backBufferImage.handle().Get(), 0, multiSampledImage.handle().Get(), 0, DX12::getFormat(multiSampledImage.format()));
 
         // Transition the present target back to the present state.
-        DirectX12Barrier presentBarrier(PipelineStage::Resolve, PipelineStage::Resolve);
-        presentBarrier.transition(backBufferImage, ResourceAccess::ResolveWrite, ResourceAccess::Common, ImageLayout::ResolveDestination, ImageLayout::Present);
-        presentBarrier.transition(multiSampledImage, ResourceAccess::ResolveRead, ResourceAccess::Common, ImageLayout::ResolveSource, ImageLayout::Common);
-        endCommandBuffer->barrier(presentBarrier);
+        DirectX12Barrier backBufferBarrier(PipelineStage::Resolve, PipelineStage::Resolve);
+        backBufferBarrier.transition(backBufferImage, ResourceAccess::ResolveWrite, ResourceAccess::Common, ImageLayout::ResolveDestination, ImageLayout::Present);
+        backBufferBarrier.transition(multiSampledImage, ResourceAccess::ResolveRead, ResourceAccess::Common, ImageLayout::ResolveSource, ImageLayout::Common);
+        endCommandBuffer->barrier(backBufferBarrier);
     }
     else if (this->hasPresentTarget())
     {

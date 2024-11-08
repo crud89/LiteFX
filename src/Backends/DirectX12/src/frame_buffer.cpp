@@ -29,7 +29,7 @@ public:
     void initialize()
     {
         // Create descriptor heaps for RTVs and DSVs.
-        UInt32 renderTargets = std::ranges::count_if(m_images, [](const auto& image) { return !::hasDepth(image->format()) && !::hasStencil(image->format()); });
+        UInt32 renderTargets = static_cast<UInt32>(std::ranges::count_if(m_images, [](const auto& image) { return !::hasDepth(image->format()) && !::hasStencil(image->format()); }));
         UInt32 depthStencilTargets = static_cast<UInt32>(m_images.size()) - renderTargets;
 
         D3D12_DESCRIPTOR_HEAP_DESC renderTargetHeapDesc = {
@@ -183,7 +183,7 @@ void DirectX12FrameBuffer::mapRenderTarget(const RenderTarget& renderTarget, Str
     auto nameHash = hash(name);
 
     if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](UniquePtr<IDirectX12Image>& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end())
-        this->mapRenderTarget(renderTarget, std::ranges::distance(m_impl->m_images.begin(), match));
+        this->mapRenderTarget(renderTarget, static_cast<UInt32>(std::ranges::distance(m_impl->m_images.begin(), match)));
     else
         throw InvalidArgumentException("name", "The frame buffer does not contain an image with the name \"{0}\".", name);
 }

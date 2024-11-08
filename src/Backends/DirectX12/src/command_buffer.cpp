@@ -194,7 +194,7 @@ void DirectX12CommandBuffer::setViewports(Span<const IViewport*> viewports) cons
 		std::views::transform([](const auto& viewport) { return CD3DX12_VIEWPORT(viewport->getRectangle().x(), viewport->getRectangle().y(), viewport->getRectangle().width(), viewport->getRectangle().height(), viewport->getMinDepth(), viewport->getMaxDepth()); }) |
 		std::ranges::to<Array<D3D12_VIEWPORT>>();
 
-	this->handle()->RSSetViewports(vps.size(), vps.data());
+	this->handle()->RSSetViewports(static_cast<UINT>(vps.size()), vps.data());
 }
 
 void DirectX12CommandBuffer::setViewports(const IViewport* viewport) const noexcept
@@ -206,15 +206,15 @@ void DirectX12CommandBuffer::setViewports(const IViewport* viewport) const noexc
 void DirectX12CommandBuffer::setScissors(Span<const IScissor*> scissors) const noexcept
 {
 	auto scs = scissors |
-		std::views::transform([](const auto& scissor) { return CD3DX12_RECT(scissor->getRectangle().x(), scissor->getRectangle().y(), scissor->getRectangle().width(), scissor->getRectangle().height()); }) |
+		std::views::transform([](const auto& scissor) { return CD3DX12_RECT(static_cast<LONG>(scissor->getRectangle().x()), static_cast<LONG>(scissor->getRectangle().y()), static_cast<LONG>(scissor->getRectangle().width()), static_cast<LONG>(scissor->getRectangle().height())); }) |
 		std::ranges::to<Array<D3D12_RECT>>();
 
-	this->handle()->RSSetScissorRects(scs.size(), scs.data());
+	this->handle()->RSSetScissorRects(static_cast<UINT>(scs.size()), scs.data());
 }
 
 void DirectX12CommandBuffer::setScissors(const IScissor* scissor) const noexcept
 {
-	auto s = CD3DX12_RECT(scissor->getRectangle().x(), scissor->getRectangle().y(), scissor->getRectangle().width(), scissor->getRectangle().height());
+	auto s = CD3DX12_RECT(static_cast<LONG>(scissor->getRectangle().x()), static_cast<LONG>(scissor->getRectangle().y()), static_cast<LONG>(scissor->getRectangle().width()), static_cast<LONG>(scissor->getRectangle().height()));
 	this->handle()->RSSetScissorRects(1, &s);
 }
 
@@ -286,7 +286,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 	this->barrier(startBarrier);
 	auto resource = resourceBindings.begin();
 
-	for (int l(0); l < image.layers(); ++l, ++resource)
+	for (UInt32 l(0); l < image.layers(); ++l, ++resource)
 	{
 		auto size = image.extent();
 
@@ -303,7 +303,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 
 			// Dispatch the pipeline.
 			this->bind(*(*resource), pipeline);
-			this->dispatch({ std::max<UInt32>(size.width() / 8, 1), std::max<UInt32>(size.height() / 8, 1), 1 });
+			this->dispatch({ std::max<UInt32>(static_cast<UInt32>(size.width() / 8), 1), std::max<UInt32>(static_cast<UInt32>(size.height() / 8), 1), 1 });
 
 			// Wait for all writes.
 			DirectX12Barrier subBarrier(PipelineStage::Compute, PipelineStage::Compute);
@@ -342,10 +342,6 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDir
 
 void DirectX12CommandBuffer::transfer(const void* const data, size_t size, const IDirectX12Buffer& target, UInt32 targetElement, UInt32 elements) const
 {
-	auto alignment = target.elementAlignment();
-	auto elementSize = target.elementSize();
-	auto alignedSize = target.alignedElementSize();
-
 	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements)));
 	stagingBuffer->map(data, size, 0);
 
@@ -372,7 +368,7 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDir
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
 	const auto& targetDesc = std::as_const(target).handle()->GetDesc();
 
-	for (int sr(0); sr < elements; ++sr)
+	for (UInt32 sr(0); sr < elements; ++sr)
 	{
 		m_impl->m_queue.device().handle()->GetCopyableFootprints(&targetDesc, sourceElement + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
 		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(), footprint), targetLocation(std::as_const(target).handle().Get(), firstSubresource + sr);
@@ -405,7 +401,7 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDire
 	if (target.elements() < targetSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("targetElement", "The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resources {2} has been requested.", target.elements(), subresources, targetSubresource);
 
-	for (int sr(0); sr < subresources; ++sr)
+	for (UInt32 sr(0); sr < subresources; ++sr)
 	{
 		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(), sourceSubresource + sr), targetLocation(std::as_const(target).handle().Get(), targetSubresource + sr);
 		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
@@ -423,7 +419,7 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDire
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
 	const auto& targetDesc = std::as_const(target).handle()->GetDesc();
 
-	for (int sr(0); sr < subresources; ++sr)
+	for (UInt32 sr(0); sr < subresources; ++sr)
 	{
 		m_impl->m_queue.device().handle()->GetCopyableFootprints(&targetDesc, firstSubresource + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
 		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(), footprint), targetLocation(std::as_const(target).handle().Get(), targetElement + sr);
@@ -484,7 +480,7 @@ void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet, c
 
 void DirectX12CommandBuffer::bind(Span<const DirectX12DescriptorSet*> descriptorSets, const DirectX12PipelineState& pipeline) const noexcept
 {
-	std::ranges::for_each(descriptorSets | std::views::filter([](auto descriptorSet) { return descriptorSet != nullptr; }), [this](auto descriptorSet) { m_impl->m_queue.device().bindDescriptorSet(*this, *descriptorSet, *m_impl->m_lastPipeline); });
+	std::ranges::for_each(descriptorSets | std::views::filter([](auto descriptorSet) { return descriptorSet != nullptr; }), [this, &pipeline](auto descriptorSet) { m_impl->m_queue.device().bindDescriptorSet(*this, *descriptorSet, pipeline); });
 }
 
 void DirectX12CommandBuffer::bind(const IDirectX12VertexBuffer& buffer) const noexcept 

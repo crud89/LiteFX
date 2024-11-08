@@ -1956,6 +1956,8 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <seealso cref="IndirectDispatchBatch" />
     /// <seealso cref="IndirectBatch" />
+#pragma warning(push)
+#pragma warning(disable: 4324) // Structure was padded due to alignment specifier
     struct LITEFX_RENDERING_API alignas(16) IndirectIndexedBatch {
         /// <summary>
         /// The number of indices in the mesh index buffer.
@@ -2008,6 +2010,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         UInt32 Z{ 1 };
     };
+#pragma warning(pop)
 #pragma endregion
 
     /// <summary>
@@ -4352,6 +4355,8 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IBottomLevelAccelerationStructure" />
     class LITEFX_RENDERING_API ITopLevelAccelerationStructure : public IAccelerationStructure {
     public:
+#pragma warning(push)
+#pragma warning(disable: 4324) // Structure was padded due to alignment specifier
         /// <summary>
         /// Represents an instance of an <see cref="IBottomLevelAccelerationStructure" />.
         /// </summary>
@@ -4397,6 +4402,8 @@ namespace LiteFX::Rendering {
             /// </summary>
             InstanceFlags Flags : 8 = InstanceFlags::None;
         };
+#pragma warning(pop)
+
     public:
         virtual ~ITopLevelAccelerationStructure() noexcept = default;
 
@@ -7852,7 +7859,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="label">The name of the debug region.</param>
         /// <param name="color">The color of the debug region.</param>
-        virtual void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
+        virtual void beginDebugRegion([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
         
         /// <summary>
         /// Ends the current debug region.
@@ -7870,7 +7877,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="label">The name of the debug marker.</param>
         /// <param name="color">The color of the debug marker.</param>
-        virtual void setDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
+        virtual void setDebugMarker([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
 
     public:
         /// <summary>

@@ -48,8 +48,8 @@ public:
 	
 		// Validate shader stage usage.
 		auto modules = m_program->modules() | std::ranges::to<std::vector>();
+		//bool hasRayTracingShaders = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, module->type()); }) != modules.end();
 		bool hasComputeShaders    = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::Compute, module->type()); }) != modules.end();
-		bool hasRayTracingShaders = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, module->type()); }) != modules.end();
 		bool hasMeshShaders       = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::MeshPipeline, module->type()); }) != modules.end();
 		bool hasDirectShaders     = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RasterizationPipeline, module->type()); }) != modules.end();
 
@@ -82,20 +82,20 @@ public:
 			case ShaderRecordType::Miss:
 			case ShaderRecordType::Callable:
 				group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
-				group.generalShader = moduleIds.at(std::get<const IShaderModule*>(record->shaderGroup()));
+				group.generalShader = static_cast<UInt32>(moduleIds.at(std::get<const IShaderModule*>(record->shaderGroup())));
 				group.anyHitShader = group.closestHitShader = group.intersectionShader = VK_SHADER_UNUSED_KHR;
 				break;
 			case ShaderRecordType::Intersection:
 				group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_PROCEDURAL_HIT_GROUP_KHR;
-				group.intersectionShader = moduleIds.at(std::get<const IShaderModule*>(record->shaderGroup()));
+				group.intersectionShader = static_cast<UInt32>(moduleIds.at(std::get<const IShaderModule*>(record->shaderGroup())));
 				group.anyHitShader = group.closestHitShader = group.generalShader = VK_SHADER_UNUSED_KHR;
 				break;
 			case ShaderRecordType::HitGroup:
 			{
 				const auto& hitGroup = std::get<IShaderRecord::MeshGeometryHitGroup>(record->shaderGroup());
 				group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
-				group.closestHitShader = hitGroup.ClosestHitShader != nullptr ? moduleIds.at(hitGroup.ClosestHitShader) : VK_SHADER_UNUSED_KHR;
-				group.anyHitShader = hitGroup.AnyHitShader != nullptr ? moduleIds.at(hitGroup.AnyHitShader) : VK_SHADER_UNUSED_KHR;
+				group.closestHitShader = hitGroup.ClosestHitShader != nullptr ? static_cast<UInt32>(moduleIds.at(hitGroup.ClosestHitShader)) : VK_SHADER_UNUSED_KHR;
+				group.anyHitShader = hitGroup.AnyHitShader != nullptr ? static_cast<UInt32>(moduleIds.at(hitGroup.AnyHitShader)) : VK_SHADER_UNUSED_KHR;
 				group.intersectionShader = group.generalShader = VK_SHADER_UNUSED_KHR;
 				break;
 			}
@@ -189,7 +189,7 @@ public:
 
 		// Allocate a buffer for the shader binding table.
 		// NOTE: Updating the SBT to change shader-local data is currently unsupported. Instead, bind-less resources should be used.
-		auto result = m_device.factory().createBuffer(BufferType::ShaderBindingTable, ResourceHeap::Dynamic, recordSize, totalRecordCount, ResourceUsage::TransferSource);
+		auto result = m_device.factory().createBuffer(BufferType::ShaderBindingTable, ResourceHeap::Dynamic, recordSize, static_cast<UInt32>(totalRecordCount), ResourceUsage::TransferSource);
 
 		// Write each record group by group.
 		UInt32 record{ 0 };
@@ -246,7 +246,7 @@ public:
 				for (auto& currentRecord : filteredRecords)
 				{
 					// Get the shader group handle for the current record.
-					auto id = shaderRecordIds.at(currentRecord.get());
+					auto id = static_cast<UInt32>(shaderRecordIds.at(currentRecord.get()));
 					raiseIfFailed(::vkGetRayTracingShaderGroupHandles(m_device.handle(), m_parent->handle(), id, 1, rayTracingProperties.shaderGroupHandleSize, recordData.data()), "Unable to query shader record handle.");
 
 					// Write the payload and map everything into the buffer.

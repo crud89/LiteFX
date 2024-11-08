@@ -58,7 +58,7 @@ public:
 		const auto& backend = m_device.backend();
 
 		// Create the swap chain.
-		auto size = Size2d{ std::max<UInt32>(1, renderArea.width()), std::max<UInt32>(1, renderArea.height()) };
+		auto size = Size2d{ std::max<UInt32>(1, static_cast<UInt32>(renderArea.width())), std::max<UInt32>(1, static_cast<UInt32>(renderArea.height())) };
 		LITEFX_TRACE(DIRECTX12_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", reinterpret_cast<void*>(m_device.handle().Get()), backBuffers, size.width(), size.height(), format, enableVsync);
 		
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
@@ -108,12 +108,9 @@ public:
 		m_presentImages.clear();
 		m_presentFences.clear();	// No need to wait on them, since we are not going to hand out those back-buffers again anyway.
 
-		// Store a backend reference.
-		const auto& backend = m_device.backend();
-
 		// Resize the buffers.
 		UInt32 buffers = std::max<UInt32>(2, backBuffers);
-		auto size = Size2d{ std::max<UInt32>(1, renderArea.width()), std::max<UInt32>(1, renderArea.height()) };
+		auto size = Size2d{ std::max<UInt32>(1, static_cast<UInt32>(renderArea.width())), std::max<UInt32>(1, static_cast<UInt32>(renderArea.height())) };
 		raiseIfFailed(m_parent->handle()->ResizeBuffers(buffers, static_cast<UInt32>(size.width()), static_cast<UInt32>(size.height()), DX12::getFormat(format), m_supportsVariableRefreshRates ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
 		LITEFX_TRACE(DIRECTX12_LOG, "Resetting swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", reinterpret_cast<void*>(m_device.handle().Get()), backBuffers, size.width(), size.height(), format, enableVsync);
 
@@ -346,6 +343,6 @@ void DirectX12SwapChain::resolveQueryHeaps(const DirectX12CommandBuffer& command
 
 	commandBuffer.handle()->ResolveQueryData(
 		m_impl->m_timingQueryHeaps[m_impl->m_currentImage].Get(), 
-		D3D12_QUERY_TYPE_TIMESTAMP, 0, m_impl->m_timestamps.size(), 
+		D3D12_QUERY_TYPE_TIMESTAMP, 0, static_cast<UINT>(m_impl->m_timestamps.size()), 
 		std::as_const(*m_impl->m_timingQueryReadbackBuffers[m_impl->m_currentImage]).handle().Get(), 0);
 }

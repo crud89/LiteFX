@@ -45,7 +45,7 @@ public:
 		// Create a blob by copying the buffer.
 		ComPtr<IDxcBlobEncoding> blob;
 		String buffer(std::istreambuf_iterator<char>(stream), {});
-		raiseIfFailed(library->CreateBlobWithEncodingOnHeapCopy(buffer.data(), buffer.size(), CP_ACP, &blob), "Unable to load shader from stream: {0}.", m_fileName.c_str());
+		raiseIfFailed(library->CreateBlobWithEncodingOnHeapCopy(buffer.data(), static_cast<UINT>(buffer.size()), CP_ACP, &blob), "Unable to load shader from stream: {0}.", m_fileName.c_str());
 
 		return blob;
 	}

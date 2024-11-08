@@ -1307,7 +1307,7 @@ namespace LiteFX::Rendering {
         }
 
         inline UniquePtr<IFrameBuffer> getNewFrameBuffer(StringView name, const Size2d& renderArea) const noexcept override {
-            return this->makeFrameBuffer(renderArea);
+            return this->makeFrameBuffer(name, renderArea);
         }
 
         inline const ICommandQueue& getDefaultQueue(QueueType type) const override {

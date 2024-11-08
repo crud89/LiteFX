@@ -678,7 +678,7 @@ public:
 				.pNext = &wrapperInfo,
 				.imageType = VK_IMAGE_TYPE_2D,
 				.format = Vk::getFormat(format),
-				.extent = { std::max<UInt32>(1, renderArea.width()), std::max<UInt32>(1, renderArea.height()), 1 },
+				.extent = { std::max<UInt32>(1, static_cast<UInt32>(renderArea.width())), std::max<UInt32>(1, static_cast<UInt32>(renderArea.height())), 1 },
 				.mipLevels = 1,
 				.arrayLayers = 1,
 				.samples = VK_SAMPLE_COUNT_1_BIT,
@@ -770,7 +770,7 @@ public:
 
 			VkQueryPool pool;
 			raiseIfFailed(::vkCreateQueryPool(m_device.handle(), &poolInfo, nullptr, &pool), "Unable to allocate timestamp query pool.");
-			::vkResetQueryPool(m_device.handle(), pool, 0, timingEvents.size());
+			::vkResetQueryPool(m_device.handle(), pool, 0, static_cast<UInt32>(timingEvents.size()));
 
 			return pool;
 		});
@@ -825,13 +825,13 @@ public:
 		// Query the timing events.
 		if (m_supportsTiming && !m_timingEvents.empty()) [[likely]]
 		{
-			auto result = ::vkGetQueryPoolResults(m_device.handle(), m_timingQueryPools[m_currentImage], 0, m_timestamps.size(), m_timestamps.size() * sizeof(UInt64), m_timestamps.data(), sizeof(UInt64), VK_QUERY_RESULT_64_BIT);
+			auto result = ::vkGetQueryPoolResults(m_device.handle(), m_timingQueryPools[m_currentImage], 0, static_cast<UInt32>(m_timestamps.size()), m_timestamps.size() * sizeof(UInt64), m_timestamps.data(), sizeof(UInt64), VK_QUERY_RESULT_64_BIT);
 
 			if (result != VK_NOT_READY)	// Initial frames do not yet contain query results.
 				raiseIfFailed(result, "Unable to query timing events.");
 
 			// Reset the query pool.
-			::vkResetQueryPool(m_device.handle(), m_timingQueryPools[m_currentImage], 0, m_timestamps.size());
+			::vkResetQueryPool(m_device.handle(), m_timingQueryPools[m_currentImage], 0, static_cast<UInt32>(m_timestamps.size()));
 		}
 
 		// Return the new back buffer index.
@@ -892,7 +892,7 @@ public:
 		
 		// Submit the command buffer.
 		std::array<ID3D12CommandList*, 1> commandBuffers = { commandList.Get() };
-		m_presentQueue->ExecuteCommandLists(commandBuffers.size(), commandBuffers.data());
+		m_presentQueue->ExecuteCommandLists(static_cast<UInt32>(commandBuffers.size()), commandBuffers.data());
 
 		// Do the presentation.
 		if (m_vsync)

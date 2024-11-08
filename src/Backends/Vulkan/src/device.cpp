@@ -102,7 +102,7 @@ private:
 
             // List the queue indices for the matched priorities and how often they are used.
             auto indices = std::views::iota(std::ranges::distance(std::cbegin(m_queuePriorities), left), std::ranges::distance(std::cbegin(m_queuePriorities), right)) |
-                std::views::transform([this](auto i) { return std::make_tuple(i, std::ranges::count_if(m_queues, [i](const auto& q) { return q->queueId() == i; })); });
+                std::views::transform([this](auto i) { return std::make_tuple(i, std::ranges::count_if(m_queues, [i](const auto& q) { return q->queueId() == static_cast<UInt32>(i); })); });
             auto [queueId, refCount] = *std::ranges::min_element(indices, {}, [](const auto& i) { return std::get<1>(i); });
 
             LITEFX_DEBUG(VULKAN_LOG, "Creating queue with id {0} of type {2} (referenced {1} times).", queueId, refCount, m_type);
@@ -564,7 +564,7 @@ Span<const String> VulkanDevice::enabledExtensions() const noexcept
     return m_impl->m_extensions;
 }
 
-void VulkanDevice::setDebugName(UInt64 handle, VkDebugReportObjectTypeEXT type, StringView name) const noexcept
+void VulkanDevice::setDebugName([[maybe_unused]] UInt64 handle, [[maybe_unused]] VkDebugReportObjectTypeEXT type, [[maybe_unused]] StringView name) const noexcept
 {
 #ifndef NDEBUG
     if (m_impl->debugMarkerSetObjectName != nullptr)

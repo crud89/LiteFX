@@ -73,8 +73,8 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 	VkBufferCreateInfo bufferInfo = { VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 	VkBufferUsageFlags usageFlags = { VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT };
 
-	size_t alignedSize = static_cast<size_t>(elementSize);
-	size_t alignment = 0;
+	UInt64 alignedSize = static_cast<UInt64>(elementSize);
+	UInt64 alignment = 0;
 
 	switch (type)
 	{
@@ -299,9 +299,9 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	if (dimension == ImageDimensions::DIM_3 && layers != 1) [[unlikely]]
 		throw ArgumentOutOfRangeException("layers", std::make_pair(1u, 1u), layers, "A 3D texture can only have one layer, but {0} are provided.", layers);
 
-	auto width = std::max<UInt32>(1, size.width());
-	auto height = std::max<UInt32>(1, size.height());
-	auto depth = std::max<UInt32>(1, size.depth());
+	auto width = std::max<UInt32>(1, static_cast<UInt32>(size.width()));
+	auto height = std::max<UInt32>(1, static_cast<UInt32>(size.height()));
+	auto depth = std::max<UInt32>(1, static_cast<UInt32>(size.depth()));
 
 	VkImageCreateInfo imageInfo = {
 		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,

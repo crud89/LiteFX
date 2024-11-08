@@ -126,7 +126,7 @@ public:
 		D3D12_BLEND_DESC blendState = {};
 		D3D12_DEPTH_STENCIL_DESC depthStencilState = {};
 		auto targets = m_renderPass.renderTargets();
-		UInt32 renderTargets = std::ranges::count_if(targets, [](auto& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; });
+		UInt32 renderTargets = static_cast<UInt32>(std::ranges::count_if(targets, [](auto& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; }));
 		UInt32 depthStencilTargets = static_cast<UInt32>(targets.size()) - renderTargets;
 		DXGI_FORMAT dsvFormat { };
 		std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT> rtvFormats { };
@@ -171,7 +171,7 @@ public:
 				// Setup the blend state.
 				auto& targetBlendState = blendState.RenderTarget[target];
 				targetBlendState.BlendEnable = renderTarget.blendState().Enable;
-				targetBlendState.RenderTargetWriteMask = static_cast<D3D12_COLOR_WRITE_ENABLE>(renderTarget.blendState().WriteMask);
+				targetBlendState.RenderTargetWriteMask = static_cast<UINT8>(renderTarget.blendState().WriteMask);
 				targetBlendState.SrcBlend = DX12::getBlendFactor(renderTarget.blendState().SourceColor);
 				targetBlendState.SrcBlendAlpha = DX12::getBlendFactor(renderTarget.blendState().SourceAlpha);
 				targetBlendState.DestBlend = DX12::getBlendFactor(renderTarget.blendState().DestinationColor);

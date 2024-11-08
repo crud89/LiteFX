@@ -117,6 +117,9 @@ void App::stopActiveBackends(BackendType type) const
 		this->stopBackend(backend.first);
 }
 
+// The following methods return at the first match (if any), so the subsequent matches are unreachable. However there is no place for `std::unreachable` in this pattern, so we simply drop the warning.
+#pragma warning(push)
+#pragma warning(disable:4702)
 IBackend* App::activeBackend(BackendType type) const
 {
 	for (auto& backend : m_impl->m_backends | std::views::filter([type](const auto& b) { return b.second->type() == type && b.second->state() == BackendState::Active; }))
@@ -132,6 +135,7 @@ std::type_index App::activeBackendType(BackendType type) const
 	
 	return typeid(std::nullptr_t);
 }
+#pragma warning(pop)
 
 void App::registerStartCallback(std::type_index type, const std::function<bool()>& callback)
 {

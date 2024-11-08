@@ -201,7 +201,7 @@ void VulkanFrameBuffer::mapRenderTarget(const RenderTarget& renderTarget, String
     auto nameHash = hash(name);
 
     if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](UniquePtr<IVulkanImage>& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end())
-        this->mapRenderTarget(renderTarget, std::ranges::distance(m_impl->m_images.begin(), match));
+        this->mapRenderTarget(renderTarget, static_cast<UInt32>(std::ranges::distance(m_impl->m_images.begin(), match)));
     else
         throw InvalidArgumentException("name", "The frame buffer does not contain an image with the name \"{0}\".", name);
 }

@@ -154,7 +154,7 @@ Vector<Float, 2> RectF::position() const noexcept {
 }
 
 Size2d RectF::extent() const noexcept {
-	return Size2d(this->z(), this->w());
+	return Size2d(static_cast<size_t>(this->z()), static_cast<size_t>(this->w()));
 }
 
 Float RectF::width() const noexcept {

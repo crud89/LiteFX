@@ -129,9 +129,9 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) cons
 		auto currentLayout = DX12::getImageLayout(std::get<3>(barrier).value_or(ImageLayout::Undefined));
 		auto targetLayout = DX12::getImageLayout(std::get<4>(barrier));
 
-		for (auto layer = std::get<7>(barrier); layer < std::get<7>(barrier) + std::get<8>(barrier); layer++)
-			for (auto level = std::get<5>(barrier); level < std::get<5>(barrier) + std::get<6>(barrier); level++)
-				auto subresource = image.subresourceId(level, layer, std::get<9>(barrier));
+		//for (auto layer = std::get<7>(barrier); layer < std::get<7>(barrier) + std::get<8>(barrier); layer++)
+		//	for (auto level = std::get<5>(barrier); level < std::get<5>(barrier) + std::get<6>(barrier); level++)
+		//		auto subresource = image.subresourceId(level, layer, std::get<9>(barrier));
 
 		return CD3DX12_TEXTURE_BARRIER(syncBefore, syncAfter, DX12::getResourceAccess(std::get<0>(barrier)), DX12::getResourceAccess(std::get<1>(barrier)), currentLayout, targetLayout, std::as_const(image).handle().Get(), 
 			CD3DX12_BARRIER_SUBRESOURCE_RANGE(std::get<5>(barrier), std::get<6>(barrier), std::get<7>(barrier), std::get<8>(barrier), std::get<9>(barrier)));
@@ -141,16 +141,16 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) cons
 	Array<D3D12_BARRIER_GROUP> barrierGroups;
 
 	if (!globalBarriers.empty())
-		barrierGroups.push_back(CD3DX12_BARRIER_GROUP(globalBarriers.size(), globalBarriers.data()));
+		barrierGroups.push_back(CD3DX12_BARRIER_GROUP(static_cast<UINT32>(globalBarriers.size()), globalBarriers.data()));
 
 	if (!bufferBarriers.empty())
-		barrierGroups.push_back(CD3DX12_BARRIER_GROUP(bufferBarriers.size(), bufferBarriers.data()));
+		barrierGroups.push_back(CD3DX12_BARRIER_GROUP(static_cast<UINT32>(bufferBarriers.size()), bufferBarriers.data()));
 
 	if (!imageBarriers.empty())
-		barrierGroups.push_back(CD3DX12_BARRIER_GROUP(imageBarriers.size(), imageBarriers.data()));
+		barrierGroups.push_back(CD3DX12_BARRIER_GROUP(static_cast<UINT32>(imageBarriers.size()), imageBarriers.data()));
 
 	if (!globalBarriers.empty() || !bufferBarriers.empty() || !imageBarriers.empty())
-		commandBuffer.handle()->Barrier(barrierGroups.size(), barrierGroups.data());
+		commandBuffer.handle()->Barrier(static_cast<UINT32>(barrierGroups.size()), barrierGroups.data());
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

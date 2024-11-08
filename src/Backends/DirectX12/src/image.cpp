@@ -65,7 +65,7 @@ size_t DirectX12Image::size() const noexcept
 		auto elementSize = ::getSize(m_impl->m_format) * m_impl->m_extent.width() * m_impl->m_extent.height() * m_impl->m_extent.depth() * m_impl->m_layers;
 		auto totalSize = elementSize;
 
-		for (int l(1); l < m_impl->m_levels; ++l)
+		for (UInt32 l(1); l < m_impl->m_levels; ++l)
 		{
 			elementSize /= 2;
 			totalSize += elementSize;

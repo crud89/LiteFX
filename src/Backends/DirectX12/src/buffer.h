@@ -4,6 +4,9 @@
 #include <litefx/backends/dx12.hpp>
 #include "D3D12MemAlloc.h"
 
+#pragma warning(push)
+#pragma warning(disable:4250) // Base class members are inherited via dominance.
+
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
@@ -134,3 +137,5 @@ namespace LiteFX::Rendering::Backends {
 		static UniquePtr<IDirectX12IndexBuffer> allocate(const String& name, const DirectX12IndexBufferLayout& layout, AllocatorPtr allocator, UInt32 elements, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
 	};
 }
+
+#pragma warning(pop)

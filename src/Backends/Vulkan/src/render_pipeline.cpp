@@ -95,9 +95,6 @@ public:
 	{
 		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline \"{1}\" for layout {0}...", reinterpret_cast<void*>(m_layout.get()), m_parent->name());
 
-		// Get the device.
-		const auto& device = m_renderPass.device();
-
 		// Setup rasterizer state.
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
 		VkPipelineRasterizationStateCreateInfo rasterizerState = {};

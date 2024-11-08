@@ -234,9 +234,9 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String&
 	if (dimension == ImageDimensions::DIM_3 && layers != 1) [[unlikely]]
 		throw ArgumentOutOfRangeException("layers", std::make_pair(1u, 1u), layers, "A 3D texture can only have one layer, but {0} are provided.", layers);
 
-	auto width = std::max<UInt32>(1, size.width());
-	auto height = std::max<UInt32>(1, size.height());
-	auto depth = std::max<UInt32>(1, size.depth());
+	auto width = std::max<UInt32>(1, static_cast<UInt32>(size.width()));
+	auto height = std::max<UInt32>(1, static_cast<UInt32>(size.height()));
+	auto depth = std::max<UInt32>(1, static_cast<UInt32>(size.depth()));
 
 	D3D12_RESOURCE_FLAGS flags = LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite) ? D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS : D3D12_RESOURCE_FLAG_NONE;
 

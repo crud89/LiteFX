@@ -5,6 +5,9 @@
 #include "vulkan_api.hpp"
 #include "vulkan_formatters.hpp"
 
+#pragma warning(push)
+#pragma warning(disable:4250) // Base class members are inherited via dominance.
+
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Math;
     using namespace LiteFX::Rendering;
@@ -2140,3 +2143,5 @@ namespace LiteFX::Rendering::Backends {
     };
 
 }
+
+#pragma warning(pop)

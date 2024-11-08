@@ -4,6 +4,9 @@
 #include <litefx/backends/vulkan.hpp>
 #include "vk_mem_alloc.h"
 
+#pragma warning(push)
+#pragma warning(disable:4250) // Base class members are inherited via dominance.
+
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
@@ -113,3 +116,5 @@ namespace LiteFX::Rendering::Backends {
 		static UniquePtr<IVulkanIndexBuffer> allocate(const String& name, const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 }
+
+#pragma warning(pop)

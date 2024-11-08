@@ -21,7 +21,7 @@ enum class DescriptorSets : UInt32
     Sampler      = 4  // Skybox sampler state.
 };
 
-const Array<Vertex> vertices =
+const Array<Vertex> _vertices =
 {
     { { -0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
     { {  0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
@@ -49,7 +49,7 @@ const Array<Vertex> vertices =
     { {  0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f,  1.0f }, { 0.0f, 0.0f } }
 };
 
-const Array<UInt16> indices = {
+const Array<UInt16> _indices = {
     0, 1, 2, 1, 3, 2,       // Front
     4, 6, 5, 5, 6, 7,       // Back
     8, 9, 10, 9, 11, 10,    // Right
@@ -141,18 +141,18 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     device->state().add(std::move(rayTracingPipeline));
 }
 
-void SampleApp::initBuffers(IRenderBackend* backend)
+void SampleApp::initBuffers(IRenderBackend* /*backend*/)
 {
     // Get a command buffer. Note that we use the graphics queue here, as it also supports transfers, but additionally allows us to build acceleration structures.
     auto commandBuffer = m_device->defaultQueue(QueueType::Graphics).createCommandBuffer(true);
 
     // Create the vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, vertices.size(), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
-    commandBuffer->transfer(vertices.data(), vertices.size() * sizeof(::Vertex), *vertexBuffer, 0, vertices.size());
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(_vertices.size()), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
+    commandBuffer->transfer(_vertices.data(), static_cast<UInt32>(_vertices.size() * sizeof(::Vertex)), *vertexBuffer, 0, static_cast<UInt32>(_vertices.size()));
 
     // Create the index buffer and transfer the staging buffer into it.
-    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, indices.size(), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
-    commandBuffer->transfer(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), *indexBuffer, 0, indices.size());
+    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, static_cast<UInt32>(_indices.size()), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
+    commandBuffer->transfer(_indices.data(), static_cast<UInt32>(_indices.size() * m_inputAssembler->indexBufferLayout()->elementSize()), *indexBuffer, 0, static_cast<UInt32>(_indices.size()));
 
     // Before building the acceleration structures the GPU needs to wait for the transfer to finish.
     auto barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::AccelerationStructureBuild);
@@ -182,7 +182,7 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     auto blasBuffer = asShared(std::move(m_device->factory().createBuffer("BLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, opaqueSize + reflectiveSize, 1u, ResourceUsage::AllowWrite)));
 
     // Orient instances randomly.
-    std::srand(std::time(nullptr));
+    std::srand(static_cast<UInt32>(std::time(nullptr)));
 
     auto tlas = m_device->factory().createTopLevelAccelerationStructure("TLAS", AccelerationStructureFlags::AllowCompaction | AccelerationStructureFlags::MinimizeMemory);
     tlas->withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-3.0f, -3.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 0)
@@ -397,7 +397,7 @@ void SampleApp::onInit()
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.
-        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, Size2d(static_cast<Float>(width), static_cast<Float>(height)), 3, false, GraphicsDeviceFeatures { .RayTracing = true });
+        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, Size2d(width, height), 3, false, GraphicsDeviceFeatures { .RayTracing = true });
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);
@@ -426,7 +426,7 @@ void SampleApp::onInit()
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 }
 
-void SampleApp::onResize(const void* sender, ResizeEventArgs e)
+void SampleApp::onResize(const void* /*sender*/, ResizeEventArgs e)
 {
     // In order to re-create the swap chain, we need to wait for all frames in flight to finish.
     m_device->wait();
@@ -440,7 +440,7 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     // Recreate output images and re-bind them to the output descriptors.
     auto backBuffers = m_device->factory().createTexture("Back Buffers", m_device->swapChain().surfaceFormat(), m_device->swapChain().renderArea(), ImageDimensions::DIM_2, 1u, m_device->swapChain().buffers(), MultiSamplingLevel::x1, ResourceUsage::AllowWrite | ResourceUsage::TransferSource);
     
-    for (int i = 0; i < m_device->swapChain().buffers(); ++i)
+    for (UInt32 i = 0; i < m_device->swapChain().buffers(); ++i)
     {
         auto& outputBindings = m_device->state().descriptorSet(std::format("Output Bindings {0}", i));
         outputBindings.update(0, *backBuffers, 0, 0, 1, i, 1);
@@ -453,7 +453,7 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     this->updateCamera(m_device->state().buffer("Camera"));
 }
 
-void SampleApp::keyDown(int key, int scancode, int action, int mods)
+void SampleApp::keyDown(int key, int /*scancode*/, int action, int /*mods*/)
 {
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
     if (key == GLFW_KEY_F9 && action == GLFW_PRESS)
@@ -587,7 +587,7 @@ void SampleApp::drawFrame()
     commandBuffer->bind({ &outputBindings, &staticDataBindings, &materialBindings, &samplerBindings });
 
     // Draw the object and present the frame by ending the render pass.
-    commandBuffer->traceRays(m_device->swapChain().renderArea().width(), m_device->swapChain().renderArea().height(), 1, m_offsets, shaderBindingTable, &shaderBindingTable, &shaderBindingTable);
+    commandBuffer->traceRays(static_cast<UInt32>(m_device->swapChain().renderArea().width()), static_cast<UInt32>(m_device->swapChain().renderArea().height()), 1, m_offsets, shaderBindingTable, &shaderBindingTable, &shaderBindingTable);
 
     // Transition the image back into `CopySource` layout.
     barrier = m_device->makeBarrier(PipelineStage::Raytracing, PipelineStage::Transfer);

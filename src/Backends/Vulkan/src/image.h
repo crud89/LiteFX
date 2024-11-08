@@ -4,6 +4,9 @@
 #include <litefx/backends/vulkan.hpp>
 #include "buffer.h"
 
+#pragma warning(push)
+#pragma warning(disable:4250) // Base class members are inherited via dominance.
+
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
@@ -141,3 +144,5 @@ namespace LiteFX::Rendering::Backends {
 		Float getMinLOD() const noexcept override;
 	};
 }
+
+#pragma warning(pop)

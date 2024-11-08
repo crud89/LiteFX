@@ -150,7 +150,7 @@ namespace LiteFX::Rendering {
 
         public:
             friend class BarrierBuilder;
-            friend class ImageBarrierBuilder<TParent>;
+            friend struct ImageBarrierBuilder<TParent>;
 
             /// <summary>
             /// Specifies the resource accesses that are waited for on the image sub-resources before the barrier can be executed.

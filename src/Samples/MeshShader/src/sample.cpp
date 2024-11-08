@@ -85,7 +85,7 @@ void initRenderGraph(TRenderBackend* backend)
     std::ranges::for_each(frameBuffers, [device](auto& frameBuffer) { device->state().add(std::move(frameBuffer)); });
 }
 
-void SampleApp::initBuffers(IRenderBackend* backend)
+void SampleApp::initBuffers(IRenderBackend* /*backend*/)
 {
     // Get a command buffer
     auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
@@ -214,7 +214,7 @@ void SampleApp::onInit()
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 }
 
-void SampleApp::onResize(const void* sender, ResizeEventArgs e)
+void SampleApp::onResize(const void* /*sender*/, ResizeEventArgs e)
 {
     // In order to re-create the swap chain, we need to wait for all frames in flight to finish.
     m_device->wait();
@@ -241,7 +241,7 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     m_transferFence = commandBuffer->submit();
 }
 
-void SampleApp::keyDown(int key, int scancode, int action, int mods)
+void SampleApp::keyDown(int key, int /*scancode*/, int action, int /*mods*/)
 {
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
     if (key == GLFW_KEY_F9 && action == GLFW_PRESS)

@@ -133,14 +133,14 @@ namespace LiteFX::Logging {
         }
 
         template<typename ...TArgs>
-        inline void trace(std::format_string<TArgs...> format, TArgs&&... args) {
+        inline void trace([[maybe_unused]] std::format_string<TArgs...> format, [[maybe_unused]] TArgs&&... args) {
 #ifndef NDEBUG
             this->log(LogLevel::Trace, format, std::forward<TArgs>(args)...);
 #endif
         }
 
         template<typename ...TArgs>
-        inline void debug(std::format_string<TArgs...> format, TArgs&&... args) {
+        inline void debug([[maybe_unused]] std::format_string<TArgs...> format, [[maybe_unused]] TArgs&&... args) {
 #ifndef NDEBUG
             this->log(LogLevel::Debug, format, std::forward<TArgs>(args)...);
 #endif

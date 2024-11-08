@@ -286,8 +286,8 @@ public:
                     if (descriptor->type_description->op == SpvOp::SpvOpTypeRuntimeArray)
                         descriptors = std::numeric_limits<UInt32>::max();   // Unbounded.
                     else
-                        for (int i(0); i < descriptor->array.dims_count; ++i)
-                            descriptors *= descriptor->array.dims[i];
+                        for (UInt32 d(0); d < descriptor->array.dims_count; ++d)
+                            descriptors *= descriptor->array.dims[d];
 
                     // Create the descriptor layout.
                     return DescriptorInfo{ .location = descriptor->binding, .elementSize = descriptor->block.padded_size, .elements = descriptors, .inputAttachmentIndex = inputAttachmentIndex, .type = type };

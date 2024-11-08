@@ -461,7 +461,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Acceleration
 
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
     auto descriptorSize = m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, descriptorSize);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset + descriptor, descriptorSize);
 
     D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
         .Format = DXGI_FORMAT_UNKNOWN,

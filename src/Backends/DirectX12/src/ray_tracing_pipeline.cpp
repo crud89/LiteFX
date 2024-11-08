@@ -75,8 +75,8 @@ public:
 		
 		// Validate shader stage usage.
 		auto modules = m_program->modules();
+		//bool hasRayTracingShaders = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, module->type()); }) != modules.end();
 		bool hasComputeShaders    = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::Compute, module->type()); }) != modules.end();
-		bool hasRayTracingShaders = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, module->type()); }) != modules.end();
 		bool hasMeshShaders       = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::MeshPipeline, module->type()); }) != modules.end();
 		bool hasDirectShaders     = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RasterizationPipeline, module->type()); }) != modules.end();
 		
@@ -229,7 +229,7 @@ public:
 				{
 				case D3D12_DESCRIPTOR_RANGE_TYPE_CBV:
 					//rootParameter.InitAsConstantBufferView(binding.BindingPoint.Register, binding.BindingPoint.Space);
-					rootParameter.InitAsConstants(descriptor.elementSize() / 4, binding.BindingPoint.Register, binding.BindingPoint.Space);
+					rootParameter.InitAsConstants(static_cast<UINT>(descriptor.elementSize() / 4), binding.BindingPoint.Register, binding.BindingPoint.Space);
 					break;
 				case D3D12_DESCRIPTOR_RANGE_TYPE_SRV:
 					// NOTE: SRVs and UAVs must be passed as GPU-virtual addresses to the shader-local data.
@@ -403,10 +403,10 @@ public:
 
 		// Allocate a buffer for the shader binding table.
 		// NOTE: Updating the SBT to change shader-local data is currently unsupported. Instead, bind-less resources should be used.
-		auto result = m_device.factory().createBuffer(BufferType::ShaderBindingTable, ResourceHeap::Dynamic, recordSize, totalRecordCount, ResourceUsage::TransferSource);
+		auto result = m_device.factory().createBuffer(BufferType::ShaderBindingTable, ResourceHeap::Dynamic, recordSize, static_cast<UInt32>(totalRecordCount), ResourceUsage::TransferSource);
 
 		// Write each record group by group.
-		UInt32 record{ 0 }, hitGroupId{ 0 };
+		UInt32 record{ 0 };
 		Array<Byte> recordData(recordSize, 0x00);
 
 		// Write each shader binding group that should be included.

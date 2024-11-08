@@ -112,7 +112,6 @@ public:
 	ComPtr<ID3D12Device10> initialize(const GraphicsDeviceFeatures& features)
 	{
 		ComPtr<ID3D12Device10> device;
-		HRESULT hr;
 
 		// Require feature level 12.1 and express optional features of higher feature levels as device features.
 		raiseIfFailed(::D3D12CreateDevice(m_adapter.handle().Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&device)), "Unable to create DirectX 12 device.");
@@ -351,7 +350,7 @@ void DirectX12Device::allocateGlobalDescriptors(const DirectX12DescriptorSet& de
 			bufferOffset = match->first;
 			m_impl->m_bufferDescriptorFragments.erase(match);
 		}
-		else if (auto match = std::ranges::find_if(m_impl->m_bufferDescriptorFragments, [&buffers](const auto& pair) { return pair.second > buffers; }); match != m_impl->m_bufferDescriptorFragments.end())
+		else if (match = std::ranges::find_if(m_impl->m_bufferDescriptorFragments, [&buffers](const auto& pair) { return pair.second > buffers; }); match != m_impl->m_bufferDescriptorFragments.end())
 		{
 			bufferOffset = match->first;
 			match->first += buffers;
@@ -378,7 +377,7 @@ void DirectX12Device::allocateGlobalDescriptors(const DirectX12DescriptorSet& de
 			samplerOffset = match->first;
 			m_impl->m_samplerDescriptorFragments.erase(match);
 		}
-		else if (auto match = std::ranges::find_if(m_impl->m_samplerDescriptorFragments, [&samplers](const auto& pair) { return pair.second > samplers; }); match != m_impl->m_samplerDescriptorFragments.end())
+		else if (match = std::ranges::find_if(m_impl->m_samplerDescriptorFragments, [&samplers](const auto& pair) { return pair.second > samplers; }); match != m_impl->m_samplerDescriptorFragments.end())
 		{
 			samplerOffset = match->first;
 			match->first += samplers;
@@ -462,7 +461,7 @@ void DirectX12Device::bindDescriptorSet(const DirectX12CommandBuffer& commandBuf
 void DirectX12Device::bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept
 {
 	const std::array<ID3D12DescriptorHeap*, 2> globalHeaps{ m_impl->m_globalBufferHeap.Get(), m_impl->m_globalSamplerHeap.Get() };
-	commandBuffer.handle()->SetDescriptorHeaps(globalHeaps.size(), globalHeaps.data());
+	commandBuffer.handle()->SetDescriptorHeaps(static_cast<UINT>(globalHeaps.size()), globalHeaps.data());
 }
 
 DirectX12ComputePipeline& DirectX12Device::blitPipeline() const noexcept

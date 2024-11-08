@@ -65,7 +65,7 @@ static constexpr glm::vec4 normalizePlane(const glm::vec4& plane) {
 }
 
 static inline void initializeObjects() {
-    std::srand(std::time(nullptr));
+    std::srand(static_cast<UInt32>(std::time(nullptr)));
 
     for (UInt32 i{ 0 }; i < NUM_INSTANCES; ++i)
     {
@@ -160,7 +160,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     std::ranges::for_each(frameBuffers, [device](auto& frameBuffer) { device->state().add(std::move(frameBuffer)); });
 }
 
-void SampleApp::initBuffers(IRenderBackend* backend)
+void SampleApp::initBuffers(IRenderBackend* /*backend*/)
 {
     // Get a command buffer
     auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
@@ -168,20 +168,20 @@ void SampleApp::initBuffers(IRenderBackend* backend)
     // Create the staging buffer.
     // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
     //       whole buffer.
-    auto stagedVertices = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Staging, vertices.size());
-    stagedVertices->map(vertices.data(), vertices.size() * sizeof(::Vertex), 0);
+    auto stagedVertices = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Staging, static_cast<UInt32>(vertices.size()));
+    stagedVertices->map(vertices.data(), static_cast<UInt32>(vertices.size() * sizeof(::Vertex)), 0);
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, vertices.size());
-    commandBuffer->transfer(asShared(std::move(stagedVertices)), *vertexBuffer, 0, 0, vertices.size());
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
+    commandBuffer->transfer(asShared(std::move(stagedVertices)), *vertexBuffer, 0, 0, static_cast<UInt32>(vertices.size()));
 
     // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
-    auto stagedIndices = m_device->factory().createIndexBuffer(*m_inputAssembler->indexBufferLayout(), ResourceHeap::Staging, indices.size());
-    stagedIndices->map(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), 0);
+    auto stagedIndices = m_device->factory().createIndexBuffer(*m_inputAssembler->indexBufferLayout(), ResourceHeap::Staging, static_cast<UInt32>(indices.size()));
+    stagedIndices->map(indices.data(), static_cast<UInt32>(indices.size() * m_inputAssembler->indexBufferLayout()->elementSize()), 0);
 
     // Create the actual index buffer and transfer the staging buffer into it.
-    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, indices.size());
-    commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, indices.size());
+    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, static_cast<UInt32>(indices.size()));
+    commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, static_cast<UInt32>(indices.size()));
 
     // Initialize the camera buffer.
     // NOTE: Since we bind the same resource to pipelines of different type (compute and graphics), we need two descriptor sets targeting the same buffers.
@@ -339,7 +339,7 @@ void SampleApp::onInit()
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.
-        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, Size2d(static_cast<Float>(width), static_cast<Float>(height)), 3, false, GraphicsDeviceFeatures { .DrawIndirect = true });
+        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, Size2d(width, height), 3, false, GraphicsDeviceFeatures { .DrawIndirect = true });
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);
@@ -368,7 +368,7 @@ void SampleApp::onInit()
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 }
 
-void SampleApp::onResize(const void* sender, ResizeEventArgs e)
+void SampleApp::onResize(const void* /*sender*/, ResizeEventArgs e)
 {
     // In order to re-create the swap chain, we need to wait for all frames in flight to finish.
     m_device->wait();
@@ -389,7 +389,7 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     m_scissor->setRectangle(RectF(0.f, 0.f, static_cast<Float>(e.width()), static_cast<Float>(e.height())));
 }
 
-void SampleApp::keyDown(int key, int scancode, int action, int mods)
+void SampleApp::keyDown(int key, int /*scancode*/, int action, int /*mods*/)
 {
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
     if (key == GLFW_KEY_F9 && action == GLFW_PRESS)

@@ -185,7 +185,7 @@ public:
             if (!rangeSet.empty())
             {
                 CD3DX12_ROOT_PARAMETER1 rootParameter = {};
-                rootParameter.InitAsDescriptorTable(rangeSet.size(), rangeSet.data(), static_cast<D3D12_SHADER_VISIBILITY>(shaderStages));
+                rootParameter.InitAsDescriptorTable(static_cast<UINT>(rangeSet.size()), rangeSet.data(), static_cast<D3D12_SHADER_VISIBILITY>(shaderStages));
                 descriptorRanges.push_back(std::move(rangeSet));
 
                 // Store the range set.

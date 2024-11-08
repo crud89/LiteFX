@@ -79,29 +79,29 @@ int main(const int argc, const char** argv)
 	// Parse the command line parameters.
 	const String appName = SampleApp::Name();
 
-	CLI::App app{ "Demonstrates indirect drawing techniques.", appName };
+	CLI::App commandLine{ "Demonstrates indirect drawing techniques.", appName };
 	
 	Optional<UInt32> adapterId;
-	app.add_option("-a,--adapter", adapterId)->take_first();
-	auto validationLayers = app.add_option("-l,--vk-validation-layers")->take_all();
+	commandLine.add_option("-a,--adapter", adapterId)->take_first();
+	auto validationLayers = commandLine.add_option("-l,--vk-validation-layers")->take_all();
 
 #ifdef LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER
 	bool loadPix{ false };
-	app.add_option("--dx-load-pix", loadPix)->take_first();
+	commandLine.add_option("--dx-load-pix", loadPix)->take_first();
 #endif // LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER
 
 #ifdef LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER
 	bool loadRenderDoc{ false };
-	app.add_option("--load-render-doc", loadRenderDoc)->take_first();
+	commandLine.add_option("--load-render-doc", loadRenderDoc)->take_first();
 #endif // LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER
 
 	try
 	{
-		app.parse(argc, argv);
+		commandLine.parse(argc, argv);
 	}
 	catch (const CLI::ParseError& ex)
 	{
-		return app.exit(ex);
+		return commandLine.exit(ex);
 	}
 
 #ifdef LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER

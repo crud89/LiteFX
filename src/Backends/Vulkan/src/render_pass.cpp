@@ -112,7 +112,7 @@ public:
 
             // Create secondary command buffers.
             m_secondaryCommandBuffers[interfacePointer] = std::views::iota(0u, m_secondaryCommandBufferCount) |
-                std::views::transform([this](UInt32 i) {
+                std::views::transform([this]([[maybe_unused]] UInt32 i) {
                     auto commandBuffer = m_queue->createCommandBuffer(false, true);
 #ifndef NDEBUG
                     m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*commandBuffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, 
@@ -141,7 +141,7 @@ public:
         m_frameBufferTokens.erase(interfacePointer);
     }
 
-    void onSwapChainReset(const void* sender, ISwapChain::ResetEventArgs args)
+    void onSwapChainReset([[maybe_unused]] const void* sender, ISwapChain::ResetEventArgs args)
     {
         // Release swap chain image views if there are any, so that they need to be re-created with the next context.
         for (auto view : m_swapChainViews | std::views::values)
@@ -486,9 +486,9 @@ UInt64 VulkanRenderPass::end() const
     if (requiresResolve)
     {
         // Transition the resolved swap chain back buffer image into a present state.
-        VulkanBarrier presentBarrier(PipelineStage::Resolve, PipelineStage::None);
-        presentBarrier.transition(backBufferImage, ResourceAccess::ResolveWrite, ResourceAccess::None, ImageLayout::ResolveDestination, ImageLayout::Present);
-        primaryCommandBuffer->barrier(presentBarrier);
+        VulkanBarrier backBufferBarrier(PipelineStage::Resolve, PipelineStage::None);
+        backBufferBarrier.transition(backBufferImage, ResourceAccess::ResolveWrite, ResourceAccess::None, ImageLayout::ResolveDestination, ImageLayout::Present);
+        primaryCommandBuffer->barrier(backBufferBarrier);
     }
     else if (this->hasPresentTarget())
     {

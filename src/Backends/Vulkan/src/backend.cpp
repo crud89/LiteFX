@@ -56,7 +56,7 @@ private:
     VkInstance m_instance{ nullptr };
 
 private:    
-    static VKAPI_ATTR VkBool32 VKAPI_CALL onDebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* callbackData, void* userData) 
+    static VKAPI_ATTR VkBool32 VKAPI_CALL onDebugMessage(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* callbackData, [[maybe_unused]] void* userData)
     {
         String t = "";
 
@@ -83,7 +83,7 @@ private:
         return VK_FALSE;
     }
 
-    static VKAPI_ATTR VkBool32 VKAPI_CALL onDebugBreak(VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* callbackData, void* userData)
+    static VKAPI_ATTR VkBool32 VKAPI_CALL onDebugBreak([[maybe_unused]] VkDebugUtilsMessageSeverityFlagBitsEXT severity, [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* callbackData, [[maybe_unused]] void* userData)
     {
         // Ignore layer loader errors.
         if (callbackData->messageIdNumber == 0x79DE34D4)

@@ -12,6 +12,9 @@ SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 IF(MSVC)
     # Use multi core compiling to speed up compile times and enable "just-my-code" for debug builds.
     ADD_COMPILE_OPTIONS(/MP $<$<CONFIG:Debug,RelWithDebInfo>:/JMC>)
+
+    # Be more pedantic with warnings and treat them as errors for release builds.
+    ADD_COMPILE_OPTIONS(/W4 $<$<CONFIG:Release,RelWithDebInfo>:/WX>)
 ENDIF(MSVC)
 
 # For debug builds, append the "d" suffix.
