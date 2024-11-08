@@ -10,14 +10,11 @@ SET(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Define C++ compile flags.
 IF(MSVC)
-    # Use multi core compiling to speed up compile times and enable "just-my-code" for debug builds.
-    ADD_COMPILE_OPTIONS(/MP $<$<CONFIG:Debug,RelWithDebInfo>:/JMC>)
+    # Enable "just-my-code" for debug builds.
+    ADD_COMPILE_OPTIONS($<$<CONFIG:Debug,RelWithDebInfo>:/JMC>)
 
     # Be more pedantic with warnings and treat them as errors for release builds.
     ADD_COMPILE_OPTIONS(/W4 $<$<CONFIG:Release,RelWithDebInfo>:/WX>)
-
-    # Exclude vcpkg-installed dependencies from code analysis.
-    ADD_COMPILE_OPTIONS(/external:I "${CMAKE_CURRENT_BINARY_DIR}/vcpkg_installed/" /external:W0)
 ENDIF(MSVC)
 
 # For debug builds, append the "d" suffix.
