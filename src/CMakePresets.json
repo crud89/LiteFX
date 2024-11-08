@@ -1,51 +1,15 @@
 {
-  "version": 2,
+  "version": 4,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 20,
+    "minor": 23,
     "patch": 0
   },
+  "include": [
+    "cmake/presets/platforms.json",
+    "cmake/presets/compilers.json"
+  ],
   "configurePresets": [
-    {
-      "name": "windows",
-      "hidden": true,
-      "generator": "Ninja",
-      "binaryDir": "${sourceDir}/../out/build/${presetName}",
-      "cacheVariables": {
-        "CMAKE_INSTALL_PREFIX": "${sourceDir}/../out/install/${presetName}",
-        "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/modules/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "X_VCPKG_APPLOCAL_DEPS_INSTALL": "ON"
-      },
-      "vendor": {
-        "microsoft.com/VisualStudioSettings/CMake/1.0": {
-          "hostOS": [ "Windows" ]
-        }
-      }
-    },
-    {
-      "name": "msvc",
-      "hidden": true,
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "cl",
-        "CMAKE_CXX_COMPILER": "cl"
-      }
-    },
-    {
-      "name": "clang",
-      "hidden": true,
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++"
-      }
-    },
-    {
-      "name": "mingw",
-      "hidden": true,
-      "cacheVariables": {
-        "CMAKE_C_COMPILER": "gcc",
-        "CMAKE_CXX_COMPILER": "g++"
-      }
-    },
     {
       "name": "windows-msvc-x64-debug",
       "inherits": [
