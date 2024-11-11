@@ -180,7 +180,7 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
 // ------------------------------------------------------------------------------------------------
 
 VulkanBarrierBuilder::VulkanBarrierBuilder() :
-    BarrierBuilder(std::move(UniquePtr<VulkanBarrier>(new VulkanBarrier())))
+    BarrierBuilder(UniquePtr<VulkanBarrier>(new VulkanBarrier()))
 {
 }
 

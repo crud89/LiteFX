@@ -93,7 +93,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12TopLevelAccelerationStructure::DirectX12TopLevelAccelerationStructure(AccelerationStructureFlags flags, StringView name) :
-    m_impl(makePimpl<DirectX12TopLevelAccelerationStructureImpl>(this, flags)), StateResource(name)
+    StateResource(name), m_impl(makePimpl<DirectX12TopLevelAccelerationStructureImpl>(this, flags))
 {
 }
 

@@ -77,7 +77,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Backend::DirectX12Backend(const App& app, bool useAdvancedSoftwareRasterizer) :
-    m_impl(makePimpl<DirectX12BackendImpl>(this, app)), ComResource<IDXGIFactory7>(nullptr)
+    ComResource<IDXGIFactory7>(nullptr), m_impl(makePimpl<DirectX12BackendImpl>(this, app))
 {
     this->handle() = m_impl->initialize();
     m_impl->loadAdapters(useAdvancedSoftwareRasterizer);

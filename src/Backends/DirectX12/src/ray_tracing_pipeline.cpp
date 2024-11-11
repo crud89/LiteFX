@@ -37,11 +37,11 @@ public:
 	friend class DirectX12RayTracingPipeline;
 
 private:
+	const DirectX12Device& m_device;
 	SharedPtr<DirectX12PipelineLayout> m_layout;
 	SharedPtr<const DirectX12ShaderProgram> m_program;
 	const ShaderRecordCollection m_shaderRecordCollection;
-	UInt32 m_maxRecursionDepth { 10 }, m_maxPayloadSize{ 0 }, m_maxAttributeSize{ 32 };;
-	const DirectX12Device& m_device;
+	UInt32 m_maxRecursionDepth { 10 }, m_maxPayloadSize{ 0 }, m_maxAttributeSize{ 32 };
 	ComPtr<ID3D12StateObject> m_pipelineState;
 
 public:
@@ -501,7 +501,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, const String& name) :
-	m_impl(makePimpl<DirectX12RayTracingPipelineImpl>(this, device, layout, shaderProgram, maxRecursionDepth, maxPayloadSize, maxAttributeSize, std::move(shaderRecords))), DirectX12PipelineState(nullptr)
+	DirectX12PipelineState(nullptr), m_impl(makePimpl<DirectX12RayTracingPipelineImpl>(this, device, layout, shaderProgram, maxRecursionDepth, maxPayloadSize, maxAttributeSize, std::move(shaderRecords)))
 {
 	if (!name.empty())
 		this->name() = name;
@@ -510,7 +510,7 @@ DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(const DirectX12Device& 
 }
 
 DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(const DirectX12Device& device, ShaderRecordCollection&& shaderRecords) noexcept :
-	m_impl(makePimpl<DirectX12RayTracingPipelineImpl>(this, device, std::move(shaderRecords))), DirectX12PipelineState(nullptr)
+	DirectX12PipelineState(nullptr), m_impl(makePimpl<DirectX12RayTracingPipelineImpl>(this, device, std::move(shaderRecords)))
 {
 }
 

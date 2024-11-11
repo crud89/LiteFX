@@ -28,8 +28,8 @@ namespace LiteFX::Rendering {
             meta::implements<TParent, BarrierBuilder<TBarrier>>
         struct [[nodiscard]] SecondStageBuilder {
         private:
-            PipelineStage m_from;
             TParent m_parent;
+            PipelineStage m_from;
 
             /// <summary>
             /// Initializes a builder that sets up barrier stages.
@@ -127,9 +127,9 @@ namespace LiteFX::Rendering {
             meta::implements<TParent, BarrierBuilder<TBarrier>>
         struct [[nodiscard]] ImageLayoutBarrierBuilder {
         private:
+            TParent m_parent;
             ResourceAccess m_access;
             IImage& m_image;
-            TParent m_parent;
             ImageLayout m_layout;
             UInt32 m_level, m_levels, m_layer, m_layers, m_plane;
 
@@ -146,7 +146,7 @@ namespace LiteFX::Rendering {
             /// <param name="layers">The number of layers to transition.</param>
             /// <param name="plane">The plane of the sub-resource to transition.</param>
             constexpr ImageLayoutBarrierBuilder(TParent&& parent, IImage& image, ResourceAccess access, ImageLayout layout, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane) noexcept :
-                m_parent(std::move(parent)), m_image(image), m_access(access), m_layout(layout), m_level(level), m_levels(levels), m_layer(layer), m_layers(layers), m_plane(plane) { }
+                m_parent(std::move(parent)), m_access(access), m_image(image), m_layout(layout), m_level(level), m_levels(levels), m_layer(layer), m_layers(layers), m_plane(plane) { }
 
         public:
             friend class BarrierBuilder;
@@ -170,9 +170,9 @@ namespace LiteFX::Rendering {
             meta::implements<TParent, BarrierBuilder<TBarrier>>
         struct [[nodiscard]] ImageBarrierBuilder {
         private:
+            TParent m_parent;
             ResourceAccess m_access;
             IImage& m_image;
-            TParent m_parent;
             UInt32 m_level, m_levels, m_layer, m_layers, m_plane;
 
             /// <summary>
@@ -182,7 +182,7 @@ namespace LiteFX::Rendering {
             /// <param name="image">The image for this barrier.</param>
             /// <param name="access">The resource access state of the sub-resources in the image to wait for with this barrier.</param>
             constexpr ImageBarrierBuilder(TParent&& parent, IImage& image, ResourceAccess access) noexcept :
-                m_parent(std::move(parent)), m_image(image), m_access(access), m_level{ 0 }, m_levels{ 0 }, m_layer{ 0 }, m_layers{ 0 }, m_plane{ 0 } { }
+                m_parent(std::move(parent)), m_access(access), m_image(image), m_level{ 0 }, m_levels{ 0 }, m_layer{ 0 }, m_layers{ 0 }, m_plane{ 0 } { }
 
         public:
             friend class BarrierBuilder;

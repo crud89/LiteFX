@@ -22,7 +22,7 @@ private:
 
 public:
     RenderTargetImpl(RenderTarget* parent, StringView name, UInt64 uid, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags, const Vector4f& clearValues, const BlendState& blendState) :
-        base(parent), m_identifier(uid), m_name(name), m_location(location), m_type(type), m_format(format), m_flags(flags), m_clearValues(clearValues), m_blendState(blendState)
+        base(parent), m_type(type), m_flags(flags), m_clearValues(clearValues), m_location(location), m_blendState(blendState), m_name(name), m_identifier(uid), m_format(format)
     {
     }
 };

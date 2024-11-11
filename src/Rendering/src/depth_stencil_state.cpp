@@ -17,7 +17,7 @@ private:
 
 public:
     DepthStencilStateImpl(DepthStencilState* parent, const DepthState& depthState, const DepthBias& depthBias, const StencilState& stencilState) :
-        base(parent), m_depthState(depthState), m_stencilState(stencilState), m_depthBias(depthBias)
+        base(parent), m_depthState(depthState), m_depthBias(depthBias), m_stencilState(stencilState)
     {
     }
 };

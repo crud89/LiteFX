@@ -14,9 +14,9 @@ private:
 	BufferType m_type;
 	UInt32 m_elements;
 	size_t m_elementSize, m_alignment;
+	ResourceUsage m_usage;
 	VmaAllocator m_allocator;
 	VmaAllocation m_allocation;
-	ResourceUsage m_usage;
 	const VulkanDevice& m_device;
 
 public:
@@ -31,7 +31,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
-	m_impl(makePimpl<VulkanBufferImpl>(this, type, elements, elementSize, alignment, usage, device, allocator, allocation)), Resource<VkBuffer>(buffer)
+	Resource<VkBuffer>(buffer), m_impl(makePimpl<VulkanBufferImpl>(this, type, elements, elementSize, alignment, usage, device, allocator, allocation))
 {
 	if (!name.empty())
 		this->name() = name;
@@ -169,7 +169,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanVertexBuffer::VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
-	m_impl(makePimpl<VulkanVertexBufferImpl>(this, layout)), VulkanBuffer(buffer, BufferType::Vertex, elements, layout.elementSize(), 0, usage, device, allocator, allocation, name)
+	VulkanBuffer(buffer, BufferType::Vertex, elements, layout.elementSize(), 0, usage, device, allocator, allocation, name), m_impl(makePimpl<VulkanVertexBufferImpl>(this, layout))
 {
 }
 
@@ -219,7 +219,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanIndexBuffer::VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
-	m_impl(makePimpl<VulkanIndexBufferImpl>(this, layout)), VulkanBuffer(buffer, BufferType::Index, elements, layout.elementSize(), 0, usage, device, allocator, allocation, name)
+	VulkanBuffer(buffer, BufferType::Index, elements, layout.elementSize(), 0, usage, device, allocator, allocation, name), m_impl(makePimpl<VulkanIndexBufferImpl>(this, layout))
 {
 }
 

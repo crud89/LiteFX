@@ -17,7 +17,7 @@ private:
 
 public:
     BufferAttributeImpl(BufferAttribute* parent, UInt32 location, UInt32 offset, BufferFormat format, AttributeSemantic semantic, UInt32 semanticIndex) :
-        base(parent), m_location(location), m_offset(offset), m_format(format), m_semantic(semantic), m_semanticIndex(semanticIndex) 
+        base(parent), m_location(location), m_offset(offset), m_semanticIndex(semanticIndex), m_format(format), m_semantic(semantic)
     {
     }
 };

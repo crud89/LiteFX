@@ -202,7 +202,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, bool begin, bool primary) :
-	m_impl(makePimpl<VulkanCommandBufferImpl>(this, queue, primary)), Resource<VkCommandBuffer>(nullptr)
+	Resource<VkCommandBuffer>(nullptr), m_impl(makePimpl<VulkanCommandBufferImpl>(this, queue, primary))
 {
 	this->handle() = m_impl->initialize();
 
@@ -434,7 +434,7 @@ void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanBuf
 
 void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IVulkanBuffer& target, UInt32 targetElement, UInt32 elements) const
 {
-	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements)));
+	auto stagingBuffer = asShared(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements));
 	stagingBuffer->map(data, size, 0);
 
 	this->transfer(stagingBuffer, target, 0, targetElement, elements);
@@ -443,7 +443,7 @@ void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IV
 void VulkanCommandBuffer::transfer(Span<const void* const> data, size_t elementSize, const IVulkanBuffer& target, UInt32 firstElement) const
 {
 	auto elements = static_cast<UInt32>(data.size());
-	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements)));
+	auto stagingBuffer = asShared(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements));
 	stagingBuffer->map(data, elementSize, 0);
 
 	this->transfer(stagingBuffer, target, 0, firstElement, elements);
@@ -458,7 +458,7 @@ void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanIma
 		throw ArgumentOutOfRangeException("targetElement", "The target image has only {0} sub-resources, but a transfer for {1} elements starting from element {2} has been requested.", target.elements(), elements, firstSubresource);
 
 	Array<VkBufferImageCopy> copyInfos(elements);
-	std::ranges::generate(copyInfos, [&, this, i = firstSubresource]() mutable {
+	std::ranges::generate(copyInfos, [&, i = firstSubresource]() mutable {
 		UInt32 subresource = i++, layer = 0, level = 0, plane = 0;
 		target.resolveSubresource(subresource, plane, layer, level);
 
@@ -482,7 +482,7 @@ void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanIma
 
 void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IVulkanImage& target, UInt32 subresource) const
 {
-	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, size)));
+	auto stagingBuffer = asShared(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, size));
 	stagingBuffer->map(data, size, 0);
 
 	this->transfer(stagingBuffer, target, 0, subresource, 1);
@@ -491,7 +491,7 @@ void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IV
 void VulkanCommandBuffer::transfer(Span<const void* const> data, size_t elementSize, const IVulkanImage& target, UInt32 firstSubresource, UInt32 subresources) const
 {
 	auto elements = static_cast<UInt32>(data.size());
-	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, elementSize, elements)));
+	auto stagingBuffer = asShared(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, elementSize, elements));
 	stagingBuffer->map(data, elementSize, 0);
 
 	this->transfer(stagingBuffer, target, 0, firstSubresource, subresources);
@@ -506,7 +506,7 @@ void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanImag
 		throw ArgumentOutOfRangeException("targetElement", "The target image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resources {2} has been requested.", target.elements(), subresources, targetSubresource);
 
 	Array<VkImageCopy> copyInfos(subresources);
-	std::ranges::generate(copyInfos, [&, this, i = 0]() mutable {
+	std::ranges::generate(copyInfos, [&, i = 0]() mutable {
 		UInt32 sourceRsc = sourceSubresource + i, sourceLayer = 0, sourceLevel = 0, sourcePlane = 0;
 		UInt32 targetRsc = targetSubresource + i, targetLayer = 0, targetLevel = 0, targetPlane = 0;
 		source.resolveSubresource(sourceRsc, sourcePlane, sourceLayer, sourceLevel);
@@ -545,7 +545,7 @@ void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanBuff
 	
 	// Create a copy command and add it to the command buffer.
 	Array<VkBufferImageCopy> copyInfos(subresources);
-	std::ranges::generate(copyInfos, [&, this, i = targetElement]() mutable {
+	std::ranges::generate(copyInfos, [&, i = targetElement]() mutable {
 		UInt32 subresource = i++, layer = 0, level = 0, plane = 0;
 		source.resolveSubresource(subresource, plane, layer, level);
 

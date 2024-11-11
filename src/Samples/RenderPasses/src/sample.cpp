@@ -56,10 +56,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 {
     using RenderPass = TRenderBackend::render_pass_type;
     using RenderPipeline = TRenderBackend::render_pipeline_type;
-    using PipelineLayout = TRenderBackend::pipeline_layout_type;
     using ShaderProgram = TRenderBackend::shader_program_type;
     using InputAssembler = TRenderBackend::input_assembler_type;
-    using Rasterizer = TRenderBackend::rasterizer_type;
     using FrameBuffer = TRenderBackend::frame_buffer_type;
 
     // Get the default device.

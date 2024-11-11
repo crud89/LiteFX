@@ -109,7 +109,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanBottomLevelAccelerationStructure::VulkanBottomLevelAccelerationStructure(AccelerationStructureFlags flags, StringView name) :
-    m_impl(makePimpl<VulkanBottomLevelAccelerationStructureImpl>(this, flags)), Resource(VK_NULL_HANDLE), StateResource(name)
+    StateResource(name), Resource(VK_NULL_HANDLE), m_impl(makePimpl<VulkanBottomLevelAccelerationStructureImpl>(this, flags))
 {
 }
 
@@ -140,11 +140,10 @@ UInt64 VulkanBottomLevelAccelerationStructure::offset() const noexcept
 UInt64 VulkanBottomLevelAccelerationStructure::size() const noexcept
 {
     UInt64 size = m_impl->m_size;
-    VkResult res = VK_SUCCESS;
 
     // If compaction is enabled and the query pool is defined, check if there are query results.
     if (LITEFX_FLAG_IS_SET(m_impl->m_flags, AccelerationStructureFlags::AllowCompaction) && m_impl->m_queryPool != VK_NULL_HANDLE)
-        res = ::vkGetQueryPoolResults(m_impl->m_device->handle(), m_impl->m_queryPool, 0, 1, sizeof(UInt64), &size, 0, VkQueryResultFlagBits::VK_QUERY_RESULT_64_BIT);
+        ::vkGetQueryPoolResults(m_impl->m_device->handle(), m_impl->m_queryPool, 0, 1, sizeof(UInt64), &size, 0, VkQueryResultFlagBits::VK_QUERY_RESULT_64_BIT);
 
     return size;
 }

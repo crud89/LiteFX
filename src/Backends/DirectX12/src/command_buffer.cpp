@@ -150,7 +150,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, bool begin, bool primary) :
-	m_impl(makePimpl<DirectX12CommandBufferImpl>(this, queue)), ComResource<ID3D12GraphicsCommandList7>(nullptr)
+	ComResource<ID3D12GraphicsCommandList7>(nullptr), m_impl(makePimpl<DirectX12CommandBufferImpl>(this, queue))
 {
 	this->handle() = m_impl->initialize(begin, primary);
 
@@ -248,7 +248,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 	// Create the array of parameter data.
 	Array<Parameters> parametersData(image.levels());
 
-	std::ranges::generate(parametersData, [this, &image, i = 0]() mutable {
+	std::ranges::generate(parametersData, [&image, i = 0]() mutable {
 		auto level = i++;
 
 		return Parameters {
@@ -342,7 +342,7 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDir
 
 void DirectX12CommandBuffer::transfer(const void* const data, size_t size, const IDirectX12Buffer& target, UInt32 targetElement, UInt32 elements) const
 {
-	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements)));
+	auto stagingBuffer = asShared(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements));
 	stagingBuffer->map(data, size, 0);
 
 	this->transfer(stagingBuffer, target, 0, targetElement, elements);
@@ -351,7 +351,7 @@ void DirectX12CommandBuffer::transfer(const void* const data, size_t size, const
 void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t elementSize, const IDirectX12Buffer& target, UInt32 firstElement) const
 {
 	auto elements = static_cast<UInt32>(data.size());
-	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements)));
+	auto stagingBuffer = asShared(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements));
 	stagingBuffer->map(data, elementSize, 0);
 
 	this->transfer(stagingBuffer, target, 0, firstElement, elements);
@@ -378,7 +378,7 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDir
 
 void DirectX12CommandBuffer::transfer(const void* const data, size_t size, const IDirectX12Image& target, UInt32 subresource) const
 {
-	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, size)));
+	auto stagingBuffer = asShared(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, size));
 	stagingBuffer->map(data, size, 0);
 
 	this->transfer(stagingBuffer, target, 0, subresource, 1);
@@ -387,7 +387,7 @@ void DirectX12CommandBuffer::transfer(const void* const data, size_t size, const
 void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t elementSize, const IDirectX12Image& target, UInt32 firstSubresource, UInt32 subresources) const
 {
 	auto elements = static_cast<UInt32>(data.size());
-	auto stagingBuffer = asShared(std::move(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, elementSize, elements)));
+	auto stagingBuffer = asShared(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, elementSize, elements));
 	stagingBuffer->map(data, elementSize, 0);
 
 	this->transfer(stagingBuffer, target, 0, firstSubresource, subresources);
@@ -555,7 +555,7 @@ void DirectX12CommandBuffer::drawIndexedIndirect(const IDirectX12Buffer& batchBu
 
 void DirectX12CommandBuffer::pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept
 {
-	std::ranges::for_each(layout.ranges(), [this, &layout, &memory](const DirectX12PushConstantsRange* range) { this->handle()->SetGraphicsRoot32BitConstants(range->rootParameterIndex(), range->size() / 4, reinterpret_cast<const char* const>(memory) + range->offset(), 0); });
+	std::ranges::for_each(layout.ranges(), [this, &memory](const DirectX12PushConstantsRange* range) { this->handle()->SetGraphicsRoot32BitConstants(range->rootParameterIndex(), range->size() / 4, reinterpret_cast<const char* const>(memory) + range->offset(), 0); });
 }
 
 void DirectX12CommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const

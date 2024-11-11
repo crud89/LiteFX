@@ -46,7 +46,7 @@ private:
 
 public:
     VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages) :
-        base(parent), m_device(device), m_space(space), m_stages(stages)
+        base(parent), m_stages(stages), m_space(space), m_device(device)
     {
         m_descriptorLayouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
@@ -110,7 +110,11 @@ public:
             auto bindingPoint = layout->binding();
             auto type = layout->descriptorType();
 
+#ifdef NDEBUG
+            (void)i; // Required as [[maybe_unused]] is not supported in captures.
+#else
             LITEFX_TRACE(VULKAN_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Array size: {6}, Offset: {4}, Binding point: {5} }}...", ++i, m_descriptorLayouts.size(), type, layout->elementSize(), 0, bindingPoint, layout->descriptors());
+#endif
 
             // Unbounded arrays are only allowed for the last descriptor in the descriptor set (https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkDescriptorBindingFlagBits.html#_description).
             if (m_usesDescriptorIndexing) [[unlikely]]
@@ -317,13 +321,13 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages) :
-    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, device, std::move(descriptorLayouts), space, stages)), Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE)
+    Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, device, std::move(descriptorLayouts), space, stages))
 {
     this->handle() = m_impl->initialize();
 }
 
 VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device) noexcept :
-    m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, device)), Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE)
+    Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, device))
 {
 }
 

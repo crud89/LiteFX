@@ -31,7 +31,7 @@ private:
 
 public:
     VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding, UInt32 secondaryCommandBuffers) :
-        base(parent), m_device(device), m_swapChain(m_device.swapChain()), m_queue(&queue), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding), m_secondaryCommandBufferCount(secondaryCommandBuffers)
+        base(parent), m_secondaryCommandBufferCount(secondaryCommandBuffers), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding), m_device(device), m_swapChain(m_device.swapChain()), m_queue(&queue)
     {
         this->mapRenderTargets(renderTargets);
         this->mapInputAttachments(inputAttachments);
@@ -64,7 +64,7 @@ public:
     void mapRenderTargets(Span<RenderTarget> renderTargets)
     {
         m_renderTargets.assign(std::begin(renderTargets), std::end(renderTargets));
-        std::ranges::sort(m_renderTargets, [this](const auto& a, const auto& b) { return a.location() < b.location(); });
+        std::ranges::sort(m_renderTargets, [](const auto& a, const auto& b) { return a.location() < b.location(); });
 
         if (auto match = std::ranges::find_if(m_renderTargets, [](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::Present; }); match != m_renderTargets.end())
             m_presentTarget = match._Ptr;
@@ -161,7 +161,7 @@ public:
                     .imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
                     .loadOp = renderTarget.clearBuffer() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD,
                     .storeOp = renderTarget.isVolatile() ? VK_ATTACHMENT_STORE_OP_NONE : VK_ATTACHMENT_STORE_OP_STORE,
-                    .clearValue = { renderTarget.clearValues().x(), renderTarget.clearValues().y(), renderTarget.clearValues().z(), renderTarget.clearValues().w() }
+                    .clearValue = { .color = { .float32 = { renderTarget.clearValues().x(), renderTarget.clearValues().y(), renderTarget.clearValues().z(), renderTarget.clearValues().w() } } }
                 };
 
                 // Get the image and check if we need to resolve it.
@@ -217,7 +217,7 @@ public:
             .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
             .loadOp = m_depthStencilTarget->clearBuffer() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD,
             .storeOp = m_depthStencilTarget->isVolatile() ? VK_ATTACHMENT_STORE_OP_NONE : VK_ATTACHMENT_STORE_OP_STORE,
-            .clearValue = { m_depthStencilTarget->clearValues().x(), m_depthStencilTarget->clearValues().x(), m_depthStencilTarget->clearValues().x(), m_depthStencilTarget->clearValues().x() }
+            .clearValue = { .depthStencil = { .depth = m_depthStencilTarget->clearValues().x(), .stencil = 0 } }
         };
     }
 
@@ -232,7 +232,7 @@ public:
             .imageLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
             .loadOp = m_depthStencilTarget->clearStencil() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_LOAD,
             .storeOp = m_depthStencilTarget->isVolatile() ? VK_ATTACHMENT_STORE_OP_NONE : VK_ATTACHMENT_STORE_OP_STORE,
-            .clearValue = { m_depthStencilTarget->clearValues().y(), m_depthStencilTarget->clearValues().y(), m_depthStencilTarget->clearValues().y(), m_depthStencilTarget->clearValues().y() }
+            .clearValue = { .depthStencil = { .depth = 0.0f, .stencil = static_cast<UInt32>(m_depthStencilTarget->clearValues().y()) } }
         };
     }
 
@@ -375,7 +375,7 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
     auto stencilTargetInfo = m_impl->stencilTargetContext(frameBuffer);
 
     // Build up the rendering info to begin the render pass.
-    VkRect2D renderArea = { 0, 0, static_cast<UInt32>(frameBuffer.size().width()), static_cast<UInt32>(frameBuffer.size().height()) };
+    VkRect2D renderArea = { { 0, 0 }, { static_cast<UInt32>(frameBuffer.size().width()), static_cast<UInt32>(frameBuffer.size().height()) } };
 
     VkRenderingInfo renderingInfo = {
         .sType = VK_STRUCTURE_TYPE_RENDERING_INFO,

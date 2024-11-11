@@ -102,7 +102,7 @@ DirectX12PushConstantsLayoutBuilder::~DirectX12PushConstantsLayoutBuilder() noex
 
 void DirectX12PushConstantsLayoutBuilder::build()
 {
-    this->instance()->m_impl->setRanges(std::move(m_state.ranges | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>()));
+    this->instance()->m_impl->setRanges(m_state.ranges | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>());
 }
 
 UniquePtr<DirectX12PushConstantsRange> DirectX12PushConstantsLayoutBuilder::makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding)

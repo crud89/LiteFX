@@ -25,7 +25,7 @@ private:
 
 public:
     DirectX12DescriptorSetLayoutImpl(DirectX12DescriptorSetLayout* parent, const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages) :
-        base(parent), m_device(device), m_space(space), m_stages(stages)
+        base(parent), m_space(space), m_stages(stages), m_device(device)
     {
         m_layouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
@@ -45,7 +45,11 @@ public:
 
         // Count the samplers and descriptors.
         std::ranges::for_each(m_layouts, [&, i = 0](const UniquePtr<DirectX12DescriptorLayout>& layout) mutable {
+#ifdef NDEBUG
+            (void)i; // Required as [[maybe_unused]] is not supported in captures.
+#else
             LITEFX_TRACE(DIRECTX12_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Array size: {6}, Offset: {4}, Binding point: {5} }}...", ++i, m_layouts.size(), layout->descriptorType(), layout->elementSize(), 0, layout->binding(), layout->descriptors());
+#endif
             
             if (layout->descriptors() == -1)
             {

@@ -19,7 +19,7 @@ private:
 
 public:
 	VulkanComputePipelineImpl(VulkanComputePipeline* parent, const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram) :
-		base(parent), m_device(device), m_layout(layout), m_program(shaderProgram)
+		base(parent), m_layout(layout), m_program(shaderProgram), m_device(device)
 	{
 	}
 
@@ -66,7 +66,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, const String& name) :
-	m_impl(makePimpl<VulkanComputePipelineImpl>(this, device, layout, shaderProgram)), VulkanPipelineState(VK_NULL_HANDLE)
+	VulkanPipelineState(VK_NULL_HANDLE), m_impl(makePimpl<VulkanComputePipelineImpl>(this, device, layout, shaderProgram))
 {
 	if (!name.empty())
 		this->name() = name;
@@ -75,7 +75,7 @@ VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice& device, SharedP
 }
 
 VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice& device) noexcept :
-	m_impl(makePimpl<VulkanComputePipelineImpl>(this, device)), VulkanPipelineState(VK_NULL_HANDLE)
+	VulkanPipelineState(VK_NULL_HANDLE), m_impl(makePimpl<VulkanComputePipelineImpl>(this, device))
 {
 }
 

@@ -93,12 +93,9 @@ template<typename TRenderBackend> requires
     meta::implements<TRenderBackend, IRenderBackend>
 void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState)
 {
-    using RenderPass = TRenderBackend::render_pass_type;
     using RayTracingPipeline = TRenderBackend::ray_tracing_pipeline_type;
-    using PipelineLayout = TRenderBackend::pipeline_layout_type;
     using ShaderProgram = TRenderBackend::shader_program_type;
     using InputAssembler = TRenderBackend::input_assembler_type;
-    using Rasterizer = TRenderBackend::rasterizer_type;
 
     // Get the default device.
     auto device = backend->device("Default");
@@ -164,12 +161,12 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // instances. The geometries share one vertex and index buffer.
     auto vertices = asShared(std::move(vertexBuffer));
     auto indices = asShared(std::move(indexBuffer));
-    auto opaque = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure(AccelerationStructureFlags::AllowCompaction | AccelerationStructureFlags::MinimizeMemory)));
+    auto opaque = asShared(m_device->factory().createBottomLevelAccelerationStructure(AccelerationStructureFlags::AllowCompaction | AccelerationStructureFlags::MinimizeMemory));
     opaque->withTriangleMesh({ vertices, indices });
 
     // Add an empty geometry, so that the geometry index of the second one will increase, causing it to get reflective (as the hit group changes). Not the most elegant solution, but works 
     // for demonstration purposes.
-    auto reflective = asShared(std::move(m_device->factory().createBottomLevelAccelerationStructure(AccelerationStructureFlags::AllowCompaction | AccelerationStructureFlags::MinimizeMemory)));
+    auto reflective = asShared(m_device->factory().createBottomLevelAccelerationStructure(AccelerationStructureFlags::AllowCompaction | AccelerationStructureFlags::MinimizeMemory));
     auto dummyVertexBuffer = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, 1, ResourceUsage::AccelerationStructureBuildInput);
     reflective->withTriangleMesh({ asShared(std::move(dummyVertexBuffer)), SharedPtr<IIndexBuffer>() });
     reflective->withTriangleMesh({ vertices, indices, nullptr, GeometryFlags::Opaque });
@@ -179,7 +176,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     UInt64 opaqueSize, opaqueScratchSize, reflectiveSize, reflectiveScratchSize;
     m_device->computeAccelerationStructureSizes(*opaque, opaqueSize, opaqueScratchSize);
     m_device->computeAccelerationStructureSizes(*reflective, reflectiveSize, reflectiveScratchSize);
-    auto blasBuffer = asShared(std::move(m_device->factory().createBuffer("BLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, opaqueSize + reflectiveSize, 1u, ResourceUsage::AllowWrite)));
+    auto blasBuffer = asShared(m_device->factory().createBuffer("BLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, opaqueSize + reflectiveSize, 1u, ResourceUsage::AllowWrite));
 
     // Orient instances randomly.
     std::srand(static_cast<UInt32>(std::time(nullptr)));
@@ -201,7 +198,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     UInt64 tlasSize, tlasScratchSize;
     m_device->computeAccelerationStructureSizes(*tlas, tlasSize, tlasScratchSize);
     auto scratchBufferSize = std::max(std::max(opaqueScratchSize, reflectiveScratchSize), tlasScratchSize);
-    auto scratchBuffer = asShared(std::move(m_device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, scratchBufferSize, 1, ResourceUsage::AllowWrite)));
+    auto scratchBuffer = asShared(m_device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, scratchBufferSize, 1, ResourceUsage::AllowWrite));
 
     // Build the BLAS and the TLAS. We need to barrier in between both to prevent simultaneous scratch buffer writes.
     opaque->build(*commandBuffer, scratchBuffer, blasBuffer, 0, opaqueSize);
@@ -277,7 +274,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
         auto overallSize = opaqueCompactedSize + reflectiveCompactedSize + tlasCompactedSize;
 
         // Allocate one buffer for all acceleration structures and allocate them individually.
-        auto accelerationStructureBuffer = asShared(std::move(m_device->factory().createBuffer("Acceleration Structures", BufferType::AccelerationStructure, ResourceHeap::Resource, overallSize, 1u)));
+        auto accelerationStructureBuffer = asShared(m_device->factory().createBuffer("Acceleration Structures", BufferType::AccelerationStructure, ResourceHeap::Resource, overallSize, 1u));
         auto compactedOpaque = m_device->factory().createBottomLevelAccelerationStructure("Opaque BLAS");
         auto compactedReflective = m_device->factory().createBottomLevelAccelerationStructure("Reflective BLAS");
         auto compactedTlas = m_device->factory().createTopLevelAccelerationStructure("TLAS");

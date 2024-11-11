@@ -14,8 +14,8 @@ private:
     Array<UniquePtr<IVulkanImage>> m_images;
     Dictionary<const IVulkanImage*, VkImageView> m_renderTargetHandles;
     Dictionary<UInt64, IVulkanImage*> m_mappedRenderTargets;
-	Size2d m_size;
     const VulkanDevice& m_device;
+	Size2d m_size;
 
 public:
     VulkanFrameBufferImpl(VulkanFrameBuffer* parent, const VulkanDevice& device, const Size2d& renderArea) :
@@ -138,7 +138,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanFrameBuffer::VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea, StringView name) :
-	m_impl(makePimpl<VulkanFrameBufferImpl>(this, device, renderArea)), StateResource(name)
+    StateResource(name), m_impl(makePimpl<VulkanFrameBufferImpl>(this, device, renderArea))
 {
 }
 
@@ -249,7 +249,7 @@ void VulkanFrameBuffer::addImage(const String& name, Format format, MultiSamplin
         throw InvalidArgumentException("name", "Another image with the name {0} does already exist within the frame buffer.", name);
 
     // Add a new image...
-    m_impl->m_images.push_back(std::move(m_impl->m_device.factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage)));
+    m_impl->m_images.push_back(m_impl->m_device.factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage));
 
     // ... and make sure it is in the right layout.
     auto& queue = m_impl->m_device.defaultQueue(QueueType::Graphics);
@@ -280,7 +280,7 @@ void VulkanFrameBuffer::addImage(const String& name, const RenderTarget& renderT
     // Add a new image...
     auto index = m_impl->m_images.size();
     auto format = renderTarget.format();
-    m_impl->m_images.push_back(std::move(m_impl->m_device.factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage)));
+    m_impl->m_images.push_back(m_impl->m_device.factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage));
 
     // ... and make sure it is in the right layout.
     auto& queue = m_impl->m_device.defaultQueue(QueueType::Graphics);

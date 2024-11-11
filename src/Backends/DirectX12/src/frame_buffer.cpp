@@ -119,7 +119,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12FrameBuffer::DirectX12FrameBuffer(const DirectX12Device& device, const Size2d& renderArea, StringView name) :
-    m_impl(makePimpl<DirectX12FrameBufferImpl>(this, device, renderArea)), StateResource(name)
+    StateResource(name), m_impl(makePimpl<DirectX12FrameBufferImpl>(this, device, renderArea))
 {
     m_impl->initialize();
 }
@@ -231,7 +231,7 @@ void DirectX12FrameBuffer::addImage(const String& name, Format format, MultiSamp
         throw InvalidArgumentException("name", "Another image with the name {0} does already exist within the frame buffer.", name);
 
     // Add a new image.
-    m_impl->m_images.push_back(std::move(m_impl->m_device.factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage)));
+    m_impl->m_images.push_back(m_impl->m_device.factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage));
     
     // Re-initialize to reset descriptor heaps and allocate descriptors.
     m_impl->initialize();
@@ -247,7 +247,7 @@ void DirectX12FrameBuffer::addImage(const String& name, const RenderTarget& rend
 
     // Add a new image.
     auto index = m_impl->m_images.size();
-    m_impl->m_images.push_back(std::move(m_impl->m_device.factory().createTexture(name, renderTarget.format(), m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage)));
+    m_impl->m_images.push_back(m_impl->m_device.factory().createTexture(name, renderTarget.format(), m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage));
 
     // Re-initialize to reset descriptor heaps and allocate descriptors.
     m_impl->initialize();

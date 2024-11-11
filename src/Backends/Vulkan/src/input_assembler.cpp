@@ -105,7 +105,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanInputAssemblerBuilder::VulkanInputAssemblerBuilder() noexcept :
-    m_impl(makePimpl<VulkanInputAssemblerBuilderImpl>(this)), InputAssemblerBuilder(SharedPtr<VulkanInputAssembler>(new VulkanInputAssembler()))
+    InputAssemblerBuilder(SharedPtr<VulkanInputAssembler>(new VulkanInputAssembler())), m_impl(makePimpl<VulkanInputAssemblerBuilderImpl>(this))
 {
 }
 

@@ -13,9 +13,9 @@ public:
 	friend class DirectX12ComputePipeline;
 
 private:
+	const DirectX12Device& m_device;
 	SharedPtr<DirectX12PipelineLayout> m_layout;
 	SharedPtr<DirectX12ShaderProgram> m_program;
-	const DirectX12Device& m_device;
 
 public:
 	DirectX12ComputePipelineImpl(DirectX12ComputePipeline* parent, const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram) :
@@ -39,7 +39,11 @@ public:
 		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", reinterpret_cast<void*>(m_program.get()), modules.size());
 
 		std::ranges::for_each(modules, [&, i = 0](const DirectX12ShaderModule* shaderModule) mutable {
+#ifdef NDEBUG
+			(void)i; // Required as [[maybe_unused]] is not supported in captures.
+#else
 			LITEFX_TRACE(DIRECTX12_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", ++i, modules.size(), shaderModule->fileName(), shaderModule->type(), shaderModule->entryPoint());
+#endif
 
 			switch (shaderModule->type())
 			{
@@ -72,7 +76,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12ComputePipeline::DirectX12ComputePipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, const String& name) :
-	m_impl(makePimpl<DirectX12ComputePipelineImpl>(this, device, layout, shaderProgram)), DirectX12PipelineState(nullptr)
+	DirectX12PipelineState(nullptr), m_impl(makePimpl<DirectX12ComputePipelineImpl>(this, device, layout, shaderProgram))
 {
 	if (!name.empty())
 		this->name() = name;
@@ -81,7 +85,7 @@ DirectX12ComputePipeline::DirectX12ComputePipeline(const DirectX12Device& device
 }
 
 DirectX12ComputePipeline::DirectX12ComputePipeline(const DirectX12Device& device) noexcept :
-	m_impl(makePimpl<DirectX12ComputePipelineImpl>(this, device)), DirectX12PipelineState(nullptr)
+	DirectX12PipelineState(nullptr), m_impl(makePimpl<DirectX12ComputePipelineImpl>(this, device))
 {
 }
 

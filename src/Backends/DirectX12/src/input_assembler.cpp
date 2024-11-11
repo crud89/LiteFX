@@ -107,7 +107,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12InputAssemblerBuilder::DirectX12InputAssemblerBuilder() noexcept :
-    m_impl(makePimpl<DirectX12InputAssemblerBuilderImpl>(this)), InputAssemblerBuilder(SharedPtr<DirectX12InputAssembler>(new DirectX12InputAssembler()))
+    InputAssemblerBuilder(SharedPtr<DirectX12InputAssembler>(new DirectX12InputAssembler())), m_impl(makePimpl<DirectX12InputAssemblerBuilderImpl>(this))
 {
 }
 

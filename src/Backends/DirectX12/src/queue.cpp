@@ -15,12 +15,12 @@ public:
 	friend class DirectX12Queue;
 
 private:
+	const DirectX12Device& m_device;
 	QueueType m_type;
 	QueuePriority m_priority;
 	ComPtr<ID3D12Fence> m_fence;
 	UInt64 m_fenceValue{ 0 };
 	mutable std::mutex m_mutex;
-	const DirectX12Device& m_device;
 	Array<Tuple<UInt64, SharedPtr<const DirectX12CommandBuffer>>> m_submittedCommandBuffers;
 
 public:

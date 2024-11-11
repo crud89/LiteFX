@@ -282,8 +282,8 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     class LITEFX_DIRECTX12_API DX12PlatformException : public RuntimeException {
     private:
-        _com_error m_error;
         HRESULT m_code;
+        _com_error m_error;
 
     public:
         /// <summary>
@@ -291,7 +291,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="result">The error code returned by the operation.</param>
         explicit DX12PlatformException(HRESULT result) noexcept :
-            m_code(result), m_error(result), RuntimeException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), _com_error(result).ErrorMessage()) { }
+            RuntimeException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), _com_error(result).ErrorMessage()), m_code(result), m_error(result) { }
 
         /// <summary>
         /// Initializes a new exception.
@@ -299,7 +299,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="result">The error code returned by the operation.</param>
         /// <param name="message">The error message.</param>
         explicit DX12PlatformException(HRESULT result, StringView message) noexcept :
-            m_code(result), m_error(result), RuntimeException("{2} {1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), _com_error(result).ErrorMessage(), message) { }
+            RuntimeException("{2} {1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), _com_error(result).ErrorMessage(), message), m_code(result), m_error(result) { }
 
         /// <summary>
         /// Initializes a new exception.

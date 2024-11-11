@@ -28,7 +28,7 @@ private:
 
 public:
 	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass, bool alphaToCoverage, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer) :
-		base(parent), m_renderPass(renderPass), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer)
+		base(parent), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_alphaToCoverage(alphaToCoverage), m_renderPass(renderPass)
 	{
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
 			m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
@@ -136,7 +136,11 @@ public:
 			auto bufferAttributes = layout->attributes() | std::ranges::to<std::vector>();
 			auto bindingPoint = layout->binding();
 
+#ifdef NDEBUG
+			(void)l; // Required as [[maybe_unused]] is not supported in captures.
+#else
 			LITEFX_TRACE(VULKAN_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size: {3} bytes, Binding: {4} }}...", ++l, vertexLayouts.size(), bufferAttributes.size(), layout->elementSize(), bindingPoint);
+#endif
 
 			VkVertexInputBindingDescription binding = {};
 			binding.binding = bindingPoint;
@@ -144,8 +148,13 @@ public:
 			binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 			Array<VkVertexInputAttributeDescription> currentAttributes = bufferAttributes |
-				std::views::transform([&bufferAttributes, &bindingPoint, i = 0](const BufferAttribute* attribute) mutable {
-					LITEFX_TRACE(VULKAN_LOG, "\tAttribute {0}/{1}: {{ Location: {2}, Offset: {3}, Format: {4} }}", ++i, bufferAttributes.size(), attribute->location(), attribute->offset(), attribute->format());
+				std::views::transform([&bindingPoint, attributes = bufferAttributes.size(), i = 0] (const BufferAttribute* attribute) mutable {
+#ifdef NDEBUG
+					(void)attributes; // Required as [[maybe_unused]] is not supported in captures.
+					(void)i;
+#else
+					LITEFX_TRACE(VULKAN_LOG, "\tAttribute {0}/{1}: {{ Location: {2}, Offset: {3}, Format: {4} }}", ++i, attributes, attribute->location(), attribute->offset(), attribute->format());
+#endif
 
 					VkVertexInputAttributeDescription descriptor{};
 					descriptor.binding = bindingPoint;
@@ -418,7 +427,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, MultiSamplingLevel samples, bool enableAlphaToCoverage, const String& name) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer)), VulkanPipelineState(VK_NULL_HANDLE)
+	VulkanPipelineState(VK_NULL_HANDLE), m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer))
 {
 	this->handle() = m_impl->initialize(samples);
 
@@ -427,7 +436,7 @@ VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, S
 }
 
 VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const String& name) noexcept :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass)), VulkanPipelineState(VK_NULL_HANDLE)
+	VulkanPipelineState(VK_NULL_HANDLE), m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass))
 {
 	if (!name.empty())
 		this->name() = name;

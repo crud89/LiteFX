@@ -12,14 +12,14 @@ public:
 	friend class VulkanShaderModule;
 
 private:
+	const VulkanDevice& m_device;
 	ShaderStage m_type;
 	String m_fileName, m_entryPoint, m_bytecode;
-	const VulkanDevice& m_device;
 	Optional<DescriptorBindingPoint> m_shaderLocalDescriptor;
 
 public:
 	VulkanShaderModuleImpl(VulkanShaderModule* parent, const VulkanDevice& device, ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
-		base(parent), m_device(device), m_fileName(fileName), m_entryPoint(entryPoint), m_type(type), m_shaderLocalDescriptor(shaderLocalDescriptor)
+		base(parent), m_device(device), m_type(type), m_fileName(fileName), m_entryPoint(entryPoint), m_shaderLocalDescriptor(shaderLocalDescriptor)
 	{
 	}
 

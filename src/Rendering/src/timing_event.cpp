@@ -16,7 +16,7 @@ private:
 
 public:
 	TimingEventImpl(TimingEvent* parent, const ISwapChain& swapChain, StringView name) :
-		base(parent), m_swapChain(swapChain), m_name(name)
+		base(parent), m_name(name), m_swapChain(swapChain)
 	{
 	}
 };

@@ -13,9 +13,9 @@ public:
     friend class VulkanPipelineLayout;
 
 private:
+    const VulkanDevice& m_device;
     UniquePtr<VulkanPushConstantsLayout> m_pushConstantsLayout;
     Array<UniquePtr<VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
-    const VulkanDevice& m_device;
 
 public:
     VulkanPipelineLayoutImpl(VulkanPipelineLayout* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
@@ -98,13 +98,13 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
-    m_impl(makePimpl<VulkanPipelineLayoutImpl>(this, device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout))), Resource<VkPipelineLayout>(VK_NULL_HANDLE)
+    Resource<VkPipelineLayout>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanPipelineLayoutImpl>(this, device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout)))
 {
     this->handle() = m_impl->initialize();
 }
 
 VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device) noexcept :
-    m_impl(makePimpl<VulkanPipelineLayoutImpl>(this, device)), Resource<VkPipelineLayout>(VK_NULL_HANDLE)
+    Resource<VkPipelineLayout>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanPipelineLayoutImpl>(this, device))
 {
 }
 
@@ -161,7 +161,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanPipelineLayoutBuilder::VulkanPipelineLayoutBuilder(const VulkanDevice& parent) :
-    m_impl(makePimpl<VulkanPipelineLayoutBuilderImpl>(this, parent)), PipelineLayoutBuilder(SharedPtr<VulkanPipelineLayout>(new VulkanPipelineLayout(parent)))
+    PipelineLayoutBuilder(SharedPtr<VulkanPipelineLayout>(new VulkanPipelineLayout(parent))), m_impl(makePimpl<VulkanPipelineLayoutBuilderImpl>(this, parent))
 {
 }
 

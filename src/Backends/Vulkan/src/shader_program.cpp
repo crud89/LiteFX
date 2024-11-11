@@ -201,7 +201,7 @@ public:
         Array<PushConstantRangeInfo> pushConstantRanges;
 
         // Extract reflection data from all shader modules.
-        std::ranges::for_each(m_modules, [this, &descriptorSetLayouts, &pushConstantRanges](UniquePtr<VulkanShaderModule>& shaderModule) {
+        std::ranges::for_each(m_modules, [&descriptorSetLayouts, &pushConstantRanges](UniquePtr<VulkanShaderModule>& shaderModule) {
             // Read the file and initialize a reflection module.
             auto bytecode = shaderModule->bytecode();
             spv_reflect::ShaderModule reflection(bytecode.size(), bytecode.c_str());
@@ -230,7 +230,7 @@ public:
                 throw RuntimeException("Unable to enumerate push constants (Error {0:x}).", static_cast<UInt32>(result));
 
             // Parse the descriptor sets.
-            std::ranges::for_each(descriptorSets, [this, &shaderModule, &reflection, &descriptorSetLayouts](const SpvReflectDescriptorSet* descriptorSet) {
+            std::ranges::for_each(descriptorSets, [&shaderModule, &descriptorSetLayouts](const SpvReflectDescriptorSet* descriptorSet) {
                 // Get all descriptor layouts.
                 Array<DescriptorInfo> descriptors(descriptorSet->binding_count);
 
@@ -321,7 +321,7 @@ public:
             if (pushConstantCount > 1)
                 LITEFX_WARNING(VULKAN_LOG, "More than one push constant range detected for shader stage {0}. If you have multiple entry points, you may be able to split them up into different shader files.", shaderModule->type());
 
-            std::ranges::for_each(pushConstants, [this, &shaderModule, &reflection, &pushConstantRanges](const SpvReflectBlockVariable* pushConstant) {
+            std::ranges::for_each(pushConstants, [&shaderModule, &pushConstantRanges](const SpvReflectBlockVariable* pushConstant) {
                 pushConstantRanges.push_back(PushConstantRangeInfo{ .stage = shaderModule->type(), .offset = pushConstant->absolute_offset, .size = pushConstant->padded_size });
             });
         });
@@ -414,7 +414,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(const VulkanDevice& device) :
-    m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this, device)), ShaderProgramBuilder(SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device)))
+    ShaderProgramBuilder(SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device))), m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this, device))
 {
 }
 

@@ -26,7 +26,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, VkDescriptorSet descriptorSet) :
-    m_impl(makePimpl<VulkanDescriptorSetImpl>(this, layout)), Resource<VkDescriptorSet>(descriptorSet)
+    Resource<VkDescriptorSet>(descriptorSet), m_impl(makePimpl<VulkanDescriptorSetImpl>(this, layout))
 {
     if (descriptorSet == VK_NULL_HANDLE)
         throw ArgumentNotInitializedException("descriptorSet", "The descriptor set handle must be initialized.");

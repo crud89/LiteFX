@@ -3724,6 +3724,9 @@ namespace LiteFX::Rendering {
     /// </summary>
     class LITEFX_RENDERING_API IImage : public virtual IDeviceMemory, public virtual IStateResource {
     public:
+        using IDeviceMemory::size;
+
+    public:
         virtual ~IImage() noexcept = default;
 
     public:
@@ -5284,21 +5287,21 @@ namespace LiteFX::Rendering {
         /// <param name="group">The shader group containing the modules to invoke.</param>
         /// <param name="payload">The shader-local data to pass to the shader's local resource bindings.</param>
         ShaderRecord(const shader_group_type& group, TLocalData payload) noexcept :
-            m_shaderGroup(group), m_payload(payload) { }
+            m_payload(payload), m_shaderGroup(group) { }
 
         /// <summary>
         /// Copies another shader record.
         /// </summary>
         /// <param name="_other">The shader record to copy.</param>
         ShaderRecord(const ShaderRecord& _other) :
-            m_shaderGroup(_other.m_shaderGroup), m_payload(_other.m_payload) { }
+            m_payload(_other.m_payload), m_shaderGroup(_other.m_shaderGroup) { }
 
         /// <summary>
         /// Takes over another shader record.
         /// </summary>
         /// <param name="_other">The shader record to take over.</param>
         ShaderRecord(ShaderRecord&& _other) :
-            m_shaderGroup(std::move(_other.m_shaderGroup)), m_payload(std::move(_other.m_payload)) { }
+            m_payload(std::move(_other.m_payload)), m_shaderGroup(std::move(_other.m_shaderGroup)) { }
 
         /// <summary>
         /// Copies another shader record.

@@ -111,13 +111,13 @@ public:
         if (!VulkanBackend::validateInstanceExtensions(m_extensions))
             throw InvalidArgumentException("extensions", "Some required Vulkan extensions are not supported by the system.");
 
-        auto requiredExtensions = m_extensions | std::views::transform([this](const auto& extension) { return extension.c_str(); }) | std::ranges::to<Array<const char*>>();
+        auto requiredExtensions = m_extensions | std::views::transform([](const auto& extension) { return extension.c_str(); }) | std::ranges::to<Array<const char*>>();
 
         // Check if all extensions are available.
         if (!VulkanBackend::validateInstanceLayers(m_layers))
             throw InvalidArgumentException("validationLayers", "Some required Vulkan layers are not supported by the system.");
 
-        auto enabledLayers = m_layers | std::views::transform([this](const auto& layer) { return layer.c_str(); }) | std::ranges::to<Array<const char*>>();
+        auto enabledLayers = m_layers | std::views::transform([](const auto& layer) { return layer.c_str(); }) | std::ranges::to<Array<const char*>>();
 
         // Get the app instance.
         auto appName = String(m_app.name());
@@ -204,7 +204,7 @@ public:
         ::vkEnumeratePhysicalDevices(m_parent->handle(), &adapters, handles.data());
 
         m_adapters = handles | 
-            std::views::transform([this](const auto& handle) { return makeUnique<VulkanGraphicsAdapter>(handle); }) |
+            std::views::transform([](const auto& handle) { return makeUnique<VulkanGraphicsAdapter>(handle); }) |
             std::ranges::to<Array<UniquePtr<VulkanGraphicsAdapter>>>();
     }
 };
@@ -214,7 +214,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanBackend::VulkanBackend(const App& app, Span<String> extensions, Span<String> validationLayers) :
-    m_impl(makePimpl<VulkanBackendImpl>(this, app, extensions, validationLayers)), Resource<VkInstance>(nullptr)
+    Resource<VkInstance>(nullptr), m_impl(makePimpl<VulkanBackendImpl>(this, app, extensions, validationLayers))
 {
     this->handle() = m_impl->initialize();
     m_impl->loadAdapters();

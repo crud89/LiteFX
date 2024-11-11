@@ -254,7 +254,7 @@ namespace LiteFX::Rendering {
         }
 
         inline void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept override {
-            this->releaseDescriptorSet(dynamic_cast<const descriptor_set_type&>(descriptorSet));
+            this->free(dynamic_cast<const descriptor_set_type&>(descriptorSet));
         }
     };
 

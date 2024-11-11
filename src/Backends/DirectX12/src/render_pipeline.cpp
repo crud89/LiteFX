@@ -13,6 +13,7 @@ public:
 	friend class DirectX12RenderPipeline;
 
 private:
+	const DirectX12RenderPass& m_renderPass;
 	SharedPtr<DirectX12PipelineLayout> m_layout;
 	SharedPtr<DirectX12ShaderProgram> m_program;
 	SharedPtr<DirectX12InputAssembler> m_inputAssembler;
@@ -21,7 +22,6 @@ private:
 	UInt32 m_stencilRef{ 0 };
 	bool m_alphaToCoverage{ false };
 	MultiSamplingLevel m_samples{ MultiSamplingLevel::x1 };
-	const DirectX12RenderPass& m_renderPass;
 	UniquePtr<IDirectX12Sampler> m_inputAttachmentSampler;
 	Dictionary<const IFrameBuffer*, Array<UniquePtr<DirectX12DescriptorSet>>> m_inputAttachmentBindings;
 	Dictionary<const IFrameBuffer*, size_t> m_frameBufferResizeTokens, m_frameBufferReleaseTokens;
@@ -29,7 +29,7 @@ private:
 
 public:
 	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, bool alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer) :
-		base(parent), m_renderPass(renderPass), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer)
+		base(parent), m_renderPass(renderPass), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_alphaToCoverage(alphaToCoverage)
 	{
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
 			m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
@@ -98,7 +98,11 @@ public:
 			auto bufferAttributes = layout->attributes();
 			auto bindingPoint = layout->binding();
 
+#ifdef NDEBUG
+			(void)l; // Required as [[maybe_unused]] is not supported in captures.
+#else
 			LITEFX_TRACE(DIRECTX12_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size: {3} bytes, Binding: {4} }}...", ++l, vertexLayouts.size(), bufferAttributes.size(), layout->elementSize(), bindingPoint);
+#endif
 
 			std::ranges::for_each(bufferAttributes, [&](const BufferAttribute* attribute) {
 				D3D12_INPUT_ELEMENT_DESC elementDescriptor = {};
@@ -218,7 +222,11 @@ public:
 		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", reinterpret_cast<void*>(m_program.get()), modules.size());
 
 		std::ranges::for_each(modules, [&, i = 0](const DirectX12ShaderModule* shaderModule) mutable {
+#ifdef NDEBUG
+			(void)i; // Required as [[maybe_unused]] is not supported in captures.
+#else
 			LITEFX_TRACE(DIRECTX12_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", ++i, modules.size(), shaderModule->fileName(), shaderModule->type(), shaderModule->entryPoint());
+#endif
 
 			switch (shaderModule->type())
 			{
@@ -279,7 +287,11 @@ public:
 		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", reinterpret_cast<void*>(m_program.get()), modules.size());
 
 		std::ranges::for_each(modules, [&, i = 0](const DirectX12ShaderModule* shaderModule) mutable {
+#ifdef NDEBUG
+			(void)i; // Required as [[maybe_unused]] is not supported in captures.
+#else
 			LITEFX_TRACE(DIRECTX12_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", ++i, modules.size(), shaderModule->fileName(), shaderModule->type(), shaderModule->entryPoint());
+#endif
 
 			switch (shaderModule->type())
 			{
@@ -465,7 +477,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, MultiSamplingLevel samples, bool enableAlphaToCoverage, const String& name) :
-	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer)), DirectX12PipelineState(nullptr)
+	DirectX12PipelineState(nullptr), m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer))
 {
 	if (!name.empty())
 		this->name() = name;
@@ -474,7 +486,7 @@ DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& rend
 }
 
 DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const String& name) noexcept :
-	m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass)), DirectX12PipelineState(nullptr)
+	DirectX12PipelineState(nullptr), m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass))
 {
 	if (!name.empty())
 		this->name() = name;

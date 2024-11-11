@@ -105,12 +105,12 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) cons
 	auto syncAfter  = DX12::getPipelineStage(m_impl->m_syncAfter);
 
 	// Global barriers.
-	auto globalBarriers = m_impl->m_globalBarriers | std::views::transform([this, &syncBefore, &syncAfter](auto& barrier) { 
+	auto globalBarriers = m_impl->m_globalBarriers | std::views::transform([&syncBefore, &syncAfter](auto& barrier) { 
 		return CD3DX12_GLOBAL_BARRIER(syncBefore, syncAfter, DX12::getResourceAccess(std::get<0>(barrier)), DX12::getResourceAccess(std::get<1>(barrier)));
 	}) | std::ranges::to<Array<D3D12_GLOBAL_BARRIER>>();
 
 	// Buffer barriers.
-	auto bufferBarriers = m_impl->m_bufferBarriers | std::views::transform([this, &syncBefore, &syncAfter](auto& barrier) {
+	auto bufferBarriers = m_impl->m_bufferBarriers | std::views::transform([&syncBefore, &syncAfter](auto& barrier) {
 		// Special case: scratch buffers for building acceleration structures are blocked differently between APIs.
 		auto accessBefore = DX12::getResourceAccess(std::get<0>(barrier));
 		auto accessAfter = DX12::getResourceAccess(std::get<1>(barrier));
@@ -124,7 +124,7 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) cons
 	}) | std::ranges::to<Array<D3D12_BUFFER_BARRIER>>();
 
 	// Image barriers.
-	auto imageBarriers = m_impl->m_imageBarriers | std::views::transform([this, &syncBefore, &syncAfter](auto& barrier) {
+	auto imageBarriers = m_impl->m_imageBarriers | std::views::transform([&syncBefore, &syncAfter](auto& barrier) {
 		auto& image = std::get<2>(barrier);
 		auto currentLayout = DX12::getImageLayout(std::get<3>(barrier).value_or(ImageLayout::Undefined));
 		auto targetLayout = DX12::getImageLayout(std::get<4>(barrier));
@@ -159,7 +159,7 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) cons
 // ------------------------------------------------------------------------------------------------
 
 DirectX12BarrierBuilder::DirectX12BarrierBuilder() :
-	BarrierBuilder(std::move(UniquePtr<DirectX12Barrier>(new DirectX12Barrier())))
+	BarrierBuilder(UniquePtr<DirectX12Barrier>(new DirectX12Barrier()))
 {
 }
 

@@ -198,7 +198,7 @@ private:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12SwapChain::DirectX12SwapChain(const DirectX12Device& device, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync) :
-	m_impl(makePimpl<DirectX12SwapChainImpl>(this, device)), ComResource<IDXGISwapChain4>(nullptr)
+	ComResource<IDXGISwapChain4>(nullptr), m_impl(makePimpl<DirectX12SwapChainImpl>(this, device))
 {
 	this->handle() = m_impl->initialize(format, renderArea, backBuffers, enableVsync);
 }

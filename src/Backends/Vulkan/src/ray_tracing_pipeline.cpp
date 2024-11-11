@@ -16,11 +16,11 @@ public:
 	friend class VulkanRayTracingPipeline;
 
 private:
+	const VulkanDevice& m_device;
 	SharedPtr<VulkanPipelineLayout> m_layout;
 	SharedPtr<const VulkanShaderProgram> m_program;
 	const ShaderRecordCollection m_shaderRecordCollection;
 	UInt32 m_maxRecursionDepth{ 10 }, m_maxPayloadSize{ 0 }, m_maxAttributeSize{ 32 };
-	const VulkanDevice& m_device;
 
 public:
 	VulkanRayTracingPipelineImpl(VulkanRayTracingPipeline* parent, const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, ShaderRecordCollection&& shaderRecords) :
@@ -268,7 +268,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, const String& name) :
-	m_impl(makePimpl<VulkanRayTracingPipelineImpl>(this, device, layout, shaderProgram, maxRecursionDepth, maxPayloadSize, maxAttributeSize, std::move(shaderRecords))), VulkanPipelineState(VK_NULL_HANDLE)
+	VulkanPipelineState(VK_NULL_HANDLE), m_impl(makePimpl<VulkanRayTracingPipelineImpl>(this, device, layout, shaderProgram, maxRecursionDepth, maxPayloadSize, maxAttributeSize, std::move(shaderRecords)))
 {
 	if (!name.empty())
 		this->name() = name;
@@ -277,7 +277,7 @@ VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice& device, S
 }
 
 VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice& device, ShaderRecordCollection&& shaderRecords) noexcept :
-	m_impl(makePimpl<VulkanRayTracingPipelineImpl>(this, device, std::move(shaderRecords))), VulkanPipelineState(VK_NULL_HANDLE)
+	VulkanPipelineState(VK_NULL_HANDLE), m_impl(makePimpl<VulkanRayTracingPipelineImpl>(this, device, std::move(shaderRecords)))
 {
 }
 

@@ -20,7 +20,7 @@ private:
 
 public:
 	DirectX12BufferImpl(DirectX12Buffer* parent, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation) :
-		base(parent), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_usage(usage), m_allocator(allocator), m_allocation(std::move(allocation))
+		base(parent), m_allocator(allocator), m_allocation(std::move(allocation)), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_usage(usage)
 	{
 	}
 };
@@ -30,7 +30,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Buffer::DirectX12Buffer(ComPtr<ID3D12Resource>&& buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
-	m_impl(makePimpl<DirectX12BufferImpl>(this, type, elements, elementSize, alignment, usage, allocator, std::move(allocation))), ComResource<ID3D12Resource>(nullptr)
+	ComResource<ID3D12Resource>(nullptr), m_impl(makePimpl<DirectX12BufferImpl>(this, type, elements, elementSize, alignment, usage, allocator, std::move(allocation)))
 {
 	this->handle() = std::move(buffer);
 
@@ -192,7 +192,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12VertexBuffer::DirectX12VertexBuffer(ComPtr<ID3D12Resource>&& buffer, const DirectX12VertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
-	m_impl(makePimpl<DirectX12VertexBufferImpl>(this, layout)), DirectX12Buffer(std::move(buffer), BufferType::Vertex, elements, layout.elementSize(), 0, usage, allocator, std::move(allocation), name)
+	DirectX12Buffer(std::move(buffer), BufferType::Vertex, elements, layout.elementSize(), 0, usage, allocator, std::move(allocation), name), m_impl(makePimpl<DirectX12VertexBufferImpl>(this, layout))
 {
 	m_impl->initialize();
 }
@@ -262,7 +262,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12IndexBuffer::DirectX12IndexBuffer(ComPtr<ID3D12Resource>&& buffer, const DirectX12IndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
-	m_impl(makePimpl<DirectX12IndexBufferImpl>(this, layout)), DirectX12Buffer(std::move(buffer), BufferType::Index, elements, layout.elementSize(), 0, usage, allocator, std::move(allocation), name)
+	DirectX12Buffer(std::move(buffer), BufferType::Index, elements, layout.elementSize(), 0, usage, allocator, std::move(allocation), name), m_impl(makePimpl<DirectX12IndexBufferImpl>(this, layout))
 {
 	m_impl->initialize();
 }

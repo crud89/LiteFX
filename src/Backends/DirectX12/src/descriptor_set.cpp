@@ -17,7 +17,7 @@ private:
 
 public:
     DirectX12DescriptorSetImpl(DirectX12DescriptorSet* parent, const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& bufferHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap) :
-        base(parent), m_layout(layout), m_bufferHeap(std::move(bufferHeap)), m_samplerHeap(std::move(samplerHeap))
+        base(parent), m_bufferHeap(std::move(bufferHeap)), m_samplerHeap(std::move(samplerHeap)), m_layout(layout)
     {
         auto buffers = m_layout.uniforms() + m_layout.images() + m_layout.storages() + m_layout.buffers();
 
