@@ -22,6 +22,12 @@ namespace LiteFX {
 		BackendState m_state = BackendState::Inactive;
 
 	public:
+		IBackend() noexcept = default;
+		IBackend(const IBackend&) noexcept = delete;
+		IBackend(IBackend&&) noexcept = delete;
+		auto operator=(const IBackend&) noexcept = delete;
+		auto operator=(IBackend&&) noexcept = delete;
+
 		virtual ~IBackend() noexcept = default;
 
 	public:
@@ -167,8 +173,12 @@ namespace LiteFX {
 		/// Initializes a new event.
 		/// </summary>
 		Event() = default;
+		virtual ~Event() = default;
+
 		Event(const Event&) = delete;
 		Event(Event&&) = delete;
+		auto operator=(const Event&) = delete;
+		auto operator=(Event&&) = delete;
 
 	public:
 		/// <summary>
@@ -319,7 +329,7 @@ namespace LiteFX {
 		ResizeEventArgs(int width, int height) : m_width(width), m_height(height) { }
 		ResizeEventArgs(const ResizeEventArgs&) = default;
 		ResizeEventArgs(ResizeEventArgs&&) = default;
-		virtual ~ResizeEventArgs() = default;
+		~ResizeEventArgs() noexcept override = default;
 
 	public:
 		ResizeEventArgs& operator=(const ResizeEventArgs&) = default;
@@ -359,6 +369,8 @@ namespace LiteFX {
 		App();
 		App(const App&) = delete;
 		App(App&&) = delete;
+		auto operator=(const App&) = delete;
+		auto operator=(App&&) = delete;
 
 		virtual ~App() noexcept;
 
@@ -386,21 +398,21 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="type">The type index of the requested backend.</param>
 		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
-		virtual const IBackend* operator[](std::type_index type) const;
+		const IBackend* operator[](std::type_index type) const;
 
 		/// <summary>
 		/// Returns the registered backend instance for a type index.
 		/// </summary>
 		/// <param name="type">The type index of the requested backend.</param>
 		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
-		virtual const IBackend* getBackend(std::type_index type) const;
+		const IBackend* getBackend(std::type_index type) const;
 
 		/// <summary>
 		/// Returns all registered backend instances of a backend type.
 		/// </summary>
 		/// <param name="type">The backend type of the requested backends.</param>
 		/// <returns>All registered instances of <paramref name="type" />.</returns>
-		virtual Enumerable<const IBackend*> getBackends(const BackendType type) const noexcept;
+		Enumerable<const IBackend*> getBackends(const BackendType type) const noexcept;
 
 	protected:
 		/// <summary>
@@ -408,7 +420,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="type">The type index of the requested backend.</param>
 		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
-		virtual IBackend* getBackend(std::type_index type);
+		IBackend* getBackend(std::type_index type);
 
 		/// <summary>
 		/// Returns the registered backend instance for a type index.
@@ -431,7 +443,7 @@ namespace LiteFX {
 		/// <param name="type">The type index of the backend to start.</param>
 		/// <seealso cref="Backend" />
 		/// <seealso cref="onBackendStart" />
-		virtual void startBackend(std::type_index type) const;
+		void startBackend(std::type_index type) const;
 
 		/// <summary>
 		/// Stops a backend.
@@ -442,28 +454,28 @@ namespace LiteFX {
 		/// <param name="type">The type index of the backend to start.</param>
 		/// <seealso cref="Backend" />
 		/// <seealso cref="onBackendStop" />
-		virtual void stopBackend(std::type_index type) const;
+		void stopBackend(std::type_index type) const;
 
 		/// <summary>
 		/// Stops the active backend of <paramref name="type" />.
 		/// </summary>
 		/// <param name="type">The backend type for which the active backend should be stopped.</param>
 		/// <seealso cref="stopBackend" />
-		virtual void stopActiveBackends(BackendType type) const;
+		void stopActiveBackends(BackendType type) const;
 
 		/// <summary>
 		/// Returns the active backend of the provided backend <paramref name="type" />.
 		/// </summary>
 		/// <param name="type">The type of the backend.</param>
 		/// <returns>The active backend of the provided backend type, or <c>std::nullptr</c>, if no backend is active.</returns>
-		virtual IBackend* activeBackend(BackendType type) const;
+		IBackend* activeBackend(BackendType type) const;
 
 		/// <summary>
 		/// Returns the type index of the active backend of the provided backend <paramref name="type" />.
 		/// </summary>
 		/// <param name="type">The type of the backend.</param>
 		/// <returns>Type index of the active backend of the provided backend type, or the type index of <c>std::nullptr_t</c>, if no backend is active.</returns>
-		virtual std::type_index activeBackendType(BackendType type) const;
+		std::type_index activeBackendType(BackendType type) const;
 
 	private:
 		/// <summary>
@@ -484,12 +496,12 @@ namespace LiteFX {
 		/// <summary>
 		/// Invoked, if a backend has been started.
 		/// </summary>
-		mutable Event<const IBackend*> backendStarted;
+		mutable Event<const IBackend*> backendStarted; // NOLINT
 
 		/// <summary>
 		/// Invoked, if a backend has been stopped.
 		/// </summary>
-		mutable Event<const IBackend*> backendStopped;
+		mutable Event<const IBackend*> backendStopped; // NOLINT
 
 		/// <summary>
 		/// Sets a callback that is called, if a backend is started.
@@ -586,17 +598,17 @@ namespace LiteFX {
 		/// <summary>
 		/// Invoked, if the application has been started.
 		/// </summary>
-		mutable Event<EventArgs> startup;
+		mutable Event<EventArgs> startup; // NOLINT
 
 		/// <summary>
 		/// Invoked during initialization.
 		/// </summary>
-		mutable Event<EventArgs> initializing;
+		mutable Event<EventArgs> initializing; // NOLINT
 
 		/// <summary>
 		/// Invoked, if the application has is shutting down.
 		/// </summary>
-		mutable Event<EventArgs> shutdown;
+		mutable Event<EventArgs> shutdown; // NOLINT
 
 		/// <summary>
 		/// Adds a backend to the app.
@@ -614,7 +626,7 @@ namespace LiteFX {
 		/// <summary>
 		/// Invoked, if the app window or context gets resized.
 		/// </summary>
-		mutable Event<ResizeEventArgs> resized;
+		mutable Event<ResizeEventArgs> resized; // NOLINT
 
 		/// <summary>
 		/// Called, if the application window resizes.

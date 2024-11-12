@@ -63,7 +63,7 @@ IBackend* App::getBackend(std::type_index type)
 
 void App::startBackend(std::type_index type) const
 {
-	auto backend = const_cast<IBackend*>(this->getBackend(type));
+	auto backend = const_cast<IBackend*>(this->getBackend(type)); // NOLINT
 
 	if (backend == nullptr)
 		throw InvalidArgumentException("type", "No backend of type {0} has been registered.", type.name());
@@ -90,7 +90,7 @@ void App::startBackend(std::type_index type) const
 
 void App::stopBackend(std::type_index type) const
 {
-	auto backend = const_cast<IBackend*>(this->getBackend(type));
+	auto backend = const_cast<IBackend*>(this->getBackend(type)); // NOLINT
 
 	if (backend == nullptr)
 		throw InvalidArgumentException("type", "No backend of type {0} has been registered.", type.name());

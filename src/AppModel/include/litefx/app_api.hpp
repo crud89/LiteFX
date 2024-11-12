@@ -59,10 +59,12 @@ namespace LiteFX {
 		/// <param name="patch">The patch number of the app.</param>
 		/// <param name="revision">The revision of the app.</param>
 		explicit AppVersion(int major = 1, int minor = 0, int patch = 0, int revision = 0) noexcept;
-		AppVersion(const AppVersion&) = delete;
-		AppVersion(AppVersion&&) = delete;
-
 		virtual ~AppVersion() noexcept;
+
+		AppVersion(const AppVersion& _other) = delete;
+		AppVersion(AppVersion&& _other) = delete;
+		AppVersion& operator=(const AppVersion&) = delete;
+		AppVersion& operator=(AppVersion&&) = delete;
 
 	public:
 		/// <summary>

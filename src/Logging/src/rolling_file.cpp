@@ -20,6 +20,7 @@ private:
     SharedPtr<spdlog::sinks::daily_file_sink_mt> m_sink;
 
 public:
+    // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
     RollingFileSinkImpl(RollingFileSink* parent, LogLevel level, const String& fileName, const String& pattern, bool truncate, int maxFiles) :
         base(parent), m_pattern(pattern), m_fileName(fileName), m_level(level), m_truncate(truncate), m_maxFiles(maxFiles),
         m_sink(makeShared<spdlog::sinks::daily_file_sink_mt>(fileName, 23, 59, truncate, maxFiles)) 
@@ -27,6 +28,7 @@ public:
         m_sink->set_level(static_cast<spdlog::level::level_enum>(level));
         m_sink->set_pattern(pattern);
     }
+    // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 };
 
 // ------------------------------------------------------------------------------------------------

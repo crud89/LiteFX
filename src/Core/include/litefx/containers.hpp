@@ -588,6 +588,7 @@ namespace LiteFX {
 		auto operator=(const IResource&) = delete;
 		auto operator=(const IResource&&) = delete;
 
+		IResource() noexcept = default;
 		virtual ~IResource() noexcept = default;
 
 	protected:
@@ -821,7 +822,7 @@ namespace LiteFX {
 		[[nodiscard]] constexpr TParent& add() {
 			this->build();
 			m_parent->use(std::move(m_instance));
-			return m_parent;
+			return *m_parent;
 		}
 	};
 

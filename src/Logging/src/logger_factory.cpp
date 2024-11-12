@@ -3,7 +3,13 @@
 
 using namespace LiteFX::Logging;
 
-static Array<spdlog::sink_ptr> m_sinks;
+class Sinks {
+public:
+    static inline Array<spdlog::sink_ptr>& get() noexcept {
+        static Array<spdlog::sink_ptr> _sinks { };
+        return _sinks;
+    }
+};
 
 Log Logger::get(StringView name)
 {
@@ -15,7 +21,7 @@ Log Logger::get(StringView name)
     // If it does not exist, create it from the current sinks.
     if (log == nullptr)
     {
-        auto logger = makeShared<spdlog::logger>(nameCopy, std::begin(m_sinks), std::end(m_sinks));
+        auto logger = makeShared<spdlog::logger>(nameCopy, std::begin(Sinks::get()), std::end(Sinks::get()));
 
 #ifndef NDEBUG
         logger->set_level(spdlog::level::trace);
@@ -34,5 +40,5 @@ void Logger::sinkTo(const ISink* sink)
     if (sink == nullptr)
         throw std::invalid_argument("The provided sink is not initialized.");
 
-    m_sinks.push_back(sink->get());
+    Sinks::get().push_back(sink->get());
 }
