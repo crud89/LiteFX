@@ -25,6 +25,8 @@
 #include "string.hpp"
 #include "exceptions.hpp"
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 #ifndef LITEFX_DEFINE_FLAGS
 #  define LITEFX_DEFINE_FLAGS(T) \
 	constexpr T operator| (const T lhs, const T rhs) { using _base_t = std::underlying_type_t<T>; return static_cast<T>(static_cast<_base_t>(lhs) | static_cast<_base_t>(rhs)); } \
@@ -36,6 +38,8 @@
 #ifndef LITEFX_FLAG_IS_SET
 #  define LITEFX_FLAG_IS_SET(val, flag) static_cast<bool>((std::to_underlying(val) & std::to_underlying(flag)) == std::to_underlying(flag))
 #endif
+
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 namespace LiteFX {
 
@@ -179,7 +183,8 @@ namespace LiteFX {
 	/// <returns>A new shared pointer.</returns>
 	template <class T>
 	[[nodiscard]] constexpr SharedPtr<T> asShared(UniquePtr<T>&& ptr) {
-		return SharedPtr<T>(ptr.release());
+		SharedPtr<T> shared = std::move(ptr);
+		return shared;
 	}
 
 	/// <summary>
@@ -221,10 +226,10 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="input">The input range or view that contains the elements the `Enumerable` is initialized with.</param>
 		constexpr Enumerable(std::ranges::input_range auto&& input) noexcept requires
-			std::convertible_to<std::ranges::range_value_t<decltype(input)>, T>
+			std::convertible_to<std::ranges::range_value_t<decltype(input)>, T> :
+			m_size(0)
 		{
 			auto it = m_elements.before_begin();
-			m_size = 0;
 
 			for (auto elem : input)
 			{
@@ -312,6 +317,8 @@ namespace LiteFX {
 		/// <param name="_other">The `Enumerable` to copy.</param>
 		/// <returns>A reference of the `Enumerable` after the copy.</returns>
 		constexpr Enumerable<T>& operator=(const Enumerable<T>& _other) = default;
+
+		constexpr ~Enumerable() noexcept = default;
 
 	public:
 		/// <summary>
@@ -518,6 +525,8 @@ namespace LiteFX {
 		return PimplPtr<T>(new T(std::forward<Arg>(arg)...));
 	}
 
+	// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 	/// <summary>
 	/// Declares the implementation for the public interface of a class.
 	/// </summary>
@@ -529,7 +538,10 @@ namespace LiteFX {
 #  define LITEFX_IMPLEMENTATION(impl) private: \
 	class impl; \
 	PimplPtr<impl> m_impl;
+
+	// NOLINTEND(cppcoreguidelines-macro-usage)
 #endif
+
 
 	/// <summary>
 	/// Base class for an implementation of a public interface class.
@@ -543,7 +555,7 @@ namespace LiteFX {
 		using base = Implement<interface_type>;
 
 	protected:
-		TInterface* m_parent{ nullptr };
+		TInterface* m_parent{ nullptr }; // NOLINT(cppcoreguidelines-non-private-member-variables-in-classes)
 
 	public:
 		/// <summary>
@@ -555,9 +567,12 @@ namespace LiteFX {
 				throw std::runtime_error("Initializing an implementation requires the parent to be provided.");
 		}
 
+		constexpr virtual ~Implement() = default;
+
 		Implement(Implement<TInterface>&&) = delete;
 		Implement(const Implement<TInterface>&) = delete;
-		constexpr virtual ~Implement() = default;
+		auto operator=(Implement<TInterface>&&) = delete;
+		auto operator=(const Implement<TInterface>&) = delete;
 	};
 
 	/// <summary>
@@ -568,6 +583,11 @@ namespace LiteFX {
 	template <class THandle>
 	class IResource {
 	public:
+		IResource(const IResource&) = delete;
+		IResource(IResource&&) = delete;
+		auto operator=(const IResource&) = delete;
+		auto operator=(const IResource&&) = delete;
+
 		virtual ~IResource() noexcept = default;
 
 	protected:
@@ -604,6 +624,9 @@ namespace LiteFX {
 	public:
 		Resource(const Resource&) = delete;
 		Resource(Resource&&) = delete;
+		auto operator=(const Resource&) = delete;
+		auto operator=(const Resource&&) = delete;
+
 		virtual ~Resource() noexcept = default;
 
 	protected:
@@ -682,7 +705,10 @@ namespace LiteFX {
 		/// <param name="_other">The instance of another builder object to take over.</param>
 		constexpr Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)) { }
 
-		constexpr Builder(const Builder&) = delete;
+		Builder(const Builder&) = delete;
+		auto operator=(const Builder&) = delete;
+		auto operator=(const Builder&&) = delete;
+
 		constexpr virtual ~Builder() noexcept = default;
 
 	protected:
@@ -722,7 +748,7 @@ namespace LiteFX {
 	class Builder {
 	private:
 		TPointer m_instance;
-		TParent& m_parent;
+		TParent* m_parent;
 
 	public:
 		using instance_type = T;
@@ -740,7 +766,7 @@ namespace LiteFX {
 		/// Returns a reference of the parent builder.
 		/// </summary>
 		/// <returns>A reference of the parent builder.</returns>
-		constexpr const TParent& parent() const noexcept { return m_parent; }
+		constexpr const TParent& parent() const noexcept { return *m_parent; }
 
 	protected:
 		/// <summary>
@@ -755,15 +781,17 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="parent">The instance of the parent builder.</param>
 		/// <param name="instance">The instance of the object to build.</param>
-		constexpr explicit Builder(TParent& parent, TPointer&& instance) noexcept : m_instance(std::move(instance)), m_parent(parent) { }
+		constexpr explicit Builder(TParent& parent, TPointer&& instance) noexcept : m_instance(std::move(instance)), m_parent(&parent) { }
 		
 		/// <summary>
 		/// Initializes the builder instance by taking over another instance.
 		/// </summary>
 		/// <param name="_other">The instance of another builder object to take over.</param>
 		constexpr Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)), m_parent(_other.m_parent) { }
-		
+
 		constexpr Builder(const Builder&) = delete;
+		auto operator=(const Builder&) = delete;
+		auto operator=(Builder&&) = delete;
 		constexpr virtual ~Builder() noexcept = default;
 
 	protected:
@@ -789,10 +817,12 @@ namespace LiteFX {
 		/// </summary>
 		[[nodiscard]] constexpr TParent& add() {
 			this->build();
-			m_parent.use(std::move(m_instance));
+			m_parent->use(std::move(m_instance));
 			return m_parent;
 		}
 	};
+
+	// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 
 #if !defined(LITEFX_BUILDER)
 #    define LITEFX_BUILDER(BuilderType) public: \
@@ -800,4 +830,5 @@ namespace LiteFX {
 		friend class BuilderType;
 #endif // !defined(LITEFX_BUILDER)
 
+	// NOLINTEND(cppcoreguidelines-macro-usage)
 }

@@ -31,7 +31,7 @@ namespace LiteFX {
 	public:
 		Exception(const Exception&) = default;
 		Exception(Exception&&) = default;
-		virtual ~Exception() noexcept = default;
+		~Exception() noexcept override = default;
 
 		Exception& operator=(const Exception&) = default;
 		Exception& operator=(Exception&&) = default;
@@ -85,11 +85,11 @@ namespace LiteFX {
 		/// <param name="args">The arguments passed to the error message format string.</param>
 		template <typename ...TArgs>
 		explicit InvalidArgumentException(std::string_view argument, std::string_view format, TArgs&&... args) noexcept :
-			Exception(std::format("Invalid argument provided: {}. {}", argument, std::vformat(format, std::make_format_args(args...))), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
+			Exception(std::format("Invalid argument provided: {}. {}", argument, std::vformat(format, std::make_format_args(std::forward<TArgs>(args)...))), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
 
 		InvalidArgumentException(const InvalidArgumentException&) = default;
 		InvalidArgumentException(InvalidArgumentException&&) = default;
-		virtual ~InvalidArgumentException() noexcept = default;
+		~InvalidArgumentException() noexcept override = default;
 
 		InvalidArgumentException& operator=(const InvalidArgumentException&) = default;
 		InvalidArgumentException& operator=(InvalidArgumentException&&) = default;
@@ -147,7 +147,7 @@ namespace LiteFX {
 		/// <param name="args">The arguments passed to the error message format string.</param>
 		template <typename ...TArgs>
 		explicit ArgumentOutOfRangeException(std::string_view argument, std::string_view format, TArgs&&... args) noexcept :
-			Exception(std::format("Argument was out of range: {}. {}", argument, std::vformat(format, std::make_format_args(args...))), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
+			Exception(std::format("Argument was out of range: {}. {}", argument, std::vformat(format, std::make_format_args(std::forward<TArgs>(args)...))), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
 
 		/// <summary>
 		/// Initializes a new exception.
@@ -160,11 +160,11 @@ namespace LiteFX {
 		/// <param name="args">The arguments passed to the error message format string.</param>
 		template <typename TRange, typename TValue, typename ...TArgs>
 		explicit ArgumentOutOfRangeException(std::string_view argument, std::pair<TRange, TRange> validRange, TValue value, std::string_view format, TArgs&&... args) noexcept :
-			Exception(std::format("Argument was out of range: {} (valid range is [{}, {}) but actual value was {}). {}", argument, validRange.first, validRange.second, value, std::vformat(format, std::make_format_args(args...))), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
+			Exception(std::format("Argument was out of range: {} (valid range is [{}, {}) but actual value was {}). {}", argument, validRange.first, validRange.second, value, std::vformat(format, std::make_format_args(std::forward<TArgs>(args)...))), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
 
 		ArgumentOutOfRangeException(const ArgumentOutOfRangeException&) = default;
 		ArgumentOutOfRangeException(ArgumentOutOfRangeException&&) = default;
-		virtual ~ArgumentOutOfRangeException() noexcept = default;
+		~ArgumentOutOfRangeException() noexcept override = default;
 
 		ArgumentOutOfRangeException& operator=(const ArgumentOutOfRangeException&) = default;
 		ArgumentOutOfRangeException& operator=(ArgumentOutOfRangeException&&) = default;
@@ -210,11 +210,11 @@ namespace LiteFX {
 		/// <param name="args">The arguments passed to the error message format string.</param>
 		template <typename ...TArgs>
 		explicit ArgumentNotInitializedException(std::string_view argument, std::string_view format, TArgs&&... args) noexcept :
-			Exception(std::format("Argument was not initialized: {}. {}", argument, std::vformat(format, std::make_format_args(args...))), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
+			Exception(std::format("Argument was not initialized: {}. {}", argument, std::vformat(format, std::make_format_args(std::forward<TArgs>(args)...))), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
 
 		ArgumentNotInitializedException(const ArgumentNotInitializedException&) = default;
 		ArgumentNotInitializedException(ArgumentNotInitializedException&&) = default;
-		virtual ~ArgumentNotInitializedException() noexcept = default;
+		~ArgumentNotInitializedException() noexcept override = default;
 
 		ArgumentNotInitializedException& operator=(const ArgumentNotInitializedException&) = default;
 		ArgumentNotInitializedException& operator=(ArgumentNotInitializedException&&) = default;
@@ -254,11 +254,11 @@ namespace LiteFX {
 		/// <param name="args">The arguments passed to the error message format string.</param>
 		template <typename ...TArgs>
 		explicit RuntimeException(std::string_view format, TArgs&&... args) noexcept :
-			Exception(std::format("The operation could not be executed: {}", std::vformat(format, std::make_format_args(args...))), std::source_location::current(), std::stacktrace::current()) { }
+			Exception(std::format("The operation could not be executed: {}", std::vformat(format, std::make_format_args(std::forward<TArgs>(args)...))), std::source_location::current(), std::stacktrace::current()) { }
 
 		RuntimeException(const RuntimeException&) = default;
 		RuntimeException(RuntimeException&&) = default;
-		virtual ~RuntimeException() noexcept = default;
+		~RuntimeException() noexcept override = default;
 
 		RuntimeException& operator=(const RuntimeException&) = default;
 		RuntimeException& operator=(RuntimeException&&) = default;

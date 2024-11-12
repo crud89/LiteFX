@@ -46,7 +46,7 @@ namespace LiteFX {
     constexpr static std::uint64_t hash(StringView string) noexcept 
     {
         const std::uint64_t prime = 0x00000100000001b3;
-        std::uint64_t seed  = 0xcbf29ce484222325;
+        std::uint64_t seed = 0xcbf29ce484222325; // NOLINT
         
         for (auto ptr = string.begin(); ptr != string.end(); ptr++)
             seed = (seed ^ *ptr) * prime;
@@ -62,7 +62,7 @@ namespace LiteFX {
     constexpr static std::uint64_t hash(WStringView string) noexcept 
     {
         const std::uint64_t prime = 0x00000100000001b3;
-        std::uint64_t seed  = 0xcbf29ce484222325;
+        std::uint64_t seed  = 0xcbf29ce484222325; // NOLINT
 
         for (auto ptr = string.begin(); ptr != string.end(); ptr++)
             seed = (seed ^ *ptr) * prime;

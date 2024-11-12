@@ -32,7 +32,6 @@
       "vendor": {
         "microsoft.com/VisualStudioSettings/CMake/1.0": {
           "enableMicrosoftCodeAnalysis": true,
-          "enableClangTidyCodeAnalysis": false,
           "disableExternalAnalysis": true
         }
       }
@@ -42,14 +41,13 @@
       "hidden": true,
       "cacheVariables": {
         "CMAKE_C_COMPILER": "clang-cl",
-        "CMAKE_CXX_COMPILER": "clang-cl"
+        "CMAKE_CXX_COMPILER": "clang-cl",
+        "CMAKE_CXX_CLANG_TIDY": "clang-tidy;--header-filter=.*;--checks=clang-analyzer-*,cppcoreguidelines-*;--extra-arg=/EHsc;--extra-arg=/std:c++latest"
       },
       "vendor": {
         "microsoft.com/VisualStudioSettings/CMake/1.0": {
           "intelliSenseMode": "windows-clang-x64",
-          "enableMicrosoftCodeAnalysis": false,
           "enableClangTidyCodeAnalysis": true,
-          "disableExternalAnalysis": true,
           "clangTidyChecks": "clang-analyzer-*, cppcoreguidelines-*"
         }
       }
@@ -255,8 +253,8 @@
         "strategy": "external"
       },
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-rel"
+        "CMAKE_BUILD_TYPE": "Debug",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
       }
     },
     {

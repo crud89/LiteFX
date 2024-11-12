@@ -1,5 +1,8 @@
 #pragma once
 
+// NOLINTBEGIN(cppcoreguidelines-macro-to-enum)
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 #cmakedefine LITEFX_BUILD_VULKAN_BACKEND
 #cmakedefine LITEFX_BUILD_DIRECTX_12_BACKEND
 
@@ -11,3 +14,6 @@
 #cmakedefine LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
 
 #define LITEFX_CXX_VERSION @CMAKE_CXX_STANDARD@
+
+// NOLINTEND(cppcoreguidelines-macro-usage)
+// NOLINTEND(cppcoreguidelines-macro-to-enum)
