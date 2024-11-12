@@ -25,7 +25,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 StateResource::StateResource() noexcept :
-    StateResource(std::format("{0}", reinterpret_cast<void*>(this)))
+    StateResource("Unnamed Resource")
 {
 }
 
