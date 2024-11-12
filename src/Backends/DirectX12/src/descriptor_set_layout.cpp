@@ -51,7 +51,7 @@ public:
             LITEFX_TRACE(DIRECTX12_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Array size: {6}, Offset: {4}, Binding point: {5} }}...", ++i, m_layouts.size(), layout->descriptorType(), layout->elementSize(), 0, layout->binding(), layout->descriptors());
 #endif
             
-            if (layout->descriptors() == -1)
+            if (layout->descriptors() == std::numeric_limits<UInt32>::max())
             {
                 if (m_layouts.size() != 1) [[unlikely]]
                     throw InvalidArgumentException("descriptorLayouts", "If an unbounded runtime array descriptor is used, it must be the only descriptor in the descriptor set, however the current descriptor set specifies {0} descriptors", m_layouts.size());
@@ -83,7 +83,7 @@ public:
         if (m_descriptors > 0)
         {
             // If the descriptor set has an unbounded array, use the descriptor count from the parameter to allocate it.
-            UInt32 descriptors = m_descriptors == -1 ? descriptorCount : m_descriptors;
+            UInt32 descriptors = m_descriptors == std::numeric_limits<UInt32>::max() ? descriptorCount : m_descriptors;
 
             if (!m_freeDescriptorSets.empty())
             {
@@ -106,7 +106,7 @@ public:
         if (m_samplers > 0)
         {
             // If the descriptor set has an unbounded array, use the descriptor count from the parameter to allocate it.
-            UInt32 samplers = m_samplers == -1 ? descriptorCount : m_samplers;
+            UInt32 samplers = m_samplers == std::numeric_limits<UInt32>::max() ? descriptorCount : m_samplers;
 
             if (!m_freeSamplerSets.empty())
             {

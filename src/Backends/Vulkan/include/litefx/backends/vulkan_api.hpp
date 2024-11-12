@@ -324,7 +324,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <returns>The window handle of the surface.</returns>
         /// <seealso cref="createSurface" />
-        const HWND windowHandle() const noexcept;
+        HWND windowHandle() const noexcept;
 #endif // VK_USE_PLATFORM_WIN32_KHR
     };
 

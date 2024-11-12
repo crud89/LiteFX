@@ -38,19 +38,28 @@
       }
     },
     {
+      "name": "clangcl",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "intelliSenseMode": "windows-clang-x64",
+          "enableMicrosoftCodeAnalysis": false,
+          "enableClangTidyCodeAnalysis": true,
+          "disableExternalAnalysis": true,
+          "clangTidyChecks": "clang-analyzer-*, cppcoreguidelines-*"
+        }
+      }
+    },
+    {
       "name": "clang",
       "hidden": true,
       "cacheVariables": {
         "CMAKE_C_COMPILER": "clang",
         "CMAKE_CXX_COMPILER": "clang++"
-      },
-      "vendor": {
-        "microsoft.com/VisualStudioSettings/CMake/1.0": {
-          "enableMicrosoftCodeAnalysis": false,
-          "enableClangTidyCodeAnalysis": true,
-          "disableExternalAnalysis": false,
-          "clangTidyChecks": "clang-analyzer-*, cppcoreguidelines-*"
-        }
       }
     },
     {
@@ -216,6 +225,38 @@
         "CMAKE_BUILD_TYPE": "Release",
         "BUILD_SHARED_LIBS": "OFF",
         "VCPKG_TARGET_TRIPLET": "x86-windows-static-rel"
+      }
+    },
+    {
+      "name": "windows-clangcl-x64-debug",
+      "inherits": [
+        "windows",
+        "clangcl"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
+      }
+    },
+    {
+      "name": "windows-clangcl-x64-release",
+      "inherits": [
+        "windows",
+        "clangcl"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-rel"
       }
     },
     {

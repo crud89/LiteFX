@@ -56,7 +56,7 @@ const VkInstance& VulkanSurface::instance() const noexcept
 
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 
-const HWND VulkanSurface::windowHandle() const noexcept
+HWND VulkanSurface::windowHandle() const noexcept
 {
 	return m_impl->m_hwnd;
 }

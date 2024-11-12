@@ -156,7 +156,7 @@ namespace LiteFX::Math {
 		constexpr static mat_type identity() noexcept {
 			std::array<scalar_type, mat_rows * mat_cols> data { };
 
-			for (int i = 0; i < mat_rows && i < mat_cols; ++i)
+			for (size_t i = 0; i < mat_rows && i < mat_cols; ++i)
 				data[i * mat_cols + i] = 1.0f;
 
 			return mat_type(std::move(data));
@@ -412,8 +412,8 @@ namespace LiteFX::Math {
 		/// </summary>
 		/// <param name="mat">The glm matrix to initialize the matrix instance with.</param>
 		constexpr Matrix(glm::mat<mat_cols, mat_rows, scalar_type>&& mat) noexcept {
-			for (int r { 0 }; r < mat_rows; ++r)
-				for (int c { 0 }; c < mat_cols; ++c)
+			for (size_t r { 0 }; r < mat_rows; ++r)
+				for (size_t c { 0 }; c < mat_cols; ++c)
 					m_elements[r * mat_cols + c] = std::move(mat[c][r]);
 		}
 
@@ -426,8 +426,8 @@ namespace LiteFX::Math {
 			std::array<scalar_type, cols * rows> data;
 			glm::mat<cols, rows, scalar_type> mat;
 
-			for (int c { 0 }; c < cols; ++c)
-				for (int r { 0 }; r < rows; ++r)
+			for (size_t c { 0 }; c < cols; ++c)
+				for (size_t r { 0 }; r < rows; ++r)
 					data[c * mat_rows + r] = this->at(r, c);
 
 			std::memcpy(&mat, data.data(), data.size() * sizeof(scalar_type));

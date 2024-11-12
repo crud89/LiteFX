@@ -597,7 +597,7 @@ MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(Format format) con
 	constexpr std::array<MultiSamplingLevel, 7> allLevels = { MultiSamplingLevel::x64, MultiSamplingLevel::x32, MultiSamplingLevel::x16, MultiSamplingLevel::x8, MultiSamplingLevel::x4, MultiSamplingLevel::x2, MultiSamplingLevel::x1 };
 	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS levels{ .Format = DX12::getFormat(format) };
 
-	for (int level(0); level < allLevels.size(); ++level)
+	for (size_t level(0); level < allLevels.size(); ++level)
 	{
 		levels.SampleCount = std::to_underlying(allLevels[level]);
 		

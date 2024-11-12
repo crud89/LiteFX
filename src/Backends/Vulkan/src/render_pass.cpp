@@ -126,7 +126,7 @@ public:
         m_activeFrameBuffer = &frameBuffer;
     }
 
-    void onFrameBufferRelease(const void* sender, IFrameBuffer::ReleasedEventArgs args)
+    void onFrameBufferRelease(const void* sender, IFrameBuffer::ReleasedEventArgs /*args*/)
     {
         // Obtain the interface pointer and release all resources bound to the frame buffer.
         auto interfacePointer = reinterpret_cast<const IFrameBuffer*>(sender);
@@ -141,7 +141,7 @@ public:
         m_frameBufferTokens.erase(interfacePointer);
     }
 
-    void onSwapChainReset([[maybe_unused]] const void* sender, ISwapChain::ResetEventArgs args)
+    void onSwapChainReset([[maybe_unused]] const void* sender, ISwapChain::ResetEventArgs /*args*/)
     {
         // Release swap chain image views if there are any, so that they need to be re-created with the next context.
         for (auto view : m_swapChainViews | std::views::values)
