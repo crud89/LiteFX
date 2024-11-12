@@ -1263,7 +1263,6 @@ namespace LiteFX::Rendering {
         using shader_program_type = render_pipeline_type::shader_program_type;
         using input_assembler_type = render_pipeline_type::input_assembler_type;
         using rasterizer_type = render_pipeline_type::rasterizer_type;
-        using shader_program_type = render_pipeline_type::shader_program_type;
 
     public:
         virtual ~GraphicsDevice() noexcept = default;

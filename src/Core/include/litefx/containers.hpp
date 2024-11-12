@@ -611,6 +611,9 @@ namespace LiteFX {
 	/// <typeparam name="THandle">The type of the resource.</typeparam>
 	template <class THandle>
 	class Resource : public virtual IResource<THandle> {
+	public:
+        using handle_type = THandle;
+
 	private:
 		THandle m_handle;
 

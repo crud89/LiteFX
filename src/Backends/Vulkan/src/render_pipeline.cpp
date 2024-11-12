@@ -202,7 +202,7 @@ public:
 				.srcAlphaBlendFactor = Vk::getBlendFactor(renderTarget.blendState().SourceAlpha),
 				.dstAlphaBlendFactor = Vk::getBlendFactor(renderTarget.blendState().DestinationAlpha),
 				.alphaBlendOp = Vk::getBlendOperation(renderTarget.blendState().AlphaOperation),
-				.colorWriteMask = static_cast<VkColorComponentFlags>(renderTarget.blendState().WriteMask)
+				.colorWriteMask = static_cast<VkColorComponentFlags>(renderTarget.blendState().ChannelWriteMask)
 			});
 		});
 
@@ -335,7 +335,13 @@ public:
 		auto& bindings = m_inputAttachmentBindings[interfacePointer];
 
 		// Initialize the descriptor set bindings.
-		bindings.append_range(descriptorSets | std::views::transform([this](UInt32 set) { return std::move(m_layout->descriptorSet(set).allocate()); }));
+		auto range = descriptorSets | std::views::transform([this](UInt32 set) { return std::move(m_layout->descriptorSet(set).allocate()); });
+
+#ifdef __cpp_lib_containers_ranges
+		bindings.append_range(std::move(range));
+#else
+        bindings.insert(std::end(bindings), std::begin(range), std::end(range));
+#endif
 
 		// Listen to frame buffer events and update the bindings or remove the sets (on release).
 		m_frameBufferResizeTokens[interfacePointer] = frameBuffer.resized.add(std::bind(&VulkanRenderPipelineImpl::onFrameBufferResize, this, std::placeholders::_1, std::placeholders::_2));
