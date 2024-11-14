@@ -1,6 +1,7 @@
 Checks: |
     clang-analyzer-*,
     cppcoreguidelines-*
+WarningsAsErrors: true
 HeaderFilterRegex: '.*'
 CheckOptions:
   - key:   cppcoreguidelines-rvalue-reference-param-not-moved.AllowPartialMove
