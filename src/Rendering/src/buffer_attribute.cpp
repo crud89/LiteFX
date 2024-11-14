@@ -26,17 +26,17 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-BufferAttribute::BufferAttribute() :
+BufferAttribute::BufferAttribute() noexcept :
     m_impl(makePimpl<BufferAttributeImpl>(this, 0, 0, BufferFormat::None, AttributeSemantic::Unknown, 0))
 {
 }
 
-BufferAttribute::BufferAttribute(UInt32 location, UInt32 offset, BufferFormat format, AttributeSemantic semantic, UInt32 semanticIndex) :
+BufferAttribute::BufferAttribute(UInt32 location, UInt32 offset, BufferFormat format, AttributeSemantic semantic, UInt32 semanticIndex) noexcept :
     m_impl(makePimpl<BufferAttributeImpl>(this, location, offset, format, semantic, semanticIndex))
 {
 }
 
-BufferAttribute::BufferAttribute(const BufferAttribute& _other) :
+BufferAttribute::BufferAttribute(const BufferAttribute& _other) noexcept :
     m_impl(makePimpl<BufferAttributeImpl>(this, _other.location(), _other.offset(), _other.format(), _other.semantic(), _other.semanticIndex()))
 {
 }
@@ -45,6 +45,25 @@ BufferAttribute::BufferAttribute(BufferAttribute&& _other) noexcept :
     m_impl(std::move(_other.m_impl))
 {
     m_impl->m_parent = this;
+}
+
+BufferAttribute& BufferAttribute::operator=(const BufferAttribute& _other) noexcept
+{
+    m_impl->m_location = _other.location();
+    m_impl->m_offset = _other.offset();
+    m_impl->m_format = _other.format();
+    m_impl->m_semantic = _other.semantic();
+    m_impl->m_semanticIndex = _other.semanticIndex();
+
+    return *this;
+}
+
+BufferAttribute& BufferAttribute::operator=(BufferAttribute&& _other) noexcept
+{
+    m_impl = std::move(_other.m_impl);
+    m_impl->m_parent = this;
+
+    return *this;
 }
 
 BufferAttribute::~BufferAttribute() noexcept = default;

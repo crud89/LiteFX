@@ -369,6 +369,7 @@ struct LITEFX_RENDERING_API std::formatter<BufferFormat> : std::formatter<std::s
 	auto format(BufferFormat t, std::format_context& ctx) const {
 		Array<String> names;
 
+		// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 		switch (::getBufferFormatChannels(t))
 		{
 		case 1:
@@ -419,6 +420,7 @@ struct LITEFX_RENDERING_API std::formatter<BufferFormat> : std::formatter<std::s
 		default:
 			return formatter<string_view>::format("Invalid", ctx);
 		}
+		// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
 		String name = Join(names);
 		return formatter<string_view>::format(name, ctx);

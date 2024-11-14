@@ -9,12 +9,18 @@
 namespace LiteFX::Math {
 
 	/// <summary>
-	/// Base class for a algebraic vector type.
+	/// An algebraic vector type.
 	/// </summary>
-	/// <typeparam name="T">The type of the vector scalar elements.</typeparam>
+    /// <remarks>
+    /// The value type of a vector must be in standard layout (i.e., `std::is_standard_layout_v<T>` must evaluate to `true`). This constraint is enforced at compile time and ensures that
+    /// vector types can be binary marshalled. For example, the <seealso cref="LiteFX::Graphics::Vertex" /> type stores nothing more than a series of vectors. The standard layout constraint
+    /// ensures that a set of vertices can be converted into a plain byte array and back.
+    /// </remarks>
+	/// <typeparam name="T">The type of the vector scalar elements. Must be in standard layout (i.e., `std::is_standard_layout_v<T>` must evaluate to `true`).</typeparam>
 	/// <typeparam name="DIM">The number of dimensions of the vector.</typeparam>
-    template <typename T, unsigned DIM>
-    class Vector {
+    template <typename T, unsigned DIM> requires 
+        std::is_standard_layout_v<T>
+    struct Vector {
     public:
         /// <summary>
         /// Stores the size of the vector.
@@ -33,7 +39,7 @@ namespace LiteFX::Math {
 
     protected:
         using array_type = std::array<scalar_type, vec_size>;
-        array_type m_elements = { };
+        array_type m_elements = { }; // NOLINT
 
     public:
         /// <summary>
@@ -53,7 +59,7 @@ namespace LiteFX::Math {
         /// Initializes a vector with the values provided by another vector.
         /// </summary>
         /// <param name="_other">The other vector to copy the values from.</param>
-        constexpr Vector(const vec_type& _other) noexcept {
+        constexpr Vector(const Vector<T, DIM>& _other) noexcept {
             std::ranges::copy(_other.m_elements, std::begin(m_elements));
         }
 
@@ -61,21 +67,26 @@ namespace LiteFX::Math {
         /// Initializes a vector by taking over another vector.
         /// </summary>
         /// <param name="_other">The vector to take over.</param>
-        constexpr Vector(vec_type&& _other) noexcept {
-            m_elements = std::move(_other.m_elements);
-        }
+        constexpr Vector(Vector<T, DIM>&& _other) noexcept :
+            m_elements(std::move(_other.m_elements)) { }
 
-        //virtual inline ~Vector() noexcept = default;
+        /// <summary>
+        /// Destroys the vector.
+        /// </summary>
+        constexpr ~Vector() noexcept = default;
 
         /// <summary>
         /// Initializes a 2D vector using the values provided by <paramref name="x" /> and <paramref name="y" />.
         /// </summary>
         /// <param name="x">The value to initialize the x-component of the vector with.</param>
         /// <param name="y">The value to initialize the y-component of the vector with.</param>
-        constexpr Vector(T x, T y) noexcept requires(DIM == 2) {
+        constexpr Vector(T x, T y) noexcept requires(DIM == 2)
+        {
+            // NOLINTBEGIN(cppcoreguidelines-pro-bounds-constant-array-index)
             m_elements[0] = x;
             m_elements[1] = y;
-        };
+            // NOLINTEND(cppcoreguidelines-pro-bounds-constant-array-index)
+        }
 
         /// <summary>
         /// Initializes a 3D vector using the values provided by <paramref name="x" />, <paramref name="y" /> and <paramref name="z" />.
@@ -83,11 +94,14 @@ namespace LiteFX::Math {
         /// <param name="x">The value to initialize the x-component of the vector with.</param>
         /// <param name="y">The value to initialize the y-component of the vector with.</param>
         /// <param name="z">The value to initialize the z-component of the vector with.</param>
-        constexpr Vector(T x, T y, T z) noexcept requires(DIM == 3) {
+        constexpr Vector(T x, T y, T z) noexcept requires(DIM == 3)
+        {
+            // NOLINTBEGIN(cppcoreguidelines-pro-bounds-constant-array-index)
             m_elements[0] = x;
             m_elements[1] = y;
             m_elements[2] = z;
-        };
+            // NOLINTEND(cppcoreguidelines-pro-bounds-constant-array-index)
+        }
 
         /// <summary>
         /// Initializes a 4D vector using the values provided by <paramref name="x" />, <paramref name="y" />, <paramref name="z" /> and <paramref name="w" />.
@@ -96,12 +110,15 @@ namespace LiteFX::Math {
         /// <param name="y">The value to initialize the y-component of the vector with.</param>
         /// <param name="z">The value to initialize the z-component of the vector with.</param>
         /// <param name="w">The value to initialize the w-component of the vector with.</param>
-        constexpr Vector(T x, T y, T z, T w) noexcept requires(DIM == 4) {
+        constexpr Vector(T x, T y, T z, T w) noexcept requires(DIM == 4)
+        {
+            // NOLINTBEGIN(cppcoreguidelines-pro-bounds-constant-array-index)
             m_elements[0] = x;
             m_elements[1] = y;
             m_elements[2] = z;
             m_elements[3] = w;
-        };
+            // NOLINTEND(cppcoreguidelines-pro-bounds-constant-array-index)
+        }
 
         /// <summary>
         /// Initializes the vector from an arbitrary input range.
@@ -118,7 +135,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <param name="_other">The vector to copy the elements from.</param>
         /// <returns>A reference to the current vector instance.</returns>
-        constexpr auto& operator=(const vec_type& _other) noexcept {
+        constexpr auto& operator=(const Vector<T, DIM>& _other) noexcept {
             std::ranges::copy(_other.m_elements, std::begin(m_elements));
             return *this;
         }
@@ -128,7 +145,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <param name="_other">The vector to take over.</param>
         /// <returns>A reference to the current vector instance.</returns>
-        constexpr auto& operator=(vec_type&& _other) noexcept {
+        constexpr auto& operator=(Vector<T, DIM>&& _other) noexcept {
             m_elements = std::move(_other.m_elements);
             return *this;
         }
@@ -157,7 +174,7 @@ namespace LiteFX::Math {
         constexpr T operator[](unsigned int i) const noexcept {
             assert(i < DIM);
 
-            return m_elements[i % DIM];
+            return m_elements[i % DIM]; // NOLINT
         }
 
         /// <summary>
@@ -171,7 +188,7 @@ namespace LiteFX::Math {
         constexpr T& operator[](unsigned int i) noexcept {
             assert(i < DIM);
 
-            return m_elements[i % DIM];
+            return m_elements[i % DIM]; // NOLINT
         }
 
         /// <summary>
@@ -242,7 +259,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <returns>The value of the x component of the vector.</returns>
         constexpr scalar_type x() const noexcept requires (DIM > 0) {
-            return m_elements[0];
+            return m_elements[0]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
         }
 
         /// <summary>
@@ -250,7 +267,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <returns>The a reference of the value of the x component of the vector.</returns>
         constexpr scalar_type& x() noexcept requires (DIM > 0) {
-            return m_elements[0];
+            return m_elements[0]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
         }
 
         /// <summary>
@@ -258,7 +275,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <returns>The value of the y component of the vector.</returns>
         constexpr scalar_type y() const noexcept requires (DIM > 1) {
-            return m_elements[1];
+            return m_elements[1]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
         }
 
         /// <summary>
@@ -266,7 +283,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <returns>The a reference of the value of the y component of the vector.</returns>
         constexpr scalar_type& y() noexcept requires (DIM > 1) {
-            return m_elements[1];
+            return m_elements[1]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
         }
 
         /// <summary>
@@ -274,7 +291,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <returns>The value of the z component of the vector.</returns>
         constexpr scalar_type z() const noexcept requires (DIM > 2) {
-            return m_elements[2];
+            return m_elements[2]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
         }
 
         /// <summary>
@@ -282,7 +299,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <returns>The a reference of the value of the z component of the vector.</returns>
         constexpr scalar_type& z() noexcept requires (DIM > 2) {
-            return m_elements[2];
+            return m_elements[2]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
         }
 
         /// <summary>
@@ -290,7 +307,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <returns>The value of the w component of the vector.</returns>
         constexpr scalar_type w() const noexcept requires (DIM > 3) {
-            return m_elements[3];
+            return m_elements[3]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
         }
 
         /// <summary>
@@ -298,7 +315,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <returns>The a reference of the value of the w component of the vector.</returns>
         constexpr scalar_type& w() noexcept requires (DIM > 3) {
-            return m_elements[3];
+            return m_elements[3]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
         }
     };
 

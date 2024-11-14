@@ -21,8 +21,16 @@ namespace LiteFX::Rendering {
         using buffer_type = TBuffer;
         using image_type = TImage;
 
+    protected:
+        Barrier() noexcept = default;
+
     public:
-        constexpr virtual ~Barrier() noexcept = default;
+        constexpr ~Barrier() noexcept override = default;
+
+        Barrier(const Barrier&) = delete;
+        Barrier(Barrier&&) = delete;
+        auto operator=(const Barrier&) = delete;
+        auto operator=(Barrier&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -149,8 +157,16 @@ namespace LiteFX::Rendering {
         using image_type = TImage;
         using acceleration_structure_type = TAccelerationStructure;
 
+    protected:
+        DescriptorSet() noexcept = default;
+
     public:
-        virtual ~DescriptorSet() noexcept = default;
+        ~DescriptorSet() noexcept override = default;
+
+        DescriptorSet(const DescriptorSet&) = delete;
+        DescriptorSet(DescriptorSet&&) = delete;
+        auto operator=(const DescriptorSet&) = delete;
+        auto operator=(DescriptorSet&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -205,8 +221,16 @@ namespace LiteFX::Rendering {
         using descriptor_layout_type = TDescriptorLayout;
         using descriptor_set_type = TDescriptorSet;
 
+    protected:
+        DescriptorSetLayout() noexcept = default;
+
     public:
-        virtual ~DescriptorSetLayout() noexcept = default;
+        ~DescriptorSetLayout() noexcept override = default;
+
+        DescriptorSetLayout(const DescriptorSetLayout&) = delete;
+        DescriptorSetLayout(DescriptorSetLayout&&) = delete;
+        auto operator=(const DescriptorSetLayout&) = delete;
+        auto operator=(DescriptorSetLayout&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -287,8 +311,16 @@ namespace LiteFX::Rendering {
     public:
         using push_constants_range_type = TPushConstantsRange;
 
+    protected:
+        PushConstantsLayout() noexcept = default;
+
     public:
-        virtual ~PushConstantsLayout() noexcept = default;
+        ~PushConstantsLayout() noexcept override = default;
+
+        PushConstantsLayout(const PushConstantsLayout&) = delete;
+        PushConstantsLayout(PushConstantsLayout&&) = delete;
+        auto operator=(const PushConstantsLayout&) = delete;
+        auto operator=(PushConstantsLayout&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -311,15 +343,23 @@ namespace LiteFX::Rendering {
     public:
         using shader_module_type = TShaderModule;
 
+    protected:
+        ShaderProgram() noexcept = default;
+
     public:
-        virtual ~ShaderProgram() noexcept = default;
+        ~ShaderProgram() noexcept override = default;
+
+        ShaderProgram(const ShaderProgram&) = delete;
+        ShaderProgram(ShaderProgram&&) = delete;
+        auto operator=(const ShaderProgram&) = delete;
+        auto operator=(ShaderProgram&&) = delete;
 
     public:
         /// <inheritdoc />
         virtual Enumerable<const shader_module_type*> modules() const noexcept = 0;
 
     private:
-        virtual inline Enumerable<const IShaderModule*> getModules() const noexcept {
+        inline Enumerable<const IShaderModule*> getModules() const noexcept override {
             return this->modules();
         }
     };
@@ -337,8 +377,16 @@ namespace LiteFX::Rendering {
         using descriptor_set_layout_type = TDescriptorSetLayout;
         using push_constants_layout_type = TPushConstantsLayout;
 
+    protected:
+        PipelineLayout() noexcept = default;
+
     public:
-        virtual ~PipelineLayout() noexcept = default;
+        ~PipelineLayout() noexcept override = default;
+
+        PipelineLayout(const PipelineLayout&) = delete;
+        PipelineLayout(PipelineLayout&&) = delete;
+        auto operator=(const PipelineLayout&) = delete;
+        auto operator=(PipelineLayout&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -365,13 +413,20 @@ namespace LiteFX::Rendering {
     class VertexBuffer : public virtual IVertexBuffer {
     public:
         using vertex_buffer_layout_type = TVertexBufferLayout;
+    protected:
+        VertexBuffer() noexcept = default;
 
     public:
-        virtual ~VertexBuffer() noexcept = default;
+        ~VertexBuffer() noexcept override = default;
+
+        VertexBuffer(const VertexBuffer&) = delete;
+        VertexBuffer(VertexBuffer&&) = delete;
+        auto operator=(const VertexBuffer&) = delete;
+        auto operator=(VertexBuffer&&) = delete;
 
     public:
         /// <inheritdoc />
-        virtual const vertex_buffer_layout_type& layout() const noexcept = 0;
+        const vertex_buffer_layout_type& layout() const noexcept override = 0;
     };
 
     /// <summary>
@@ -383,13 +438,21 @@ namespace LiteFX::Rendering {
     class IndexBuffer : public virtual IIndexBuffer {
     public:
         using index_buffer_layout_type = TIndexBufferLayout;
-
+    
+    protected:
+        IndexBuffer() noexcept = default;
+    
     public:
-        virtual ~IndexBuffer() noexcept = default;
+        ~IndexBuffer() noexcept override = default;
+
+        IndexBuffer(const IndexBuffer&) = delete;
+        IndexBuffer(IndexBuffer&&) = delete;
+        auto operator=(const IndexBuffer&) = delete;
+        auto operator=(IndexBuffer&&) = delete;
 
     public:
         /// <inheritdoc/>
-        virtual const index_buffer_layout_type& layout() const noexcept = 0;
+        const index_buffer_layout_type& layout() const noexcept override = 0;
     };
 
     /// <summary>
@@ -405,8 +468,16 @@ namespace LiteFX::Rendering {
         using vertex_buffer_layout_type = TVertexBufferLayout;
         using index_buffer_layout_type = TIndexBufferLayout;
 
+    protected:
+        InputAssembler() noexcept = default;
+
     public:
-        virtual ~InputAssembler() noexcept = default;
+        ~InputAssembler() noexcept override = default;
+
+        InputAssembler(const InputAssembler&) = delete;
+        InputAssembler(InputAssembler&&) = delete;
+        auto operator=(const InputAssembler&) = delete;
+        auto operator=(InputAssembler&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -439,8 +510,16 @@ namespace LiteFX::Rendering {
         using shader_program_type = TShaderProgram;
         using pipeline_layout_type = TPipelineLayout;
 
+    protected:
+        Pipeline() noexcept = default;
+
     public:
-        virtual ~Pipeline() noexcept = default;
+        ~Pipeline() noexcept override = default;
+
+        Pipeline(const Pipeline&) = delete;
+        Pipeline(Pipeline&&) = delete;
+        auto operator=(const Pipeline&) = delete;
+        auto operator=(Pipeline&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -513,8 +592,16 @@ namespace LiteFX::Rendering {
         using bottom_level_acceleration_structure_type = TBLAS;
         using top_level_acceleration_structure_type = TTLAS;
 
+    protected:
+        CommandBuffer() noexcept = default;
+
     public:
-        virtual ~CommandBuffer() noexcept = default;
+        ~CommandBuffer() noexcept override = default;
+
+        CommandBuffer(CommandBuffer&&) = delete;
+        CommandBuffer(const CommandBuffer&) = delete;
+        auto operator=(const CommandBuffer&) = delete;
+        auto operator=(CommandBuffer&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -846,8 +933,16 @@ namespace LiteFX::Rendering {
         using input_assembler_type = TInputAssembler;
         using rasterizer_type = TRasterizer;
 
+    protected:
+        RenderPipeline() noexcept = default;
+
     public:
-        virtual ~RenderPipeline() noexcept = default;
+        ~RenderPipeline() noexcept override = default;
+
+        RenderPipeline(RenderPipeline&&) = delete;
+        RenderPipeline(const RenderPipeline&) = delete;
+        auto operator=(const RenderPipeline&) = delete;
+        auto operator=(RenderPipeline&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -874,8 +969,16 @@ namespace LiteFX::Rendering {
     /// <seealso cref="ComputePipelineBuilder" />
     template <typename TPipelineLayout, typename TShaderProgram>
     class ComputePipeline : public IComputePipeline, public virtual Pipeline<TPipelineLayout, TShaderProgram> {
+    protected:
+        ComputePipeline() noexcept = default;
+
     public:
-        virtual ~ComputePipeline() noexcept = default;
+        ~ComputePipeline() noexcept override = default;
+
+        ComputePipeline(ComputePipeline&&) = delete;
+        ComputePipeline(const ComputePipeline&) = delete;
+        auto operator=(const ComputePipeline&) = delete;
+        auto operator=(ComputePipeline&&) = delete;
     };
 
     /// <summary>
@@ -895,8 +998,16 @@ namespace LiteFX::Rendering {
         using image_type = descriptor_set_type::image_type;
         using sampler_type = descriptor_set_type::sampler_type;
 
+    protected:
+        RayTracingPipeline() noexcept = default;
+
     public:
-        virtual ~RayTracingPipeline() noexcept = default;
+        ~RayTracingPipeline() noexcept override = default;
+
+        RayTracingPipeline(RayTracingPipeline&&) = delete;
+        RayTracingPipeline(const RayTracingPipeline&) = delete;
+        auto operator=(const RayTracingPipeline&) = delete;
+        auto operator=(RayTracingPipeline&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -922,8 +1033,16 @@ namespace LiteFX::Rendering {
     public:
         using IFrameBuffer::addImage;
 
+    protected:
+        FrameBuffer() noexcept = default;
+
     public:
-        virtual ~FrameBuffer() noexcept = default;
+        ~FrameBuffer() noexcept override = default;
+
+        FrameBuffer(FrameBuffer&&) = delete;
+        FrameBuffer(const FrameBuffer&) = delete;
+        auto operator=(const FrameBuffer&) = delete;
+        auto operator=(FrameBuffer&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -947,8 +1066,16 @@ namespace LiteFX::Rendering {
 
         using command_buffer_type = TCommandBuffer;
 
+    protected:
+        CommandQueue() noexcept = default;
+
     public:
-        virtual ~CommandQueue() noexcept = default;
+        ~CommandQueue() noexcept override = default;
+
+        CommandQueue(CommandQueue&&) = delete;
+        CommandQueue(const CommandQueue&) = delete;
+        auto operator=(const CommandQueue&) = delete;
+        auto operator=(CommandQueue&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -1003,8 +1130,16 @@ namespace LiteFX::Rendering {
         using command_buffer_type = TCommandQueue::command_buffer_type;
         using frame_buffer_type = TFrameBuffer;
 
+    protected:
+        RenderPass() noexcept = default;
+
     public:
-        virtual ~RenderPass() noexcept = default;
+        ~RenderPass() noexcept override = default;
+
+        RenderPass(RenderPass&&) = delete;
+        RenderPass(const RenderPass&) = delete;
+        auto operator=(const RenderPass&) = delete;
+        auto operator=(RenderPass&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -1040,8 +1175,16 @@ namespace LiteFX::Rendering {
     public:
         using image_interface_type = TImageInterface;
 
+    protected:
+        SwapChain() noexcept = default;
+
     public:
-        virtual ~SwapChain() noexcept = default;
+        ~SwapChain() noexcept override = default;
+
+        SwapChain(SwapChain&&) = delete;
+        SwapChain(const SwapChain&) = delete;
+        auto operator=(const SwapChain&) = delete;
+        auto operator=(SwapChain&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -1094,8 +1237,16 @@ namespace LiteFX::Rendering {
         using bottom_level_acceleration_structure_type = TBLAS;
         using top_level_acceleration_structure_type = TTLAS;
 
+    protected:
+        GraphicsFactory() noexcept = default;
+
     public:
-        virtual ~GraphicsFactory() noexcept = default;
+        ~GraphicsFactory() noexcept override = default;
+
+        GraphicsFactory(GraphicsFactory&&) = delete;
+        GraphicsFactory(const GraphicsFactory&) = delete;
+        auto operator=(const GraphicsFactory&) = delete;
+        auto operator=(GraphicsFactory&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -1264,8 +1415,16 @@ namespace LiteFX::Rendering {
         using input_assembler_type = render_pipeline_type::input_assembler_type;
         using rasterizer_type = render_pipeline_type::rasterizer_type;
 
+    protected:
+        GraphicsDevice() noexcept = default;
+
     public:
-        virtual ~GraphicsDevice() noexcept = default;
+        ~GraphicsDevice() noexcept override = default;
+
+        GraphicsDevice(GraphicsDevice&&) = delete;
+        GraphicsDevice(const GraphicsDevice&) = delete;
+        auto operator=(const GraphicsDevice&) = delete;
+        auto operator=(GraphicsDevice&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -1467,8 +1626,16 @@ namespace LiteFX::Rendering {
         using input_assembler_type = device_type::input_assembler_type;
         using rasterizer_type = device_type::rasterizer_type;
 
+    protected:
+        RenderBackend() noexcept = default;
+
     public:
-        virtual ~RenderBackend() noexcept = default;
+        ~RenderBackend() noexcept override = default;
+
+        RenderBackend(RenderBackend&&) = delete;
+        RenderBackend(const RenderBackend&) = delete;
+        auto operator=(const RenderBackend&) = delete;
+        auto operator=(RenderBackend&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -1486,7 +1653,7 @@ namespace LiteFX::Rendering {
         /// <param name="_args">The arguments that are passed to the graphics device constructor.</param>
         /// <returns>A pointer of the created graphics device instance.</returns>
         template <typename TSelf, typename ...TArgs>
-        inline device_type* createDevice(this TSelf&& self, String name, const adapter_type& adapter, UniquePtr<surface_type>&& surface, TArgs&&... _args) {
+        inline device_type* createDevice(this TSelf& self, String name, const adapter_type& adapter, UniquePtr<surface_type>&& surface, TArgs&&... _args) {
             auto device = makeUnique<device_type>(self, adapter, std::move(surface), std::forward<TArgs>(_args)...);
             auto devicePointer = device.get();
             self.registerDevice(name, std::move(device));

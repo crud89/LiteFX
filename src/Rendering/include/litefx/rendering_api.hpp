@@ -1880,7 +1880,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <seealso cref="BufferFormat" />
     constexpr UInt32 getBufferFormatChannels(BufferFormat format) {
-        return static_cast<UInt32>(format) & 0x000000FF;
+        return static_cast<UInt32>(format) & 0x000000FF; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     }
 
     /// <summary>
@@ -1888,7 +1888,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <seealso cref="BufferFormat" />
     constexpr UInt32 getBufferFormatChannelSize(BufferFormat format) {
-        return (static_cast<UInt32>(format) & 0xFF000000) >> 24;
+        return (static_cast<UInt32>(format) & 0xFF000000) >> 24; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     }
 
     /// <summary>
@@ -1896,7 +1896,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <seealso cref="BufferFormat" />
     constexpr UInt32 getBufferFormatType(BufferFormat format) {
-        return (static_cast<UInt32>(format) & 0x0000FF00) >> 8;
+        return (static_cast<UInt32>(format) & 0x0000FF00) >> 8; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     }
 
     /// <summary>
@@ -1906,7 +1906,7 @@ namespace LiteFX::Rendering {
         switch (format) {
             using enum Format;
         case None:
-            return 0;
+            return 0; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         case R4G4_UNORM:
         case R8_UNORM:
         case R8_SNORM:
@@ -1916,7 +1916,7 @@ namespace LiteFX::Rendering {
         case R8_SINT:
         case R8_SRGB:
         case S8_UINT:
-            return 1;
+            return 1; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         case R4G4B4A4_UNORM:
         case B4G4R4A4_UNORM:
         case R5G6B5_UNORM:
@@ -1939,7 +1939,7 @@ namespace LiteFX::Rendering {
         case R16_SINT:
         case R16_SFLOAT:
         case D16_UNORM:
-            return 2;
+            return 2; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         case R8G8B8_UNORM:
         case R8G8B8_SNORM:
         case R8G8B8_USCALED:
@@ -1955,7 +1955,7 @@ namespace LiteFX::Rendering {
         case B8G8R8_SINT:
         case B8G8R8_SRGB:
         case D16_UNORM_S8_UINT:
-            return 3;
+            return 3; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         case R8G8B8A8_UNORM:
         case R8G8B8A8_SNORM:
         case R8G8B8A8_USCALED:
@@ -2004,7 +2004,7 @@ namespace LiteFX::Rendering {
         case X8_D24_UNORM:
         case D32_SFLOAT:
         case D24_UNORM_S8_UINT:
-            return 4;
+            return 4; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         case R16G16B16_UNORM:
         case R16G16B16_SNORM:
         case R16G16B16_USCALED:
@@ -2012,7 +2012,7 @@ namespace LiteFX::Rendering {
         case R16G16B16_UINT:
         case R16G16B16_SINT:
         case R16G16B16_SFLOAT:
-            return 6;
+            return 6; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         case R16G16B16A16_UNORM:
         case R16G16B16A16_SNORM:
         case R16G16B16A16_USCALED:
@@ -2033,11 +2033,11 @@ namespace LiteFX::Rendering {
         case BC1_RGBA_SRGB:
         case BC4_UNORM:
         case BC4_SNORM:
-            return 8;
+            return 8; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         case R32G32B32_UINT:
         case R32G32B32_SINT:
         case R32G32B32_SFLOAT:
-            return 12;
+            return 12; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         case R32G32B32A32_UINT:
         case R32G32B32A32_SINT:
         case R32G32B32A32_SFLOAT:
@@ -2054,15 +2054,15 @@ namespace LiteFX::Rendering {
         case BC6H_SFLOAT:
         case BC7_UNORM:
         case BC7_SRGB:
-            return 16;
+            return 16; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         case R64G64B64_UINT:
         case R64G64B64_SINT:
         case R64G64B64_SFLOAT:
-            return 24;
+            return 24; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         case R64G64B64A64_UINT:
         case R64G64B64A64_SINT:
         case R64G64B64A64_SFLOAT:
-            return 32;
+            return 32; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         default:
             throw InvalidArgumentException("format", "Unsupported format: {0}.", std::to_underlying(format)); // An invalid format will not have a formatter anyway, but it also would be illegal to use it here.
         }
@@ -2109,7 +2109,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <seealso cref="IndirectDispatchBatch" />
     /// <seealso cref="IndirectIndexedBatch" />
-    struct LITEFX_RENDERING_API alignas(16) IndirectBatch {
+    struct LITEFX_RENDERING_API alignas(16) IndirectBatch { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         /// <summary>
         /// The number of vertices of the mesh.
         /// </summary>
@@ -2142,7 +2142,7 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IndirectBatch" />
 #pragma warning(push)
 #pragma warning(disable: 4324) // Structure was padded due to alignment specifier
-    struct LITEFX_RENDERING_API alignas(16) IndirectIndexedBatch {
+    struct LITEFX_RENDERING_API alignas(16) IndirectIndexedBatch { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         /// <summary>
         /// The number of indices in the mesh index buffer.
         /// </summary>
@@ -2178,7 +2178,7 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <seealso cref="IndirectIndexedBatch" />
     /// <seealso cref="IndirectBatch" />
-    struct LITEFX_RENDERING_API alignas(16) IndirectDispatchBatch {
+    struct LITEFX_RENDERING_API alignas(16) IndirectDispatchBatch { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         /// <summary>
         /// The number of threads into x-direction.
         /// </summary>
@@ -2201,8 +2201,16 @@ namespace LiteFX::Rendering {
     /// The interface for a state resource.
     /// </summary>
     class LITEFX_RENDERING_API IStateResource {
+    protected:
+        IStateResource() noexcept = default;
+
     public:
         virtual ~IStateResource() noexcept = default;
+
+        IStateResource(const IStateResource&) = delete;
+        IStateResource(IStateResource&&) = delete;
+        auto operator=(const IStateResource&) = delete;
+        auto operator=(IStateResource&&) = delete;
 
     public:
         /// <summary>
@@ -2227,9 +2235,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="name">The name of the resource.</param>
         explicit StateResource(StringView name);
+        ~StateResource() noexcept override;
+
         StateResource(StateResource&&) = delete;
         StateResource(const StateResource&) = delete;
-        virtual ~StateResource() noexcept;
+        auto operator=(const StateResource&) = delete;
+        auto operator=(StateResource&&) = delete;
 
     protected:
         /// <inheritdoc />
@@ -2260,9 +2271,12 @@ namespace LiteFX::Rendering {
         /// Creates a new device state instance.
         /// </summary>
         explicit DeviceState() noexcept;
+        virtual ~DeviceState() noexcept;
+
         DeviceState(DeviceState&&) = delete;
         DeviceState(const DeviceState&) = delete;
-        virtual ~DeviceState() noexcept;
+        auto operator=(DeviceState&&) = delete;
+        auto operator=(const DeviceState&) = delete;
 
     public:
         /// <summary>
@@ -2570,8 +2584,16 @@ namespace LiteFX::Rendering {
     /// to the bus. However, it can also represent an emulated, virtual adapter, such as a software rasterizer.
     /// </remarks>
     class LITEFX_RENDERING_API IGraphicsAdapter {
+    protected:
+        IGraphicsAdapter() noexcept = default;
+
     public:
         virtual ~IGraphicsAdapter() noexcept = default;
+
+        IGraphicsAdapter(const IGraphicsAdapter&) = delete;
+        IGraphicsAdapter(IGraphicsAdapter&&) = delete;
+        auto operator=(const IGraphicsAdapter&) = delete;
+        auto operator=(IGraphicsAdapter&&) = delete;
 
     public:
         /// <summary>
@@ -2635,8 +2657,16 @@ namespace LiteFX::Rendering {
     /// to allow for portability. A surface implementation may provide access to the actual handle to use. Surface instances are responsible for owning the handle.
     /// </remarks>
     class LITEFX_RENDERING_API ISurface {
+    protected:
+        ISurface() noexcept = default;
+
     public:
         virtual ~ISurface() noexcept = default;
+
+        ISurface(const ISurface&) = delete;
+        ISurface(ISurface&&) = delete;
+        auto operator=(const ISurface&) = delete;
+        auto operator=(ISurface&&) = delete;
     };
     
     /// <summary>
@@ -2663,8 +2693,16 @@ namespace LiteFX::Rendering {
     /// </remarks>
     /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
     class LITEFX_RENDERING_API IShaderModule {
+    protected:
+        IShaderModule() noexcept = default;
+
     public:
         virtual ~IShaderModule() noexcept = default;
+
+        IShaderModule(const IShaderModule&) = delete;
+        IShaderModule(IShaderModule&&) = delete;
+        auto operator=(const IShaderModule&) = delete;
+        auto operator=(IShaderModule&&) = delete;
 
     public:
         /// <summary>
@@ -2767,8 +2805,16 @@ namespace LiteFX::Rendering {
             WriteMask ChannelWriteMask{ WriteMask::R | WriteMask::G | WriteMask::B | WriteMask::A };
         };
 
+    protected:
+        IRenderTarget() noexcept = default;
+
     public:
         virtual ~IRenderTarget() noexcept = default;
+
+        IRenderTarget(const IRenderTarget&) = delete;
+        IRenderTarget(IRenderTarget&&) = delete;
+        auto operator=(const IRenderTarget&) = delete;
+        auto operator=(IRenderTarget&&) = delete;
 
     public:
         /// <summary>
@@ -2915,7 +2961,7 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Releases the render target instance.
         /// </summary>
-        virtual ~RenderTarget() noexcept;
+        ~RenderTarget() noexcept override;
 
     public:
         /// <summary>
@@ -3134,12 +3180,12 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// Specifies the bits to write to the stencil state (default: <c>0xFF</c>).
             /// </summary>
-            Byte WriteMask{ 0xFF };
+            Byte WriteMask{ 0xFF }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
             /// <summary>
             /// Specifies the bits to read from the stencil state (default: <c>0xFF</c>).
             /// </summary>
-            Byte ReadMask{ 0xFF };
+            Byte ReadMask{ 0xFF }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
             /// <summary>
             /// Describes the stencil test for faces that point towards the camera.
@@ -3217,8 +3263,16 @@ namespace LiteFX::Rendering {
     /// Represents the rasterizer state of a <see cref="RenderPipeline" />.
     /// </summary>
     class LITEFX_RENDERING_API IRasterizer {
+    protected:
+        IRasterizer() noexcept = default;
+
     public:
         virtual ~IRasterizer() noexcept = default;
+
+        IRasterizer(const IRasterizer&) = delete;
+        IRasterizer(IRasterizer&&) = delete;
+        auto operator=(const IRasterizer&) = delete;
+        auto operator=(IRasterizer&&) = delete;
 
     public:
         /// <summary>
@@ -3272,9 +3326,12 @@ namespace LiteFX::Rendering {
         /// <param name="lineWidth">The line width of the rasterizer state.</param>
         /// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
         explicit Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
+        ~Rasterizer() noexcept override;
+
         Rasterizer(Rasterizer&&) noexcept;
         Rasterizer(const Rasterizer&) noexcept;
-        virtual ~Rasterizer() noexcept;
+        Rasterizer& operator=(Rasterizer&&) noexcept;
+        Rasterizer& operator=(const Rasterizer&) noexcept;
 
     public:
         /// <inheritdoc />
@@ -3304,8 +3361,16 @@ namespace LiteFX::Rendering {
     /// Interface for a viewport.
     /// </summary>
     class LITEFX_RENDERING_API IViewport {
+    protected:
+        IViewport() noexcept = default;
+
     public:
         virtual ~IViewport() noexcept = default;
+
+        IViewport(const IViewport&) = delete;
+        IViewport(IViewport&&) = delete;
+        auto operator=(const IViewport&) = delete;
+        auto operator=(IViewport&&) = delete;
 
     public:
         /// <summary>
@@ -3358,11 +3423,13 @@ namespace LiteFX::Rendering {
         /// <param name="clientRect">The rectangle that defines the dimensions of the viewport.</param>
         /// <param name="minDepth">The minimum depth of the viewport.</param>
         /// <param name="maxDepth">The maximum depth of the viewport.</param>
-        explicit Viewport(const RectF& clientRect = { }, Float minDepth = 0.f, Float maxDepth = 1.f);
+        explicit Viewport(const RectF& clientRect = { }, Float minDepth = 0.f, Float maxDepth = 1.f) noexcept;
+        ~Viewport() noexcept override;
 
         Viewport(Viewport&&) noexcept = delete;
         Viewport(const Viewport&) noexcept = delete;
-        virtual ~Viewport() noexcept;
+        auto operator=(Viewport&&) noexcept = delete;
+        auto operator=(const Viewport&) noexcept = delete;
 
     public:
         /// <inheritdoc />
@@ -3388,8 +3455,16 @@ namespace LiteFX::Rendering {
     /// The interface of a scissor.
     /// </summary>
     class LITEFX_RENDERING_API IScissor {
+    protected:
+        IScissor() noexcept = default;
+
     public:
         virtual ~IScissor() noexcept = default;
+
+        IScissor(IScissor&&) noexcept = delete;
+        IScissor(const IScissor&) noexcept = delete;
+        auto operator=(IScissor&&) noexcept = delete;
+        auto operator=(const IScissor&) noexcept = delete;
 
     public:
         /// <summary>
@@ -3416,11 +3491,13 @@ namespace LiteFX::Rendering {
         /// Initializes a new scissor.
         /// </summary>
         /// <param name="scissorRect">The rectangle that defines the scissor region.</param>
-        explicit Scissor(const RectF& scissorRect = { });
+        explicit Scissor(const RectF& scissorRect = { }) noexcept;
+        ~Scissor() noexcept override;
 
         Scissor(Scissor&&) noexcept = delete;
         Scissor(const Scissor&) noexcept = delete;
-        virtual ~Scissor() noexcept;
+        auto operator=(Scissor&&) noexcept = delete;
+        auto operator=(const Scissor&) noexcept = delete;
 
     public:
         /// <inheritdoc />
@@ -3534,9 +3611,12 @@ namespace LiteFX::Rendering {
         explicit TimingEvent(const ISwapChain& swapChain, StringView name = "") noexcept;
 
     public:
+        virtual ~TimingEvent() noexcept;
+
         TimingEvent(TimingEvent&&) = delete;
         TimingEvent(const TimingEvent&) = delete;
-        virtual ~TimingEvent() noexcept;
+        auto operator=(TimingEvent&&) = delete;
+        auto operator=(const TimingEvent&) = delete;
 
     public:
         /// <summary>
@@ -3574,7 +3654,7 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Initializes an empty buffer attribute.
         /// </summary>
-        BufferAttribute();
+        BufferAttribute() noexcept;
 
         /// <summary>
         /// Initializes a new buffer attribute.
@@ -3584,9 +3664,11 @@ namespace LiteFX::Rendering {
         /// <param name="format">The format of the buffer attribute.</param>
         /// <param name="semantic">The semantic of the buffer attribute.</param>
         /// <param name="semanticIndex">The semantic index of the buffer attribute.</param>
-        BufferAttribute(UInt32 location, UInt32 offset, BufferFormat format, AttributeSemantic semantic, UInt32 semanticIndex = 0);
+        BufferAttribute(UInt32 location, UInt32 offset, BufferFormat format, AttributeSemantic semantic, UInt32 semanticIndex = 0) noexcept;
         BufferAttribute(BufferAttribute&&) noexcept;
-        BufferAttribute(const BufferAttribute&);
+        BufferAttribute(const BufferAttribute&) noexcept;
+        BufferAttribute& operator=(BufferAttribute&&) noexcept;
+        BufferAttribute& operator=(const BufferAttribute&) noexcept;
         virtual ~BufferAttribute() noexcept;
 
     public:
@@ -3639,8 +3721,16 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IIndexBufferLayout" />
     /// <seealso cref="IDescriptorLayout" />
     class LITEFX_RENDERING_API IBufferLayout {
+    protected:
+        IBufferLayout() noexcept = default;
+
     public:
         virtual ~IBufferLayout() noexcept = default;
+
+        IBufferLayout(IBufferLayout&&) = delete;
+        IBufferLayout(const IBufferLayout&) = delete;
+        auto operator=(IBufferLayout&&) = delete;
+        auto operator=(const IBufferLayout&) = delete;
 
     public:
         /// <summary>
@@ -3670,8 +3760,16 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <seealso cref="IVertexBuffer" />
     class LITEFX_RENDERING_API IVertexBufferLayout : public IBufferLayout {
+    protected:
+        IVertexBufferLayout() noexcept = default;
+
     public:
-        virtual ~IVertexBufferLayout() noexcept = default;
+        ~IVertexBufferLayout() noexcept override = default;
+
+        IVertexBufferLayout(IVertexBufferLayout&&) = delete;
+        IVertexBufferLayout(const IVertexBufferLayout&) = delete;
+        auto operator=(IVertexBufferLayout&&) = delete;
+        auto operator=(const IVertexBufferLayout&) = delete;
 
     public:
         /// <summary>
@@ -3686,8 +3784,16 @@ namespace LiteFX::Rendering {
     /// </summary>
     /// <seealso cref="IIndexBuffer" />
     class LITEFX_RENDERING_API IIndexBufferLayout : public IBufferLayout {
+    protected:
+        IIndexBufferLayout() noexcept = default;
+
     public:
-        virtual ~IIndexBufferLayout() noexcept = default;
+        ~IIndexBufferLayout() noexcept override = default;
+
+        IIndexBufferLayout(IIndexBufferLayout&&) = delete;
+        IIndexBufferLayout(const IIndexBufferLayout&) = delete;
+        auto operator=(IIndexBufferLayout&&) = delete;
+        auto operator=(const IIndexBufferLayout&) = delete;
 
     public:
         /// <summary>
@@ -3720,8 +3826,16 @@ namespace LiteFX::Rendering {
     /// </remarks>
     /// <seealso cref="DescriptorSetLayout" />
     class LITEFX_RENDERING_API IDescriptorLayout : public IBufferLayout {
+    protected:
+        IDescriptorLayout() noexcept = default;
+
     public:
-        virtual ~IDescriptorLayout() noexcept = default;
+        ~IDescriptorLayout() noexcept override = default;
+
+        IDescriptorLayout(IDescriptorLayout&&) = delete;
+        IDescriptorLayout(const IDescriptorLayout&) = delete;
+        auto operator=(IDescriptorLayout&&) = delete;
+        auto operator=(const IDescriptorLayout&) = delete;
 
     public:
         /// <summary>
@@ -3758,8 +3872,16 @@ namespace LiteFX::Rendering {
     /// Allows for data to be mapped into the object.
     /// </summary>
     class LITEFX_RENDERING_API IMappable {
+    protected:
+        IMappable() noexcept = default;
+
     public:
         virtual ~IMappable() noexcept = default;
+
+        IMappable(IMappable&&) = delete;
+        IMappable(const IMappable&) = delete;
+        auto operator=(IMappable&&) = delete;
+        auto operator=(const IMappable&) = delete;
 
     public:
         /// <summary>
@@ -3801,8 +3923,16 @@ namespace LiteFX::Rendering {
     /// Describes a chunk of device memory.
     /// </summary>
     class LITEFX_RENDERING_API IDeviceMemory {
+    protected:
+        IDeviceMemory() noexcept = default;
+
     public:
         virtual ~IDeviceMemory() noexcept = default;
+
+        IDeviceMemory(IDeviceMemory&&) = delete;
+        IDeviceMemory(const IDeviceMemory&) = delete;
+        auto operator=(IDeviceMemory&&) = delete;
+        auto operator=(const IDeviceMemory&) = delete;
 
     public:
         /// <summary>
@@ -3892,8 +4022,16 @@ namespace LiteFX::Rendering {
     /// Base interface for buffer objects.
     /// </summary>
     class LITEFX_RENDERING_API IBuffer : public virtual IDeviceMemory, public virtual IMappable, public virtual IStateResource {
+    protected:
+        IBuffer() noexcept = default;
+
     public:
-        virtual ~IBuffer() noexcept = default;
+        ~IBuffer() noexcept override = default;
+
+        IBuffer(IBuffer&&) = delete;
+        IBuffer(const IBuffer&) = delete;
+        auto operator=(IBuffer&&) = delete;
+        auto operator=(const IBuffer&) = delete;
 
     public:
         /// <summary>
@@ -3910,8 +4048,16 @@ namespace LiteFX::Rendering {
     public:
         using IDeviceMemory::size;
 
+    protected:
+        IImage() noexcept = default;
+
     public:
-        virtual ~IImage() noexcept = default;
+        ~IImage() noexcept override = default;
+
+        IImage(IImage&&) = delete;
+        IImage(const IImage&) = delete;
+        auto operator=(IImage&&) = delete;
+        auto operator=(const IImage&) = delete;
 
     public:
         /// <summary>
@@ -4016,8 +4162,16 @@ namespace LiteFX::Rendering {
     /// Describes a texture sampler.
     /// </summary>
     class LITEFX_RENDERING_API ISampler : public virtual IStateResource {
+    protected:
+        ISampler() noexcept = default;
+
     public:
-        virtual ~ISampler() noexcept = default;
+        ~ISampler() noexcept override = default;
+
+        ISampler(ISampler&&) = delete;
+        ISampler(const ISampler&) = delete;
+        auto operator=(ISampler&&) = delete;
+        auto operator=(const ISampler&) = delete;
 
     public:
         /// <summary>
@@ -4088,8 +4242,16 @@ namespace LiteFX::Rendering {
     /// The interface for a vertex buffer.
     /// </summary>
     class LITEFX_RENDERING_API IVertexBuffer : public virtual IBuffer {
+    protected:
+        IVertexBuffer() noexcept = default;
+
     public:
-        virtual ~IVertexBuffer() noexcept = default;
+        ~IVertexBuffer() noexcept override = default;
+
+        IVertexBuffer(const IVertexBuffer&) = delete;
+        IVertexBuffer(IVertexBuffer&&) = delete;
+        auto operator=(const IVertexBuffer&) = delete;
+        auto operator=(IVertexBuffer&&) = delete;
 
     public:
         /// <summary>
@@ -4103,8 +4265,16 @@ namespace LiteFX::Rendering {
     /// The interface for an index buffer.
     /// </summary>
     class LITEFX_RENDERING_API IIndexBuffer : public virtual IBuffer {
+    protected:
+        IIndexBuffer() noexcept = default;
+
     public:
-        virtual ~IIndexBuffer() noexcept = default;
+        ~IIndexBuffer() noexcept override = default;
+
+        IIndexBuffer(const IIndexBuffer&) = delete;
+        IIndexBuffer(IIndexBuffer&&) = delete;
+        auto operator=(const IIndexBuffer&) = delete;
+        auto operator=(IIndexBuffer&&) = delete;
 
     public:
         /// <summary>
@@ -4120,8 +4290,16 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IBottomLevelAccelerationStructure" />
     /// <seealso cref="ITopLevelAccelerationStructure" />
     class LITEFX_RENDERING_API IAccelerationStructure : public virtual IStateResource {
+    protected:
+        IAccelerationStructure() noexcept = default;
+
     public:
-        virtual ~IAccelerationStructure() noexcept = default;
+        ~IAccelerationStructure() noexcept override = default;
+
+        IAccelerationStructure(IAccelerationStructure&&) = delete;
+        IAccelerationStructure(const IAccelerationStructure&) = delete;
+        auto operator=(IAccelerationStructure&&) = delete;
+        auto operator=(const IAccelerationStructure&) = delete;
 
     public:
         /// <summary>
@@ -4295,7 +4473,7 @@ namespace LiteFX::Rendering {
             /// </summary>
             /// <param name="other">The triangle mesh to copy.</param>
             /// <returns>A reference to the current triangle mesh instance.</returns>
-            TriangleMesh& operator=(const TriangleMesh& other) {
+            TriangleMesh& operator=(const TriangleMesh& other) noexcept {
                 this->VertexBuffer = other.VertexBuffer;
                 this->IndexBuffer = other.IndexBuffer;
                 this->TransformBuffer = other.TransformBuffer;
@@ -4308,7 +4486,7 @@ namespace LiteFX::Rendering {
             /// </summary>
             /// <param name="other">The triangle mesh to take over.</param>
             /// <returns>A reference to the current triangle mesh instance.</returns>
-            TriangleMesh& operator=(TriangleMesh&& other) {
+            TriangleMesh& operator=(TriangleMesh&& other) noexcept {
                 this->VertexBuffer = std::move(other.VertexBuffer);
                 this->IndexBuffer = std::move(other.IndexBuffer);
                 this->TransformBuffer = std::move(other.TransformBuffer);
@@ -4372,8 +4550,16 @@ namespace LiteFX::Rendering {
             GeometryFlags Flags;
         };
 
+    protected:
+        IBottomLevelAccelerationStructure() noexcept = default;
+
     public:
-        virtual ~IBottomLevelAccelerationStructure() noexcept = default;
+        ~IBottomLevelAccelerationStructure() noexcept override = default;
+
+        IBottomLevelAccelerationStructure(IBottomLevelAccelerationStructure&&) = delete;
+        IBottomLevelAccelerationStructure(const IBottomLevelAccelerationStructure&) = delete;
+        auto operator=(IBottomLevelAccelerationStructure&&) = delete;
+        auto operator=(const IBottomLevelAccelerationStructure&) = delete;
 
     public:
         /// <summary>
@@ -4505,7 +4691,7 @@ namespace LiteFX::Rendering {
         /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes.</exception>
         template <typename TSelf>
         inline auto withTriangleMesh(this TSelf&& self, SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) -> TSelf&& {
-            return self.withTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer, flags));
+            return std::forward<TSelf>(self).withTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer, flags));
         }
 
         /// <summary>
@@ -4529,7 +4715,7 @@ namespace LiteFX::Rendering {
         /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes.</exception>
         template <typename TSelf>
         inline auto withBoundingBox(this TSelf&& self, SharedPtr<const IBuffer> buffer, GeometryFlags flags = GeometryFlags::None) -> TSelf&& {
-            return self.withBoundingBox(BoundingBoxes { .Buffer = buffer, .Flags = flags });
+            return std::forward<TSelf>(self).withBoundingBox(BoundingBoxes { .Buffer = buffer, .Flags = flags });
         }
 
     private:
@@ -4547,7 +4733,7 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Represents an instance of an <see cref="IBottomLevelAccelerationStructure" />.
         /// </summary>
-        struct alignas(16) Instance final {
+        struct alignas(16) Instance final { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             /// <summary>
             /// The bottom-level acceleration structure that contains the geometries of this instance.
             /// </summary>
@@ -4591,8 +4777,16 @@ namespace LiteFX::Rendering {
         };
 #pragma warning(pop)
 
+    protected:
+        ITopLevelAccelerationStructure() noexcept = default;
+
     public:
-        virtual ~ITopLevelAccelerationStructure() noexcept = default;
+        ~ITopLevelAccelerationStructure() noexcept override = default;
+
+        ITopLevelAccelerationStructure(ITopLevelAccelerationStructure&&) = delete;
+        ITopLevelAccelerationStructure(const ITopLevelAccelerationStructure&) = delete;
+        auto operator=(ITopLevelAccelerationStructure&&) = delete;
+        auto operator=(const ITopLevelAccelerationStructure&) = delete;
 
     public:
         /// <summary>
@@ -4616,7 +4810,7 @@ namespace LiteFX::Rendering {
         /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
         /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
         /// <param name="flags">The flags that control the behavior of the instance.</param>
-        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept {
+        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
         }
         
@@ -4629,7 +4823,7 @@ namespace LiteFX::Rendering {
         /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
         /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
         /// <param name="flags">The flags that control the behavior of the instance.</param>
-        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept {
+        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
         }
 
@@ -4705,7 +4899,7 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <returns>A reference to the current TLAS.</returns>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& {
+        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
             return std::forward<TSelf>(self);
         }
@@ -4721,7 +4915,7 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <returns>A reference to the current TLAS.</returns>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& {
+        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
             return std::forward<TSelf>(self);
         }
@@ -4774,8 +4968,16 @@ namespace LiteFX::Rendering {
     /// <seealso cref="ImageLayout" />
     /// <seealso cref="ICommandBuffer" />
     class LITEFX_RENDERING_API IBarrier {
+    protected:
+        IBarrier() noexcept = default;
+
     public:
         virtual ~IBarrier() noexcept = default;
+
+        IBarrier(const IBarrier&) = delete;
+        IBarrier(IBarrier&&) = delete;
+        auto operator=(const IBarrier&) = delete;
+        auto operator=(IBarrier&&) = delete;
 
     public:
         /// <summary>
@@ -4910,8 +5112,16 @@ namespace LiteFX::Rendering {
     /// The interface for a descriptor set.
     /// </summary>
     class LITEFX_RENDERING_API IDescriptorSet {
+    protected:
+        IDescriptorSet() noexcept = default;
+
     public:
         virtual ~IDescriptorSet() noexcept = default;
+
+        IDescriptorSet(const IDescriptorSet&) = delete;
+        IDescriptorSet(IDescriptorSet&&) = delete;
+        auto operator=(const IDescriptorSet&) = delete;
+        auto operator=(IDescriptorSet&&) = delete;
 
     public:
         /// <summary>
@@ -5056,8 +5266,16 @@ namespace LiteFX::Rendering {
     /// The interface for a descriptor set layout.
     /// </summary>
     class LITEFX_RENDERING_API IDescriptorSetLayout {
+    protected:
+        IDescriptorSetLayout() noexcept = default;
+
     public:
         virtual ~IDescriptorSetLayout() noexcept = default;
+
+        IDescriptorSetLayout(const IDescriptorSetLayout&) = delete;
+        IDescriptorSetLayout(IDescriptorSetLayout&&) = delete;
+        auto operator=(const IDescriptorSetLayout&) = delete;
+        auto operator=(IDescriptorSetLayout&&) = delete;
 
     public:
         /// <summary>
@@ -5242,8 +5460,16 @@ namespace LiteFX::Rendering {
     /// Describes a range within a <see cref="IPushConstantsLayout" />.
     /// </summary>
     class LITEFX_RENDERING_API IPushConstantsRange {
+    protected:
+        IPushConstantsRange() noexcept = default;
+
     public:
         virtual ~IPushConstantsRange() noexcept = default;
+
+        IPushConstantsRange(const IPushConstantsRange&) = delete;
+        IPushConstantsRange(IPushConstantsRange&&) = delete;
+        auto operator=(const IPushConstantsRange&) = delete;
+        auto operator=(IPushConstantsRange&&) = delete;
 
     public:
         /// <summary>
@@ -5283,8 +5509,16 @@ namespace LiteFX::Rendering {
     /// The interface for a push constants layout.
     /// </summary>
     class LITEFX_RENDERING_API IPushConstantsLayout {
+    protected:
+        IPushConstantsLayout() noexcept = default;
+
     public:
         virtual ~IPushConstantsLayout() noexcept = default;
+
+        IPushConstantsLayout(const IPushConstantsLayout&) = delete;
+        IPushConstantsLayout(IPushConstantsLayout&&) = delete;
+        auto operator=(const IPushConstantsLayout&) = delete;
+        auto operator=(IPushConstantsLayout&&) = delete;
 
     public:
         /// <summary>
@@ -5355,12 +5589,23 @@ namespace LiteFX::Rendering {
         /// </summary>
         using shader_group_type = Variant<const IShaderModule*, MeshGeometryHitGroup>;
 
+    protected:
+        constexpr IShaderRecord() noexcept = default;
+
+    public:
+        constexpr virtual ~IShaderRecord() noexcept = default;
+
+        IShaderRecord(const IShaderRecord&) = delete;
+        IShaderRecord(IShaderRecord&&) = delete;
+        auto operator=(const IShaderRecord&) = delete;
+        auto operator=(IShaderRecord&&) = delete;
+
     public:
         /// <summary>
         /// Returns the type of the shader record.
         /// </summary>
         /// <returns>The type of the shader record.</returns>
-        inline ShaderRecordType type() const noexcept {
+        constexpr ShaderRecordType type() const noexcept {
             const auto& group = this->shaderGroup();
 
             if (std::holds_alternative<MeshGeometryHitGroup>(group))
@@ -5386,7 +5631,7 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Returns the shader group containing the modules for this record.
         /// </summary>
-        virtual const shader_group_type& shaderGroup() const noexcept = 0;
+        constexpr virtual const shader_group_type& shaderGroup() const noexcept = 0;
 
         /// <summary>
         /// Returns a pointer to the shader-local data of the record.
@@ -5398,17 +5643,14 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>A pointer to the shader-local data of the record.</returns>
         /// <seealso cref="localDataSize" />
-        virtual const void* localData() const noexcept = 0;
+        constexpr virtual const void* localData() const noexcept = 0;
 
         /// <summary>
         /// Returns the size of the shader-local data of the record.
         /// </summary>
         /// <returns>The size of the shader-local data of the record.</returns>
         /// <seealso cref="localData" />
-        virtual UInt64 localDataSize() const noexcept = 0;
-
-    public:
-        virtual ~IShaderRecord() noexcept = default;
+        constexpr virtual UInt64 localDataSize() const noexcept = 0;
     };
 
     /// <summary>
@@ -5420,6 +5662,11 @@ namespace LiteFX::Rendering {
     struct ShaderRecord;
 
     /// <summary>
+    /// The size (in bytes) to which shader record local data must be aligned.
+    /// </summary>
+    const size_t SHADER_RECORD_LOCAL_DATA_ALIGNMENT { 8 };
+
+    /// <summary>
     /// Denotes a shader record containing shader-local data.
     /// </summary>
     /// <remarks>
@@ -5429,7 +5676,9 @@ namespace LiteFX::Rendering {
     /// aligned array, aligned to 8 bytes within the shader-local data.
     /// </remarks>
     /// <seealso cref="https://github.com/crud89/LiteFX/wiki/Raytracing#local-resource-bindings" />
-    template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+    template <typename TLocalData> requires 
+        (std::alignment_of_v<TLocalData> == SHADER_RECORD_LOCAL_DATA_ALIGNMENT) &&
+        std::is_standard_layout_v<TLocalData>
     struct ShaderRecord<TLocalData> final : public IShaderRecord {
     public:
         using shader_group_type = IShaderRecord::shader_group_type;
@@ -5447,44 +5696,44 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        const shader_group_type& shaderGroup() const noexcept override {
+        constexpr const shader_group_type& shaderGroup() const noexcept override {
             return m_shaderGroup;
         }
 
         /// <inheritdoc />
-        const void* localData() const noexcept override {
-            return reinterpret_cast<const void*>(&m_payload);
+        constexpr const void* localData() const noexcept override {
+            return static_cast<const void*>(&m_payload);
         }
 
         /// <inheritdoc />
-        UInt64 localDataSize() const noexcept override {
+        constexpr UInt64 localDataSize() const noexcept override {
             return sizeof(TLocalData);
         }
 
     public:
         ShaderRecord() = delete;
-        virtual ~ShaderRecord() noexcept = default;
+        constexpr ~ShaderRecord() noexcept override = default;
 
         /// <summary>
         /// Initializes a shader record.
         /// </summary>
         /// <param name="group">The shader group containing the modules to invoke.</param>
         /// <param name="payload">The shader-local data to pass to the shader's local resource bindings.</param>
-        ShaderRecord(const shader_group_type& group, TLocalData payload) noexcept :
+        constexpr ShaderRecord(const shader_group_type& group, TLocalData payload) noexcept :
             m_payload(payload), m_shaderGroup(group) { }
 
         /// <summary>
         /// Copies another shader record.
         /// </summary>
         /// <param name="_other">The shader record to copy.</param>
-        ShaderRecord(const ShaderRecord& _other) :
+        constexpr ShaderRecord(const ShaderRecord& _other) noexcept :
             m_payload(_other.m_payload), m_shaderGroup(_other.m_shaderGroup) { }
 
         /// <summary>
         /// Takes over another shader record.
         /// </summary>
         /// <param name="_other">The shader record to take over.</param>
-        ShaderRecord(ShaderRecord&& _other) :
+        constexpr ShaderRecord(ShaderRecord&& _other) noexcept :
             m_payload(std::move(_other.m_payload)), m_shaderGroup(std::move(_other.m_shaderGroup)) { }
 
         /// <summary>
@@ -5492,7 +5741,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="_other">The shader record to copy.</param>
         /// <returns>A reference to the current shader record.</returns>
-        auto& operator=(const ShaderRecord& _other) {
+        constexpr auto& operator=(const ShaderRecord& _other) noexcept {
             m_shaderGroup = _other.m_shaderGroup;
             m_payload = _other.m_payload;
             return *this;
@@ -5503,7 +5752,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="_other">The shader record to take over.</param>
         /// <returns>A reference to the current shader record.</returns>
-        auto& operator=(ShaderRecord&& _other) {
+        constexpr auto& operator=(ShaderRecord&& _other) noexcept {
             m_shaderGroup = std::move(_other.m_shaderGroup);
             m_payload = std::move(_other.m_payload);
             return *this;
@@ -5526,23 +5775,23 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        const shader_group_type& shaderGroup() const noexcept override {
+        constexpr const shader_group_type& shaderGroup() const noexcept override {
             return m_shaderGroup;
         }
 
         /// <inheritdoc />
-        const void* localData() const noexcept override {
+        constexpr const void* localData() const noexcept override {
             return nullptr;
         }
 
         /// <inheritdoc />
-        UInt64 localDataSize() const noexcept override {
+        constexpr UInt64 localDataSize() const noexcept override {
             return 0_ui64;
         }
 
     public:
         ShaderRecord() = delete;
-        virtual ~ShaderRecord() noexcept = default;
+        ~ShaderRecord() noexcept override = default;
 
         /// <summary>
         /// Initializes a shader record.
@@ -5555,14 +5804,14 @@ namespace LiteFX::Rendering {
         /// Copies another shader record.
         /// </summary>
         /// <param name="_other">The shader record to copy.</param>
-        ShaderRecord(const ShaderRecord& _other) :
+        ShaderRecord(const ShaderRecord& _other) noexcept :
             m_shaderGroup(_other.m_shaderGroup) { }
 
         /// <summary>
         /// Takes over another shader record.
         /// </summary>
         /// <param name="_other">The shader record to take over.</param>
-        ShaderRecord(ShaderRecord&& _other) :
+        ShaderRecord(ShaderRecord&& _other) noexcept :
             m_shaderGroup(std::move(_other.m_shaderGroup)) { }
 
         /// <summary>
@@ -5570,7 +5819,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="_other">The shader record to copy.</param>
         /// <returns>A reference to the current shader record.</returns>
-        auto& operator=(const ShaderRecord& _other) {
+        auto& operator=(const ShaderRecord& _other) noexcept {
             m_shaderGroup = _other.m_shaderGroup;
             return *this;
         }
@@ -5580,7 +5829,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="_other">The shader record to take over.</param>
         /// <returns>A reference to the current shader record.</returns>
-        auto& operator=(ShaderRecord&& _other) {
+        auto& operator=(ShaderRecord&& _other) noexcept {
             m_shaderGroup = std::move(_other.m_shaderGroup);
             return *this;
         }
@@ -5608,9 +5857,12 @@ namespace LiteFX::Rendering {
         }
 
     public:
+        ShaderRecordCollection(ShaderRecordCollection&&) noexcept = default;
+        ShaderRecordCollection& operator=(ShaderRecordCollection&&) noexcept = default;
+
         ShaderRecordCollection() = delete;
         ShaderRecordCollection(const ShaderRecordCollection&) = delete;
-        ShaderRecordCollection(ShaderRecordCollection&&) = default;
+        ShaderRecordCollection& operator=(const ShaderRecordCollection&) = delete;
         ~ShaderRecordCollection() noexcept = default;
 
     private:
@@ -5679,7 +5931,7 @@ namespace LiteFX::Rendering {
         /// <param name="shaderName">The name of the shader module.</param>
         /// <param name="payload">The shader-local data of the shader record.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if no shader module with the provided name was found in the parent shader program.</exception>
-        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == SHADER_RECORD_LOCAL_DATA_ALIGNMENT)
         inline void addShaderRecord(StringView shaderName, TLocalData payload) {
             auto shaderModule = this->findShaderModule(shaderName);
 
@@ -5717,7 +5969,7 @@ namespace LiteFX::Rendering {
         /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
         /// <param name="payload">The shader-local data of the shader record.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if both provided shader names are empty or not found, the shaders are not of the right type or do not belong to the parent shader program.</exception>
-        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == SHADER_RECORD_LOCAL_DATA_ALIGNMENT)
         inline void addMeshGeometryShaderHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName, TLocalData payload) {
             IShaderRecord::MeshGeometryHitGroup hitGroup = { 
                 .ClosestHitShader = closestHitShaderName.has_value() ? this->findShaderModule(closestHitShaderName.value()) : nullptr,
@@ -5741,7 +5993,7 @@ namespace LiteFX::Rendering {
         /// <typeparam name="TLocalData">The type of the shader record local data.</typeparam>
         /// <param name="shaderGroup">The shader module or hit group.</param>
         /// <param name="payload">The shader-local data of the shader record.</param>
-        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == SHADER_RECORD_LOCAL_DATA_ALIGNMENT)
         inline void addShaderRecord(ShaderRecord<TLocalData>::shader_group_type shaderGroup, TLocalData payload) {
             this->addShaderRecord(makeUnique<ShaderRecord<TLocalData>>(shaderGroup, payload));
         }
@@ -5771,7 +6023,7 @@ namespace LiteFX::Rendering {
         /// <param name="shaderName"></param>
         /// <param name="payload">The shader-local data of the shader record.</param>
         /// <returns>A reference to the current shader record collection.</returns>
-        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == SHADER_RECORD_LOCAL_DATA_ALIGNMENT)
         inline ShaderRecordCollection&& withShaderRecord(StringView shaderName, TLocalData payload) {
             this->addShaderRecord(shaderName, payload);
             return std::forward<ShaderRecordCollection>(*this);
@@ -5796,7 +6048,7 @@ namespace LiteFX::Rendering {
         /// <param name="closestHitShaderName">The name of the closest hit shader module.</param>
         /// <param name="payload">The shader-local data of the shader record.</param>
         /// <returns>A reference to the current shader record collection.</returns>
-        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == SHADER_RECORD_LOCAL_DATA_ALIGNMENT)
         inline ShaderRecordCollection&& withMeshGeometryHitGroupRecord(std::optional<StringView> anyHitShaderName, std::optional<StringView> closestHitShaderName, TLocalData payload) {
             this->addMeshGeometryShaderHitGroupRecord(anyHitShaderName, closestHitShaderName, payload);
             return std::forward<ShaderRecordCollection>(*this);
@@ -5819,7 +6071,7 @@ namespace LiteFX::Rendering {
         /// <param name="shaderGroup">The shader module or hit group.</param>
         /// <param name="payload">The shader-local data of the shader record.</param>
         /// <returns>A reference to the current shader record collection.</returns>
-        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == 8)
+        template <typename TLocalData> requires (std::alignment_of_v<TLocalData> == SHADER_RECORD_LOCAL_DATA_ALIGNMENT)
         inline ShaderRecordCollection&& withShaderRecord(ShaderRecord<TLocalData>::shader_group_type shaderGroup, TLocalData payload) {
             this->addShaderRecord(shaderGroup, payload);
             return std::forward<ShaderRecordCollection>(*this);
@@ -5866,8 +6118,16 @@ namespace LiteFX::Rendering {
     /// </remarks>
     /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
     class LITEFX_RENDERING_API IShaderProgram : public std::enable_shared_from_this<IShaderProgram> {
+    protected:
+        IShaderProgram() noexcept = default;
+
     public:
-        virtual ~IShaderProgram() noexcept = default;
+        ~IShaderProgram() noexcept override = default;
+
+        IShaderProgram(const IShaderProgram&) = delete;
+        IShaderProgram(IShaderProgram&&) = delete;
+        auto operator=(const IShaderProgram&) = delete;
+        auto operator=(IShaderProgram&&) = delete;
 
     public:
         /// <summary>
@@ -5974,8 +6234,16 @@ namespace LiteFX::Rendering {
     /// The interface for a pipeline layout.
     /// </summary>
     class LITEFX_RENDERING_API IPipelineLayout {
+    protected:
+        IPipelineLayout() noexcept = default;
+
     public:
         virtual ~IPipelineLayout() noexcept = default;
+
+        IPipelineLayout(const IPipelineLayout&) = delete;
+        IPipelineLayout(IPipelineLayout&&) = delete;
+        auto operator=(const IPipelineLayout&) = delete;
+        auto operator=(IPipelineLayout&&) = delete;
 
     public:
         /// <summary>
@@ -6007,8 +6275,16 @@ namespace LiteFX::Rendering {
     /// The interface for an input assembler state.
     /// </summary>
     class LITEFX_RENDERING_API IInputAssembler {
+    protected:
+        IInputAssembler() noexcept = default;
+
     public:
         virtual ~IInputAssembler() noexcept = default;
+
+        IInputAssembler(const IInputAssembler&) = delete;
+        IInputAssembler(IInputAssembler&&) = delete;
+        auto operator=(const IInputAssembler&) = delete;
+        auto operator=(IInputAssembler&&) = delete;
 
     public:
         /// <summary>
@@ -6050,8 +6326,16 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IRenderPipeline" />
     /// <seealso cref="IRayTracingPipeline" />
     class LITEFX_RENDERING_API IPipeline : public virtual IStateResource {
+    protected:
+        IPipeline() noexcept = default;
+
     public:
-        virtual ~IPipeline() noexcept = default;
+        ~IPipeline() noexcept override = default;
+
+        IPipeline(const IPipeline&) = delete;
+        IPipeline(IPipeline&&) = delete;
+        auto operator=(const IPipeline&) = delete;
+        auto operator=(IPipeline&&) = delete;
 
     public:
         /// <summary>
@@ -6082,8 +6366,16 @@ namespace LiteFX::Rendering {
     public:
         friend class ICommandQueue;
 
+    protected:
+        ICommandBuffer() noexcept = default;
+
     public:
         virtual ~ICommandBuffer() noexcept = default;
+
+        ICommandBuffer(ICommandBuffer&&) = delete;
+        ICommandBuffer(const ICommandBuffer&) = delete;
+        auto operator=(const ICommandBuffer&) = delete;
+        auto operator=(ICommandBuffer&&) = delete;
 
     public:
         /// <summary>
@@ -7076,8 +7368,16 @@ namespace LiteFX::Rendering {
     /// The interface for a render pipeline.
     /// </summary>
     class LITEFX_RENDERING_API IRenderPipeline : public virtual IPipeline {
+    protected:
+        IRenderPipeline() noexcept = default;
+
     public:
-        virtual ~IRenderPipeline() noexcept = default;
+        ~IRenderPipeline() noexcept override = default;
+
+        IRenderPipeline(IRenderPipeline&&) = delete;
+        IRenderPipeline(const IRenderPipeline&) = delete;
+        auto operator=(const IRenderPipeline&) = delete;
+        auto operator=(IRenderPipeline&&) = delete;
 
     public:
         /// <summary>
@@ -7139,16 +7439,32 @@ namespace LiteFX::Rendering {
     /// The interface for a compute pipeline.
     /// </summary>
     class LITEFX_RENDERING_API IComputePipeline : public virtual IPipeline {
+    protected:
+        IComputePipeline() noexcept = default;
+
     public:
-        virtual ~IComputePipeline() noexcept = default;
+        ~IComputePipeline() noexcept override = default;
+
+        IComputePipeline(IComputePipeline&&) = delete;
+        IComputePipeline(const IComputePipeline&) = delete;
+        auto operator=(const IComputePipeline&) = delete;
+        auto operator=(IComputePipeline&&) = delete;
     };
 
     /// <summary>
     /// The interface for a ray tracing pipeline.
     /// </summary>
     class LITEFX_RENDERING_API IRayTracingPipeline : public virtual IPipeline {
+    protected:
+        IRayTracingPipeline() noexcept = default;
+
     public:
-        virtual ~IRayTracingPipeline() noexcept = default;
+        ~IRayTracingPipeline() noexcept override = default;
+
+        IRayTracingPipeline(IRayTracingPipeline&&) = delete;
+        IRayTracingPipeline(const IRayTracingPipeline&) = delete;
+        auto operator=(const IRayTracingPipeline&) = delete;
+        auto operator=(IRayTracingPipeline&&) = delete;
 
     public:
         /// <summary>
@@ -7231,18 +7547,16 @@ namespace LiteFX::Rendering {
         /// <seealso cref="IFrameBuffer::resized" />
         struct ResizeEventArgs : public EventArgs {
         private:
-            const Size2d& m_newSize;
+            Size2d m_newSize;
 
         public:
-            ResizeEventArgs(const Size2d& newSize) : 
+            ResizeEventArgs(const Size2d& newSize) noexcept :
                 EventArgs(), m_newSize(newSize) { }
-            ResizeEventArgs(const ResizeEventArgs&) = default;
-            ResizeEventArgs(ResizeEventArgs&&) = default;
-            virtual ~ResizeEventArgs() noexcept = default;
-
-        public:
-            ResizeEventArgs& operator=(const ResizeEventArgs&) = delete;
-            ResizeEventArgs& operator=(ResizeEventArgs&&) = delete;
+            ResizeEventArgs(const ResizeEventArgs&) noexcept = default;
+            ResizeEventArgs(ResizeEventArgs&&) noexcept = default;
+            ResizeEventArgs& operator=(const ResizeEventArgs&) noexcept = default;
+            ResizeEventArgs& operator=(ResizeEventArgs&&) noexcept = default;
+            ~ResizeEventArgs() noexcept override = default;
 
         public:
             /// <summary>
@@ -7261,24 +7575,30 @@ namespace LiteFX::Rendering {
         /// <seealso cref="IFrameBuffer::released" />
         struct ReleasedEventArgs : public EventArgs {
         public:
-            ReleasedEventArgs() : 
+            ReleasedEventArgs() noexcept :
                 EventArgs() { }
-            ReleasedEventArgs(const ReleasedEventArgs&) = default;
-            ReleasedEventArgs(ReleasedEventArgs&&) = default;
-            virtual ~ReleasedEventArgs() noexcept = default;
-
-        public:
-            ReleasedEventArgs& operator=(const ReleasedEventArgs&) = default;
-            ReleasedEventArgs& operator=(ReleasedEventArgs&&) = default;
+            ReleasedEventArgs(const ReleasedEventArgs&) noexcept = default;
+            ReleasedEventArgs(ReleasedEventArgs&&) noexcept = default;
+            ReleasedEventArgs& operator=(const ReleasedEventArgs&) noexcept = default;
+            ReleasedEventArgs& operator=(ReleasedEventArgs&&) noexcept = default;
+            ~ReleasedEventArgs() noexcept override = default;
         };
+
+    protected:
+        IFrameBuffer() noexcept = default;
 
     public:
         /// <summary>
         /// Releases the frame buffer.
         /// </summary>
-        virtual inline ~IFrameBuffer() noexcept {
+        inline ~IFrameBuffer() noexcept override {
             released.invoke(this, { });
         }
+
+        IFrameBuffer(IFrameBuffer&&) = delete;
+        IFrameBuffer(const IFrameBuffer&) = delete;
+        auto operator=(const IFrameBuffer&) = delete;
+        auto operator=(IFrameBuffer&&) = delete;
 
     public:
         /// <summary>
@@ -7583,18 +7903,16 @@ namespace LiteFX::Rendering {
         /// <seealso cref="IRenderPass::beginning" />
         struct BeginEventArgs : public EventArgs {
         private:
-            const IFrameBuffer& m_frameBuffer;
+            const IFrameBuffer* m_frameBuffer;
 
         public:
-            BeginEventArgs(const IFrameBuffer& frameBuffer) : 
-                EventArgs(), m_frameBuffer(frameBuffer) { }
-            BeginEventArgs(const BeginEventArgs&) = default;
-            BeginEventArgs(BeginEventArgs&&) = default;
-            virtual ~BeginEventArgs() noexcept = default;
-
-        public:
-            BeginEventArgs& operator=(const BeginEventArgs&) = delete;
-            BeginEventArgs& operator=(BeginEventArgs&&) = delete;
+            BeginEventArgs(const IFrameBuffer& frameBuffer) noexcept :
+                EventArgs(), m_frameBuffer(&frameBuffer) { }
+            BeginEventArgs(const BeginEventArgs&) noexcept = default;
+            BeginEventArgs(BeginEventArgs&&) noexcept = default;
+            BeginEventArgs& operator=(const BeginEventArgs&) noexcept = default;
+            BeginEventArgs& operator=(BeginEventArgs&&) noexcept = default;
+            ~BeginEventArgs() noexcept override = default;
 
         public:
             /// <summary>
@@ -7602,12 +7920,20 @@ namespace LiteFX::Rendering {
             /// </summary>
             /// <returns>The buffer on which the render pass is executing.</returns>
             inline const IFrameBuffer& frameBuffer() const noexcept {
-                return m_frameBuffer;
+                return *m_frameBuffer;
             }
         };
 
+    protected:
+        IRenderPass() noexcept = default;
+
     public:
-        virtual ~IRenderPass() noexcept = default;
+        ~IRenderPass() noexcept override = default;
+
+        IRenderPass(IRenderPass&&) = delete;
+        IRenderPass(const IRenderPass&) = delete;
+        auto operator=(const IRenderPass&) = delete;
+        auto operator=(IRenderPass&&) = delete;
 
     public:
         /// <summary>
@@ -7752,20 +8078,18 @@ namespace LiteFX::Rendering {
         struct ResetEventArgs : public EventArgs {
         private:
             Format m_surfaceFormat;
-            const Size2d& m_renderArea;
+            Size2d m_renderArea;
             UInt32 m_buffers;
             bool m_vsync;
 
         public:
-            ResetEventArgs(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers, bool enableVsync) :
+            ResetEventArgs(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers, bool enableVsync) noexcept :
                 EventArgs(), m_surfaceFormat(surfaceFormat), m_renderArea(renderArea), m_buffers(buffers), m_vsync(enableVsync) { }
-            ResetEventArgs(const ResetEventArgs&) = default;
-            ResetEventArgs(ResetEventArgs&&) = default;
-            virtual ~ResetEventArgs() noexcept = default;
-
-        public:
-            ResetEventArgs& operator=(const ResetEventArgs&) = delete;
-            ResetEventArgs& operator=(ResetEventArgs&&) = delete;
+            ResetEventArgs(const ResetEventArgs&) noexcept = default;
+            ResetEventArgs(ResetEventArgs&&) noexcept = default;
+            ResetEventArgs& operator=(const ResetEventArgs&) noexcept = default;
+            ResetEventArgs& operator=(ResetEventArgs&&) noexcept = default;
+            ~ResetEventArgs() noexcept override = default;
 
         public:
             /// <summary>
@@ -7801,8 +8125,16 @@ namespace LiteFX::Rendering {
             }
         };
 
+    protected:
+        ISwapChain() noexcept = default;
+
     public:
         virtual ~ISwapChain() noexcept = default;
+
+        ISwapChain(ISwapChain&&) = delete;
+        ISwapChain(const ISwapChain&) = delete;
+        auto operator=(const ISwapChain&) = delete;
+        auto operator=(ISwapChain&&) = delete;
 
     public:
         /// <summary>
@@ -7970,25 +8302,26 @@ namespace LiteFX::Rendering {
         /// </summary>
         struct QueueSubmittingEventArgs : public EventArgs {
         private:
-            const Enumerable<SharedPtr<const ICommandBuffer>> m_commandBuffers;
+            Array<SharedPtr<const ICommandBuffer>> m_commandBuffers;
 
         public:
             QueueSubmittingEventArgs(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) :
-                EventArgs(), m_commandBuffers(commandBuffers) { }
+                EventArgs() 
+            {
+                m_commandBuffers = commandBuffers | std::ranges::to<Array<SharedPtr<const ICommandBuffer>>>();
+            }
             QueueSubmittingEventArgs(const QueueSubmittingEventArgs&) = default;
             QueueSubmittingEventArgs(QueueSubmittingEventArgs&&) = default;
-            virtual ~QueueSubmittingEventArgs() noexcept = default;
-
-        public:
-            QueueSubmittingEventArgs& operator=(const QueueSubmittingEventArgs&) = delete;
-            QueueSubmittingEventArgs& operator=(QueueSubmittingEventArgs&&) = delete;
+            QueueSubmittingEventArgs& operator=(const QueueSubmittingEventArgs&) noexcept = default;
+            QueueSubmittingEventArgs& operator=(QueueSubmittingEventArgs&&) noexcept = default;
+            ~QueueSubmittingEventArgs() noexcept override = default;
 
         public:
             /// <summary>
             /// Gets the command buffers that are about to be submitted to the queue.
             /// </summary>
             /// <returns>An array containing the command buffers that are about to be submitted to the queue.</returns>
-            inline const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers() const noexcept {
+            inline const Array<SharedPtr<const ICommandBuffer>>& commandBuffers() const noexcept {
                 return m_commandBuffers;
             }
         };
@@ -8001,15 +8334,13 @@ namespace LiteFX::Rendering {
             UInt64 m_fence;
 
         public:
-            QueueSubmittedEventArgs(UInt64 fence) :
+            QueueSubmittedEventArgs(UInt64 fence) noexcept :
                 EventArgs(), m_fence(fence) { }
-            QueueSubmittedEventArgs(const QueueSubmittedEventArgs&) = default;
-            QueueSubmittedEventArgs(QueueSubmittedEventArgs&&) = default;
-            virtual ~QueueSubmittedEventArgs() noexcept = default;
-
-        public:
-            QueueSubmittedEventArgs& operator=(const QueueSubmittedEventArgs&) = default;
-            QueueSubmittedEventArgs& operator=(QueueSubmittedEventArgs&&) = default;
+            QueueSubmittedEventArgs(const QueueSubmittedEventArgs&) noexcept = default;
+            QueueSubmittedEventArgs(QueueSubmittedEventArgs&&) noexcept = default;
+            QueueSubmittedEventArgs& operator=(const QueueSubmittedEventArgs&) noexcept = default;
+            QueueSubmittedEventArgs& operator=(QueueSubmittedEventArgs&&) noexcept = default;
+            ~QueueSubmittedEventArgs() noexcept override = default;
 
         public:
             /// <summary>
@@ -8021,8 +8352,16 @@ namespace LiteFX::Rendering {
             }
         };
 
+    protected:
+        ICommandQueue() noexcept = default;
+
     public:
         virtual ~ICommandQueue() noexcept = default;
+
+        ICommandQueue(ICommandQueue&&) = delete;
+        ICommandQueue(const ICommandQueue&) = delete;
+        auto operator=(const ICommandQueue&) = delete;
+        auto operator=(ICommandQueue&&) = delete;
 
     public:
         /// <summary>
@@ -8039,6 +8378,13 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// The default color value for a debug region or marker, if no other has been specified.
+        /// </summary>
+        /// <seealso cref="beginDebugRegion" />
+        /// <seealso cref="setDebugMarker" />
+        static constexpr Vectors::ByteVector3 DEFAULT_DEBUG_COLOR = { 128_b, 128_b, 128_b };
+
+        /// <summary>
         /// Starts a new debug region.
         /// </summary>
         /// <remarks>
@@ -8046,7 +8392,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="label">The name of the debug region.</param>
         /// <param name="color">The color of the debug region.</param>
-        virtual void beginDebugRegion([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
+        virtual void beginDebugRegion([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept { };
         
         /// <summary>
         /// Ends the current debug region.
@@ -8064,7 +8410,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="label">The name of the debug marker.</param>
         /// <param name="color">The color of the debug marker.</param>
-        virtual void setDebugMarker([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept { };
+        virtual void setDebugMarker([[maybe_unused]] const String& label, [[maybe_unused]] const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept { };
 
     public:
         /// <summary>
@@ -8204,8 +8550,16 @@ namespace LiteFX::Rendering {
     /// The interface for a graphics factory.
     /// </summary>
     class LITEFX_RENDERING_API IGraphicsFactory {
+    protected:
+        IGraphicsFactory() noexcept = default;
+
     public:
         virtual ~IGraphicsFactory() noexcept = default;
+
+        IGraphicsFactory(IGraphicsFactory&&) = delete;
+        IGraphicsFactory(const IGraphicsFactory&) = delete;
+        auto operator=(const IGraphicsFactory&) = delete;
+        auto operator=(IGraphicsFactory&&) = delete;
 
     public:
         /// <summary>
@@ -8648,8 +9002,16 @@ namespace LiteFX::Rendering {
     /// The interface for a graphics device that.
     /// </summary>
     class LITEFX_RENDERING_API IGraphicsDevice {
+    protected:
+        IGraphicsDevice() noexcept = default;
+
     public:
         virtual ~IGraphicsDevice() noexcept = default;
+
+        IGraphicsDevice(IGraphicsDevice&&) = delete;
+        IGraphicsDevice(const IGraphicsDevice&) = delete;
+        auto operator=(const IGraphicsDevice&) = delete;
+        auto operator=(IGraphicsDevice&&) = delete;
 
     public:
         /// <summary>
@@ -8835,8 +9197,16 @@ namespace LiteFX::Rendering {
     /// The interface to access a render backend.
     /// </summary>
     class LITEFX_RENDERING_API IRenderBackend : public IBackend {
+    protected:
+        IRenderBackend() noexcept = default;
+
     public:
-        virtual ~IRenderBackend() noexcept = default;
+        ~IRenderBackend() noexcept override = default;
+
+        IRenderBackend(IRenderBackend&&) = delete;
+        IRenderBackend(const IRenderBackend&) = delete;
+        auto operator=(const IRenderBackend&) = delete;
+        auto operator=(IRenderBackend&&) = delete;
 
     public:
         /// <summary>

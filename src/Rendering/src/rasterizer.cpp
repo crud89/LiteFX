@@ -22,6 +22,11 @@ public:
         base(parent), m_polygonMode(polygonMode), m_cullMode(cullMode), m_cullOrder(cullOrder), m_lineWidth(lineWidth), m_depthStencilState(depthStencilState)
     {
     }
+
+    RasterizerImpl(Rasterizer* parent) :
+        base(parent)
+    {
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -36,16 +41,38 @@ Rasterizer::Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cul
 Rasterizer::Rasterizer(const Rasterizer& _other) noexcept :
     m_impl(makePimpl<RasterizerImpl>(this, _other.polygonMode(), _other.cullMode(), _other.cullOrder(), _other.lineWidth(), _other.depthStencilState()))
 {
-
 }
 
 Rasterizer::Rasterizer(Rasterizer&& _other) noexcept :
-    m_impl(makePimpl<RasterizerImpl>(this, _other.polygonMode(), _other.cullMode(), _other.cullOrder(), _other.lineWidth(), _other.depthStencilState()))
+    m_impl(makePimpl<RasterizerImpl>(this))
 {
-    // TODO: We could move out the properties of `_other`, but I guess moving around rasterizer states really should not be the bottleneck in most applications.
+    m_impl->m_polygonMode = std::move(_other.polygonMode());
+    m_impl->m_cullMode = std::move(_other.cullMode());
+    m_impl->m_cullOrder = std::move(_other.cullOrder());
+    m_impl->m_lineWidth = std::move(_other.lineWidth());
+    m_impl->m_depthStencilState = std::move(_other.depthStencilState());
 }
 
 Rasterizer::~Rasterizer() noexcept = default;
+
+Rasterizer& Rasterizer::operator=(const Rasterizer& _other) noexcept
+{
+    m_impl->m_polygonMode = _other.polygonMode();
+    m_impl->m_cullMode = _other.cullMode();
+    m_impl->m_cullOrder = _other.cullOrder();
+    m_impl->m_lineWidth = _other.lineWidth();
+    m_impl->m_depthStencilState = _other.depthStencilState();
+
+    return *this;
+}
+
+Rasterizer& Rasterizer::operator=(Rasterizer&& _other) noexcept
+{
+    m_impl = std::move(_other.m_impl);
+    m_impl->m_parent = this;
+
+    return *this;
+}
 
 PolygonMode Rasterizer::polygonMode() const noexcept
 {

@@ -24,7 +24,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-Scissor::Scissor(const RectF& rect) :
+Scissor::Scissor(const RectF& rect) noexcept:
     m_impl(makePimpl<ScissorImpl>(this, rect))
 {
 }

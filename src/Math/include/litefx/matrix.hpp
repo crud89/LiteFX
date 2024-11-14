@@ -24,17 +24,19 @@
 namespace LiteFX::Math {
 
 	/// <summary>
-	/// Base class for an algebraic matrix type.
+	/// An algebraic matrix type.
 	/// </summary>
 	/// <remarks>
-	/// Note that matrices in the engine are row-major by convention. Matrices act as optimized storage containers only. All algebraic operations are
-	/// not part of the library itself, but rather covered by supported linear algebra libraries.
+	/// Note that matrices in the engine are row-major by convention. 
+	/// 
+	/// Matrices act as optimized storage containers only. All algebraic operations are not part of the library itself, but rather covered by supported linear algebra libraries.
 	/// </remarks>
-	/// <typeparam name="T">The type of the matrix scalar elements.</typeparam>
-	/// <typeparam name="ROWS">The number of rows of the matrix.</typeparam>
-	/// <typeparam name="COLS">The number of columns of the matrix.</typeparam>
-	template <typename T, unsigned ROWS, unsigned COLS> requires (ROWS >= 2 && COLS >= 2)
-	class Matrix {
+	/// <typeparam name="T">The type of the matrix scalar elements. Must be in standard layout (i.e., `std::is_standard_layout_v<T>` must evaluate to `true`).</typeparam>
+	/// <typeparam name="ROWS">The number of rows of the matrix. Must be greater than 1.</typeparam>
+	/// <typeparam name="COLS">The number of columns of the matrix. Must be greater than 1.</typeparam>
+	template <typename T, unsigned ROWS, unsigned COLS> requires 
+		(ROWS >= 2 && COLS >= 2) && std::is_standard_layout_v<T>
+	struct Matrix final {
 	public:
 		/// <summary>
 		/// Stores the number of rows of the matrix.
@@ -66,7 +68,7 @@ namespace LiteFX::Math {
 
 	protected:
 		using array_type = std::array<scalar_type, mat_rows * mat_cols>;
-		array_type m_elements = { };
+		array_type m_elements = { }; // NOLINT
 
 	public:
 		/// <summary>
@@ -115,7 +117,7 @@ namespace LiteFX::Math {
 		/// Initializes a matrix with the values provided by another matrix.
 		/// </summary>
 		/// <param name="_other">The other matrix to copy the values from.</param>
-		constexpr Matrix(const mat_type& _other) noexcept {
+		constexpr Matrix(const Matrix<scalar_type, ROWS, COLS>& _other) noexcept {
 			std::ranges::copy(_other.m_elements, std::begin(m_elements));
 		}
 
@@ -123,18 +125,20 @@ namespace LiteFX::Math {
 		/// Initializes a matrix by taking over another matrix.
 		/// </summary>
 		/// <param name="_other">The matrix to take over.</param>
-		constexpr Matrix(mat_type&& _other) noexcept {
-			m_elements = std::move(_other.m_elements);
-		}
+		constexpr Matrix(Matrix<scalar_type, ROWS, COLS>&& _other) noexcept :
+			m_elements{ std::move(_other.m_elements) } { }
 
-		// virtual ~Matrix() noexcept = default;
+		/// <summary>
+		/// Destroys the matrix instance.
+		/// </summary>
+		constexpr ~Matrix() noexcept = default;
 
 		/// <summary>
 		/// Copies the elements of another matrix into the current matrix.
 		/// </summary>
 		/// <param name="_other">The matrix to copy the elements from.</param>
 		/// <returns>A reference to the current matrix instance.</returns>
-		constexpr auto& operator=(const mat_type& _other) noexcept {
+		constexpr auto& operator=(const Matrix<scalar_type, ROWS, COLS>& _other) noexcept {
 			std::ranges::copy(_other.m_elements, std::begin(m_elements));
 			return *this;
 		}
@@ -144,7 +148,7 @@ namespace LiteFX::Math {
 		/// </summary>
 		/// <param name="_other">The matrix to take over.</param>
 		/// <returns>A reference to the current matrix instance.</returns>
-		constexpr auto& operator=(mat_type&& _other) noexcept {
+		constexpr auto& operator=(Matrix<scalar_type, ROWS, COLS>&& _other) noexcept {
 			m_elements = std::move(_other.m_elements);
 			return *this;
 		}
@@ -157,7 +161,7 @@ namespace LiteFX::Math {
 			std::array<scalar_type, mat_rows * mat_cols> data { };
 
 			for (size_t i = 0; i < mat_rows && i < mat_cols; ++i)
-				data[i * mat_cols + i] = 1.0f;
+				data[i * mat_cols + i] = 1.0f; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
 
 			return mat_type(std::move(data));
 		}

@@ -25,7 +25,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-Viewport::Viewport(const RectF& rect, Float minDepth, Float maxDepth) :
+Viewport::Viewport(const RectF& rect, Float minDepth, Float maxDepth) noexcept :
     m_impl(makePimpl<ViewportImpl>(this, rect, minDepth, maxDepth))
 {
 }

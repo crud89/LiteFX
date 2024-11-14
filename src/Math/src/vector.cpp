@@ -86,7 +86,7 @@ Vector2f::operator glm::f32vec2() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector2f::Vector2f(const DirectX::XMVECTOR& v) noexcept {
-    DirectX::XMFLOAT2 e;
+    DirectX::XMFLOAT2 e{ };
     DirectX::XMStoreFloat2(&e, v);
 
     this->x() = e.x;
@@ -94,7 +94,7 @@ Vector2f::Vector2f(const DirectX::XMVECTOR& v) noexcept {
 }
 
 Vector2f::Vector2f(DirectX::XMVECTOR&& v) noexcept {
-    DirectX::XMFLOAT2 e;
+    DirectX::XMFLOAT2 e{ };
     DirectX::XMStoreFloat2(&e, std::move(v));
 
     this->x() = e.x;
@@ -141,7 +141,7 @@ Vector2u::operator glm::u32vec2() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector2u::Vector2u(const DirectX::XMVECTOR& v) noexcept {
-    DirectX::XMUINT2 e;
+    DirectX::XMUINT2 e{ };
     DirectX::XMStoreUInt2(&e, v);
 
     this->x() = e.x;
@@ -149,7 +149,7 @@ Vector2u::Vector2u(const DirectX::XMVECTOR& v) noexcept {
 }
 
 Vector2u::Vector2u(DirectX::XMVECTOR&& v) noexcept {
-    DirectX::XMUINT2 e;
+    DirectX::XMUINT2 e{ };
     DirectX::XMStoreUInt2(&e, std::move(v));
 
     this->x() = e.x;
@@ -196,7 +196,7 @@ Vector2i::operator glm::i32vec2() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector2i::Vector2i(const DirectX::XMVECTOR& v) noexcept {
-    DirectX::XMINT2 e;
+    DirectX::XMINT2 e{ };
     DirectX::XMStoreSInt2(&e, v);
 
     this->x() = e.x;
@@ -204,7 +204,7 @@ Vector2i::Vector2i(const DirectX::XMVECTOR& v) noexcept {
 }
 
 Vector2i::Vector2i(DirectX::XMVECTOR&& v) noexcept {
-    DirectX::XMINT2 e;
+    DirectX::XMINT2 e{ };
     DirectX::XMStoreSInt2(&e, std::move(v));
 
     this->x() = e.x;
@@ -251,7 +251,7 @@ Vector3f::operator glm::f32vec3() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector3f::Vector3f(const DirectX::XMVECTOR& v) noexcept {
-    DirectX::XMFLOAT3 e;
+    DirectX::XMFLOAT3 e{ };
     DirectX::XMStoreFloat3(&e, v);
 
     this->x() = e.x;
@@ -260,7 +260,7 @@ Vector3f::Vector3f(const DirectX::XMVECTOR& v) noexcept {
 }
 
 Vector3f::Vector3f(DirectX::XMVECTOR&& v) noexcept {
-    DirectX::XMFLOAT3 e;
+    DirectX::XMFLOAT3 e{ };
     DirectX::XMStoreFloat3(&e, std::move(v));
 
     this->x() = e.x;
@@ -310,7 +310,7 @@ Vector3u::operator glm::u32vec3() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector3u::Vector3u(const DirectX::XMVECTOR& v) noexcept {
-    DirectX::XMUINT3 e;
+    DirectX::XMUINT3 e{ };
     DirectX::XMStoreUInt3(&e, v);
 
     this->x() = e.x;
@@ -319,7 +319,7 @@ Vector3u::Vector3u(const DirectX::XMVECTOR& v) noexcept {
 }
 
 Vector3u::Vector3u(DirectX::XMVECTOR&& v) noexcept {
-    DirectX::XMUINT3 e;
+    DirectX::XMUINT3 e{ };
     DirectX::XMStoreUInt3(&e, std::move(v));
 
     this->x() = e.x;
@@ -369,7 +369,7 @@ Vector3i::operator glm::i32vec3() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector3i::Vector3i(const DirectX::XMVECTOR& v) noexcept {
-    DirectX::XMINT3 e;
+    DirectX::XMINT3 e{ };
     DirectX::XMStoreSInt3(&e, v);
 
     this->x() = e.x;
@@ -378,7 +378,7 @@ Vector3i::Vector3i(const DirectX::XMVECTOR& v) noexcept {
 }
 
 Vector3i::Vector3i(DirectX::XMVECTOR&& v) noexcept {
-    DirectX::XMINT3 e;
+    DirectX::XMINT3 e{ };
     DirectX::XMStoreSInt3(&e, std::move(v));
 
     this->x() = e.x;
@@ -428,7 +428,7 @@ Vector4f::operator glm::f32vec4() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector4f::Vector4f(const DirectX::XMVECTOR& v) noexcept {
-    DirectX::XMFLOAT4 e;
+    DirectX::XMFLOAT4 e{ };
     DirectX::XMStoreFloat4(&e, v);
 
     this->x() = e.x;
@@ -438,7 +438,7 @@ Vector4f::Vector4f(const DirectX::XMVECTOR& v) noexcept {
 }
 
 Vector4f::Vector4f(DirectX::XMVECTOR&& v) noexcept {
-    DirectX::XMFLOAT4 e;
+    DirectX::XMFLOAT4 e{ };
     DirectX::XMStoreFloat4(&e, std::move(v));
 
     this->x() = e.x;
@@ -491,7 +491,7 @@ Vector4u::operator glm::u32vec4() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector4u::Vector4u(const DirectX::XMVECTOR& v) noexcept {
-    DirectX::XMUINT4 e;
+    DirectX::XMUINT4 e{ };
     DirectX::XMStoreUInt4(&e, v);
 
     this->x() = e.x;
@@ -501,7 +501,7 @@ Vector4u::Vector4u(const DirectX::XMVECTOR& v) noexcept {
 }
 
 Vector4u::Vector4u(DirectX::XMVECTOR&& v) noexcept {
-    DirectX::XMUINT4 e;
+    DirectX::XMUINT4 e{ };
     DirectX::XMStoreUInt4(&e, std::move(v));
 
     this->x() = e.x;
@@ -554,7 +554,7 @@ Vector4i::operator glm::i32vec4() const noexcept {
 
 #if defined(LITEFX_BUILD_WITH_DIRECTX_MATH)
 Vector4i::Vector4i(const DirectX::XMVECTOR& v) noexcept {
-    DirectX::XMINT4 e;
+    DirectX::XMINT4 e{ };
     DirectX::XMStoreSInt4(&e, v);
 
     this->x() = e.x;
@@ -564,7 +564,7 @@ Vector4i::Vector4i(const DirectX::XMVECTOR& v) noexcept {
 }
 
 Vector4i::Vector4i(DirectX::XMVECTOR&& v) noexcept {
-    DirectX::XMINT4 e;
+    DirectX::XMINT4 e{ };
     DirectX::XMStoreSInt4(&e, std::move(v));
 
     this->x() = e.x;
