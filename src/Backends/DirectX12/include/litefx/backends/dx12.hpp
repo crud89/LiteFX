@@ -997,7 +997,7 @@ namespace LiteFX::Rendering::Backends {
     /// Records commands for a <see cref="DirectX12Queue" />
     /// </summary>
     /// <seealso cref="DirectX12Queue" />
-    class LITEFX_DIRECTX12_API DirectX12CommandBuffer final : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>, public ComResource<ID3D12GraphicsCommandList7>, public std::enable_shared_from_this<DirectX12CommandBuffer> {
+    class LITEFX_DIRECTX12_API DirectX12CommandBuffer final : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>, public ComResource<ID3D12GraphicsCommandList7>, public SharedObject {
         LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
 
     public:

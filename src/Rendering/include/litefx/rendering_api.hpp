@@ -3594,18 +3594,9 @@ namespace LiteFX::Rendering {
     /// Note that timing events are only supported on graphics and compute <see cref="ICommandQueue" />s.
     /// </remarks>
     /// <seeaslo cref="ISwapChain" />
-    class LITEFX_RENDERING_API TimingEvent : public std::enable_shared_from_this<TimingEvent> {
+    class LITEFX_RENDERING_API TimingEvent : public SharedObject {
         LITEFX_IMPLEMENTATION(TimingEventImpl);
         friend class ISwapChain;
-
-    public:
-        /// <summary>
-        /// Returns a pointer with shared ownership to the current instance.
-        /// </summary>
-        /// <returns>A pointer with shared ownership to the current instance.</returns>
-        inline std::shared_ptr<TimingEvent> getptr() {
-            return shared_from_this();
-        }
 
     private:
         explicit TimingEvent(const ISwapChain& swapChain, StringView name = "") noexcept;
@@ -6117,7 +6108,7 @@ namespace LiteFX::Rendering {
     /// is the <see cref="ShaderStage::Fragment" /> module, which can be added to a mesh pipeline, as well as a rasterization pipeline.
     /// </remarks>
     /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
-    class LITEFX_RENDERING_API IShaderProgram : public std::enable_shared_from_this<IShaderProgram> {
+    class LITEFX_RENDERING_API IShaderProgram : public SharedObject {
     protected:
         IShaderProgram() noexcept = default;
 
@@ -6128,23 +6119,6 @@ namespace LiteFX::Rendering {
         IShaderProgram(IShaderProgram&&) = delete;
         auto operator=(const IShaderProgram&) = delete;
         auto operator=(IShaderProgram&&) = delete;
-
-    public:
-        /// <summary>
-        /// Returns a pointer with shared ownership to the current instance.
-        /// </summary>
-        /// <returns>A pointer with shared ownership to the current instance.</returns>
-        inline std::shared_ptr<const IShaderProgram> getptr() const {
-            return shared_from_this();
-        }
-
-        /// <summary>
-        /// Returns a pointer with shared ownership to the current instance.
-        /// </summary>
-        /// <returns>A pointer with shared ownership to the current instance.</returns>
-        inline std::shared_ptr<IShaderProgram> getptr() {
-            return shared_from_this();
-        }
 
     public:
         /// <summary>
@@ -6222,7 +6196,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The shader record collection instance.</returns>
         [[nodiscard]] inline ShaderRecordCollection buildShaderRecordCollection() const noexcept {
-            return ShaderRecordCollection(this->getptr());
+            return ShaderRecordCollection(this->shared_from_this());
         }
 
     private:

@@ -520,9 +520,9 @@ namespace LiteFX {
 	/// <typeparam name="...Arg">The variadic argument types forwarded to the implementation classes' constructor.</typeparam>
 	/// <param name="...arg">The arguments forwarded to the implementation classes' constructor.</param>
 	/// <returns>The pointer to the implementation class instance.</returns>
-	template <class T, class... Arg>
-	[[nodiscard]] constexpr PimplPtr<T> makePimpl(Arg&&... arg) {
-		return PimplPtr<T>(new T(std::forward<Arg>(arg)...));
+	template <class T, class... TArgs>
+	[[nodiscard]] constexpr PimplPtr<T> makePimpl(TArgs&&... args) {
+		return PimplPtr<T>(new T(std::forward<TArgs>(args)...)); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 	}
 
 	// NOLINTBEGIN(cppcoreguidelines-macro-usage)
@@ -835,4 +835,43 @@ namespace LiteFX {
 #endif // !defined(LITEFX_BUILDER)
 
 	// NOLINTEND(cppcoreguidelines-macro-usage)
+
+	/// <summary>
+	/// Base class for an object that can be shared.
+	/// </summary>
+	/// <remarks>
+	/// This is an improved version of `std::enable_shared_from_this` that supports inheritance. When inheriting from this class, follow the same practices as you would for `std::enable_shared_from_this`: do 
+	/// not provide any public constructors; instead provide a private constructor and a publically accessible static factory method, that returns a shared pointer. Also note that a shared object must not be
+	/// moved, so do not define a move constructor and/or move assignment operator, as those will be implicitly deleted.
+	/// </remarks>
+	/// <seealso href="https://en.cppreference.com/w/cpp/memory/enable_shared_from_this" />
+	class SharedObject : public std::enable_shared_from_this<SharedObject> {
+	protected:
+		/// <summary>
+		/// Initializes a new shared object.
+		/// </summary>
+		SharedObject() noexcept = default;
+
+	public:
+		/// <summary>
+		/// Destroys the shared object.
+		/// </summary>
+		virtual ~SharedObject() noexcept = default;
+
+		SharedObject(const SharedObject&) = delete;
+		SharedObject(SharedObject&&) = delete;
+		SharedObject& operator=(const SharedObject&) = default;
+		SharedObject& operator=(SharedObject&&) = default;
+
+	public:
+		/// <summary>
+		/// Returns a shared pointer to the current object instance.
+		/// </summary>
+		template <typename TSelf>
+		auto inline shared_from_this(this TSelf&& self) noexcept
+		{
+			return std::static_pointer_cast<std::remove_reference_t<TSelf>>(
+				std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::shared_from_this());
+		}
+	};
 }
