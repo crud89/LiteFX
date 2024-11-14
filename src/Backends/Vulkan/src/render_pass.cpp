@@ -350,7 +350,7 @@ const Array<RenderPassDependency>& VulkanRenderPass::inputAttachments() const no
 const RenderPassDependency& VulkanRenderPass::inputAttachment(UInt32 location) const
 {
     if (location >= m_impl->m_inputAttachments.size()) [[unlikely]]
-        throw ArgumentOutOfRangeException("location", std::make_pair(0uz, m_impl->m_inputAttachments.size()), location, "The render pass does not contain an input attachment at location {0}.", location);
+        throw ArgumentOutOfRangeException("location", std::make_pair(0uz, m_impl->m_inputAttachments.size()), static_cast<size_t>(location), "The render pass does not contain an input attachment at location {0}.", location);
 
     return m_impl->m_inputAttachments[location];
 }

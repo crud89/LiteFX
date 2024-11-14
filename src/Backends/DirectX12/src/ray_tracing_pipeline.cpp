@@ -49,10 +49,10 @@ public:
 		base(parent), m_device(device), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords)), m_maxRecursionDepth(maxRecursionDepth), m_maxPayloadSize(maxPayloadSize), m_maxAttributeSize(maxAttributeSize)
 	{
 		if (maxRecursionDepth > D3D12_RAYTRACING_MAX_DECLARABLE_TRACE_RECURSION_DEPTH) [[unlikely]]
-			throw ArgumentOutOfRangeException("maxRecursionDepth", std::make_pair(0u, static_cast<UInt32>(D3D12_RAYTRACING_MAX_DECLARABLE_TRACE_RECURSION_DEPTH)), maxRecursionDepth, "The specified ray tracing recursion depth too large.");
+			throw ArgumentOutOfRangeException("maxRecursionDepth", std::make_pair(0_ui32, static_cast<UInt32>(D3D12_RAYTRACING_MAX_DECLARABLE_TRACE_RECURSION_DEPTH)), maxRecursionDepth, "The specified ray tracing recursion depth too large.");
 
 		if (maxAttributeSize > D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES) [[unlikely]]
-			throw ArgumentOutOfRangeException("maxAttributeSize", std::make_pair(0u, static_cast<UInt32>(D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES)), maxAttributeSize, "The specified ray attribute size was too large.");
+			throw ArgumentOutOfRangeException("maxAttributeSize", std::make_pair(0_ui32, static_cast<UInt32>(D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES)), maxAttributeSize, "The specified ray attribute size was too large.");
 	}
 
 	DirectX12RayTracingPipelineImpl(DirectX12RayTracingPipeline* parent, const DirectX12Device& device, ShaderRecordCollection&& shaderRecords) :

@@ -127,17 +127,17 @@ namespace LiteFX {
 		explicit ArgumentOutOfRangeException(std::string_view argument, std::string_view message) noexcept :
 			Exception(std::format("Argument was out of range: {}. {}", argument, message), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
 
-		/// <summary>
-		/// Initializes a new exception.
-		/// </summary>
-		/// <typeparam name="T">The type of the argument that was out of range.</typeparam>
-		/// <param name="argument">The name of the argument that was out of range.</param>
-		/// <param name="validRange">The lower bound and upper bound of the valid range.</param>
-		/// <param name="value">The actual value of provided to the argument.</param>
-		/// <param name="message">The error message.</param>
-		template <typename T>
-		explicit ArgumentOutOfRangeException(std::string_view argument, std::pair<T, T> validRange, T value, std::string_view message) noexcept :
-			Exception(std::format("Argument was out of range: {} (valid range is [{}, {}) but actual value was {}). {}", argument, validRange.first, validRange.second, value, message), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
+		///// <summary>
+		///// Initializes a new exception.
+		///// </summary>
+		///// <typeparam name="T">The type of the argument that was out of range.</typeparam>
+		///// <param name="argument">The name of the argument that was out of range.</param>
+		///// <param name="validRange">The lower bound and upper bound of the valid range.</param>
+		///// <param name="value">The actual value of provided to the argument.</param>
+		///// <param name="message">The error message.</param>
+		//template <typename T>
+		//explicit ArgumentOutOfRangeException(std::string_view argument, std::pair<T, T> validRange, T value, std::string_view message) noexcept :
+		//	Exception(std::format("Argument was out of range: {} (valid range is [{}, {}] but provided value was {}). {}", argument, validRange.first, validRange.second, value, message), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
 
 		/// <summary>
 		/// Initializes a new exception.
@@ -158,8 +158,8 @@ namespace LiteFX {
 		/// <param name="value">The actual value of provided to the argument.</param>
 		/// <param name="format">The format string for the error message.</param>
 		/// <param name="args">The arguments passed to the error message format string.</param>
-		template <typename TRange, typename TValue, typename ...TArgs>
-		explicit ArgumentOutOfRangeException(std::string_view argument, std::pair<TRange, TRange> validRange, TValue value, std::format_string<TArgs...> format, TArgs&&... args) noexcept :
+		template <typename T, typename ...TArgs>
+		explicit ArgumentOutOfRangeException(std::string_view argument, std::pair<T, T> validRange, T value, std::format_string<TArgs...> format, TArgs&&... args) noexcept :
 			Exception(std::format("Argument was out of range: {} (valid range is [{}, {}) but actual value was {}). {}", argument, validRange.first, validRange.second, value, std::format(format, std::forward<TArgs>(args)...)), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
 
 		ArgumentOutOfRangeException(const ArgumentOutOfRangeException&) = default;
