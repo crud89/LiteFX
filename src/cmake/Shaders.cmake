@@ -400,6 +400,9 @@ FILE(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/Auxiliary/pcksl.cxx" CONTENT [==[
 #include <vector>
 #include <cstdint>
 
+// NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+
 int main(int argc, char* argv[]) {
     if (argc < 2)
         return -1;
@@ -417,16 +420,18 @@ int main(int argc, char* argv[]) {
             "#include <string>" << std::endl <<
             "#include <streambuf>" << std::endl << std::endl;
             
+        file << "// NOLINTBEGIN" << std::endl;
         file << "#ifndef _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
         file << "struct _pcksl_mem_buf : public std::streambuf {" << std::endl;
-        file << "    _pcksl_mem_buf(const char* begin, size_t size) { char* b = const_cast<char*>(begin); this->setg(b, b, b + size); }" << std::endl;
+        file << "    _pcksl_mem_buf(char* begin, size_t size) { this->setg(begin, begin, begin + size); }" << std::endl;
         file << "};" << std::endl << std::endl;
         file << "struct _pcksl_mem_istream : private virtual _pcksl_mem_buf, public std::istream {" << std::endl;
-        file << "    explicit _pcksl_mem_istream(const char* begin, size_t size) :" << std::endl;
+        file << "    explicit _pcksl_mem_istream(char* begin, size_t size) :" << std::endl;
         file << "        _pcksl_mem_buf(begin, size), std::istream(static_cast<std::streambuf*>(this)) { }" << std::endl;
         file << "};" << std::endl;
         file << "#define _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
         file << "#endif // !_LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl << std::endl;
+        file << "// NOLINTEND" << std::endl;
 
         file.close();
     }
@@ -449,6 +454,7 @@ int main(int argc, char* argv[]) {
         std::ofstream file(sourceFile, std::ios::app);
         file << "namespace " << ns << " {" << std::endl;
         file << "    // Shader source: " << resourceFile << "." << std::endl;
+        file << "    // NOLINTBEGIN" << std::endl;
         file << "    class " << resourceName << " {" << std::endl;
         file << "    public:" << std::endl;
         file << "        " << resourceName << "() = delete;" << std::endl;
@@ -464,9 +470,10 @@ int main(int argc, char* argv[]) {
 
         file << std::endl;
         file << "            };" << std::endl << std::endl;
-        file << "            return ::_pcksl_mem_istream(reinterpret_cast<const char*>(_data.data()), _data.size());" << std::endl;
+        file << "            return ::_pcksl_mem_istream(reinterpret_cast<char*>(_data.data()), _data.size());" << std::endl;
         file << "        }" << std::endl;
         file << "    };" << std::endl;
+        file << "    // NOLINTEND" << std::endl;
         file << "}" << std::endl << std::endl;
 
         file.close();
@@ -478,6 +485,10 @@ int main(int argc, char* argv[]) {
 
     return 0;
 }
+
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
+// NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+
 ]==])
 
 ADD_EXECUTABLE(pcksl "${CMAKE_BINARY_DIR}/Auxiliary/pcksl.cxx")
