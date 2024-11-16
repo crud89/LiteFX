@@ -509,7 +509,7 @@ camera.ViewProjection = projection * view;
 In the last line, we pre-multiply the view/projection matrix and store it in the camera buffer, which we can now transfer to the GPU:
 
 ```cxx
-m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
+m_cameraStagingBuffer->map(static_cast<const void*>(&camera), sizeof(camera));
 commandBuffer->transfer(*m_cameraStagingBuffer, *m_cameraBuffer);
 ```
 
@@ -598,7 +598,7 @@ auto now = std::chrono::high_resolution_clock::now();
 auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
 transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
+m_transformBuffer->map(static_cast<const void*>(&transform), sizeof(transform), backBuffer);
 ```
 
 Before we can record the draw call, we need to make sure, the shader sees the right resources by binding all descriptor sets:
@@ -682,7 +682,7 @@ projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
 camera.ViewProjection = projection * view;
 
 auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
-m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
+m_cameraStagingBuffer->map(static_cast<const void*>(&camera), sizeof(camera));
 commandBuffer->transfer(*m_cameraStagingBuffer, *m_cameraBuffer);
 commandBuffer->end(true, true);
 ```
