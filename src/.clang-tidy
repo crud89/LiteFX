@@ -1,6 +1,7 @@
 Checks: |
     clang-analyzer-*,
-    cppcoreguidelines-*
+    cppcoreguidelines-*,
+    -clang-analyzer-optin.core.EnumCastOutOfRange
 WarningsAsErrors: true
 HeaderFilterRegex: '.*'
 CheckOptions:
