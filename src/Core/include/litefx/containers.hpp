@@ -873,5 +873,15 @@ namespace LiteFX {
 			return std::static_pointer_cast<std::remove_reference_t<TSelf>>(
 				std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::shared_from_this());
 		}
+		
+		/// <summary>
+		/// Returns a weak pointer to the current object instance.
+		/// </summary>
+		template <typename TSelf>
+		auto inline weak_from_this(this TSelf&& self) noexcept
+		{
+			return std::static_pointer_cast<std::remove_reference_t<TSelf>>(
+				std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::weak_from_this());
+		}
 	};
 }
