@@ -134,7 +134,7 @@ void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) cons
 		//		auto subresource = image.subresourceId(level, layer, std::get<9>(barrier));
 
 		return CD3DX12_TEXTURE_BARRIER(syncBefore, syncAfter, DX12::getResourceAccess(std::get<0>(barrier)), DX12::getResourceAccess(std::get<1>(barrier)), currentLayout, targetLayout, std::as_const(image).handle().Get(), 
-			CD3DX12_BARRIER_SUBRESOURCE_RANGE(std::get<5>(barrier), std::get<6>(barrier), std::get<7>(barrier), std::get<8>(barrier), std::get<9>(barrier)));
+			CD3DX12_BARRIER_SUBRESOURCE_RANGE(std::get<5>(barrier), std::get<6>(barrier), std::get<7>(barrier), std::get<8>(barrier), std::get<9>(barrier))); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 	}) | std::ranges::to<Array<D3D12_TEXTURE_BARRIER>>();
 
 	// Put all into a buffer group.

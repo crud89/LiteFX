@@ -29,10 +29,15 @@ public:
 	{
 	}
 
-	~DirectX12QueueImpl() 
+	~DirectX12QueueImpl() override
 	{
 		m_submittedCommandBuffers.clear();
 	}
+
+	DirectX12QueueImpl(const DirectX12QueueImpl&) = delete;
+	DirectX12QueueImpl(DirectX12QueueImpl&&) = delete;
+	auto operator=(const DirectX12QueueImpl&) = delete;
+	auto operator=(DirectX12QueueImpl&&) = delete;
 
 public:
 	[[nodiscard]]
@@ -198,12 +203,12 @@ UInt64 DirectX12Queue::submit(const Enumerable<SharedPtr<const DirectX12CommandB
 	m_impl->releaseCommandBuffers(completedValue);
 
 	// End and submit the command buffers.
-	auto handles = [&commandBuffers]() -> std::generator<ID3D12CommandList*> {
-		for (auto buffer = commandBuffers.begin(); buffer != commandBuffers.end(); ++buffer) {
-			(*buffer)->end();
-			co_yield (*buffer)->handle().Get();
-		}
-	}() | std::ranges::to<Array<ID3D12CommandList*>>();
+	for (auto buffer = commandBuffers.begin(); buffer != commandBuffers.end(); ++buffer)
+		(*buffer)->end();
+
+	auto handles = commandBuffers 
+		| std::views::transform([](const SharedPtr<const DirectX12CommandBuffer>& buffer) { return buffer->handle().Get(); })
+		| std::ranges::to<Array<ID3D12CommandList*>>();
 
 	this->handle()->ExecuteCommandLists(static_cast<UInt32>(handles.size()), handles.data());
 

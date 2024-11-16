@@ -35,16 +35,14 @@
 #include <wrl.h>
 using namespace Microsoft::WRL;
 
-#include <litefx/config.h>
 #include <litefx/rendering.hpp>
-
 #include "dx12_formatters.hpp"
 
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Math;
     using namespace LiteFX::Rendering;
 
-    constexpr char DIRECTX12_LOG[] = "Backend::DirectX12";
+    constexpr StringView DIRECTX12_LOG = "Backend::DirectX12"sv;
 
     // Forward declarations.
     class DirectX12VertexBufferLayout;
@@ -232,9 +230,12 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="adapter">The DXGI adapter interface pointer.</param>
         explicit DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter);
+        ~DirectX12GraphicsAdapter() noexcept override;
+
         DirectX12GraphicsAdapter(const DirectX12GraphicsAdapter&) = delete;
         DirectX12GraphicsAdapter(DirectX12GraphicsAdapter&&) = delete;
-        virtual ~DirectX12GraphicsAdapter() noexcept;
+        auto operator=(const DirectX12GraphicsAdapter&) = delete;
+        auto operator=(DirectX12GraphicsAdapter&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -272,9 +273,12 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="hwnd">The window handle.</param>
         explicit DirectX12Surface(const HWND& hwnd) noexcept;
+        ~DirectX12Surface() noexcept override;
+
         DirectX12Surface(const DirectX12Surface&) = delete;
         DirectX12Surface(DirectX12Surface&&) = delete;
-        virtual ~DirectX12Surface() noexcept;
+        auto operator=(const DirectX12Surface&) = delete;
+        auto operator=(DirectX12Surface&&) = delete;
     };
 
     /// <summary>
@@ -308,13 +312,13 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="result">The error code returned by the operation.</param>
         /// <param name="args">The arguments passed to the error message format string.</param>
         template <typename ...TArgs>
-        explicit DX12PlatformException(HRESULT result, StringView format, TArgs&&... args) noexcept :
-            DX12PlatformException(result, std::vformat(format, std::make_format_args(args...))) { }
+        explicit DX12PlatformException(HRESULT result, std::format_string<TArgs...> format, TArgs&&... args) noexcept :
+            DX12PlatformException(result, std::format(format, std::forward<TArgs>(args)...)) { }
+
+        ~DX12PlatformException() noexcept override = default;
 
         DX12PlatformException(const DX12PlatformException&) = default;
         DX12PlatformException(DX12PlatformException&&) = default;
-        virtual ~DX12PlatformException() noexcept = default;
-
         DX12PlatformException& operator=(const DX12PlatformException&) = default;
         DX12PlatformException& operator=(DX12PlatformException&&) = default;
 
@@ -343,12 +347,9 @@ namespace LiteFX::Rendering::Backends {
     /// <param name="message">The format string for the error message.</param>
     /// <param name="args">The arguments passed to the error message format string.</param>
     template <typename ...TArgs>
-    static inline void raiseIfFailed(HRESULT hr, StringView message, TArgs&&... args) {
+    static inline void raiseIfFailed(HRESULT hr, std::format_string<TArgs...> message, TArgs&&... args) {
         if (SUCCEEDED(hr)) [[likely]]
             return;
-
-        if (message.empty())
-            throw DX12PlatformException(hr, message);
         else
             throw DX12PlatformException(hr, message, std::forward<TArgs>(args)...);
     }

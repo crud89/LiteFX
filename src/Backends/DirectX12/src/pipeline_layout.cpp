@@ -13,15 +13,15 @@ public:
     friend class DirectX12PipelineLayout;
 
 private:
-    UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout;
-    Array<UniquePtr<DirectX12DescriptorSetLayout>> m_descriptorSetLayouts;
+    UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout{};
+    Array<UniquePtr<DirectX12DescriptorSetLayout>> m_descriptorSetLayouts{};
     const DirectX12Device& m_device;
 
 public:
     DirectX12PipelineLayoutImpl(DirectX12PipelineLayout* parent, const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
         base(parent), m_pushConstantsLayout(std::move(pushConstantsLayout)), m_device(device)
     {
-        m_descriptorSetLayouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
+        m_descriptorSetLayouts = std::move(descriptorLayouts) | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     DirectX12PipelineLayoutImpl(DirectX12PipelineLayout* parent, const DirectX12Device& device) :
@@ -79,7 +79,7 @@ public:
         bool hasInputAttachmentSampler = false;
         UInt32 rootParameterIndex{ 0 };
 
-        LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", reinterpret_cast<void*>(m_parent), m_descriptorSetLayouts.size(), m_pushConstantsLayout == nullptr ? 0 : m_pushConstantsLayout->ranges().size());
+        LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", static_cast<void*>(m_parent), m_descriptorSetLayouts.size(), m_pushConstantsLayout == nullptr ? 0 : m_pushConstantsLayout->ranges().size());
 
         if (m_pushConstantsLayout != nullptr)
         {
@@ -206,7 +206,7 @@ public:
         HRESULT hr = ::D3D12SerializeVersionedRootSignature(&rootSignatureDesc, &signature, &error);
         
         if (error != nullptr)
-            errorString = String(reinterpret_cast<TCHAR*>(error->GetBufferPointer()), error->GetBufferSize());
+            errorString = String(static_cast<TCHAR*>(error->GetBufferPointer()), error->GetBufferSize());
         
         raiseIfFailed(hr, "Unable to serialize root signature to create pipeline layout: {0}", errorString);
 
@@ -292,8 +292,8 @@ DirectX12PipelineLayoutBuilder::~DirectX12PipelineLayoutBuilder() noexcept = def
 void DirectX12PipelineLayoutBuilder::build()
 {
     auto instance = this->instance();
-    instance->m_impl->m_descriptorSetLayouts = std::move(m_state.descriptorSetLayouts);
-    instance->m_impl->m_pushConstantsLayout = std::move(m_state.pushConstantsLayout);
+    instance->m_impl->m_descriptorSetLayouts = std::move(this->state().descriptorSetLayouts);
+    instance->m_impl->m_pushConstantsLayout = std::move(this->state().pushConstantsLayout);
     instance->handle() = instance->m_impl->initialize();
 }
 

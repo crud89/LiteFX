@@ -23,9 +23,8 @@ private:
 
 public:
 	DirectX12ImageImpl(DirectX12Image* parent, const DirectX12Device& device, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation) :
-		base(parent), m_allocator(allocator), m_allocation(std::move(allocation)), m_format(format), m_extent(extent), m_levels(levels), m_layers(layers), m_dimensions(dimension), m_usage(usage), m_samples(samples), m_device(device)
+		base(parent), m_allocator(allocator), m_allocation(std::move(allocation)), m_format(format), m_extent(extent), m_levels(levels), m_layers(layers), m_planes{ ::D3D12GetFormatPlaneCount(device.handle().Get(), DX12::getFormat(format)) }, m_dimensions(dimension), m_usage(usage), m_samples(samples), m_device(device)
 	{
-		m_planes = ::D3D12GetFormatPlaneCount(device.handle().Get(), DX12::getFormat(format));
 		m_elements = m_planes * m_layers * m_levels;
 	}
 };
@@ -83,7 +82,7 @@ size_t DirectX12Image::elementSize() const noexcept
 size_t DirectX12Image::elementAlignment() const noexcept
 {
 	// TODO: Support for 64 byte packed "small" resources.
-	return 256;
+	return D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
 }
 
 size_t DirectX12Image::alignedElementSize() const noexcept
@@ -189,9 +188,9 @@ UniquePtr<DirectX12Image> DirectX12Image::allocate(const String& name, const Dir
 	bool isDepthStencil = ::hasDepth(format) || ::hasStencil(format);
 
 	ComPtr<ID3D12Resource> resource;
-	D3D12MA::Allocation* allocation;
+	D3D12MA::Allocation* allocation{};
 	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, isDepthStencil ? D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ : D3D12_BARRIER_LAYOUT_COMMON, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to create image resource.");
-	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}", name.empty() ? std::format("{0}", reinterpret_cast<void*>(resource.Get())) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples);
+	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}", name.empty() ? std::format("{0}", static_cast<void*>(resource.Get())) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples);
 	
 	return makeUnique<DirectX12Image>(device, std::move(resource), extent, format, dimension, levels, layers, samples, usage, allocator, AllocationPtr(allocation), name);
 }

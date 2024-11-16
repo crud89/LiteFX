@@ -42,7 +42,7 @@ public:
 			m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
 	}
 
-	~DirectX12RenderPipelineImpl() noexcept 
+	~DirectX12RenderPipelineImpl() noexcept override
 	{
 		// Stop listening to frame buffer events.
 		for (auto [frameBuffer, token] : m_frameBufferResizeTokens)
@@ -52,10 +52,15 @@ public:
 			frameBuffer->released -= token;
 	}
 
+	DirectX12RenderPipelineImpl(const DirectX12RenderPipelineImpl&) = delete;
+	DirectX12RenderPipelineImpl(DirectX12RenderPipelineImpl&&) = delete;
+	auto operator=(const DirectX12RenderPipelineImpl&) = delete;
+	auto operator=(DirectX12RenderPipelineImpl&&) = delete;
+
 public:
 	ComPtr<ID3D12PipelineState> initialize(MultiSamplingLevel samples)
 	{
-		LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline \"{1}\" for layout {0}...", reinterpret_cast<void*>(m_layout.get()), m_parent->name());
+		LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline \"{1}\" for layout {0}...", static_cast<void*>(m_layout.get()), m_parent->name());
 		m_samples = samples;
 
 		// Check if there are mesh shaders in the program.
@@ -170,7 +175,7 @@ public:
 			{
 				// Setup target formats.
 				UInt32 target = i++;
-				rtvFormats[target] = DX12::getFormat(renderTarget.format());
+				rtvFormats[target] = DX12::getFormat(renderTarget.format()); // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
 
 				// Setup the blend state.
 				auto& targetBlendState = blendState.RenderTarget[target];
@@ -219,7 +224,7 @@ public:
 
 		// Setup shader stages.
 		auto modules = m_program->modules();
-		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", reinterpret_cast<void*>(m_program.get()), modules.size());
+		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", static_cast<void*>(m_program.get()), modules.size());
 
 		std::ranges::for_each(modules, [&, i = 0](const DirectX12ShaderModule* shaderModule) mutable {
 #ifdef NDEBUG
@@ -284,7 +289,7 @@ public:
 		
 		// Setup shader stages.
 		auto modules = m_program->modules();
-		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", reinterpret_cast<void*>(m_program.get()), modules.size());
+		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", static_cast<void*>(m_program.get()), modules.size());
 
 		std::ranges::for_each(modules, [&, i = 0](const DirectX12ShaderModule* shaderModule) mutable {
 #ifdef NDEBUG
@@ -454,14 +459,14 @@ public:
 	{
 		// Update the descriptors in the descriptor sets.
 		// NOTE: No slicing here, as the event is always triggered by the frame buffer instance.
-		auto frameBuffer = reinterpret_cast<const DirectX12FrameBuffer*>(sender);
+		auto frameBuffer = static_cast<const DirectX12FrameBuffer*>(sender);
 		this->updateInputAttachmentBindings(*frameBuffer);
 	}
 
 	void onFrameBufferRelease(const void* sender, IFrameBuffer::ReleasedEventArgs /*args*/)
 	{
 		// Get the frame buffer pointer.
-		auto interfacePointer = reinterpret_cast<const IFrameBuffer*>(sender);
+		auto interfacePointer = static_cast<const IFrameBuffer*>(sender);
 
 		// Release the descriptor sets.
 		m_inputAttachmentBindings.erase(interfacePointer);
@@ -567,11 +572,11 @@ DirectX12RenderPipelineBuilder::~DirectX12RenderPipelineBuilder() noexcept = def
 void DirectX12RenderPipelineBuilder::build()
 {
 	auto instance = this->instance();
-	instance->m_impl->m_layout = m_state.pipelineLayout;
-	instance->m_impl->m_program = m_state.shaderProgram;
-	instance->m_impl->m_inputAssembler = m_state.inputAssembler;
-	instance->m_impl->m_rasterizer = m_state.rasterizer;
-	instance->m_impl->m_alphaToCoverage = m_state.enableAlphaToCoverage;
-	instance->handle() = instance->m_impl->initialize(m_state.samples);
+	instance->m_impl->m_layout = this->state().pipelineLayout;
+	instance->m_impl->m_program = this->state().shaderProgram;
+	instance->m_impl->m_inputAssembler = this->state().inputAssembler;
+	instance->m_impl->m_rasterizer = this->state().rasterizer;
+	instance->m_impl->m_alphaToCoverage = this->state().enableAlphaToCoverage;
+	instance->handle() = instance->m_impl->initialize(this->state().samples);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

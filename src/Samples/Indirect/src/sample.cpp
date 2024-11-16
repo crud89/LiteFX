@@ -278,7 +278,7 @@ void SampleApp::updateCamera(IBuffer& buffer, UInt32 backBuffer) const
     camera.Frustum[5] = ::normalizePlane(projectionTransposed[3] - projectionTransposed[2]);  // Far
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
-    buffer.map(reinterpret_cast<const void*>(&camera), sizeof(camera), backBuffer);
+    buffer.map(static_cast<const void*>(&camera), sizeof(camera), backBuffer);
 }
 
 void SampleApp::onStartup()

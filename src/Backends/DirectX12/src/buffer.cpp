@@ -98,9 +98,9 @@ void DirectX12Buffer::map(const void* const data, size_t size, UInt32 element)
 		throw InvalidArgumentException("size", "The provided data size would overflow the buffer (buffer offset: 0x{1:X}; {2} bytes remaining but size was set to {0}).", size, element * this->alignedElementSize(), this->size() - (element * this->alignedElementSize()));
 
 	D3D12_RANGE mappedRange = { };
-	char* buffer;
-	raiseIfFailed(this->handle()->Map(0, &mappedRange, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
-	std::memcpy(reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), data, size);
+	char* buffer{};
+	raiseIfFailed(this->handle()->Map(0, &mappedRange, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory."); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+	std::memcpy(static_cast<void*>(buffer + (element * this->alignedElementSize())), data, size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 	this->handle()->Unmap(0, nullptr);
 }
 
@@ -121,13 +121,13 @@ void DirectX12Buffer::map(void* data, size_t size, UInt32 element, bool write)
 		throw InvalidArgumentException("size", "The provided data size would overflow the buffer (buffer offset: 0x{1:X}; {2} bytes remaining but size was set to {0}).", size, element * this->alignedElementSize(), this->size() - (element * this->alignedElementSize()));
 
 	D3D12_RANGE mappedRange = { };
-	char* buffer;
-	raiseIfFailed(this->handle()->Map(0, &mappedRange, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
+	char* buffer{};
+	raiseIfFailed(this->handle()->Map(0, &mappedRange, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory."); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
 	if (write)
-		std::memcpy(reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), data, size);
+		std::memcpy(static_cast<void*>(buffer + (element * this->alignedElementSize())), data, size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 	else
-		std::memcpy(data, reinterpret_cast<void*>(buffer + (element * this->alignedElementSize())), size);
+		std::memcpy(data, static_cast<void*>(buffer + (element * this->alignedElementSize())), size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
 	this->handle()->Unmap(0, nullptr);
 }
@@ -158,9 +158,9 @@ UniquePtr<IDirectX12Buffer> DirectX12Buffer::allocate(const String& name, Alloca
 		throw ArgumentNotInitializedException("allocator", "The allocator must be initialized.");
 
 	ComPtr<ID3D12Resource> resource;
-	D3D12MA::Allocation* allocation;
+	D3D12MA::Allocation* allocation{};
 	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate buffer.");
-	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", reinterpret_cast<void*>(resource.Get())) : name, type, elements, elementSize, elements * elementSize, usage);
+	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(resource.Get())) : name, type, elements, elementSize, elements * elementSize, usage);
 
 	return makeUnique<DirectX12Buffer>(std::move(resource), type, elements, elementSize, alignment, usage, allocator, AllocationPtr(allocation), name);
 }
@@ -175,7 +175,7 @@ public:
 
 private:
 	const DirectX12VertexBufferLayout& m_layout;
-	D3D12_VERTEX_BUFFER_VIEW m_view;
+	D3D12_VERTEX_BUFFER_VIEW m_view{};
 
 public:
 	DirectX12VertexBufferImpl(DirectX12VertexBuffer* parent, const DirectX12VertexBufferLayout& layout) :
@@ -228,9 +228,9 @@ UniquePtr<IDirectX12VertexBuffer> DirectX12VertexBuffer::allocate(const String& 
 		throw ArgumentNotInitializedException("allocator", "The allocator must be initialized.");
 
 	ComPtr<ID3D12Resource> resource;
-	D3D12MA::Allocation* allocation;
+	D3D12MA::Allocation* allocation{};
 	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
-	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", reinterpret_cast<void*>(resource.Get())) : name, BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements, usage);
+	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(resource.Get())) : name, BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements, usage);
 
 	return makeUnique<DirectX12VertexBuffer>(std::move(resource), layout, elements, usage, allocator, AllocationPtr(allocation), name);
 }
@@ -245,7 +245,7 @@ public:
 
 private:
 	const DirectX12IndexBufferLayout& m_layout;
-	D3D12_INDEX_BUFFER_VIEW m_view;
+	D3D12_INDEX_BUFFER_VIEW m_view{};
 
 public:
 	DirectX12IndexBufferImpl(DirectX12IndexBuffer* parent, const DirectX12IndexBufferLayout& layout) :
@@ -260,7 +260,7 @@ public:
 		{
 			.BufferLocation = m_parent->handle()->GetGPUVirtualAddress(),
 			.SizeInBytes = static_cast<UInt32>(m_parent->size()),
-			.Format = m_parent->layout().indexType() == IndexType::UInt16 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT
+			.Format = m_parent->layout().indexType() == IndexType::UInt16 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT // NOLINT(clang-analyzer-optin.cplusplus.VirtualCall)
 		};
 	}
 };
@@ -298,9 +298,9 @@ UniquePtr<IDirectX12IndexBuffer> DirectX12IndexBuffer::allocate(const String& na
 		throw ArgumentNotInitializedException("allocator", "The allocator must be initialized.");
 
 	ComPtr<ID3D12Resource> resource;
-	D3D12MA::Allocation* allocation;
+	D3D12MA::Allocation* allocation{};
 	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
-	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", reinterpret_cast<void*>(resource.Get())) : name, BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements, usage);
+	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(resource.Get())) : name, BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements, usage);
 
 	return makeUnique<DirectX12IndexBuffer>(std::move(resource), layout, elements, usage, allocator, AllocationPtr(allocation), name);
 }

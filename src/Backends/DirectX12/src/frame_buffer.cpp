@@ -15,7 +15,7 @@ private:
     ComPtr<ID3D12DescriptorHeap> m_renderTargetHeap, m_depthStencilHeap;
     Dictionary<UInt64, IDirectX12Image*> m_mappedRenderTargets;
     Dictionary<const IDirectX12Image*, D3D12_CPU_DESCRIPTOR_HANDLE> m_renderTargetHandles;
-    UInt32 m_renderTargetDescriptorSize, m_depthStencilDescriptorSize;
+    UInt32 m_renderTargetDescriptorSize{}, m_depthStencilDescriptorSize{};
     Size2d m_size;
     const DirectX12Device& m_device;
 
@@ -71,7 +71,7 @@ public:
 
                 m_device.handle()->CreateDepthStencilView(std::as_const(*image).handle().Get(), &depthStencilViewDesc, depthStencilViewDescriptor);
                 m_renderTargetHandles[image.get()] = depthStencilViewDescriptor;
-                depthStencilViewDescriptor = depthStencilViewDescriptor.Offset(m_depthStencilDescriptorSize);
+                depthStencilViewDescriptor = depthStencilViewDescriptor.Offset(static_cast<INT>(m_depthStencilDescriptorSize));
             }
             else
             {
@@ -83,7 +83,7 @@ public:
 
                 m_device.handle()->CreateRenderTargetView(std::as_const(*image).handle().Get(), &renderTargetViewDesc, renderTargetViewDescriptor);
                 m_renderTargetHandles[image.get()] = renderTargetViewDescriptor;
-                renderTargetViewDescriptor = renderTargetViewDescriptor.Offset(m_renderTargetDescriptorSize);
+                renderTargetViewDescriptor = renderTargetViewDescriptor.Offset(static_cast<INT>(m_renderTargetDescriptorSize));
             }
         });
     }

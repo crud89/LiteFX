@@ -13,26 +13,24 @@ public:
     friend class DirectX12PushConstantsLayout;
 
 private:
+    static const UInt32 MAX_GUARANTEED_RANGE_SIZE = 128;
     Dictionary<ShaderStage, DirectX12PushConstantsRange*> m_ranges;
     Array<UniquePtr<DirectX12PushConstantsRange>> m_rangePointers;
     UInt32 m_size;
 
 public:
     DirectX12PushConstantsLayoutImpl(DirectX12PushConstantsLayout* parent, UInt32 size) :
-        base(parent), m_size(size)
+        base(parent), m_size(size % 4 == 0 ? (size + 4 - 1) & ~(size - 1) : size)
     {
-        // Align the size to 4 bytes.
-        m_size = size % 4 == 0 ? (size + 4 - 1) & ~(size - 1) : size;
-
         // Issue a warning, if the size is too large.
-        if (m_size > 128)
+        if (m_size > MAX_GUARANTEED_RANGE_SIZE)
             LITEFX_WARNING(DIRECTX12_LOG, "The push constant layout backing memory is defined with a size greater than 128 bytes. Blocks larger than 128 bytes are not forbidden, but also not guaranteed to be supported on all hardware.");
     }
 
 private:
     void setRanges(Enumerable<UniquePtr<DirectX12PushConstantsRange>>&& ranges)
     {
-        m_rangePointers = ranges | std::views::as_rvalue | std::ranges::to<std::vector>();
+        m_rangePointers = std::move(ranges) | std::views::as_rvalue | std::ranges::to<std::vector>();
 
         std::ranges::for_each(m_rangePointers, [this](const UniquePtr<DirectX12PushConstantsRange>& range) {
             if (m_ranges.contains(static_cast<ShaderStage>(range->stage())))
@@ -102,7 +100,7 @@ DirectX12PushConstantsLayoutBuilder::~DirectX12PushConstantsLayoutBuilder() noex
 
 void DirectX12PushConstantsLayoutBuilder::build()
 {
-    this->instance()->m_impl->setRanges(m_state.ranges | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>());
+    this->instance()->m_impl->setRanges(this->state().ranges | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>());
 }
 
 UniquePtr<DirectX12PushConstantsRange> DirectX12PushConstantsLayoutBuilder::makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding)

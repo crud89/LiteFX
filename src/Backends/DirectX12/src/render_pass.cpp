@@ -5,6 +5,8 @@
 #include <pix3.h>
 #endif // defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
 
+#include <array>
+
 using namespace LiteFX::Rendering::Backends;
 
 // ------------------------------------------------------------------------------------------------
@@ -49,12 +51,17 @@ public:
     {
     }
 
-    ~DirectX12RenderPassImpl() noexcept
+    ~DirectX12RenderPassImpl() noexcept override
     {
         // Stop listening to frame buffer events.
         for (auto [frameBuffer, token] : m_frameBufferTokens)
             frameBuffer->released -= token;
     }
+
+    DirectX12RenderPassImpl(const DirectX12RenderPassImpl&) = delete;
+    DirectX12RenderPassImpl(DirectX12RenderPassImpl&&) = delete;
+    auto operator=(const DirectX12RenderPassImpl&) = delete;
+    auto operator=(DirectX12RenderPassImpl&&) = delete;
 
 public:
     void mapRenderTargets(Span<RenderTarget> renderTargets)
@@ -128,7 +135,7 @@ public:
     void onFrameBufferRelease(const void* sender, IFrameBuffer::ReleasedEventArgs /*args*/)
     {
         // Obtain the interface pointer and release all resources bound to the frame buffer.
-        auto interfacePointer = reinterpret_cast<const IFrameBuffer*>(sender);
+        auto interfacePointer = static_cast<const IFrameBuffer*>(sender);
 
         if (static_cast<const IFrameBuffer*>(m_activeFrameBuffer) == interfacePointer) [[unlikely]]
             throw RuntimeException("A frame buffer that is currently in use on a render pass cannot be released.");
@@ -146,8 +153,8 @@ public:
         std::get<0>(m_activeContext) = m_renderTargets |
             std::views::filter([](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; }) |
             std::views::transform([&frameBuffer](const RenderTarget& renderTarget) {
-                Float clearColor[4] = { renderTarget.clearValues().x(), renderTarget.clearValues().y(), renderTarget.clearValues().z(), renderTarget.clearValues().w() };
-                CD3DX12_CLEAR_VALUE clearValue{ DX12::getFormat(renderTarget.format()), clearColor };
+                std::array<Float, 4> clearColor { renderTarget.clearValues().x(), renderTarget.clearValues().y(), renderTarget.clearValues().z(), renderTarget.clearValues().w() };
+                CD3DX12_CLEAR_VALUE clearValue{ DX12::getFormat(renderTarget.format()), clearColor.data() };
 
                 D3D12_RENDER_PASS_BEGINNING_ACCESS beginAccess = renderTarget.clearBuffer() ?
                     D3D12_RENDER_PASS_BEGINNING_ACCESS{ .Type = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, .Clear = { clearValue } } :
@@ -502,7 +509,7 @@ DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& de
 DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, const String& name) noexcept :
     RenderPassBuilder(UniquePtr<DirectX12RenderPass>(new DirectX12RenderPass(device, name)))
 {
-    m_state.commandBufferCount = commandBuffers;
+    this->state().commandBufferCount = commandBuffers;
 }
 
 DirectX12RenderPassBuilder::~DirectX12RenderPassBuilder() noexcept = default;
@@ -511,13 +518,13 @@ void DirectX12RenderPassBuilder::build()
 {
     auto instance = this->instance();
 
-    if (m_state.commandQueue != nullptr)
-        instance->m_impl->m_queue = m_state.commandQueue;
+    if (this->state().commandQueue != nullptr)
+        instance->m_impl->m_queue = this->state().commandQueue;
 
-    instance->m_impl->mapRenderTargets(m_state.renderTargets);
-    instance->m_impl->mapInputAttachments(m_state.inputAttachments);
-    instance->m_impl->m_inputAttachmentSamplerBinding = m_state.inputAttachmentSamplerBinding;
-    instance->m_impl->m_secondaryCommandBufferCount = m_state.commandBufferCount;
+    instance->m_impl->mapRenderTargets(this->state().renderTargets);
+    instance->m_impl->mapInputAttachments(this->state().inputAttachments);
+    instance->m_impl->m_inputAttachmentSamplerBinding = this->state().inputAttachmentSamplerBinding;
+    instance->m_impl->m_secondaryCommandBufferCount = this->state().commandBufferCount;
 }
 
 RenderPassDependency DirectX12RenderPassBuilder::makeInputAttachment(DescriptorBindingPoint binding, const RenderTarget& renderTarget)

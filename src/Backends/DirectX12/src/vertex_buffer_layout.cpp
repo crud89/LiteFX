@@ -63,6 +63,6 @@ Enumerable<const BufferAttribute*> DirectX12VertexBufferLayout::attributes() con
 
 void DirectX12VertexBufferLayoutBuilder::build()
 {
-    this->instance()->m_impl->m_attributes = std::move(m_state.attributes);
+    this->instance()->m_impl->m_attributes = std::move(this->state().attributes);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

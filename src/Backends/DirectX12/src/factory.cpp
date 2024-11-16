@@ -28,7 +28,7 @@ public:
 		allocatorDesc.pDevice = device.handle().Get();
 		allocatorDesc.PreferredBlockSize = 0;	// TODO: Make configurable.
 
-		D3D12MA::Allocator* allocator;
+		D3D12MA::Allocator* allocator{};
 		raiseIfFailed(D3D12MA::CreateAllocator(&allocatorDesc, &allocator), "Unable to create D3D12 memory allocator.");
 		m_allocator.reset(allocator, D3D12MADeleter{});
 	}
@@ -228,11 +228,13 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String&
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput)) [[unlikely]]
 		throw InvalidArgumentException("usage", "Invalid resource usage has been specified: image resources cannot be used as build inputs for other acceleration structures.");
 
+	// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 	if (dimension == ImageDimensions::CUBE && layers != 6) [[unlikely]]
 		throw ArgumentOutOfRangeException("layers", std::make_pair(6u, 6u), layers, "A cube map must be defined with 6 layers, but {0} are provided.", layers);
 
 	if (dimension == ImageDimensions::DIM_3 && layers != 1) [[unlikely]]
 		throw ArgumentOutOfRangeException("layers", std::make_pair(1u, 1u), layers, "A 3D texture can only have one layer, but {0} are provided.", layers);
+	// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
 	auto width = std::max<UInt32>(1, static_cast<UInt32>(size.width()));
 	auto height = std::max<UInt32>(1, static_cast<UInt32>(size.height()));
@@ -268,10 +270,10 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String&
 
 Enumerable<UniquePtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
 {
-	return [&, this]() -> std::generator<UniquePtr<IDirectX12Image>> {
+	return [](const DirectX12GraphicsFactory* factory, UInt32 elements, Format format, Size3d size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) -> std::generator<UniquePtr<IDirectX12Image>> {
 		for (UInt32 i = 0; i < elements; ++i)
-			co_yield this->createTexture(format, size, dimension, levels, layers, samples, usage);
-	}() | std::views::as_rvalue;
+			co_yield factory->createTexture(format, size, dimension, levels, layers, samples, usage);
+	}(this, elements, format, size, dimension, levels, layers, samples, usage) | std::views::as_rvalue;
 }
 
 UniquePtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
@@ -286,10 +288,10 @@ UniquePtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(const Strin
 
 Enumerable<UniquePtr<IDirectX12Sampler>> DirectX12GraphicsFactory::createSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
 {
-	return [&, this]() -> std::generator<UniquePtr<IDirectX12Sampler>> {
+	return [](const DirectX12GraphicsFactory* factory, UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) -> std::generator<UniquePtr<IDirectX12Sampler>> {
 		for (UInt32 i = 0; i < elements; ++i)
-			co_yield this->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
-	}() | std::views::as_rvalue;
+			co_yield factory->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+	}(this, elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy) | std::views::as_rvalue;
 }
 
 UniquePtr<DirectX12BottomLevelAccelerationStructure> DirectX12GraphicsFactory::createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const

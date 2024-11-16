@@ -14,11 +14,11 @@ public:
     friend class DirectX12DescriptorSetLayout;
 
 private:
-    Array<UniquePtr<DirectX12DescriptorLayout>> m_layouts;
-    UInt32 m_space, m_samplers{ 0 }, m_descriptors{ 0 }, m_rootParameterIndex{ 0 };
-    ShaderStage m_stages;
-    Queue<ComPtr<ID3D12DescriptorHeap>> m_freeDescriptorSets, m_freeSamplerSets;
-    Dictionary<UInt32, UInt32> m_bindingToDescriptor;
+    Array<UniquePtr<DirectX12DescriptorLayout>> m_layouts{};
+    UInt32 m_space{ 0 }, m_samplers{ 0 }, m_descriptors{ 0 }, m_rootParameterIndex{ 0 };
+    ShaderStage m_stages{ ShaderStage::Other };
+    Queue<ComPtr<ID3D12DescriptorHeap>> m_freeDescriptorSets{}, m_freeSamplerSets{};
+    Dictionary<UInt32, UInt32> m_bindingToDescriptor{};
     const DirectX12Device& m_device;
     bool m_isRuntimeArray = false;
     mutable std::mutex m_mutex;
@@ -27,7 +27,7 @@ public:
     DirectX12DescriptorSetLayoutImpl(DirectX12DescriptorSetLayout* parent, const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages) :
         base(parent), m_space(space), m_stages(stages), m_device(device)
     {
-        m_layouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
+        m_layouts = std::move(descriptorLayouts) | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     DirectX12DescriptorSetLayoutImpl(DirectX12DescriptorSetLayout* parent, const DirectX12Device& device) :
@@ -273,21 +273,21 @@ Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allo
 
 Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocateMultiple(UInt32 count, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings) const
 {
-    return [this, descriptors, &bindings, &count]() mutable -> std::generator<UniquePtr<DirectX12DescriptorSet>> {
-        for (auto& binding : bindings)
-            co_yield this->allocate(descriptors, binding);
+    return [](const DirectX12DescriptorSetLayout* layout, UInt32 count, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>* bindings) mutable -> std::generator<UniquePtr<DirectX12DescriptorSet>> {
+        for (auto& binding : *bindings)
+            co_yield layout->allocate(descriptors, binding);
 
-        for (auto i = static_cast<UInt32>(bindings.size()); i < count; ++i)
-            co_yield this->allocate(descriptors);
-    }() | std::views::as_rvalue;
+        for (auto i = static_cast<UInt32>(bindings->size()); i < count; ++i)
+            co_yield layout->allocate(descriptors);
+    }(this, count, descriptors, &bindings) | std::views::as_rvalue;
 }
 
 Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allocateMultiple(UInt32 count, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const
 {
-    return [this, descriptors, &bindingFactory, &count]() -> std::generator<UniquePtr<DirectX12DescriptorSet>> {
+    return [](const DirectX12DescriptorSetLayout* layout, UInt32 count, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) -> std::generator<UniquePtr<DirectX12DescriptorSet>> {
         for (UInt32 i = 0; i < count; ++i)
-            co_yield this->allocate(descriptors, bindingFactory(i));
-    }() | std::views::as_rvalue;
+            co_yield layout->allocate(descriptors, bindingFactory(i));
+    }(this, count, descriptors, bindingFactory) | std::views::as_rvalue;
 }
 
 void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptorSet) const noexcept
@@ -310,8 +310,8 @@ void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptor
 DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 space, ShaderStage stages) :
     DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(parent.device())))
 {
-    m_state.space = space;
-    m_state.stages = stages;
+    this->state().space = space;
+    this->state().stages = stages;
 }
 
 DirectX12DescriptorSetLayoutBuilder::~DirectX12DescriptorSetLayoutBuilder() noexcept = default;
@@ -319,9 +319,9 @@ DirectX12DescriptorSetLayoutBuilder::~DirectX12DescriptorSetLayoutBuilder() noex
 void DirectX12DescriptorSetLayoutBuilder::build()
 {
     auto instance = this->instance();
-    instance->m_impl->m_layouts = std::move(m_state.descriptorLayouts);
-    instance->m_impl->m_space = std::move(m_state.space);
-    instance->m_impl->m_stages = std::move(m_state.stages);
+    instance->m_impl->m_layouts = std::move(this->state().descriptorLayouts);
+    instance->m_impl->m_space = std::move(this->state().space);
+    instance->m_impl->m_stages = std::move(this->state().stages);
     instance->m_impl->initialize();
 }
 

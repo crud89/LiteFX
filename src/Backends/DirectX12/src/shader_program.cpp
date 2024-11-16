@@ -12,10 +12,10 @@ using namespace LiteFX::Rendering::Backends;
 
 consteval UInt32 FOUR_CC(char ch0, char ch1, char ch2, char ch3) 
 {
-    return static_cast<UInt32>((Byte)ch0) | static_cast<UInt32>((Byte)ch1) << 8 | static_cast<UInt32>((Byte)ch2) << 16 | static_cast<UInt32>((Byte)ch3) << 24;
+    return static_cast<UInt32>((Byte)ch0) | static_cast<UInt32>((Byte)ch1) << 8 | static_cast<UInt32>((Byte)ch2) << 16 | static_cast<UInt32>((Byte)ch3) << 24; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 }
 
-static bool SUPPRESS_MISSING_ROOT_SIGNATURE_WARNING = false;
+static bool SUPPRESS_MISSING_ROOT_SIGNATURE_WARNING = false; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 constexpr BorderMode DECODE_BORDER_MODE(D3D12_TEXTURE_ADDRESS_MODE addressMode) noexcept
 {
@@ -61,25 +61,25 @@ private:
 
     struct DescriptorSetInfo {
     public:
-        UInt32 space;
-        ShaderStage stage;
-        Array<DescriptorInfo> descriptors;
+        UInt32 space{ 0 };
+        ShaderStage stage{ ShaderStage::Other };
+        Array<DescriptorInfo> descriptors{};
     };
 
     struct PushConstantRangeInfo {
     public:
-        ShaderStage stage;
-        UInt32 offset;
-        UInt32 size;
-        UInt32 location;
-        UInt32 space;
+        ShaderStage stage{ ShaderStage::Other };
+        UInt32 offset{ 0 };
+        UInt32 size{ 0 };
+        UInt32 location{ 0 };
+        UInt32 space{ 0 };
     };
 
 public:
     DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent, const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) :
         base(parent), m_device(device)
     {
-        m_modules = modules | std::views::as_rvalue | std::ranges::to<std::vector>();
+        m_modules = std::move(modules) | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent, const DirectX12Device& device) :
@@ -180,6 +180,7 @@ public:
 
     void reflectRootSignature(ComPtr<ID3D12RootSignatureDeserializer> deserializer, Dictionary<UInt32, DescriptorSetInfo>& descriptorSetLayouts, Array<PushConstantRangeInfo>& pushConstantRanges)
     {
+        // NOLINTBEGIN(cppcoreguidelines-pro-type-union-access)
         // Collect the shader stages.
         ShaderStage stages{ };
         std::ranges::for_each(m_modules, [&stages](const auto& shaderModule) { stages = stages | shaderModule->type(); });
@@ -190,7 +191,7 @@ public:
         // Iterate the static samplers.
         for (UInt32 i(0); i < description->NumStaticSamplers; ++i)
         {
-            auto staticSampler = description->pStaticSamplers[i];
+            auto staticSampler = description->pStaticSamplers[i]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
             // If the descriptor space 
             if (!descriptorSetLayouts.contains(staticSampler.RegisterSpace)) [[unlikely]]
@@ -211,7 +212,7 @@ public:
 
         for (UInt32 i(0); i < description->NumParameters; ++i)
         {
-            auto rootParameter = description->pParameters[i];
+            auto rootParameter = description->pParameters[i]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
             // Check if there's a descriptor set for the space.
             if (!descriptorSetLayouts.contains(rootParameter.Descriptor.RegisterSpace)) [[unlikely]]
@@ -271,13 +272,15 @@ public:
                 throw InvalidArgumentException("modules", "The shader modules root signature exposes an unknown root parameter type {1} for parameter {0}.", i, rootParameter.ParameterType);
             }
         }
+
+        // NOLINTEND(cppcoreguidelines-pro-type-union-access)
     }
 
     template <typename TReflection>
     DescriptorInfo getReflectionDescriptorDesc(D3D12_SHADER_INPUT_BIND_DESC inputDesc, TReflection* shaderReflection)
     {
         // First, create a description of the descriptor.
-        DescriptorType type;
+        DescriptorType type{ };
         UInt32 elementSize = 0;
 
         switch (inputDesc.Type)
@@ -389,7 +392,7 @@ public:
             if (LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, shaderModule->type()))
             {
                 // Verify reflection and get the actual shader reflection interface.
-                UINT32 shaderIdx;
+                UINT32 shaderIdx{ 0 };
                 ComPtr<ID3D12LibraryReflection> shaderReflection;
                 raiseIfFailed(reflection->FindFirstPartKind(FOUR_CC('D', 'X', 'I', 'L'), &shaderIdx), "The shader module does not contain a valid DXIL shader.");
                 raiseIfFailed(reflection->GetPartReflection(shaderIdx, IID_PPV_ARGS(&shaderReflection)), "Unable to query shader reflection from DXIL module.");
@@ -402,7 +405,7 @@ public:
                 for (UInt32 f(0); f < shaderInfo.FunctionCount; ++f)
                 {
                     D3D12_FUNCTION_DESC functionDesc;
-                    auto functionReflection = shaderReflection->GetFunctionByIndex(f);
+                    auto functionReflection = shaderReflection->GetFunctionByIndex(static_cast<INT>(f));
                     functionReflection->GetDesc(&functionDesc);
 
                     for (UInt32 i(0); i < functionDesc.BoundResources; ++i)
@@ -420,7 +423,7 @@ public:
             else
             {
                 // Verify reflection and get the actual shader reflection interface.
-                UINT32 shaderIdx;
+                UINT32 shaderIdx{ 0 };
                 ComPtr<ID3D12ShaderReflection> shaderReflection;
                 raiseIfFailed(reflection->FindFirstPartKind(FOUR_CC('D', 'X', 'I', 'L'), &shaderIdx), "The shader module does not contain a valid DXIL shader.");
                 raiseIfFailed(reflection->GetPartReflection(shaderIdx, IID_PPV_ARGS(&shaderReflection)), "Unable to query shader reflection from DXIL module.");
@@ -466,33 +469,35 @@ public:
             LITEFX_WARNING(DIRECTX12_LOG, "None of the provided shader modules exports a root signature. Descriptor sets will be acquired using reflection. Some features (such as root/push constants) are not supported.");
 
         // Create the descriptor set layouts.
-        auto descriptorSets = [this, &descriptorSetLayouts]() -> std::generator<UniquePtr<DirectX12DescriptorSetLayout>> {
+        // NOLINTBEGIN(cppcoreguidelines-avoid-reference-coroutine-parameters)
+        auto descriptorSets = [](const DirectX12Device& device, const Dictionary<UInt32, DescriptorSetInfo>& descriptorSetLayouts) -> std::generator<UniquePtr<DirectX12DescriptorSetLayout>> {
             for (auto it = descriptorSetLayouts.begin(); it != descriptorSetLayouts.end(); ++it)
             {
                 auto& descriptorSet = it->second;
 
                 // Create the descriptor layouts.
-                auto descriptors = [this, &descriptorSet]() -> std::generator<UniquePtr<DirectX12DescriptorLayout>> {
+                auto descriptors = [](const DirectX12Device& device, const DescriptorSetInfo& descriptorSet) -> std::generator<UniquePtr<DirectX12DescriptorLayout>> {
                     for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor)
                         co_yield descriptor->staticSamplerState.has_value() ?
-                            makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(m_device,
+                            makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(device,
                                 D3D12_DECODE_MAG_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
                                 D3D12_DECODE_MIN_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
                                 DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressU), DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressV), DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressW),
                                 D3D12_DECODE_MIP_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? MipMapMode::Nearest : MipMapMode::Linear,
                                 descriptor->staticSamplerState->MipLODBias, descriptor->staticSamplerState->MinLOD, descriptor->staticSamplerState->MaxLOD, static_cast<Float>(descriptor->staticSamplerState->MaxAnisotropy)), descriptor->location) :
                             makeUnique<DirectX12DescriptorLayout>(descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->local);
-                }() | std::views::as_rvalue;
+                }(device, descriptorSet) | std::views::as_rvalue;
 
-                co_yield makeUnique<DirectX12DescriptorSetLayout>(m_device, std::move(descriptors), descriptorSet.space, descriptorSet.stage);
+                co_yield makeUnique<DirectX12DescriptorSetLayout>(device, std::move(descriptors), descriptorSet.space, descriptorSet.stage);
             }
-        }() | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>>();
+        }(m_device, descriptorSetLayouts) | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>>();
 
         // Create the push constants layout.
-        auto pushConstants = [&pushConstantRanges]() -> std::generator<UniquePtr<DirectX12PushConstantsRange>> {
+        auto pushConstants = [](const Array<PushConstantRangeInfo>& pushConstantRanges) -> std::generator<UniquePtr<DirectX12PushConstantsRange>> {
             for (auto range = pushConstantRanges.begin(); range != pushConstantRanges.end(); ++range)
                 co_yield makeUnique<DirectX12PushConstantsRange>(range->stage, range->offset, range->size, range->space, range->location);
-        }() | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>();
+        }(pushConstantRanges) | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>();
+        // NOLINTEND(cppcoreguidelines-avoid-reference-coroutine-parameters)
 
         auto overallSize = std::accumulate(pushConstantRanges.begin(), pushConstantRanges.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range.size; });
         auto pushConstantsLayout = makeUnique<DirectX12PushConstantsLayout>(std::move(pushConstants), overallSize);
@@ -571,7 +576,7 @@ DirectX12ShaderProgramBuilder::~DirectX12ShaderProgramBuilder() noexcept = defau
 
 void DirectX12ShaderProgramBuilder::build()
 {
-    this->instance()->m_impl->m_modules = std::move(m_state.modules);
+    this->instance()->m_impl->m_modules = std::move(this->state().modules);
     this->instance()->m_impl->validate();
 }
 

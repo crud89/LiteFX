@@ -103,7 +103,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
     const auto& descriptorLayout = *(*match);
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding) + firstDescriptor;
     auto descriptorSize = m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset, descriptorSize);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), descriptorSize);
 
     switch (descriptorLayout.descriptorType())
     {
@@ -117,7 +117,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
             };
 
             m_impl->m_layout.device().handle()->CreateConstantBufferView(&constantBufferView, descriptorHandle);
-            descriptorHandle = descriptorHandle.Offset(descriptorSize);
+            descriptorHandle = descriptorHandle.Offset(static_cast<INT>(descriptorSize));
         }
 
         break;
@@ -134,7 +134,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
             };
 
             m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
-            descriptorHandle = descriptorHandle.Offset(descriptorSize);
+            descriptorHandle = descriptorHandle.Offset(static_cast<INT>(descriptorSize));
         }
 
         break;
@@ -150,7 +150,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
             };
 
             m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
-            descriptorHandle = descriptorHandle.Offset(descriptorSize);
+            descriptorHandle = descriptorHandle.Offset(static_cast<INT>(descriptorSize));
         }
 
         break;
@@ -168,7 +168,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
             };
 
             m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
-            descriptorHandle = descriptorHandle.Offset(descriptorSize);
+            descriptorHandle = descriptorHandle.Offset(static_cast<INT>(descriptorSize));
         }
 
         break;
@@ -185,7 +185,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
             };
 
             m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
-            descriptorHandle = descriptorHandle.Offset(descriptorSize);
+            descriptorHandle = descriptorHandle.Offset(static_cast<INT>(descriptorSize));
         }
 
         break;
@@ -202,7 +202,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
             };
 
             m_impl->m_layout.device().handle()->CreateShaderResourceView(buffer.handle().Get(), &bufferView, descriptorHandle);
-            descriptorHandle = descriptorHandle.Offset(descriptorSize);
+            descriptorHandle = descriptorHandle.Offset(static_cast<INT>(descriptorSize));
         }
 
         break;
@@ -218,7 +218,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
             };
 
             m_impl->m_layout.device().handle()->CreateUnorderedAccessView(buffer.handle().Get(), nullptr, &bufferView, descriptorHandle);
-            descriptorHandle = descriptorHandle.Offset(descriptorSize);
+            descriptorHandle = descriptorHandle.Offset(static_cast<INT>(descriptorSize));
         }
 
         break;
@@ -246,12 +246,13 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
     const auto& descriptorLayout = *(*match);
 
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset + descriptor, m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset + descriptor), m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
 
     // Get the number of levels and layers.
     const UInt32 numLevels = levels == 0 ? texture.levels() - firstLevel : levels;
     const UInt32 numLayers = layers == 0 ? texture.layers() - firstLayer : layers;
 
+    // NOLINTBEGIN(cppcoreguidelines-pro-type-union-access)
     if (descriptorLayout.descriptorType() == DescriptorType::Texture || descriptorLayout.descriptorType() == DescriptorType::InputAttachment)
     {
         D3D12_SHADER_RESOURCE_VIEW_DESC textureView = {
@@ -401,6 +402,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
     {
         throw InvalidArgumentException("binding", "The provided texture is bound to a descriptor that is does neither describe a `Texture`, nor a `WritableTexture`.");
     }
+    // NOLINTEND(cppcoreguidelines-pro-type-union-access)
 
     m_impl->updateGlobalBuffers(offset, 1);
 }
@@ -432,7 +434,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sam
         .MaxLOD = sampler.getMaxLOD()
     };
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_samplerHeap->GetCPUDescriptorHandleForHeapStart(), offset + descriptor, m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER));
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_samplerHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset + descriptor), m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER));
     m_impl->m_layout.device().handle()->CreateSampler(&samplerInfo, descriptorHandle);
     m_impl->m_layout.device().updateSamplerDescriptors(*this, offset, 1);
 }
@@ -461,7 +463,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Acceleration
 
     auto offset = m_impl->m_layout.descriptorOffsetForBinding(binding);
     auto descriptorSize = m_impl->m_layout.device().handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), offset + descriptor, descriptorSize);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset + descriptor), descriptorSize);
 
     D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
         .Format = DXGI_FORMAT_UNKNOWN,
@@ -471,7 +473,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Acceleration
     };
 
     m_impl->m_layout.device().handle()->CreateShaderResourceView(nullptr, &bufferView, descriptorHandle);
-    descriptorHandle = descriptorHandle.Offset(descriptorSize);
+    descriptorHandle = descriptorHandle.Offset(static_cast<INT>(descriptorSize));
 
     m_impl->updateGlobalBuffers(offset, 1);
 }

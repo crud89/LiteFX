@@ -169,7 +169,7 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffe
     camera.ViewProjection = projection * view;
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
-    commandBuffer.transfer(reinterpret_cast<const void*>(&camera), sizeof(camera), buffer);
+    commandBuffer.transfer(static_cast<const void*>(&camera), sizeof(camera), buffer);
 }
 
 void SampleApp::onStartup() 

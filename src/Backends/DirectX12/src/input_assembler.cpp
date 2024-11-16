@@ -11,9 +11,9 @@ public:
     friend class DirectX12InputAssembler;
 
 private:
-    Dictionary<UInt32, UniquePtr<DirectX12VertexBufferLayout>> m_vertexBufferLayouts;
-    UniquePtr<DirectX12IndexBufferLayout> m_indexBufferLayout;
-    PrimitiveTopology m_primitiveTopology;
+    Dictionary<UInt32, UniquePtr<DirectX12VertexBufferLayout>> m_vertexBufferLayouts{};
+    UniquePtr<DirectX12IndexBufferLayout> m_indexBufferLayout{};
+    PrimitiveTopology m_primitiveTopology{};
 
 public:
     DirectX12InputAssemblerImpl(DirectX12InputAssembler* parent) :
@@ -26,8 +26,9 @@ public:
     {
         m_primitiveTopology = primitiveTopology;
         m_indexBufferLayout = std::move(indexBufferLayout);
+        auto layouts = std::move(vertexBufferLayouts);
 
-        for (auto& vertexBufferLayout : vertexBufferLayouts)
+        for (auto& vertexBufferLayout : layouts)
         {
             if (vertexBufferLayout == nullptr)
                 throw ArgumentNotInitializedException("vertexBufferLayouts", "One of the provided vertex buffer layouts is not initialized.");
@@ -91,9 +92,9 @@ public:
     friend class DirectX12InputAssembler;
 
 private:
-    Array<UniquePtr<DirectX12VertexBufferLayout>> m_vertexBufferLayouts;
-    UniquePtr<DirectX12IndexBufferLayout> m_indexBufferLayout;
-    PrimitiveTopology m_primitiveTopology;
+    Array<UniquePtr<DirectX12VertexBufferLayout>> m_vertexBufferLayouts{};
+    UniquePtr<DirectX12IndexBufferLayout> m_indexBufferLayout{};
+    PrimitiveTopology m_primitiveTopology{};
 
 public:
     DirectX12InputAssemblerBuilderImpl(DirectX12InputAssemblerBuilder* parent) :
@@ -115,7 +116,7 @@ DirectX12InputAssemblerBuilder::~DirectX12InputAssemblerBuilder() noexcept = def
 
 void DirectX12InputAssemblerBuilder::build()
 {
-    this->instance()->m_impl->initialize(m_state.vertexBufferLayouts | std::views::as_rvalue, std::move(m_state.indexBufferLayout), m_state.topology);
+    this->instance()->m_impl->initialize(this->state().vertexBufferLayouts | std::views::as_rvalue, std::move(this->state().indexBufferLayout), this->state().topology);
 }
 
 DirectX12VertexBufferLayoutBuilder DirectX12InputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)

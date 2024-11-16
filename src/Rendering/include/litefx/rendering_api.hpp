@@ -3602,7 +3602,7 @@ namespace LiteFX::Rendering {
         explicit TimingEvent(const ISwapChain& swapChain, StringView name = "") noexcept;
 
     public:
-        virtual ~TimingEvent() noexcept;
+        ~TimingEvent() noexcept override;
 
         TimingEvent(TimingEvent&&) = delete;
         TimingEvent(const TimingEvent&) = delete;

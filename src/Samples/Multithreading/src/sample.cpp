@@ -168,7 +168,7 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffe
     camera.ViewProjection = projection * view;
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
-    commandBuffer.transfer(reinterpret_cast<const void*>(&camera), sizeof(camera), buffer);
+    commandBuffer.transfer(static_cast<const void*>(&camera), sizeof(camera), buffer);
 }
 
 void SampleApp::onStartup() 
@@ -398,7 +398,7 @@ void SampleApp::drawObject(const IRenderPass* renderPass, int index, int backBuf
 
     // Compute world transform and update the transform buffer.
     transform[index].World = glm::translate(glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)), translations[index]);
-    transformBuffer.map(reinterpret_cast<const void*>(&transform[index]), sizeof(TransformBuffer), backBuffer);
+    transformBuffer.map(static_cast<const void*>(&transform[index]), sizeof(TransformBuffer), backBuffer);
 
     // Bind both descriptor sets to the pipeline.
     commandBuffer->bind({ &cameraBindings, &transformBindings });

@@ -252,7 +252,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto& materialBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::Materials));
     auto materialBuffer = m_device->factory().createBuffer("Material Buffer", materialBindingsLayout, 0, ResourceHeap::Dynamic, sizeof(MaterialData), NUM_INSTANCES);
     auto materialBindings = materialBindingsLayout.allocate(NUM_INSTANCES, { { .resource = *materialBuffer } });
-    materialBuffer->map(reinterpret_cast<const void*>(&materials[0]), sizeof(MaterialData) * NUM_INSTANCES);
+    materialBuffer->map(static_cast<const void*>(&materials[0]), sizeof(MaterialData) * NUM_INSTANCES);
 
     // End and submit the command buffer and wait for it to finish.
     auto fence = commandBuffer->submit();
@@ -334,7 +334,7 @@ void SampleApp::updateCamera(IBuffer& buffer) const
     camera.ViewportSize = glm::vec2(viewportRect.width(), viewportRect.height());
 
     // Update the camera buffer.
-    buffer.map(reinterpret_cast<const void*>(&camera), sizeof(camera));
+    buffer.map(static_cast<const void*>(&camera), sizeof(camera));
 }
 
 void SampleApp::onStartup()

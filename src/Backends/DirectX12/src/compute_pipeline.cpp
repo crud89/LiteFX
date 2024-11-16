@@ -36,7 +36,7 @@ public:
 
 		// Setup shader stages.
 		auto modules = m_program->modules();
-		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", reinterpret_cast<void*>(m_program.get()), modules.size());
+		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", static_cast<void*>(m_program.get()), modules.size());
 
 		std::ranges::for_each(modules, [&, i = 0](const DirectX12ShaderModule* shaderModule) mutable {
 #ifdef NDEBUG
@@ -123,8 +123,8 @@ DirectX12ComputePipelineBuilder::~DirectX12ComputePipelineBuilder() noexcept = d
 void DirectX12ComputePipelineBuilder::build()
 {
 	auto instance = this->instance();
-	instance->m_impl->m_layout = m_state.pipelineLayout;
-	instance->m_impl->m_program = m_state.shaderProgram;
+	instance->m_impl->m_layout = this->state().pipelineLayout;
+	instance->m_impl->m_program = this->state().shaderProgram;
 	instance->handle() = instance->m_impl->initialize();
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

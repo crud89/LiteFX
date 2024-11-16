@@ -631,7 +631,7 @@ namespace LiteFX {
 		auto operator=(const Resource&) = delete;
 		auto operator=(const Resource&&) = delete;
 
-		virtual ~Resource() noexcept = default;
+		~Resource() noexcept override = default;
 
 	protected:
 		/// <inheritdoc />

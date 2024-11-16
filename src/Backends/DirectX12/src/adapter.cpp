@@ -12,7 +12,7 @@ public:
     friend class DirectX12GraphicsAdapter;
 
 private:
-	DXGI_ADAPTER_DESC1 m_properties;
+	DXGI_ADAPTER_DESC1 m_properties{};
 	UInt64 m_driverVersion{ 0 };
 	UInt32 m_apiVersion{ D3D12_SDK_VERSION };
 
@@ -52,12 +52,12 @@ DirectX12GraphicsAdapter::~DirectX12GraphicsAdapter() noexcept = default;
 
 String DirectX12GraphicsAdapter::name() const noexcept
 {
-    return Narrow(WString(m_impl->m_properties.Description));
+    return Narrow(WString(static_cast<WCHAR*>(m_impl->m_properties.Description)));
 }
 
 UInt64 DirectX12GraphicsAdapter::uniqueId() const noexcept
 {
-    return (static_cast<UInt64>(m_impl->m_properties.AdapterLuid.HighPart) << 0x20) | static_cast<UInt64>(m_impl->m_properties.AdapterLuid.LowPart);
+    return (static_cast<UInt64>(m_impl->m_properties.AdapterLuid.HighPart) << 0x20) | static_cast<UInt64>(m_impl->m_properties.AdapterLuid.LowPart); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 }
 
 UInt32 DirectX12GraphicsAdapter::vendorId() const noexcept

@@ -31,9 +31,9 @@ public:
 public:
     Array<D3D12_RAYTRACING_GEOMETRY_DESC> build() const 
     {
-        return [this]() -> std::generator<D3D12_RAYTRACING_GEOMETRY_DESC> {
+        return [](const Array<TriangleMesh>* meshes, const Array<BoundingBoxes>* boundingBoxes) -> std::generator<D3D12_RAYTRACING_GEOMETRY_DESC> {
             // Build up mesh descriptions.
-            for (auto& mesh : m_triangleMeshes)
+            for (auto& mesh : *meshes)
             {
                 // Find the position attribute.
                 auto attributes = mesh.VertexBuffer->layout().attributes();
@@ -64,7 +64,7 @@ public:
             }
 
             // Build up AABB descriptions.
-            for (auto& bb : m_boundingBoxes)
+            for (auto bb : *boundingBoxes)
             {
                 if (bb.Buffer == nullptr) [[unlikely]]
                     throw RuntimeException("Cannot build bottom-level acceleration structure from uninitialized bounding boxes.");
@@ -78,12 +78,12 @@ public:
                     }
                 };
             }
-        }() | std::ranges::to<Array<D3D12_RAYTRACING_GEOMETRY_DESC>>();
+        }(&m_triangleMeshes, &m_boundingBoxes) | std::ranges::to<Array<D3D12_RAYTRACING_GEOMETRY_DESC>>();
     }
 
     inline void queuePostbuildInfoCommands(const DirectX12CommandBuffer& commandBuffer, bool afterCopy = false) 
     {
-        auto& device = static_cast<const DirectX12Queue&>(commandBuffer.queue()).device();
+        auto& device = static_cast<const DirectX12Queue&>(commandBuffer.queue()).device(); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
 
         if (m_postBuildBuffer == nullptr) [[unlikely]]
         {
@@ -103,11 +103,11 @@ public:
         };
 
         // Transition the buffer into UAV state. We create  manual barriers here, as the special access flag is only required in this specific situation.
-        CD3DX12_BUFFER_BARRIER preBarrier[1] = {
+        std::array<CD3DX12_BUFFER_BARRIER, 1>  preBarrier = {
             CD3DX12_BUFFER_BARRIER(afterCopy ? D3D12_BARRIER_SYNC_COPY_RAYTRACING_ACCELERATION_STRUCTURE : D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE, D3D12_BARRIER_SYNC_EMIT_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO, D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE, D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ, std::as_const(*m_buffer).handle().Get()),
             //CD3DX12_BUFFER_BARRIER(D3D12_BARRIER_SYNC_NONE, D3D12_BARRIER_SYNC_EMIT_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO, D3D12_BARRIER_ACCESS_NO_ACCESS, D3D12_BARRIER_ACCESS_UNORDERED_ACCESS, std::as_const(*m_postBuildBuffer).handle().Get()),
         };
-        auto preBarrierGroup = CD3DX12_BARRIER_GROUP(1, preBarrier);
+        auto preBarrierGroup = CD3DX12_BARRIER_GROUP(1, preBarrier.data());
         commandBuffer.handle()->Barrier(1, &preBarrierGroup);
 
         // Emit the
@@ -163,8 +163,8 @@ UInt64 DirectX12BottomLevelAccelerationStructure::size() const noexcept
 void DirectX12BottomLevelAccelerationStructure::build(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer, SharedPtr<const IDirectX12Buffer> buffer, UInt64 offset, UInt64 maxSize)
 {
     // Validate the arguments.
-    UInt64 requiredMemory, requiredScratchMemory;
-    auto& device = static_cast<const DirectX12Queue&>(commandBuffer.queue()).device();
+    UInt64 requiredMemory{}, requiredScratchMemory{};
+    auto& device = static_cast<const DirectX12Queue&>(commandBuffer.queue()).device(); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
     device.computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory);
 
     if ((offset % D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT) != 0) [[unlikely]]
@@ -205,8 +205,8 @@ void DirectX12BottomLevelAccelerationStructure::update(const DirectX12CommandBuf
         throw RuntimeException("The acceleration structure does not allow updates. Specify `AccelerationStructureFlags::AllowUpdate` during creation.");
 
     // Validate the arguments and create the buffers if required.
-    UInt64 requiredMemory, requiredScratchMemory;
-    auto& device = static_cast<const DirectX12Queue&>(commandBuffer.queue()).device();
+    UInt64 requiredMemory{}, requiredScratchMemory{};
+    auto& device = static_cast<const DirectX12Queue&>(commandBuffer.queue()).device(); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
     device.computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory, true);
 
     if ((offset % D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT) != 0) [[unlikely]]
@@ -251,7 +251,7 @@ void DirectX12BottomLevelAccelerationStructure::copy(const DirectX12CommandBuffe
 
     // Get the amount of memory required. Note that in DirectX it is not possible to query the availability of size info, so we have to rely on external synchronization anyway.
     UInt64 requiredMemory = this->size();
-    auto& device = static_cast<const DirectX12Queue&>(commandBuffer.queue()).device();
+    auto& device = static_cast<const DirectX12Queue&>(commandBuffer.queue()).device(); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
 
     // Validate the input arguments.
     if (buffer == nullptr)

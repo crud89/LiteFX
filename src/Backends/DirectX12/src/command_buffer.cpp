@@ -31,7 +31,7 @@ public:
 		m_queue.device().indirectDrawSignatures(m_dispatchSignature, m_dispatchMeshSignature, m_drawSignature, m_drawIndexedSignature);
 
 		// Create a command allocator.
-		D3D12_COMMAND_LIST_TYPE type;
+		D3D12_COMMAND_LIST_TYPE type{};
 
 		m_secondary = !primary;
 		if (m_secondary)
@@ -259,7 +259,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 	});
 
 	auto parametersBlock = parametersData |
-		std::views::transform([](const Parameters& parameters) { return reinterpret_cast<const void*>(&parameters); }) |
+		std::views::transform([](const Parameters& parameters) { return static_cast<const void*>(&parameters); }) |
 		std::ranges::to<Array<const void*>>();
 
 	// Set the active pipeline state.
@@ -303,7 +303,7 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image) noexcept
 
 			// Dispatch the pipeline.
 			this->bind(*(*resource), pipeline);
-			this->dispatch({ std::max<UInt32>(static_cast<UInt32>(size.width() / 8), 1), std::max<UInt32>(static_cast<UInt32>(size.height() / 8), 1), 1 });
+			this->dispatch({ std::max<UInt32>(static_cast<UInt32>(size.width() / 8), 1), std::max<UInt32>(static_cast<UInt32>(size.height() / 8), 1), 1 }); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
 			// Wait for all writes.
 			DirectX12Barrier subBarrier(PipelineStage::Compute, PipelineStage::Compute);
@@ -555,7 +555,7 @@ void DirectX12CommandBuffer::drawIndexedIndirect(const IDirectX12Buffer& batchBu
 
 void DirectX12CommandBuffer::pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept
 {
-	std::ranges::for_each(layout.ranges(), [this, &memory](const DirectX12PushConstantsRange* range) { this->handle()->SetGraphicsRoot32BitConstants(range->rootParameterIndex(), range->size() / 4, reinterpret_cast<const char* const>(memory) + range->offset(), 0); });
+	std::ranges::for_each(layout.ranges(), [this, &memory](const DirectX12PushConstantsRange* range) { this->handle()->SetGraphicsRoot32BitConstants(range->rootParameterIndex(), range->size() / sizeof(UInt32), static_cast<const char* const>(memory) + range->offset(), 0); }); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 }
 
 void DirectX12CommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const

@@ -14,6 +14,7 @@ struct LocalDescriptorBindingPoint {
 	}
 };
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 template <>
 struct std::hash<LocalDescriptorBindingPoint> {
 	std::size_t operator()(const LocalDescriptorBindingPoint& p) const noexcept {
@@ -24,6 +25,7 @@ struct std::hash<LocalDescriptorBindingPoint> {
 		return res;
 	}
 };
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
 constexpr auto HitGroupNameTemplate = L"HitGroup_{0}"sv;
 
@@ -41,7 +43,7 @@ private:
 	SharedPtr<DirectX12PipelineLayout> m_layout;
 	SharedPtr<const DirectX12ShaderProgram> m_program;
 	const ShaderRecordCollection m_shaderRecordCollection;
-	UInt32 m_maxRecursionDepth { 10 }, m_maxPayloadSize{ 0 }, m_maxAttributeSize{ 32 };
+	UInt32 m_maxRecursionDepth { 10 }, m_maxPayloadSize{ 0 }, m_maxAttributeSize{ 32 }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 	ComPtr<ID3D12StateObject> m_pipelineState;
 
 public:
@@ -71,7 +73,7 @@ public:
 		if (m_program != m_shaderRecordCollection.program()) [[unlikely]]
 			throw InvalidArgumentException("shaderRecords", "The ray tracing pipeline shader program must be the same as used to build the shader record collection.");
 
-		LITEFX_TRACE(DIRECTX12_LOG, "Creating ray-tracing pipeline (\"{1}\") for layout {0} (records: {2})...", reinterpret_cast<void*>(m_layout.get()), m_parent->name(), m_shaderRecordCollection.shaderRecords().size());
+		LITEFX_TRACE(DIRECTX12_LOG, "Creating ray-tracing pipeline (\"{1}\") for layout {0} (records: {2})...", static_cast<void*>(m_layout.get()), m_parent->name(), m_shaderRecordCollection.shaderRecords().size());
 		
 		// Validate shader stage usage.
 		auto modules = m_program->modules();
@@ -87,7 +89,7 @@ public:
 		else if (hasMeshShaders) [[unlikely]]
 			throw InvalidArgumentException("shaderProgram", "The shader program contains a mesh shader, which is not supported in a ray-tracing pipeline");
 		
-		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", reinterpret_cast<const void*>(m_program.get()), modules.size());
+		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", static_cast<const void*>(m_program.get()), modules.size());
 
 		// Start by describing the shader modules individually.
 		struct ShaderModuleSubobjectData {
@@ -251,7 +253,7 @@ public:
 				HRESULT hr = ::D3D12SerializeVersionedRootSignature(&rootSignatureDesc, &signature, &error);
 
 				if (error != nullptr)
-					errorString = String(reinterpret_cast<TCHAR*>(error->GetBufferPointer()), error->GetBufferSize());
+					errorString = String(static_cast<TCHAR*>(error->GetBufferPointer()), error->GetBufferSize());
 
 				raiseIfFailed(hr, "Unable to serialize shader-local root signature: {0}", errorString);
 
@@ -483,7 +485,7 @@ public:
 					std::memcpy(recordData.data(), getRecordIdentifier(currentRecord), D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
 
 					// Write the payload and map everything into the buffer.
-					std::memcpy(recordData.data() + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, currentRecord->localData(), currentRecord->localDataSize());
+					std::memcpy(recordData.data() + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, currentRecord->localData(), currentRecord->localDataSize()); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 					result->map(recordData.data(), recordSize, record++);
 				}
 
@@ -578,10 +580,10 @@ DirectX12RayTracingPipelineBuilder::~DirectX12RayTracingPipelineBuilder() noexce
 void DirectX12RayTracingPipelineBuilder::build()
 {
 	auto instance = this->instance();
-	instance->m_impl->m_layout = m_state.pipelineLayout;
-	instance->m_impl->m_maxRecursionDepth = m_state.maxRecursionDepth;
-	instance->m_impl->m_maxPayloadSize = m_state.maxPayloadSize;
-	instance->m_impl->m_maxAttributeSize = m_state.maxAttributeSize;
+	instance->m_impl->m_layout = this->state().pipelineLayout;
+	instance->m_impl->m_maxRecursionDepth = this->state().maxRecursionDepth;
+	instance->m_impl->m_maxPayloadSize = this->state().maxPayloadSize;
+	instance->m_impl->m_maxAttributeSize = this->state().maxAttributeSize;
 	instance->m_impl->initialize();
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

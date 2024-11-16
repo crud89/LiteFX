@@ -520,6 +520,7 @@ LPCTSTR LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getSemanticName(
 
 String LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getVendorName(UInt32 vendorId)
 {
+	// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 	switch (vendorId)
 	{
 	case 0x10001: return "VIV";
@@ -536,6 +537,7 @@ String LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getVendorName(UIn
 	case 0x5143: return "Qualcomm";
 	default: return "Unknown";
 	}
+	// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 }
 
 D3D12_COMPARISON_FUNC LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getCompareOp(CompareOperation compareOp)

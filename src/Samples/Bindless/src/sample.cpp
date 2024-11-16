@@ -173,7 +173,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // Since we are using an unstructured storage buffer, we need to specify the element size manually.
     auto instanceBuffer = m_device->factory().createBuffer("Instance Buffer", instanceBindingLayout, 0, ResourceHeap::Resource, sizeof(InstanceBuffer), NUM_INSTANCES);
     auto instanceBinding = instanceBindingLayout.allocate(NUM_INSTANCES, { { 0, *instanceBuffer } });
-    commandBuffer->transfer(reinterpret_cast<const void*>(&instanceData), sizeof(instanceData), *instanceBuffer, 0, NUM_INSTANCES);
+    commandBuffer->transfer(static_cast<const void*>(&instanceData), sizeof(instanceData), *instanceBuffer, 0, NUM_INSTANCES);
 
     // End and submit the command buffer.
     m_transferFence = commandBuffer->submit();
@@ -198,7 +198,7 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffe
     camera.ViewProjection = projection * view;
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
-    commandBuffer.transfer(reinterpret_cast<const void*>(&camera), sizeof(camera), buffer);
+    commandBuffer.transfer(static_cast<const void*>(&camera), sizeof(camera), buffer);
 }
 
 void SampleApp::onStartup() 
@@ -447,7 +447,7 @@ void SampleApp::drawFrame()
     // Set the draw call meta-data.
     drawData.Time = time;
     drawData.Speed = glm::radians(42.0f);
-    drawDataBuffer.map(reinterpret_cast<const void*>(&drawData), sizeof(drawData), backBuffer);
+    drawDataBuffer.map(static_cast<const void*>(&drawData), sizeof(drawData), backBuffer);
 
     // Bind all descriptor sets to the pipeline.
     commandBuffer->bind({ &cameraBindings, &drawDataBindings, &instanceBindings });

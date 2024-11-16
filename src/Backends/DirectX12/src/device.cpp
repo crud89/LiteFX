@@ -17,14 +17,14 @@ private:
 	const DirectX12Backend& m_backend;
 	DeviceState m_deviceState;
 	UniquePtr<DirectX12Surface> m_surface;
-	DirectX12Queue* m_graphicsQueue, * m_transferQueue, * m_computeQueue;
+	DirectX12Queue* m_graphicsQueue{}, * m_transferQueue{}, * m_computeQueue{};
 	Array<UniquePtr<DirectX12Queue>> m_queues;
 	UniquePtr<DirectX12GraphicsFactory> m_factory;
 	UniquePtr<DirectX12ComputePipeline> m_blitPipeline;
 	ComPtr<ID3D12InfoQueue1> m_eventQueue;
 	UniquePtr<DirectX12SwapChain> m_swapChain;
 	DWORD m_debugCallbackCookie = 0;
-	UInt32 m_globalBufferHeapSize, m_globalSamplerHeapSize, m_bufferDescriptorIncrement, m_samplerDescriptorIncrement, m_bufferOffset{ 0 }, m_samplerOffset{ 0 };
+	UInt32 m_globalBufferHeapSize, m_globalSamplerHeapSize, m_bufferDescriptorIncrement{ 0 }, m_samplerDescriptorIncrement{ 0 }, m_bufferOffset{ 0 }, m_samplerOffset{ 0 };
 	ComPtr<ID3D12DescriptorHeap> m_globalBufferHeap, m_globalSamplerHeap;
 	mutable std::mutex m_bufferBindMutex;
 	Array<std::pair<UInt32, UInt32>> m_bufferDescriptorFragments, m_samplerDescriptorFragments;
@@ -37,11 +37,11 @@ public:
 		if (m_surface == nullptr)
 			throw ArgumentNotInitializedException("surface", "The surface must be initialized.");
 
-		if (globalSamplerHeapSize > 2048) [[unlikely]]
-			throw ArgumentOutOfRangeException("globalSamplerHeapSize", std::make_pair(0u, 2048u), globalSamplerHeapSize, "Only 2048 samplers are allowed in the global sampler heap, but {0} have been specified.", globalSamplerHeapSize);
+		if (globalSamplerHeapSize > D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE) [[unlikely]]
+			throw ArgumentOutOfRangeException("globalSamplerHeapSize", std::make_pair<UInt32, UInt32>(0, D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE), globalSamplerHeapSize, "Only 2048 samplers are allowed in the global sampler heap, but {0} have been specified.", globalSamplerHeapSize);
 	}
 
-	~DirectX12DeviceImpl() noexcept
+	~DirectX12DeviceImpl() noexcept override
 	{
 		// Clear the device state.
 		m_deviceState.clear();
@@ -54,6 +54,11 @@ public:
 		m_swapChain = nullptr;
 		m_queues.clear();
 	}
+
+	DirectX12DeviceImpl(const DirectX12DeviceImpl&) = delete;
+	DirectX12DeviceImpl(DirectX12DeviceImpl&&) = delete;
+	auto operator=(const DirectX12DeviceImpl&) = delete;
+	auto operator=(DirectX12DeviceImpl&&) = delete;
 
 #ifndef NDEBUG
 private:
@@ -131,17 +136,17 @@ public:
 			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_INFO, FALSE);
 			
 			// Suppress individual messages by their ID
-			D3D12_MESSAGE_ID suppressIds[] = { 
+			std::array<D3D12_MESSAGE_ID, 2> suppressIds = { 
 				D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE, // Mismatch in clear value is intended.
 				D3D12_MESSAGE_ID_CLEARDEPTHSTENCILVIEW_MISMATCHINGCLEARVALUE, // Mismatch in clear value is intended.
 			};
-			D3D12_MESSAGE_SEVERITY severities[] = { D3D12_MESSAGE_SEVERITY_INFO };	// Somehow it is required to deny info-level messages. Otherwise strange pointer issues are occurring.
+			std::array<D3D12_MESSAGE_SEVERITY, 1> severities = { D3D12_MESSAGE_SEVERITY_INFO };	// Somehow it is required to deny info-level messages. Otherwise strange pointer issues are occurring.
 
 			D3D12_INFO_QUEUE_FILTER infoQueueFilter = {};
-			infoQueueFilter.DenyList.NumIDs = _countof(suppressIds);
-			infoQueueFilter.DenyList.pIDList = suppressIds;
-			infoQueueFilter.DenyList.NumSeverities = _countof(severities);
-			infoQueueFilter.DenyList.pSeverityList = severities;
+			infoQueueFilter.DenyList.NumIDs = static_cast<UINT>(suppressIds.size());
+			infoQueueFilter.DenyList.pIDList = suppressIds.data();
+			infoQueueFilter.DenyList.NumSeverities = static_cast<UINT>(severities.size());
+			infoQueueFilter.DenyList.pSeverityList = severities.data();
 
 			raiseIfFailed(infoQueue->PushStorageFilter(&infoQueueFilter), "Unable to push message filter to info queue.");
 
@@ -227,6 +232,7 @@ public:
 			auto shaderProgram = DirectX12ShaderProgram::create(*m_parent, modules | std::views::as_rvalue);
 
 			// Allocate descriptor set layouts.
+			// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 			UniquePtr<DirectX12PushConstantsLayout> pushConstantsLayout = nullptr;
 			auto bufferLayouts = Enumerable<UniquePtr<DirectX12DescriptorLayout>>(
 				makeUnique<DirectX12DescriptorLayout>(DescriptorType::ConstantBuffer, 0, 16), 
@@ -240,6 +246,7 @@ public:
 				makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(bufferLayouts), 0, ShaderStage::Compute),
 				makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(samplerLayouts), 1, ShaderStage::Compute)
 			);
+			// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 			
 			// Create a pipeline layout.
 			auto pipelineLayout = makeShared<DirectX12PipelineLayout>(*m_parent, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
@@ -274,14 +281,14 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, GraphicsDeviceFeatures features) :
-	DirectX12Device(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features)
+	DirectX12Device(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 {
 }
 
 DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features, UInt32 globalBufferHeapSize, UInt32 globalSamplerHeapSize) :
 	ComResource<ID3D12Device10>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, std::move(surface), backend, globalBufferHeapSize, globalSamplerHeapSize))
 {
-	LITEFX_DEBUG(DIRECTX12_LOG, "Creating DirectX 12 device {{ Surface: {0}, Adapter: {1} }}...", reinterpret_cast<void*>(&surface), adapter.deviceId());
+	LITEFX_DEBUG(DIRECTX12_LOG, "Creating DirectX 12 device {{ Surface: {0}, Adapter: {1} }}...", static_cast<void*>(&surface), adapter.deviceId());
 	LITEFX_DEBUG(DIRECTX12_LOG, "--------------------------------------------------------------------------");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Vendor: {0:#0x} (\"{1}\")", adapter.vendorId(), DX12::getVendorName(adapter.vendorId()).c_str());
 	LITEFX_DEBUG(DIRECTX12_LOG, "Driver Version: {0:#0x}", adapter.driverVersion());
@@ -405,8 +412,8 @@ void DirectX12Device::updateBufferDescriptors(const DirectX12DescriptorSet& desc
 {
 	if (descriptors > 0) [[likely]]
 	{
-		CD3DX12_CPU_DESCRIPTOR_HANDLE targetHandle(m_impl->m_globalBufferHeap->GetCPUDescriptorHandleForHeapStart(), descriptorSet.bufferOffset() + firstDescriptor, m_impl->m_bufferDescriptorIncrement);
-		CD3DX12_CPU_DESCRIPTOR_HANDLE sourceHandle(descriptorSet.bufferHeap()->GetCPUDescriptorHandleForHeapStart(), firstDescriptor, m_impl->m_bufferDescriptorIncrement);
+		CD3DX12_CPU_DESCRIPTOR_HANDLE targetHandle(m_impl->m_globalBufferHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(descriptorSet.bufferOffset() + firstDescriptor), m_impl->m_bufferDescriptorIncrement);
+		CD3DX12_CPU_DESCRIPTOR_HANDLE sourceHandle(descriptorSet.bufferHeap()->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(firstDescriptor), m_impl->m_bufferDescriptorIncrement);
 		this->handle()->CopyDescriptorsSimple(descriptors, targetHandle, sourceHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	}
 }
@@ -415,8 +422,8 @@ void DirectX12Device::updateSamplerDescriptors(const DirectX12DescriptorSet& des
 {
 	if (descriptors > 0) [[likely]]
 	{
-		CD3DX12_CPU_DESCRIPTOR_HANDLE targetHandle(m_impl->m_globalSamplerHeap->GetCPUDescriptorHandleForHeapStart(), descriptorSet.samplerOffset() + firstDescriptor, m_impl->m_samplerDescriptorIncrement);
-		CD3DX12_CPU_DESCRIPTOR_HANDLE sourceHandle(descriptorSet.samplerHeap()->GetCPUDescriptorHandleForHeapStart(), firstDescriptor, m_impl->m_samplerDescriptorIncrement);
+		CD3DX12_CPU_DESCRIPTOR_HANDLE targetHandle(m_impl->m_globalSamplerHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(descriptorSet.samplerOffset() + firstDescriptor), m_impl->m_samplerDescriptorIncrement);
+		CD3DX12_CPU_DESCRIPTOR_HANDLE sourceHandle(descriptorSet.samplerHeap()->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(firstDescriptor), m_impl->m_samplerDescriptorIncrement);
 		this->handle()->CopyDescriptorsSimple(descriptors, targetHandle, sourceHandle, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
 	}
 }
@@ -438,7 +445,7 @@ void DirectX12Device::bindDescriptorSet(const DirectX12CommandBuffer& commandBuf
 	// Copy the descriptors to the global heaps and set the root table parameters.
 	if (buffers > 0)
 	{
-		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalBufferHeap->GetGPUDescriptorHandleForHeapStart(), descriptorSet.bufferOffset(), m_impl->m_bufferDescriptorIncrement);
+		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalBufferHeap->GetGPUDescriptorHandleForHeapStart(), static_cast<INT>(descriptorSet.bufferOffset()), m_impl->m_bufferDescriptorIncrement);
 
 		if (isGraphicsSet)
 			commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.layout().rootParameterIndex(), targetGpuHandle);
@@ -449,7 +456,7 @@ void DirectX12Device::bindDescriptorSet(const DirectX12CommandBuffer& commandBuf
 	if (samplers > 0)
 	{
 		// The parameter index equals the target descriptor set space.
-		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalSamplerHeap->GetGPUDescriptorHandleForHeapStart(), descriptorSet.samplerOffset(), m_impl->m_samplerDescriptorIncrement);
+		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalSamplerHeap->GetGPUDescriptorHandleForHeapStart(), static_cast<INT>(descriptorSet.samplerOffset()), m_impl->m_samplerDescriptorIncrement);
 
 		if (isGraphicsSet)
 			commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.layout().rootParameterIndex(), targetGpuHandle);
@@ -599,13 +606,13 @@ MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(Format format) con
 
 	for (size_t level(0); level < allLevels.size(); ++level)
 	{
-		levels.SampleCount = std::to_underlying(allLevels[level]);
+		levels.SampleCount = std::to_underlying(allLevels[level]); // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
 		
 		if (FAILED(this->handle()->CheckFeatureSupport(D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS, &levels, sizeof(levels))))
 			continue;
 
 		if (levels.NumQualityLevels > 0)
-			return allLevels[level];
+			return allLevels[level]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
 	}
 
 	LITEFX_WARNING(DIRECTX12_LOG, "No supported multi-sampling levels could be queried. Assuming that multi-sampling is disabled.");
@@ -614,9 +621,9 @@ MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(Format format) con
 
 double DirectX12Device::ticksPerMillisecond() const noexcept
 {
-	UInt64 frequency = 1000000u;
+	UInt64 frequency{};
 	std::as_const(*m_impl->m_graphicsQueue).handle()->GetTimestampFrequency(&frequency);
-	return static_cast<double>(frequency) / 1000.0;
+	return static_cast<double>(frequency) / 1000.0; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 }
 
 void DirectX12Device::wait() const
