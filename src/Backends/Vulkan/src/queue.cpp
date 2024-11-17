@@ -11,7 +11,7 @@ extern PFN_vkQueueInsertDebugUtilsLabelEXT  vkQueueInsertDebugUtilsLabel;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanQueue::VulkanQueueImpl : public Implement<VulkanQueue> {
+class VulkanQueue::VulkanQueueImpl {
 public:
 	friend class VulkanQueue;
 
@@ -26,14 +26,9 @@ private:
 	Array<Tuple<UInt64, SharedPtr<const VulkanCommandBuffer>>> m_submittedCommandBuffers;
 
 public:
-	VulkanQueueImpl(VulkanQueue* parent, const VulkanDevice& device, QueueType type, QueuePriority priority, UInt32 familyId, UInt32 queueId) :
-		base(parent), m_type(type), m_priority(priority), m_familyId(familyId), m_queueId(queueId), m_device(device)
+	VulkanQueueImpl(const VulkanDevice& device, QueueType type, QueuePriority priority, UInt32 familyId, UInt32 queueId) :
+		m_type(type), m_priority(priority), m_familyId(familyId), m_queueId(queueId), m_device(device)
 	{
-	}
-
-	~VulkanQueueImpl() 
-	{
-		this->release();
 	}
 
 public:
@@ -71,14 +66,14 @@ public:
 		return queue;
 	}
 
-	void releaseCommandBuffers(UInt64 beforeFence)
+	void releaseCommandBuffers(const VulkanQueue& queue, UInt64 beforeFence)
 	{
 		// Release all shared command buffers until this point.
-		const auto [from, to] = std::ranges::remove_if(m_submittedCommandBuffers, [this, &beforeFence](auto& pair) {
+		const auto [from, to] = std::ranges::remove_if(m_submittedCommandBuffers, [this, &queue, &beforeFence](auto& pair) {
 			if (std::get<0>(pair) > beforeFence)
 				return false;
 
-			this->m_parent->releaseSharedState(*std::get<1>(pair));
+			queue.releaseSharedState(*std::get<1>(pair));
 			return true;
 		});
 
@@ -91,12 +86,19 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanQueue::VulkanQueue(const VulkanDevice& device, QueueType type, QueuePriority priority, UInt32 familyId, UInt32 queueId) :
-	Resource<VkQueue>(nullptr), m_impl(makePimpl<VulkanQueueImpl>(this, device, type, priority, familyId, queueId))
+	Resource<VkQueue>(nullptr), m_impl(device, type, priority, familyId, queueId)
 {
 	this->handle() = m_impl->initialize();
 }
 
-VulkanQueue::~VulkanQueue() noexcept = default;
+
+VulkanQueue::VulkanQueue(VulkanQueue&&) noexcept = default;
+VulkanQueue& VulkanQueue::operator=(VulkanQueue&&) noexcept = default;
+
+VulkanQueue::~VulkanQueue() noexcept
+{
+	m_impl->release();
+}
 
 const VulkanDevice& VulkanQueue::device() const noexcept
 {
@@ -178,7 +180,7 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) c
 	// Remove all previously submitted command buffers, that have already finished.
 	UInt64 completedValue = 0;
 	::vkGetSemaphoreCounterValue(m_impl->m_device.handle(), m_impl->m_timelineSemaphore, &completedValue);
-	m_impl->releaseCommandBuffers(completedValue);
+	m_impl->releaseCommandBuffers(*this, completedValue);
 
 	// End the command buffer.
 	commandBuffer->end();
@@ -234,7 +236,7 @@ UInt64 VulkanQueue::submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>
 	// Remove all previously submitted command buffers, that have already finished.
 	UInt64 completedValue = 0;
 	::vkGetSemaphoreCounterValue(m_impl->m_device.handle(), m_impl->m_timelineSemaphore, &completedValue);
-	m_impl->releaseCommandBuffers(completedValue);
+	m_impl->releaseCommandBuffers(*this, completedValue);
 
 	// End the command buffer.
 	auto commandBufferInfos = [&commandBuffers]() -> std::generator<VkCommandBufferSubmitInfo> {
@@ -296,7 +298,7 @@ void VulkanQueue::waitFor(UInt64 fence) const noexcept
 		::vkWaitSemaphores(m_impl->m_device.handle(), &waitInfo, std::numeric_limits<UInt64>::max());
 	}
 
-	m_impl->releaseCommandBuffers(fence);
+	m_impl->releaseCommandBuffers(*this, fence);
 }
 
 void VulkanQueue::waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept

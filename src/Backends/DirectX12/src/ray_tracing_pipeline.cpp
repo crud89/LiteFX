@@ -33,7 +33,7 @@ constexpr auto HitGroupNameTemplate = L"HitGroup_{0}"sv;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12RayTracingPipeline::DirectX12RayTracingPipelineImpl : public Implement<DirectX12RayTracingPipeline> {
+class DirectX12RayTracingPipeline::DirectX12RayTracingPipelineImpl {
 public:
 	friend class DirectX12RayTracingPipelineBuilder;
 	friend class DirectX12RayTracingPipeline;
@@ -47,8 +47,8 @@ private:
 	ComPtr<ID3D12StateObject> m_pipelineState;
 
 public:
-	DirectX12RayTracingPipelineImpl(DirectX12RayTracingPipeline* parent, const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, ShaderRecordCollection&& shaderRecords) :
-		base(parent), m_device(device), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords)), m_maxRecursionDepth(maxRecursionDepth), m_maxPayloadSize(maxPayloadSize), m_maxAttributeSize(maxAttributeSize)
+	DirectX12RayTracingPipelineImpl(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, ShaderRecordCollection&& shaderRecords) :
+		m_device(device), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords)), m_maxRecursionDepth(maxRecursionDepth), m_maxPayloadSize(maxPayloadSize), m_maxAttributeSize(maxAttributeSize)
 	{
 		if (maxRecursionDepth > D3D12_RAYTRACING_MAX_DECLARABLE_TRACE_RECURSION_DEPTH) [[unlikely]]
 			throw ArgumentOutOfRangeException("maxRecursionDepth", std::make_pair(0_ui32, static_cast<UInt32>(D3D12_RAYTRACING_MAX_DECLARABLE_TRACE_RECURSION_DEPTH)), maxRecursionDepth, "The specified ray tracing recursion depth too large.");
@@ -57,14 +57,14 @@ public:
 			throw ArgumentOutOfRangeException("maxAttributeSize", std::make_pair(0_ui32, static_cast<UInt32>(D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES)), maxAttributeSize, "The specified ray attribute size was too large.");
 	}
 
-	DirectX12RayTracingPipelineImpl(DirectX12RayTracingPipeline* parent, const DirectX12Device& device, ShaderRecordCollection&& shaderRecords) :
-		base(parent), m_device(device), m_shaderRecordCollection(std::move(shaderRecords))
+	DirectX12RayTracingPipelineImpl(const DirectX12Device& device, ShaderRecordCollection&& shaderRecords) :
+		m_device(device), m_shaderRecordCollection(std::move(shaderRecords))
 	{
 		m_program = std::dynamic_pointer_cast<const DirectX12ShaderProgram>(m_shaderRecordCollection.program());
 	}
 
 public:
-	void initialize()
+	void initialize([[maybe_unused]] const DirectX12RayTracingPipeline& pipeline)
 	{
 		if (m_program == nullptr) [[unlikely]]
 			throw ArgumentNotInitializedException("shaderProgram", "The shader program must be initialized.");
@@ -73,7 +73,7 @@ public:
 		if (m_program != m_shaderRecordCollection.program()) [[unlikely]]
 			throw InvalidArgumentException("shaderRecords", "The ray tracing pipeline shader program must be the same as used to build the shader record collection.");
 
-		LITEFX_TRACE(DIRECTX12_LOG, "Creating ray-tracing pipeline (\"{1}\") for layout {0} (records: {2})...", static_cast<void*>(m_layout.get()), m_parent->name(), m_shaderRecordCollection.shaderRecords().size());
+		LITEFX_TRACE(DIRECTX12_LOG, "Creating ray-tracing pipeline (\"{1}\") for layout {0} (records: {2})...", static_cast<void*>(m_layout.get()), pipeline.name(), m_shaderRecordCollection.shaderRecords().size());
 		
 		// Validate shader stage usage.
 		auto modules = m_program->modules();
@@ -351,14 +351,14 @@ public:
 		};
 
 		// Create the pipeline.
-		ComPtr<ID3D12StateObject> pipeline;
-		raiseIfFailed(m_device.handle()->CreateStateObject(&pipelineDesc, IID_PPV_ARGS(&pipeline)), "Unable to create ray tracing pipeline state.");
+		ComPtr<ID3D12StateObject> pipelineState;
+		raiseIfFailed(m_device.handle()->CreateStateObject(&pipelineDesc, IID_PPV_ARGS(&pipelineState)), "Unable to create ray tracing pipeline state.");
 
 #ifndef NDEBUG
-		pipeline->SetName(Widen(m_parent->name()).c_str());
+		pipelineState->SetName(Widen(pipeline.name()).c_str());
 #endif
 
-		m_pipelineState = pipeline;
+		m_pipelineState = pipelineState;
 	}
 
 	UniquePtr<IDirectX12Buffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups)
@@ -503,19 +503,21 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, const String& name) :
-	DirectX12PipelineState(nullptr), m_impl(makePimpl<DirectX12RayTracingPipelineImpl>(this, device, layout, shaderProgram, maxRecursionDepth, maxPayloadSize, maxAttributeSize, std::move(shaderRecords)))
+	DirectX12PipelineState(nullptr), m_impl(device, layout, shaderProgram, maxRecursionDepth, maxPayloadSize, maxAttributeSize, std::move(shaderRecords))
 {
 	if (!name.empty())
 		this->name() = name;
 
-	m_impl->initialize();
+	m_impl->initialize(*this);
 }
 
 DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(const DirectX12Device& device, ShaderRecordCollection&& shaderRecords) noexcept :
-	DirectX12PipelineState(nullptr), m_impl(makePimpl<DirectX12RayTracingPipelineImpl>(this, device, std::move(shaderRecords)))
+	DirectX12PipelineState(nullptr), m_impl(device, std::move(shaderRecords))
 {
 }
 
+DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(DirectX12RayTracingPipeline&&) noexcept = default;
+DirectX12RayTracingPipeline& DirectX12RayTracingPipeline::operator=(DirectX12RayTracingPipeline&&) noexcept = default;
 DirectX12RayTracingPipeline::~DirectX12RayTracingPipeline() noexcept = default;
 
 SharedPtr<const DirectX12ShaderProgram> DirectX12RayTracingPipeline::program() const noexcept
@@ -584,6 +586,6 @@ void DirectX12RayTracingPipelineBuilder::build()
 	instance->m_impl->m_maxRecursionDepth = this->state().maxRecursionDepth;
 	instance->m_impl->m_maxPayloadSize = this->state().maxPayloadSize;
 	instance->m_impl->m_maxAttributeSize = this->state().maxAttributeSize;
-	instance->m_impl->initialize();
+	instance->m_impl->initialize(*instance);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

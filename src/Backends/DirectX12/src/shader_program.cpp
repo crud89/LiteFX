@@ -30,7 +30,7 @@ constexpr BorderMode DECODE_BORDER_MODE(D3D12_TEXTURE_ADDRESS_MODE addressMode) 
     }
 }
 
-class DirectX12ShaderProgram::DirectX12ShaderProgramImpl : public Implement<DirectX12ShaderProgram> {
+class DirectX12ShaderProgram::DirectX12ShaderProgramImpl {
 public:
     friend class DirectX12ShaderProgramBuilder;
     friend class DirectX12ShaderProgram;
@@ -76,14 +76,14 @@ private:
     };
 
 public:
-    DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent, const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) :
-        base(parent), m_device(device)
+    DirectX12ShaderProgramImpl(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) :
+        m_device(device)
     {
         m_modules = std::move(modules) | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
-    DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent, const DirectX12Device& device) :
-        base(parent), m_device(device)
+    DirectX12ShaderProgramImpl(const DirectX12Device& device) :
+        m_device(device)
     {
     }
 
@@ -517,13 +517,13 @@ void DirectX12ShaderProgram::suppressMissingRootSignatureWarning(bool disableWar
 // ------------------------------------------------------------------------------------------------
 
 DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) :
-    m_impl(makePimpl<DirectX12ShaderProgramImpl>(this, device, std::move(modules)))
+    m_impl(device, std::move(modules))
 {
     m_impl->validate();
 }
 
 DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device) noexcept :
-    m_impl(makePimpl<DirectX12ShaderProgramImpl>(this, device))
+    m_impl(device)
 {
 }
 

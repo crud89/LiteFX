@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanShaderModule::VulkanShaderModuleImpl : public Implement<VulkanShaderModule> {
+class VulkanShaderModule::VulkanShaderModuleImpl {
 public:
 	friend class VulkanShaderModule;
 
@@ -19,7 +19,7 @@ private:
 
 public:
 	VulkanShaderModuleImpl(VulkanShaderModule* parent, const VulkanDevice& device, ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
-		base(parent), m_device(device), m_type(type), m_fileName(fileName), m_entryPoint(entryPoint), m_shaderLocalDescriptor(shaderLocalDescriptor)
+		m_device(device), m_type(type), m_fileName(fileName), m_entryPoint(entryPoint), m_shaderLocalDescriptor(shaderLocalDescriptor)
 	{
 	}
 
@@ -55,9 +55,9 @@ public:
 		VkShaderModuleCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 		createInfo.codeSize = fileContents.size();
-		createInfo.pCode = reinterpret_cast<const uint32_t*>(fileContents.c_str());
+		createInfo.pCode = reinterpret_cast<const uint32_t*>(fileContents.c_str()); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
 
-		VkShaderModule module;
+		VkShaderModule module{};
 
 		if (::vkCreateShaderModule(m_device.handle(), &createInfo, nullptr, &module) != VK_SUCCESS)
 			throw std::runtime_error("Unable to compile shader file.");
@@ -76,17 +76,19 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanShaderModule::VulkanShaderModule(const VulkanDevice& device, ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
-	Resource<VkShaderModule>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanShaderModuleImpl>(this, device, type, fileName, entryPoint, shaderLocalDescriptor))
+	Resource<VkShaderModule>(VK_NULL_HANDLE), m_impl(device, type, fileName, entryPoint, shaderLocalDescriptor)
 {
 	this->handle() = m_impl->initialize();
 }
 
 VulkanShaderModule::VulkanShaderModule(const VulkanDevice& device, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
-	Resource<VkShaderModule>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanShaderModuleImpl>(this, device, type, name, entryPoint, shaderLocalDescriptor))
+	Resource<VkShaderModule>(VK_NULL_HANDLE), m_impl(device, type, name, entryPoint, shaderLocalDescriptor)
 {
 	this->handle() = m_impl->initialize(stream);
 }
 
+VulkanShaderModule::VulkanShaderModule(VulkanShaderModule&&) noexcept = default;
+VulkanShaderModule& VulkanShaderModule::operator=(VulkanShaderModule&&) noexcept = default;
 VulkanShaderModule::~VulkanShaderModule() noexcept
 {
 	::vkDestroyShaderModule(m_impl->m_device.handle(), this->handle(), nullptr);

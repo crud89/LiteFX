@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanPushConstantsLayout::VulkanPushConstantsLayoutImpl : public Implement<VulkanPushConstantsLayout> {
+class VulkanPushConstantsLayout::VulkanPushConstantsLayoutImpl {
 public:
     friend class VulkanPushConstantsLayoutBuilder;
     friend class VulkanPushConstantsLayout;
@@ -19,8 +19,8 @@ private:
     UInt32 m_size;
 
 public:
-    VulkanPushConstantsLayoutImpl(VulkanPushConstantsLayout* parent, UInt32 size) :
-        base(parent), m_size(size)
+    VulkanPushConstantsLayoutImpl(UInt32 size) :
+        m_size(size)
     {
         // Align the size to 4 bytes.
         m_size = size % 4 == 0 ? (size + 4 - 1) & ~(size - 1) : size;
@@ -49,16 +49,18 @@ private:
 // ------------------------------------------------------------------------------------------------
 
 VulkanPushConstantsLayout::VulkanPushConstantsLayout(Enumerable<UniquePtr<VulkanPushConstantsRange>>&& ranges, UInt32 size) :
-    m_impl(makePimpl<VulkanPushConstantsLayoutImpl>(this, size))
+    m_impl(size)
 {
     m_impl->setRanges(std::move(ranges));
 }
 
 VulkanPushConstantsLayout::VulkanPushConstantsLayout(UInt32 size) :
-    m_impl(makePimpl<VulkanPushConstantsLayoutImpl>(this, size))
+    m_impl(size)
 {
 }
 
+VulkanPushConstantsLayout::VulkanPushConstantsLayout(VulkanPushConstantsLayout&&) noexcept = default;
+VulkanPushConstantsLayout& VulkanPushConstantsLayout::operator=(VulkanPushConstantsLayout&&) noexcept = default;
 VulkanPushConstantsLayout::~VulkanPushConstantsLayout() noexcept = default;
 
 const VulkanPipelineLayout& VulkanPushConstantsLayout::pipelineLayout() const

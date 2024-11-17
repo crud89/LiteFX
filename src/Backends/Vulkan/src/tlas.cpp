@@ -11,7 +11,7 @@ extern PFN_vkCmdWriteAccelerationStructuresPropertiesKHR vkCmdWriteAccelerationS
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanTopLevelAccelerationStructure::VulkanTopLevelAccelerationStructureImpl : public Implement<VulkanTopLevelAccelerationStructure> {
+class VulkanTopLevelAccelerationStructure::VulkanTopLevelAccelerationStructureImpl {
 public:
     friend class VulkanTopLevelAccelerationStructure;
 
@@ -24,8 +24,8 @@ private:
     VkQueryPool m_queryPool { VK_NULL_HANDLE };
 
 public:
-    VulkanTopLevelAccelerationStructureImpl(VulkanTopLevelAccelerationStructure* parent, AccelerationStructureFlags flags) :
-        base(parent), m_flags(flags)
+    VulkanTopLevelAccelerationStructureImpl(AccelerationStructureFlags flags) :
+        m_flags(flags)
     {
         if (LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastBuild) && LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastTrace)) [[unlikely]]
             throw InvalidArgumentException("flags", "Cannot combine acceleration structure flags `PreferFastBuild` and `PreferFastTrace`.");
@@ -55,10 +55,13 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanTopLevelAccelerationStructure::VulkanTopLevelAccelerationStructure(AccelerationStructureFlags flags, StringView name) :
-    StateResource(name), Resource(VK_NULL_HANDLE), m_impl(makePimpl<VulkanTopLevelAccelerationStructureImpl>(this, flags))
+VulkanTopLevelAccelerationStructure::VulkanTopLevelAccelerationStructure(AccelerationStructureFlags flags, StringView name) noexcept :
+    StateResource(name), Resource(VK_NULL_HANDLE), m_impl(flags)
 {
 }
+
+VulkanTopLevelAccelerationStructure::VulkanTopLevelAccelerationStructure(VulkanTopLevelAccelerationStructure&&) noexcept = default;
+VulkanTopLevelAccelerationStructure& VulkanTopLevelAccelerationStructure::operator=(VulkanTopLevelAccelerationStructure&&) noexcept = default;
 
 VulkanTopLevelAccelerationStructure::~VulkanTopLevelAccelerationStructure() noexcept
 {

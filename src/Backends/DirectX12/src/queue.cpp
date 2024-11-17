@@ -10,7 +10,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12Queue::DirectX12QueueImpl : public Implement<DirectX12Queue> {
+class DirectX12Queue::DirectX12QueueImpl {
 public:
 	friend class DirectX12Queue;
 
@@ -24,20 +24,20 @@ private:
 	Array<Tuple<UInt64, SharedPtr<const DirectX12CommandBuffer>>> m_submittedCommandBuffers;
 
 public:
-	DirectX12QueueImpl(DirectX12Queue* parent, const DirectX12Device& device, QueueType type, QueuePriority priority) :
-		base(parent), m_device(device), m_type(type), m_priority(priority)
+	DirectX12QueueImpl(const DirectX12Device& device, QueueType type, QueuePriority priority) :
+		m_device(device), m_type(type), m_priority(priority)
 	{
 	}
 
-	~DirectX12QueueImpl() override
+	DirectX12QueueImpl(const DirectX12QueueImpl&) noexcept = default;
+	DirectX12QueueImpl(DirectX12QueueImpl&&) noexcept = default;
+	DirectX12QueueImpl& operator=(const DirectX12QueueImpl&) noexcept = default;
+	DirectX12QueueImpl& operator=(DirectX12QueueImpl&&) noexcept = default;
+
+	~DirectX12QueueImpl()
 	{
 		m_submittedCommandBuffers.clear();
 	}
-
-	DirectX12QueueImpl(const DirectX12QueueImpl&) = delete;
-	DirectX12QueueImpl(DirectX12QueueImpl&&) = delete;
-	auto operator=(const DirectX12QueueImpl&) = delete;
-	auto operator=(DirectX12QueueImpl&&) = delete;
 
 public:
 	[[nodiscard]]
@@ -82,14 +82,14 @@ public:
 		return commandQueue;
 	}
 
-	void releaseCommandBuffers(UInt64 beforeFence)
+	void releaseCommandBuffers(const DirectX12Queue& queue, UInt64 beforeFence)
 	{
 		// Release all shared command buffers until this point.
-		const auto [from, to] = std::ranges::remove_if(m_submittedCommandBuffers, [this, &beforeFence](auto& pair) {
+		const auto [from, to] = std::ranges::remove_if(m_submittedCommandBuffers, [&queue, &beforeFence](auto& pair) {
 			if (std::get<0>(pair) > beforeFence)
 				return false;
 
-			this->m_parent->releaseSharedState(*std::get<1>(pair));
+			queue.releaseSharedState(*std::get<1>(pair));
 			return true;
 		});
 
@@ -102,11 +102,13 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Queue::DirectX12Queue(const DirectX12Device& device, QueueType type, QueuePriority priority) :
-	ComResource<ID3D12CommandQueue>(nullptr), m_impl(makePimpl<DirectX12QueueImpl>(this, device, type, priority))
+	ComResource<ID3D12CommandQueue>(nullptr), m_impl(device, type, priority)
 {
 	this->handle() = m_impl->initialize();
 }
 
+DirectX12Queue::DirectX12Queue(DirectX12Queue&&) noexcept = default;
+DirectX12Queue& DirectX12Queue::operator=(DirectX12Queue&&) noexcept = default;
 DirectX12Queue::~DirectX12Queue() noexcept = default;
 
 const DirectX12Device& DirectX12Queue::device() const noexcept
@@ -161,7 +163,7 @@ UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuf
 
 	// Remove all previously submitted command buffers, that have already finished.
 	auto completedValue = m_impl->m_fence->GetCompletedValue();
-	m_impl->releaseCommandBuffers(completedValue);
+	m_impl->releaseCommandBuffers(*this, completedValue);
 
 	// End the command buffer.
 	commandBuffer->end();
@@ -200,7 +202,7 @@ UInt64 DirectX12Queue::submit(const Enumerable<SharedPtr<const DirectX12CommandB
 
 	// Remove all previously submitted command buffers, that have already finished.
 	auto completedValue = m_impl->m_fence->GetCompletedValue();
-	m_impl->releaseCommandBuffers(completedValue);
+	m_impl->releaseCommandBuffers(*this, completedValue);
 
 	// End and submit the command buffers.
 	for (auto buffer = commandBuffers.begin(); buffer != commandBuffers.end(); ++buffer)
@@ -240,7 +242,7 @@ void DirectX12Queue::waitFor(UInt64 fence) const noexcept
 		raiseIfFailed(hr, "Unable to register fence completion event.");
 	}
 
-	m_impl->releaseCommandBuffers(fence);
+	m_impl->releaseCommandBuffers(*this, fence);
 }
 
 void DirectX12Queue::waitFor(const DirectX12Queue& queue, UInt64 fence) const noexcept

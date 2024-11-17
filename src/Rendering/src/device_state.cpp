@@ -6,37 +6,30 @@ using namespace LiteFX::Rendering;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DeviceState::DeviceStateImpl : public Implement<DeviceState> {
+class DeviceState::DeviceStateImpl {
 public:
     friend class DeviceState;
 
 private:
-    Dictionary<String, UniquePtr<IRenderPass>> m_renderPasses;
-    Dictionary<String, UniquePtr<IFrameBuffer>> m_frameBuffers;
-    Dictionary<String, UniquePtr<IPipeline>> m_pipelines;
-    Dictionary<String, UniquePtr<IBuffer>> m_buffers;
-    Dictionary<String, UniquePtr<IVertexBuffer>> m_vertexBuffers;
-    Dictionary<String, UniquePtr<IIndexBuffer>> m_indexBuffers;
-    Dictionary<String, UniquePtr<IImage>> m_images;
-    Dictionary<String, UniquePtr<ISampler>> m_samplers;
-    Dictionary<String, UniquePtr<IAccelerationStructure>> m_accelerationStructures;
-    Dictionary<String, UniquePtr<IDescriptorSet>> m_descriptorSets;
-
-public:
-    DeviceStateImpl(DeviceState* parent) :
-        base(parent)
-    {
-    }
+    Dictionary<String, UniquePtr<IRenderPass>> m_renderPasses{};
+    Dictionary<String, UniquePtr<IFrameBuffer>> m_frameBuffers{};
+    Dictionary<String, UniquePtr<IPipeline>> m_pipelines{};
+    Dictionary<String, UniquePtr<IBuffer>> m_buffers{};
+    Dictionary<String, UniquePtr<IVertexBuffer>> m_vertexBuffers{};
+    Dictionary<String, UniquePtr<IIndexBuffer>> m_indexBuffers{};
+    Dictionary<String, UniquePtr<IImage>> m_images{};
+    Dictionary<String, UniquePtr<ISampler>> m_samplers{};
+    Dictionary<String, UniquePtr<IAccelerationStructure>> m_accelerationStructures{};
+    Dictionary<String, UniquePtr<IDescriptorSet>> m_descriptorSets{};
 };
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DeviceState::DeviceState() noexcept :
-    m_impl(makePimpl<DeviceStateImpl>(this))
-{
-}
+DeviceState::DeviceState() noexcept = default;
+DeviceState::DeviceState(DeviceState&& _other) noexcept = default;
+DeviceState& DeviceState::operator=(DeviceState&& _other) noexcept = default;
 
 DeviceState::~DeviceState() noexcept 
 {

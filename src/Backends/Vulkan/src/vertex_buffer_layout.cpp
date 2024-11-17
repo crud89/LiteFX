@@ -7,20 +7,20 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanVertexBufferLayout::VulkanVertexBufferLayoutImpl : public Implement<VulkanVertexBufferLayout> {
+class VulkanVertexBufferLayout::VulkanVertexBufferLayoutImpl {
 public:
     friend class VulkanVertexBufferLayoutBuilder;
     friend class VulkanVertexBufferLayout;
 
 private:
-    Array<UniquePtr<BufferAttribute>> m_attributes;
+    Array<UniquePtr<BufferAttribute>> m_attributes{};
     size_t m_vertexSize;
     UInt32 m_binding;
     BufferType m_bufferType{ BufferType::Vertex };
 
 public:
-    VulkanVertexBufferLayoutImpl(VulkanVertexBufferLayout* parent, size_t vertexSize, UInt32 binding) : 
-        base(parent), m_vertexSize(vertexSize), m_binding(binding) 
+    VulkanVertexBufferLayoutImpl(size_t vertexSize, UInt32 binding) : 
+        m_vertexSize(vertexSize), m_binding(binding) 
     {
     }
 };
@@ -30,10 +30,14 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanVertexBufferLayout::VulkanVertexBufferLayout(size_t vertexSize, UInt32 binding) :
-    m_impl(makePimpl<VulkanVertexBufferLayoutImpl>(this, vertexSize, binding))
+    m_impl(vertexSize, binding)
 {
 }
 
+VulkanVertexBufferLayout::VulkanVertexBufferLayout(VulkanVertexBufferLayout&&) noexcept = default;
+VulkanVertexBufferLayout::VulkanVertexBufferLayout(const VulkanVertexBufferLayout&) noexcept = default;
+VulkanVertexBufferLayout& VulkanVertexBufferLayout::operator=(VulkanVertexBufferLayout&&) noexcept = default;
+VulkanVertexBufferLayout& VulkanVertexBufferLayout::operator=(const VulkanVertexBufferLayout&) noexcept = default;
 VulkanVertexBufferLayout::~VulkanVertexBufferLayout() noexcept = default;
 
 size_t VulkanVertexBufferLayout::elementSize() const noexcept

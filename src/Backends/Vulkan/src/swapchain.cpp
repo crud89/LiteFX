@@ -11,7 +11,7 @@ using namespace LiteFX::Rendering::Backends;
 // Default implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanSwapChain::VulkanSwapChainImpl : public Implement<VulkanSwapChain> {
+class VulkanSwapChain::VulkanSwapChainImpl {
 public:
 	friend class VulkanSwapChain;
 
@@ -34,8 +34,8 @@ private:
 	bool m_vsync = false;
 
 public:
-	VulkanSwapChainImpl(VulkanSwapChain* parent, const VulkanDevice& device) :
-		base(parent), m_device(device)
+	VulkanSwapChainImpl(const VulkanDevice& device) :
+		m_device(device)
 	{
 		m_supportsTiming = m_device.adapter().limits().timestampComputeAndGraphics;
 
@@ -234,7 +234,7 @@ public:
 	void present(UInt64 fence) 
 	{
 		// Draw the frame, if the result of the render pass it should be presented to the swap chain.
-		std::array<VkSwapchainKHR, 1> swapChains = { m_handle };
+		auto swapChains = std::array { m_handle };
 		const auto bufferIndex = m_currentImage;
 		const auto& queue = m_device.defaultQueue(QueueType::Graphics);
 
@@ -340,7 +340,7 @@ namespace D3D
 // D3D12 interop implementation (with support for flip-model).
 // ------------------------------------------------------------------------------------------------
 
-class VulkanSwapChain::VulkanSwapChainImpl : public Implement<VulkanSwapChain> {
+class VulkanSwapChain::VulkanSwapChainImpl {
 public:
 	friend class VulkanSwapChain;
 
@@ -389,8 +389,8 @@ private:
 	PFN_vkImportSemaphoreWin32HandleKHR importSemaphoreWin32HandleKHR = nullptr;
 
 public:
-	VulkanSwapChainImpl(VulkanSwapChain* parent, const VulkanDevice& device) :
-		base(parent), m_device(device)
+	VulkanSwapChainImpl(const VulkanDevice& device) :
+		m_device(device)
 	{
 		m_supportsTiming = m_device.adapter().limits().timestampComputeAndGraphics;
 
@@ -893,7 +893,7 @@ public:
 		D3D::raiseIfFailed(commandList->Close(), "Unable to close command list for presentation.");
 		
 		// Submit the command buffer.
-		std::array<ID3D12CommandList*, 1> commandBuffers = { commandList.Get() };
+		auto commandBuffers = std::array { commandList.Get() };
 		m_presentQueue->ExecuteCommandLists(static_cast<UInt32>(commandBuffers.size()), commandBuffers.data());
 
 		// Do the presentation.
@@ -976,11 +976,13 @@ private:
 // ------------------------------------------------------------------------------------------------
 
 VulkanSwapChain::VulkanSwapChain(const VulkanDevice& device, Format surfaceFormat, const Size2d& renderArea, UInt32 buffers, bool enableVsync) :
-	m_impl(makePimpl<VulkanSwapChainImpl>(this, device))
+	m_impl(device)
 {
 	m_impl->initialize(surfaceFormat, renderArea, buffers, enableVsync);
 }
 
+VulkanSwapChain::VulkanSwapChain(VulkanSwapChain&&) noexcept = default;
+VulkanSwapChain& VulkanSwapChain::operator=(VulkanSwapChain&&) noexcept = default;
 VulkanSwapChain::~VulkanSwapChain() noexcept = default;
 
 const VkQueryPool& VulkanSwapChain::timestampQueryPool() const noexcept

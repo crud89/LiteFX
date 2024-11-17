@@ -8,7 +8,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12Device::DirectX12DeviceImpl : public Implement<DirectX12Device> {
+class DirectX12Device::DirectX12DeviceImpl {
 public:
 	friend class DirectX12Device;
 
@@ -31,8 +31,8 @@ private:
 	ComPtr<ID3D12CommandSignature> m_dispatchSignature, m_drawSignature, m_drawIndexedSignature, m_dispatchMeshSignature;
 
 public:
-	DirectX12DeviceImpl(DirectX12Device* parent, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, const DirectX12Backend& backend, UInt32 globalBufferHeapSize, UInt32 globalSamplerHeapSize) :
-		base(parent), m_adapter(adapter), m_backend(backend), m_surface(std::move(surface)), m_globalBufferHeapSize(globalBufferHeapSize), m_globalSamplerHeapSize(globalSamplerHeapSize)
+	DirectX12DeviceImpl(const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, const DirectX12Backend& backend, UInt32 globalBufferHeapSize, UInt32 globalSamplerHeapSize) :
+		m_adapter(adapter), m_backend(backend), m_surface(std::move(surface)), m_globalBufferHeapSize(globalBufferHeapSize), m_globalSamplerHeapSize(globalSamplerHeapSize)
 	{
 		if (m_surface == nullptr)
 			throw ArgumentNotInitializedException("surface", "The surface must be initialized.");
@@ -41,7 +41,12 @@ public:
 			throw ArgumentOutOfRangeException("globalSamplerHeapSize", std::make_pair<UInt32, UInt32>(0, D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE), globalSamplerHeapSize, "Only 2048 samplers are allowed in the global sampler heap, but {0} have been specified.", globalSamplerHeapSize);
 	}
 
-	~DirectX12DeviceImpl() noexcept override
+	DirectX12DeviceImpl(DirectX12DeviceImpl&&) noexcept = default;
+	DirectX12DeviceImpl(const DirectX12DeviceImpl&) noexcept = default;
+	DirectX12DeviceImpl& operator=(DirectX12DeviceImpl&&) noexcept = default;
+	DirectX12DeviceImpl& operator=(const DirectX12DeviceImpl&) noexcept = default;
+
+	~DirectX12DeviceImpl() noexcept
 	{
 		// Clear the device state.
 		m_deviceState.clear();
@@ -54,11 +59,6 @@ public:
 		m_swapChain = nullptr;
 		m_queues.clear();
 	}
-
-	DirectX12DeviceImpl(const DirectX12DeviceImpl&) = delete;
-	DirectX12DeviceImpl(DirectX12DeviceImpl&&) = delete;
-	auto operator=(const DirectX12DeviceImpl&) = delete;
-	auto operator=(DirectX12DeviceImpl&&) = delete;
 
 #ifndef NDEBUG
 private:
@@ -136,11 +136,11 @@ public:
 			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_INFO, FALSE);
 			
 			// Suppress individual messages by their ID
-			std::array<D3D12_MESSAGE_ID, 2> suppressIds = { 
+			auto suppressIds = std::array { 
 				D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE, // Mismatch in clear value is intended.
 				D3D12_MESSAGE_ID_CLEARDEPTHSTENCILVIEW_MISMATCHINGCLEARVALUE, // Mismatch in clear value is intended.
 			};
-			std::array<D3D12_MESSAGE_SEVERITY, 1> severities = { D3D12_MESSAGE_SEVERITY_INFO };	// Somehow it is required to deny info-level messages. Otherwise strange pointer issues are occurring.
+			auto severities = std::array { D3D12_MESSAGE_SEVERITY_INFO };	// Somehow it is required to deny info-level messages. Otherwise strange pointer issues are occurring.
 
 			D3D12_INFO_QUEUE_FILTER infoQueueFilter = {};
 			infoQueueFilter.DenyList.NumIDs = static_cast<UINT>(suppressIds.size());
@@ -195,41 +195,41 @@ public:
 		return device;
 	}
 
-	void createFactory()
+	void createFactory(const DirectX12Device& device)
 	{
-		m_factory = makeUnique<DirectX12GraphicsFactory>(*m_parent);
+		m_factory = makeUnique<DirectX12GraphicsFactory>(device);
 	}
 
-	void createSwapChain(Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
+	void createSwapChain(const DirectX12Device& device, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
 	{
-		m_swapChain = makeUnique<DirectX12SwapChain>(*m_parent, format, renderArea, backBuffers, enableVsync);
+		m_swapChain = makeUnique<DirectX12SwapChain>(device, format, renderArea, backBuffers, enableVsync);
 	}
 
-	void createQueues()
+	void createQueues(const DirectX12Device& device)
 	{
-		//m_graphicsQueue = makeUnique<DirectX12Queue>(*m_parent, QueueType::Graphics, QueuePriority::Realtime);
-		m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::High);
-		m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::High);
-		m_computeQueue  = this->createQueue(QueueType::Compute,  QueuePriority::High);
+		//m_graphicsQueue = makeUnique<DirectX12Queue>(device, QueueType::Graphics, QueuePriority::Realtime);
+		m_graphicsQueue = this->createQueue(device, QueueType::Graphics, QueuePriority::High);
+		m_transferQueue = this->createQueue(device, QueueType::Transfer, QueuePriority::High);
+		m_computeQueue  = this->createQueue(device, QueueType::Compute,  QueuePriority::High);
 	}
 
-	DirectX12Queue* createQueue(QueueType type, QueuePriority priority)
+	DirectX12Queue* createQueue(const DirectX12Device& device, QueueType type, QueuePriority priority)
 	{
-		auto queue = makeUnique<DirectX12Queue>(*m_parent, type, priority);
+		auto queue = makeUnique<DirectX12Queue>(device, type, priority);
 		auto result = queue.get();
 		m_queues.push_back(std::move(queue));
 		return result;
 	}
 
-	void createBlitPipeline()
+	void createBlitPipeline(const DirectX12Device& device)
 	{
 		try
 		{
 			// Allocate shader module.
 			Array<UniquePtr<DirectX12ShaderModule>> modules;
 			auto blitShader = LiteFX::Backends::DirectX12::Shaders::blit_dxi::open();
-			modules.push_back(makeUnique<DirectX12ShaderModule>(*m_parent, ShaderStage::Compute, blitShader, LiteFX::Backends::DirectX12::Shaders::blit_dxi::name(), "main"));
-			auto shaderProgram = DirectX12ShaderProgram::create(*m_parent, modules | std::views::as_rvalue);
+			modules.push_back(makeUnique<DirectX12ShaderModule>(device, ShaderStage::Compute, blitShader, LiteFX::Backends::DirectX12::Shaders::blit_dxi::name(), "main"));
+			auto shaderProgram = DirectX12ShaderProgram::create(device, modules | std::views::as_rvalue);
 
 			// Allocate descriptor set layouts.
 			// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
@@ -243,16 +243,16 @@ public:
 				makeUnique<DirectX12DescriptorLayout>(DescriptorType::Sampler, 0, 0) 
 			);
 			auto descriptorSetLayouts = Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>(
-				makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(bufferLayouts), 0, ShaderStage::Compute),
-				makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(samplerLayouts), 1, ShaderStage::Compute)
+				makeUnique<DirectX12DescriptorSetLayout>(device, std::move(bufferLayouts), 0, ShaderStage::Compute),
+				makeUnique<DirectX12DescriptorSetLayout>(device, std::move(samplerLayouts), 1, ShaderStage::Compute)
 			);
 			// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 			
 			// Create a pipeline layout.
-			auto pipelineLayout = makeShared<DirectX12PipelineLayout>(*m_parent, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
+			auto pipelineLayout = makeShared<DirectX12PipelineLayout>(device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
 
 			// Create the pipeline.
-			m_blitPipeline = makeUnique<DirectX12ComputePipeline>(*m_parent, pipelineLayout, shaderProgram, "Blit");
+			m_blitPipeline = makeUnique<DirectX12ComputePipeline>(device, pipelineLayout, shaderProgram, "Blit");
 		}
 		catch (const Exception& ex)
 		{
@@ -286,7 +286,7 @@ DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX1
 }
 
 DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features, UInt32 globalBufferHeapSize, UInt32 globalSamplerHeapSize) :
-	ComResource<ID3D12Device10>(nullptr), m_impl(makePimpl<DirectX12DeviceImpl>(this, adapter, std::move(surface), backend, globalBufferHeapSize, globalSamplerHeapSize))
+	ComResource<ID3D12Device10>(nullptr), m_impl(adapter, std::move(surface), backend, globalBufferHeapSize, globalSamplerHeapSize)
 {
 	LITEFX_DEBUG(DIRECTX12_LOG, "Creating DirectX 12 device {{ Surface: {0}, Adapter: {1} }}...", static_cast<void*>(&surface), adapter.deviceId());
 	LITEFX_DEBUG(DIRECTX12_LOG, "--------------------------------------------------------------------------");
@@ -300,12 +300,14 @@ DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX1
 	LITEFX_DEBUG(DIRECTX12_LOG, "--------------------------------------------------------------------------");
 
 	this->handle() = m_impl->initialize(features);
-	m_impl->createQueues();
-	m_impl->createFactory();
-	m_impl->createSwapChain(format, renderArea, backBuffers, enableVsync);
-	m_impl->createBlitPipeline();
+	m_impl->createQueues(*this);
+	m_impl->createFactory(*this);
+	m_impl->createSwapChain(*this, format, renderArea, backBuffers, enableVsync);
+	m_impl->createBlitPipeline(*this);
 }
 
+DirectX12Device::DirectX12Device(DirectX12Device&&) noexcept = default;
+DirectX12Device& DirectX12Device::operator=(DirectX12Device&&) noexcept = default;
 DirectX12Device::~DirectX12Device() noexcept = default;
 
 const DirectX12Backend& DirectX12Device::backend() const noexcept
@@ -467,7 +469,7 @@ void DirectX12Device::bindDescriptorSet(const DirectX12CommandBuffer& commandBuf
 
 void DirectX12Device::bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept
 {
-	const std::array<ID3D12DescriptorHeap*, 2> globalHeaps{ m_impl->m_globalBufferHeap.Get(), m_impl->m_globalSamplerHeap.Get() };
+	const auto globalHeaps = std::array { m_impl->m_globalBufferHeap.Get(), m_impl->m_globalSamplerHeap.Get() };
 	commandBuffer.handle()->SetDescriptorHeaps(static_cast<UINT>(globalHeaps.size()), globalHeaps.data());
 }
 
@@ -586,7 +588,7 @@ const DirectX12Queue& DirectX12Device::defaultQueue(QueueType type) const
 
 const DirectX12Queue* DirectX12Device::createQueue(QueueType type, QueuePriority priority) noexcept
 {
-	return m_impl->createQueue(type, priority);
+	return m_impl->createQueue(*this, type, priority);
 }
 
 UniquePtr<DirectX12Barrier> DirectX12Device::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept
@@ -601,7 +603,7 @@ UniquePtr<DirectX12FrameBuffer> DirectX12Device::makeFrameBuffer(StringView name
 
 MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(Format format) const noexcept
 {
-	constexpr std::array<MultiSamplingLevel, 7> allLevels = { MultiSamplingLevel::x64, MultiSamplingLevel::x32, MultiSamplingLevel::x16, MultiSamplingLevel::x8, MultiSamplingLevel::x4, MultiSamplingLevel::x2, MultiSamplingLevel::x1 };
+	constexpr auto allLevels = std::array { MultiSamplingLevel::x64, MultiSamplingLevel::x32, MultiSamplingLevel::x16, MultiSamplingLevel::x8, MultiSamplingLevel::x4, MultiSamplingLevel::x2, MultiSamplingLevel::x1 };
 	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS levels{ .Format = DX12::getFormat(format) };
 
 	for (size_t level(0); level < allLevels.size(); ++level)

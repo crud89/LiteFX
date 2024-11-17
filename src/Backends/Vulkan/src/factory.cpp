@@ -8,7 +8,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanGraphicsFactory::VulkanGraphicsFactoryImpl : public Implement<VulkanGraphicsFactory> {
+class VulkanGraphicsFactory::VulkanGraphicsFactoryImpl {
 public:
 	friend class VulkanGraphicsFactory;
 
@@ -17,8 +17,8 @@ private:
 	VmaAllocator m_allocator{ nullptr };
 
 public:
-	VulkanGraphicsFactoryImpl(VulkanGraphicsFactory* parent, const VulkanDevice& device) :
-		base(parent), m_device(device)
+	VulkanGraphicsFactoryImpl(const VulkanDevice& device) :
+		m_device(device)
 	{
 		// Create an buffer allocator.
 		VmaAllocatorCreateInfo allocatorInfo = {};
@@ -43,10 +43,12 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanGraphicsFactory::VulkanGraphicsFactory(const VulkanDevice& device) :
-	m_impl(makePimpl<VulkanGraphicsFactoryImpl>(this, device))
+	m_impl(device)
 {
 }
 
+VulkanGraphicsFactory::VulkanGraphicsFactory(VulkanGraphicsFactory&&) noexcept = default;
+VulkanGraphicsFactory& VulkanGraphicsFactory::operator=(VulkanGraphicsFactory&&) noexcept = default;
 VulkanGraphicsFactory::~VulkanGraphicsFactory() noexcept = default;
 
 UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const

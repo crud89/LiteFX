@@ -18,12 +18,12 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		explicit DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr, const String& name = "");
+		
+		DirectX12Image(DirectX12Image&&) noexcept = delete;
+		DirectX12Image(const DirectX12Image&) noexcept = delete;
+		DirectX12Image& operator=(DirectX12Image&&) noexcept = delete;
+		DirectX12Image& operator=(const DirectX12Image&) noexcept = delete;
 		~DirectX12Image() noexcept override;
-
-		DirectX12Image(DirectX12Image&&) = delete;
-		DirectX12Image(const DirectX12Image&) = delete;
-		auto operator=(DirectX12Image&&) = delete;
-		auto operator=(const DirectX12Image&) = delete;
 
 		// IDeviceMemory interface.
 	public:
@@ -106,12 +106,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="minLod"></param>
 		/// <param name="anisotropy"></param>
 		explicit DirectX12Sampler(const DirectX12Device& device, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float minLod = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float anisotropy = 0.f, const String& name = "");
+		
+		DirectX12Sampler(DirectX12Sampler&&) noexcept = delete;
+		DirectX12Sampler(const DirectX12Sampler&) noexcept = delete;
+		auto operator=(DirectX12Sampler&&) noexcept = delete;
+		auto operator=(const DirectX12Sampler&) noexcept = delete;
 		~DirectX12Sampler() noexcept override;
-
-		DirectX12Sampler(DirectX12Sampler&&) = delete;
-		DirectX12Sampler(const DirectX12Sampler&) = delete;
-		auto operator=(DirectX12Sampler&&) = delete;
-		auto operator=(const DirectX12Sampler&) = delete;
 
 		// ISampler interface.
 	public:

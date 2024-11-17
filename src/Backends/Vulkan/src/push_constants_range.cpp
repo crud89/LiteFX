@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanPushConstantsRange::VulkanPushConstantsRangeImpl : public Implement<VulkanPushConstantsRange> {
+class VulkanPushConstantsRange::VulkanPushConstantsRangeImpl {
 public:
     friend class VulkanPushConstantsRange;
 
@@ -15,8 +15,8 @@ private:
     UInt32 m_offset, m_size, m_space, m_binding;
 
 public:
-    VulkanPushConstantsRangeImpl(VulkanPushConstantsRange* parent, ShaderStage shaderStage, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) :
-        base(parent), m_stage(shaderStage), m_offset(offset), m_size(size), m_space(space), m_binding(binding)
+    VulkanPushConstantsRangeImpl(ShaderStage shaderStage, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) :
+        m_stage(shaderStage), m_offset(offset), m_size(size), m_space(space), m_binding(binding)
     {
         if (offset % 4 != 0)
             throw InvalidArgumentException("offset", "The push constants range offset must be a multiple of 4 bytes.");
@@ -34,10 +34,14 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanPushConstantsRange::VulkanPushConstantsRange(ShaderStage shaderStage, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) :
-    m_impl(makePimpl<VulkanPushConstantsRangeImpl>(this, shaderStage, offset, size, space, binding))
+    m_impl(shaderStage, offset, size, space, binding)
 {
 }
 
+VulkanPushConstantsRange::VulkanPushConstantsRange(VulkanPushConstantsRange&&) noexcept = default;
+VulkanPushConstantsRange::VulkanPushConstantsRange(const VulkanPushConstantsRange&) noexcept = default;
+VulkanPushConstantsRange& VulkanPushConstantsRange::operator=(VulkanPushConstantsRange&&) noexcept = default;
+VulkanPushConstantsRange& VulkanPushConstantsRange::operator=(const VulkanPushConstantsRange&) noexcept = default;
 VulkanPushConstantsRange::~VulkanPushConstantsRange() noexcept = default;
 
 UInt32 VulkanPushConstantsRange::space() const noexcept

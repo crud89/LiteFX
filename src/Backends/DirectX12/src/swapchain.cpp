@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12SwapChain::DirectX12SwapChainImpl : public Implement<DirectX12SwapChain> {
+class DirectX12SwapChain::DirectX12SwapChainImpl {
 public:
 	friend class DirectX12SwapChain;
 
@@ -29,8 +29,8 @@ private:
 	ID3D12QueryHeap* m_currentQueryHeap{};
 
 public:
-	DirectX12SwapChainImpl(DirectX12SwapChain* parent, const DirectX12Device& device) :
-		base(parent), m_device(device)
+	DirectX12SwapChainImpl(const DirectX12Device& device) :
+		m_device(device)
 	{
 	}
 
@@ -47,10 +47,10 @@ private:
 
 public:
 	[[nodiscard]]
-	ComPtr<IDXGISwapChain4> initialize(Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
+	ComPtr<IDXGISwapChain4> initialize(const DirectX12SwapChain& parent, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
 	{
-		if (!std::ranges::any_of(m_parent->getSurfaceFormats(), [&format](Format surfaceFormat) { return surfaceFormat == format; }))
-			throw InvalidArgumentException("format", "The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats());
+		if (!std::ranges::any_of(parent.getSurfaceFormats(), [&format](Format surfaceFormat) { return surfaceFormat == format; }))
+			throw InvalidArgumentException("format", "The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats(parent));
 
 		auto adapter = m_device.adapter().handle();
 		auto surface = m_device.surface().handle();
@@ -99,10 +99,10 @@ public:
 		return swapChain;
 	}
 
-	void reset(Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
+	void reset(const DirectX12SwapChain& swapChain, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
 	{
-		if (!std::ranges::any_of(m_parent->getSurfaceFormats(), [&format](Format surfaceFormat) { return surfaceFormat == format; }))
-			throw InvalidArgumentException("format", "The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats());
+		if (!std::ranges::any_of(swapChain.getSurfaceFormats(), [&format](Format surfaceFormat) { return surfaceFormat == format; }))
+			throw InvalidArgumentException("format", "The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats(swapChain));
 
 		// Release all back buffers.
 		m_presentImages.clear();
@@ -111,15 +111,15 @@ public:
 		// Resize the buffers.
 		UInt32 buffers = std::max<UInt32>(2, backBuffers);
 		auto size = Size2d{ std::max<UInt32>(1, static_cast<UInt32>(renderArea.width())), std::max<UInt32>(1, static_cast<UInt32>(renderArea.height())) };
-		raiseIfFailed(m_parent->handle()->ResizeBuffers(buffers, static_cast<UInt32>(size.width()), static_cast<UInt32>(size.height()), DX12::getFormat(format), m_supportsVariableRefreshRates ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
+		raiseIfFailed(swapChain.handle()->ResizeBuffers(buffers, static_cast<UInt32>(size.width()), static_cast<UInt32>(size.height()), DX12::getFormat(format), m_supportsVariableRefreshRates ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
 		LITEFX_TRACE(DIRECTX12_LOG, "Resetting swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", static_cast<void*>(m_device.handle().Get()), backBuffers, size.width(), size.height(), format, enableVsync);
 
 		// Acquire the swap chain images.
 		m_presentImages.resize(buffers);
 		m_presentFences.resize(buffers);
-		std::ranges::generate(m_presentImages, [this, &size, &format, i = 0]() mutable {
+		std::ranges::generate(m_presentImages, [this, &swapChain, &size, &format, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
-			raiseIfFailed(m_parent->handle()->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
+			raiseIfFailed(swapChain.handle()->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
 			return makeUnique<DirectX12Image>(m_device, std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
 		});
 
@@ -167,10 +167,10 @@ public:
 		m_timestamps.resize(timingEvents.size());
 	}
 
-	UInt32 swapBackBuffer()
+	UInt32 swapBackBuffer(const DirectX12SwapChain& swapChain)
 	{
 		// Get the next image index.
-		m_currentImage = m_parent->handle()->GetCurrentBackBufferIndex();
+		m_currentImage = swapChain.handle()->GetCurrentBackBufferIndex();
 
 		// Wait for all rendering commands to finish on the image index (otherwise we would not be able to re-use the command buffers).
 		m_device.defaultQueue(QueueType::Graphics).waitFor(m_presentFences[m_currentImage]);
@@ -183,9 +183,9 @@ public:
 	}
 
 private:
-	String joinSupportedSurfaceFormats() const noexcept 
+	String joinSupportedSurfaceFormats(const DirectX12SwapChain& swapChain) const noexcept
 	{
-		auto formats = m_parent->getSurfaceFormats();
+		auto formats = swapChain.getSurfaceFormats();
 
 		return Join(formats |
 			std::views::transform([](Format format) { return std::format("{0}", format); }) |
@@ -198,11 +198,13 @@ private:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12SwapChain::DirectX12SwapChain(const DirectX12Device& device, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync) :
-	ComResource<IDXGISwapChain4>(nullptr), m_impl(makePimpl<DirectX12SwapChainImpl>(this, device))
+	ComResource<IDXGISwapChain4>(nullptr), m_impl(device)
 {
-	this->handle() = m_impl->initialize(format, renderArea, backBuffers, enableVsync);
+	this->handle() = m_impl->initialize(*this, format, renderArea, backBuffers, enableVsync);
 }
 
+DirectX12SwapChain::DirectX12SwapChain(DirectX12SwapChain&&) noexcept = default;
+DirectX12SwapChain& DirectX12SwapChain::operator=(DirectX12SwapChain&&) noexcept = default;
 DirectX12SwapChain::~DirectX12SwapChain() noexcept = default;
 
 bool DirectX12SwapChain::supportsVariableRefreshRate() const noexcept
@@ -327,13 +329,13 @@ void DirectX12SwapChain::addTimingEvent(SharedPtr<TimingEvent> timingEvent)
 
 void DirectX12SwapChain::reset(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers, bool enableVsync)
 {
-	m_impl->reset(surfaceFormat, renderArea, buffers, enableVsync);
+	m_impl->reset(*this, surfaceFormat, renderArea, buffers, enableVsync);
 	this->reseted(this, { surfaceFormat, renderArea, buffers, enableVsync });
 }
 
 UInt32 DirectX12SwapChain::swapBackBuffer() const
 {
-	return m_impl->swapBackBuffer();
+	return m_impl->swapBackBuffer(*this);
 }
 
 void DirectX12SwapChain::resolveQueryHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept

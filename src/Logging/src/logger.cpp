@@ -7,7 +7,7 @@ using namespace LiteFX::Logging;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class Log::LogImpl : public Implement<Log> {
+class Log::LogImpl {
 public:
     friend class Log;
 
@@ -15,16 +15,16 @@ private:
     String m_name;
 
 public:
-    LogImpl(Log* parent, const String& name) : 
-        base(parent), m_name(name) { }
+    LogImpl(const String& name) noexcept : 
+        m_name(name) { }
 };
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-Log::Log(const String& name) :
-    m_impl(makePimpl<LogImpl>(this, name))
+Log::Log(const String& name) noexcept :
+    m_impl(name)
 {
 }
 

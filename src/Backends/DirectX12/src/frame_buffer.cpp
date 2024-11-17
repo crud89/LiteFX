@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12FrameBuffer::DirectX12FrameBufferImpl : public Implement<DirectX12FrameBuffer> {
+class DirectX12FrameBuffer::DirectX12FrameBufferImpl {
 public:
     friend class DirectX12FrameBuffer;
 
@@ -20,8 +20,8 @@ private:
     const DirectX12Device& m_device;
 
 public:
-    DirectX12FrameBufferImpl(DirectX12FrameBuffer* parent, const DirectX12Device& device, const Size2d& renderArea) :
-        base(parent), m_size(renderArea), m_device(device)
+    DirectX12FrameBufferImpl(const DirectX12Device& device, const Size2d& renderArea) :
+        m_size(renderArea), m_device(device)
     {
     }
 
@@ -119,11 +119,13 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12FrameBuffer::DirectX12FrameBuffer(const DirectX12Device& device, const Size2d& renderArea, StringView name) :
-    StateResource(name), m_impl(makePimpl<DirectX12FrameBufferImpl>(this, device, renderArea))
+    StateResource(name), m_impl(device, renderArea)
 {
     m_impl->initialize();
 }
 
+DirectX12FrameBuffer::DirectX12FrameBuffer(DirectX12FrameBuffer&&) noexcept = default;
+DirectX12FrameBuffer& DirectX12FrameBuffer::operator=(DirectX12FrameBuffer&&) noexcept = default;
 DirectX12FrameBuffer::~DirectX12FrameBuffer() noexcept = default;
 
 D3D12_CPU_DESCRIPTOR_HANDLE DirectX12FrameBuffer::descriptorHandle(UInt32 imageIndex) const

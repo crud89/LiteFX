@@ -49,7 +49,7 @@ struct LITEFX_VULKAN_API std::formatter<SpvReflectResult> : std::formatter<std::
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanShaderProgram::VulkanShaderProgramImpl : public Implement<VulkanShaderProgram> {
+class VulkanShaderProgram::VulkanShaderProgramImpl {
 public:
     friend class VulkanShaderProgramBuilder;
     friend class VulkanShaderProgram;
@@ -92,14 +92,14 @@ private:
     };
 
 public:
-    VulkanShaderProgramImpl(VulkanShaderProgram* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules) :
-        base(parent), m_device(device)
+    VulkanShaderProgramImpl(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules) :
+        m_device(device)
     {
         m_modules = modules | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
-    VulkanShaderProgramImpl(VulkanShaderProgram* parent, const VulkanDevice& device) :
-        base(parent), m_device(device)
+    VulkanShaderProgramImpl(const VulkanDevice& device) :
+        m_device(device)
     {
     }
 
@@ -363,13 +363,13 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules) :
-    m_impl(makePimpl<VulkanShaderProgramImpl>(this, device, std::move(modules)))
+    m_impl(device, std::move(modules))
 {
     m_impl->validate();
 }
 
 VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device) noexcept :
-    m_impl(makePimpl<VulkanShaderProgramImpl>(this, device))
+    m_impl(device)
 {
 }
 
@@ -395,7 +395,7 @@ SharedPtr<VulkanPipelineLayout> VulkanShaderProgram::reflectPipelineLayout() con
 // Shader program builder implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanShaderProgramBuilder::VulkanShaderProgramBuilderImpl : public Implement<VulkanShaderProgramBuilder> {
+class VulkanShaderProgramBuilder::VulkanShaderProgramBuilderImpl {
 public:
     friend class VulkanShaderProgramBuilder;
 
@@ -403,8 +403,8 @@ private:
     const VulkanDevice& m_device;
 
 public:
-    VulkanShaderProgramBuilderImpl(VulkanShaderProgramBuilder* parent, const VulkanDevice& device) :
-        base(parent), m_device(device)
+    VulkanShaderProgramBuilderImpl(const VulkanDevice& device) :
+        m_device(device)
     {
     }
 };
@@ -414,7 +414,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(const VulkanDevice& device) :
-    ShaderProgramBuilder(SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device))), m_impl(makePimpl<VulkanShaderProgramBuilderImpl>(this, device))
+    ShaderProgramBuilder(SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device))), m_impl(device)
 {
 }
 

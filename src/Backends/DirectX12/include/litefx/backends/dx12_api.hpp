@@ -229,13 +229,22 @@ namespace LiteFX::Rendering::Backends {
         /// Initializes a new DirectX12 graphics adapter.
         /// </summary>
         /// <param name="adapter">The DXGI adapter interface pointer.</param>
-        explicit DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter);
-        ~DirectX12GraphicsAdapter() noexcept override;
+        explicit DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter) noexcept;
 
-        DirectX12GraphicsAdapter(const DirectX12GraphicsAdapter&) = delete;
-        DirectX12GraphicsAdapter(DirectX12GraphicsAdapter&&) = delete;
-        auto operator=(const DirectX12GraphicsAdapter&) = delete;
-        auto operator=(DirectX12GraphicsAdapter&&) = delete;
+        /// <inheritdoc />
+        DirectX12GraphicsAdapter(DirectX12GraphicsAdapter&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12GraphicsAdapter(const DirectX12GraphicsAdapter&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12GraphicsAdapter& operator=(DirectX12GraphicsAdapter&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12GraphicsAdapter& operator=(const DirectX12GraphicsAdapter&) noexcept = delete;
+
+        /// <inheritdoc />
+        ~DirectX12GraphicsAdapter() noexcept override;
 
     public:
         /// <inheritdoc />
@@ -273,12 +282,21 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="hwnd">The window handle.</param>
         explicit DirectX12Surface(const HWND& hwnd) noexcept;
-        ~DirectX12Surface() noexcept override;
 
-        DirectX12Surface(const DirectX12Surface&) = delete;
-        DirectX12Surface(DirectX12Surface&&) = delete;
-        auto operator=(const DirectX12Surface&) = delete;
-        auto operator=(DirectX12Surface&&) = delete;
+        /// <inheritdoc />
+        DirectX12Surface(const DirectX12Surface&) noexcept = delete;
+        
+        /// <inheritdoc />
+        DirectX12Surface(DirectX12Surface&&) noexcept = default;
+        
+        /// <inheritdoc />
+        DirectX12Surface& operator=(const DirectX12Surface&) noexcept = delete;
+        
+        /// <inheritdoc />
+        DirectX12Surface& operator=(DirectX12Surface&&) noexcept = default;
+
+        /// <inheritdoc />
+        ~DirectX12Surface() noexcept override;
     };
 
     /// <summary>
@@ -315,12 +333,20 @@ namespace LiteFX::Rendering::Backends {
         explicit DX12PlatformException(HRESULT result, std::format_string<TArgs...> format, TArgs&&... args) noexcept :
             DX12PlatformException(result, std::format(format, std::forward<TArgs>(args)...)) { }
 
+        /// <inheritdoc />
+        DX12PlatformException(const DX12PlatformException&) noexcept = default;
+        
+        /// <inheritdoc />
+        DX12PlatformException(DX12PlatformException&&) noexcept = default;
+        
+        /// <inheritdoc />
+        DX12PlatformException& operator=(const DX12PlatformException&) noexcept = default;
+        
+        /// <inheritdoc />
+        DX12PlatformException& operator=(DX12PlatformException&&) noexcept = default;
+        
+        /// <inheritdoc />
         ~DX12PlatformException() noexcept override = default;
-
-        DX12PlatformException(const DX12PlatformException&) = default;
-        DX12PlatformException(DX12PlatformException&&) = default;
-        DX12PlatformException& operator=(const DX12PlatformException&) = default;
-        DX12PlatformException& operator=(DX12PlatformException&&) = default;
 
     public:
         /// <summary>

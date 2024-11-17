@@ -5,18 +5,18 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
-class VulkanDescriptorSet::VulkanDescriptorSetImpl : public Implement<VulkanDescriptorSet> {
+class VulkanDescriptorSet::VulkanDescriptorSetImpl {
 public:
     friend class VulkanDescriptorSet;
 
 private:
-    Dictionary<UInt32, VkBufferView> m_bufferViews;
-    Dictionary<UInt32, VkImageView> m_imageViews;
+    Dictionary<UInt32, VkBufferView> m_bufferViews{};
+    Dictionary<UInt32, VkImageView> m_imageViews{};
     const VulkanDescriptorSetLayout& m_layout;
 
 public:
-    VulkanDescriptorSetImpl(VulkanDescriptorSet* parent, const VulkanDescriptorSetLayout& layout) :
-        base(parent), m_layout(layout)
+    VulkanDescriptorSetImpl(const VulkanDescriptorSetLayout& layout) :
+        m_layout(layout)
     {
     }
 };
@@ -26,11 +26,14 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, VkDescriptorSet descriptorSet) :
-    Resource<VkDescriptorSet>(descriptorSet), m_impl(makePimpl<VulkanDescriptorSetImpl>(this, layout))
+    Resource<VkDescriptorSet>(descriptorSet), m_impl(layout)
 {
     if (descriptorSet == VK_NULL_HANDLE)
         throw ArgumentNotInitializedException("descriptorSet", "The descriptor set handle must be initialized.");
 }
+
+VulkanDescriptorSet::VulkanDescriptorSet(VulkanDescriptorSet&&) noexcept = default;
+VulkanDescriptorSet& VulkanDescriptorSet::operator=(VulkanDescriptorSet&&) noexcept = default;
 
 VulkanDescriptorSet::~VulkanDescriptorSet() noexcept
 {

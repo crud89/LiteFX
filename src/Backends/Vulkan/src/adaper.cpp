@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanGraphicsAdapter::VulkanGraphicsAdapterImpl : public Implement<VulkanGraphicsAdapter> {
+class VulkanGraphicsAdapter::VulkanGraphicsAdapterImpl {
 public:
     friend class VulkanGraphicsAdapter;
 
@@ -23,14 +23,13 @@ private:
     Array<String> m_deviceExtensions, m_deviceLayers;
 
 public:
-    VulkanGraphicsAdapterImpl(VulkanGraphicsAdapter* parent) : 
-        base(parent) 
+    VulkanGraphicsAdapterImpl(VkPhysicalDevice deviceHandle)
     {
         // Cache device properties.
         VkPhysicalDeviceIDProperties deviceIdProperties{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES };
         VkPhysicalDeviceProperties2 deviceProperties{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2 };
         deviceProperties.pNext = &deviceIdProperties;
-        ::vkGetPhysicalDeviceProperties2(m_parent->handle(), &deviceProperties);
+        ::vkGetPhysicalDeviceProperties2(deviceHandle, &deviceProperties);
 
         const auto& properties = deviceProperties.properties;
         m_limits = properties.limits;
@@ -61,7 +60,7 @@ public:
 
         // Get available dedicated (device-local) memory.
         VkPhysicalDeviceMemoryProperties memoryProperties{};
-        ::vkGetPhysicalDeviceMemoryProperties(m_parent->handle(), &memoryProperties);
+        ::vkGetPhysicalDeviceMemoryProperties(deviceHandle, &memoryProperties);
 
         auto memoryHeaps = memoryProperties.memoryHeaps;
         auto heaps = Span<VkMemoryHeap>(memoryHeaps, memoryHeaps + memoryProperties.memoryHeapCount);
@@ -72,18 +71,18 @@ public:
 
         // Load supported device extensions.
         UInt32 extensions = 0;
-        ::vkEnumerateDeviceExtensionProperties(m_parent->handle(), nullptr, &extensions, nullptr);
+        ::vkEnumerateDeviceExtensionProperties(deviceHandle, nullptr, &extensions, nullptr);
 
         Array<VkExtensionProperties> availableExtensions(extensions);
-        ::vkEnumerateDeviceExtensionProperties(m_parent->handle(), nullptr, &extensions, availableExtensions.data());
+        ::vkEnumerateDeviceExtensionProperties(deviceHandle, nullptr, &extensions, availableExtensions.data());
         m_deviceExtensions = availableExtensions | std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); }) | std::ranges::to<Array<String>>();
 
         // Load available device layers.
         UInt32 layers = 0;
-        ::vkEnumerateDeviceLayerProperties(m_parent->handle(), &layers, nullptr);
+        ::vkEnumerateDeviceLayerProperties(deviceHandle, &layers, nullptr);
 
         Array<VkLayerProperties> availableLayers(layers);
-        ::vkEnumerateDeviceLayerProperties(m_parent->handle(), &layers, availableLayers.data());
+        ::vkEnumerateDeviceLayerProperties(deviceHandle, &layers, availableLayers.data());
         m_deviceLayers = availableLayers | std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); }) | std::ranges::to<Array<String>>();
     }
 };
@@ -93,10 +92,12 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanGraphicsAdapter::VulkanGraphicsAdapter(VkPhysicalDevice adapter) :
-	Resource<VkPhysicalDevice>(adapter), m_impl(makePimpl<VulkanGraphicsAdapterImpl>(this))
+	Resource<VkPhysicalDevice>(adapter), m_impl(adapter)
 {
 }
 
+VulkanGraphicsAdapter::VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) noexcept = default;
+VulkanGraphicsAdapter& VulkanGraphicsAdapter::operator=(VulkanGraphicsAdapter&&) noexcept = default;
 VulkanGraphicsAdapter::~VulkanGraphicsAdapter() noexcept = default;
 
 String VulkanGraphicsAdapter::name() const noexcept

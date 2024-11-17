@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12DescriptorLayout::DirectX12DescriptorLayoutImpl : public Implement<DirectX12DescriptorLayout> {
+class DirectX12DescriptorLayout::DirectX12DescriptorLayoutImpl {
 public:
     friend class DirectX12DescriptorLayout;
 
@@ -16,12 +16,12 @@ private:
     DescriptorType m_descriptorType;
     BufferType m_bufferType;
     UInt32 m_descriptors;
-    UniquePtr<IDirectX12Sampler> m_staticSampler;
+    UniquePtr<IDirectX12Sampler> m_staticSampler{};
     bool m_local;
 
 public:
-    DirectX12DescriptorLayoutImpl(DirectX12DescriptorLayout* parent, DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors, bool local) :
-        base(parent), m_elementSize(elementSize), m_binding(binding), m_descriptorType(type), m_descriptors(descriptors), m_local(local)
+    DirectX12DescriptorLayoutImpl(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors, bool local) :
+        m_elementSize(elementSize), m_binding(binding), m_descriptorType(type), m_descriptors(descriptors), m_local(local)
     {
         switch (m_descriptorType)
         {
@@ -47,7 +47,7 @@ public:
     }
 
     DirectX12DescriptorLayoutImpl(DirectX12DescriptorLayout* parent, UniquePtr<IDirectX12Sampler>&& staticSampler, UInt32 binding, bool local) :
-        DirectX12DescriptorLayoutImpl(parent, DescriptorType::Sampler, binding, 0, 1, local)
+        DirectX12DescriptorLayoutImpl(DescriptorType::Sampler, binding, 0, 1, local)
     {
         if (staticSampler == nullptr)
             throw ArgumentNotInitializedException("staticSampler", "The static sampler must be initialized.");
@@ -61,15 +61,17 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12DescriptorLayout::DirectX12DescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors, bool local) :
-    m_impl(makePimpl<DirectX12DescriptorLayoutImpl>(this, type, binding, elementSize, descriptors, local))
+    m_impl(type, binding, elementSize, descriptors, local)
 {
 }
 
 DirectX12DescriptorLayout::DirectX12DescriptorLayout(UniquePtr<IDirectX12Sampler>&& staticSampler, UInt32 binding, bool local) :
-    m_impl(makePimpl<DirectX12DescriptorLayoutImpl>(this, std::move(staticSampler), binding, local))
+    m_impl(std::move(staticSampler), binding, local)
 {
 }
 
+DirectX12DescriptorLayout::DirectX12DescriptorLayout(DirectX12DescriptorLayout&&) noexcept = default;
+DirectX12DescriptorLayout& DirectX12DescriptorLayout::operator=(DirectX12DescriptorLayout&&) noexcept = default;
 DirectX12DescriptorLayout::~DirectX12DescriptorLayout() noexcept = default;
 
 bool DirectX12DescriptorLayout::local() const noexcept

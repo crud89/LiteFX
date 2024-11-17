@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanPipelineLayout::VulkanPipelineLayoutImpl : public Implement<VulkanPipelineLayout> {
+class VulkanPipelineLayout::VulkanPipelineLayoutImpl {
 public:
     friend class VulkanPipelineLayoutBuilder;
     friend class VulkanPipelineLayout;
@@ -18,19 +18,19 @@ private:
     Array<UniquePtr<VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
 
 public:
-    VulkanPipelineLayoutImpl(VulkanPipelineLayout* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
-        base(parent), m_device(device), m_pushConstantsLayout(std::move(pushConstantsLayout))
+    VulkanPipelineLayoutImpl(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
+        m_device(device), m_pushConstantsLayout(std::move(pushConstantsLayout))
     {
         m_descriptorSetLayouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
-    VulkanPipelineLayoutImpl(VulkanPipelineLayout* parent, const VulkanDevice& device) :
-        base(parent), m_device(device)
+    VulkanPipelineLayoutImpl(const VulkanDevice& device) :
+        m_device(device)
     {
     }
 
 public:
-    VkPipelineLayout initialize()
+    VkPipelineLayout initialize([[maybe_unused]] const VulkanPipelineLayout& pipelineLayout)
     {
         // Since Vulkan does not know spaces, descriptor sets are mapped to their indices based on the order they are defined. Hence we need to sort the descriptor set layouts accordingly.
         std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<VulkanDescriptorSetLayout>& a, const UniquePtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
@@ -64,7 +64,7 @@ public:
 
         // Store the pipeline layout on the push constants.
         if (m_pushConstantsLayout != nullptr)
-            m_pushConstantsLayout->pipelineLayout(*this->m_parent);
+            m_pushConstantsLayout->pipelineLayout(pipelineLayout);
 
         // Query for the descriptor set layout handles.
         auto descriptorSetLayouts = m_descriptorSetLayouts |
@@ -78,7 +78,7 @@ public:
             std::ranges::to<Array<VkPushConstantRange>>();
 
         // Create the pipeline layout.
-        LITEFX_TRACE(VULKAN_LOG, "Creating pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", static_cast<void*>(m_parent), descriptorSetLayouts.size(), rangeHandles.size());
+        LITEFX_TRACE(VULKAN_LOG, "Creating pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", static_cast<const void*>(&pipelineLayout), descriptorSetLayouts.size(), rangeHandles.size());
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -98,15 +98,18 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
-    Resource<VkPipelineLayout>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanPipelineLayoutImpl>(this, device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout)))
+    Resource<VkPipelineLayout>(VK_NULL_HANDLE), m_impl(device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout))
 {
-    this->handle() = m_impl->initialize();
+    this->handle() = m_impl->initialize(*this);
 }
 
 VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device) noexcept :
-    Resource<VkPipelineLayout>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanPipelineLayoutImpl>(this, device))
+    Resource<VkPipelineLayout>(VK_NULL_HANDLE), m_impl(device)
 {
 }
+
+VulkanPipelineLayout::VulkanPipelineLayout(VulkanPipelineLayout&&) noexcept = default;
+VulkanPipelineLayout& VulkanPipelineLayout::operator=(VulkanPipelineLayout&&) noexcept = default;
 
 VulkanPipelineLayout::~VulkanPipelineLayout() noexcept
 {
@@ -141,7 +144,7 @@ const VulkanPushConstantsLayout* VulkanPipelineLayout::pushConstants() const noe
 // Pipeline layout builder implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanPipelineLayoutBuilder::VulkanPipelineLayoutBuilderImpl : public Implement<VulkanPipelineLayoutBuilder> {
+class VulkanPipelineLayoutBuilder::VulkanPipelineLayoutBuilderImpl {
 public:
     friend class VulkanPipelineLayoutBuilder;
     friend class VulkanPipelineLayout;
@@ -150,8 +153,8 @@ private:
     const VulkanDevice& m_device;
 
 public:
-    VulkanPipelineLayoutBuilderImpl(VulkanPipelineLayoutBuilder* parent, const VulkanDevice& device) :
-        base(parent), m_device(device)
+    VulkanPipelineLayoutBuilderImpl(const VulkanDevice& device) :
+        m_device(device)
     {
     }
 };
@@ -161,7 +164,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanPipelineLayoutBuilder::VulkanPipelineLayoutBuilder(const VulkanDevice& parent) :
-    PipelineLayoutBuilder(SharedPtr<VulkanPipelineLayout>(new VulkanPipelineLayout(parent))), m_impl(makePimpl<VulkanPipelineLayoutBuilderImpl>(this, parent))
+    PipelineLayoutBuilder(SharedPtr<VulkanPipelineLayout>(new VulkanPipelineLayout(parent))), m_impl(parent)
 {
 }
 
@@ -172,7 +175,7 @@ void VulkanPipelineLayoutBuilder::build()
     auto instance = this->instance();
     instance->m_impl->m_descriptorSetLayouts = std::move(m_state.descriptorSetLayouts);
     instance->m_impl->m_pushConstantsLayout = std::move(m_state.pushConstantsLayout);
-    instance->handle() = instance->m_impl->initialize();
+    instance->handle() = instance->m_impl->initialize(*instance);
 }
 
 VulkanDescriptorSetLayoutBuilder VulkanPipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages)

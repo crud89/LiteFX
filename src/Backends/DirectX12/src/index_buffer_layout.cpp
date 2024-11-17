@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12IndexBufferLayout::DirectX12IndexBufferLayoutImpl : public Implement<DirectX12IndexBufferLayout> {
+class DirectX12IndexBufferLayout::DirectX12IndexBufferLayoutImpl {
 public:
     friend class DirectX12IndexBufferLayout;
 
@@ -16,8 +16,8 @@ private:
     BufferType m_bufferType{ BufferType::Index };
 
 public:
-    DirectX12IndexBufferLayoutImpl(DirectX12IndexBufferLayout* parent, IndexType type) : 
-        base(parent), m_indexType(type) 
+    DirectX12IndexBufferLayoutImpl(IndexType type) : 
+        m_indexType(type) 
     {
     }
 };
@@ -27,10 +27,14 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12IndexBufferLayout::DirectX12IndexBufferLayout(IndexType type) :
-    m_impl(makePimpl<DirectX12IndexBufferLayoutImpl>(this, type))
+    m_impl(type)
 {
 }
 
+DirectX12IndexBufferLayout::DirectX12IndexBufferLayout(DirectX12IndexBufferLayout&&) noexcept = default;
+DirectX12IndexBufferLayout::DirectX12IndexBufferLayout(const DirectX12IndexBufferLayout&) noexcept = default;
+DirectX12IndexBufferLayout& DirectX12IndexBufferLayout::operator=(DirectX12IndexBufferLayout&&) noexcept = default;
+DirectX12IndexBufferLayout& DirectX12IndexBufferLayout::operator=(const DirectX12IndexBufferLayout&) noexcept = default;
 DirectX12IndexBufferLayout::~DirectX12IndexBufferLayout() noexcept = default;
 
 size_t DirectX12IndexBufferLayout::elementSize() const noexcept

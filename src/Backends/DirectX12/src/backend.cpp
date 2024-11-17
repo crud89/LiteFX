@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12Backend::DirectX12BackendImpl : public Implement<DirectX12Backend> {
+class DirectX12Backend::DirectX12BackendImpl {
 public:
     friend class DirectX12Backend;
 
@@ -17,8 +17,8 @@ private:
     const App& m_app;
 
 public:
-    DirectX12BackendImpl(DirectX12Backend* parent, const App& app) :
-        base(parent), m_app(app)
+    DirectX12BackendImpl(const App& app) :
+        m_app(app)
     { 
     }
 
@@ -40,7 +40,7 @@ public:
         return factory;
     }
 
-    void loadAdapters(bool enableWarp = false)
+    void loadAdapters(const DirectX12Backend& backend, bool enableWarp = false)
     {
         ComPtr<IDXGIAdapter1> adapterInterface;
         ComPtr<IDXGIAdapter4> adapterInstance;
@@ -50,13 +50,13 @@ public:
 
         if (enableWarp)
         {
-            raiseIfFailed(m_parent->handle()->EnumWarpAdapter(IID_PPV_ARGS(&adapterInterface)), "Unable to iterate advanced software rasterizer adapters.");
+            raiseIfFailed(backend.handle()->EnumWarpAdapter(IID_PPV_ARGS(&adapterInterface)), "Unable to iterate advanced software rasterizer adapters.");
             raiseIfFailed(adapterInterface.As(&adapterInstance), "The advanced software rasterizer adapter is not a valid IDXGIAdapter4 instance.");
             m_adapters.push_back(makeUnique<DirectX12GraphicsAdapter>(adapterInstance));
         }
         else
         {
-            for (UInt32 i(0); m_parent->handle()->EnumAdapters1(i, &adapterInterface) != DXGI_ERROR_NOT_FOUND; ++i)
+            for (UInt32 i(0); backend.handle()->EnumAdapters1(i, &adapterInterface) != DXGI_ERROR_NOT_FOUND; ++i)
             {
                 DXGI_ADAPTER_DESC1 adapterDecriptor;
                 adapterInterface->GetDesc1(&adapterDecriptor);
@@ -77,12 +77,14 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Backend::DirectX12Backend(const App& app, bool useAdvancedSoftwareRasterizer) :
-    ComResource<IDXGIFactory7>(nullptr), m_impl(makePimpl<DirectX12BackendImpl>(this, app))
+    ComResource<IDXGIFactory7>(nullptr), m_impl(app)
 {
     this->handle() = m_impl->initialize();
-    m_impl->loadAdapters(useAdvancedSoftwareRasterizer);
+    m_impl->loadAdapters(*this, useAdvancedSoftwareRasterizer);
 }
 
+DirectX12Backend::DirectX12Backend(DirectX12Backend&&) noexcept = default;
+DirectX12Backend& DirectX12Backend::operator=(DirectX12Backend&&) noexcept = default;
 DirectX12Backend::~DirectX12Backend() noexcept = default;
 
 BackendType DirectX12Backend::type() const noexcept
@@ -164,5 +166,5 @@ UniquePtr<DirectX12Surface> DirectX12Backend::createSurface(const HWND& hwnd) co
 
 void DirectX12Backend::enableAdvancedSoftwareRasterizer(bool enable)
 {
-    m_impl->loadAdapters(enable);
+    m_impl->loadAdapters(*this, enable);
 }

@@ -21,13 +21,14 @@ namespace LiteFX {
 	private:
 		BackendState m_state = BackendState::Inactive;
 
-	public:
+	protected:
 		IBackend() noexcept = default;
-		IBackend(const IBackend&) noexcept = delete;
-		IBackend(IBackend&&) noexcept = delete;
-		auto operator=(const IBackend&) noexcept = delete;
-		auto operator=(IBackend&&) noexcept = delete;
+		IBackend(const IBackend&) noexcept = default;
+		IBackend(IBackend&&) noexcept = default;
+		IBackend& operator=(const IBackend&) noexcept = default;
+		IBackend& operator=(IBackend&&) noexcept = default;
 
+	public:
 		virtual ~IBackend() noexcept = default;
 
 	public:
@@ -79,13 +80,12 @@ namespace LiteFX {
 	class LITEFX_APPMODEL_API EventArgs {
 	public:
 		EventArgs() = default;
-		EventArgs(const EventArgs&) = default;
-		EventArgs(EventArgs&&) = default;
-		virtual ~EventArgs() noexcept = default;
 
-	public:
-		EventArgs& operator=(const EventArgs&) = default;
-		EventArgs& operator=(EventArgs&&) = default;
+		EventArgs(const EventArgs&) noexcept = default;
+		EventArgs(EventArgs&&) noexcept = default;
+		EventArgs& operator=(const EventArgs&) noexcept = default;
+		EventArgs& operator=(EventArgs&&) noexcept = default;
+		virtual ~EventArgs() noexcept = default;
 	};
 
 	/// <summary>
@@ -99,7 +99,7 @@ namespace LiteFX {
 	/// <typeparam name="TResult">The result of the delegate function.</typeparam>
 	/// <typeparam name="...TArgs">The arguments of the delegate function.</typeparam>
 	template <typename TResult, typename... TArgs>
-	class Delegate {
+	class Delegate final {
 	public:
 		using function_type = std::function<TResult(TArgs...)>;
 		using token_type = size_t;
@@ -114,7 +114,8 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="fn">The delegate function.</param>
 		/// <param name="t">The unique token of the delegate within the parent event.</param>
-		inline Delegate(function_type fn, token_type t) noexcept : m_target(fn), m_token(t) { }
+		inline Delegate(function_type fn, token_type t) noexcept : 
+			m_target(fn), m_token(t) { }
 
 	public:
 		/// <summary>
@@ -158,7 +159,7 @@ namespace LiteFX {
 	/// <typeparam name="TEventArgs">The type of the additional event arguments.</typeparam>
 	/// <seealso cref="EventArgs" />
 	template <typename TEventArgs>
-	class Event {
+	class Event final {
 	public:
 		using event_args_type = TEventArgs;
 		using delegate_type = Delegate<void, const void*, TEventArgs>;
@@ -166,19 +167,53 @@ namespace LiteFX {
 		using event_token_type = typename delegate_type::token_type;
 
 	private:
-		Array<delegate_type> m_subscribers;
+		Array<delegate_type> m_subscribers{};
 
 	public:
 		/// <summary>
 		/// Initializes a new event.
 		/// </summary>
-		Event() = default;
-		virtual ~Event() = default;
+		constexpr Event() = default;
 
-		Event(const Event&) = delete;
-		Event(Event&&) = delete;
-		auto operator=(const Event&) = delete;
-		auto operator=(Event&&) = delete;
+		/// <summary>
+		/// Creates a copy of a event.
+		/// </summary>
+		/// <remarks>
+		/// This constructor is implemented in order to support copying of types that contain events. Subscribers are not copied!
+		/// </remarks>
+		/// <param name="_other">The event instance to copy.</param>
+		constexpr Event([[maybe_unused]] const Event& _other) noexcept { }
+
+		/// <summary>
+		/// Takes over another instance of a event.
+		/// </summary>
+		/// <param name="_other">The event instance to take over.</param>
+		constexpr Event(Event&& _other) noexcept = default;
+
+		/// <summary>
+		/// Assigns a event by copying it.
+		/// </summary>
+		/// <remarks>
+		/// This operator is implemented in order to support copying of types that contain events. Subscribers are not copied and previous subscriptions are cleared!
+		/// </remarks>
+		/// <param name="_other">The event instance to copy.</param>
+		/// <returns>A reference to the current event instance.</returns>
+		constexpr Event& operator=([[maybe_unused]] const Event& _other) {
+			m_subscribers.clear();
+			return *this;
+		}
+
+		/// <summary>
+		/// Assigns a event by taking it over.
+		/// </summary>
+		/// <param name="_other">The event to take over.</param>
+		/// <returns>A reference to the current event instance.</returns>
+		constexpr Event& operator=(Event&& _other) noexcept = default;
+
+		/// <summary>
+		/// Releases the event instance.
+		/// </summary>
+		constexpr ~Event() noexcept = default;
 
 	public:
 		/// <summary>
@@ -326,14 +361,14 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="width">The old window width.</param>
 		/// <param name="height">The old window height.</param>
-		ResizeEventArgs(int width, int height) : m_width(width), m_height(height) { }
-		ResizeEventArgs(const ResizeEventArgs&) = default;
-		ResizeEventArgs(ResizeEventArgs&&) = default;
+		ResizeEventArgs(int width, int height) noexcept : m_width(width), m_height(height) { }
+		ResizeEventArgs(const ResizeEventArgs&) noexcept = default;
+		ResizeEventArgs(ResizeEventArgs&&) noexcept = default;
 		~ResizeEventArgs() noexcept override = default;
 
 	public:
-		ResizeEventArgs& operator=(const ResizeEventArgs&) = default;
-		ResizeEventArgs& operator=(ResizeEventArgs&&) = default;
+		ResizeEventArgs& operator=(const ResizeEventArgs&) noexcept = default;
+		ResizeEventArgs& operator=(ResizeEventArgs&&) noexcept = default;
 
 	public:
 		/// <summary>
@@ -366,7 +401,7 @@ namespace LiteFX {
 		/// <summary>
 		/// Initializes a new app instance.
 		/// </summary>
-		App();
+		App() noexcept;
 		App(const App&) = delete;
 		App(App&&) = delete;
 		auto operator=(const App&) = delete;
@@ -681,4 +716,5 @@ namespace LiteFX {
 	{
 		return AppBuilder(makeUnique<TApp>(std::forward<TArgs>(_args)...));
 	}
+
 }

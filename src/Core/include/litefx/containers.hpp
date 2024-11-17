@@ -426,29 +426,37 @@ namespace LiteFX {
 	template <class pImpl>
 	class PimplPtr final {
 	private:
-		UniquePtr<pImpl> m_ptr;
+		SharedPtr<pImpl> m_ptr;
 
 	public:
 		/// <summary>
-		/// Initializes a new pointer to an uninitialized implementation instance.
+		/// Initializes a new pointer to an implementation instance.
 		/// </summary>
-		constexpr PimplPtr() noexcept = default;
+		constexpr PimplPtr() noexcept /*requires std::is_default_constructible_v<pImpl>*/ :
+			m_ptr(new pImpl()) { }
+
+		/// <summary>
+		/// Initializes a new pointer of an implementation.
+		/// </summary>
+		/// <typeparam name="...TArgs">The types of the arguments passed to the implementation constructor.</typeparam>
+		/// <param name="...args">The arguments passed to the implementation constructor.</param>
+		template <typename... TArgs>
+		constexpr PimplPtr(TArgs&&... args) noexcept /*requires std::constructible_from<pImpl, TArgs...>*/ :
+			m_ptr(new pImpl(std::forward<TArgs>(args)...)) { } // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 
 		/// <summary>
 		/// Initializes a new pointer to a copy of the implementation instance managed by <paramref name="src" />.
 		/// </summary>
-		/// <remarks>
-		/// Note that this will share ownership between this instance and <paramref name="src" />. Only use this method, if you <see cref="release" /> either
-		/// of both implementation pointers manually!
-		/// </remarks>
 		/// <param name="src">The source pointer to copy the implementation instance from.</param>
-		constexpr PimplPtr(const PimplPtr& src) noexcept : m_ptr(new pImpl(*src.m_ptr)) { }
+		constexpr PimplPtr(const PimplPtr& src) noexcept /*requires std::copy_constructible<pImpl>*/ : 
+			m_ptr(new pImpl(*src.m_ptr)) { }
 
 		/// <summary>
 		/// Initializes a new pointer by taking over the implementation instance managed by <paramref name="src" />.
 		/// </summary>
 		/// <param name="src">The source pointer to take over.</param>
-		constexpr PimplPtr(PimplPtr&& src) noexcept = default;
+		constexpr PimplPtr(PimplPtr&& src) noexcept /*requires std::move_constructible<pImpl>*/ :
+			m_ptr(new pImpl(std::move(*src.m_ptr))) { }
 
 		/// <summary>
 		/// Initializes a new pointer to a copy of the implementation instance managed by <paramref name="src" />.
@@ -459,71 +467,42 @@ namespace LiteFX {
 		/// </remarks>
 		/// <param name="src">The source pointer to copy the implementation instance from.</param>
 		/// <returns>A new pointer to the provided implementation instance.</returns>
-		constexpr PimplPtr& operator= (const PimplPtr& src) noexcept { m_ptr.reset(new pImpl(*src.m_ptr)); return *this; }
+		constexpr PimplPtr& operator=(const PimplPtr& src) noexcept /*requires std::copy_constructible<pImpl>*/
+		{
+			m_ptr = SharedPtr<pImpl>(new pImpl(*src.m_ptr));
+			return *this; 
+		}
 
 		/// <summary>
 		/// Initializes a new pointer by taking over the implementation instance managed by <paramref name="src" />.
 		/// </summary>
 		/// <param name="src">The source pointer to take over.</param>
-		/// /// <returns>A new pointer to the provided implementation instance.</returns>
-		constexpr PimplPtr& operator= (PimplPtr&& src) noexcept = default;
+		/// <returns>A new pointer to the provided implementation instance.</returns>
+		constexpr PimplPtr& operator=(PimplPtr&& src) noexcept /*requires std::move_constructible<pImpl>*/
+		{
+			m_ptr = SharedPtr<pImpl>(new pImpl(std::move(*src.m_ptr)));
+			return *this;
+		}
 
 		constexpr ~PimplPtr() noexcept = default;
-
-	private:
-		/// <summary>
-		/// Initializes a new pointer from the raw pointer provided with <paramref name="pimpl" />.
-		/// </summary>
-		/// <param name="pimpl">The raw pointer to take ownership over.</param>
-		constexpr PimplPtr(pImpl* pimpl) noexcept : m_ptr(pimpl) { }
-
-	public:
-		/// <summary>
-		/// Destroys the implementation instance managed by this pointer.
-		/// </summary>
-		constexpr void destroy() { m_ptr = nullptr; }
-
-		/// <summary>
-		/// Releases the implementation instance managed by this pointer and returns it.
-		/// </summary>
-		/// <returns>The pointer to the managed implementation instance.</returns>
-		constexpr pImpl* release() noexcept { m_ptr.release(); }
-
-		/// <summary>
-		/// Returns a pointer to the managed implementation instance.
-		/// </summary>
-		/// <returns>A pointer to the managed implementation instance.</returns>
-		constexpr pImpl* get() const noexcept { return m_ptr.get(); }
 
 	public:
 		/// <summary>
 		/// Returns a reference to the managed implementation instance.
 		/// </summary>
 		/// <returns>A reference to the managed implementation instance.</returns>
-		constexpr pImpl& operator* () const noexcept { return *m_ptr; }
+		constexpr pImpl& operator* () const noexcept { 
+			return *m_ptr; 
+		}
 
 		/// <summary>
 		/// Returns a pointer to the managed implementation instance.
 		/// </summary>
 		/// <returns>A pointer to the managed implementation instance.</returns>
-		constexpr pImpl* operator-> () const noexcept { return m_ptr.get(); }
-
-	public:
-		template <class T, class... Arg>
-		friend constexpr PimplPtr<T> makePimpl(Arg&&... arg);
+		constexpr pImpl* operator-> () const noexcept { 
+			return m_ptr.get(); 
+		}
 	};
-
-	/// <summary>
-	/// Creates a pointer to an implementation.
-	/// </summary>
-	/// <typeparam name="T">The type of the implementation class.</typeparam>
-	/// <typeparam name="...Arg">The variadic argument types forwarded to the implementation classes' constructor.</typeparam>
-	/// <param name="...arg">The arguments forwarded to the implementation classes' constructor.</param>
-	/// <returns>The pointer to the implementation class instance.</returns>
-	template <class T, class... TArgs>
-	[[nodiscard]] constexpr PimplPtr<T> makePimpl(TArgs&&... args) {
-		return PimplPtr<T>(new T(std::forward<TArgs>(args)...)); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
-	}
 
 	// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 
@@ -537,43 +516,12 @@ namespace LiteFX {
 	/// <seealso cref="Implement" />
 #  define LITEFX_IMPLEMENTATION(impl) private: \
 	class impl; \
-	PimplPtr<impl> m_impl;
+	PimplPtr<impl> m_impl; \
+	friend class PimplPtr<impl>; \
+	friend class impl;
 
 	// NOLINTEND(cppcoreguidelines-macro-usage)
 #endif
-
-
-	/// <summary>
-	/// Base class for an implementation of a public interface class.
-	/// </summary>
-	/// <seealso cref="LITEFX_IMPLEMENTATION" />
-	/// <typeparam name="TInterface">The public interface class that should be implemented.</typeparam>
-	template <class TInterface>
-	class Implement {
-	public:
-		using interface_type = TInterface;
-		using base = Implement<interface_type>;
-
-	protected:
-		TInterface* m_parent{ nullptr }; // NOLINT(cppcoreguidelines-non-private-member-variables-in-classes)
-
-	public:
-		/// <summary>
-		/// Initializes the implementation instance.
-		/// </summary>
-		/// <param name="parent">The pointer to the parent public interface instance.</param>
-		constexpr Implement(TInterface* parent) : m_parent(parent) {
-			if (parent == nullptr)
-				throw std::runtime_error("Initializing an implementation requires the parent to be provided.");
-		}
-
-		constexpr virtual ~Implement() = default;
-
-		Implement(Implement<TInterface>&&) = delete;
-		Implement(const Implement<TInterface>&) = delete;
-		auto operator=(Implement<TInterface>&&) = delete;
-		auto operator=(const Implement<TInterface>&) = delete;
-	};
 
 	/// <summary>
 	/// Provides access to a resource managed by the class.
@@ -582,13 +530,14 @@ namespace LiteFX {
 	/// <typeparam name="THandle">The type of the resource.</typeparam>
 	template <class THandle>
 	class IResource {
-	public:
-		IResource(const IResource&) = delete;
-		IResource(IResource&&) = delete;
-		auto operator=(const IResource&) = delete;
-		auto operator=(const IResource&&) = delete;
-
+	protected:
 		IResource() noexcept = default;
+		IResource(const IResource&) noexcept = delete;
+		IResource(IResource&&) noexcept = default;
+		IResource& operator=(const IResource&) noexcept = delete;
+		IResource& operator=(IResource&&) noexcept = default;
+
+	public:
 		virtual ~IResource() noexcept = default;
 
 	protected:
@@ -624,13 +573,12 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="handle">The managed resource handle.</param>
 		explicit Resource(const THandle handle) noexcept : m_handle(handle) { }
+		Resource(const Resource&) noexcept = delete;
+		Resource(Resource&&) noexcept = default;
+		Resource& operator=(const Resource&) noexcept = delete;
+		Resource& operator=(Resource&&) noexcept = default;
 
 	public:
-		Resource(const Resource&) = delete;
-		Resource(Resource&&) = delete;
-		auto operator=(const Resource&) = delete;
-		auto operator=(const Resource&&) = delete;
-
 		~Resource() noexcept override = default;
 
 	protected:
@@ -841,8 +789,9 @@ namespace LiteFX {
 	/// </summary>
 	/// <remarks>
 	/// This is an improved version of `std::enable_shared_from_this` that supports inheritance. When inheriting from this class, follow the same practices as you would for `std::enable_shared_from_this`: do 
-	/// not provide any public constructors; instead provide a private constructor and a publically accessible static factory method, that returns a shared pointer. Also note that a shared object must not be
-	/// moved, so do not define a move constructor and/or move assignment operator, as those will be implicitly deleted.
+	/// not provide any public constructors; instead provide a private constructor and a publicly accessible static factory method, that returns a shared pointer.
+	/// 
+	/// Note that the above rule does not apply for objects that are stored within a <see cref="PimplPtr" />, as those are handled correctly by the pointer.
 	/// </remarks>
 	/// <seealso href="https://en.cppreference.com/w/cpp/memory/enable_shared_from_this" />
 	class SharedObject : public std::enable_shared_from_this<SharedObject> {
@@ -851,17 +800,16 @@ namespace LiteFX {
 		/// Initializes a new shared object.
 		/// </summary>
 		SharedObject() noexcept = default;
+		SharedObject(SharedObject&&) noexcept = default;
+		SharedObject(const SharedObject&) noexcept = default;
+		SharedObject& operator=(SharedObject&&) noexcept = default;
+		SharedObject& operator=(const SharedObject&) noexcept = default;
 
 	public:
 		/// <summary>
 		/// Destroys the shared object.
 		/// </summary>
 		virtual ~SharedObject() noexcept = default;
-
-		SharedObject(const SharedObject&) = delete;
-		SharedObject(SharedObject&&) = delete;
-		SharedObject& operator=(const SharedObject&) = default;
-		SharedObject& operator=(SharedObject&&) = default;
 
 	public:
 		/// <summary>

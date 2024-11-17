@@ -17,8 +17,6 @@ DirectX12Rasterizer::DirectX12Rasterizer() noexcept :
 {
 }
 
-DirectX12Rasterizer::~DirectX12Rasterizer() noexcept = default;
-
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Builder shared interface.

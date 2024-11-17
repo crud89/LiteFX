@@ -27,12 +27,12 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		explicit DirectX12Buffer(ComPtr<ID3D12Resource>&& buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr, const String& name = "");
+		
+		DirectX12Buffer(DirectX12Buffer&&) noexcept = delete;
+		DirectX12Buffer(const DirectX12Buffer&) noexcept = delete;
+		DirectX12Buffer& operator=(DirectX12Buffer&&) noexcept = delete;
+		DirectX12Buffer& operator=(const DirectX12Buffer&) noexcept = delete;
 		~DirectX12Buffer() noexcept override;
-
-		DirectX12Buffer(DirectX12Buffer&&) = delete;
-		DirectX12Buffer(const DirectX12Buffer&) = delete;
-		auto operator=(DirectX12Buffer&&) = delete;
-		auto operator=(const DirectX12Buffer&) = delete;
 
 		// IBuffer interface.
 	public:
@@ -94,12 +94,12 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		explicit DirectX12VertexBuffer(ComPtr<ID3D12Resource>&& buffer, const DirectX12VertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name = "");
-		~DirectX12VertexBuffer() noexcept override;
 
-		DirectX12VertexBuffer(DirectX12VertexBuffer&&) = delete;
-		DirectX12VertexBuffer(const DirectX12VertexBuffer&) = delete;
-		auto operator=(DirectX12VertexBuffer&&) = delete;
-		auto operator=(const DirectX12VertexBuffer&) = delete;
+		DirectX12VertexBuffer(DirectX12VertexBuffer&&) noexcept = delete;
+		DirectX12VertexBuffer(const DirectX12VertexBuffer&) noexcept = delete;
+		DirectX12VertexBuffer& operator=(DirectX12VertexBuffer&&) noexcept = delete;
+		DirectX12VertexBuffer& operator=(const DirectX12VertexBuffer&) noexcept = delete;
+		~DirectX12VertexBuffer() noexcept override;
 
 		// VertexBuffer interface.
 	public:
@@ -124,12 +124,12 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		explicit DirectX12IndexBuffer(ComPtr<ID3D12Resource>&& buffer, const DirectX12IndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name = "");
-		~DirectX12IndexBuffer() noexcept override;
 
-		DirectX12IndexBuffer(DirectX12IndexBuffer&&) = delete;
-		DirectX12IndexBuffer(const DirectX12IndexBuffer&) = delete;
-		auto operator=(DirectX12IndexBuffer&&) = delete;
-		auto operator=(const DirectX12IndexBuffer&) = delete;
+		DirectX12IndexBuffer(DirectX12IndexBuffer&&) noexcept = delete;
+		DirectX12IndexBuffer(const DirectX12IndexBuffer&) noexcept = delete;
+		DirectX12IndexBuffer& operator=(DirectX12IndexBuffer&&) noexcept = delete;
+		DirectX12IndexBuffer& operator=(const DirectX12IndexBuffer&) noexcept = delete;
+		~DirectX12IndexBuffer() noexcept override;
 
 		// IndexBuffer interface.
 	public:

@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Buffer implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12Buffer::DirectX12BufferImpl : public Implement<DirectX12Buffer> {
+class DirectX12Buffer::DirectX12BufferImpl {
 public:
 	friend class DirectX12Buffer;
 
@@ -19,8 +19,8 @@ private:
 	ResourceUsage m_usage;
 
 public:
-	DirectX12BufferImpl(DirectX12Buffer* parent, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation) :
-		base(parent), m_allocator(allocator), m_allocation(std::move(allocation)), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_usage(usage)
+	DirectX12BufferImpl(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation) :
+		m_allocator(allocator), m_allocation(std::move(allocation)), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_usage(usage)
 	{
 	}
 };
@@ -30,7 +30,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Buffer::DirectX12Buffer(ComPtr<ID3D12Resource>&& buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
-	ComResource<ID3D12Resource>(nullptr), m_impl(makePimpl<DirectX12BufferImpl>(this, type, elements, elementSize, alignment, usage, allocator, std::move(allocation)))
+	ComResource<ID3D12Resource>(nullptr), m_impl(type, elements, elementSize, alignment, usage, allocator, std::move(allocation))
 {
 	this->handle() = std::move(buffer);
 
@@ -169,7 +169,7 @@ UniquePtr<IDirectX12Buffer> DirectX12Buffer::allocate(const String& name, Alloca
 // Vertex buffer implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12VertexBuffer::DirectX12VertexBufferImpl : public Implement<DirectX12VertexBuffer> {
+class DirectX12VertexBuffer::DirectX12VertexBufferImpl {
 public:
 	friend class DirectX12VertexBuffer;
 
@@ -178,19 +178,19 @@ private:
 	D3D12_VERTEX_BUFFER_VIEW m_view{};
 
 public:
-	DirectX12VertexBufferImpl(DirectX12VertexBuffer* parent, const DirectX12VertexBufferLayout& layout) :
-		base(parent), m_layout(layout)
+	DirectX12VertexBufferImpl(const DirectX12VertexBufferLayout& layout) :
+		m_layout(layout)
 	{
 	}
 
 public:
-	void initialize()
+	void initialize(const DirectX12VertexBuffer& vertexBuffer)
 	{
 		m_view = D3D12_VERTEX_BUFFER_VIEW
 		{
-			.BufferLocation = m_parent->handle()->GetGPUVirtualAddress(),
-			.SizeInBytes = static_cast<UInt32>(m_parent->size()),
-			.StrideInBytes = static_cast<UInt32>(m_parent->elementSize())
+			.BufferLocation = vertexBuffer.handle()->GetGPUVirtualAddress(),
+			.SizeInBytes = static_cast<UInt32>(vertexBuffer.size()),
+			.StrideInBytes = static_cast<UInt32>(vertexBuffer.elementSize())
 		};
 	}
 };
@@ -200,9 +200,9 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12VertexBuffer::DirectX12VertexBuffer(ComPtr<ID3D12Resource>&& buffer, const DirectX12VertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
-	DirectX12Buffer(std::move(buffer), BufferType::Vertex, elements, layout.elementSize(), 0, usage, allocator, std::move(allocation), name), m_impl(makePimpl<DirectX12VertexBufferImpl>(this, layout))
+	DirectX12Buffer(std::move(buffer), BufferType::Vertex, elements, layout.elementSize(), 0, usage, allocator, std::move(allocation), name), m_impl(layout)
 {
-	m_impl->initialize();
+	m_impl->initialize(*this);
 }
 
 DirectX12VertexBuffer::~DirectX12VertexBuffer() noexcept = default;
@@ -239,7 +239,7 @@ UniquePtr<IDirectX12VertexBuffer> DirectX12VertexBuffer::allocate(const String& 
 // Index buffer implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12IndexBuffer::DirectX12IndexBufferImpl : public Implement<DirectX12IndexBuffer> {
+class DirectX12IndexBuffer::DirectX12IndexBufferImpl  {
 public:
 	friend class DirectX12IndexBuffer;
 
@@ -248,19 +248,19 @@ private:
 	D3D12_INDEX_BUFFER_VIEW m_view{};
 
 public:
-	DirectX12IndexBufferImpl(DirectX12IndexBuffer* parent, const DirectX12IndexBufferLayout& layout) :
-		base(parent), m_layout(layout)
+	DirectX12IndexBufferImpl(const DirectX12IndexBufferLayout& layout) :
+		m_layout(layout)
 	{
 	}
 
 public:
-	void initialize()
+	void initialize(const DirectX12IndexBuffer& indexBuffer)
 	{
 		m_view = D3D12_INDEX_BUFFER_VIEW
 		{
-			.BufferLocation = m_parent->handle()->GetGPUVirtualAddress(),
-			.SizeInBytes = static_cast<UInt32>(m_parent->size()),
-			.Format = m_parent->layout().indexType() == IndexType::UInt16 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT // NOLINT(clang-analyzer-optin.cplusplus.VirtualCall)
+			.BufferLocation = indexBuffer.handle()->GetGPUVirtualAddress(),
+			.SizeInBytes = static_cast<UInt32>(indexBuffer.size()),
+			.Format = indexBuffer.layout().indexType() == IndexType::UInt16 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT // NOLINT(clang-analyzer-optin.cplusplus.VirtualCall)
 		};
 	}
 };
@@ -270,9 +270,9 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12IndexBuffer::DirectX12IndexBuffer(ComPtr<ID3D12Resource>&& buffer, const DirectX12IndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
-	DirectX12Buffer(std::move(buffer), BufferType::Index, elements, layout.elementSize(), 0, usage, allocator, std::move(allocation), name), m_impl(makePimpl<DirectX12IndexBufferImpl>(this, layout))
+	DirectX12Buffer(std::move(buffer), BufferType::Index, elements, layout.elementSize(), 0, usage, allocator, std::move(allocation), name), m_impl(layout)
 {
-	m_impl->initialize();
+	m_impl->initialize(*this);
 }
 
 DirectX12IndexBuffer::~DirectX12IndexBuffer() noexcept = default;

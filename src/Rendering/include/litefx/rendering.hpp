@@ -23,14 +23,13 @@ namespace LiteFX::Rendering {
 
     protected:
         Barrier() noexcept = default;
+        Barrier(const Barrier&) noexcept = default;
+        Barrier(Barrier&&) noexcept = default;
+        Barrier& operator=(const Barrier&) noexcept = default;
+        Barrier& operator=(Barrier&&) noexcept = default;
 
     public:
         constexpr ~Barrier() noexcept override = default;
-
-        Barrier(const Barrier&) = delete;
-        Barrier(Barrier&&) = delete;
-        auto operator=(const Barrier&) = delete;
-        auto operator=(Barrier&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -159,14 +158,13 @@ namespace LiteFX::Rendering {
 
     protected:
         DescriptorSet() noexcept = default;
+        DescriptorSet(const DescriptorSet&) noexcept = default;
+        DescriptorSet(DescriptorSet&&) noexcept = default;
+        DescriptorSet& operator=(const DescriptorSet&) noexcept = default;
+        DescriptorSet& operator=(DescriptorSet&&) noexcept = default;
 
     public:
         ~DescriptorSet() noexcept override = default;
-
-        DescriptorSet(const DescriptorSet&) = delete;
-        DescriptorSet(DescriptorSet&&) = delete;
-        auto operator=(const DescriptorSet&) = delete;
-        auto operator=(DescriptorSet&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -223,14 +221,13 @@ namespace LiteFX::Rendering {
 
     protected:
         DescriptorSetLayout() noexcept = default;
+        DescriptorSetLayout(const DescriptorSetLayout&) noexcept = default;
+        DescriptorSetLayout(DescriptorSetLayout&&) noexcept = default;
+        DescriptorSetLayout& operator=(const DescriptorSetLayout&) noexcept = default;
+        DescriptorSetLayout& operator=(DescriptorSetLayout&&) noexcept = default;
 
     public:
         ~DescriptorSetLayout() noexcept override = default;
-
-        DescriptorSetLayout(const DescriptorSetLayout&) = delete;
-        DescriptorSetLayout(DescriptorSetLayout&&) = delete;
-        auto operator=(const DescriptorSetLayout&) = delete;
-        auto operator=(DescriptorSetLayout&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -313,14 +310,13 @@ namespace LiteFX::Rendering {
 
     protected:
         PushConstantsLayout() noexcept = default;
+        PushConstantsLayout(const PushConstantsLayout&) noexcept = default;
+        PushConstantsLayout(PushConstantsLayout&&) noexcept = default;
+        PushConstantsLayout& operator=(const PushConstantsLayout&) noexcept = default;
+        PushConstantsLayout& operator=(PushConstantsLayout&&) noexcept = default;
 
     public:
         ~PushConstantsLayout() noexcept override = default;
-
-        PushConstantsLayout(const PushConstantsLayout&) = delete;
-        PushConstantsLayout(PushConstantsLayout&&) = delete;
-        auto operator=(const PushConstantsLayout&) = delete;
-        auto operator=(PushConstantsLayout&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -345,14 +341,13 @@ namespace LiteFX::Rendering {
 
     protected:
         ShaderProgram() noexcept = default;
+        ShaderProgram(const ShaderProgram&) noexcept = default;
+        ShaderProgram(ShaderProgram&&) noexcept = default;
+        ShaderProgram& operator=(const ShaderProgram&) noexcept = default;
+        ShaderProgram& operator=(ShaderProgram&&) noexcept = default;
 
     public:
         ~ShaderProgram() noexcept override = default;
-
-        ShaderProgram(const ShaderProgram&) = delete;
-        ShaderProgram(ShaderProgram&&) = delete;
-        auto operator=(const ShaderProgram&) = delete;
-        auto operator=(ShaderProgram&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -379,14 +374,13 @@ namespace LiteFX::Rendering {
 
     protected:
         PipelineLayout() noexcept = default;
+        PipelineLayout(const PipelineLayout&) noexcept = default;
+        PipelineLayout(PipelineLayout&&) noexcept = default;
+        PipelineLayout& operator=(const PipelineLayout&) noexcept = default;
+        PipelineLayout& operator=(PipelineLayout&&) noexcept = default;
 
     public:
         ~PipelineLayout() noexcept override = default;
-
-        PipelineLayout(const PipelineLayout&) = delete;
-        PipelineLayout(PipelineLayout&&) = delete;
-        auto operator=(const PipelineLayout&) = delete;
-        auto operator=(PipelineLayout&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -415,14 +409,13 @@ namespace LiteFX::Rendering {
         using vertex_buffer_layout_type = TVertexBufferLayout;
     protected:
         VertexBuffer() noexcept = default;
+        VertexBuffer(const VertexBuffer&) noexcept = default;
+        VertexBuffer(VertexBuffer&&) noexcept = default;
+        VertexBuffer& operator=(const VertexBuffer&) noexcept = default;
+        VertexBuffer& operator=(VertexBuffer&&) noexcept = default;
 
     public:
         ~VertexBuffer() noexcept override = default;
-
-        VertexBuffer(const VertexBuffer&) = delete;
-        VertexBuffer(VertexBuffer&&) = delete;
-        auto operator=(const VertexBuffer&) = delete;
-        auto operator=(VertexBuffer&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -441,14 +434,13 @@ namespace LiteFX::Rendering {
     
     protected:
         IndexBuffer() noexcept = default;
+        IndexBuffer(const IndexBuffer&) noexcept = default;
+        IndexBuffer(IndexBuffer&&) noexcept = default;
+        IndexBuffer& operator=(const IndexBuffer&) noexcept = default;
+        IndexBuffer& operator=(IndexBuffer&&) noexcept = default;
     
     public:
         ~IndexBuffer() noexcept override = default;
-
-        IndexBuffer(const IndexBuffer&) = delete;
-        IndexBuffer(IndexBuffer&&) = delete;
-        auto operator=(const IndexBuffer&) = delete;
-        auto operator=(IndexBuffer&&) = delete;
 
     public:
         /// <inheritdoc/>
@@ -470,14 +462,13 @@ namespace LiteFX::Rendering {
 
     protected:
         InputAssembler() noexcept = default;
+        InputAssembler(const InputAssembler&) noexcept = default;
+        InputAssembler(InputAssembler&&) noexcept = default;
+        InputAssembler& operator=(const InputAssembler&) noexcept = default;
+        InputAssembler& operator=(InputAssembler&&) noexcept = default;
 
     public:
         ~InputAssembler() noexcept override = default;
-
-        InputAssembler(const InputAssembler&) = delete;
-        InputAssembler(InputAssembler&&) = delete;
-        auto operator=(const InputAssembler&) = delete;
-        auto operator=(InputAssembler&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -512,14 +503,13 @@ namespace LiteFX::Rendering {
 
     protected:
         Pipeline() noexcept = default;
+        Pipeline(const Pipeline&) noexcept = default;
+        Pipeline(Pipeline&&) noexcept = default;
+        Pipeline& operator=(const Pipeline&) noexcept = default;
+        Pipeline& operator=(Pipeline&&) noexcept = default;
 
     public:
         ~Pipeline() noexcept override = default;
-
-        Pipeline(const Pipeline&) = delete;
-        Pipeline(Pipeline&&) = delete;
-        auto operator=(const Pipeline&) = delete;
-        auto operator=(Pipeline&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -594,14 +584,13 @@ namespace LiteFX::Rendering {
 
     protected:
         CommandBuffer() noexcept = default;
+        CommandBuffer(CommandBuffer&&) noexcept = default;
+        CommandBuffer(const CommandBuffer&) noexcept = default;
+        CommandBuffer& operator=(const CommandBuffer&) noexcept = default;
+        CommandBuffer& operator=(CommandBuffer&&) noexcept = default;
 
     public:
         ~CommandBuffer() noexcept override = default;
-
-        CommandBuffer(CommandBuffer&&) = delete;
-        CommandBuffer(const CommandBuffer&) = delete;
-        auto operator=(const CommandBuffer&) = delete;
-        auto operator=(CommandBuffer&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -928,21 +917,20 @@ namespace LiteFX::Rendering {
     template <typename TPipelineLayout, typename TShaderProgram, typename TInputAssembler, typename TRasterizer> requires
         meta::implements<TInputAssembler, InputAssembler<typename TInputAssembler::vertex_buffer_layout_type, typename TInputAssembler::index_buffer_layout_type>> &&
         meta::implements<TRasterizer, Rasterizer>
-        class RenderPipeline : public IRenderPipeline, public virtual Pipeline<TPipelineLayout, TShaderProgram> {
+    class RenderPipeline : public IRenderPipeline, public virtual Pipeline<TPipelineLayout, TShaderProgram> {
     public:
         using input_assembler_type = TInputAssembler;
         using rasterizer_type = TRasterizer;
 
     protected:
         RenderPipeline() noexcept = default;
+        RenderPipeline(RenderPipeline&&) noexcept = default;
+        RenderPipeline(const RenderPipeline&) noexcept = default;
+        RenderPipeline& operator=(RenderPipeline&&) noexcept = default;
+        RenderPipeline& operator=(const RenderPipeline&) noexcept = default;
 
     public:
         ~RenderPipeline() noexcept override = default;
-
-        RenderPipeline(RenderPipeline&&) = delete;
-        RenderPipeline(const RenderPipeline&) = delete;
-        auto operator=(const RenderPipeline&) = delete;
-        auto operator=(RenderPipeline&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -971,14 +959,13 @@ namespace LiteFX::Rendering {
     class ComputePipeline : public IComputePipeline, public virtual Pipeline<TPipelineLayout, TShaderProgram> {
     protected:
         ComputePipeline() noexcept = default;
+        ComputePipeline(ComputePipeline&&) noexcept = default;
+        ComputePipeline(const ComputePipeline&) noexcept = default;
+        ComputePipeline& operator=(ComputePipeline&&) noexcept = default;
+        ComputePipeline& operator=(const ComputePipeline&) noexcept = default;
 
     public:
         ~ComputePipeline() noexcept override = default;
-
-        ComputePipeline(ComputePipeline&&) = delete;
-        ComputePipeline(const ComputePipeline&) = delete;
-        auto operator=(const ComputePipeline&) = delete;
-        auto operator=(ComputePipeline&&) = delete;
     };
 
     /// <summary>
@@ -1000,14 +987,13 @@ namespace LiteFX::Rendering {
 
     protected:
         RayTracingPipeline() noexcept = default;
+        RayTracingPipeline(RayTracingPipeline&&) noexcept = default;
+        RayTracingPipeline(const RayTracingPipeline&) noexcept = default;
+        RayTracingPipeline& operator=(RayTracingPipeline&&) noexcept = default;
+        RayTracingPipeline& operator=(const RayTracingPipeline&) noexcept = default;
 
     public:
         ~RayTracingPipeline() noexcept override = default;
-
-        RayTracingPipeline(RayTracingPipeline&&) = delete;
-        RayTracingPipeline(const RayTracingPipeline&) = delete;
-        auto operator=(const RayTracingPipeline&) = delete;
-        auto operator=(RayTracingPipeline&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -1035,14 +1021,13 @@ namespace LiteFX::Rendering {
 
     protected:
         FrameBuffer() noexcept = default;
+        FrameBuffer(FrameBuffer&&) noexcept = default;
+        FrameBuffer(const FrameBuffer&) noexcept = default;
+        FrameBuffer& operator=(FrameBuffer&&) noexcept = default;
+        FrameBuffer& operator=(const FrameBuffer&) noexcept = default;
 
     public:
         ~FrameBuffer() noexcept override = default;
-
-        FrameBuffer(FrameBuffer&&) = delete;
-        FrameBuffer(const FrameBuffer&) = delete;
-        auto operator=(const FrameBuffer&) = delete;
-        auto operator=(FrameBuffer&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -1068,14 +1053,13 @@ namespace LiteFX::Rendering {
 
     protected:
         CommandQueue() noexcept = default;
+        CommandQueue(CommandQueue&&) noexcept = default;
+        CommandQueue(const CommandQueue&) noexcept = default;
+        CommandQueue& operator=(CommandQueue&&) noexcept = default;
+        CommandQueue& operator=(const CommandQueue&) noexcept = default;
 
     public:
         ~CommandQueue() noexcept override = default;
-
-        CommandQueue(CommandQueue&&) = delete;
-        CommandQueue(const CommandQueue&) = delete;
-        auto operator=(const CommandQueue&) = delete;
-        auto operator=(CommandQueue&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -1132,14 +1116,13 @@ namespace LiteFX::Rendering {
 
     protected:
         RenderPass() noexcept = default;
+        RenderPass(RenderPass&&) noexcept = default;
+        RenderPass(const RenderPass&) noexcept = default;
+        RenderPass& operator=(RenderPass&&) noexcept = default;
+        RenderPass& operator=(const RenderPass&) noexcept = default;
 
     public:
         ~RenderPass() noexcept override = default;
-
-        RenderPass(RenderPass&&) = delete;
-        RenderPass(const RenderPass&) = delete;
-        auto operator=(const RenderPass&) = delete;
-        auto operator=(RenderPass&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -1177,14 +1160,13 @@ namespace LiteFX::Rendering {
 
     protected:
         SwapChain() noexcept = default;
+        SwapChain(SwapChain&&) noexcept = default;
+        SwapChain(const SwapChain&) noexcept = default;
+        SwapChain& operator=(SwapChain&&) noexcept = default;
+        SwapChain& operator=(const SwapChain&) noexcept = default;
 
     public:
         ~SwapChain() noexcept override = default;
-
-        SwapChain(SwapChain&&) = delete;
-        SwapChain(const SwapChain&) = delete;
-        auto operator=(const SwapChain&) = delete;
-        auto operator=(SwapChain&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -1239,14 +1221,13 @@ namespace LiteFX::Rendering {
 
     protected:
         GraphicsFactory() noexcept = default;
+        GraphicsFactory(GraphicsFactory&&) noexcept = default;
+        GraphicsFactory(const GraphicsFactory&) noexcept = default;
+        GraphicsFactory& operator=(GraphicsFactory&&) noexcept = default;
+        GraphicsFactory& operator=(const GraphicsFactory&) noexcept = default;
 
     public:
         ~GraphicsFactory() noexcept override = default;
-
-        GraphicsFactory(GraphicsFactory&&) = delete;
-        GraphicsFactory(const GraphicsFactory&) = delete;
-        auto operator=(const GraphicsFactory&) = delete;
-        auto operator=(GraphicsFactory&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -1417,14 +1398,13 @@ namespace LiteFX::Rendering {
 
     protected:
         GraphicsDevice() noexcept = default;
+        GraphicsDevice(GraphicsDevice&&) noexcept = default;
+        GraphicsDevice(const GraphicsDevice&) noexcept = default;
+        GraphicsDevice& operator=(GraphicsDevice&&) noexcept = default;
+        GraphicsDevice& operator=(const GraphicsDevice&) noexcept = default;
 
     public:
         ~GraphicsDevice() noexcept override = default;
-
-        GraphicsDevice(GraphicsDevice&&) = delete;
-        GraphicsDevice(const GraphicsDevice&) = delete;
-        auto operator=(const GraphicsDevice&) = delete;
-        auto operator=(GraphicsDevice&&) = delete;
 
     public:
         /// <inheritdoc />
@@ -1628,14 +1608,13 @@ namespace LiteFX::Rendering {
 
     protected:
         RenderBackend() noexcept = default;
+        RenderBackend(RenderBackend&&) noexcept = default;
+        RenderBackend(const RenderBackend&) noexcept = default;
+        RenderBackend& operator=(RenderBackend&&) noexcept = default;
+        RenderBackend& operator=(const RenderBackend&) noexcept = default;
 
     public:
         ~RenderBackend() noexcept override = default;
-
-        RenderBackend(RenderBackend&&) = delete;
-        RenderBackend(const RenderBackend&) = delete;
-        auto operator=(const RenderBackend&) = delete;
-        auto operator=(RenderBackend&&) = delete;
 
     public:
         /// <inheritdoc />

@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanRenderPass::VulkanRenderPassImpl : public Implement<VulkanRenderPass> {
+class VulkanRenderPass::VulkanRenderPassImpl {
 public:
     friend class VulkanRenderPassBuilder;
     friend class VulkanRenderPass;
@@ -30,8 +30,8 @@ private:
     const VulkanQueue* m_queue;
 
 public:
-    VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding, UInt32 secondaryCommandBuffers) :
-        base(parent), m_secondaryCommandBufferCount(secondaryCommandBuffers), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding), m_device(device), m_swapChain(m_device.swapChain()), m_queue(&queue)
+    VulkanRenderPassImpl(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding, UInt32 secondaryCommandBuffers) :
+        m_secondaryCommandBufferCount(secondaryCommandBuffers), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding), m_device(device), m_swapChain(m_device.swapChain()), m_queue(&queue)
     {
         this->mapRenderTargets(renderTargets);
         this->mapInputAttachments(inputAttachments);
@@ -40,8 +40,8 @@ public:
             LITEFX_WARNING(VULKAN_LOG, "Secondary command buffer count for this render pass is 0, which makes it prevents recording draw commands to this render pass.");
     }
 
-    VulkanRenderPassImpl(VulkanRenderPass* parent, const VulkanDevice& device) :
-        base(parent), m_device(device), m_swapChain(m_device.swapChain()), m_queue(&device.defaultQueue(QueueType::Graphics))
+    VulkanRenderPassImpl(const VulkanDevice& device) :
+        m_device(device), m_swapChain(m_device.swapChain()), m_queue(&device.defaultQueue(QueueType::Graphics))
     {
     }
 
@@ -91,7 +91,7 @@ public:
         m_inputAttachments.assign(std::begin(inputAttachments), std::end(inputAttachments));
     }
 
-    void registerFrameBuffer(const VulkanFrameBuffer& frameBuffer)
+    void registerFrameBuffer([[maybe_unused]] const VulkanRenderPass& renderPass, const VulkanFrameBuffer& frameBuffer)
     {
         // If the frame buffer is not yet registered, do so by listening for its release.
         auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
@@ -105,7 +105,7 @@ public:
                 auto commandBuffer = m_queue->createCommandBuffer(false);
 #ifndef NDEBUG
                 m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*commandBuffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, 
-                    std::format("{0} Primary Commands {1}", m_parent->name(), m_primaryCommandBuffers.size()).c_str());
+                    std::format("{0} Primary Commands {1}", renderPass.name(), m_primaryCommandBuffers.size()).c_str());
 #endif
                 m_primaryCommandBuffers[interfacePointer] = commandBuffer;
             }
@@ -116,7 +116,7 @@ public:
                     auto commandBuffer = m_queue->createCommandBuffer(false, true);
 #ifndef NDEBUG
                     m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*commandBuffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, 
-                        std::format("{0} Secondary Commands {1}", m_parent->name(), i).c_str());
+                        std::format("{0} Secondary Commands {1}", renderPass.name(), i).c_str());
 #endif
                     return commandBuffer;
                 }) | std::ranges::to<Array<SharedPtr<VulkanCommandBuffer>>>();
@@ -262,7 +262,7 @@ VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& nam
 }
 
 VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding, UInt32 secondaryCommandBuffers) :
-    m_impl(makePimpl<VulkanRenderPassImpl>(this, device, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers))
+    m_impl(device, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers)
 {
 }
 
@@ -274,12 +274,14 @@ VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& nam
 }
 
 VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& name) noexcept :
-    m_impl(makePimpl<VulkanRenderPassImpl>(this, device))
+    m_impl(device)
 {
     if (!name.empty())
         this->name() = name;
 }
 
+VulkanRenderPass::VulkanRenderPass(VulkanRenderPass&&) noexcept = default;
+VulkanRenderPass& VulkanRenderPass::operator=(VulkanRenderPass&&) noexcept = default;
 VulkanRenderPass::~VulkanRenderPass() noexcept = default;
 
 const VulkanDevice& VulkanRenderPass::device() const noexcept
@@ -367,7 +369,7 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
         throw RuntimeException("Unable to begin a render pass, that is already running. End the current pass first.");
 
     // Register the frame buffer.
-    m_impl->registerFrameBuffer(frameBuffer);
+    m_impl->registerFrameBuffer(*this, frameBuffer);
 
     // Initialize the render pass context.
     auto colorTargetInfos  = m_impl->colorTargetContext(frameBuffer);

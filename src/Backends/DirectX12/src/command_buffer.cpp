@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12CommandBuffer::DirectX12CommandBufferImpl : public Implement<DirectX12CommandBuffer> {
+class DirectX12CommandBuffer::DirectX12CommandBufferImpl {
 public:
 	friend class DirectX12CommandBuffer;
 
@@ -19,8 +19,8 @@ private:
 	ComPtr<ID3D12CommandSignature> m_dispatchSignature, m_drawSignature, m_drawIndexedSignature, m_dispatchMeshSignature;
 
 public:
-	DirectX12CommandBufferImpl(DirectX12CommandBuffer* parent, const DirectX12Queue& queue) :
-		base(parent), m_queue(queue)
+	DirectX12CommandBufferImpl(const DirectX12Queue& queue) :
+		m_queue(queue)
 	{
 	}
 
@@ -61,23 +61,23 @@ public:
 		return commandList;
 	}
 
-	void reset()
+	void reset(const DirectX12CommandBuffer& commandBuffer)
 	{
 		raiseIfFailed(m_commandAllocator->Reset(), "Unable to reset command allocator.");
-		raiseIfFailed(m_parent->handle()->Reset(m_commandAllocator.Get(), nullptr), "Unable to reset command list.");
+		raiseIfFailed(commandBuffer.handle()->Reset(m_commandAllocator.Get(), nullptr), "Unable to reset command list.");
 		m_recording = true;
 
 		// If it was possible to reset the command buffer, we can also safely release shared resources from previous recordings.
 		m_sharedResources.clear();
 	}
 
-	void bindDescriptorHeaps()
+	void bindDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer)
 	{
 		if (m_queue.type() == QueueType::Compute || m_queue.type() == QueueType::Graphics)
-			m_queue.device().bindGlobalDescriptorHeaps(*m_parent);
+			m_queue.device().bindGlobalDescriptorHeaps(commandBuffer);
 	}
 
-	inline void buildAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)
+	inline void buildAccelerationStructure(const DirectX12CommandBuffer& commandBuffer, DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)
 	{
 		if (scratchBuffer == nullptr) [[unlikely]]
 			throw ArgumentNotInitializedException("scratchBuffer");
@@ -101,13 +101,13 @@ public:
 			blasDesc.Inputs.Flags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PERFORM_UPDATE;
 
 		// Build the acceleration structure.
-		m_parent->handle()->BuildRaytracingAccelerationStructure(&blasDesc, 0, nullptr);
+		commandBuffer.handle()->BuildRaytracingAccelerationStructure(&blasDesc, 0, nullptr);
 
 		// Store the scratch buffer.
 		m_sharedResources.push_back(scratchBuffer);
 	}
 
-	inline void buildAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)
+	inline void buildAccelerationStructure(const DirectX12CommandBuffer& commandBuffer, DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)
 	{
 		if (scratchBuffer == nullptr) [[unlikely]]
 			throw ArgumentNotInitializedException("scratchBuffer");
@@ -137,7 +137,7 @@ public:
 			tlasDesc.Inputs.Flags |= D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PERFORM_UPDATE;
 
 		// Build the acceleration structure.
-		m_parent->handle()->BuildRaytracingAccelerationStructure(&tlasDesc, 0, nullptr);
+		commandBuffer.handle()->BuildRaytracingAccelerationStructure(&tlasDesc, 0, nullptr);
 
 		// Store the scratch buffer.
 		m_sharedResources.push_back(asShared(std::move(instanceBuffer)));
@@ -150,14 +150,16 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, bool begin, bool primary) :
-	ComResource<ID3D12GraphicsCommandList7>(nullptr), m_impl(makePimpl<DirectX12CommandBufferImpl>(this, queue))
+	ComResource<ID3D12GraphicsCommandList7>(nullptr), m_impl(queue)
 {
 	this->handle() = m_impl->initialize(begin, primary);
 
 	if (begin)
-		m_impl->bindDescriptorHeaps();
+		m_impl->bindDescriptorHeaps(*this);
 }
 
+DirectX12CommandBuffer::DirectX12CommandBuffer(DirectX12CommandBuffer&&) noexcept = default;
+DirectX12CommandBuffer& DirectX12CommandBuffer::operator=(DirectX12CommandBuffer&&) noexcept = default;
 DirectX12CommandBuffer::~DirectX12CommandBuffer() noexcept = default;
 
 const ICommandQueue& DirectX12CommandBuffer::queue() const noexcept
@@ -168,10 +170,10 @@ const ICommandQueue& DirectX12CommandBuffer::queue() const noexcept
 void DirectX12CommandBuffer::begin() const
 {
 	// Reset the command buffer.
-	m_impl->reset();
+	m_impl->reset(*this);
 
 	// Bind the descriptor heaps.
-	m_impl->bindDescriptorHeaps();
+	m_impl->bindDescriptorHeaps(*this);
 }
 
 void DirectX12CommandBuffer::end() const
@@ -583,22 +585,22 @@ void DirectX12CommandBuffer::releaseSharedState() const
 
 void DirectX12CommandBuffer::buildAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
 {
-	m_impl->buildAccelerationStructure(blas, scratchBuffer, buffer, offset, false);
+	m_impl->buildAccelerationStructure(*this, blas, scratchBuffer, buffer, offset, false);
 }
 
 void DirectX12CommandBuffer::buildAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
 {
-	m_impl->buildAccelerationStructure(tlas, scratchBuffer, buffer, offset, false);
+	m_impl->buildAccelerationStructure(*this, tlas, scratchBuffer, buffer, offset, false);
 }
 
 void DirectX12CommandBuffer::updateAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
 {
-	m_impl->buildAccelerationStructure(blas, scratchBuffer, buffer, offset, true);
+	m_impl->buildAccelerationStructure(*this, blas, scratchBuffer, buffer, offset, true);
 }
 
 void DirectX12CommandBuffer::updateAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
 {
-	m_impl->buildAccelerationStructure(tlas, scratchBuffer, buffer, offset, true);
+	m_impl->buildAccelerationStructure(*this, tlas, scratchBuffer, buffer, offset, true);
 }
 
 void DirectX12CommandBuffer::copyAccelerationStructure(const DirectX12BottomLevelAccelerationStructure& from, const DirectX12BottomLevelAccelerationStructure& to, bool compress) const noexcept

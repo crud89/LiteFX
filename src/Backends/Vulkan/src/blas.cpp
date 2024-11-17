@@ -12,7 +12,7 @@ extern PFN_vkCmdWriteAccelerationStructuresPropertiesKHR vkCmdWriteAccelerationS
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanBottomLevelAccelerationStructure::VulkanBottomLevelAccelerationStructureImpl : public Implement<VulkanBottomLevelAccelerationStructure> {
+class VulkanBottomLevelAccelerationStructure::VulkanBottomLevelAccelerationStructureImpl : public SharedObject {
 public:
     friend class VulkanBottomLevelAccelerationStructure;
 
@@ -26,8 +26,8 @@ private:
     VkQueryPool m_queryPool { VK_NULL_HANDLE };
 
 public:
-    VulkanBottomLevelAccelerationStructureImpl(VulkanBottomLevelAccelerationStructure* parent, AccelerationStructureFlags flags) :
-        base(parent), m_flags(flags)
+    VulkanBottomLevelAccelerationStructureImpl(AccelerationStructureFlags flags) :
+        SharedObject(), m_flags(flags)
     {
         if (LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastBuild) && LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastTrace)) [[unlikely]]
             throw InvalidArgumentException("flags", "Cannot combine acceleration structure flags `PreferFastBuild` and `PreferFastTrace`.");
@@ -36,9 +36,22 @@ public:
 public:
     Array<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> build() const
     {
-        return [this]() -> std::generator<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> {
+        static auto builder = [](const WeakPtr<VulkanBottomLevelAccelerationStructureImpl> impl) -> std::generator<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> {
+            // Store meshes and bounding boxes on local frame.
+            auto accelerationStructure = impl.lock();
+
+            if (!accelerationStructure)
+            {
+                LITEFX_WARNING(VULKAN_LOG, "Cannot build geometry description from expired acceleration structure.");
+                co_return;
+            }
+
+            auto meshes = accelerationStructure->m_triangleMeshes;
+            auto boundingBoxes = accelerationStructure->m_boundingBoxes;
+            accelerationStructure.reset();
+
             // Build up mesh descriptions.
-            for (auto& mesh : m_triangleMeshes)
+            for (auto& mesh : meshes)
             {
                 // Find the position attribute.
                 auto attributes = mesh.VertexBuffer->layout().attributes();
@@ -78,7 +91,7 @@ public:
             }
 
             // Build up AABB descriptions.
-            for (auto& bb : m_boundingBoxes)
+            for (auto& bb : boundingBoxes)
             {
                 if (bb.Buffer == nullptr) [[unlikely]]
                     throw RuntimeException("Cannot build bottom-level acceleration structure from uninitialized bounding boxes.");
@@ -100,7 +113,9 @@ public:
                     .flags = std::bit_cast<VkGeometryFlagsKHR>(bb.Flags)
                 });
             }
-        }() | std::ranges::to<Array<std::pair<UInt32, VkAccelerationStructureGeometryKHR>>>();
+        };
+        
+        return builder(this->weak_from_this()) | std::ranges::to<Array<std::pair<UInt32, VkAccelerationStructureGeometryKHR>>>();
     }
 };
 
@@ -108,11 +123,13 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBottomLevelAccelerationStructure::VulkanBottomLevelAccelerationStructure(AccelerationStructureFlags flags, StringView name) :
-    StateResource(name), Resource(VK_NULL_HANDLE), m_impl(makePimpl<VulkanBottomLevelAccelerationStructureImpl>(this, flags))
+VulkanBottomLevelAccelerationStructure::VulkanBottomLevelAccelerationStructure(AccelerationStructureFlags flags, StringView name) noexcept :
+    StateResource(name), Resource(VK_NULL_HANDLE), m_impl(flags)
 {
 }
 
+VulkanBottomLevelAccelerationStructure::VulkanBottomLevelAccelerationStructure(VulkanBottomLevelAccelerationStructure&&) noexcept = default;
+VulkanBottomLevelAccelerationStructure& VulkanBottomLevelAccelerationStructure::operator=(VulkanBottomLevelAccelerationStructure&&) noexcept = default;
 VulkanBottomLevelAccelerationStructure::~VulkanBottomLevelAccelerationStructure() noexcept
 {
     if (this->handle() != VK_NULL_HANDLE)

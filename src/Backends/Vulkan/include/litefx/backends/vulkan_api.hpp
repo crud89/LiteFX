@@ -218,9 +218,21 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="adapter">The physical device to initialize the instance with.</param>
         explicit VulkanGraphicsAdapter(VkPhysicalDevice adapter);
-        VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
-        VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) = delete;
-        virtual ~VulkanGraphicsAdapter() noexcept;
+
+        /// <inheritdoc />
+        VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) noexcept;
+
+        /// <inheritdoc />
+        VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) noexcept = delete;
+
+        /// <inheritdoc />
+        VulkanGraphicsAdapter& operator=(VulkanGraphicsAdapter&&) noexcept;
+
+        /// <inheritdoc />
+        VulkanGraphicsAdapter& operator=(const VulkanGraphicsAdapter&) noexcept = delete;
+
+        /// <inheritdoc />
+        ~VulkanGraphicsAdapter() noexcept override;
 
     public:
         /// <inheritdoc />
@@ -307,9 +319,21 @@ namespace LiteFX::Rendering::Backends {
         VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& instance);
 #endif // VK_USE_PLATFORM_WIN32_KHR
 
-        VulkanSurface(const VulkanSurface&) = delete;
-        VulkanSurface(VulkanSurface&&) = delete;
-        virtual ~VulkanSurface() noexcept;
+
+        /// <inheritdoc />
+        VulkanSurface(VulkanSurface&&) noexcept;
+
+        /// <inheritdoc />
+        VulkanSurface(const VulkanSurface&) noexcept = delete;
+
+        /// <inheritdoc />
+        VulkanSurface& operator=(VulkanSurface&&) noexcept;
+
+        /// <inheritdoc />
+        VulkanSurface& operator=(const VulkanSurface&) noexcept = delete;
+
+        /// <inheritdoc />
+        ~VulkanSurface() noexcept override;
 
     public:
         /// <summary>
@@ -361,12 +385,20 @@ namespace LiteFX::Rendering::Backends {
         explicit VulkanPlatformException(VkResult result, StringView format, TArgs&&... args) noexcept :
             VulkanPlatformException(std::vformat(format, std::make_format_args(args...)), result) { }
 
-        VulkanPlatformException(const VulkanPlatformException&) = default;
-        VulkanPlatformException(VulkanPlatformException&&) = default;
-        virtual ~VulkanPlatformException() noexcept = default;
+        /// <inheritdoc />
+        VulkanPlatformException(VulkanPlatformException&&) noexcept = default;
 
-        VulkanPlatformException& operator=(const VulkanPlatformException&) = default;
-        VulkanPlatformException& operator=(VulkanPlatformException&&) = default;
+        /// <inheritdoc />
+        VulkanPlatformException(const VulkanPlatformException&) noexcept = default;
+
+        /// <inheritdoc />
+        VulkanPlatformException& operator=(VulkanPlatformException&&) noexcept = default;
+
+        /// <inheritdoc />
+        VulkanPlatformException& operator=(const VulkanPlatformException&) noexcept = default;
+
+        /// <inheritdoc />
+        virtual ~VulkanPlatformException() noexcept = default;
 
     public:
         /// <summary>

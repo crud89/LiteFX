@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class Scissor::ScissorImpl : public Implement<Scissor> {
+class Scissor::ScissorImpl {
 public:
     friend class Scissor;
 
@@ -14,8 +14,8 @@ private:
     RectF m_rect;
 
 public:
-    ScissorImpl(Scissor* parent, const RectF& clientRect) : 
-        base(parent), m_rect(clientRect) 
+    ScissorImpl(const RectF& clientRect) : 
+        m_rect(clientRect) 
     {
     }
 };
@@ -24,8 +24,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-Scissor::Scissor(const RectF& rect) noexcept:
-    m_impl(makePimpl<ScissorImpl>(this, rect))
+Scissor::Scissor(const RectF& rect) noexcept :
+    m_impl(rect)
 {
 }
 

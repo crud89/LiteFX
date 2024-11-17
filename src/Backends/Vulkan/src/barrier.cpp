@@ -11,7 +11,7 @@ using ImageBarrier = Tuple<ResourceAccess, ResourceAccess, const IVulkanImage&, 
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanBarrier::VulkanBarrierImpl : public Implement<VulkanBarrier> {
+class VulkanBarrier::VulkanBarrierImpl {
 public:
     friend class VulkanBarrier;
 
@@ -22,8 +22,8 @@ private:
     Array<ImageBarrier> m_imageBarriers;
 
 public:
-    VulkanBarrierImpl(VulkanBarrier* parent, PipelineStage syncBefore, PipelineStage syncAfter) :
-        base(parent), m_syncBefore(syncBefore), m_syncAfter(syncAfter)
+    VulkanBarrierImpl(PipelineStage syncBefore, PipelineStage syncAfter) :
+        m_syncBefore(syncBefore), m_syncAfter(syncAfter)
     {
     }
 };
@@ -33,7 +33,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanBarrier::VulkanBarrier(PipelineStage syncBefore, PipelineStage syncAfter) noexcept :
-    m_impl(makePimpl<VulkanBarrierImpl>(this, syncBefore, syncAfter))
+    m_impl(syncBefore, syncAfter)
 {
 }
 
@@ -42,6 +42,10 @@ VulkanBarrier::VulkanBarrier() noexcept :
 {
 }
 
+VulkanBarrier::VulkanBarrier(VulkanBarrier&&) noexcept = default;
+VulkanBarrier::VulkanBarrier(const VulkanBarrier&) noexcept = default;
+VulkanBarrier& VulkanBarrier::operator=(VulkanBarrier&&) noexcept = default;
+VulkanBarrier& VulkanBarrier::operator=(const VulkanBarrier&) noexcept = default;
 VulkanBarrier::~VulkanBarrier() noexcept = default;
 
 PipelineStage VulkanBarrier::syncBefore() const noexcept

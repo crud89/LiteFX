@@ -6,18 +6,20 @@ using namespace LiteFX::Rendering;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DepthStencilState::DepthStencilStateImpl : public Implement<DepthStencilState> {
+class DepthStencilState::DepthStencilStateImpl {
 public:
     friend class DepthStencilState;
 
 private:
-    DepthState m_depthState;
-    DepthBias m_depthBias;
-    StencilState m_stencilState;
+    DepthState m_depthState{};
+    DepthBias m_depthBias{};
+    StencilState m_stencilState{};
 
 public:
-    DepthStencilStateImpl(DepthStencilState* parent, const DepthState& depthState, const DepthBias& depthBias, const StencilState& stencilState) :
-        base(parent), m_depthState(depthState), m_depthBias(depthBias), m_stencilState(stencilState)
+    DepthStencilStateImpl() noexcept = default;
+
+    DepthStencilStateImpl(const DepthState& depthState, const DepthBias& depthBias, const StencilState& stencilState) noexcept :
+        m_depthState(depthState), m_depthBias(depthBias), m_stencilState(stencilState)
     {
     }
 };
@@ -26,45 +28,18 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
+DepthStencilState::DepthStencilState() noexcept = default;
+
 DepthStencilState::DepthStencilState(const DepthState& depthState, const DepthBias& depthBias, const StencilState& stencilState) noexcept :
-    m_impl(makePimpl<DepthStencilStateImpl>(this, depthState, depthBias, stencilState))
+    m_impl(depthState, depthBias, stencilState)
 {
 }
 
-DepthStencilState::DepthStencilState() noexcept :
-    m_impl(makePimpl<DepthStencilStateImpl>(this, DepthState{}, DepthBias{}, StencilState{}))
-{
-}
-
-DepthStencilState::DepthStencilState(const DepthStencilState& _other) noexcept :
-    m_impl(makePimpl<DepthStencilStateImpl>(this, _other.depthState(), _other.depthBias(), _other.stencilState()))
-{
-}
-
-DepthStencilState::DepthStencilState(DepthStencilState&& _other) noexcept :
-    m_impl(makePimpl<DepthStencilStateImpl>(this, _other.depthState(), _other.depthBias(), _other.stencilState()))
-{
-}
-
+DepthStencilState::DepthStencilState(const DepthStencilState& _other) noexcept = default;
+DepthStencilState::DepthStencilState(DepthStencilState&& _other) noexcept = default;
+DepthStencilState& DepthStencilState::operator=(const DepthStencilState& _other) noexcept = default;
+DepthStencilState& DepthStencilState::operator=(DepthStencilState&& _other) noexcept = default;
 DepthStencilState::~DepthStencilState() noexcept = default;
-
-DepthStencilState& DepthStencilState::operator=(const DepthStencilState& _other) noexcept
-{
-    m_impl->m_depthState = _other.depthState();
-    m_impl->m_depthBias = _other.depthBias();
-    m_impl->m_stencilState = _other.stencilState();
-
-    return *this;
-}
-
-DepthStencilState& DepthStencilState::operator=(DepthStencilState&& _other) noexcept
-{
-    m_impl->m_depthState = std::move(_other.m_impl->m_depthState);
-    m_impl->m_depthBias = std::move(_other.m_impl->m_depthBias);
-    m_impl->m_stencilState = std::move(_other.m_impl->m_stencilState);
-
-    return *this;
-}
 
 DepthStencilState::DepthState& DepthStencilState::depthState() const noexcept
 {

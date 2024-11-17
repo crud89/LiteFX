@@ -6,17 +6,17 @@ using namespace LiteFX::Rendering;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class TimingEvent::TimingEventImpl : public Implement<TimingEvent> {
+class TimingEvent::TimingEventImpl {
 public:
 	friend class TimingEvent;
 
 private:
 	String m_name;
-	const ISwapChain& m_swapChain;
+	const ISwapChain& m_swapChain; // NOLINT(cppcoreguidelines-avoid-const-or-ref-data-members)
 
 public:
-	TimingEventImpl(TimingEvent* parent, const ISwapChain& swapChain, StringView name) :
-		base(parent), m_name(name), m_swapChain(swapChain)
+	TimingEventImpl(const ISwapChain& swapChain, StringView name) :
+		m_name(name), m_swapChain(swapChain)
 	{
 	}
 };
@@ -26,7 +26,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 TimingEvent::TimingEvent(const ISwapChain& swapChain, StringView name) noexcept :
-	m_impl(makePimpl<TimingEventImpl>(this, swapChain, name))
+	m_impl(swapChain, name)
 {
 }
 

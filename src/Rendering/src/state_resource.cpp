@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class StateResource::StateResourceImpl : public Implement<StateResource> {
+class StateResource::StateResourceImpl {
 public:
     friend class StateResource;
 
@@ -14,8 +14,8 @@ private:
     String m_name;
 
 public:
-    StateResourceImpl(StateResource* parent, StringView name) :
-        base(parent), m_name(name)
+    StateResourceImpl(StringView name) noexcept :
+        m_name(name)
     {
     }
 };
@@ -25,15 +25,17 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 StateResource::StateResource() noexcept :
-    StateResource("Unnamed Resource")
+    StateResource("Unnamed Resource"sv)
 {
 }
 
-StateResource::StateResource(StringView name) :
-    m_impl(makePimpl<StateResourceImpl>(this, name))
+StateResource::StateResource(StringView name) noexcept :
+    m_impl(name)
 {
 }
 
+StateResource::StateResource(StateResource&&) noexcept = default;
+StateResource& StateResource::operator=(StateResource&&) noexcept = default;
 StateResource::~StateResource() noexcept = default;
 
 String& StateResource::name() noexcept

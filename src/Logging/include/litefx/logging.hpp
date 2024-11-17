@@ -35,14 +35,15 @@ namespace LiteFX::Logging {
     };
 
     class LITEFX_LOGGING_API ISink {
-    public:
+    protected:
         ISink() noexcept = default;
-        virtual ~ISink() noexcept = default;
+        ISink(const ISink&) noexcept = default;
+        ISink(ISink&&) noexcept = default;
+        ISink& operator=(const ISink&) noexcept = default;
+        ISink& operator=(ISink&&) noexcept = default;
 
-        ISink(const ISink&) = delete;
-        ISink(ISink&&) = delete;
-        auto operator=(const ISink&) = delete;
-        auto operator=(ISink&&) = delete;
+    public:
+        virtual ~ISink() noexcept = default;
 
         /// <summary>
         /// Gets the minimum log level for messages to get written to the log.
@@ -68,7 +69,7 @@ namespace LiteFX::Logging {
         LITEFX_IMPLEMENTATION(ConsoleSinkImpl);
 
     public:
-        ConsoleSink(LogLevel level = LogLevel::Info, const String& pattern = "%+");
+        ConsoleSink(LogLevel level = LogLevel::Info, const String& pattern = "%+") noexcept;
         ~ConsoleSink() noexcept override;
 
         ConsoleSink(const ConsoleSink&) = delete;
@@ -94,7 +95,7 @@ namespace LiteFX::Logging {
         LITEFX_IMPLEMENTATION(RollingFileSinkImpl);
 
     public:
-        RollingFileSink(const String& fileName, LogLevel level = LogLevel::Info, const String& pattern = "%+", bool truncate = false, int maxFiles = 0);
+        RollingFileSink(const String& fileName, LogLevel level = LogLevel::Info, const String& pattern = "%+", bool truncate = false, int maxFiles = 0) noexcept;
         ~RollingFileSink() noexcept override;
 
         RollingFileSink(const RollingFileSink&) = delete;
@@ -126,7 +127,7 @@ namespace LiteFX::Logging {
         LITEFX_IMPLEMENTATION(LogImpl);
 
     public:
-        Log(const String& name);
+        Log(const String& name) noexcept;
         virtual ~Log() noexcept;
 
         Log(Log&&) = delete;

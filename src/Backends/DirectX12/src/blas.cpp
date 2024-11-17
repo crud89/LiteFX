@@ -8,21 +8,21 @@ using BoundingBoxes = IBottomLevelAccelerationStructure::BoundingBoxes;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12BottomLevelAccelerationStructure::DirectX12BottomLevelAccelerationStructureImpl : public Implement<DirectX12BottomLevelAccelerationStructure> {
+class DirectX12BottomLevelAccelerationStructure::DirectX12BottomLevelAccelerationStructureImpl : public SharedObject {
 public:
     friend class DirectX12BottomLevelAccelerationStructure;
 
 private:
-    Array<TriangleMesh>  m_triangleMeshes { };
-    Array<BoundingBoxes> m_boundingBoxes  { };
-    AccelerationStructureFlags m_flags;
-    SharedPtr<const IDirectX12Buffer> m_buffer;
-    UniquePtr<IDirectX12Buffer> m_postBuildBuffer, m_postBuildResults;
-    UInt64 m_offset { }, m_size { };
+    Array<TriangleMesh> m_triangleMeshes{};
+    Array<BoundingBoxes> m_boundingBoxes{};
+    AccelerationStructureFlags m_flags{};
+    SharedPtr<const IDirectX12Buffer> m_buffer{};
+    UniquePtr<IDirectX12Buffer> m_postBuildBuffer{}, m_postBuildResults{};
+    UInt64 m_offset{}, m_size{};
 
 public:
-    DirectX12BottomLevelAccelerationStructureImpl(DirectX12BottomLevelAccelerationStructure* parent, AccelerationStructureFlags flags) :
-        base(parent), m_flags(flags)
+    DirectX12BottomLevelAccelerationStructureImpl(AccelerationStructureFlags flags) :
+        SharedObject(), m_flags(flags)
     {
         if (LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastBuild) && LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastTrace)) [[unlikely]]
             throw InvalidArgumentException("flags", "Cannot combine acceleration structure flags `PreferFastBuild` and `PreferFastTrace`.");
@@ -31,9 +31,22 @@ public:
 public:
     Array<D3D12_RAYTRACING_GEOMETRY_DESC> build() const 
     {
-        return [](const Array<TriangleMesh>* meshes, const Array<BoundingBoxes>* boundingBoxes) -> std::generator<D3D12_RAYTRACING_GEOMETRY_DESC> {
+        static auto builder = [](const WeakPtr<DirectX12BottomLevelAccelerationStructureImpl> impl) -> std::generator<D3D12_RAYTRACING_GEOMETRY_DESC> {
+            // Store meshes and bounding boxes on local frame.
+            auto accelerationStructure = impl.lock();
+
+            if (!accelerationStructure)
+            {
+                LITEFX_WARNING(DIRECTX12_LOG, "Cannot build geometry description from expired acceleration structure.");
+                co_return;
+            }
+
+            auto meshes = accelerationStructure->m_triangleMeshes;
+            auto boundingBoxes = accelerationStructure->m_boundingBoxes;
+            accelerationStructure.reset();
+
             // Build up mesh descriptions.
-            for (auto& mesh : *meshes)
+            for (auto& mesh : meshes)
             {
                 // Find the position attribute.
                 auto attributes = mesh.VertexBuffer->layout().attributes();
@@ -64,7 +77,7 @@ public:
             }
 
             // Build up AABB descriptions.
-            for (auto bb : *boundingBoxes)
+            for (auto bb : boundingBoxes)
             {
                 if (bb.Buffer == nullptr) [[unlikely]]
                     throw RuntimeException("Cannot build bottom-level acceleration structure from uninitialized bounding boxes.");
@@ -78,7 +91,9 @@ public:
                     }
                 };
             }
-        }(&m_triangleMeshes, &m_boundingBoxes) | std::ranges::to<Array<D3D12_RAYTRACING_GEOMETRY_DESC>>();
+        };
+        
+        return builder(this->weak_from_this()) | std::ranges::to<Array<D3D12_RAYTRACING_GEOMETRY_DESC>>();
     }
 
     inline void queuePostbuildInfoCommands(const DirectX12CommandBuffer& commandBuffer, bool afterCopy = false) 
@@ -103,7 +118,7 @@ public:
         };
 
         // Transition the buffer into UAV state. We create  manual barriers here, as the special access flag is only required in this specific situation.
-        std::array<CD3DX12_BUFFER_BARRIER, 1>  preBarrier = {
+        auto preBarrier = std::array {
             CD3DX12_BUFFER_BARRIER(afterCopy ? D3D12_BARRIER_SYNC_COPY_RAYTRACING_ACCELERATION_STRUCTURE : D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE, D3D12_BARRIER_SYNC_EMIT_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO, D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE, D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ, std::as_const(*m_buffer).handle().Get()),
             //CD3DX12_BUFFER_BARRIER(D3D12_BARRIER_SYNC_NONE, D3D12_BARRIER_SYNC_EMIT_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO, D3D12_BARRIER_ACCESS_NO_ACCESS, D3D12_BARRIER_ACCESS_UNORDERED_ACCESS, std::as_const(*m_postBuildBuffer).handle().Get()),
         };
@@ -129,10 +144,12 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12BottomLevelAccelerationStructure::DirectX12BottomLevelAccelerationStructure(AccelerationStructureFlags flags, StringView name) :
-    StateResource(name), m_impl(makePimpl<DirectX12BottomLevelAccelerationStructureImpl>(this, flags))
+    StateResource(name), m_impl(flags)
 {
 }
 
+DirectX12BottomLevelAccelerationStructure::DirectX12BottomLevelAccelerationStructure(DirectX12BottomLevelAccelerationStructure&&) noexcept = default;
+DirectX12BottomLevelAccelerationStructure& DirectX12BottomLevelAccelerationStructure::operator=(DirectX12BottomLevelAccelerationStructure&&) noexcept = default;
 DirectX12BottomLevelAccelerationStructure::~DirectX12BottomLevelAccelerationStructure() noexcept = default;
 
 AccelerationStructureFlags DirectX12BottomLevelAccelerationStructure::flags() const noexcept 
@@ -152,12 +169,10 @@ UInt64 DirectX12BottomLevelAccelerationStructure::offset() const noexcept
 
 UInt64 DirectX12BottomLevelAccelerationStructure::size() const noexcept
 {
-    UInt64 size = m_impl->m_size;
-
     if (LITEFX_FLAG_IS_SET(m_impl->m_flags, AccelerationStructureFlags::AllowCompaction))
-        m_impl->m_postBuildResults->map(&size, sizeof(UInt64), 0, false);
+        m_impl->m_postBuildResults->map(&m_impl->m_size, sizeof(UInt64), 0, false);
 
-    return size;
+    return m_impl->m_size;
 }
 
 void DirectX12BottomLevelAccelerationStructure::build(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer, SharedPtr<const IDirectX12Buffer> buffer, UInt64 offset, UInt64 maxSize)

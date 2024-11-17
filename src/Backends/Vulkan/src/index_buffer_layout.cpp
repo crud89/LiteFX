@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl : public Implement<VulkanIndexBufferLayout> {
+class VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl {
 public:
     friend class VulkanIndexBufferLayout;
 
@@ -16,8 +16,8 @@ private:
     BufferType m_bufferType{ BufferType::Index };
 
 public:
-    VulkanIndexBufferLayoutImpl(VulkanIndexBufferLayout* parent, IndexType type) : 
-        base(parent), m_indexType(type)
+    VulkanIndexBufferLayoutImpl(IndexType type) : 
+        m_indexType(type)
     {
     }
 };
@@ -27,10 +27,14 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanIndexBufferLayout::VulkanIndexBufferLayout(IndexType type) :
-    m_impl(makePimpl<VulkanIndexBufferLayoutImpl>(this, type))
+    m_impl(type)
 {
 }
 
+VulkanIndexBufferLayout::VulkanIndexBufferLayout(VulkanIndexBufferLayout&&) noexcept = default;
+VulkanIndexBufferLayout::VulkanIndexBufferLayout(const VulkanIndexBufferLayout&) noexcept = default;
+VulkanIndexBufferLayout& VulkanIndexBufferLayout::operator=(VulkanIndexBufferLayout&&) noexcept = default;
+VulkanIndexBufferLayout& VulkanIndexBufferLayout::operator=(const VulkanIndexBufferLayout&) noexcept = default;
 VulkanIndexBufferLayout::~VulkanIndexBufferLayout() noexcept = default;
 
 size_t VulkanIndexBufferLayout::elementSize() const noexcept

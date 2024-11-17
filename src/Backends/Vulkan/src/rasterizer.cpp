@@ -17,6 +17,8 @@ VulkanRasterizer::VulkanRasterizer() noexcept :
 {
 }
 
+VulkanRasterizer::VulkanRasterizer(VulkanRasterizer&&) noexcept = default;
+VulkanRasterizer& VulkanRasterizer::operator=(VulkanRasterizer&&) noexcept = default;
 VulkanRasterizer::~VulkanRasterizer() noexcept = default;
 
 void VulkanRasterizer::updateLineWidth(Float lineWidth) noexcept

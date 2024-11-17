@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12DescriptorSet::DirectX12DescriptorSetImpl : public Implement<DirectX12DescriptorSet> {
+class DirectX12DescriptorSet::DirectX12DescriptorSetImpl {
 public:
     friend class DirectX12DescriptorSet;
 
@@ -16,8 +16,8 @@ private:
     const DirectX12DescriptorSetLayout& m_layout;
 
 public:
-    DirectX12DescriptorSetImpl(DirectX12DescriptorSet* parent, const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& bufferHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap) :
-        base(parent), m_bufferHeap(std::move(bufferHeap)), m_samplerHeap(std::move(samplerHeap)), m_layout(layout)
+    DirectX12DescriptorSetImpl(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& bufferHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap) :
+        m_bufferHeap(std::move(bufferHeap)), m_samplerHeap(std::move(samplerHeap)), m_layout(layout)
     {
         auto buffers = m_layout.uniforms() + m_layout.images() + m_layout.storages() + m_layout.buffers();
 
@@ -56,9 +56,9 @@ public:
         }
     }
 
-    void updateGlobalBuffers(UInt32 offset, UInt32 descriptors)
+    void updateGlobalBuffers(const DirectX12DescriptorSet& descriptorSet, UInt32 offset, UInt32 descriptors)
     {
-        m_layout.device().updateBufferDescriptors(*this->m_parent, offset, descriptors);
+        m_layout.device().updateBufferDescriptors(descriptorSet, offset, descriptors);
     }
 };
 
@@ -67,10 +67,13 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12DescriptorSet::DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& bufferHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap) :
-    m_impl(makePimpl<DirectX12DescriptorSetImpl>(this, layout, std::move(bufferHeap), std::move(samplerHeap)))
+    m_impl(layout, std::move(bufferHeap), std::move(samplerHeap))
 {
     layout.device().allocateGlobalDescriptors(*this, m_impl->m_bufferOffset, m_impl->m_samplerOffset);
 }
+
+DirectX12DescriptorSet::DirectX12DescriptorSet(DirectX12DescriptorSet&&) noexcept = default;
+DirectX12DescriptorSet& DirectX12DescriptorSet::operator=(DirectX12DescriptorSet&&) noexcept = default;
 
 DirectX12DescriptorSet::~DirectX12DescriptorSet() noexcept
 {
@@ -227,7 +230,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
         throw InvalidArgumentException("binding", "The descriptor at binding point {0} does not reference a buffer, uniform or storage resource.", binding);
     }
 
-    m_impl->updateGlobalBuffers(offset, elementCount);
+    m_impl->updateGlobalBuffers(*this, offset, elementCount);
 }
 
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
@@ -404,7 +407,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
     }
     // NOLINTEND(cppcoreguidelines-pro-type-union-access)
 
-    m_impl->updateGlobalBuffers(offset, 1);
+    m_impl->updateGlobalBuffers(*this, offset, 1);
 }
 
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sampler, UInt32 descriptor) const
@@ -475,7 +478,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Acceleration
     m_impl->m_layout.device().handle()->CreateShaderResourceView(nullptr, &bufferView, descriptorHandle);
     descriptorHandle = descriptorHandle.Offset(static_cast<INT>(descriptorSize));
 
-    m_impl->updateGlobalBuffers(offset, 1);
+    m_impl->updateGlobalBuffers(*this, offset, 1);
 }
 
 const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::bufferHeap() const noexcept

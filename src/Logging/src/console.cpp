@@ -7,19 +7,20 @@ using namespace LiteFX::Logging;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class ConsoleSink::ConsoleSinkImpl : public Implement<ConsoleSink> {
+class ConsoleSink::ConsoleSinkImpl {
 public:
     friend class ConsoleSink;
 
 private:
     String m_pattern;
     LogLevel m_level;
-    SharedPtr<spdlog::sinks::ansicolor_stdout_sink_mt> m_sink;
+    SharedPtr<spdlog::sinks::ansicolor_stdout_sink_mt> m_sink{};
 
 public:
-    ConsoleSinkImpl(ConsoleSink* parent, LogLevel level, const String& pattern) : 
-        base(parent), m_pattern(pattern), m_level(level), m_sink(makeShared<spdlog::sinks::ansicolor_stdout_sink_mt>()) 
-    { 
+    ConsoleSinkImpl(LogLevel level, const String& pattern) noexcept :
+        m_pattern(pattern), m_level(level)
+    {
+        m_sink = makeShared<spdlog::sinks::ansicolor_stdout_sink_mt>();
         m_sink->set_level(static_cast<spdlog::level::level_enum>(level));
         m_sink->set_pattern(pattern);
     }
@@ -29,8 +30,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-ConsoleSink::ConsoleSink(LogLevel level, const String& pattern) :
-    m_impl(makePimpl<ConsoleSinkImpl>(this, level, pattern))
+ConsoleSink::ConsoleSink(LogLevel level, const String& pattern) noexcept :
+    m_impl(level, pattern)
 {
 }
 

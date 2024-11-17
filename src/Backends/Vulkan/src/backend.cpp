@@ -13,7 +13,7 @@ PFN_vkQueueInsertDebugUtilsLabelEXT  vkQueueInsertDebugUtilsLabel;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanBackend::VulkanBackendImpl : public Implement<VulkanBackend> {
+class VulkanBackend::VulkanBackendImpl {
 public:
     friend class VulkanBackend;
 
@@ -25,8 +25,8 @@ private:
     const App& m_app;
 
 public:
-    VulkanBackendImpl(VulkanBackend* parent, const App& app, Span<String> extensions, Span<String> validationLayers) :
-        base(parent), m_app(app)
+    VulkanBackendImpl(const App& app, Span<String> extensions, Span<String> validationLayers) :
+        m_app(app)
     {
         m_extensions.assign(std::begin(extensions), std::end(extensions));
         m_layers.assign(std::begin(validationLayers), std::end(validationLayers));
@@ -92,17 +92,19 @@ private:
         __debugbreak();
         return VK_FALSE;
     }
+#endif
 
-public:
-    ~VulkanBackendImpl() 
+private:
+    inline void release()
     {
+#ifndef NDEBUG
         if (m_debugMessenger != VK_NULL_HANDLE && vkDestroyDebugUtilsMessenger != nullptr)
             vkDestroyDebugUtilsMessenger(m_instance, m_debugMessenger, nullptr);
 
         if (m_debugBreaker != VK_NULL_HANDLE && vkDestroyDebugUtilsMessenger != nullptr)
             vkDestroyDebugUtilsMessenger(m_instance, m_debugBreaker, nullptr);
-    }
 #endif
+    }
 
 public:
     VkInstance initialize()
@@ -195,13 +197,13 @@ public:
         return instance;
     }
 
-    void loadAdapters() noexcept
+    void loadAdapters(const VulkanBackend& backend) noexcept
     {
         uint32_t adapters = 0;
-        ::vkEnumeratePhysicalDevices(m_parent->handle(), &adapters, nullptr);
+        ::vkEnumeratePhysicalDevices(backend.handle(), &adapters, nullptr);
 
         Array<VkPhysicalDevice> handles(adapters);
-        ::vkEnumeratePhysicalDevices(m_parent->handle(), &adapters, handles.data());
+        ::vkEnumeratePhysicalDevices(backend.handle(), &adapters, handles.data());
 
         m_adapters = handles | 
             std::views::transform([](const auto& handle) { return makeUnique<VulkanGraphicsAdapter>(handle); }) |
@@ -214,10 +216,10 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanBackend::VulkanBackend(const App& app, Span<String> extensions, Span<String> validationLayers) :
-    Resource<VkInstance>(nullptr), m_impl(makePimpl<VulkanBackendImpl>(this, app, extensions, validationLayers))
+    Resource<VkInstance>(nullptr), m_impl(app, extensions, validationLayers)
 {
     this->handle() = m_impl->initialize();
-    m_impl->loadAdapters();
+    m_impl->loadAdapters(*this);
 
     LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
     LITEFX_DEBUG(VULKAN_LOG, "Available extensions: {0}", Join(this->getAvailableInstanceExtensions(), ", "));
@@ -228,9 +230,11 @@ VulkanBackend::VulkanBackend(const App& app, Span<String> extensions, Span<Strin
         LITEFX_INFO(VULKAN_LOG, "Enabled validation layers: {0}", Join(this->getEnabledValidationLayers(), ", "));
 }
 
+VulkanBackend::VulkanBackend(VulkanBackend&&) noexcept = default;
+VulkanBackend& VulkanBackend::operator=(VulkanBackend&&) noexcept = default;
 VulkanBackend::~VulkanBackend() noexcept 
 {
-    m_impl.destroy();
+    m_impl->release();
     ::vkDestroyInstance(this->handle(), nullptr);
 }
 

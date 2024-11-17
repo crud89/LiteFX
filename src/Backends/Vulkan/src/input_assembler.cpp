@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanInputAssembler::VulkanInputAssemblerImpl : public Implement<VulkanInputAssembler> {
+class VulkanInputAssembler::VulkanInputAssemblerImpl {
 public:
     friend class VulkanInputAssembler;
 
@@ -17,10 +17,7 @@ private:
     PrimitiveTopology m_primitiveTopology;
 
 public:
-    VulkanInputAssemblerImpl(VulkanInputAssembler* parent) :
-        base(parent)
-    {
-    }
+    VulkanInputAssemblerImpl() noexcept = default;
 
 public:
     void initialize(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology)
@@ -43,16 +40,14 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanInputAssembler::VulkanInputAssembler(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology) :
-    m_impl(makePimpl<VulkanInputAssemblerImpl>(this))
+    m_impl()
 {
     m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
 }
 
-VulkanInputAssembler::VulkanInputAssembler() noexcept :
-    m_impl(makePimpl<VulkanInputAssemblerImpl>(this))
-{
-}
-
+VulkanInputAssembler::VulkanInputAssembler() noexcept = default;
+VulkanInputAssembler::VulkanInputAssembler(VulkanInputAssembler&&) noexcept = default;
+VulkanInputAssembler& VulkanInputAssembler::operator=(VulkanInputAssembler&&) noexcept = default;
 VulkanInputAssembler::~VulkanInputAssembler() noexcept = default;
 
 Enumerable<const VulkanVertexBufferLayout*> VulkanInputAssembler::vertexBufferLayouts() const noexcept
@@ -83,7 +78,7 @@ PrimitiveTopology VulkanInputAssembler::topology() const noexcept
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanInputAssemblerBuilder::VulkanInputAssemblerBuilderImpl : public Implement<VulkanInputAssemblerBuilder> {
+class VulkanInputAssemblerBuilder::VulkanInputAssemblerBuilderImpl {
 public:
     friend class VulkanInputAssemblerBuilder;
     friend class VulkanInputAssembler;
@@ -92,12 +87,6 @@ private:
     Array<UniquePtr<VulkanVertexBufferLayout>> m_vertexBufferLayouts;
     UniquePtr<VulkanIndexBufferLayout> m_indexBufferLayout;
     PrimitiveTopology m_primitiveTopology;
-
-public:
-    VulkanInputAssemblerBuilderImpl(VulkanInputAssemblerBuilder* parent) :
-        base(parent)
-    {
-    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -105,7 +94,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanInputAssemblerBuilder::VulkanInputAssemblerBuilder() noexcept :
-    InputAssemblerBuilder(SharedPtr<VulkanInputAssembler>(new VulkanInputAssembler())), m_impl(makePimpl<VulkanInputAssemblerBuilderImpl>(this))
+    InputAssemblerBuilder(SharedPtr<VulkanInputAssembler>(new VulkanInputAssembler())), m_impl()
 {
 }
 

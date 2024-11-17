@@ -21,7 +21,7 @@ PFN_vkCmdTraceRaysKHR vkCmdTraceRays{ nullptr };
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanDevice::VulkanDeviceImpl : public Implement<VulkanDevice> {
+class VulkanDevice::VulkanDeviceImpl {
 public:
     friend class VulkanDevice;
 
@@ -134,8 +134,8 @@ private:
 #endif
 
 public:
-    VulkanDeviceImpl(VulkanDevice* parent, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const GraphicsDeviceFeatures& features, Span<String> extensions) :
-        base(parent), m_adapter(adapter), m_surface(std::move(surface))
+    VulkanDeviceImpl(const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const GraphicsDeviceFeatures& features, Span<String> extensions) :
+        m_adapter(adapter), m_surface(std::move(surface))
     {
         if (m_surface == nullptr)
             throw ArgumentNotInitializedException("surface", "The surface must be initialized.");
@@ -146,7 +146,8 @@ public:
         this->loadQueueFamilies();
     }
 
-    ~VulkanDeviceImpl()
+private:
+    void release()
     {
         // Clear the device state.
         m_deviceState.clear();
@@ -154,14 +155,12 @@ public:
         // This will also cause all queue instances to be automatically released (graphicsQueue, transferQueue, bufferQueue).
         m_families.clear();
 
-        // Release the swap chain.
+        // Release other resources.
         m_swapChain = nullptr;
-
-        // Destroy the surface.
         m_surface = nullptr;
+        m_factory = nullptr;
     }
 
-private:
     void defineMandatoryExtensions(const GraphicsDeviceFeatures& features) noexcept
     {
         // NOTE: If an extension is not supported, update the graphics driver to the most recent one. You can lookup extension support for individual drivers here:
@@ -461,12 +460,12 @@ public:
         return device;
     }
 
-    void initializeDefaultQueues()
+    void initializeDefaultQueues(const VulkanDevice& device)
     {
         // Initialize default queues.
-        m_graphicsQueue = this->createQueue(QueueType::Graphics, QueuePriority::Realtime, std::as_const(*m_surface).handle());
-        m_transferQueue = this->createQueue(QueueType::Transfer, QueuePriority::Realtime);
-        m_computeQueue = this->createQueue(QueueType::Compute, QueuePriority::Realtime);
+        m_graphicsQueue = this->createQueue(device, QueueType::Graphics, QueuePriority::Realtime, std::as_const(*m_surface).handle());
+        m_transferQueue = this->createQueue(device, QueueType::Transfer, QueuePriority::Realtime);
+        m_computeQueue = this->createQueue(device, QueueType::Compute, QueuePriority::Realtime);
 
         if (m_graphicsQueue == nullptr)
             throw RuntimeException("Unable to find a fitting command queue to present the specified surface.");
@@ -484,18 +483,18 @@ public:
         }
     }
 
-    void createFactory()
+    void createFactory(const VulkanDevice& device)
     {
-        m_factory = makeUnique<VulkanGraphicsFactory>(*m_parent);
+        m_factory = makeUnique<VulkanGraphicsFactory>(device);
     }
 
-    void createSwapChain(Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
+    void createSwapChain(const VulkanDevice& device, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
     {
-        m_swapChain = makeUnique<VulkanSwapChain>(*m_parent, format, renderArea, backBuffers, enableVsync);
+        m_swapChain = makeUnique<VulkanSwapChain>(device, format, renderArea, backBuffers, enableVsync);
     }
 
 public:
-    VulkanQueue* createQueue(QueueType type, QueuePriority priority, const VkSurfaceKHR& surface = VK_NULL_HANDLE)
+    VulkanQueue* createQueue(const VulkanDevice& device, QueueType type, QueuePriority priority, const VkSurfaceKHR& surface = VK_NULL_HANDLE)
     {
         // Find the queue that is most specialized for the provided queue type. Since the queues are ordered based on their type popcount (most specialized queues come first, as they have 
         // lower type flags set), we can simply pick the first one we find, that matches all the flags.
@@ -514,7 +513,7 @@ public:
             return result != VK_FALSE;
         });
 
-        return match == m_families.end() ? nullptr : match->createQueue(*m_parent, priority);
+        return match == m_families.end() ? nullptr : match->createQueue(device, priority);
     }
 };
 
@@ -528,7 +527,7 @@ VulkanDevice::VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAda
 }
 
 VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features, Span<String> extensions) :
-    Resource<VkDevice>(nullptr), m_impl(makePimpl<VulkanDeviceImpl>(this, adapter, std::move(surface), features, extensions))
+    Resource<VkDevice>(nullptr), m_impl(adapter, std::move(surface), features, extensions)
 {
     LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", static_cast<void*>(m_impl->m_surface.get()), adapter.deviceId(), Join(this->enabledExtensions(), ", "));
     LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
@@ -545,15 +544,18 @@ VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphic
         LITEFX_INFO(VULKAN_LOG, "Enabled validation layers: {0}", Join(extensions, ", "));
 
     this->handle() = m_impl->initialize(features);
-    m_impl->initializeDefaultQueues();
-    m_impl->createFactory();
-    m_impl->createSwapChain(format, renderArea, backBuffers, enableVsync);
+    m_impl->initializeDefaultQueues(*this);
+    m_impl->createFactory(*this);
+    m_impl->createSwapChain(*this, format, renderArea, backBuffers, enableVsync);
 }
+
+VulkanDevice::VulkanDevice(VulkanDevice&&) noexcept = default;
+VulkanDevice& VulkanDevice::operator=(VulkanDevice&&) noexcept = default;
 
 VulkanDevice::~VulkanDevice() noexcept
 {
     // Destroy the implementation.
-    m_impl.destroy();
+    m_impl->release();
 
     // Destroy the device.
     ::vkDestroyDevice(this->handle(), nullptr);
@@ -692,7 +694,7 @@ const VulkanQueue& VulkanDevice::defaultQueue(QueueType type) const
 
 const VulkanQueue* VulkanDevice::createQueue(QueueType type, QueuePriority priority) noexcept
 {
-    return m_impl->createQueue(type, priority);
+    return m_impl->createQueue(*this, type, priority);
 }
 
 UniquePtr<VulkanBarrier> VulkanDevice::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept

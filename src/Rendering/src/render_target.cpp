@@ -6,12 +6,12 @@ using namespace LiteFX::Rendering;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class RenderTarget::RenderTargetImpl : public Implement<RenderTarget> {
+class RenderTarget::RenderTargetImpl final {
 public:
     friend class RenderTarget;
 
 private:
-    RenderTargetType m_type = RenderTargetType::Color;
+    RenderTargetType m_type;
     RenderTargetFlags m_flags;
     Vector4f m_clearValues;
     UInt32 m_location;
@@ -21,8 +21,8 @@ private:
     Format m_format;
 
 public:
-    RenderTargetImpl(RenderTarget* parent, StringView name, UInt64 uid, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags, const Vector4f& clearValues, const BlendState& blendState) :
-        base(parent), m_type(type), m_flags(flags), m_clearValues(clearValues), m_location(location), m_blendState(blendState), m_name(name), m_identifier(uid), m_format(format)
+    RenderTargetImpl(StringView name, UInt64 uid, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags, const Vector4f& clearValues, const BlendState& blendState) noexcept :
+        m_type(type), m_flags(flags), m_clearValues(clearValues), m_location(location), m_blendState(blendState), m_name(name), m_identifier(uid), m_format(format)
     {
     }
 };
@@ -31,55 +31,21 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-RenderTarget::RenderTarget(UInt64 uid, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags, const Vector4f& clearValues, const BlendState& blendState) :
-    m_impl(makePimpl<RenderTargetImpl>(this, "", uid, location, type, format, flags, clearValues, blendState))
+RenderTarget::RenderTarget(UInt64 uid, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags, const Vector4f& clearValues, const BlendState& blendState) noexcept :
+    m_impl("", uid, location, type, format, flags, clearValues, blendState)
 {
 }
 
-RenderTarget::RenderTarget(StringView name, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags, const Vector4f& clearValues, const BlendState& blendState) :
-    m_impl(makePimpl<RenderTargetImpl>(this, name, hash(name), location, type, format, flags, clearValues, blendState))
+RenderTarget::RenderTarget(StringView name, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags, const Vector4f& clearValues, const BlendState& blendState) noexcept :
+    m_impl(name, hash(name), location, type, format, flags, clearValues, blendState)
 {
 }
 
-RenderTarget::RenderTarget(const RenderTarget& _other) noexcept :
-    m_impl(makePimpl<RenderTargetImpl>(this, _other.name(), _other.identifier(), _other.location(), _other.type(), _other.format(), _other.flags(), _other.clearValues(), _other.blendState()))
-{
-}
-
-RenderTarget::RenderTarget(RenderTarget&& _other) noexcept :
-    m_impl(makePimpl<RenderTargetImpl>(this, std::move(_other.m_impl->m_name), std::move(_other.m_impl->m_identifier), std::move(_other.m_impl->m_location), std::move(_other.m_impl->m_type), std::move(_other.m_impl->m_format), std::move(_other.m_impl->m_flags), std::move(_other.m_impl->m_clearValues), std::move(_other.m_impl->m_blendState)))
-{
-}
-
+RenderTarget::RenderTarget(const RenderTarget& _other) noexcept = default;
+RenderTarget::RenderTarget(RenderTarget&& _other) noexcept = default;
+RenderTarget& RenderTarget::operator=(const RenderTarget& _other) noexcept = default;
+RenderTarget& RenderTarget::operator=(RenderTarget&& _other) noexcept = default;
 RenderTarget::~RenderTarget() noexcept = default;
-
-RenderTarget& RenderTarget::operator=(const RenderTarget& _other) noexcept
-{
-    m_impl->m_name = _other.m_impl->m_name;
-    m_impl->m_location = _other.m_impl->m_location;
-    m_impl->m_type = _other.m_impl->m_type;
-    m_impl->m_format = _other.m_impl->m_format;
-    m_impl->m_flags = _other.m_impl->m_flags;
-    m_impl->m_clearValues = _other.m_impl->m_clearValues;
-    m_impl->m_blendState = _other.m_impl->m_blendState;
-    m_impl->m_identifier = _other.m_impl->m_identifier;
-
-    return *this;
-}
-
-RenderTarget& RenderTarget::operator=(RenderTarget&& _other) noexcept
-{
-    m_impl->m_name = std::move(_other.m_impl->m_name);
-    m_impl->m_location = std::move(_other.m_impl->m_location);
-    m_impl->m_type = std::move(_other.m_impl->m_type);
-    m_impl->m_format = std::move(_other.m_impl->m_format);
-    m_impl->m_flags = std::move(_other.m_impl->m_flags);
-    m_impl->m_clearValues = std::move(_other.m_impl->m_clearValues);
-    m_impl->m_blendState = std::move(_other.m_impl->m_blendState);
-    m_impl->m_identifier = std::move(_other.m_impl->m_identifier);
-    
-    return *this;
-}
 
 UInt64 RenderTarget::identifier() const noexcept 
 {

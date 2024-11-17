@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanFrameBuffer::VulkanFrameBufferImpl : public Implement<VulkanFrameBuffer> {
+class VulkanFrameBuffer::VulkanFrameBufferImpl {
 public:
 	friend class VulkanFrameBuffer;
 
@@ -18,8 +18,8 @@ private:
 	Size2d m_size;
 
 public:
-    VulkanFrameBufferImpl(VulkanFrameBuffer* parent, const VulkanDevice& device, const Size2d& renderArea) :
-        base(parent), m_device(device), m_size(renderArea)
+    VulkanFrameBufferImpl(const VulkanDevice& device, const Size2d& renderArea) :
+        m_device(device), m_size(renderArea)
 	{
 	}
 
@@ -138,10 +138,12 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanFrameBuffer::VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea, StringView name) :
-    StateResource(name), m_impl(makePimpl<VulkanFrameBufferImpl>(this, device, renderArea))
+    StateResource(name), m_impl(device, renderArea)
 {
 }
 
+VulkanFrameBuffer::VulkanFrameBuffer(VulkanFrameBuffer&&) noexcept = default;
+VulkanFrameBuffer& VulkanFrameBuffer::operator=(VulkanFrameBuffer&&) noexcept = default;
 VulkanFrameBuffer::~VulkanFrameBuffer() noexcept = default;
 
 VkImageView VulkanFrameBuffer::imageView(UInt32 imageIndex) const

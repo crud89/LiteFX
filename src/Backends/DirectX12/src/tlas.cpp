@@ -8,20 +8,20 @@ using Instance = ITopLevelAccelerationStructure::Instance;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12TopLevelAccelerationStructure::DirectX12TopLevelAccelerationStructureImpl : public Implement<DirectX12TopLevelAccelerationStructure> {
+class DirectX12TopLevelAccelerationStructure::DirectX12TopLevelAccelerationStructureImpl {
 public:
     friend class DirectX12TopLevelAccelerationStructure;
 
 private:
-    Array<Instance> m_instances { };
-    AccelerationStructureFlags m_flags;
-    SharedPtr<const IDirectX12Buffer> m_buffer;
-    UniquePtr<IDirectX12Buffer> m_postBuildBuffer, m_postBuildResults;
-    UInt64 m_offset { }, m_size { };
+    Array<Instance> m_instances{};
+    AccelerationStructureFlags m_flags{};
+    SharedPtr<const IDirectX12Buffer> m_buffer{};
+    UniquePtr<IDirectX12Buffer> m_postBuildBuffer{}, m_postBuildResults{};
+    UInt64 m_offset{}, m_size{};
 
 public:
-    DirectX12TopLevelAccelerationStructureImpl(DirectX12TopLevelAccelerationStructure* parent, AccelerationStructureFlags flags) :
-        base(parent), m_flags(flags)
+    DirectX12TopLevelAccelerationStructureImpl(AccelerationStructureFlags flags) :
+        m_flags(flags)
     {
         if (LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastBuild) && LITEFX_FLAG_IS_SET(flags, AccelerationStructureFlags::PreferFastTrace)) [[unlikely]]
             throw InvalidArgumentException("flags", "Cannot combine acceleration structure flags `PreferFastBuild` and `PreferFastTrace`.");
@@ -68,7 +68,7 @@ public:
         };
 
         // Transition the buffer into UAV state. We create  manual barriers here, as the special access flag is only required in this specific situation.
-        std::array<CD3DX12_BUFFER_BARRIER, 1> preBarrier = {
+        auto preBarrier = std::array {
             CD3DX12_BUFFER_BARRIER(afterCopy ? D3D12_BARRIER_SYNC_COPY_RAYTRACING_ACCELERATION_STRUCTURE : D3D12_BARRIER_SYNC_BUILD_RAYTRACING_ACCELERATION_STRUCTURE, D3D12_BARRIER_SYNC_EMIT_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO, D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_WRITE, D3D12_BARRIER_ACCESS_RAYTRACING_ACCELERATION_STRUCTURE_READ, std::as_const(*m_buffer).handle().Get()),
             //CD3DX12_BUFFER_BARRIER(D3D12_BARRIER_SYNC_NONE, D3D12_BARRIER_SYNC_EMIT_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO, D3D12_BARRIER_ACCESS_NO_ACCESS, D3D12_BARRIER_ACCESS_UNORDERED_ACCESS, std::as_const(*m_postBuildBuffer).handle().Get()),
         };
@@ -94,10 +94,12 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12TopLevelAccelerationStructure::DirectX12TopLevelAccelerationStructure(AccelerationStructureFlags flags, StringView name) :
-    StateResource(name), m_impl(makePimpl<DirectX12TopLevelAccelerationStructureImpl>(this, flags))
+    StateResource(name), m_impl(flags)
 {
 }
 
+DirectX12TopLevelAccelerationStructure::DirectX12TopLevelAccelerationStructure(DirectX12TopLevelAccelerationStructure&&) noexcept = default;
+DirectX12TopLevelAccelerationStructure& DirectX12TopLevelAccelerationStructure::operator=(DirectX12TopLevelAccelerationStructure&&) noexcept = default;
 DirectX12TopLevelAccelerationStructure::~DirectX12TopLevelAccelerationStructure() noexcept = default;
 
 AccelerationStructureFlags DirectX12TopLevelAccelerationStructure::flags() const noexcept

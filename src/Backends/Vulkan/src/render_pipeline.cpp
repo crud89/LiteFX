@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanRenderPipeline::VulkanRenderPipelineImpl : public Implement<VulkanRenderPipeline> {
+class VulkanRenderPipeline::VulkanRenderPipelineImpl {
 public:
 	friend class VulkanRenderPipelineBuilder;
 	friend class VulkanRenderPipeline;
@@ -27,15 +27,15 @@ private:
 
 
 public:
-	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass, bool alphaToCoverage, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer) :
-		base(parent), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_alphaToCoverage(alphaToCoverage), m_renderPass(renderPass)
+	VulkanRenderPipelineImpl(const VulkanRenderPass& renderPass, bool alphaToCoverage, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer) :
+		m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_alphaToCoverage(alphaToCoverage), m_renderPass(renderPass)
 	{
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
 			m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
 	}
 
-	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass) :
-		base(parent), m_renderPass(renderPass)
+	VulkanRenderPipelineImpl(const VulkanRenderPass& renderPass) :
+		m_renderPass(renderPass)
 	{
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
 			m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
@@ -52,7 +52,7 @@ public:
 	}
 
 public:
-	VkPipeline initialize(MultiSamplingLevel samples)
+	VkPipeline initialize([[maybe_unused]] const VulkanRenderPipeline& parent, MultiSamplingLevel samples)
 	{
 		// Get the shader modules.
 		auto modules = m_program->modules();
@@ -80,10 +80,10 @@ public:
 
 		// Setup the pipeline.
 		m_samples = samples;
-		auto pipeline = this->initializeGraphicsPipeline(dynamicState, shaderStages);
+		auto pipeline = this->initializeGraphicsPipeline(parent, dynamicState, shaderStages);
 
 #ifndef NDEBUG
-		m_renderPass.device().setDebugName(*reinterpret_cast<const UInt64*>(&pipeline), VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, m_parent->name());
+		m_renderPass.device().setDebugName(*reinterpret_cast<const UInt64*>(&pipeline), VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, parent.name());
 #endif
 
 		// Return the pipeline instance.
@@ -91,9 +91,9 @@ public:
 
 	}
 
-	VkPipeline initializeGraphicsPipeline(const VkPipelineDynamicStateCreateInfo& dynamicState, const LiteFX::Array<VkPipelineShaderStageCreateInfo>& shaderStages)
+	VkPipeline initializeGraphicsPipeline([[maybe_unused]] const VulkanRenderPipeline& parent, const VkPipelineDynamicStateCreateInfo& dynamicState, const LiteFX::Array<VkPipelineShaderStageCreateInfo>& shaderStages)
 	{
-		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline \"{1}\" for layout {0}...", static_cast<void*>(m_layout.get()), m_parent->name());
+		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline \"{1}\" for layout {0}...", static_cast<void*>(m_layout.get()), parent.name());
 
 		// Setup rasterizer state.
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
@@ -387,7 +387,7 @@ public:
 		}
 	}
 
-	void bindInputAttachments(const VulkanCommandBuffer& commandBuffer)
+	void bindInputAttachments(const VulkanRenderPipeline& parent, const VulkanCommandBuffer& commandBuffer)
 	{
 		// If this is the first time, the current frame buffer is bound to the render pass, we need to allocate descriptors for it.
 		auto& frameBuffer = m_renderPass.activeFrameBuffer();
@@ -403,7 +403,7 @@ public:
 		// Bind the input attachment sets.
 		//commandBuffer.bind(m_inputAttachmentBindings.at(interfacePointer) | std::views::transform([](auto& set) { return set.get(); }));
 		auto descriptorSets = m_inputAttachmentBindings.at(interfacePointer) | std::views::transform([](auto& set) { return set.get(); }) | std::ranges::to<Array<const VulkanDescriptorSet*>>();
-		m_parent->bind(commandBuffer, descriptorSets);
+		parent.bind(commandBuffer, descriptorSets);
 	}
 
 	void onFrameBufferResize(const void* sender, IFrameBuffer::ResizeEventArgs /*args*/)
@@ -433,20 +433,23 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, MultiSamplingLevel samples, bool enableAlphaToCoverage, const String& name) :
-	VulkanPipelineState(VK_NULL_HANDLE), m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer))
+	VulkanPipelineState(VK_NULL_HANDLE), m_impl(renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer)
 {
-	this->handle() = m_impl->initialize(samples);
+	this->handle() = m_impl->initialize(*this, samples);
 
 	if (!name.empty())
 		this->name() = name;
 }
 
 VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const String& name) noexcept :
-	VulkanPipelineState(VK_NULL_HANDLE), m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass))
+	VulkanPipelineState(VK_NULL_HANDLE), m_impl(renderPass)
 {
 	if (!name.empty())
 		this->name() = name;
 }
+
+VulkanRenderPipeline::VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = default;
+VulkanRenderPipeline& VulkanRenderPipeline::operator=(VulkanRenderPipeline&&) noexcept = default;
 
 VulkanRenderPipeline::~VulkanRenderPipeline() noexcept
 {
@@ -492,7 +495,7 @@ void VulkanRenderPipeline::updateSamples(MultiSamplingLevel samples)
 	::vkDestroyPipeline(m_impl->m_renderPass.device().handle(), this->handle(), nullptr);
 
 	// Rebuild the pipeline.
-	this->handle() = m_impl->initialize(samples);
+	this->handle() = m_impl->initialize(*this, samples);
 }
 
 void VulkanRenderPipeline::use(const VulkanCommandBuffer& commandBuffer) const noexcept
@@ -507,7 +510,7 @@ void VulkanRenderPipeline::use(const VulkanCommandBuffer& commandBuffer) const n
 	std::lock_guard<std::mutex> lock(m_impl->m_usageMutex);
 
 	// Bind the input attachments and the input attachment sampler.
-	m_impl->bindInputAttachments(commandBuffer);
+	m_impl->bindInputAttachments(*this, commandBuffer);
 }
 
 void VulkanRenderPipeline::bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const noexcept
@@ -559,6 +562,6 @@ void VulkanRenderPipelineBuilder::build()
 	instance->m_impl->m_inputAssembler = m_state.inputAssembler;
 	instance->m_impl->m_rasterizer = m_state.rasterizer;
 	instance->m_impl->m_alphaToCoverage = m_state.enableAlphaToCoverage;
-	instance->handle() = instance->m_impl->initialize(m_state.samples);
+	instance->handle() = instance->m_impl->initialize(*instance, m_state.samples);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

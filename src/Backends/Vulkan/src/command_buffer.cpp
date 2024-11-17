@@ -15,7 +15,7 @@ extern PFN_vkCmdDrawMeshTasksIndirectCountEXT vkCmdDrawMeshTasksIndirectCount;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanCommandBuffer::VulkanCommandBufferImpl : public Implement<VulkanCommandBuffer> {
+class VulkanCommandBuffer::VulkanCommandBufferImpl {
 public:
 	friend class VulkanCommandBuffer;
 
@@ -27,20 +27,15 @@ private:
 	const VulkanPipelineState* m_lastPipeline = nullptr;
 
 public:
-	VulkanCommandBufferImpl(VulkanCommandBuffer* parent, const VulkanQueue& queue, bool primary) :
-		base(parent), m_queue(queue), m_secondary(!primary)
+	VulkanCommandBufferImpl(const VulkanQueue& queue, bool primary) :
+		m_queue(queue), m_secondary(!primary)
 	{
-	}
-
-	~VulkanCommandBufferImpl() 
-	{
-		this->release();
 	}
 
 public:
-	void release() 
+	void release(const VulkanCommandBuffer& commandBuffer) 
 	{
-		::vkFreeCommandBuffers(m_queue.device().handle(), m_commandPool, 1, &m_parent->handle());
+		::vkFreeCommandBuffers(m_queue.device().handle(), m_commandPool, 1, &commandBuffer.handle());
 		::vkDestroyCommandPool(m_queue.device().handle(), m_commandPool, nullptr);
 	}
 
@@ -73,7 +68,7 @@ public:
 		return buffer;
 	}
 
-	inline void buildAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset, bool update)
+	inline void buildAccelerationStructure(const VulkanCommandBuffer& commandBuffer, VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset, bool update)
 	{
 		if (scratchBuffer == nullptr) [[unlikely]]
 			throw ArgumentNotInitializedException("scratchBuffer");
@@ -115,7 +110,7 @@ public:
 			}
 		};
 
-		::vkCmdBuildAccelerationStructures(m_parent->handle(), 1, &inputs, &rangePointer);
+		::vkCmdBuildAccelerationStructures(commandBuffer.handle(), 1, &inputs, &rangePointer);
 
 		// Store the acceleration structure handle.
 		blas.updateState(&device, handle);
@@ -124,7 +119,7 @@ public:
 		m_sharedResources.push_back(scratchBuffer);
 	}
 
-	inline void buildAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset, bool update)
+	inline void buildAccelerationStructure(const VulkanCommandBuffer& commandBuffer, VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset, bool update)
 	{
 		if (scratchBuffer == nullptr) [[unlikely]]
 			throw ArgumentNotInitializedException("scratchBuffer");
@@ -186,7 +181,7 @@ public:
 			}
 		};
 
-		::vkCmdBuildAccelerationStructures(m_parent->handle(), 1, &inputs, &rangePointer);
+		::vkCmdBuildAccelerationStructures(commandBuffer.handle(), 1, &inputs, &rangePointer);
 
 		// Store the acceleration structure handle.
 		tlas.updateState(&device, handle);
@@ -202,7 +197,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, bool begin, bool primary) :
-	Resource<VkCommandBuffer>(nullptr), m_impl(makePimpl<VulkanCommandBufferImpl>(this, queue, primary))
+	Resource<VkCommandBuffer>(nullptr), m_impl(queue, primary)
 {
 	this->handle() = m_impl->initialize();
 
@@ -210,7 +205,12 @@ VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, bool begin, b
 		this->begin();
 }
 
-VulkanCommandBuffer::~VulkanCommandBuffer() noexcept = default;
+VulkanCommandBuffer::VulkanCommandBuffer(VulkanCommandBuffer&&) noexcept = default;
+VulkanCommandBuffer& VulkanCommandBuffer::operator=(VulkanCommandBuffer&&) noexcept = default;
+VulkanCommandBuffer::~VulkanCommandBuffer() noexcept
+{
+	m_impl->release(*this);
+}
 
 const ICommandQueue& VulkanCommandBuffer::queue() const noexcept
 {
@@ -726,22 +726,22 @@ void VulkanCommandBuffer::releaseSharedState() const
 
 void VulkanCommandBuffer::buildAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
 {
-	m_impl->buildAccelerationStructure(blas, scratchBuffer, buffer, offset, false);
+	m_impl->buildAccelerationStructure(*this, blas, scratchBuffer, buffer, offset, false);
 }
 
 void VulkanCommandBuffer::buildAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
 {
-	m_impl->buildAccelerationStructure(tlas, scratchBuffer, buffer, offset, false);
+	m_impl->buildAccelerationStructure(*this, tlas, scratchBuffer, buffer, offset, false);
 }
 
 void VulkanCommandBuffer::updateAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
 {
-	m_impl->buildAccelerationStructure(blas, scratchBuffer, buffer, offset, true);
+	m_impl->buildAccelerationStructure(*this, blas, scratchBuffer, buffer, offset, true);
 }
 
 void VulkanCommandBuffer::updateAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
 {
-	m_impl->buildAccelerationStructure(tlas, scratchBuffer, buffer, offset, true);
+	m_impl->buildAccelerationStructure(*this, tlas, scratchBuffer, buffer, offset, true);
 }
 
 void VulkanCommandBuffer::copyAccelerationStructure(const VulkanBottomLevelAccelerationStructure& from, const VulkanBottomLevelAccelerationStructure& to, bool compress) const noexcept

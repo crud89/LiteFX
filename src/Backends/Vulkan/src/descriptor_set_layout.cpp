@@ -8,7 +8,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanDescriptorSetLayout::VulkanDescriptorSetLayoutImpl : public Implement<VulkanDescriptorSetLayout> {
+class VulkanDescriptorSetLayout::VulkanDescriptorSetLayoutImpl {
 public:
     friend class VulkanDescriptorSetLayoutBuilder;
     friend class VulkanDescriptorSetLayout;
@@ -45,14 +45,14 @@ private:
     Dictionary<const VkDescriptorSet*, const VkDescriptorPool*> m_descriptorSetSources;
 
 public:
-    VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages) :
-        base(parent), m_stages(stages), m_space(space), m_device(device)
+    VulkanDescriptorSetLayoutImpl(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages) :
+        m_stages(stages), m_space(space), m_device(device)
     {
         m_descriptorLayouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
-    VulkanDescriptorSetLayoutImpl(VulkanDescriptorSetLayout* parent, const VulkanDevice& device) :
-        base(parent), m_device(device)
+    VulkanDescriptorSetLayoutImpl(const VulkanDevice& device) :
+        m_device(device)
     {
     }
 
@@ -264,12 +264,12 @@ public:
         m_descriptorPools.push_back(descriptorPool);
     }
 
-    VkDescriptorSet tryAllocate(UInt32 descriptors)
+    VkDescriptorSet tryAllocate(const VulkanDescriptorSetLayout& layout, UInt32 descriptors)
     {
-        return this->tryAllocate(1u, descriptors).front();
+        return this->tryAllocate(layout, 1u, descriptors).front();
     }
 
-    Array<VkDescriptorSet> tryAllocate(UInt32 descriptorSets, UInt32 descriptorsPerSet)
+    Array<VkDescriptorSet> tryAllocate(const VulkanDescriptorSetLayout& layout, UInt32 descriptorSets, UInt32 descriptorsPerSet)
     {
         // NOTE: We're thread safe here, as the calls from the interface use a mutex to synchronize allocation.
         
@@ -281,7 +281,7 @@ public:
         this->reserve(descriptorSets);
 
         // Allocate the descriptor sets.
-        Array<VkDescriptorSetLayout> layouts(descriptorSets, m_parent->handle());
+        Array<VkDescriptorSetLayout> layouts(descriptorSets, layout.handle());
 
         VkDescriptorSetVariableDescriptorCountAllocateInfo variableCountInfo;
         VkDescriptorSetAllocateInfo descriptorSetInfo = {
@@ -321,15 +321,18 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages) :
-    Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, device, std::move(descriptorLayouts), space, stages))
+    Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE), m_impl(device, std::move(descriptorLayouts), space, stages)
 {
     this->handle() = m_impl->initialize();
 }
 
 VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device) noexcept :
-    Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanDescriptorSetLayoutImpl>(this, device))
+    Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE), m_impl(device)
 {
 }
+
+VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(VulkanDescriptorSetLayout&&) noexcept = default;
+VulkanDescriptorSetLayout& VulkanDescriptorSetLayout::operator=(VulkanDescriptorSetLayout&&) noexcept = default;
 
 VulkanDescriptorSetLayout::~VulkanDescriptorSetLayout() noexcept
 {
@@ -414,7 +417,7 @@ UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(UInt32 descri
     UniquePtr<VulkanDescriptorSet> descriptorSet;
 
     if (m_impl->m_usesDescriptorIndexing || m_impl->m_freeDescriptorSets.empty())
-        descriptorSet = makeUnique<VulkanDescriptorSet>(*this, m_impl->tryAllocate(descriptors));
+        descriptorSet = makeUnique<VulkanDescriptorSet>(*this, m_impl->tryAllocate(*this, descriptors));
     else
     {
         // Otherwise, pick and remove one from the list.
@@ -456,7 +459,7 @@ Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMu
 
     // If the set contains an unbounded array, or there are no free sets left, we need to allocate anyway.
     Enumerable<UniquePtr<VulkanDescriptorSet>> descriptorSets = (m_impl->m_usesDescriptorIndexing || m_impl->m_freeDescriptorSets.empty() ?
-        [this, unboundedDescriptorsCount, &count]() -> std::generator<VkDescriptorSet> { co_yield std::ranges::elements_of(m_impl->tryAllocate(count, unboundedDescriptorsCount) | std::views::as_rvalue); }() :
+        [this, unboundedDescriptorsCount, &count]() -> std::generator<VkDescriptorSet> { co_yield std::ranges::elements_of(m_impl->tryAllocate(*this, count, unboundedDescriptorsCount) | std::views::as_rvalue); }() :
         [this, unboundedDescriptorsCount, &count]() -> std::generator<VkDescriptorSet> {
             UInt32 remainingAllocations = count;
 
@@ -469,7 +472,7 @@ Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMu
             }
 
             // Allocate the rest from a new descriptor pool and return them.
-            co_yield std::ranges::elements_of(m_impl->tryAllocate(remainingAllocations, unboundedDescriptorsCount) | std::views::as_rvalue);
+            co_yield std::ranges::elements_of(m_impl->tryAllocate(*this, remainingAllocations, unboundedDescriptorsCount) | std::views::as_rvalue);
         }()) | std::views::transform([this](auto handle) { return makeUnique<VulkanDescriptorSet>(*this, handle); }) | std::views::as_rvalue;
 
     // Apply the default bindings.
@@ -498,7 +501,7 @@ Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMu
 
     // If the set contains an unbounded array, or there are no free sets left, we need to allocate anyway.
     Enumerable<UniquePtr<VulkanDescriptorSet>> descriptorSets = (m_impl->m_usesDescriptorIndexing || m_impl->m_freeDescriptorSets.empty() ?
-        [this, unboundedDescriptorsCount, &count]() -> std::generator<VkDescriptorSet> { co_yield std::ranges::elements_of(m_impl->tryAllocate(count, unboundedDescriptorsCount) | std::views::as_rvalue); }() :
+        [this, unboundedDescriptorsCount, &count]() -> std::generator<VkDescriptorSet> { co_yield std::ranges::elements_of(m_impl->tryAllocate(*this, count, unboundedDescriptorsCount) | std::views::as_rvalue); }() :
         [this, unboundedDescriptorsCount, &count]() -> std::generator<VkDescriptorSet> {
             UInt32 remainingAllocations = count;
 
@@ -511,7 +514,7 @@ Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMu
             }
 
             // Allocate the rest from a new descriptor pool and return them.
-            co_yield std::ranges::elements_of(m_impl->tryAllocate(remainingAllocations, unboundedDescriptorsCount) | std::views::as_rvalue);
+            co_yield std::ranges::elements_of(m_impl->tryAllocate(*this, remainingAllocations, unboundedDescriptorsCount) | std::views::as_rvalue);
         }()) | std::views::transform([this](auto handle) { return makeUnique<VulkanDescriptorSet>(*this, handle); }) | std::views::as_rvalue;
 
     // Apply the default bindings.

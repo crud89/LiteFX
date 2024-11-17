@@ -8,7 +8,7 @@ using namespace LiteFX::Logging;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class RollingFileSink::RollingFileSinkImpl : public Implement<RollingFileSink> {
+class RollingFileSink::RollingFileSinkImpl {
 public:
     friend class RollingFileSink;
 
@@ -17,26 +17,24 @@ private:
     LogLevel m_level;
     bool m_truncate;
     int m_maxFiles;
-    SharedPtr<spdlog::sinks::daily_file_sink_mt> m_sink;
+    SharedPtr<spdlog::sinks::daily_file_sink_mt> m_sink{};
 
 public:
-    // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
-    RollingFileSinkImpl(RollingFileSink* parent, LogLevel level, const String& fileName, const String& pattern, bool truncate, int maxFiles) :
-        base(parent), m_pattern(pattern), m_fileName(fileName), m_level(level), m_truncate(truncate), m_maxFiles(maxFiles),
-        m_sink(makeShared<spdlog::sinks::daily_file_sink_mt>(fileName, 23, 59, truncate, maxFiles)) 
+    RollingFileSinkImpl(LogLevel level, const String& fileName, const String& pattern, bool truncate, int maxFiles) noexcept :
+        m_pattern(pattern), m_fileName(fileName), m_level(level), m_truncate(truncate), m_maxFiles(maxFiles)
     {
+        m_sink = makeShared<spdlog::sinks::daily_file_sink_mt>(fileName, 23, 59, truncate, maxFiles); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         m_sink->set_level(static_cast<spdlog::level::level_enum>(level));
         m_sink->set_pattern(pattern);
     }
-    // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 };
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-RollingFileSink::RollingFileSink(const String& fileName, LogLevel level, const String& pattern, bool truncate, int maxFiles) :
-    m_impl(makePimpl<RollingFileSinkImpl>(this, level, fileName, pattern, truncate, maxFiles))
+RollingFileSink::RollingFileSink(const String& fileName, LogLevel level, const String& pattern, bool truncate, int maxFiles) noexcept :
+    m_impl(level, fileName, pattern, truncate, maxFiles)
 {
 }
 

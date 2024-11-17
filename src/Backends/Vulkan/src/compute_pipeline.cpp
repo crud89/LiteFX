@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanComputePipeline::VulkanComputePipelineImpl : public Implement<VulkanComputePipeline> {
+class VulkanComputePipeline::VulkanComputePipelineImpl {
 public:
 	friend class VulkanComputePipelineBuilder;
 	friend class VulkanComputePipeline;
@@ -18,20 +18,20 @@ private:
 	const VulkanDevice& m_device;
 
 public:
-	VulkanComputePipelineImpl(VulkanComputePipeline* parent, const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram) :
-		base(parent), m_layout(layout), m_program(shaderProgram), m_device(device)
+	VulkanComputePipelineImpl(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram) :
+		m_layout(layout), m_program(shaderProgram), m_device(device)
 	{
 	}
 
-	VulkanComputePipelineImpl(VulkanComputePipeline* parent, const VulkanDevice& device) :
-		base(parent), m_device(device)
+	VulkanComputePipelineImpl(const VulkanDevice& device) :
+		m_device(device)
 	{
 	}
 
 public:
-	VkPipeline initialize()
+	VkPipeline initialize([[maybe_unused]] const VulkanComputePipeline& parent)
 	{
-		LITEFX_TRACE(VULKAN_LOG, "Creating compute pipeline (\"{1}\") for layout {0}...", static_cast<void*>(m_layout.get()), m_parent->name());
+		LITEFX_TRACE(VULKAN_LOG, "Creating compute pipeline (\"{1}\") for layout {0}...", static_cast<void*>(m_layout.get()), parent.name());
 	
 		// Setup shader stages.
 		auto modules = m_program->modules();
@@ -54,7 +54,7 @@ public:
 		raiseIfFailed(::vkCreateComputePipelines(m_device.handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create compute pipeline.");
 
 #ifndef NDEBUG
-		m_device.setDebugName(*reinterpret_cast<const UInt64*>(&pipeline), VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, m_parent->name());
+		m_device.setDebugName(*reinterpret_cast<const UInt64*>(&pipeline), VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, parent.name());
 #endif
 
 		return pipeline;
@@ -66,19 +66,21 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, const String& name) :
-	VulkanPipelineState(VK_NULL_HANDLE), m_impl(makePimpl<VulkanComputePipelineImpl>(this, device, layout, shaderProgram))
+	VulkanPipelineState(VK_NULL_HANDLE), m_impl(device, layout, shaderProgram)
 {
 	if (!name.empty())
 		this->name() = name;
 
-	this->handle() = m_impl->initialize();
+	this->handle() = m_impl->initialize(*this);
 }
 
 VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice& device) noexcept :
-	VulkanPipelineState(VK_NULL_HANDLE), m_impl(makePimpl<VulkanComputePipelineImpl>(this, device))
+	VulkanPipelineState(VK_NULL_HANDLE), m_impl(device)
 {
 }
 
+VulkanComputePipeline::VulkanComputePipeline(VulkanComputePipeline&&) noexcept = default;
+VulkanComputePipeline& VulkanComputePipeline::operator=(VulkanComputePipeline&&) noexcept = default;
 VulkanComputePipeline::~VulkanComputePipeline() noexcept
 {
 	::vkDestroyPipeline(m_impl->m_device.handle(), this->handle(), nullptr);
@@ -145,6 +147,6 @@ void VulkanComputePipelineBuilder::build()
 	auto instance = this->instance();
 	instance->m_impl->m_layout = m_state.pipelineLayout;
 	instance->m_impl->m_program = m_state.shaderProgram;
-	instance->handle() = instance->m_impl->initialize();
+	instance->handle() = instance->m_impl->initialize(*instance);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

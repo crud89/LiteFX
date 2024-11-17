@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12GraphicsAdapter::DirectX12GraphicsAdapterImpl : public Implement<DirectX12GraphicsAdapter> {
+class DirectX12GraphicsAdapter::DirectX12GraphicsAdapterImpl {
 public:
     friend class DirectX12GraphicsAdapter;
 
@@ -17,11 +17,10 @@ private:
 	UInt32 m_apiVersion{ D3D12_SDK_VERSION };
 
 public:
-    DirectX12GraphicsAdapterImpl(DirectX12GraphicsAdapter* parent) : 
-        base(parent) 
+    DirectX12GraphicsAdapterImpl(const DirectX12GraphicsAdapter& adapter) noexcept
 	{
 		// Store adapter properties.
-		HRESULT hr = m_parent->handle()->GetDesc1(&m_properties);
+		HRESULT hr = adapter.handle()->GetDesc1(&m_properties);
 
 		if (FAILED(hr)) [[unlikely]]
 			LITEFX_WARNING(DIRECTX12_LOG, "Unable to query adapter properties (HRESULT = {})", hr);
@@ -30,7 +29,7 @@ public:
 		// NOTE: This returns the UMD driver version, i.e. not the user-facing version number of the GPU driver. This is different to Vulkan, but there's unfortunately 
 		//       no native way to query this version without linking to vendor APIs.
 		LARGE_INTEGER umdVersion; // [Product].[Version].[SubVersion].[Revision] (each 16 bits).
-		hr = parent->handle()->CheckInterfaceSupport(__uuidof(IDXGIDevice), &umdVersion);
+		hr = adapter.handle()->CheckInterfaceSupport(__uuidof(IDXGIDevice), &umdVersion);
 
 		if (FAILED(hr)) [[unlikely]]
 			LITEFX_WARNING(DIRECTX12_LOG, "Unable to query adapter driver version (HRESULT = {})", hr);
@@ -43,11 +42,13 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12GraphicsAdapter::DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter) :
-    ComResource<IDXGIAdapter4>(adapter), m_impl(makePimpl<DirectX12GraphicsAdapterImpl>(this))
+DirectX12GraphicsAdapter::DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter) noexcept :
+    ComResource<IDXGIAdapter4>(adapter), m_impl(*this)
 {
 }
 
+DirectX12GraphicsAdapter::DirectX12GraphicsAdapter(DirectX12GraphicsAdapter&&) noexcept = default;
+DirectX12GraphicsAdapter& DirectX12GraphicsAdapter::operator=(DirectX12GraphicsAdapter&&) noexcept = default;
 DirectX12GraphicsAdapter::~DirectX12GraphicsAdapter() noexcept = default;
 
 String DirectX12GraphicsAdapter::name() const noexcept

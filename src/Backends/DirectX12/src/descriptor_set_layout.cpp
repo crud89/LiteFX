@@ -8,7 +8,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayoutImpl : public Implement<DirectX12DescriptorSetLayout> {
+class DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayoutImpl {
 public:
     friend class DirectX12DescriptorSetLayoutBuilder;
     friend class DirectX12DescriptorSetLayout;
@@ -24,14 +24,14 @@ private:
     mutable std::mutex m_mutex;
 
 public:
-    DirectX12DescriptorSetLayoutImpl(DirectX12DescriptorSetLayout* parent, const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages) :
-        base(parent), m_space(space), m_stages(stages), m_device(device)
+    DirectX12DescriptorSetLayoutImpl(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages) :
+        m_space(space), m_stages(stages), m_device(device)
     {
         m_layouts = std::move(descriptorLayouts) | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
-    DirectX12DescriptorSetLayoutImpl(DirectX12DescriptorSetLayout* parent, const DirectX12Device& device) :
-        base(parent), m_device(device)
+    DirectX12DescriptorSetLayoutImpl(const DirectX12Device& device) :
+        m_device(device)
     {
     }
 
@@ -132,16 +132,18 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages) :
-    m_impl(makePimpl<DirectX12DescriptorSetLayoutImpl>(this, device, std::move(descriptorLayouts), space, stages))
+    m_impl(device, std::move(descriptorLayouts), space, stages)
 {
     m_impl->initialize();
 }
 
 DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12Device& device) noexcept :
-    m_impl(makePimpl<DirectX12DescriptorSetLayoutImpl>(this, device))
+    m_impl(device)
 {
 }
 
+DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(DirectX12DescriptorSetLayout&&) noexcept = default;
+DirectX12DescriptorSetLayout& DirectX12DescriptorSetLayout::operator=(DirectX12DescriptorSetLayout&&) noexcept = default;
 DirectX12DescriptorSetLayout::~DirectX12DescriptorSetLayout() noexcept = default;
 
 UInt32 DirectX12DescriptorSetLayout::rootParameterIndex() const noexcept

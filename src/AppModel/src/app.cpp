@@ -6,28 +6,28 @@ using namespace LiteFX;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class App::AppImpl : public Implement<App> {
+class App::AppImpl {
 public:
 	friend class App;
 
 private:
-	Dictionary<std::type_index, UniquePtr<IBackend>> m_backends;
-	std::multimap<std::type_index, const std::function<bool()>> m_startCallbacks;
-	std::multimap<std::type_index, const std::function<void()>> m_stopCallbacks;
+	Dictionary<std::type_index, UniquePtr<IBackend>> m_backends{};
+	std::multimap<std::type_index, const std::function<bool()>> m_startCallbacks{};
+	std::multimap<std::type_index, const std::function<void()>> m_stopCallbacks{};
 
-public:
-	AppImpl(App* parent) : 
-		base(parent) 
+private:
+	IBackend* findBackend(std::type_index type) const
 	{
-	}
+		return m_backends.contains(type) ? m_backends.at(type).get() : nullptr;
+	};
 };
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-App::App() : 
-	m_impl(makePimpl<AppImpl>(this)) 
+App::App() noexcept :
+	m_impl() 
 {
 }
 
@@ -53,17 +53,17 @@ const IBackend* App::operator[](std::type_index type) const
 
 const IBackend* App::getBackend(std::type_index type) const
 {
-	return m_impl->m_backends.contains(type) ? m_impl->m_backends[type].get() : nullptr;
+	return m_impl->findBackend(type);
 }
 
 IBackend* App::getBackend(std::type_index type)
 {
-	return m_impl->m_backends.contains(type) ? m_impl->m_backends[type].get() : nullptr;
+	return m_impl->findBackend(type);
 }
 
 void App::startBackend(std::type_index type) const
 {
-	auto backend = const_cast<IBackend*>(this->getBackend(type)); // NOLINT
+	auto backend = m_impl->findBackend(type);
 
 	if (backend == nullptr)
 		throw InvalidArgumentException("type", "No backend of type {0} has been registered.", type.name());
@@ -90,7 +90,7 @@ void App::startBackend(std::type_index type) const
 
 void App::stopBackend(std::type_index type) const
 {
-	auto backend = const_cast<IBackend*>(this->getBackend(type)); // NOLINT
+	auto backend = m_impl->findBackend(type);
 
 	if (backend == nullptr)
 		throw InvalidArgumentException("type", "No backend of type {0} has been registered.", type.name());

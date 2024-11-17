@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanSurface::VulkanSurfaceImpl : public Implement<VulkanSurface> {
+class VulkanSurface::VulkanSurfaceImpl {
 public:
     friend class VulkanSurface;
 
@@ -17,8 +17,8 @@ private:
 #endif
 
 public:
-	VulkanSurfaceImpl(VulkanSurface* parent, const VkInstance& instance) :
-		base(parent), m_instance(instance) 
+	VulkanSurfaceImpl(const VkInstance& instance) :
+		m_instance(instance) 
 	{
 	}
 };
@@ -30,7 +30,7 @@ public:
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 
 VulkanSurface::VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& parent, const HWND hwnd) :
-	Resource<VkSurfaceKHR>(surface), m_impl(makePimpl<VulkanSurfaceImpl>(this, parent))
+	Resource<VkSurfaceKHR>(surface), m_impl(parent)
 {
 	m_impl->m_hwnd = hwnd;
 }
@@ -38,12 +38,14 @@ VulkanSurface::VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& pare
 #else
 
 VulkanSurface::VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& parent) :
-	Resource<VkSurfaceKHR>(surface), m_impl(makePimpl<VulkanSurfaceImpl>(this, parent))
+	Resource<VkSurfaceKHR>(surface), m_impl(parent)
 {
 }
 
 #endif // VK_USE_PLATFORM_WIN32_KHR
 
+VulkanSurface::VulkanSurface(VulkanSurface&&) noexcept = default;
+VulkanSurface& VulkanSurface::operator=(VulkanSurface&&) noexcept = default;
 VulkanSurface::~VulkanSurface() noexcept
 {
 	::vkDestroySurfaceKHR(m_impl->m_instance, this->handle(), nullptr);

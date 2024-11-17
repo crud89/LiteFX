@@ -8,7 +8,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12GraphicsFactory::DirectX12GraphicsFactoryImpl : public Implement<DirectX12GraphicsFactory> {
+class DirectX12GraphicsFactory::DirectX12GraphicsFactoryImpl {
 public:
 	friend class DirectX12GraphicsFactory;
 
@@ -17,8 +17,8 @@ private:
 	AllocatorPtr m_allocator;
 
 public:
-	DirectX12GraphicsFactoryImpl(DirectX12GraphicsFactory* parent, const DirectX12Device& device) :
-		base(parent), m_device(device)
+	DirectX12GraphicsFactoryImpl(const DirectX12Device& device) :
+		m_device(device)
 	{
 		// Initialize memory allocator.
 		D3D12MA::ALLOCATOR_DESC allocatorDesc = {};
@@ -39,10 +39,12 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12GraphicsFactory::DirectX12GraphicsFactory(const DirectX12Device& device) :
-	m_impl(makePimpl<DirectX12GraphicsFactoryImpl>(this, device))
+	m_impl(device)
 {
 }
 
+DirectX12GraphicsFactory::DirectX12GraphicsFactory(DirectX12GraphicsFactory&&) noexcept = default;
+DirectX12GraphicsFactory& DirectX12GraphicsFactory::operator=(DirectX12GraphicsFactory&&) noexcept = default;
 DirectX12GraphicsFactory::~DirectX12GraphicsFactory() noexcept = default;
 
 UniquePtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const

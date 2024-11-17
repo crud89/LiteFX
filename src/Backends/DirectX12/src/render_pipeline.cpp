@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12RenderPipeline::DirectX12RenderPipelineImpl : public Implement<DirectX12RenderPipeline> {
+class DirectX12RenderPipeline::DirectX12RenderPipelineImpl {
 public:
 	friend class DirectX12RenderPipelineBuilder;
 	friend class DirectX12RenderPipeline;
@@ -28,21 +28,21 @@ private:
 	mutable std::mutex m_usageMutex;
 
 public:
-	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass, bool alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer) :
-		base(parent), m_renderPass(renderPass), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_alphaToCoverage(alphaToCoverage)
+	DirectX12RenderPipelineImpl(const DirectX12RenderPass& renderPass, bool alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer) :
+		m_renderPass(renderPass), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_alphaToCoverage(alphaToCoverage)
 	{
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
 			m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
 	}
 
-	DirectX12RenderPipelineImpl(DirectX12RenderPipeline* parent, const DirectX12RenderPass& renderPass) :
-		base(parent), m_renderPass(renderPass)
+	DirectX12RenderPipelineImpl(const DirectX12RenderPass& renderPass) :
+		m_renderPass(renderPass)
 	{
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
 			m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
 	}
 
-	~DirectX12RenderPipelineImpl() noexcept override
+	~DirectX12RenderPipelineImpl() noexcept
 	{
 		// Stop listening to frame buffer events.
 		for (auto [frameBuffer, token] : m_frameBufferResizeTokens)
@@ -52,15 +52,15 @@ public:
 			frameBuffer->released -= token;
 	}
 
-	DirectX12RenderPipelineImpl(const DirectX12RenderPipelineImpl&) = delete;
-	DirectX12RenderPipelineImpl(DirectX12RenderPipelineImpl&&) = delete;
-	auto operator=(const DirectX12RenderPipelineImpl&) = delete;
-	auto operator=(DirectX12RenderPipelineImpl&&) = delete;
+	DirectX12RenderPipelineImpl(const DirectX12RenderPipelineImpl&) noexcept = default;
+	DirectX12RenderPipelineImpl(DirectX12RenderPipelineImpl&&) noexcept = default;
+	DirectX12RenderPipelineImpl& operator=(const DirectX12RenderPipelineImpl&) noexcept = default;
+	DirectX12RenderPipelineImpl& operator=(DirectX12RenderPipelineImpl&&) noexcept = default;
 
 public:
-	ComPtr<ID3D12PipelineState> initialize(MultiSamplingLevel samples)
+	ComPtr<ID3D12PipelineState> initialize(const DirectX12RenderPipeline& pipeline, MultiSamplingLevel samples)
 	{
-		LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline \"{1}\" for layout {0}...", static_cast<void*>(m_layout.get()), m_parent->name());
+		LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline \"{1}\" for layout {0}...", static_cast<void*>(m_layout.get()), pipeline.name());
 		m_samples = samples;
 
 		// Check if there are mesh shaders in the program.
@@ -199,13 +199,13 @@ public:
 
 		// Initialize the remainder depending on the pipeline type.
 		if (hasMeshShaders)
-			return this->initializeMeshPipeline(blendState, rasterizerState, depthStencilState, topologyType, renderTargets, rtvFormats, dsvFormat, multisamplingState);
+			return this->initializeMeshPipeline(pipeline, blendState, rasterizerState, depthStencilState, topologyType, renderTargets, rtvFormats, dsvFormat, multisamplingState);
 		else
-			return this->initializeGraphicsPipeline(blendState, rasterizerState, depthStencilState, inputLayout, topologyType, renderTargets, rtvFormats, dsvFormat, multisamplingState);
+			return this->initializeGraphicsPipeline(pipeline, blendState, rasterizerState, depthStencilState, inputLayout, topologyType, renderTargets, rtvFormats, dsvFormat, multisamplingState);
 
 	}
 
-	ComPtr<ID3D12PipelineState> initializeMeshPipeline(const D3D12_BLEND_DESC& blendState, const D3D12_RASTERIZER_DESC& rasterizerState, const D3D12_DEPTH_STENCIL_DESC& depthStencilState, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, UINT renderTargets, const std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>& renderTargetFormats, DXGI_FORMAT depthStencilFormat, const DXGI_SAMPLE_DESC& multisamplingState)
+	ComPtr<ID3D12PipelineState> initializeMeshPipeline([[maybe_unused]] const DirectX12RenderPipeline& pipeline, const D3D12_BLEND_DESC& blendState, const D3D12_RASTERIZER_DESC& rasterizerState, const D3D12_DEPTH_STENCIL_DESC& depthStencilState, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, UINT renderTargets, const std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>& renderTargetFormats, DXGI_FORMAT depthStencilFormat, const DXGI_SAMPLE_DESC& multisamplingState)
 	{
 		// Create a pipeline state description.
 		D3DX12_MESH_SHADER_PIPELINE_STATE_DESC pipelineStateDescription = {
@@ -220,7 +220,7 @@ public:
 			.SampleDesc = multisamplingState
 		};
 
-		std::memcpy(&pipelineStateDescription.RTVFormats, renderTargetFormats.data(), sizeof(DXGI_FORMAT) * D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT);
+		std::memcpy(&pipelineStateDescription.RTVFormats, renderTargetFormats.data(), renderTargetFormats.size() * sizeof(DXGI_FORMAT));
 
 		// Setup shader stages.
 		auto modules = m_program->modules();
@@ -263,13 +263,13 @@ public:
 		raiseIfFailed(m_renderPass.device().handle()->CreatePipelineState(&pipelineDesc, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
 		
 #ifndef NDEBUG
-		pipelineState->SetName(Widen(m_parent->name()).c_str());
+		pipelineState->SetName(Widen(pipeline.name()).c_str());
 #endif
 
 		return pipelineState;
 	}
 
-	ComPtr<ID3D12PipelineState> initializeGraphicsPipeline(const D3D12_BLEND_DESC& blendState, const D3D12_RASTERIZER_DESC& rasterizerState, const D3D12_DEPTH_STENCIL_DESC& depthStencilState, const D3D12_INPUT_LAYOUT_DESC& inputLayout, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, UINT renderTargets, const std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>& renderTargetFormats, DXGI_FORMAT depthStencilFormat, const DXGI_SAMPLE_DESC& multisamplingState)
+	ComPtr<ID3D12PipelineState> initializeGraphicsPipeline([[maybe_unused]] const DirectX12RenderPipeline& pipeline, const D3D12_BLEND_DESC& blendState, const D3D12_RASTERIZER_DESC& rasterizerState, const D3D12_DEPTH_STENCIL_DESC& depthStencilState, const D3D12_INPUT_LAYOUT_DESC& inputLayout, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, UINT renderTargets, const std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>& renderTargetFormats, DXGI_FORMAT depthStencilFormat, const DXGI_SAMPLE_DESC& multisamplingState)
 	{
 		// Create a pipeline state description.
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDescription = {
@@ -285,7 +285,7 @@ public:
 			.SampleDesc = multisamplingState
 		};
 
-		std::memcpy(&pipelineStateDescription.RTVFormats, renderTargetFormats.data(), sizeof(DXGI_FORMAT) * D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT);
+		std::memcpy(&pipelineStateDescription.RTVFormats, renderTargetFormats.data(), renderTargetFormats.size() * sizeof(DXGI_FORMAT));
 		
 		// Setup shader stages.
 		auto modules = m_program->modules();
@@ -330,7 +330,7 @@ public:
 		raiseIfFailed(m_renderPass.device().handle()->CreateGraphicsPipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
 		
 #ifndef NDEBUG
-		pipelineState->SetName(Widen(m_parent->name()).c_str());
+		pipelineState->SetName(Widen(pipeline.name()).c_str());
 #endif
 
 		return pipelineState;
@@ -482,21 +482,23 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, MultiSamplingLevel samples, bool enableAlphaToCoverage, const String& name) :
-	DirectX12PipelineState(nullptr), m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer))
+	DirectX12PipelineState(nullptr), m_impl(renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer)
 {
 	if (!name.empty())
 		this->name() = name;
 
-	this->handle() = m_impl->initialize(samples);
+	this->handle() = m_impl->initialize(*this, samples);
 }
 
 DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const String& name) noexcept :
-	DirectX12PipelineState(nullptr), m_impl(makePimpl<DirectX12RenderPipelineImpl>(this, renderPass))
+	DirectX12PipelineState(nullptr), m_impl(renderPass)
 {
 	if (!name.empty())
 		this->name() = name;
 }
 
+DirectX12RenderPipeline::DirectX12RenderPipeline(DirectX12RenderPipeline&&) noexcept = default;
+DirectX12RenderPipeline& DirectX12RenderPipeline::operator=(DirectX12RenderPipeline&&) noexcept = default;
 DirectX12RenderPipeline::~DirectX12RenderPipeline() noexcept = default;
 
 SharedPtr<const DirectX12ShaderProgram> DirectX12RenderPipeline::program() const noexcept
@@ -538,7 +540,7 @@ void DirectX12RenderPipeline::updateSamples(MultiSamplingLevel samples)
 	this->handle().Reset();
 
 	// Rebuild the pipeline.
-	this->handle() = m_impl->initialize(samples);
+	this->handle() = m_impl->initialize(*this, samples);
 }
 
 void DirectX12RenderPipeline::use(const DirectX12CommandBuffer& commandBuffer) const noexcept
@@ -577,6 +579,6 @@ void DirectX12RenderPipelineBuilder::build()
 	instance->m_impl->m_inputAssembler = this->state().inputAssembler;
 	instance->m_impl->m_rasterizer = this->state().rasterizer;
 	instance->m_impl->m_alphaToCoverage = this->state().enableAlphaToCoverage;
-	instance->handle() = instance->m_impl->initialize(this->state().samples);
+	instance->handle() = instance->m_impl->initialize(*instance, this->state().samples);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

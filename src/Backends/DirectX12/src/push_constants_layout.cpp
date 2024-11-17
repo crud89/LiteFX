@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12PushConstantsLayout::DirectX12PushConstantsLayoutImpl : public Implement<DirectX12PushConstantsLayout> {
+class DirectX12PushConstantsLayout::DirectX12PushConstantsLayoutImpl {
 public:
     friend class DirectX12PushConstantsLayoutBuilder;
     friend class DirectX12PushConstantsLayout;
@@ -19,8 +19,8 @@ private:
     UInt32 m_size;
 
 public:
-    DirectX12PushConstantsLayoutImpl(DirectX12PushConstantsLayout* parent, UInt32 size) :
-        base(parent), m_size(size % 4 == 0 ? (size + 4 - 1) & ~(size - 1) : size)
+    DirectX12PushConstantsLayoutImpl(UInt32 size) :
+        m_size(size % 4 == 0 ? (size + 4 - 1) & ~(size - 1) : size)
     {
         // Issue a warning, if the size is too large.
         if (m_size > MAX_GUARANTEED_RANGE_SIZE)
@@ -46,16 +46,18 @@ private:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(Enumerable<UniquePtr<DirectX12PushConstantsRange>>&& ranges, UInt32 size) :
-    m_impl(makePimpl<DirectX12PushConstantsLayoutImpl>(this, size))
+    m_impl(this, size)
 {
     m_impl->setRanges(std::move(ranges));
 }
 
 DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(UInt32 size) :
-    m_impl(makePimpl<DirectX12PushConstantsLayoutImpl>(this, size))
+    m_impl(size)
 {
 }
 
+DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(DirectX12PushConstantsLayout&&) noexcept = default;
+DirectX12PushConstantsLayout& DirectX12PushConstantsLayout::operator=(DirectX12PushConstantsLayout&&) noexcept = default;
 DirectX12PushConstantsLayout::~DirectX12PushConstantsLayout() noexcept = default;
 
 UInt32 DirectX12PushConstantsLayout::size() const noexcept

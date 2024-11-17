@@ -11,19 +11,19 @@ using ImageBarrier  = Tuple<ResourceAccess, ResourceAccess, const IDirectX12Imag
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12Barrier::DirectX12BarrierImpl : public Implement<DirectX12Barrier> {
+class DirectX12Barrier::DirectX12BarrierImpl {
 public:
 	friend class DirectX12Barrier;
 
 private:
 	PipelineStage m_syncBefore, m_syncAfter;
-	Array<GlobalBarrier> m_globalBarriers;
-	Array<BufferBarrier> m_bufferBarriers;
-	Array<ImageBarrier> m_imageBarriers;
+	Array<GlobalBarrier> m_globalBarriers{};
+	Array<BufferBarrier> m_bufferBarriers{};
+	Array<ImageBarrier> m_imageBarriers{};
 
 public:
-	DirectX12BarrierImpl(DirectX12Barrier* parent, PipelineStage syncBefore, PipelineStage syncAfter) :
-		base(parent), m_syncBefore(syncBefore), m_syncAfter(syncAfter)
+	DirectX12BarrierImpl(PipelineStage syncBefore, PipelineStage syncAfter) :
+		m_syncBefore(syncBefore), m_syncAfter(syncAfter)
 	{
 	}
 };
@@ -33,7 +33,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Barrier::DirectX12Barrier(PipelineStage syncBefore, PipelineStage syncAfter) noexcept :
-	m_impl(makePimpl<DirectX12BarrierImpl>(this, syncBefore, syncAfter))
+	m_impl(syncBefore, syncAfter)
 {
 }
 
@@ -42,6 +42,10 @@ DirectX12Barrier::DirectX12Barrier() noexcept :
 {
 }
 
+DirectX12Barrier::DirectX12Barrier(DirectX12Barrier&&) noexcept = default;
+DirectX12Barrier::DirectX12Barrier(const DirectX12Barrier&) noexcept = default;
+DirectX12Barrier& DirectX12Barrier::operator=(DirectX12Barrier&&) noexcept = default;
+DirectX12Barrier& DirectX12Barrier::operator=(const DirectX12Barrier&) noexcept = default;
 DirectX12Barrier::~DirectX12Barrier() noexcept = default;
 
 PipelineStage DirectX12Barrier::syncBefore() const noexcept

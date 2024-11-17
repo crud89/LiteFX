@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
-class DirectX12InputAssembler::DirectX12InputAssemblerImpl : public Implement<DirectX12InputAssembler> {
+class DirectX12InputAssembler::DirectX12InputAssemblerImpl {
 public:
     friend class DirectX12InputAssembler;
 
@@ -14,12 +14,6 @@ private:
     Dictionary<UInt32, UniquePtr<DirectX12VertexBufferLayout>> m_vertexBufferLayouts{};
     UniquePtr<DirectX12IndexBufferLayout> m_indexBufferLayout{};
     PrimitiveTopology m_primitiveTopology{};
-
-public:
-    DirectX12InputAssemblerImpl(DirectX12InputAssembler* parent) :
-        base(parent)
-    {
-    }
 
 public:
     void initialize(Enumerable<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology)
@@ -46,16 +40,18 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12InputAssembler::DirectX12InputAssembler(Enumerable<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology) :
-    m_impl(makePimpl<DirectX12InputAssemblerImpl>(this))
+    m_impl()
 {
     m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
 }
 
 DirectX12InputAssembler::DirectX12InputAssembler() noexcept :
-    m_impl(makePimpl<DirectX12InputAssemblerImpl>(this))
+    m_impl()
 {
 }
 
+DirectX12InputAssembler::DirectX12InputAssembler(DirectX12InputAssembler&&) noexcept = default;
+DirectX12InputAssembler& DirectX12InputAssembler::operator=(DirectX12InputAssembler&&) noexcept = default;
 DirectX12InputAssembler::~DirectX12InputAssembler() noexcept = default;
 
 Enumerable<const DirectX12VertexBufferLayout*> DirectX12InputAssembler::vertexBufferLayouts() const noexcept
@@ -86,7 +82,7 @@ PrimitiveTopology DirectX12InputAssembler::topology() const noexcept
 // Builder implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12InputAssemblerBuilder::DirectX12InputAssemblerBuilderImpl : public Implement<DirectX12InputAssemblerBuilder> {
+class DirectX12InputAssemblerBuilder::DirectX12InputAssemblerBuilderImpl {
 public:
     friend class DirectX12InputAssemblerBuilder;
     friend class DirectX12InputAssembler;
@@ -95,12 +91,6 @@ private:
     Array<UniquePtr<DirectX12VertexBufferLayout>> m_vertexBufferLayouts{};
     UniquePtr<DirectX12IndexBufferLayout> m_indexBufferLayout{};
     PrimitiveTopology m_primitiveTopology{};
-
-public:
-    DirectX12InputAssemblerBuilderImpl(DirectX12InputAssemblerBuilder* parent) :
-        base(parent)
-    {
-    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -108,7 +98,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12InputAssemblerBuilder::DirectX12InputAssemblerBuilder() noexcept :
-    InputAssemblerBuilder(SharedPtr<DirectX12InputAssembler>(new DirectX12InputAssembler())), m_impl(makePimpl<DirectX12InputAssemblerBuilderImpl>(this))
+    InputAssemblerBuilder(SharedPtr<DirectX12InputAssembler>(new DirectX12InputAssembler())), m_impl()
 {
 }
 
