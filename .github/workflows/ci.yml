@@ -237,7 +237,6 @@ jobs:
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
           configurePreset: '${{ matrix.configuration }}'
-          configurePresetAdditionalArgs: "['-DLITEFX_BUILD_EXAMPLES=ON']"
           buildPreset: '${{ matrix.configuration }}'
           #testPreset: '${{ matrix.configuration }}'
           #testPresetAdditionalArgs: "[ '--output-on-failure', '--timeout', '10' ]"
@@ -320,7 +319,7 @@ jobs:
             os: windows-latest
             compiler: clang
             triplet: x64-windows
-            configuration: windows-clangcl-x64-tidy
+            configuration: windows-clangcl-x64-release
             architecture: x64
 
     steps:
