@@ -791,7 +791,7 @@ namespace LiteFX {
 	/// This is an improved version of `std::enable_shared_from_this` that supports inheritance. When inheriting from this class, follow the same practices as you would for `std::enable_shared_from_this`: do 
 	/// not provide any public constructors; instead provide a private constructor and a publicly accessible static factory method, that returns a shared pointer.
 	/// 
-	/// Note that the above rule does not apply for objects that are stored within a <see cref="PimplPtr" />, as those are handled correctly by the pointer.
+	/// Note that the above rule does not apply for objects that are stored within a <see cref="PimplPtr" />, as those are handled correctly by the pointer implementation.
 	/// </remarks>
 	/// <seealso href="https://en.cppreference.com/w/cpp/memory/enable_shared_from_this" />
 	class SharedObject : public std::enable_shared_from_this<SharedObject> {

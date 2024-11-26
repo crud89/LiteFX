@@ -11,14 +11,14 @@ public:
 	friend class DirectX12ShaderModule;
 
 private:
-	const DirectX12Device& m_device;
+	WeakPtr<const DirectX12Device> m_device;
 	ShaderStage m_type;
 	String m_fileName, m_entryPoint;
 	Optional<DescriptorBindingPoint> m_shaderLocalDescriptor;
 
 public:
 	DirectX12ShaderModuleImpl(const DirectX12Device& device, ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
-		m_device(device), m_type(type), m_fileName(fileName), m_entryPoint(entryPoint), m_shaderLocalDescriptor(shaderLocalDescriptor)
+		m_device(device.weak_from_this()), m_type(type), m_fileName(fileName), m_entryPoint(entryPoint), m_shaderLocalDescriptor(shaderLocalDescriptor)
 	{
 	}
 

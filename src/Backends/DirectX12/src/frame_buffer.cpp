@@ -17,17 +17,23 @@ private:
     Dictionary<const IDirectX12Image*, D3D12_CPU_DESCRIPTOR_HANDLE> m_renderTargetHandles;
     UInt32 m_renderTargetDescriptorSize{}, m_depthStencilDescriptorSize{};
     Size2d m_size;
-    const DirectX12Device& m_device;
+    WeakPtr<const DirectX12Device> m_device;
 
 public:
     DirectX12FrameBufferImpl(const DirectX12Device& device, const Size2d& renderArea) :
-        m_size(renderArea), m_device(device)
+        m_size(renderArea), m_device(device.weak_from_this())
     {
     }
 
 public:
     void initialize()
     {
+        // Check if the device is still valid.
+        auto device = m_device.lock();
+
+        if (device == nullptr) [[unlikely]]
+            throw RuntimeException("Cannot initialize frame buffer for a released device instance.");
+
         // Create descriptor heaps for RTVs and DSVs.
         UInt32 renderTargets = static_cast<UInt32>(std::ranges::count_if(m_images, [](const auto& image) { return !::hasDepth(image->format()) && !::hasStencil(image->format()); }));
         UInt32 depthStencilTargets = static_cast<UInt32>(m_images.size()) - renderTargets;
@@ -42,23 +48,23 @@ public:
             .NumDescriptors = depthStencilTargets
         };
 
-        m_renderTargetDescriptorSize = m_device.handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-        m_depthStencilDescriptorSize = m_device.handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+        m_renderTargetDescriptorSize = device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        m_depthStencilDescriptorSize = device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 
-        raiseIfFailed(m_device.handle()->CreateDescriptorHeap(&renderTargetHeapDesc, IID_PPV_ARGS(&m_renderTargetHeap)), "Unable to create render target descriptor heap.");
+        raiseIfFailed(device->handle()->CreateDescriptorHeap(&renderTargetHeapDesc, IID_PPV_ARGS(&m_renderTargetHeap)), "Unable to create render target descriptor heap.");
         CD3DX12_CPU_DESCRIPTOR_HANDLE renderTargetViewDescriptor(m_renderTargetHeap->GetCPUDescriptorHandleForHeapStart());
-        raiseIfFailed(m_device.handle()->CreateDescriptorHeap(&depthStencilHeapDesc, IID_PPV_ARGS(&m_depthStencilHeap)), "Unable to create depth/stencil descriptor heap.");
+        raiseIfFailed(device->handle()->CreateDescriptorHeap(&depthStencilHeapDesc, IID_PPV_ARGS(&m_depthStencilHeap)), "Unable to create depth/stencil descriptor heap.");
         CD3DX12_CPU_DESCRIPTOR_HANDLE depthStencilViewDescriptor(m_depthStencilHeap->GetCPUDescriptorHandleForHeapStart());
 
         // Initialize the output attachments from render targets of the parent render pass.
         m_renderTargetHandles.clear();
 
-        std::ranges::for_each(m_images, [&, i = 0](const UniquePtr<IDirectX12Image>& image) mutable {
+        std::ranges::for_each(m_images, [&, i = 0, device](const UniquePtr<IDirectX12Image>& image) mutable {
             // Check if the device supports the multi sampling level for the render target.
             auto samples = image->samples();
             auto format = image->format();
 
-            if (m_device.maximumMultiSamplingLevel(format) < samples)
+            if (device->maximumMultiSamplingLevel(format) < samples)
                 throw RuntimeException("The image {0} with format {1} does not support {2} samples.", i, format, std::to_underlying(samples));
 
             if (::hasDepth(format) || ::hasStencil(format))
@@ -69,7 +75,7 @@ public:
                     .Texture2D = { .MipSlice = 0 }
                 };
 
-                m_device.handle()->CreateDepthStencilView(std::as_const(*image).handle().Get(), &depthStencilViewDesc, depthStencilViewDescriptor);
+                device->handle()->CreateDepthStencilView(std::as_const(*image).handle().Get(), &depthStencilViewDesc, depthStencilViewDescriptor);
                 m_renderTargetHandles[image.get()] = depthStencilViewDescriptor;
                 depthStencilViewDescriptor = depthStencilViewDescriptor.Offset(static_cast<INT>(m_depthStencilDescriptorSize));
             }
@@ -81,7 +87,7 @@ public:
                     .Texture2D = { .MipSlice = 0, .PlaneSlice = 0 }
                 };
 
-                m_device.handle()->CreateRenderTargetView(std::as_const(*image).handle().Get(), &renderTargetViewDesc, renderTargetViewDescriptor);
+                device->handle()->CreateRenderTargetView(std::as_const(*image).handle().Get(), &renderTargetViewDesc, renderTargetViewDescriptor);
                 m_renderTargetHandles[image.get()] = renderTargetViewDescriptor;
                 renderTargetViewDescriptor = renderTargetViewDescriptor.Offset(static_cast<INT>(m_renderTargetDescriptorSize));
             }
@@ -90,6 +96,12 @@ public:
 
     void resize(const Size2d& renderArea)
     {
+        // Check if the device is still valid.
+        auto device = m_device.lock();
+
+        if (device == nullptr) [[unlikely]]
+            throw RuntimeException("Cannot resize frame buffer on a released device instance.");
+
         // Resize/Re-allocate all images.
         m_size = renderArea;
 
@@ -98,7 +110,7 @@ public:
 
         auto images = m_images |
             std::views::transform([&](const UniquePtr<IDirectX12Image>& image) { 
-                auto newImage = m_device.factory().createTexture(image->name(), image->format(), renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage()); 
+                auto newImage = device->factory().createTexture(image->name(), image->format(), renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage()); 
                 imageReplacements[image.get()] = newImage.get();
                 return std::move(newImage);
             }) | std::views::as_rvalue | std::ranges::to<Array<UniquePtr<IDirectX12Image>>>();
@@ -226,6 +238,12 @@ const IDirectX12Image& DirectX12FrameBuffer::resolveImage(UInt64 hash) const
 
 void DirectX12FrameBuffer::addImage(const String& name, Format format, MultiSamplingLevel samples, ResourceUsage usage)
 {
+    // Check if the device is still valid.
+    auto device = m_impl->m_device.lock();
+
+    if (device == nullptr) [[unlikely]]
+        throw RuntimeException("Cannot add image to frame buffer of a released device instance.");
+
     // Check if there's already another image with the same name.
     auto nameHash = hash(name);
 
@@ -233,7 +251,7 @@ void DirectX12FrameBuffer::addImage(const String& name, Format format, MultiSamp
         throw InvalidArgumentException("name", "Another image with the name {0} does already exist within the frame buffer.", name);
 
     // Add a new image.
-    m_impl->m_images.push_back(m_impl->m_device.factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage));
+    m_impl->m_images.push_back(device->factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage));
     
     // Re-initialize to reset descriptor heaps and allocate descriptors.
     m_impl->initialize();
@@ -241,6 +259,12 @@ void DirectX12FrameBuffer::addImage(const String& name, Format format, MultiSamp
 
 void DirectX12FrameBuffer::addImage(const String& name, const RenderTarget& renderTarget, MultiSamplingLevel samples, ResourceUsage usage)
 {
+    // Check if the device is still valid.
+    auto device = m_impl->m_device.lock();
+
+    if (device == nullptr) [[unlikely]]
+        throw RuntimeException("Cannot add image to frame buffer of a released device instance.");
+
     // Check if there's already another image with the same name.
     auto nameHash = hash(name);
     
@@ -249,7 +273,7 @@ void DirectX12FrameBuffer::addImage(const String& name, const RenderTarget& rend
 
     // Add a new image.
     auto index = m_impl->m_images.size();
-    m_impl->m_images.push_back(m_impl->m_device.factory().createTexture(name, renderTarget.format(), m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage));
+    m_impl->m_images.push_back(device->factory().createTexture(name, renderTarget.format(), m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage));
 
     // Re-initialize to reset descriptor heaps and allocate descriptors.
     m_impl->initialize();

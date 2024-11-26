@@ -32,12 +32,13 @@ private:
     const RenderTarget* m_presentTarget = nullptr;
     const RenderTarget* m_depthStencilTarget = nullptr;
     Optional<DescriptorBindingPoint> m_inputAttachmentSamplerBinding{ };
-    const DirectX12Device& m_device;
+    WeakPtr<const DirectX12Device> m_device;
     const DirectX12Queue* m_queue;
+    bool m_onDefaultGraphicsQueue = false;
 
 public:
     DirectX12RenderPassImpl(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding, UInt32 secondaryCommandBuffers) :
-        m_secondaryCommandBufferCount(secondaryCommandBuffers), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding), m_device(device), m_queue(&queue)
+        m_secondaryCommandBufferCount(secondaryCommandBuffers), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding), m_device(device.weak_from_this()), m_queue(&queue), m_onDefaultGraphicsQueue(m_queue == std::addressof(device.defaultQueue(QueueType::Graphics)))
     {
         this->mapRenderTargets(renderTargets);
         this->mapInputAttachments(inputAttachments);
@@ -47,7 +48,7 @@ public:
     }
 
     DirectX12RenderPassImpl(const DirectX12Device& device) :
-        m_device(device), m_queue(&device.defaultQueue(QueueType::Graphics))
+        m_device(device.weak_from_this()), m_queue(&device.defaultQueue(QueueType::Graphics)), m_onDefaultGraphicsQueue(true)
     {
     }
 
@@ -81,7 +82,7 @@ public:
 
         // TODO: If there is a present target, we need to check if the provided queue can actually present on the surface. Currently, 
         //       we simply check if the queue is the same as the swap chain queue (which is the default graphics queue).
-        if (m_presentTarget != nullptr && m_queue != std::addressof(m_device.defaultQueue(QueueType::Graphics))) [[unlikely]]
+        if (m_presentTarget != nullptr && !m_onDefaultGraphicsQueue) [[unlikely]]
             throw InvalidArgumentException("renderTargets", "A render pass with a present target must be executed on the default graphics queue.");
     }
 
@@ -251,9 +252,9 @@ DirectX12RenderPass::DirectX12RenderPass(DirectX12RenderPass&&) noexcept = defau
 DirectX12RenderPass& DirectX12RenderPass::operator=(DirectX12RenderPass&&) noexcept = default;
 DirectX12RenderPass::~DirectX12RenderPass() noexcept = default;
 
-const DirectX12Device& DirectX12RenderPass::device() const noexcept
+SharedPtr<const DirectX12Device> DirectX12RenderPass::device() const noexcept
 {
-    return m_impl->m_device;
+    return m_impl->m_device.lock();
 }
 
 const DirectX12FrameBuffer& DirectX12RenderPass::activeFrameBuffer() const
@@ -386,6 +387,12 @@ void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer) const
 
 UInt64 DirectX12RenderPass::end() const
 {
+    // Check if the device is still valid.
+    auto device = m_impl->m_device.lock();
+
+    if (device == nullptr) [[unlikely]]
+        throw RuntimeException("Cannot end render pass: the device instance has been released.");
+
     // Check if we are running.
     if (m_impl->m_activeFrameBuffer == nullptr)
         throw RuntimeException("Unable to end a render pass, that has not been begun. Start the render pass first.");
@@ -394,7 +401,7 @@ UInt64 DirectX12RenderPass::end() const
     this->ending(this, { });
 
     auto& frameBuffer = *m_impl->m_activeFrameBuffer;
-    const auto& swapChain = m_impl->m_device.swapChain();
+    const auto& swapChain = device->swapChain();
 
     // Resume and end the render pass.
     const auto& context = m_impl->m_activeContext;
@@ -405,7 +412,7 @@ UInt64 DirectX12RenderPass::end() const
     std::as_const(*endCommandBuffer).handle()->EndRenderPass();
 
     // If the present target is multi-sampled, we need to resolve it to the back buffer.
-    const auto& backBufferImage = m_impl->m_device.swapChain().image();
+    const auto& backBufferImage = swapChain.image();
     bool requiresResolve = this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1;
 
     // Transition the present and depth/stencil views.

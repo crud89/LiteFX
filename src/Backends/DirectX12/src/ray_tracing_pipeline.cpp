@@ -39,7 +39,7 @@ public:
 	friend class DirectX12RayTracingPipeline;
 
 private:
-	const DirectX12Device& m_device;
+	WeakPtr<const DirectX12Device> m_device;
 	SharedPtr<DirectX12PipelineLayout> m_layout;
 	SharedPtr<const DirectX12ShaderProgram> m_program;
 	const ShaderRecordCollection m_shaderRecordCollection;
@@ -48,7 +48,7 @@ private:
 
 public:
 	DirectX12RayTracingPipelineImpl(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, ShaderRecordCollection&& shaderRecords) :
-		m_device(device), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords)), m_maxRecursionDepth(maxRecursionDepth), m_maxPayloadSize(maxPayloadSize), m_maxAttributeSize(maxAttributeSize)
+		m_device(device.weak_from_this()), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords)), m_maxRecursionDepth(maxRecursionDepth), m_maxPayloadSize(maxPayloadSize), m_maxAttributeSize(maxAttributeSize)
 	{
 		if (maxRecursionDepth > D3D12_RAYTRACING_MAX_DECLARABLE_TRACE_RECURSION_DEPTH) [[unlikely]]
 			throw ArgumentOutOfRangeException("maxRecursionDepth", std::make_pair(0_ui32, static_cast<UInt32>(D3D12_RAYTRACING_MAX_DECLARABLE_TRACE_RECURSION_DEPTH)), maxRecursionDepth, "The specified ray tracing recursion depth too large.");
@@ -58,7 +58,7 @@ public:
 	}
 
 	DirectX12RayTracingPipelineImpl(const DirectX12Device& device, ShaderRecordCollection&& shaderRecords) :
-		m_device(device), m_shaderRecordCollection(std::move(shaderRecords))
+		m_device(device.weak_from_this()), m_shaderRecordCollection(std::move(shaderRecords))
 	{
 		m_program = std::dynamic_pointer_cast<const DirectX12ShaderProgram>(m_shaderRecordCollection.program());
 	}
@@ -66,6 +66,12 @@ public:
 public:
 	void initialize([[maybe_unused]] const DirectX12RayTracingPipeline& pipeline)
 	{
+		// Check if the device is still valid.
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot create ray tracing pipeline on a released device instance.");
+
 		if (m_program == nullptr) [[unlikely]]
 			throw ArgumentNotInitializedException("shaderProgram", "The shader program must be initialized.");
 		if (m_layout == nullptr) [[unlikely]]
@@ -259,7 +265,7 @@ public:
 
 				// Create the root signature.
 				ComPtr<ID3D12RootSignature> rootSignature;
-				raiseIfFailed(m_device.handle()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for shader-local payload.");
+				raiseIfFailed(device->handle()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for shader-local payload.");
 
 				// Add the root signature to the binding associations set.
 				rootSignatures[binding].RootSignature = rootSignature;
@@ -352,7 +358,7 @@ public:
 
 		// Create the pipeline.
 		ComPtr<ID3D12StateObject> pipelineState;
-		raiseIfFailed(m_device.handle()->CreateStateObject(&pipelineDesc, IID_PPV_ARGS(&pipelineState)), "Unable to create ray tracing pipeline state.");
+		raiseIfFailed(device->handle()->CreateStateObject(&pipelineDesc, IID_PPV_ARGS(&pipelineState)), "Unable to create ray tracing pipeline state.");
 
 #ifndef NDEBUG
 		pipelineState->SetName(Widen(pipeline.name()).c_str());
@@ -363,6 +369,12 @@ public:
 
 	UniquePtr<IDirectX12Buffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups)
 	{
+		// Check if the device is still valid.
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot allocate shader binding table on a released device instance.");
+
 		// Query the interface used to obtain the shader identifiers.
 		ComPtr<ID3D12StateObjectProperties> stateProperties;
 		raiseIfFailed(m_pipelineState.As(&stateProperties), "Unable to query ray tracing pipeline state properties.");
@@ -405,7 +417,7 @@ public:
 
 		// Allocate a buffer for the shader binding table.
 		// NOTE: Updating the SBT to change shader-local data is currently unsupported. Instead, bind-less resources should be used.
-		auto result = m_device.factory().createBuffer(BufferType::ShaderBindingTable, ResourceHeap::Dynamic, recordSize, static_cast<UInt32>(totalRecordCount), ResourceUsage::TransferSource);
+		auto result = device->factory().createBuffer(BufferType::ShaderBindingTable, ResourceHeap::Dynamic, recordSize, static_cast<UInt32>(totalRecordCount), ResourceUsage::TransferSource);
 
 		// Write each record group by group.
 		UInt32 record{ 0 };

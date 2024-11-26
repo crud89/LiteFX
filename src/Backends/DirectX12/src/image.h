@@ -94,7 +94,6 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new sampler instance.
 		/// </summary>
-		/// <param name="device"></param>
 		/// <param name="magFilter"></param>
 		/// <param name="minFilter"></param>
 		/// <param name="borderU"></param>
@@ -105,7 +104,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="maxLod"></param>
 		/// <param name="minLod"></param>
 		/// <param name="anisotropy"></param>
-		explicit DirectX12Sampler(const DirectX12Device& device, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float minLod = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float anisotropy = 0.f, const String& name = "");
+		explicit DirectX12Sampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float minLod = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float anisotropy = 0.f, const String& name = "");
 		
 		DirectX12Sampler(DirectX12Sampler&&) noexcept = delete;
 		DirectX12Sampler(const DirectX12Sampler&) noexcept = delete;

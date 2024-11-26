@@ -844,10 +844,10 @@ namespace LiteFX::Rendering::Backends {
         virtual UInt32 descriptorOffsetForBinding(UInt32 binding) const;
 
         /// <summary>
-        /// Returns the parent device.
+        /// Returns the parent device or `nullptr`, if it has been released.
         /// </summary>
-        /// <returns>A reference of the parent device.</returns>
-        virtual const DirectX12Device& device() const noexcept;
+        /// <returns>A pointer to the parent device or `nullptr`, if it has been released.</returns>
+        virtual SharedPtr<const DirectX12Device> device() const noexcept;
 
     protected:
         /// <summary>
@@ -1092,10 +1092,10 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <summary>
-        /// Returns a reference to the device that provides this layout.
+        /// Returns a pointer to the device that provides this layout or `nullptr` if the device is already released.
         /// </summary>
-        /// <returns>A reference to the layouts parent device.</returns>
-        virtual const DirectX12Device& device() const noexcept;
+        /// <returns>A reference to the layouts parent device or `nullptr` if the device is already released.</returns>
+        virtual SharedPtr<const DirectX12Device> device() const noexcept;
 
         // PipelineLayout interface.
     public:
@@ -1230,7 +1230,7 @@ namespace LiteFX::Rendering::Backends {
     /// Records commands for a <see cref="DirectX12Queue" />
     /// </summary>
     /// <seealso cref="DirectX12Queue" />
-    class LITEFX_DIRECTX12_API DirectX12CommandBuffer final : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>, public ComResource<ID3D12GraphicsCommandList7>, public SharedObject {
+    class LITEFX_DIRECTX12_API DirectX12CommandBuffer final : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>, public ComResource<ID3D12GraphicsCommandList7> {
         LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
 
     public:
@@ -1500,10 +1500,10 @@ namespace LiteFX::Rendering::Backends {
         // DirectX12Queue interface.
     public:
         /// <summary>
-        /// Returns a reference to the device that provides this queue.
+        /// Returns a pointer to the device that provides this queue or `nullptr`, if the device has already been released.
         /// </summary>
-        /// <returns>A reference to the queue's parent device.</returns>
-        virtual const DirectX12Device& device() const noexcept;
+        /// <returns>A reference to the queue's parent device or `nullptr`, if the device has already been released.</returns>
+        virtual SharedPtr<const DirectX12Device> device() const noexcept;
 
         // CommandQueue interface.
     public:
@@ -1993,7 +1993,7 @@ namespace LiteFX::Rendering::Backends {
         /// Returns a reference to the device that provides this queue.
         /// </summary>
         /// <returns>A reference to the queue's parent device.</returns>
-        virtual const DirectX12Device& device() const noexcept;
+        virtual SharedPtr<const DirectX12Device> device() const noexcept;
 
         // RenderPass interface.
     public:
@@ -2233,7 +2233,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12Device final : public GraphicsDevice<DirectX12GraphicsFactory, DirectX12Surface, DirectX12GraphicsAdapter, DirectX12SwapChain, DirectX12Queue, DirectX12RenderPass, DirectX12RenderPipeline, DirectX12ComputePipeline, DirectX12RayTracingPipeline, DirectX12Barrier>, public ComResource<ID3D12Device10> {
         LITEFX_IMPLEMENTATION(DirectX12DeviceImpl);
 
-    public:
+    private:
         /// <summary>
         /// Creates a new device instance.
         /// </summary>
@@ -2258,6 +2258,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="globalSamplerHeapSize">The size of the global heap for samplers.</param>
         explicit DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = {}, UInt32 globalBufferHeapSize = D3D12_MAX_SHADER_VISIBLE_DESCRIPTOR_HEAP_SIZE_TIER_1, UInt32 globalSamplerHeapSize = D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE);
 
+    public:
         /// <inheritdoc />
         DirectX12Device(DirectX12Device&&) noexcept;
 
@@ -2272,6 +2273,38 @@ namespace LiteFX::Rendering::Backends {
         
         /// <inheritdoc />
         ~DirectX12Device() noexcept override;
+
+        // Factory methods.
+    public:
+        /// <summary>
+        /// Initializes the device instance.
+        /// </summary>
+        /// <param name="backend">The backend from which the device got created.</param>
+        /// <param name="adapter">The adapter the device uses for drawing.</param>
+        /// <param name="surface">The surface, the device should draw to.</param>
+        /// <param name="features">The features that should be supported by this device.</param>
+        /// <returns>A shared pointer to the new device instance.</returns>
+        static inline SharedPtr<DirectX12Device> create(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, GraphicsDeviceFeatures features = {}) {
+            return SharedPtr<DirectX12Device>(new DirectX12Device(backend, adapter, std::move(surface), features));
+        }
+
+        /// <summary>
+        /// Initializes the device instance.
+        /// </summary>
+        /// <param name="backend">The backend from which the device got created.</param>
+        /// <param name="adapter">The adapter the device uses for drawing.</param>
+        /// <param name="surface">The surface, the device should draw to.</param>
+        /// <param name="format">The initial surface format, device uses for drawing.</param>
+        /// <param name="renderArea">The initial size of the render area.</param>
+        /// <param name="backBuffers">The initial number of back buffers.</param>
+        /// <param name="enableVsync">The initial setting for vertical synchronization.</param>
+        /// <param name="features">The features that should be supported by this device.</param>
+        /// <param name="globalBufferHeapSize">The size of the global heap for constant buffers, shader resources and images.</param>
+        /// <param name="globalSamplerHeapSize">The size of the global heap for samplers.</param>
+        /// <returns>A shared pointer to the new device instance.</returns>
+        static inline SharedPtr<DirectX12Device> create(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = {}, UInt32 globalBufferHeapSize = D3D12_MAX_SHADER_VISIBLE_DESCRIPTOR_HEAP_SIZE_TIER_1, UInt32 globalSamplerHeapSize = D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE) {
+            return SharedPtr<DirectX12Device>(new DirectX12Device(backend, adapter, std::move(surface), format, renderArea, backBuffers, enableVsync, features, globalBufferHeapSize, globalSamplerHeapSize));
+        }
 
         // DirectX 12 Device interface.
     public:

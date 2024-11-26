@@ -20,7 +20,7 @@ private:
 	Array<UInt64> m_presentFences{ };
 	bool m_supportsVariableRefreshRates{ false };
 	bool m_vsync{ false };
-	const DirectX12Device& m_device;
+	WeakPtr<const DirectX12Device> m_device;
 
 	Array<SharedPtr<TimingEvent>> m_timingEvents;
 	Array<UInt64> m_timestamps;
@@ -30,7 +30,7 @@ private:
 
 public:
 	DirectX12SwapChainImpl(const DirectX12Device& device) :
-		m_device(device)
+		m_device(device.weak_from_this())
 	{
 	}
 
@@ -49,17 +49,23 @@ public:
 	[[nodiscard]]
 	ComPtr<IDXGISwapChain4> initialize(const DirectX12SwapChain& parent, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
 	{
+		// Check if the device is still valid.
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot create swap chain on a released device instance.");
+
 		if (!std::ranges::any_of(parent.getSurfaceFormats(), [&format](Format surfaceFormat) { return surfaceFormat == format; }))
 			throw InvalidArgumentException("format", "The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats(parent));
 
-		auto adapter = m_device.adapter().handle();
-		auto surface = m_device.surface().handle();
-		auto graphicsQueue = m_device.defaultQueue(QueueType::Graphics).handle();
-		const auto& backend = m_device.backend();
+		auto adapter = device->adapter().handle();
+		auto surface = device->surface().handle();
+		auto graphicsQueue = device->defaultQueue(QueueType::Graphics).handle();
+		const auto& backend = device->backend();
 
 		// Create the swap chain.
 		auto size = Size2d{ std::max<UInt32>(1, static_cast<UInt32>(renderArea.width())), std::max<UInt32>(1, static_cast<UInt32>(renderArea.height())) };
-		LITEFX_TRACE(DIRECTX12_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", static_cast<void*>(m_device.handle().Get()), backBuffers, size.width(), size.height(), format, enableVsync);
+		LITEFX_TRACE(DIRECTX12_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", static_cast<void*>(device->handle().Get()), backBuffers, size.width(), size.height(), format, enableVsync);
 		
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 		swapChainDesc.Width = static_cast<UInt32>(size.width());
@@ -82,10 +88,10 @@ public:
 		// Acquire the swap chain images.
 		m_presentImages.resize(swapChainDesc.BufferCount);
 		m_presentFences.resize(swapChainDesc.BufferCount);
-		std::ranges::generate(m_presentImages, [this, &size, &format, &swapChain, i = 0]() mutable {
+		std::ranges::generate(m_presentImages, [this, &size, &format, &swapChain, device, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed(swapChain->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
-			return makeUnique<DirectX12Image>(m_device, std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
+			return makeUnique<DirectX12Image>(*device.get(), std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
 		});
 
 		// Disable Alt+Enter shortcut for fullscreen-toggle.
@@ -101,6 +107,12 @@ public:
 
 	void reset(const DirectX12SwapChain& swapChain, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
 	{
+		// Check if the device is still valid.
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot reset swap chain on a released device instance.");
+
 		if (!std::ranges::any_of(swapChain.getSurfaceFormats(), [&format](Format surfaceFormat) { return surfaceFormat == format; }))
 			throw InvalidArgumentException("format", "The provided surface format {0} it not a supported. Must be one of the following: {1}.", format, this->joinSupportedSurfaceFormats(swapChain));
 
@@ -112,15 +124,15 @@ public:
 		UInt32 buffers = std::max<UInt32>(2, backBuffers);
 		auto size = Size2d{ std::max<UInt32>(1, static_cast<UInt32>(renderArea.width())), std::max<UInt32>(1, static_cast<UInt32>(renderArea.height())) };
 		raiseIfFailed(swapChain.handle()->ResizeBuffers(buffers, static_cast<UInt32>(size.width()), static_cast<UInt32>(size.height()), DX12::getFormat(format), m_supportsVariableRefreshRates ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize swap chain back buffers.");
-		LITEFX_TRACE(DIRECTX12_LOG, "Resetting swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", static_cast<void*>(m_device.handle().Get()), backBuffers, size.width(), size.height(), format, enableVsync);
+		LITEFX_TRACE(DIRECTX12_LOG, "Resetting swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", static_cast<void*>(device->handle().Get()), backBuffers, size.width(), size.height(), format, enableVsync);
 
 		// Acquire the swap chain images.
 		m_presentImages.resize(buffers);
 		m_presentFences.resize(buffers);
-		std::ranges::generate(m_presentImages, [this, &swapChain, &size, &format, i = 0]() mutable {
+		std::ranges::generate(m_presentImages, [this, &swapChain, &size, &format, device, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed(swapChain.handle()->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
-			return makeUnique<DirectX12Image>(m_device, std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
+			return makeUnique<DirectX12Image>(*device.get(), std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
 		});
 
 		m_format = format;
@@ -140,13 +152,19 @@ public:
 		if (timingEvents.empty())
 			return;
 
+		// Check if the device is still valid.
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot reset query heaps on a released device instance.");
+
 		// Release the existing query heaps and buffers.
 		m_timingQueryHeaps.clear();
 		m_timingQueryReadbackBuffers.clear();
 
 		// Resize the query heaps array and allocate a heap for each back buffer.
 		m_timingQueryHeaps.resize(m_buffers);
-		std::ranges::generate(m_timingQueryHeaps, [this, &timingEvents]() {
+		std::ranges::generate(m_timingQueryHeaps, [this, &timingEvents, device]() {
 			D3D12_QUERY_HEAP_DESC heapInfo {
 				.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP,
 				.Count = static_cast<UInt32>(timingEvents.size()),
@@ -154,13 +172,13 @@ public:
 			};
 
 			ComPtr<ID3D12QueryHeap> heap;
-			raiseIfFailed(m_device.handle()->CreateQueryHeap(&heapInfo, IID_PPV_ARGS(&heap)), "Unable to create timestamp query heap.");
+			raiseIfFailed(device->handle()->CreateQueryHeap(&heapInfo, IID_PPV_ARGS(&heap)), "Unable to create timestamp query heap.");
 			return heap;
 		});
 
 		// Create a readback buffer for each heap.
 		m_timingQueryReadbackBuffers.resize(m_buffers);
-		std::ranges::generate(m_timingQueryReadbackBuffers, [this, &timingEvents]() { return m_device.factory().createBuffer(BufferType::Other, ResourceHeap::Readback, sizeof(UInt64) * timingEvents.size()); });
+		std::ranges::generate(m_timingQueryReadbackBuffers, [this, &timingEvents, device]() { return device->factory().createBuffer(BufferType::Other, ResourceHeap::Readback, sizeof(UInt64) * timingEvents.size()); });
 
 		// Store the event and resize the time stamp collection.
 		m_timingEvents = timingEvents;
@@ -169,11 +187,17 @@ public:
 
 	UInt32 swapBackBuffer(const DirectX12SwapChain& swapChain)
 	{
+		// Check if the device is still valid.
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot swap back buffers on a released device instance.");
+
 		// Get the next image index.
 		m_currentImage = swapChain.handle()->GetCurrentBackBufferIndex();
 
 		// Wait for all rendering commands to finish on the image index (otherwise we would not be able to re-use the command buffers).
-		m_device.defaultQueue(QueueType::Graphics).waitFor(m_presentFences[m_currentImage]);
+		device->defaultQueue(QueueType::Graphics).waitFor(m_presentFences[m_currentImage]);
 
 		// Read back the timestamps.
 		if (!m_timestamps.empty())

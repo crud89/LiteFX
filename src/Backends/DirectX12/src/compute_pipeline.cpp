@@ -13,18 +13,18 @@ public:
 	friend class DirectX12ComputePipeline;
 
 private:
-	const DirectX12Device& m_device;
+	WeakPtr<const DirectX12Device> m_device;
 	SharedPtr<DirectX12PipelineLayout> m_layout;
 	SharedPtr<DirectX12ShaderProgram> m_program;
 
 public:
 	DirectX12ComputePipelineImpl(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram) :
-		m_device(device), m_layout(layout), m_program(shaderProgram)
+		m_device(device.weak_from_this()), m_layout(layout), m_program(shaderProgram)
 	{
 	}
 
 	DirectX12ComputePipelineImpl(const DirectX12Device& device) :
-		m_device(device)
+		m_device(device.weak_from_this())
 	{
 	}
 
@@ -59,15 +59,22 @@ public:
 		// Create a pipeline state description.
 		pipelineStateDescription.pRootSignature = std::as_const(*m_layout).handle().Get();
 
-		// Create the pipeline state instance.
-		ComPtr<ID3D12PipelineState> pipelineState;
-		raiseIfFailed(m_device.handle()->CreateComputePipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create compute pipeline state.");
+		if (auto device = m_device.lock()) [[likely]]
+		{
+			// Create the pipeline state instance.
+			ComPtr<ID3D12PipelineState> pipelineState;
+			raiseIfFailed(device->handle()->CreateComputePipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create compute pipeline state.");
 
 #ifndef NDEBUG
-		pipelineState->SetName(Widen(pipeline.name()).c_str());
+			pipelineState->SetName(Widen(pipeline.name()).c_str());
 #endif
 
-		return pipelineState;
+			return pipelineState;
+		}
+		else
+		{
+			throw RuntimeException("Cannot create compute pipeline from release device instance.");
+		}
 	}
 };
 

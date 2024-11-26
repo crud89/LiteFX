@@ -6436,7 +6436,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// The interface for a command buffer.
     /// </summary>
-    class LITEFX_RENDERING_API ICommandBuffer {
+    class LITEFX_RENDERING_API ICommandBuffer : public SharedObject {
     public:
         friend class ICommandQueue;
 
@@ -6448,7 +6448,7 @@ namespace LiteFX::Rendering {
         ICommandBuffer& operator=(ICommandBuffer&&) noexcept = default;
 
     public:
-        virtual ~ICommandBuffer() noexcept = default;
+        ~ICommandBuffer() noexcept override = default;
 
     public:
         /// <summary>
@@ -9066,7 +9066,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// The interface for a graphics device that.
     /// </summary>
-    class LITEFX_RENDERING_API IGraphicsDevice {
+    class LITEFX_RENDERING_API IGraphicsDevice : public SharedObject {
     protected:
         IGraphicsDevice() noexcept = default;
         IGraphicsDevice(IGraphicsDevice&&) noexcept = default;
@@ -9075,7 +9075,7 @@ namespace LiteFX::Rendering {
         IGraphicsDevice& operator=(IGraphicsDevice&&) noexcept = default;
 
     public:
-        virtual ~IGraphicsDevice() noexcept = default;
+        ~IGraphicsDevice() noexcept override = default;
 
     public:
         /// <summary>

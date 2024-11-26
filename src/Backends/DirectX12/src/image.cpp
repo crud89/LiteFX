@@ -19,11 +19,10 @@ private:
 	ImageDimensions m_dimensions;
 	ResourceUsage m_usage;
 	MultiSamplingLevel m_samples;
-	const DirectX12Device& m_device;
 
 public:
 	DirectX12ImageImpl(const DirectX12Device& device, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation) :
-		m_allocator(allocator), m_allocation(std::move(allocation)), m_format(format), m_extent(extent), m_levels(levels), m_layers(layers), m_planes{ ::D3D12GetFormatPlaneCount(device.handle().Get(), DX12::getFormat(format)) }, m_dimensions(dimension), m_usage(usage), m_samples(samples), m_device(device)
+		m_allocator(allocator), m_allocation(std::move(allocation)), m_format(format), m_extent(extent), m_levels(levels), m_layers(layers), m_planes{ ::D3D12GetFormatPlaneCount(device.handle().Get(), DX12::getFormat(format)) }, m_dimensions(dimension), m_usage(usage), m_samples(samples)
 	{
 		m_elements = m_planes * m_layers * m_levels;
 	}
@@ -210,11 +209,10 @@ private:
 	Float m_mipMapBias;
 	Float m_minLod, m_maxLod;
 	Float m_anisotropy;
-	const DirectX12Device& m_device;
 
 public:
-	DirectX12SamplerImpl(const DirectX12Device& device, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) :
-		m_magFilter(magFilter), m_minFilter(minFilter), m_borderU(borderU), m_borderV(borderV), m_borderW(borderW), m_mipMapMode(mipMapMode), m_mipMapBias(mipMapBias), m_minLod(minLod), m_maxLod(maxLod), m_anisotropy(anisotropy), m_device(device)
+	DirectX12SamplerImpl(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) :
+		m_magFilter(magFilter), m_minFilter(minFilter), m_borderU(borderU), m_borderV(borderV), m_borderW(borderW), m_mipMapMode(mipMapMode), m_mipMapBias(mipMapBias), m_minLod(minLod), m_maxLod(maxLod), m_anisotropy(anisotropy)
 	{
 	}
 };
@@ -223,8 +221,8 @@ public:
 // Sampler shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Sampler::DirectX12Sampler(const DirectX12Device& device, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy, const String& name) :
-	m_impl(device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy)
+DirectX12Sampler::DirectX12Sampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy, const String& name) :
+	m_impl(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy)
 {
 	if (!name.empty())
 		this->name() = name;

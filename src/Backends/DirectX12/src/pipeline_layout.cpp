@@ -15,17 +15,17 @@ public:
 private:
     UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout{};
     Array<UniquePtr<DirectX12DescriptorSetLayout>> m_descriptorSetLayouts{};
-    const DirectX12Device& m_device;
+    WeakPtr<const DirectX12Device> m_device;
 
 public:
     DirectX12PipelineLayoutImpl(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
-        m_pushConstantsLayout(std::move(pushConstantsLayout)), m_device(device)
+        m_pushConstantsLayout(std::move(pushConstantsLayout)), m_device(device.weak_from_this())
     {
         m_descriptorSetLayouts = std::move(descriptorLayouts) | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     DirectX12PipelineLayoutImpl(const DirectX12Device& device) :
-        m_device(device)
+        m_device(device.weak_from_this())
     {
     }
 
@@ -60,6 +60,12 @@ private:
 public:
     ComPtr<ID3D12RootSignature> initialize([[maybe_unused]] const DirectX12PipelineLayout& pipelineLayout)
     {
+        // Check if the device is still valid.
+        auto device = m_device.lock();
+
+        if (device == nullptr) [[unlikely]]
+            throw RuntimeException("Cannot build pipeline layout from a released device instance.");
+
         // Sort and check if there are duplicate space indices.
         std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<DirectX12DescriptorSetLayout>& a, const UniquePtr<DirectX12DescriptorSetLayout>& b) { return a->space() < b->space(); });
 
@@ -212,7 +218,7 @@ public:
 
         // Create the root signature.
         ComPtr<ID3D12RootSignature> rootSignature;
-        raiseIfFailed(m_device.handle()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for pipeline layout.");
+        raiseIfFailed(device->handle()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for pipeline layout.");
 
         return rootSignature;
     }
@@ -237,9 +243,9 @@ DirectX12PipelineLayout::DirectX12PipelineLayout(DirectX12PipelineLayout&&) noex
 DirectX12PipelineLayout& DirectX12PipelineLayout::operator=(DirectX12PipelineLayout&&) noexcept = default;
 DirectX12PipelineLayout::~DirectX12PipelineLayout() noexcept = default;
 
-const DirectX12Device& DirectX12PipelineLayout::device() const noexcept
+SharedPtr<const DirectX12Device> DirectX12PipelineLayout::device() const noexcept
 {
-    return m_impl->m_device;
+    return m_impl->m_device.lock();
 }
 
 const DirectX12DescriptorSetLayout& DirectX12PipelineLayout::descriptorSet(UInt32 space) const
@@ -271,11 +277,11 @@ public:
     friend class DirectX12PipelineLayout;
 
 private:
-    const DirectX12Device& m_device;
+    SharedPtr<const DirectX12Device> m_device;
 
 public:
     DirectX12PipelineLayoutBuilderImpl(const DirectX12Device& device) :
-        m_device(device)
+        m_device(device.shared_from_this())
     {
     }
 };
@@ -309,7 +315,7 @@ DirectX12PushConstantsLayoutBuilder DirectX12PipelineLayoutBuilder::pushConstant
     return DirectX12PushConstantsLayoutBuilder(*this, size);
 }
 
-const DirectX12Device& DirectX12PipelineLayoutBuilder::device() const noexcept
+SharedPtr<const DirectX12Device> DirectX12PipelineLayoutBuilder::device() const noexcept
 {
     return m_impl->m_device;
 }

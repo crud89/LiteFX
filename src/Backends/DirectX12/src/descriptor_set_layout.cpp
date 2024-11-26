@@ -19,19 +19,19 @@ private:
     ShaderStage m_stages{ ShaderStage::Other };
     Queue<ComPtr<ID3D12DescriptorHeap>> m_freeDescriptorSets{}, m_freeSamplerSets{};
     Dictionary<UInt32, UInt32> m_bindingToDescriptor{};
-    const DirectX12Device& m_device;
+    WeakPtr<const DirectX12Device> m_device;
     bool m_isRuntimeArray = false;
     mutable std::mutex m_mutex;
 
 public:
     DirectX12DescriptorSetLayoutImpl(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages) :
-        m_space(space), m_stages(stages), m_device(device)
+        m_space(space), m_stages(stages), m_device(device.weak_from_this())
     {
         m_layouts = std::move(descriptorLayouts) | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     DirectX12DescriptorSetLayoutImpl(const DirectX12Device& device) :
-        m_device(device)
+        m_device(device.weak_from_this())
     {
     }
 
@@ -79,6 +79,11 @@ public:
 public:
     void tryAllocate(ComPtr<ID3D12DescriptorHeap>& bufferHeap, ComPtr<ID3D12DescriptorHeap>& samplerHeap, UInt32 descriptorCount)
     {
+        auto device = m_device.lock();
+
+        if (device == nullptr) [[unlikely]]
+            throw RuntimeException("Cannot allocate descriptor sets from a released device instance.");
+
         // Use descriptor heaps from the queues, if possible.
         if (m_descriptors > 0)
         {
@@ -98,7 +103,7 @@ public:
                     .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE
                 };
 
-                raiseIfFailed(m_device.handle()->CreateDescriptorHeap(&bufferHeapDesc, IID_PPV_ARGS(&bufferHeap)), "Unable create constant CPU descriptor heap for constant buffers and images.");
+                raiseIfFailed(device->handle()->CreateDescriptorHeap(&bufferHeapDesc, IID_PPV_ARGS(&bufferHeap)), "Unable create constant CPU descriptor heap for constant buffers and images.");
             }
         }
 
@@ -121,7 +126,7 @@ public:
                     .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE
                 };
 
-                raiseIfFailed(m_device.handle()->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&samplerHeap)), "Unable create constant CPU descriptor heap for samplers.");
+                raiseIfFailed(device->handle()->CreateDescriptorHeap(&samplerHeapDesc, IID_PPV_ARGS(&samplerHeap)), "Unable create constant CPU descriptor heap for samplers.");
             }
         }
     }
@@ -169,9 +174,9 @@ bool DirectX12DescriptorSetLayout::isRuntimeArray() const noexcept
     return m_impl->m_isRuntimeArray;
 }
 
-const DirectX12Device& DirectX12DescriptorSetLayout::device() const noexcept
+SharedPtr<const DirectX12Device> DirectX12DescriptorSetLayout::device() const noexcept
 {
-    return m_impl->m_device;
+    return m_impl->m_device.lock();
 }
 
 Enumerable<const DirectX12DescriptorLayout*> DirectX12DescriptorSetLayout::descriptors() const noexcept

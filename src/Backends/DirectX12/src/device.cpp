@@ -42,9 +42,9 @@ public:
 	}
 
 	DirectX12DeviceImpl(DirectX12DeviceImpl&&) noexcept = default;
-	DirectX12DeviceImpl(const DirectX12DeviceImpl&) noexcept = default;
+	DirectX12DeviceImpl(const DirectX12DeviceImpl&) noexcept = delete;
 	DirectX12DeviceImpl& operator=(DirectX12DeviceImpl&&) noexcept = default;
-	DirectX12DeviceImpl& operator=(const DirectX12DeviceImpl&) noexcept = default;
+	DirectX12DeviceImpl& operator=(const DirectX12DeviceImpl&) noexcept = delete;
 
 	~DirectX12DeviceImpl() noexcept
 	{

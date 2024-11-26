@@ -13,12 +13,12 @@ public:
 	friend class DirectX12GraphicsFactory;
 
 private:
-	const DirectX12Device& m_device;
+	WeakPtr<const DirectX12Device> m_device;
 	AllocatorPtr m_allocator;
 
 public:
 	DirectX12GraphicsFactoryImpl(const DirectX12Device& device) :
-		m_device(device)
+		m_device(device.weak_from_this())
 	{
 		// Initialize memory allocator.
 		D3D12MA::ALLOCATOR_DESC allocatorDesc = {};
@@ -226,6 +226,12 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(Format format
 
 UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
 {
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot allocate texture from a released device instance.");
+
 	// Validate usage flags
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput)) [[unlikely]]
 		throw InvalidArgumentException("usage", "Invalid resource usage has been specified: image resources cannot be used as build inputs for other acceleration structures.");
@@ -267,7 +273,7 @@ UniquePtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String&
 
 	D3D12MA::ALLOCATION_DESC allocationDesc { .HeapType = D3D12_HEAP_TYPE_DEFAULT };
 	
-	return DirectX12Image::allocate(name, m_impl->m_device, m_impl->m_allocator, { width, height, depth }, format, dimension, levels, layers, samples, usage, resourceDesc, allocationDesc);
+	return DirectX12Image::allocate(name, *device.get(), m_impl->m_allocator, {width, height, depth}, format, dimension, levels, layers, samples, usage, resourceDesc, allocationDesc);
 }
 
 Enumerable<UniquePtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
@@ -280,12 +286,24 @@ Enumerable<UniquePtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(
 
 UniquePtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
 {
-	return makeUnique<DirectX12Sampler>(m_impl->m_device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot allocate sampler from a released device instance.");
+
+	return makeUnique<DirectX12Sampler>(*device.get(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
 }
 
 UniquePtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
 {
-	return makeUnique<DirectX12Sampler>(m_impl->m_device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot allocate sampler from a released device instance.");
+
+	return makeUnique<DirectX12Sampler>(*device.get(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
 }
 
 Enumerable<UniquePtr<IDirectX12Sampler>> DirectX12GraphicsFactory::createSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const

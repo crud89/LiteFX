@@ -202,8 +202,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Returns the device, the builder has been initialized with.
 		/// </summary>
-		/// <returns>A reference of the device, the builder has been initialized with.</returns>
-		const DirectX12Device& device() const noexcept;
+		/// <returns>A pointer to the device, the builder has been initialized with.</returns>
+		SharedPtr<const DirectX12Device> device() const noexcept;
 	};
 
 	/// <summary>
