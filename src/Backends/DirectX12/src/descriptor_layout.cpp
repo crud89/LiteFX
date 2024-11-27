@@ -46,7 +46,7 @@ public:
         }
     }
 
-    DirectX12DescriptorLayoutImpl(DirectX12DescriptorLayout* parent, UniquePtr<IDirectX12Sampler>&& staticSampler, UInt32 binding, bool local) :
+    DirectX12DescriptorLayoutImpl(UniquePtr<IDirectX12Sampler>&& staticSampler, UInt32 binding, bool local) :
         DirectX12DescriptorLayoutImpl(DescriptorType::Sampler, binding, 0, 1, local)
     {
         if (staticSampler == nullptr)

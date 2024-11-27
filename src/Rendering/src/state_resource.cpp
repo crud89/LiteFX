@@ -14,7 +14,7 @@ private:
     String m_name;
 
 public:
-    StateResourceImpl(StringView name) noexcept :
+    StateResourceImpl(StringView name) :
         m_name(name)
     {
     }
@@ -24,12 +24,12 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-StateResource::StateResource() noexcept :
+StateResource::StateResource() :
     StateResource("Unnamed Resource"sv)
 {
 }
 
-StateResource::StateResource(StringView name) noexcept :
+StateResource::StateResource(StringView name) :
     m_impl(name)
 {
 }

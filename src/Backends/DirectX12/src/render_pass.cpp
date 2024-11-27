@@ -241,7 +241,7 @@ DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const St
         this->name() = name;
 }
 
-DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name) noexcept :
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name) :
     m_impl(device)
 {
     if (!name.empty())
@@ -281,7 +281,7 @@ SharedPtr<const DirectX12CommandBuffer> DirectX12RenderPass::commandBuffer(UInt3
     return m_impl->m_secondaryCommandBuffers[m_impl->m_activeFrameBuffer][index];
 }
 
-Enumerable<SharedPtr<const DirectX12CommandBuffer>> DirectX12RenderPass::commandBuffers() const noexcept
+Enumerable<SharedPtr<const DirectX12CommandBuffer>> DirectX12RenderPass::commandBuffers() const
 {
     if (m_impl->m_secondaryCommandBufferCount == 0u || m_impl->m_activeFrameBuffer == nullptr)
         return { };
@@ -374,12 +374,14 @@ void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer) const
         m_impl->m_queue->beginDebugRegion(std::format("{0} Render Pass", this->name()));
 
     // Begin a suspending render pass for the transition and a suspend-the-resume render pass on each command buffer of the frame buffer.
+    // NOLINTBEGIN(bugprone-unchecked-optional-access)
     std::as_const(*beginCommandBuffer).handle()->BeginRenderPass(static_cast<UINT>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
     std::as_const(*beginCommandBuffer).handle()->EndRenderPass();
     std::ranges::for_each(m_impl->getSecondaryCommandBuffers(frameBuffer), [&context](auto commandBuffer) { 
         commandBuffer->begin(); 
         std::as_const(*commandBuffer).handle()->BeginRenderPass(static_cast<UINT>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS | D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
     });
+    // NOLINTEND(bugprone-unchecked-optional-access)
 
     // Publish beginning event.
     this->beginning(this, { frameBuffer });
@@ -408,7 +410,7 @@ UInt64 DirectX12RenderPass::end() const
     auto endCommandBuffer = m_impl->getEndCommandBuffer(frameBuffer);
     std::ranges::for_each(m_impl->getSecondaryCommandBuffers(frameBuffer), [](auto commandBuffer) { std::as_const(*commandBuffer).handle()->EndRenderPass(); });
     endCommandBuffer->begin();
-    std::as_const(*endCommandBuffer).handle()->BeginRenderPass(static_cast<UInt32>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
+    std::as_const(*endCommandBuffer).handle()->BeginRenderPass(static_cast<UInt32>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_RESUMING_PASS); // NOLINT(bugprone-unchecked-optional-access)
     std::as_const(*endCommandBuffer).handle()->EndRenderPass();
 
     // If the present target is multi-sampled, we need to resolve it to the back buffer.
@@ -510,12 +512,12 @@ UInt64 DirectX12RenderPass::end() const
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const String& name) noexcept :
+DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const String& name) :
     DirectX12RenderPassBuilder(device, 1, name)
 {
 }
 
-DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, const String& name) noexcept :
+DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, const String& name) :
     RenderPassBuilder(UniquePtr<DirectX12RenderPass>(new DirectX12RenderPass(device, name)))
 {
     this->state().commandBufferCount = commandBuffers;

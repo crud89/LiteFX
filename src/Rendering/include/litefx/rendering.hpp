@@ -231,7 +231,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const descriptor_layout_type*> descriptors() const noexcept = 0;
+        virtual Enumerable<const descriptor_layout_type*> descriptors() const = 0;
 
         /// <inheritdoc />
         const descriptor_layout_type& descriptor(UInt32 binding) const override = 0;
@@ -255,10 +255,10 @@ namespace LiteFX::Rendering {
         virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
 
         /// <inheritdoc />
-        virtual void free(const descriptor_set_type& descriptorSet) const noexcept = 0;
+        virtual void free(const descriptor_set_type& descriptorSet) const = 0;
 
     private:
-        inline Enumerable<const IDescriptorLayout*> getDescriptors() const noexcept override {
+        inline Enumerable<const IDescriptorLayout*> getDescriptors() const override {
             return this->descriptors();
         }
 
@@ -274,7 +274,7 @@ namespace LiteFX::Rendering {
             return this->allocateMultiple(descriptorSets, descriptors, bindingFactory) | std::views::as_rvalue;
         }
 
-        inline void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const noexcept override {
+        inline void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const override {
             this->free(dynamic_cast<const descriptor_set_type&>(descriptorSet));
         }
     };
@@ -320,10 +320,10 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const push_constants_range_type*> ranges() const noexcept = 0;
+        virtual Enumerable<const push_constants_range_type*> ranges() const = 0;
 
     private:
-        inline Enumerable<const IPushConstantsRange*> getRanges() const noexcept override {
+        inline Enumerable<const IPushConstantsRange*> getRanges() const override {
             return this->ranges();
         }
     };
@@ -351,10 +351,10 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const shader_module_type*> modules() const noexcept = 0;
+        virtual Enumerable<const shader_module_type*> modules() const = 0;
 
     private:
-        inline Enumerable<const IShaderModule*> getModules() const noexcept override {
+        inline Enumerable<const IShaderModule*> getModules() const override {
             return this->modules();
         }
     };
@@ -387,13 +387,13 @@ namespace LiteFX::Rendering {
         const descriptor_set_layout_type& descriptorSet(UInt32 space) const override = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<const descriptor_set_layout_type*> descriptorSets() const noexcept = 0;
+        virtual Enumerable<const descriptor_set_layout_type*> descriptorSets() const = 0;
 
         /// <inheritdoc />
         const push_constants_layout_type* pushConstants() const noexcept override = 0;
 
     private:
-        inline Enumerable<const IDescriptorSetLayout*> getDescriptorSets() const noexcept override {
+        inline Enumerable<const IDescriptorSetLayout*> getDescriptorSets() const override {
             return this->descriptorSets();
         }
     };
@@ -472,7 +472,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const vertex_buffer_layout_type*> vertexBufferLayouts() const noexcept = 0;
+        virtual Enumerable<const vertex_buffer_layout_type*> vertexBufferLayouts() const = 0;
 
         /// <inheritdoc />
         const vertex_buffer_layout_type* vertexBufferLayout(UInt32 binding) const override = 0;
@@ -481,7 +481,7 @@ namespace LiteFX::Rendering {
         const index_buffer_layout_type* indexBufferLayout() const noexcept override = 0;
 
     private:
-        inline Enumerable<const IVertexBufferLayout*> getVertexBufferLayouts() const noexcept override {
+        inline Enumerable<const IVertexBufferLayout*> getVertexBufferLayouts() const override {
             return this->vertexBufferLayouts();
         }
     };
@@ -567,6 +567,8 @@ namespace LiteFX::Rendering {
         using ICommandBuffer::updateAccelerationStructure;
         using ICommandBuffer::copyAccelerationStructure;
 
+        friend TCommandBuffer;
+
     public:
         using command_buffer_type = TCommandBuffer;
         using buffer_type = TBuffer;
@@ -582,7 +584,7 @@ namespace LiteFX::Rendering {
         using bottom_level_acceleration_structure_type = TBLAS;
         using top_level_acceleration_structure_type = TTLAS;
 
-    protected:
+    private:
         CommandBuffer() noexcept = default;
         CommandBuffer(CommandBuffer&&) noexcept = default;
         CommandBuffer(const CommandBuffer&) noexcept = default;
@@ -600,7 +602,7 @@ namespace LiteFX::Rendering {
         virtual void barrier(const barrier_type& barrier) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void generateMipMaps(image_type& image) noexcept = 0;
+        virtual void generateMipMaps(image_type& image) = 0;
 
         /// <inheritdoc />
         virtual void transfer(const buffer_type& source, const buffer_type& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const = 0;
@@ -743,7 +745,7 @@ namespace LiteFX::Rendering {
             this->barrier(dynamic_cast<const barrier_type&>(barrier));
         }
 
-        inline void cmdGenerateMipMaps(IImage& image) noexcept override {
+        inline void cmdGenerateMipMaps(IImage& image) override {
             this->generateMipMaps(dynamic_cast<image_type&>(image));
         }
 
@@ -808,20 +810,20 @@ namespace LiteFX::Rendering {
             this->bind(Span<const descriptor_set_type*>(sets));
         }
 
-        inline void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept override {
+        inline void cmdBind(const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const override {
             this->bind(dynamic_cast<const descriptor_set_type&>(descriptorSet), dynamic_cast<const pipeline_type&>(pipeline));
         }
 
-        inline void cmdBind(Span<const IDescriptorSet*> descriptorSets, const IPipeline& pipeline) const noexcept override {
+        inline void cmdBind(Span<const IDescriptorSet*> descriptorSets, const IPipeline& pipeline) const override {
             auto sets = descriptorSets | std::views::transform([](auto set) { return dynamic_cast<const descriptor_set_type*>(set); }) | std::ranges::to<Array<const descriptor_set_type*>>();
             this->bind(Span<const descriptor_set_type*>(sets), dynamic_cast<const pipeline_type&>(pipeline));
         }
         
-        inline void cmdBind(const IVertexBuffer& buffer) const noexcept override {
+        inline void cmdBind(const IVertexBuffer& buffer) const override {
             this->bind(dynamic_cast<const vertex_buffer_type&>(buffer));
         }
 
-        inline void cmdBind(const IIndexBuffer& buffer) const noexcept override {
+        inline void cmdBind(const IIndexBuffer& buffer) const override {
             this->bind(dynamic_cast<const index_buffer_type&>(buffer));
         }
         
@@ -997,10 +999,10 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual UniquePtr<buffer_type> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups = ShaderBindingGroup::All) const noexcept = 0;
+        virtual UniquePtr<buffer_type> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups = ShaderBindingGroup::All) const = 0;
 
     private:
-        inline UniquePtr<IBuffer> getShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const noexcept override {
+        inline UniquePtr<IBuffer> getShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const override {
             return this->allocateShaderBindingTable(offsets, groups);
         }
     };
@@ -1031,10 +1033,10 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const image_type*> images() const noexcept = 0;
+        virtual Enumerable<const image_type*> images() const = 0;
 
     private:
-        inline Enumerable<const IImage*> getImages() const noexcept override {
+        inline Enumerable<const IImage*> getImages() const override {
             return this->images();
         }
     };
@@ -1126,7 +1128,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<SharedPtr<const command_buffer_type>> commandBuffers() const noexcept = 0;
+        virtual Enumerable<SharedPtr<const command_buffer_type>> commandBuffers() const = 0;
 
         /// <inheritdoc />
         virtual SharedPtr<const command_buffer_type> commandBuffer(UInt32 index) const = 0;
@@ -1139,7 +1141,7 @@ namespace LiteFX::Rendering {
             return this->commandBuffer(index);
         }
 
-        inline Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const noexcept override {
+        inline Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const override {
             return this->commandBuffers();
         }
 
@@ -1170,10 +1172,10 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<image_interface_type*> images() const noexcept = 0;
+        virtual Enumerable<image_interface_type*> images() const = 0;
 
     private:
-        inline Enumerable<IImage*> getImages() const noexcept override {
+        inline Enumerable<IImage*> getImages() const override {
             return this->images();
         }
     };
@@ -1426,7 +1428,7 @@ namespace LiteFX::Rendering {
         virtual const command_queue_type& defaultQueue(QueueType type) const = 0;
 
         /// <inheritdoc />
-        virtual const command_queue_type* createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) noexcept = 0;
+        virtual const command_queue_type* createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) = 0;
 
         /// <inheritdoc />
         [[nodiscard]] virtual UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
@@ -1452,7 +1454,7 @@ namespace LiteFX::Rendering {
             return this->defaultQueue(type);
         }
 
-        inline const ICommandQueue* getNewQueue(QueueType type, QueuePriority priority) noexcept override {
+        inline const ICommandQueue* getNewQueue(QueueType type, QueuePriority priority) override {
             return this->createQueue(type, priority);
         }
 

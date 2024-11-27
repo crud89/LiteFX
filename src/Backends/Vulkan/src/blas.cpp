@@ -4,9 +4,11 @@ using namespace LiteFX::Rendering::Backends;
 using TriangleMesh  = IBottomLevelAccelerationStructure::TriangleMesh;
 using BoundingBoxes = IBottomLevelAccelerationStructure::BoundingBoxes;
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure;
 extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure;
 extern PFN_vkCmdWriteAccelerationStructuresPropertiesKHR vkCmdWriteAccelerationStructuresProperties;
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -36,7 +38,7 @@ public:
 public:
     Array<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> build() const
     {
-        static auto builder = [](const WeakPtr<VulkanBottomLevelAccelerationStructureImpl> impl) -> std::generator<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> {
+        static auto builder = [](const WeakPtr<const VulkanBottomLevelAccelerationStructureImpl> impl) -> std::generator<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> {
             // Store meshes and bounding boxes on local frame.
             auto accelerationStructure = impl.lock();
 
@@ -168,14 +170,16 @@ UInt64 VulkanBottomLevelAccelerationStructure::size() const noexcept
 void VulkanBottomLevelAccelerationStructure::build(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer, SharedPtr<const IVulkanBuffer> buffer, UInt64 offset, UInt64 maxSize)
 {
     // Validate the arguments.
-    UInt64 requiredMemory, requiredScratchMemory;
-    auto& device = static_cast<const VulkanQueue&>(commandBuffer.queue()).device();
+    UInt64 requiredMemory{}, requiredScratchMemory{};
+    auto& device = dynamic_cast<const VulkanQueue&>(commandBuffer.queue()).device();
     device.computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory);
 
     // NOTE: There appears to be no device limit for it, but rather this is a hard requirement.
     //       (https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkAccelerationStructureCreateInfoKHR.html#VUID-VkAccelerationStructureCreateInfoKHR-offset-03734).
+    // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
     if ((offset % 256) != 0) [[unlikely]]
         throw InvalidArgumentException("offset", "The offset must be aligned to {0} bytes", 256);
+    // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
     if (scratchBuffer != nullptr && scratchBuffer->size() < requiredScratchMemory)
         throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer does not contain enough memory to build the acceleration structure (contained memory: {0} bytes, required memory: {1} bytes).", scratchBuffer->size(), requiredScratchMemory);
@@ -234,14 +238,16 @@ void VulkanBottomLevelAccelerationStructure::update(const VulkanCommandBuffer& c
         throw RuntimeException("The acceleration structure does not allow updates. Specify `AccelerationStructureFlags::AllowUpdate` during creation.");
 
     // Validate the arguments and create the buffers if required.
-    UInt64 requiredMemory, requiredScratchMemory;
-    auto& device = static_cast<const VulkanQueue&>(commandBuffer.queue()).device();
+    UInt64 requiredMemory{}, requiredScratchMemory{};
+    auto& device = dynamic_cast<const VulkanQueue&>(commandBuffer.queue()).device();
     device.computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory, true);
 
     // NOTE: There appears to be no device limit for it, but rather this is a hard requirement.
     //       (https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkAccelerationStructureCreateInfoKHR.html#VUID-VkAccelerationStructureCreateInfoKHR-offset-03734).
+    // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
     if ((offset % 256) != 0) [[unlikely]]
         throw InvalidArgumentException("offset", "The offset must be aligned to {0} bytes", 256);
+    // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
     if (scratchBuffer != nullptr && scratchBuffer->size() < requiredScratchMemory)
         throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer does not contain enough memory to update the acceleration structure (contained memory: {0} bytes, required memory: {1} bytes).", scratchBuffer->size(), requiredScratchMemory);
@@ -288,12 +294,14 @@ void VulkanBottomLevelAccelerationStructure::copy(const VulkanCommandBuffer& com
 
     // NOTE: There appears to be no device limit for it, but rather this is a hard requirement.
     //       (https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkAccelerationStructureCreateInfoKHR.html#VUID-VkAccelerationStructureCreateInfoKHR-offset-03734).
+    // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
     if ((offset % 256) != 0) [[unlikely]]
         throw InvalidArgumentException("offset", "The offset must be aligned to {0} bytes", 256);
+    // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
     // Query the compacted size, if compression is required, or use the device for requests as usual if not.
-    std::array<UInt64, 2> requiredMemory;
-    auto& device = static_cast<const VulkanQueue&>(commandBuffer.queue()).device();
+    std::array<UInt64, 2> requiredMemory{};
+    auto& device = dynamic_cast<const VulkanQueue&>(commandBuffer.queue()).device();
 
     if (!LITEFX_FLAG_IS_SET(m_impl->m_flags, AccelerationStructureFlags::AllowCompaction))
         device.computeAccelerationStructureSizes(*this, requiredMemory[0], requiredMemory[1], true);

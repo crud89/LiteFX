@@ -35,7 +35,7 @@ namespace LiteFX::Math {
 	/// <typeparam name="ROWS">The number of rows of the matrix. Must be greater than 1.</typeparam>
 	/// <typeparam name="COLS">The number of columns of the matrix. Must be greater than 1.</typeparam>
 	template <typename T, unsigned ROWS, unsigned COLS> requires 
-		(ROWS >= 2 && COLS >= 2) && std::is_standard_layout_v<T>
+		(ROWS >= 2 && COLS >= 2) && std::is_standard_layout_v<T> && std::is_trivially_copyable_v<T>
 	struct Matrix final {
 	public:
 		/// <summary>
@@ -99,7 +99,7 @@ namespace LiteFX::Math {
 		/// <param name="elements">The values to initialize the matrix with.</param>
 		constexpr Matrix(std::initializer_list<scalar_type> elements) noexcept {
 			std::ranges::move(elements, std::begin(m_elements));
-		};
+		}
 
 		/// <summary>
 		/// Initializes a copy from another matrix, that might have different dimensions.
@@ -114,44 +114,35 @@ namespace LiteFX::Math {
 		}
 
 		/// <summary>
-		/// Initializes a matrix with the values provided by another matrix.
-		/// </summary>
-		/// <param name="_other">The other matrix to copy the values from.</param>
-		constexpr Matrix(const Matrix<scalar_type, ROWS, COLS>& _other) noexcept {
-			std::ranges::copy(_other.m_elements, std::begin(m_elements));
-		}
-
-		/// <summary>
 		/// Initializes a matrix by taking over another matrix.
 		/// </summary>
 		/// <param name="_other">The matrix to take over.</param>
-		constexpr Matrix(Matrix<scalar_type, ROWS, COLS>&& _other) noexcept :
-			m_elements{ std::move(_other.m_elements) } { }
+		constexpr Matrix(Matrix&& _other) noexcept = default;
 
 		/// <summary>
-		/// Destroys the matrix instance.
+		/// Initializes a matrix with the values provided by another matrix.
 		/// </summary>
-		constexpr ~Matrix() noexcept = default;
-
-		/// <summary>
-		/// Copies the elements of another matrix into the current matrix.
-		/// </summary>
-		/// <param name="_other">The matrix to copy the elements from.</param>
-		/// <returns>A reference to the current matrix instance.</returns>
-		constexpr auto& operator=(const Matrix<scalar_type, ROWS, COLS>& _other) noexcept {
-			std::ranges::copy(_other.m_elements, std::begin(m_elements));
-			return *this;
-		}
+		/// <param name="_other">The other matrix to copy the values from.</param>
+		constexpr Matrix(const Matrix& _other) noexcept = default;
 
 		/// <summary>
 		/// Moves the elements of the other matrix to the current matrix.
 		/// </summary>
 		/// <param name="_other">The matrix to take over.</param>
 		/// <returns>A reference to the current matrix instance.</returns>
-		constexpr auto& operator=(Matrix<scalar_type, ROWS, COLS>&& _other) noexcept {
-			m_elements = std::move(_other.m_elements);
-			return *this;
-		}
+		constexpr Matrix& operator=(Matrix&& _other) noexcept = default;
+
+		/// <summary>
+		/// Copies the elements of another matrix into the current matrix.
+		/// </summary>
+		/// <param name="_other">The matrix to copy the elements from.</param>
+		/// <returns>A reference to the current matrix instance.</returns>
+		constexpr Matrix& operator=(const Matrix& _other) noexcept = default;
+
+		/// <summary>
+		/// Destroys the matrix instance.
+		/// </summary>
+		constexpr ~Matrix() noexcept = default;
 
 		/// <summary>
 		/// Returns an identity matrix.
@@ -427,7 +418,7 @@ namespace LiteFX::Math {
 		/// <returns>The glm matrix instance.</returns>
 		template <unsigned rows, unsigned cols>
 		constexpr operator glm::mat<cols, rows, scalar_type>() const noexcept requires (mat_rows >= rows && mat_cols >= cols) {
-			std::array<scalar_type, cols * rows> data;
+			std::array<scalar_type, static_cast<size_t>(cols * rows)> data;
 			glm::mat<cols, rows, scalar_type> mat;
 
 			for (size_t c { 0 }; c < cols; ++c)

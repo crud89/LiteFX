@@ -2,6 +2,7 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure;
 extern PFN_vkCmdBuildAccelerationStructuresKHR vkCmdBuildAccelerationStructures;
 extern PFN_vkCmdCopyAccelerationStructureKHR vkCmdCopyAccelerationStructure;
@@ -10,6 +11,7 @@ extern PFN_vkCmdTraceRaysKHR vkCmdTraceRays;
 extern PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks;
 extern PFN_vkCmdDrawMeshTasksIndirectEXT vkCmdDrawMeshTasksIndirect;
 extern PFN_vkCmdDrawMeshTasksIndirectCountEXT vkCmdDrawMeshTasksIndirectCount;
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -22,7 +24,7 @@ public:
 private:
 	const VulkanQueue& m_queue;
 	bool m_recording{ false }, m_secondary{ false };
-	VkCommandPool m_commandPool;
+	VkCommandPool m_commandPool{};
 	Array<SharedPtr<const IStateResource>> m_sharedResources;
 	const VulkanPipelineState* m_lastPipeline = nullptr;
 
@@ -62,7 +64,7 @@ public:
 			.commandBufferCount = 1
 		};
 
-		VkCommandBuffer buffer;
+		VkCommandBuffer buffer{};
 		raiseIfFailed(::vkAllocateCommandBuffers(m_queue.device().handle(), &bufferInfo, &buffer), "Unable to allocate command buffer.");
 
 		return buffer;
@@ -75,9 +77,9 @@ public:
 
 		// Create new acceleration structure handle.
 		auto& device = m_queue.device();
-		UInt64 size, scratchSize;
+		UInt64 size{}, scratchSize{};
 		device.computeAccelerationStructureSizes(blas, size, scratchSize, update);
-		VkAccelerationStructureKHR handle;
+		VkAccelerationStructureKHR handle{};
 
 		VkAccelerationStructureCreateInfoKHR info = {
 			.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
@@ -136,9 +138,9 @@ public:
 		auto rangePointer = &ranges;
 
 		// Create new acceleration structure handle.
-		UInt64 size, scratchSize;
+		UInt64 size{}, scratchSize{};
 		device.computeAccelerationStructureSizes(tlas, size, scratchSize, update);
-		VkAccelerationStructureKHR handle;
+		VkAccelerationStructureKHR handle{};
 
 		VkAccelerationStructureCreateInfoKHR info = {
 			.sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
@@ -299,7 +301,7 @@ bool VulkanCommandBuffer::isSecondary() const noexcept
 	return m_impl->m_secondary;
 }
 
-void VulkanCommandBuffer::setViewports(Span<const IViewport*> viewports) const noexcept
+void VulkanCommandBuffer::setViewports(Span<const IViewport*> viewports) const
 {
 	auto vps = viewports |
 		std::views::transform([](const auto& viewport) { return VkViewport{ .x = viewport->getRectangle().x(), .y = viewport->getRectangle().y(), .width = viewport->getRectangle().width(), .height = viewport->getRectangle().height(), .minDepth = viewport->getMinDepth(), .maxDepth = viewport->getMaxDepth() }; }) |
@@ -308,13 +310,13 @@ void VulkanCommandBuffer::setViewports(Span<const IViewport*> viewports) const n
 	::vkCmdSetViewportWithCount(this->handle(), static_cast<UInt32>(vps.size()), vps.data());
 }
 
-void VulkanCommandBuffer::setViewports(const IViewport* viewport) const noexcept
+void VulkanCommandBuffer::setViewports(const IViewport* viewport) const
 {
 	auto vp = VkViewport{ .x = viewport->getRectangle().x(), .y = viewport->getRectangle().y(), .width = viewport->getRectangle().width(), .height = viewport->getRectangle().height(), .minDepth = viewport->getMinDepth(), .maxDepth = viewport->getMaxDepth() };
 	::vkCmdSetViewportWithCount(this->handle(), 1, &vp);
 }
 
-void VulkanCommandBuffer::setScissors(Span<const IScissor*> scissors) const noexcept
+void VulkanCommandBuffer::setScissors(Span<const IScissor*> scissors) const
 {
 	auto scs = scissors |
 		std::views::transform([](const auto& scissor) { return VkRect2D{ { .x = static_cast<Int32>(scissor->getRectangle().x()), .y = static_cast<Int32>(scissor->getRectangle().y())}, { .width = static_cast<UInt32>(scissor->getRectangle().width()), .height = static_cast<UInt32>(scissor->getRectangle().height())} }; }) |
@@ -323,7 +325,7 @@ void VulkanCommandBuffer::setScissors(Span<const IScissor*> scissors) const noex
 	::vkCmdSetScissorWithCount(this->handle(), static_cast<UInt32>(scs.size()), scs.data());
 }
 
-void VulkanCommandBuffer::setScissors(const IScissor* scissor) const noexcept
+void VulkanCommandBuffer::setScissors(const IScissor* scissor) const
 {
 	auto s = VkRect2D{ { .x = static_cast<Int32>(scissor->getRectangle().x()), .y = static_cast<Int32>(scissor->getRectangle().y())},  { .width = static_cast<UInt32>(scissor->getRectangle().width()), .height = static_cast<UInt32>(scissor->getRectangle().height())} };
 	::vkCmdSetScissorWithCount(this->handle(), 1, &s);
@@ -628,8 +630,8 @@ void VulkanCommandBuffer::bind(Span<const VulkanDescriptorSet*> descriptorSets, 
 
 void VulkanCommandBuffer::bind(const IVulkanVertexBuffer& buffer) const noexcept
 {
-	constexpr VkDeviceSize offsets[] = { 0 };
-	::vkCmdBindVertexBuffers(this->handle(), buffer.layout().binding(), 1, &buffer.handle(), offsets);
+	constexpr VkDeviceSize offset { 0 };
+	::vkCmdBindVertexBuffers(this->handle(), buffer.layout().binding(), 1, &buffer.handle(), &offset);
 }
 
 void VulkanCommandBuffer::bind(const IVulkanIndexBuffer& buffer) const noexcept

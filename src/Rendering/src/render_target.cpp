@@ -21,7 +21,7 @@ private:
     Format m_format;
 
 public:
-    RenderTargetImpl(StringView name, UInt64 uid, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags, const Vector4f& clearValues, const BlendState& blendState) noexcept :
+    RenderTargetImpl(StringView name, UInt64 uid, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags, const Vector4f& clearValues, const BlendState& blendState) :
         m_type(type), m_flags(flags), m_clearValues(clearValues), m_location(location), m_blendState(blendState), m_name(name), m_identifier(uid), m_format(format)
     {
     }
@@ -31,12 +31,12 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-RenderTarget::RenderTarget(UInt64 uid, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags, const Vector4f& clearValues, const BlendState& blendState) noexcept :
+RenderTarget::RenderTarget(UInt64 uid, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags, const Vector4f& clearValues, const BlendState& blendState) :
     m_impl("", uid, location, type, format, flags, clearValues, blendState)
 {
 }
 
-RenderTarget::RenderTarget(StringView name, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags, const Vector4f& clearValues, const BlendState& blendState) noexcept :
+RenderTarget::RenderTarget(StringView name, UInt32 location, RenderTargetType type, Format format, RenderTargetFlags flags, const Vector4f& clearValues, const BlendState& blendState) :
     m_impl(name, hash(name), location, type, format, flags, clearValues, blendState)
 {
 }

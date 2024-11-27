@@ -225,7 +225,7 @@ namespace LiteFX {
 		/// Creates a new `Enumerable` from an arbitrary input range or view.
 		/// </summary>
 		/// <param name="input">The input range or view that contains the elements the `Enumerable` is initialized with.</param>
-		constexpr Enumerable(std::ranges::input_range auto&& input) noexcept requires
+		constexpr Enumerable(std::ranges::input_range auto&& input) requires
 			std::convertible_to<std::ranges::range_value_t<decltype(input)>, T> :
 			m_size(0)
 		{
@@ -432,7 +432,7 @@ namespace LiteFX {
 		/// <summary>
 		/// Initializes a new pointer to an implementation instance.
 		/// </summary>
-		constexpr PimplPtr() noexcept /*requires std::is_default_constructible_v<pImpl>*/ :
+		constexpr PimplPtr() /*requires std::is_default_constructible_v<pImpl>*/ :
 			m_ptr(new pImpl()) { }
 
 		/// <summary>
@@ -441,14 +441,14 @@ namespace LiteFX {
 		/// <typeparam name="...TArgs">The types of the arguments passed to the implementation constructor.</typeparam>
 		/// <param name="...args">The arguments passed to the implementation constructor.</param>
 		template <typename... TArgs>
-		constexpr PimplPtr(TArgs&&... args) noexcept /*requires std::constructible_from<pImpl, TArgs...>*/ :
+		constexpr PimplPtr(TArgs&&... args) /*requires std::constructible_from<pImpl, TArgs...>*/ :
 			m_ptr(new pImpl(std::forward<TArgs>(args)...)) { } // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 
 		/// <summary>
 		/// Initializes a new pointer to a copy of the implementation instance managed by <paramref name="src" />.
 		/// </summary>
 		/// <param name="src">The source pointer to copy the implementation instance from.</param>
-		constexpr PimplPtr(const PimplPtr& src) noexcept /*requires std::copy_constructible<pImpl>*/ : 
+		constexpr PimplPtr(const PimplPtr& src) /*requires std::copy_constructible<pImpl>*/ : 
 			m_ptr(new pImpl(*src.m_ptr)) { }
 
 		/// <summary>
@@ -456,7 +456,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="src">The source pointer to take over.</param>
 		constexpr PimplPtr(PimplPtr&& src) noexcept /*requires std::move_constructible<pImpl>*/ :
-			m_ptr(new pImpl(std::move(*src.m_ptr))) { }
+			m_ptr(std::move(src.m_ptr)) { }
 
 		/// <summary>
 		/// Initializes a new pointer to a copy of the implementation instance managed by <paramref name="src" />.
@@ -467,9 +467,11 @@ namespace LiteFX {
 		/// </remarks>
 		/// <param name="src">The source pointer to copy the implementation instance from.</param>
 		/// <returns>A new pointer to the provided implementation instance.</returns>
-		constexpr PimplPtr& operator=(const PimplPtr& src) noexcept /*requires std::copy_constructible<pImpl>*/
+		constexpr PimplPtr& operator=(const PimplPtr& src) /*requires std::copy_constructible<pImpl>*/
 		{
-			m_ptr = SharedPtr<pImpl>(new pImpl(*src.m_ptr));
+			if (&src != this)
+				m_ptr = SharedPtr<pImpl>(new pImpl(*src.m_ptr));
+
 			return *this; 
 		}
 
@@ -480,7 +482,9 @@ namespace LiteFX {
 		/// <returns>A new pointer to the provided implementation instance.</returns>
 		constexpr PimplPtr& operator=(PimplPtr&& src) noexcept /*requires std::move_constructible<pImpl>*/
 		{
-			m_ptr = SharedPtr<pImpl>(new pImpl(std::move(*src.m_ptr)));
+			if (&src != this)
+				m_ptr = SharedPtr<pImpl>(std::move(src.m_ptr));
+
 			return *this;
 		}
 
@@ -826,10 +830,10 @@ namespace LiteFX {
 		/// Returns a weak pointer to the current object instance.
 		/// </summary>
 		template <typename TSelf>
-		auto inline weak_from_this(this TSelf&& self) noexcept
+		auto inline weak_from_this(this TSelf&& self) noexcept -> WeakPtr<std::remove_reference_t<TSelf>>
 		{
 			return std::static_pointer_cast<std::remove_reference_t<TSelf>>(
-				std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::weak_from_this());
+				std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::weak_from_this().lock());
 		}
 	};
 }

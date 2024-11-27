@@ -56,11 +56,28 @@ UInt32 DirectX12Image::elements() const noexcept
 
 size_t DirectX12Image::size() const noexcept
 {
+	// Attempt to get the pixel size. This ensures the nothrow guarantee.
+	size_t pixelSize{ };
+
+	try
+	{
+		pixelSize = ::getSize(m_impl->m_format);
+	}
+	catch (const InvalidArgumentException&)
+	{
+		LITEFX_ERROR(DIRECTX12_LOG, "Unsupported pixel format detected: {}.", std::to_underlying(m_impl->m_format));
+		return 0;
+	}
+	catch (...)
+	{
+		return 0;
+	}
+
 	if (m_impl->m_allocation) [[likely]]
 		return m_impl->m_allocation->GetSize();
 	else
 	{
-		auto elementSize = ::getSize(m_impl->m_format) * m_impl->m_extent.width() * m_impl->m_extent.height() * m_impl->m_extent.depth() * m_impl->m_layers;
+		auto elementSize = pixelSize * m_impl->m_extent.width() * m_impl->m_extent.height() * m_impl->m_extent.depth() * m_impl->m_layers;
 		auto totalSize = elementSize;
 
 		for (UInt32 l(1); l < m_impl->m_levels; ++l)
@@ -105,15 +122,32 @@ size_t DirectX12Image::size(UInt32 level) const noexcept
 	if (level >= m_impl->m_levels)
 		return 0;
 
+	// Attempt to get the pixel size. This ensures the nothrow guarantee.
+	size_t pixelSize{ };
+
+	try
+	{
+		pixelSize = ::getSize(m_impl->m_format);
+	}
+	catch (const InvalidArgumentException&)
+	{
+		LITEFX_ERROR(DIRECTX12_LOG, "Unsupported pixel format detected: {}.", std::to_underlying(m_impl->m_format));
+		return 0;
+	}
+	catch (...)
+	{
+		return 0;
+	}
+
 	auto size = this->extent(level);
 
 	switch (this->dimensions())
 	{
-	case ImageDimensions::DIM_1: return ::getSize(this->format()) * size.width();
+	case ImageDimensions::DIM_1: return pixelSize * size.width();
 	case ImageDimensions::CUBE:
-	case ImageDimensions::DIM_2: return ::getSize(this->format()) * size.width() * size.height();
+	case ImageDimensions::DIM_2: return pixelSize * size.width() * size.height();
 	default:
-	case ImageDimensions::DIM_3: return ::getSize(this->format()) * size.width() * size.height() * size.depth();
+	case ImageDimensions::DIM_3: return pixelSize * size.width() * size.height() * size.depth();
 	}
 }
 

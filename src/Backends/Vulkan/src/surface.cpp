@@ -13,7 +13,7 @@ public:
 private:
 	VkInstance m_instance;
 #ifdef VK_USE_PLATFORM_WIN32_KHR
-	HWND m_hwnd;
+	HWND m_hwnd{};
 #endif
 
 public:

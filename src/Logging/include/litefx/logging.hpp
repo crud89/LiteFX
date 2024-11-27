@@ -69,7 +69,7 @@ namespace LiteFX::Logging {
         LITEFX_IMPLEMENTATION(ConsoleSinkImpl);
 
     public:
-        ConsoleSink(LogLevel level = LogLevel::Info, const String& pattern = "%+") noexcept;
+        ConsoleSink(LogLevel level = LogLevel::Info, const String& pattern = "%+");
         ~ConsoleSink() noexcept override;
 
         ConsoleSink(const ConsoleSink&) = delete;
@@ -95,7 +95,7 @@ namespace LiteFX::Logging {
         LITEFX_IMPLEMENTATION(RollingFileSinkImpl);
 
     public:
-        RollingFileSink(const String& fileName, LogLevel level = LogLevel::Info, const String& pattern = "%+", bool truncate = false, int maxFiles = 0) noexcept;
+        RollingFileSink(const String& fileName, LogLevel level = LogLevel::Info, const String& pattern = "%+", bool truncate = false, int maxFiles = 0);
         ~RollingFileSink() noexcept override;
 
         RollingFileSink(const RollingFileSink&) = delete;
@@ -127,7 +127,7 @@ namespace LiteFX::Logging {
         LITEFX_IMPLEMENTATION(LogImpl);
 
     public:
-        Log(const String& name) noexcept;
+        Log(const String& name);
         virtual ~Log() noexcept;
 
         Log(Log&&) = delete;

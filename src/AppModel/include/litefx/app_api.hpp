@@ -119,13 +119,13 @@ namespace LiteFX {
 		/// Gets the identifier of the engine build.
 		/// </summary>
 		/// <returns>The identifier of the engine build.</returns>
-		String engineIdentifier() const noexcept;
+		StringView engineIdentifier() const noexcept;
 
 		/// <summary>
 		/// Gets the version string of the engine build.
 		/// </summary>
 		/// <returns>The version string of the engine build.</returns>
-		String engineVersion() const noexcept;
+		StringView engineVersion() const noexcept;
 	};
 
 }

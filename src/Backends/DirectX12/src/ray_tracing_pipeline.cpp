@@ -567,7 +567,7 @@ ComPtr<ID3D12StateObject> DirectX12RayTracingPipeline::stateObject() const noexc
 	return m_impl->m_pipelineState;
 }
 
-UniquePtr<IDirectX12Buffer> DirectX12RayTracingPipeline::allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const noexcept
+UniquePtr<IDirectX12Buffer> DirectX12RayTracingPipeline::allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const
 {
 	return m_impl->allocateShaderBindingTable(offsets, groups);
 }

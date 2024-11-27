@@ -17,7 +17,7 @@ private:
     SharedPtr<spdlog::sinks::ansicolor_stdout_sink_mt> m_sink{};
 
 public:
-    ConsoleSinkImpl(LogLevel level, const String& pattern) noexcept :
+    ConsoleSinkImpl(LogLevel level, const String& pattern) :
         m_pattern(pattern), m_level(level)
     {
         m_sink = makeShared<spdlog::sinks::ansicolor_stdout_sink_mt>();
@@ -30,7 +30,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-ConsoleSink::ConsoleSink(LogLevel level, const String& pattern) noexcept :
+ConsoleSink::ConsoleSink(LogLevel level, const String& pattern) :
     m_impl(level, pattern)
 {
 }

@@ -14,31 +14,48 @@ private:
     Array<UniquePtr<IVulkanImage>> m_images;
     Dictionary<const IVulkanImage*, VkImageView> m_renderTargetHandles;
     Dictionary<UInt64, IVulkanImage*> m_mappedRenderTargets;
-    const VulkanDevice& m_device;
+    WeakPtr<const VulkanDevice> m_device;
 	Size2d m_size;
 
 public:
     VulkanFrameBufferImpl(const VulkanDevice& device, const Size2d& renderArea) :
-        m_device(device), m_size(renderArea)
+        m_device(device.weak_from_this()), m_size(renderArea)
 	{
 	}
 
-    ~VulkanFrameBufferImpl()
+    VulkanFrameBufferImpl(VulkanFrameBufferImpl&&) noexcept = default;
+    VulkanFrameBufferImpl(const VulkanFrameBufferImpl&) noexcept = delete;
+    VulkanFrameBufferImpl& operator=(VulkanFrameBufferImpl&&) noexcept = default;
+    VulkanFrameBufferImpl& operator=(const VulkanFrameBufferImpl&) noexcept = delete;
+
+    ~VulkanFrameBufferImpl() noexcept
     {
-        this->cleanup();
+        // Check if the device is still valid.
+        auto device = m_device.lock();
+
+        if (device == nullptr) [[unlikely]]
+            LITEFX_FATAL_ERROR(VULKAN_LOG, "Invalid attempt to release frame buffer after parent device.");
+        else
+            this->cleanup(*device);
     }
 
 public:
-    void cleanup()
+    void cleanup(const VulkanDevice& device) noexcept
     {
         for (auto view : m_renderTargetHandles | std::views::values)
-            ::vkDestroyImageView(m_device.handle(), view, nullptr);
+            ::vkDestroyImageView(device.handle(), view, nullptr);
 
         m_renderTargetHandles.clear();
     }
 
 	void initialize()
 	{
+        // Check if the device is still valid.
+        auto device = m_device.lock();
+
+        if (device == nullptr) [[unlikely]]
+            throw RuntimeException("Cannot allocate frame buffer from a released device instance.");
+
         // Define a factory callback for an image view.
         auto getImageView = [&](const UniquePtr<IVulkanImage>& image) -> std::pair<const IVulkanImage*, VkImageView> {
             VkImageViewCreateInfo createInfo = {
@@ -71,40 +88,46 @@ public:
                     createInfo.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
             }
 
-            VkImageView imageView;
-            raiseIfFailed(::vkCreateImageView(m_device.handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
+            VkImageView imageView{};
+            raiseIfFailed(::vkCreateImageView(device->handle(), &createInfo, nullptr, &imageView), "Unable to create image view.");
             return { image.get(), imageView };
         };
 
         // Destroy the previous image views.
-        this->cleanup();
+        this->cleanup(*device);
 
         // Create the image views for each image.
         m_renderTargetHandles = m_images | std::views::transform(getImageView) | std::ranges::to<Dictionary<const IVulkanImage*, VkImageView>>();
 
 #ifndef NDEBUG
         // Set debug names.
-        std::ranges::for_each(m_images, [this](auto& image) {
-            m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*image).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, image->name().c_str());
+        std::ranges::for_each(m_images, [device](auto& image) {
+            device->setDebugName(std::as_const(*image).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, image->name().c_str());
         });
 #endif
 	}
 
     void resize(const Size2d& renderArea)
     {
+        // Check if the device is still valid.
+        auto device = m_device.lock();
+
+        if (device == nullptr) [[unlikely]]
+            throw RuntimeException("Cannot resize frame buffer on a released device instance.");
+
         // Resize/Re-allocate all images.
         m_size = renderArea;
 
         // Recreate all resources.
         Dictionary<const IVulkanImage*, IVulkanImage*> imageReplacements;
-        auto& queue = m_device.defaultQueue(QueueType::Graphics);
+        auto& queue = device->defaultQueue(QueueType::Graphics);
         auto commandBuffer = queue.createCommandBuffer(true);
         auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
 
         auto images = m_images |
             std::views::transform([&](const UniquePtr<IVulkanImage>& image) { 
                 auto format = image->format();
-                auto newImage = m_device.factory().createTexture(image->name(), format, renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage()); 
+                auto newImage = device->factory().createTexture(image->name(), format, renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage()); 
                 imageReplacements[image.get()] = newImage.get();
 
                 if (::hasDepth(format) || ::hasStencil(format))
@@ -213,7 +236,7 @@ void VulkanFrameBuffer::unmapRenderTarget(const RenderTarget& renderTarget) noex
     m_impl->m_mappedRenderTargets.erase(renderTarget.identifier());
 }
 
-Enumerable<const IVulkanImage*> VulkanFrameBuffer::images() const noexcept
+Enumerable<const IVulkanImage*> VulkanFrameBuffer::images() const
 {
     return m_impl->m_images | std::views::transform([](auto& image) { return image.get(); });
 }
@@ -244,6 +267,12 @@ const IVulkanImage& VulkanFrameBuffer::resolveImage(UInt64 hash) const
 
 void VulkanFrameBuffer::addImage(const String& name, Format format, MultiSamplingLevel samples, ResourceUsage usage)
 {
+    // Check if the device is still valid.
+    auto device = m_impl->m_device.lock();
+
+    if (device == nullptr) [[unlikely]]
+        throw RuntimeException("Cannot add image to frame buffer on a released device instance.");
+
     // Check if there's already another image with the same name.
     auto nameHash = hash(name);
 
@@ -251,10 +280,10 @@ void VulkanFrameBuffer::addImage(const String& name, Format format, MultiSamplin
         throw InvalidArgumentException("name", "Another image with the name {0} does already exist within the frame buffer.", name);
 
     // Add a new image...
-    m_impl->m_images.push_back(m_impl->m_device.factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage));
+    m_impl->m_images.push_back(device->factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage));
 
     // ... and make sure it is in the right layout.
-    auto& queue = m_impl->m_device.defaultQueue(QueueType::Graphics);
+    auto& queue = device->defaultQueue(QueueType::Graphics);
     auto commandBuffer = queue.createCommandBuffer(true);
     auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
     if (::hasDepth(format) || ::hasStencil(format))
@@ -273,6 +302,12 @@ void VulkanFrameBuffer::addImage(const String& name, Format format, MultiSamplin
 
 void VulkanFrameBuffer::addImage(const String& name, const RenderTarget& renderTarget, MultiSamplingLevel samples, ResourceUsage usage)
 {
+    // Check if the device is still valid.
+    auto device = m_impl->m_device.lock();
+
+    if (device == nullptr) [[unlikely]]
+        throw RuntimeException("Cannot add image to frame buffer on a released device instance.");
+
     // Check if there's already another image with the same name.
     auto nameHash = hash(name);
 
@@ -282,10 +317,10 @@ void VulkanFrameBuffer::addImage(const String& name, const RenderTarget& renderT
     // Add a new image...
     auto index = m_impl->m_images.size();
     auto format = renderTarget.format();
-    m_impl->m_images.push_back(m_impl->m_device.factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage));
+    m_impl->m_images.push_back(device->factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage));
 
     // ... and make sure it is in the right layout.
-    auto& queue = m_impl->m_device.defaultQueue(QueueType::Graphics);
+    auto& queue = device->defaultQueue(QueueType::Graphics);
     auto commandBuffer = queue.createCommandBuffer(true);
     auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
     if (::hasDepth(format) || ::hasStencil(format))

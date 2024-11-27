@@ -19,7 +19,7 @@ namespace LiteFX::Math {
 	/// <typeparam name="T">The type of the vector scalar elements. Must be in standard layout (i.e., `std::is_standard_layout_v<T>` must evaluate to `true`).</typeparam>
 	/// <typeparam name="DIM">The number of dimensions of the vector.</typeparam>
     template <typename T, unsigned DIM> requires 
-        std::is_standard_layout_v<T>
+        (DIM > 0) && std::is_standard_layout_v<T> && std::is_trivially_copyable_v<T>
     struct Vector {
     public:
         /// <summary>
@@ -48,32 +48,43 @@ namespace LiteFX::Math {
         constexpr Vector() noexcept = default;
 
         /// <summary>
+        /// Initializes a vector by taking over another vector.
+        /// </summary>
+        /// <param name="_other">The vector to take over.</param>
+        constexpr Vector(Vector&& _other) noexcept = default;
+
+        /// <summary>
+        /// Initializes a vector with the values provided by another vector.
+        /// </summary>
+        /// <param name="_other">The other vector to copy the values from.</param>
+        constexpr Vector(const Vector& _other) noexcept = default;
+
+        /// <summary>
+        /// Moves the elements of the other vector to the current vector.
+        /// </summary>
+        /// <param name="_other">The vector to take over.</param>
+        /// <returns>A reference to the current vector instance.</returns>
+        constexpr Vector& operator=(Vector&& _other) noexcept = default;
+
+        /// <summary>
+        /// Copys the elements of another vector into the current vector.
+        /// </summary>
+        /// <param name="_other">The vector to copy the elements from.</param>
+        /// <returns>A reference to the current vector instance.</returns>
+        constexpr Vector& operator=(const Vector& _other) noexcept = default;
+
+        /// <summary>
+        /// Destroys the vector.
+        /// </summary>
+        constexpr ~Vector() noexcept = default;
+
+        /// <summary>
         /// Initializes a vector where all elements take the value provided by <paramref name="val" />.
         /// </summary>
         /// <param name="val">The value to initialize all elements of the vector with.</param>
         constexpr Vector(T val) noexcept {
             std::fill(std::begin(m_elements), std::end(m_elements), val);
         }
-
-        /// <summary>
-        /// Initializes a vector with the values provided by another vector.
-        /// </summary>
-        /// <param name="_other">The other vector to copy the values from.</param>
-        constexpr Vector(const Vector<T, DIM>& _other) noexcept {
-            std::ranges::copy(_other.m_elements, std::begin(m_elements));
-        }
-
-        /// <summary>
-        /// Initializes a vector by taking over another vector.
-        /// </summary>
-        /// <param name="_other">The vector to take over.</param>
-        constexpr Vector(Vector<T, DIM>&& _other) noexcept :
-            m_elements(std::move(_other.m_elements)) { }
-
-        /// <summary>
-        /// Destroys the vector.
-        /// </summary>
-        constexpr ~Vector() noexcept = default;
 
         /// <summary>
         /// Initializes a 2D vector using the values provided by <paramref name="x" /> and <paramref name="y" />.
@@ -128,26 +139,6 @@ namespace LiteFX::Math {
             std::is_nothrow_convertible_v<std::ranges::range_value_t<decltype(input)>, T>
         {
             std::ranges::copy(input, std::begin(m_elements));
-        }
-
-        /// <summary>
-        /// Copys the elements of another vector into the current vector.
-        /// </summary>
-        /// <param name="_other">The vector to copy the elements from.</param>
-        /// <returns>A reference to the current vector instance.</returns>
-        constexpr auto& operator=(const Vector<T, DIM>& _other) noexcept {
-            std::ranges::copy(_other.m_elements, std::begin(m_elements));
-            return *this;
-        }
-
-        /// <summary>
-        /// Moves the elements of the other vector to the current vector.
-        /// </summary>
-        /// <param name="_other">The vector to take over.</param>
-        /// <returns>A reference to the current vector instance.</returns>
-        constexpr auto& operator=(Vector<T, DIM>&& _other) noexcept {
-            m_elements = std::move(_other.m_elements);
-            return *this;
         }
 
         /// <summary>
@@ -242,7 +233,7 @@ namespace LiteFX::Math {
         /// <summary>
         /// Converts the vector into an instance of type `std::vector`.
         /// </summary>
-        constexpr operator std::vector<T>() const noexcept {
+        constexpr operator std::vector<T>() const {
             return std::vector<T>(std::begin(m_elements), std::end(m_elements));
         }
 

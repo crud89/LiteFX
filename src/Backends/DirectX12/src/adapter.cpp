@@ -51,7 +51,7 @@ DirectX12GraphicsAdapter::DirectX12GraphicsAdapter(DirectX12GraphicsAdapter&&) n
 DirectX12GraphicsAdapter& DirectX12GraphicsAdapter::operator=(DirectX12GraphicsAdapter&&) noexcept = default;
 DirectX12GraphicsAdapter::~DirectX12GraphicsAdapter() noexcept = default;
 
-String DirectX12GraphicsAdapter::name() const noexcept
+String DirectX12GraphicsAdapter::name() const
 {
     return Narrow(WString(static_cast<WCHAR*>(m_impl->m_properties.Description)));
 }

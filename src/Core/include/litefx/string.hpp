@@ -26,13 +26,13 @@ namespace LiteFX {
     using StringView = std::string_view;
     using WStringView = std::wstring_view;
 
-    constexpr auto Join(std::ranges::input_range auto&& elements, StringView delimiter = ""sv) noexcept requires
+    constexpr auto Join(std::ranges::input_range auto&& elements, StringView delimiter = ""sv) requires
         std::convertible_to<std::ranges::range_value_t<decltype(elements)>, String>
     {
         return std::ranges::fold_left(elements | std::views::join_with(delimiter), String{}, std::plus<>{});
     }
 
-    constexpr auto WJoin(std::ranges::input_range auto&& elements, WStringView delimiter = L""sv) noexcept requires
+    constexpr auto WJoin(std::ranges::input_range auto&& elements, WStringView delimiter = L""sv) requires
         std::convertible_to<std::ranges::range_value_t<decltype(elements)>, String>
     {
         return std::ranges::fold_left(elements | std::views::join_with(delimiter), WString{}, std::plus<>{});

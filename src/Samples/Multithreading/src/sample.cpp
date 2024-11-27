@@ -194,12 +194,12 @@ void SampleApp::onInit()
     ::glfwSetWindowUserPointer(m_window.get(), this);
 
     ::glfwSetFramebufferSizeCallback(m_window.get(), [](GLFWwindow* window, int width, int height) { 
-        auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
+        auto app = static_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
         app->resize(width, height); 
     });
 
     ::glfwSetKeyCallback(m_window.get(), [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-        auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
+        auto app = static_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
         app->keyDown(key, scancode, action, mods);
     });
 

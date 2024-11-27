@@ -13,7 +13,6 @@ public:
     friend class DirectX12PushConstantsLayout;
 
 private:
-    static const UInt32 MAX_GUARANTEED_RANGE_SIZE = 128;
     Dictionary<ShaderStage, DirectX12PushConstantsRange*> m_ranges;
     Array<UniquePtr<DirectX12PushConstantsRange>> m_rangePointers;
     UInt32 m_size;
@@ -22,6 +21,8 @@ public:
     DirectX12PushConstantsLayoutImpl(UInt32 size) :
         m_size(size % 4 == 0 ? (size + 4 - 1) & ~(size - 1) : size)
     {
+        constexpr UInt32 MAX_GUARANTEED_RANGE_SIZE = 128;
+
         // Issue a warning, if the size is too large.
         if (m_size > MAX_GUARANTEED_RANGE_SIZE)
             LITEFX_WARNING(DIRECTX12_LOG, "The push constant layout backing memory is defined with a size greater than 128 bytes. Blocks larger than 128 bytes are not forbidden, but also not guaranteed to be supported on all hardware.");
@@ -46,7 +47,7 @@ private:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(Enumerable<UniquePtr<DirectX12PushConstantsRange>>&& ranges, UInt32 size) :
-    m_impl(this, size)
+    m_impl(size)
 {
     m_impl->setRanges(std::move(ranges));
 }
@@ -78,12 +79,12 @@ const DirectX12PushConstantsRange& DirectX12PushConstantsLayout::range(ShaderSta
     return *m_impl->m_ranges[stage];
 }
 
-Enumerable<const DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() const noexcept
+Enumerable<const DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() const
 {
     return m_impl->m_rangePointers | std::views::transform([](const UniquePtr<DirectX12PushConstantsRange>& range) { return range.get(); });
 }
 
-Enumerable<DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() noexcept
+Enumerable<DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges()
 {
     return m_impl->m_rangePointers | std::views::transform([](UniquePtr<DirectX12PushConstantsRange>& range) { return range.get(); });
 }

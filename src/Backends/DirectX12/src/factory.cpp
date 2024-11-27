@@ -292,7 +292,7 @@ UniquePtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(FilterMode 
 	if (device == nullptr) [[unlikely]]
 		throw RuntimeException("Cannot allocate sampler from a released device instance.");
 
-	return makeUnique<DirectX12Sampler>(*device.get(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
+	return makeUnique<DirectX12Sampler>(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
 }
 
 UniquePtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
@@ -303,7 +303,7 @@ UniquePtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(const Strin
 	if (device == nullptr) [[unlikely]]
 		throw RuntimeException("Cannot allocate sampler from a released device instance.");
 
-	return makeUnique<DirectX12Sampler>(*device.get(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
+	return makeUnique<DirectX12Sampler>(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
 }
 
 Enumerable<UniquePtr<IDirectX12Sampler>> DirectX12GraphicsFactory::createSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const

@@ -11,9 +11,9 @@ public:
     friend class VulkanGraphicsAdapter;
 
 private:
-    VkPhysicalDeviceLimits m_limits;
+    VkPhysicalDeviceLimits m_limits{};
     String m_name;
-    UInt64 m_luid;
+    UInt64 m_luid{};
     UInt32 m_vendorId;
     UInt32 m_deviceId;
     UInt32 m_driverVersion;
@@ -33,14 +33,14 @@ public:
 
         const auto& properties = deviceProperties.properties;
         m_limits = properties.limits;
-        m_name = String(properties.deviceName);
+        m_name = String(properties.deviceName); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
         m_vendorId = properties.vendorID;
         m_deviceId = properties.deviceID;
         m_driverVersion = properties.driverVersion;
         m_apiVersion = properties.apiVersion;
 
         // Get the LUID.
-        m_luid = *reinterpret_cast<UInt64*>(&deviceIdProperties.deviceLUID);
+        std::memcpy(&m_luid, &deviceIdProperties.deviceLUID, sizeof(m_luid));
 
         // Get device type.
         switch (properties.deviceType)
@@ -62,8 +62,7 @@ public:
         VkPhysicalDeviceMemoryProperties memoryProperties{};
         ::vkGetPhysicalDeviceMemoryProperties(deviceHandle, &memoryProperties);
 
-        auto memoryHeaps = memoryProperties.memoryHeaps;
-        auto heaps = Span<VkMemoryHeap>(memoryHeaps, memoryHeaps + memoryProperties.memoryHeapCount);
+        Span<VkMemoryHeap> heaps { memoryProperties.memoryHeaps, memoryProperties.memoryHeapCount }; // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 
         for (const auto& heap : heaps)
             if ((heap.flags & VkMemoryHeapFlagBits::VK_MEMORY_HEAP_DEVICE_LOCAL_BIT) == VkMemoryHeapFlagBits::VK_MEMORY_HEAP_DEVICE_LOCAL_BIT)
@@ -75,7 +74,7 @@ public:
 
         Array<VkExtensionProperties> availableExtensions(extensions);
         ::vkEnumerateDeviceExtensionProperties(deviceHandle, nullptr, &extensions, availableExtensions.data());
-        m_deviceExtensions = availableExtensions | std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); }) | std::ranges::to<Array<String>>();
+        m_deviceExtensions = availableExtensions | std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); }) | std::ranges::to<Array<String>>(); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 
         // Load available device layers.
         UInt32 layers = 0;
@@ -83,7 +82,7 @@ public:
 
         Array<VkLayerProperties> availableLayers(layers);
         ::vkEnumerateDeviceLayerProperties(deviceHandle, &layers, availableLayers.data());
-        m_deviceLayers = availableLayers | std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); }) | std::ranges::to<Array<String>>();
+        m_deviceLayers = availableLayers | std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); }) | std::ranges::to<Array<String>>(); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
     }
 };
 
@@ -100,7 +99,7 @@ VulkanGraphicsAdapter::VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) noexcept =
 VulkanGraphicsAdapter& VulkanGraphicsAdapter::operator=(VulkanGraphicsAdapter&&) noexcept = default;
 VulkanGraphicsAdapter::~VulkanGraphicsAdapter() noexcept = default;
 
-String VulkanGraphicsAdapter::name() const noexcept
+String VulkanGraphicsAdapter::name() const
 {
     return m_impl->m_name;
 }
@@ -145,7 +144,7 @@ UInt64 VulkanGraphicsAdapter::dedicatedMemory() const noexcept
     return m_impl->m_deviceLocalMemory;
 }
 
-bool VulkanGraphicsAdapter::validateDeviceExtensions(Span<const String> extensions) const noexcept
+bool VulkanGraphicsAdapter::validateDeviceExtensions(Span<const String> extensions) const
 {
     auto availableExtensions = this->getAvailableDeviceExtensions();
 
@@ -163,12 +162,12 @@ bool VulkanGraphicsAdapter::validateDeviceExtensions(Span<const String> extensio
     });
 }
 
-Enumerable<String> VulkanGraphicsAdapter::getAvailableDeviceExtensions() const noexcept
+Enumerable<String> VulkanGraphicsAdapter::getAvailableDeviceExtensions() const
 {
     return m_impl->m_deviceExtensions;
 }
 
-bool VulkanGraphicsAdapter::validateDeviceLayers(Span<const String> layers) const noexcept
+bool VulkanGraphicsAdapter::validateDeviceLayers(Span<const String> layers) const
 {
     auto availableLayers = this->deviceValidationLayers();
 
@@ -186,7 +185,7 @@ bool VulkanGraphicsAdapter::validateDeviceLayers(Span<const String> layers) cons
     });
 }
 
-Enumerable<String> VulkanGraphicsAdapter::deviceValidationLayers() const noexcept
+Enumerable<String> VulkanGraphicsAdapter::deviceValidationLayers() const
 {
     return m_impl->m_deviceLayers;
 }

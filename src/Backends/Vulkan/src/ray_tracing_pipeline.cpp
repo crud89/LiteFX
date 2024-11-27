@@ -3,8 +3,10 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 extern PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelines;
 extern PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandles;
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -20,7 +22,7 @@ private:
 	SharedPtr<VulkanPipelineLayout> m_layout;
 	SharedPtr<const VulkanShaderProgram> m_program;
 	const ShaderRecordCollection m_shaderRecordCollection;
-	UInt32 m_maxRecursionDepth{ 10 }, m_maxPayloadSize{ 0 }, m_maxAttributeSize{ 32 };
+	UInt32 m_maxRecursionDepth{ 10 }, m_maxPayloadSize{ 0 }, m_maxAttributeSize{ 32 }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
 public:
 	VulkanRayTracingPipelineImpl(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, ShaderRecordCollection&& shaderRecords) :
@@ -129,11 +131,11 @@ public:
 			.layout = std::as_const(*m_layout.get()).handle()
 		};
 
-		VkPipeline pipeline;
+		VkPipeline pipeline{};
 		raiseIfFailed(::vkCreateRayTracingPipelines(m_device.handle(), VK_NULL_HANDLE, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
 
 #ifndef NDEBUG
-		m_device.setDebugName(*reinterpret_cast<const UInt64*>(&pipeline), VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, parent.name());
+		m_device.setDebugName(pipeline, VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, parent.name());
 #endif
 
 		return pipeline;
@@ -250,7 +252,7 @@ public:
 					raiseIfFailed(::vkGetRayTracingShaderGroupHandles(m_device.handle(), parent.handle(), id, 1, rayTracingProperties.shaderGroupHandleSize, recordData.data()), "Unable to query shader record handle.");
 
 					// Write the payload and map everything into the buffer.
-					std::memcpy(recordData.data() + rayTracingProperties.shaderGroupHandleSize, currentRecord->localData(), currentRecord->localDataSize());
+					std::memcpy(recordData.data() + rayTracingProperties.shaderGroupHandleSize, currentRecord->localData(), currentRecord->localDataSize()); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 					result->map(recordData.data(), recordSize, record++);
 				}
 
@@ -318,17 +320,17 @@ UInt32 VulkanRayTracingPipeline::maxAttributeSize() const noexcept
 	return m_impl->m_maxAttributeSize;
 }
 
-UniquePtr<IVulkanBuffer> VulkanRayTracingPipeline::allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const noexcept
+UniquePtr<IVulkanBuffer> VulkanRayTracingPipeline::allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const
 {
 	return m_impl->allocateShaderBindingTable(*this, offsets, groups);
 }
 
-void VulkanRayTracingPipeline::use(const VulkanCommandBuffer& commandBuffer) const noexcept
+void VulkanRayTracingPipeline::use(const VulkanCommandBuffer& commandBuffer) const
 {
 	::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, this->handle());
 }
 
-void VulkanRayTracingPipeline::bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const noexcept
+void VulkanRayTracingPipeline::bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const
 {
 	// Filter out uninitialized sets.
 	auto sets = descriptorSets | std::views::filter([](auto set) { return set != nullptr; }) | std::ranges::to<Array<const VulkanDescriptorSet*>>();
@@ -372,10 +374,10 @@ VulkanRayTracingPipelineBuilder::~VulkanRayTracingPipelineBuilder() noexcept = d
 void VulkanRayTracingPipelineBuilder::build()
 {
 	auto instance = this->instance();
-	instance->m_impl->m_layout = m_state.pipelineLayout;
-	instance->m_impl->m_maxRecursionDepth = m_state.maxRecursionDepth;
-	instance->m_impl->m_maxPayloadSize = m_state.maxPayloadSize;
-	instance->m_impl->m_maxAttributeSize = m_state.maxAttributeSize;
-	instance->handle() = instance->m_impl->initialize(*this);
+	instance->m_impl->m_layout = this->state().pipelineLayout;
+	instance->m_impl->m_maxRecursionDepth = this->state().maxRecursionDepth;
+	instance->m_impl->m_maxPayloadSize = this->state().maxPayloadSize;
+	instance->m_impl->m_maxAttributeSize = this->state().maxAttributeSize;
+	instance->handle() = instance->m_impl->initialize(*instance);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

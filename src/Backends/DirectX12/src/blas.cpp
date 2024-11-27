@@ -31,7 +31,7 @@ public:
 public:
     Array<D3D12_RAYTRACING_GEOMETRY_DESC> build() const 
     {
-        static auto builder = [](const WeakPtr<DirectX12BottomLevelAccelerationStructureImpl> impl) -> std::generator<D3D12_RAYTRACING_GEOMETRY_DESC> {
+        static auto builder = [](const WeakPtr<const DirectX12BottomLevelAccelerationStructureImpl> impl) -> std::generator<D3D12_RAYTRACING_GEOMETRY_DESC> {
             // Store meshes and bounding boxes on local frame.
             auto accelerationStructure = impl.lock();
 
@@ -98,19 +98,19 @@ public:
 
     inline void queuePostbuildInfoCommands(const DirectX12CommandBuffer& commandBuffer, bool afterCopy = false) 
     {
-        auto& device = static_cast<const DirectX12Queue&>(commandBuffer.queue()).device(); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
+        auto device = static_cast<const DirectX12Queue&>(commandBuffer.queue()).device(); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
 
         if (m_postBuildBuffer == nullptr) [[unlikely]]
         {
-            m_postBuildBuffer = device.factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, sizeof(UInt64), 1, ResourceUsage::TransferSource | ResourceUsage::AllowWrite);
+            m_postBuildBuffer = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, sizeof(UInt64), 1, ResourceUsage::TransferSource | ResourceUsage::AllowWrite);
 
-            auto barrier = device.makeBarrier(PipelineStage::None, PipelineStage::AccelerationStructureCopy);
+            auto barrier = device->makeBarrier(PipelineStage::None, PipelineStage::AccelerationStructureCopy);
             barrier->transition(*m_postBuildBuffer, ResourceAccess::None, ResourceAccess::ShaderReadWrite);
             commandBuffer.barrier(*barrier);
         }
 
         if (m_postBuildResults == nullptr) [[unlikely]]
-            m_postBuildResults = device.factory().createBuffer(BufferType::Storage, ResourceHeap::Readback, sizeof(UInt64), 1, ResourceUsage::TransferDestination);
+            m_postBuildResults = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Readback, sizeof(UInt64), 1, ResourceUsage::TransferDestination);
 
         D3D12_RAYTRACING_ACCELERATION_STRUCTURE_POSTBUILD_INFO_DESC postBuildInfo = {
             .DestBuffer = m_postBuildBuffer->virtualAddress(),
@@ -179,8 +179,8 @@ void DirectX12BottomLevelAccelerationStructure::build(const DirectX12CommandBuff
 {
     // Validate the arguments.
     UInt64 requiredMemory{}, requiredScratchMemory{};
-    auto& device = static_cast<const DirectX12Queue&>(commandBuffer.queue()).device(); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
-    device.computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory);
+    auto device = static_cast<const DirectX12Queue&>(commandBuffer.queue()).device(); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
+    device->computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory);
 
     if ((offset % D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT) != 0) [[unlikely]]
         throw InvalidArgumentException("offset", "The offset must be aligned to {0} bytes", D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT);
@@ -188,10 +188,10 @@ void DirectX12BottomLevelAccelerationStructure::build(const DirectX12CommandBuff
     if (scratchBuffer != nullptr && scratchBuffer->size() < requiredScratchMemory)
         throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer does not contain enough memory to build the acceleration structure (contained memory: {0} bytes, required memory: {1} bytes).", scratchBuffer->size(), requiredScratchMemory);
     else if (scratchBuffer == nullptr)
-        scratchBuffer = device.factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
+        scratchBuffer = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
 
     if (buffer == nullptr)
-        buffer = m_impl->m_buffer && m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
+        buffer = m_impl->m_buffer && m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
     else if (maxSize < requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("maxSize", std::make_pair(0_ui64, maxSize), requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
@@ -221,8 +221,8 @@ void DirectX12BottomLevelAccelerationStructure::update(const DirectX12CommandBuf
 
     // Validate the arguments and create the buffers if required.
     UInt64 requiredMemory{}, requiredScratchMemory{};
-    auto& device = static_cast<const DirectX12Queue&>(commandBuffer.queue()).device(); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
-    device.computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory, true);
+    auto device = static_cast<const DirectX12Queue&>(commandBuffer.queue()).device(); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
+    device->computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory, true);
 
     if ((offset % D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT) != 0) [[unlikely]]
         throw InvalidArgumentException("offset", "The offset must be aligned to {0} bytes", D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT);
@@ -230,10 +230,10 @@ void DirectX12BottomLevelAccelerationStructure::update(const DirectX12CommandBuf
     if (scratchBuffer != nullptr && scratchBuffer->size() < requiredScratchMemory)
         throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer does not contain enough memory to update the acceleration structure (contained memory: {0} bytes, required memory: {1} bytes).", scratchBuffer->size(), requiredScratchMemory);
     else if (scratchBuffer == nullptr)
-        scratchBuffer = device.factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
+        scratchBuffer = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
 
     if (buffer == nullptr)
-        buffer = m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
+        buffer = m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
     else if (maxSize < requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("maxSize", std::make_pair(0_ui64, maxSize), requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
@@ -266,11 +266,11 @@ void DirectX12BottomLevelAccelerationStructure::copy(const DirectX12CommandBuffe
 
     // Get the amount of memory required. Note that in DirectX it is not possible to query the availability of size info, so we have to rely on external synchronization anyway.
     UInt64 requiredMemory = this->size();
-    auto& device = static_cast<const DirectX12Queue&>(commandBuffer.queue()).device(); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
+    auto device = static_cast<const DirectX12Queue&>(commandBuffer.queue()).device(); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
 
     // Validate the input arguments.
     if (buffer == nullptr)
-        buffer = destination.m_impl->m_buffer->size() >= requiredMemory ? destination.m_impl->m_buffer : device.factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
+        buffer = destination.m_impl->m_buffer->size() >= requiredMemory ? destination.m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("buffer", std::make_pair(0uz, buffer->size()), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
 

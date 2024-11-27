@@ -139,7 +139,7 @@ public:
         {
             if (containsGraphicsGroup || containsMeshGroup || containsFragmentGroup) [[unlikely]]
                 throw InvalidArgumentException("modules", "If a shader program contains ray-tracing shaders, it must only contain ray-tracing shaders.");
-            if (containsRaytracingGroup && shaders[ShaderStage::RayGeneration] != 1) [[unlikely]]
+            if (shaders[ShaderStage::RayGeneration] != 1) [[unlikely]]
                 throw InvalidArgumentException("modules", "If ray-tracing shaders are present, there must also be exactly one ray generation shader.");
                 
             return;
@@ -482,17 +482,17 @@ public:
                 auto& descriptorSet = it->second;
 
                 // Create the descriptor layouts.
-                auto descriptors = [](SharedPtr<const DirectX12Device> device, const DescriptorSetInfo& descriptorSet) -> std::generator<UniquePtr<DirectX12DescriptorLayout>> {
+                auto descriptors = [](const DescriptorSetInfo& descriptorSet) -> std::generator<UniquePtr<DirectX12DescriptorLayout>> {
                     for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor)
                         co_yield descriptor->staticSamplerState.has_value() ?
-                            makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(*device.get(),
+                            makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(
                                 D3D12_DECODE_MAG_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
                                 D3D12_DECODE_MIN_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
                                 DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressU), DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressV), DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressW),
                                 D3D12_DECODE_MIP_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? MipMapMode::Nearest : MipMapMode::Linear,
                                 descriptor->staticSamplerState->MipLODBias, descriptor->staticSamplerState->MinLOD, descriptor->staticSamplerState->MaxLOD, static_cast<Float>(descriptor->staticSamplerState->MaxAnisotropy)), descriptor->location) :
                             makeUnique<DirectX12DescriptorLayout>(descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->local);
-                }(device, descriptorSet) | std::views::as_rvalue;
+                }(descriptorSet) | std::views::as_rvalue;
 
                 co_yield makeUnique<DirectX12DescriptorSetLayout>(*device.get(), std::move(descriptors), descriptorSet.space, descriptorSet.stage);
             }
@@ -540,7 +540,7 @@ SharedPtr<DirectX12ShaderProgram> DirectX12ShaderProgram::create(const DirectX12
     return SharedPtr<DirectX12ShaderProgram>(new DirectX12ShaderProgram(device, std::move(modules)));
 }
 
-Enumerable<const DirectX12ShaderModule*> DirectX12ShaderProgram::modules() const noexcept
+Enumerable<const DirectX12ShaderModule*> DirectX12ShaderProgram::modules() const
 {
     return m_impl->m_modules | std::views::transform([](const UniquePtr<DirectX12ShaderModule>& shader) { return shader.get(); });
 }

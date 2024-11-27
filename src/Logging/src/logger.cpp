@@ -15,7 +15,7 @@ private:
     String m_name;
 
 public:
-    LogImpl(const String& name) noexcept : 
+    LogImpl(const String& name) : 
         m_name(name) { }
 };
 
@@ -23,7 +23,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-Log::Log(const String& name) noexcept :
+Log::Log(const String& name) :
     m_impl(name)
 {
 }

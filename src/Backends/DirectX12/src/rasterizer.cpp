@@ -22,7 +22,7 @@ DirectX12Rasterizer::DirectX12Rasterizer() noexcept :
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RasterizerBuilder::DirectX12RasterizerBuilder() noexcept :
+DirectX12RasterizerBuilder::DirectX12RasterizerBuilder() :
     RasterizerBuilder(SharedPtr<DirectX12Rasterizer>(new DirectX12Rasterizer()))
 {
 }

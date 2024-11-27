@@ -54,7 +54,7 @@ DirectX12InputAssembler::DirectX12InputAssembler(DirectX12InputAssembler&&) noex
 DirectX12InputAssembler& DirectX12InputAssembler::operator=(DirectX12InputAssembler&&) noexcept = default;
 DirectX12InputAssembler::~DirectX12InputAssembler() noexcept = default;
 
-Enumerable<const DirectX12VertexBufferLayout*> DirectX12InputAssembler::vertexBufferLayouts() const noexcept
+Enumerable<const DirectX12VertexBufferLayout*> DirectX12InputAssembler::vertexBufferLayouts() const
 {
     return m_impl->m_vertexBufferLayouts | std::views::transform([](const auto& pair) { return pair.second.get(); });
 }
@@ -97,7 +97,7 @@ private:
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12InputAssemblerBuilder::DirectX12InputAssemblerBuilder() noexcept :
+DirectX12InputAssemblerBuilder::DirectX12InputAssemblerBuilder() :
     InputAssemblerBuilder(SharedPtr<DirectX12InputAssembler>(new DirectX12InputAssembler())), m_impl()
 {
 }

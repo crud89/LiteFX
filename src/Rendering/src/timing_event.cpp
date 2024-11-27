@@ -32,7 +32,7 @@ TimingEvent::TimingEvent(const ISwapChain& swapChain, StringView name) noexcept 
 
 TimingEvent::~TimingEvent() noexcept = default;
 
-String TimingEvent::name() const noexcept
+StringView TimingEvent::name() const noexcept
 {
 	return m_impl->m_name;
 }

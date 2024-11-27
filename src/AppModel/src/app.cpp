@@ -34,7 +34,17 @@ App::App() noexcept :
 App::~App() noexcept
 {
 	for (auto& backend : m_impl->m_backends | std::views::filter([](const auto& b) { return b.second->state() == BackendState::Active; }))
-		this->stopBackend(backend.first);
+	{
+		try
+		{
+			this->stopBackend(backend.first);
+		}
+		catch (...)
+		{
+			// Drop the exception, as there's nothing we can do anymore at this point (not even log, as the application name is no longer provided by the parent class).
+			continue;
+		}
+	}
 }
 
 Platform App::platform() const noexcept
@@ -147,7 +157,7 @@ void App::registerStopCallback(std::type_index type, const std::function<void()>
 	m_impl->m_stopCallbacks.insert(std::make_pair(type, callback));
 }
 
-Enumerable<const IBackend*> App::getBackends(const BackendType type) const noexcept
+Enumerable<const IBackend*> App::getBackends(const BackendType type) const
 {
 	return m_impl->m_backends |
 		std::views::transform([](const auto& backend) { return backend.second.get(); }) |

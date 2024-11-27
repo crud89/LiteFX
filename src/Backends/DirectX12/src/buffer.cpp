@@ -99,8 +99,9 @@ void DirectX12Buffer::map(const void* const data, size_t size, UInt32 element)
 
 	D3D12_RANGE mappedRange = { };
 	char* buffer{};
-	raiseIfFailed(this->handle()->Map(0, &mappedRange, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory."); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-	std::memcpy(static_cast<void*>(buffer + (element * this->alignedElementSize())), data, size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+	void* bufferPtr = static_cast<void*>(buffer);
+	raiseIfFailed(this->handle()->Map(0, &mappedRange, &bufferPtr), "Unable to map buffer memory.");
+	std::memcpy(static_cast<char*>(bufferPtr) + (element * this->alignedElementSize()), data, size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 	this->handle()->Unmap(0, nullptr);
 }
 
@@ -122,12 +123,13 @@ void DirectX12Buffer::map(void* data, size_t size, UInt32 element, bool write)
 
 	D3D12_RANGE mappedRange = { };
 	char* buffer{};
-	raiseIfFailed(this->handle()->Map(0, &mappedRange, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory."); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+	void* bufferPtr = static_cast<void*>(buffer);
+	raiseIfFailed(this->handle()->Map(0, &mappedRange, &bufferPtr), "Unable to map buffer memory.");
 
 	if (write)
-		std::memcpy(static_cast<void*>(buffer + (element * this->alignedElementSize())), data, size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		std::memcpy(static_cast<char*>(bufferPtr) + (element * this->alignedElementSize()), data, size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 	else
-		std::memcpy(data, static_cast<void*>(buffer + (element * this->alignedElementSize())), size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		std::memcpy(data, static_cast<char*>(bufferPtr) + (element * this->alignedElementSize()), size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
 	this->handle()->Unmap(0, nullptr);
 }

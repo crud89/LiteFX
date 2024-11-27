@@ -20,20 +20,19 @@ private:
 
 public:
     VulkanPushConstantsLayoutImpl(UInt32 size) :
-        m_size(size)
+        m_size(size % 4 == 0 ? (size + 4 - 1) & ~(size - 1) : size) // Align the size to 4 bytes.
     {
-        // Align the size to 4 bytes.
-        m_size = size % 4 == 0 ? (size + 4 - 1) & ~(size - 1) : size;
+        constexpr UInt32 MAX_GUARANTEED_RANGE_SIZE = 128;
 
         // Issue a warning, if the size is too large.
-        if (m_size > 128)
+        if (m_size > MAX_GUARANTEED_RANGE_SIZE)
             LITEFX_WARNING(VULKAN_LOG, "The push constant layout backing memory is defined with a size greater than 128 bytes. Blocks larger than 128 bytes are not forbidden, but also not guaranteed to be supported on all hardware.");
     }
 
 private:
     void setRanges(Enumerable<UniquePtr<VulkanPushConstantsRange>>&& ranges)
     {
-        m_rangePointers = ranges | std::views::as_rvalue | std::ranges::to<std::vector>();
+        m_rangePointers = std::move(ranges) | std::views::as_rvalue | std::ranges::to<std::vector>();
 
         std::ranges::for_each(m_rangePointers, [this](const UniquePtr<VulkanPushConstantsRange>& range) {
             if (m_ranges.contains(static_cast<ShaderStage>(range->stage())))
@@ -95,7 +94,7 @@ const VulkanPushConstantsRange& VulkanPushConstantsLayout::range(ShaderStage sta
     return *m_impl->m_ranges[stage];
 }
 
-Enumerable<const VulkanPushConstantsRange*> VulkanPushConstantsLayout::ranges() const noexcept
+Enumerable<const VulkanPushConstantsRange*> VulkanPushConstantsLayout::ranges() const
 {
     return m_impl->m_rangePointers | std::views::transform([](const UniquePtr<VulkanPushConstantsRange>& range) { return range.get(); });
 }
@@ -114,7 +113,7 @@ VulkanPushConstantsLayoutBuilder::~VulkanPushConstantsLayoutBuilder() noexcept =
 
 void VulkanPushConstantsLayoutBuilder::build()
 {
-    this->instance()->m_impl->setRanges(m_state.ranges | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<VulkanPushConstantsRange>>>());
+    this->instance()->m_impl->setRanges(this->state().ranges | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<VulkanPushConstantsRange>>>());
 }
 
 UniquePtr<VulkanPushConstantsRange> VulkanPushConstantsLayoutBuilder::makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding)

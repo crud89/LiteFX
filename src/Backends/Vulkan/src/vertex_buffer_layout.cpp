@@ -13,7 +13,7 @@ public:
     friend class VulkanVertexBufferLayout;
 
 private:
-    Array<UniquePtr<BufferAttribute>> m_attributes{};
+    Array<UniquePtr<BufferAttribute>> m_attributes;
     size_t m_vertexSize;
     UInt32 m_binding;
     BufferType m_bufferType{ BufferType::Vertex };
@@ -35,9 +35,9 @@ VulkanVertexBufferLayout::VulkanVertexBufferLayout(size_t vertexSize, UInt32 bin
 }
 
 VulkanVertexBufferLayout::VulkanVertexBufferLayout(VulkanVertexBufferLayout&&) noexcept = default;
-VulkanVertexBufferLayout::VulkanVertexBufferLayout(const VulkanVertexBufferLayout&) noexcept = default;
+//VulkanVertexBufferLayout::VulkanVertexBufferLayout(const VulkanVertexBufferLayout&) noexcept = default;
 VulkanVertexBufferLayout& VulkanVertexBufferLayout::operator=(VulkanVertexBufferLayout&&) noexcept = default;
-VulkanVertexBufferLayout& VulkanVertexBufferLayout::operator=(const VulkanVertexBufferLayout&) noexcept = default;
+//VulkanVertexBufferLayout& VulkanVertexBufferLayout::operator=(const VulkanVertexBufferLayout&) noexcept = default;
 VulkanVertexBufferLayout::~VulkanVertexBufferLayout() noexcept = default;
 
 size_t VulkanVertexBufferLayout::elementSize() const noexcept
@@ -55,7 +55,7 @@ BufferType VulkanVertexBufferLayout::type() const noexcept
     return m_impl->m_bufferType;
 }
 
-Enumerable<const BufferAttribute*> VulkanVertexBufferLayout::attributes() const noexcept
+Enumerable<const BufferAttribute*> VulkanVertexBufferLayout::attributes() const
 {
     return m_impl->m_attributes | std::views::transform([](const UniquePtr<BufferAttribute>& attribute) { return attribute.get(); });
 }
@@ -67,6 +67,6 @@ Enumerable<const BufferAttribute*> VulkanVertexBufferLayout::attributes() const 
 
 void VulkanVertexBufferLayoutBuilder::build()
 {
-    this->instance()->m_impl->m_attributes = std::move(m_state.attributes);
+    this->instance()->m_impl->m_attributes = std::move(this->state().attributes);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

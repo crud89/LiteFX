@@ -3,11 +3,13 @@
 using namespace LiteFX::Rendering::Backends;
 
 // Exported extensions (we should probably find a better solution for this).
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 PFN_vkCreateDebugUtilsMessengerEXT   vkCreateDebugUtilsMessenger;
 PFN_vkDestroyDebugUtilsMessengerEXT  vkDestroyDebugUtilsMessenger;
 PFN_vkQueueBeginDebugUtilsLabelEXT   vkQueueBeginDebugUtilsLabel;
 PFN_vkQueueEndDebugUtilsLabelEXT     vkQueueEndDebugUtilsLabel;
 PFN_vkQueueInsertDebugUtilsLabelEXT  vkQueueInsertDebugUtilsLabel;
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -86,7 +88,9 @@ private:
     static VKAPI_ATTR VkBool32 VKAPI_CALL onDebugBreak([[maybe_unused]] VkDebugUtilsMessageSeverityFlagBitsEXT severity, [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT type, const VkDebugUtilsMessengerCallbackDataEXT* callbackData, [[maybe_unused]] void* userData)
     {
         // Ignore layer loader errors.
-        if (callbackData->messageIdNumber == 0x79DE34D4)
+        constexpr UInt32 LAYER_LOAD_ERROR_MESSAGE_ID { 0x79DE34D4 };
+
+        if (callbackData->messageIdNumber == LAYER_LOAD_ERROR_MESSAGE_ID)
             return VK_FALSE;
 
         __debugbreak();
@@ -162,15 +166,15 @@ public:
 
         createInfo.pNext = &debugBreakCallbackInfo;
 #endif
-        VkInstance instance;
+        VkInstance instance{};
         raiseIfFailed(::vkCreateInstance(&createInfo, nullptr, &instance), "Unable to create Vulkan instance.");
 
 #ifndef NDEBUG
-        vkCreateDebugUtilsMessenger     = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-        vkDestroyDebugUtilsMessenger    = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-        vkQueueBeginDebugUtilsLabel     = (PFN_vkQueueBeginDebugUtilsLabelEXT)vkGetInstanceProcAddr(instance, "vkQueueBeginDebugUtilsLabelEXT");
-        vkQueueEndDebugUtilsLabel       = (PFN_vkQueueEndDebugUtilsLabelEXT)vkGetInstanceProcAddr(instance, "vkQueueEndDebugUtilsLabelEXT");
-        vkQueueInsertDebugUtilsLabel    = (PFN_vkQueueInsertDebugUtilsLabelEXT)vkGetInstanceProcAddr(instance, "vkQueueInsertDebugUtilsLabelEXT");
+        vkCreateDebugUtilsMessenger     = std::bit_cast<PFN_vkCreateDebugUtilsMessengerEXT>(::vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT"));
+        vkDestroyDebugUtilsMessenger    = std::bit_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(::vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT"));
+        vkQueueBeginDebugUtilsLabel     = std::bit_cast<PFN_vkQueueBeginDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueBeginDebugUtilsLabelEXT"));
+        vkQueueEndDebugUtilsLabel       = std::bit_cast<PFN_vkQueueEndDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueEndDebugUtilsLabelEXT"));
+        vkQueueInsertDebugUtilsLabel    = std::bit_cast<PFN_vkQueueInsertDebugUtilsLabelEXT>(::vkGetInstanceProcAddr(instance, "vkQueueInsertDebugUtilsLabelEXT"));
 
         if (vkCreateDebugUtilsMessenger == nullptr)
             LITEFX_WARNING(VULKAN_LOG, "The debug messenger factory \"vkCreateDebugUtilsMessengerEXT\" could not be loaded. Debug utilities will not be enabled.");
@@ -197,7 +201,7 @@ public:
         return instance;
     }
 
-    void loadAdapters(const VulkanBackend& backend) noexcept
+    void loadAdapters(const VulkanBackend& backend)
     {
         uint32_t adapters = 0;
         ::vkEnumeratePhysicalDevices(backend.handle(), &adapters, nullptr);
@@ -243,9 +247,9 @@ BackendType VulkanBackend::type() const noexcept
     return BackendType::Rendering;
 }
 
-String VulkanBackend::name() const noexcept
+StringView VulkanBackend::name() const noexcept
 {
-    return "Vulkan";
+    return "Vulkan"sv;
 }
 
 void VulkanBackend::activate()
@@ -277,7 +281,7 @@ void VulkanBackend::registerDevice(String name, UniquePtr<VulkanDevice>&& device
         throw InvalidArgumentException("name", "The backend already contains a device with the name \"{0}\".", name);
 
 #ifndef NDEBUG
-    device->setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*device).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT, name);
+    device->setDebugName(std::as_const(*device).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT, name);
 #endif
 
     m_impl->m_devices.insert(std::make_pair(name, std::move(device)));
@@ -329,7 +333,7 @@ UniquePtr<VulkanSurface> VulkanBackend::createSurface(const HWND& hwnd) const
     createInfo.hwnd = hwnd;
     createInfo.hinstance = ::GetModuleHandle(nullptr);
 
-    VkSurfaceKHR surface;
+    VkSurfaceKHR surface{};
     raiseIfFailed(::vkCreateWin32SurfaceKHR(this->handle(), &createInfo, nullptr, &surface), "Unable to create vulkan surface for provided window.");
 
     return makeUnique<VulkanSurface>(surface, this->handle(), hwnd);
@@ -349,7 +353,7 @@ UniquePtr<VulkanSurface> VulkanBackend::createSurface(surface_callback predicate
 // Static interface.
 // ------------------------------------------------------------------------------------------------
 
-bool VulkanBackend::validateInstanceExtensions(Span<const String> extensions) noexcept
+bool VulkanBackend::validateInstanceExtensions(Span<const String> extensions)
 {
     auto availableExtensions = VulkanBackend::getAvailableInstanceExtensions();
 
@@ -367,7 +371,7 @@ bool VulkanBackend::validateInstanceExtensions(Span<const String> extensions) no
     });
 }
 
-Enumerable<String> VulkanBackend::getAvailableInstanceExtensions() noexcept
+Enumerable<String> VulkanBackend::getAvailableInstanceExtensions()
 {
     UInt32 extensions = 0;
     ::vkEnumerateInstanceExtensionProperties(nullptr, &extensions, nullptr);
@@ -375,10 +379,10 @@ Enumerable<String> VulkanBackend::getAvailableInstanceExtensions() noexcept
     Array<VkExtensionProperties> availableExtensions(extensions);
     ::vkEnumerateInstanceExtensionProperties(nullptr, &extensions, availableExtensions.data());
 
-    return availableExtensions | std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); });
+    return availableExtensions | std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); }); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 }
 
-bool VulkanBackend::validateInstanceLayers(Span<const String> layers) noexcept
+bool VulkanBackend::validateInstanceLayers(Span<const String> layers)
 {
     auto availableLayers = VulkanBackend::getInstanceValidationLayers();
 
@@ -396,7 +400,7 @@ bool VulkanBackend::validateInstanceLayers(Span<const String> layers) noexcept
     });
 }
 
-Enumerable<String> VulkanBackend::getInstanceValidationLayers() noexcept
+Enumerable<String> VulkanBackend::getInstanceValidationLayers()
 {
     UInt32 layers = 0;
     ::vkEnumerateInstanceLayerProperties(&layers, nullptr);
@@ -404,5 +408,5 @@ Enumerable<String> VulkanBackend::getInstanceValidationLayers() noexcept
     Array<VkLayerProperties> availableLayers(layers);
     ::vkEnumerateInstanceLayerProperties(&layers, availableLayers.data());
 
-    return availableLayers | std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); });
+    return availableLayers | std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); }); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 }

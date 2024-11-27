@@ -88,7 +88,7 @@ public:
 		// Acquire the swap chain images.
 		m_presentImages.resize(swapChainDesc.BufferCount);
 		m_presentFences.resize(swapChainDesc.BufferCount);
-		std::ranges::generate(m_presentImages, [this, &size, &format, &swapChain, device, i = 0]() mutable {
+		std::ranges::generate(m_presentImages, [&size, &format, &swapChain, device, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed(swapChain->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
 			return makeUnique<DirectX12Image>(*device.get(), std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
@@ -129,7 +129,7 @@ public:
 		// Acquire the swap chain images.
 		m_presentImages.resize(buffers);
 		m_presentFences.resize(buffers);
-		std::ranges::generate(m_presentImages, [this, &swapChain, &size, &format, device, i = 0]() mutable {
+		std::ranges::generate(m_presentImages, [&swapChain, &size, &format, device, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed(swapChain.handle()->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
 			return makeUnique<DirectX12Image>(*device.get(), std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
@@ -164,7 +164,7 @@ public:
 
 		// Resize the query heaps array and allocate a heap for each back buffer.
 		m_timingQueryHeaps.resize(m_buffers);
-		std::ranges::generate(m_timingQueryHeaps, [this, &timingEvents, device]() {
+		std::ranges::generate(m_timingQueryHeaps, [&timingEvents, device]() {
 			D3D12_QUERY_HEAP_DESC heapInfo {
 				.Type = D3D12_QUERY_HEAP_TYPE_TIMESTAMP,
 				.Count = static_cast<UInt32>(timingEvents.size()),
@@ -178,7 +178,7 @@ public:
 
 		// Create a readback buffer for each heap.
 		m_timingQueryReadbackBuffers.resize(m_buffers);
-		std::ranges::generate(m_timingQueryReadbackBuffers, [this, &timingEvents, device]() { return device->factory().createBuffer(BufferType::Other, ResourceHeap::Readback, sizeof(UInt64) * timingEvents.size()); });
+		std::ranges::generate(m_timingQueryReadbackBuffers, [&timingEvents, device]() { return device->factory().createBuffer(BufferType::Other, ResourceHeap::Readback, sizeof(UInt64) * timingEvents.size()); });
 
 		// Store the event and resize the time stamp collection.
 		m_timingEvents = timingEvents;
@@ -207,7 +207,7 @@ public:
 	}
 
 private:
-	String joinSupportedSurfaceFormats(const DirectX12SwapChain& swapChain) const noexcept
+	String joinSupportedSurfaceFormats(const DirectX12SwapChain& swapChain) const
 	{
 		auto formats = swapChain.getSurfaceFormats();
 
@@ -241,7 +241,7 @@ ID3D12QueryHeap* DirectX12SwapChain::timestampQueryHeap() const noexcept
 	return m_impl->m_timingQueryHeaps[m_impl->m_currentImage].Get();
 }
 
-Enumerable<SharedPtr<TimingEvent>> DirectX12SwapChain::timingEvents() const noexcept
+Enumerable<SharedPtr<TimingEvent>> DirectX12SwapChain::timingEvents() const
 {
 	return m_impl->m_timingEvents;
 }
@@ -309,7 +309,7 @@ const IDirectX12Image& DirectX12SwapChain::image() const noexcept
 	return *m_impl->m_presentImages[m_impl->m_currentImage];
 }
 
-Enumerable<IDirectX12Image*> DirectX12SwapChain::images() const noexcept
+Enumerable<IDirectX12Image*> DirectX12SwapChain::images() const
 {
 	return m_impl->m_presentImages | std::views::transform([](UniquePtr<IDirectX12Image>& image) { return image.get(); });
 }
@@ -326,7 +326,7 @@ void DirectX12SwapChain::present(UInt64 fence) const
 		raiseIfFailed(this->handle()->Present(0, this->supportsVariableRefreshRate() ? DXGI_PRESENT_ALLOW_TEARING : 0), "Unable to present swap chain");
 }
 
-Enumerable<Format> DirectX12SwapChain::getSurfaceFormats() const noexcept
+Enumerable<Format> DirectX12SwapChain::getSurfaceFormats() const
 {
 	// NOTE: Those formats are actually the only ones that are supported for flip-model swap chains, which is currently the only 
 	//       supported swap effect. If other swap effects are used, this function may require redesign. For more information see: 

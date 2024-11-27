@@ -18,9 +18,12 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		explicit VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name);
-		VulkanBuffer(VulkanBuffer&&) = delete;
-		VulkanBuffer(const VulkanBuffer&) = delete;
-		virtual ~VulkanBuffer() noexcept;
+
+		VulkanBuffer(VulkanBuffer&&) noexcept = delete;
+		VulkanBuffer(const VulkanBuffer&) noexcept = delete;
+		VulkanBuffer& operator=(VulkanBuffer&&) noexcept = delete;
+		VulkanBuffer& operator=(const VulkanBuffer&) noexcept = delete;
+		~VulkanBuffer() noexcept override;
 
 		// IBuffer interface.
 	public:
@@ -78,9 +81,12 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		explicit VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name = "");
-		VulkanVertexBuffer(VulkanVertexBuffer&&) = delete;
-		VulkanVertexBuffer(const VulkanVertexBuffer&) = delete;
-		virtual ~VulkanVertexBuffer() noexcept;
+		
+		VulkanVertexBuffer(VulkanVertexBuffer&&) noexcept = delete;
+		VulkanVertexBuffer(const VulkanVertexBuffer&) noexcept = delete;
+		VulkanVertexBuffer& operator=(VulkanVertexBuffer&&) noexcept = delete;
+		VulkanVertexBuffer& operator=(const VulkanVertexBuffer&) noexcept = delete;
+		~VulkanVertexBuffer() noexcept override;
 
 		// VertexBuffer interface.
 	public:
@@ -101,9 +107,12 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		explicit VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name = "");
-		VulkanIndexBuffer(VulkanIndexBuffer&&) = delete;
-		VulkanIndexBuffer(const VulkanIndexBuffer&) = delete;
-		virtual ~VulkanIndexBuffer() noexcept;
+		
+		VulkanIndexBuffer(VulkanIndexBuffer&&) noexcept = delete;
+		VulkanIndexBuffer(const VulkanIndexBuffer&) noexcept = delete;
+		VulkanIndexBuffer& operator=(VulkanIndexBuffer&&) noexcept = delete;
+		VulkanIndexBuffer& operator=(const VulkanIndexBuffer&) noexcept = delete;
+		~VulkanIndexBuffer() noexcept override;
 
 		// IndexBuffer interface.
 	public:

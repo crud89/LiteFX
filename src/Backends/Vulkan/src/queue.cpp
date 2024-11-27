@@ -3,9 +3,11 @@
 using namespace LiteFX::Rendering::Backends;
 
 // Import required extensions.
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 extern PFN_vkQueueBeginDebugUtilsLabelEXT   vkQueueBeginDebugUtilsLabel;
 extern PFN_vkQueueEndDebugUtilsLabelEXT     vkQueueEndDebugUtilsLabel;
 extern PFN_vkQueueInsertDebugUtilsLabelEXT  vkQueueInsertDebugUtilsLabel;
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -45,7 +47,7 @@ public:
 	VkQueue initialize()
 	{
 		// Create the queue instance.
-		VkQueue queue;
+		VkQueue queue{};
 		::vkGetDeviceQueue(m_device.handle(), m_familyId, m_queueId, &queue);
 
 		// Create a timeline semaphore for queue synchronization.
@@ -69,7 +71,7 @@ public:
 	void releaseCommandBuffers(const VulkanQueue& queue, UInt64 beforeFence)
 	{
 		// Release all shared command buffers until this point.
-		const auto [from, to] = std::ranges::remove_if(m_submittedCommandBuffers, [this, &queue, &beforeFence](auto& pair) {
+		const auto [from, to] = std::ranges::remove_if(m_submittedCommandBuffers, [&queue, &beforeFence](auto& pair) {
 			if (std::get<0>(pair) > beforeFence)
 				return false;
 
@@ -131,7 +133,7 @@ void VulkanQueue::beginDebugRegion(const String& label, const Vectors::ByteVecto
 	VkDebugUtilsLabelEXT labelInfo {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
 		.pLabelName = label.c_str(),
-		.color = { color.x() / 255.0f, color.y() / 255.0f,color.z() / 255.0f, 1.0f }
+		.color = { static_cast<float>(color.x()) / static_cast<float>(std::numeric_limits<Byte>::max()), static_cast<float>(color.y()) / static_cast<float>(std::numeric_limits<Byte>::max()), static_cast<float>(color.z()) / static_cast<float>(std::numeric_limits<Byte>::max()), 1.0f }
 	};
 	
 	::vkQueueBeginDebugUtilsLabel(this->handle(), &labelInfo);
@@ -147,7 +149,7 @@ void VulkanQueue::setDebugMarker(const String& label, const Vectors::ByteVector3
 	VkDebugUtilsLabelEXT labelInfo{
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
 		.pLabelName = label.c_str(),
-		.color = { color.x() / 255.0f, color.y() / 255.0f,color.z() / 255.0f, 1.0f }
+		.color = { static_cast<float>(color.x()) / static_cast<float>(std::numeric_limits<Byte>::max()), static_cast<float>(color.y()) / static_cast<float>(std::numeric_limits<Byte>::max()), static_cast<float>(color.z()) / static_cast<float>(std::numeric_limits<Byte>::max()), 1.0f }
 	};
 
 	::vkQueueInsertDebugUtilsLabel(this->handle(), &labelInfo);

@@ -55,7 +55,7 @@ bool loadRenderDocApi()
 	if (renderDocModule != 0)
 	{
 		pRENDERDOC_GetAPI RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)::GetProcAddress(renderDocModule, "RENDERDOC_GetAPI");
-		int result = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_5_0, reinterpret_cast<void**>(&::renderDoc));
+		int result = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_5_0, static_cast<void**>(&::renderDoc));
 
 		return result == 1;
 	}

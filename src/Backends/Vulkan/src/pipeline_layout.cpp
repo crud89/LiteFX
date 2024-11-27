@@ -13,25 +13,31 @@ public:
     friend class VulkanPipelineLayout;
 
 private:
-    const VulkanDevice& m_device;
+    WeakPtr<const VulkanDevice> m_device;
     UniquePtr<VulkanPushConstantsLayout> m_pushConstantsLayout;
     Array<UniquePtr<VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
 
 public:
     VulkanPipelineLayoutImpl(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
-        m_device(device), m_pushConstantsLayout(std::move(pushConstantsLayout))
+        m_device(device.weak_from_this()), m_pushConstantsLayout(std::move(pushConstantsLayout))
     {
-        m_descriptorSetLayouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
+        m_descriptorSetLayouts = std::move(descriptorLayouts) | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     VulkanPipelineLayoutImpl(const VulkanDevice& device) :
-        m_device(device)
+        m_device(device.weak_from_this())
     {
     }
 
 public:
     VkPipelineLayout initialize([[maybe_unused]] const VulkanPipelineLayout& pipelineLayout)
     {
+        // Check if the device is still valid.
+        auto device = m_device.lock();
+
+        if (device == nullptr) [[unlikely]]
+            throw RuntimeException("Cannot create pipeline layout on a released device instance.");
+
         // Since Vulkan does not know spaces, descriptor sets are mapped to their indices based on the order they are defined. Hence we need to sort the descriptor set layouts accordingly.
         std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<VulkanDescriptorSetLayout>& a, const UniquePtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
 
@@ -56,7 +62,7 @@ public:
         if (!emptySets.empty())
         {
             for (auto s : emptySets)
-                m_descriptorSetLayouts.push_back(UniquePtr<VulkanDescriptorSetLayout>{ new VulkanDescriptorSetLayout(m_device, { }, s, ShaderStage::Any) }); // No descriptor can ever be allocated from an empty descriptor set.
+                m_descriptorSetLayouts.push_back(UniquePtr<VulkanDescriptorSetLayout>{ new VulkanDescriptorSetLayout(*device, { }, s, ShaderStage::Any) }); // No descriptor can ever be allocated from an empty descriptor set.
 
             // Re-order them.
             std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<VulkanDescriptorSetLayout>& a, const UniquePtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
@@ -87,8 +93,8 @@ public:
         pipelineLayoutInfo.pushConstantRangeCount = static_cast<UInt32>(rangeHandles.size());
         pipelineLayoutInfo.pPushConstantRanges = rangeHandles.data();
 
-        VkPipelineLayout layout;
-        raiseIfFailed(::vkCreatePipelineLayout(m_device.handle(), &pipelineLayoutInfo, nullptr, &layout), "Unable to create pipeline layout.");
+        VkPipelineLayout layout{};
+        raiseIfFailed(::vkCreatePipelineLayout(device->handle(), &pipelineLayoutInfo, nullptr, &layout), "Unable to create pipeline layout.");
         return layout;
     }
 };
@@ -113,12 +119,18 @@ VulkanPipelineLayout& VulkanPipelineLayout::operator=(VulkanPipelineLayout&&) no
 
 VulkanPipelineLayout::~VulkanPipelineLayout() noexcept
 {
-    ::vkDestroyPipelineLayout(m_impl->m_device.handle(), this->handle(), nullptr);
+    // Check if the device is still valid.
+    auto device = m_impl->m_device.lock();
+
+    if (device == nullptr) [[unlikely]]
+        LITEFX_FATAL_ERROR(VULKAN_LOG, "Invalid attempt to release pipeline layout after parent device.");
+    else
+        ::vkDestroyPipelineLayout(device->handle(), this->handle(), nullptr);
 }
 
-const VulkanDevice& VulkanPipelineLayout::device() const noexcept
+SharedPtr<const VulkanDevice> VulkanPipelineLayout::device() const noexcept
 {
-    return m_impl->m_device;
+    return m_impl->m_device.lock();
 }
 
 const VulkanDescriptorSetLayout& VulkanPipelineLayout::descriptorSet(UInt32 space) const
@@ -129,7 +141,7 @@ const VulkanDescriptorSetLayout& VulkanPipelineLayout::descriptorSet(UInt32 spac
     throw InvalidArgumentException("space", "No descriptor set layout uses the provided space {0}.", space);
 }
 
-Enumerable<const VulkanDescriptorSetLayout*> VulkanPipelineLayout::descriptorSets() const noexcept
+Enumerable<const VulkanDescriptorSetLayout*> VulkanPipelineLayout::descriptorSets() const
 {
     return m_impl->m_descriptorSetLayouts | std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout.get(); });
 }
@@ -141,30 +153,11 @@ const VulkanPushConstantsLayout* VulkanPipelineLayout::pushConstants() const noe
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
-// Pipeline layout builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class VulkanPipelineLayoutBuilder::VulkanPipelineLayoutBuilderImpl {
-public:
-    friend class VulkanPipelineLayoutBuilder;
-    friend class VulkanPipelineLayout;
-
-private:
-    const VulkanDevice& m_device;
-
-public:
-    VulkanPipelineLayoutBuilderImpl(const VulkanDevice& device) :
-        m_device(device)
-    {
-    }
-};
-
-// ------------------------------------------------------------------------------------------------
 // Pipeline layout builder interface.
 // ------------------------------------------------------------------------------------------------
 
 VulkanPipelineLayoutBuilder::VulkanPipelineLayoutBuilder(const VulkanDevice& parent) :
-    PipelineLayoutBuilder(SharedPtr<VulkanPipelineLayout>(new VulkanPipelineLayout(parent))), m_impl(parent)
+    PipelineLayoutBuilder(SharedPtr<VulkanPipelineLayout>(new VulkanPipelineLayout(parent)))
 {
 }
 
@@ -173,8 +166,8 @@ VulkanPipelineLayoutBuilder::~VulkanPipelineLayoutBuilder() noexcept = default;
 void VulkanPipelineLayoutBuilder::build()
 {
     auto instance = this->instance();
-    instance->m_impl->m_descriptorSetLayouts = std::move(m_state.descriptorSetLayouts);
-    instance->m_impl->m_pushConstantsLayout = std::move(m_state.pushConstantsLayout);
+    instance->m_impl->m_descriptorSetLayouts = std::move(this->state().descriptorSetLayouts);
+    instance->m_impl->m_pushConstantsLayout = std::move(this->state().pushConstantsLayout);
     instance->handle() = instance->m_impl->initialize(*instance);
 }
 
@@ -186,10 +179,5 @@ VulkanDescriptorSetLayoutBuilder VulkanPipelineLayoutBuilder::descriptorSet(UInt
 VulkanPushConstantsLayoutBuilder VulkanPipelineLayoutBuilder::pushConstants(UInt32 size)
 {
     return VulkanPushConstantsLayoutBuilder(*this, size);
-}
-
-const VulkanDevice& VulkanPipelineLayoutBuilder::device() const noexcept
-{
-    return m_impl->m_device;
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

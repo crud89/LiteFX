@@ -68,7 +68,7 @@ PipelineStage& DirectX12Barrier::syncAfter() noexcept
 	return m_impl->m_syncAfter;
 }
 
-void DirectX12Barrier::wait(ResourceAccess accessBefore, ResourceAccess accessAfter) noexcept
+void DirectX12Barrier::wait(ResourceAccess accessBefore, ResourceAccess accessAfter)
 {
 	m_impl->m_globalBarriers.push_back({ accessBefore, accessAfter });
 }
@@ -103,7 +103,7 @@ void DirectX12Barrier::transition(const IDirectX12Image& image, UInt32 level, UI
 	m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, fromLayout, toLayout, level, levels, layer, layers, plane });
 }
 
-void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) const noexcept
+void DirectX12Barrier::execute(const DirectX12CommandBuffer& commandBuffer) const
 {
 	auto syncBefore = DX12::getPipelineStage(m_impl->m_syncBefore);
 	auto syncAfter  = DX12::getPipelineStage(m_impl->m_syncAfter);

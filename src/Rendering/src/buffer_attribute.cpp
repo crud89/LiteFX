@@ -28,7 +28,10 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-BufferAttribute::BufferAttribute() noexcept = default;
+BufferAttribute::BufferAttribute() noexcept :
+    m_impl()
+{
+}
 
 BufferAttribute::BufferAttribute(UInt32 location, UInt32 offset, BufferFormat format, AttributeSemantic semantic, UInt32 semanticIndex) noexcept :
     m_impl(location, offset, format, semantic, semanticIndex)

@@ -32,14 +32,14 @@ public:
 		m_renderPass(renderPass), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_alphaToCoverage(alphaToCoverage)
 	{
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
-			m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
+			m_inputAttachmentSampler = m_renderPass.device()->factory().createSampler();
 	}
 
 	DirectX12RenderPipelineImpl(const DirectX12RenderPass& renderPass) :
 		m_renderPass(renderPass)
 	{
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
-			m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
+			m_inputAttachmentSampler = m_renderPass.device()->factory().createSampler();
 	}
 
 	~DirectX12RenderPipelineImpl() noexcept
@@ -52,10 +52,10 @@ public:
 			frameBuffer->released -= token;
 	}
 
-	DirectX12RenderPipelineImpl(const DirectX12RenderPipelineImpl&) noexcept = default;
-	DirectX12RenderPipelineImpl(DirectX12RenderPipelineImpl&&) noexcept = default;
-	DirectX12RenderPipelineImpl& operator=(const DirectX12RenderPipelineImpl&) noexcept = default;
-	DirectX12RenderPipelineImpl& operator=(DirectX12RenderPipelineImpl&&) noexcept = default;
+	DirectX12RenderPipelineImpl(const DirectX12RenderPipelineImpl&) noexcept = delete;
+	DirectX12RenderPipelineImpl(DirectX12RenderPipelineImpl&&) noexcept = delete;
+	DirectX12RenderPipelineImpl& operator=(const DirectX12RenderPipelineImpl&) noexcept = delete;
+	DirectX12RenderPipelineImpl& operator=(DirectX12RenderPipelineImpl&&) noexcept = delete;
 
 public:
 	ComPtr<ID3D12PipelineState> initialize(const DirectX12RenderPipeline& pipeline, MultiSamplingLevel samples)
@@ -260,7 +260,7 @@ public:
 
 		// Create the pipeline state instance.
 		ComPtr<ID3D12PipelineState> pipelineState;
-		raiseIfFailed(m_renderPass.device().handle()->CreatePipelineState(&pipelineDesc, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
+		raiseIfFailed(m_renderPass.device()->handle()->CreatePipelineState(&pipelineDesc, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
 		
 #ifndef NDEBUG
 		pipelineState->SetName(Widen(pipeline.name()).c_str());
@@ -327,7 +327,7 @@ public:
 
 		// Create the pipeline state instance.
 		ComPtr<ID3D12PipelineState> pipelineState;
-		raiseIfFailed(m_renderPass.device().handle()->CreateGraphicsPipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
+		raiseIfFailed(m_renderPass.device()->handle()->CreateGraphicsPipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
 		
 #ifndef NDEBUG
 		pipelineState->SetName(Widen(pipeline.name()).c_str());
@@ -365,18 +365,20 @@ public:
 		}
 
 		// Don't forget the sampler.
-		if (m_renderPass.inputAttachmentSamplerBinding().has_value())
+		auto& samplerBinding = m_renderPass.inputAttachmentSamplerBinding();
+
+		if (samplerBinding.has_value())
 		{
-			auto& samplerBinding = m_renderPass.inputAttachmentSamplerBinding().value();
+			auto space = samplerBinding.value().Space;
 			auto layouts = m_layout->descriptorSets();
 
-			if (auto samplerSet = std::ranges::find_if(layouts, [&](auto set) { return set->space() == samplerBinding.Space; }); samplerSet != layouts.end())
+			if (auto samplerSet = std::ranges::find_if(layouts, [&](auto set) { return set->space() == space; }); samplerSet != layouts.end())
 			{
-				if (descriptorsPerSet.contains(samplerBinding.Space)) [[unlikely]]
+				if (descriptorsPerSet.contains(space)) [[unlikely]]
 					throw RuntimeException("The input attachment sampler is defined in a descriptor set that contains input attachment descriptors. Samplers must be defined within their own space.");
 
 				// Store the descriptor so it gets bound.
-				descriptorsPerSet[samplerBinding.Space].push_back(samplerBinding.Register);
+				descriptorsPerSet[space].push_back(samplerBinding.value().Register);
 			}
 		}
 
@@ -425,13 +427,15 @@ public:
 		});
 
 		// If there's a sampler, bind it too.
-		if (m_renderPass.inputAttachmentSamplerBinding().has_value())
+		auto& inputAttachmentSamplerBinding = m_renderPass.inputAttachmentSamplerBinding();
+		
+		if (inputAttachmentSamplerBinding.has_value())
 		{
 			for (auto& binding : bindings)
 			{
-				if (binding->layout().space() == m_renderPass.inputAttachmentSamplerBinding().value().Space)
+				if (binding->layout().space() == inputAttachmentSamplerBinding.value().Space)
 				{
-					binding->update(m_renderPass.inputAttachmentSamplerBinding().value().Register, *m_inputAttachmentSampler);
+					binding->update(inputAttachmentSamplerBinding.value().Register, *m_inputAttachmentSampler);
 					break;
 				}
 			}
@@ -490,15 +494,15 @@ DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& rend
 	this->handle() = m_impl->initialize(*this, samples);
 }
 
-DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const String& name) noexcept :
+DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const String& name) :
 	DirectX12PipelineState(nullptr), m_impl(renderPass)
 {
 	if (!name.empty())
 		this->name() = name;
 }
 
-DirectX12RenderPipeline::DirectX12RenderPipeline(DirectX12RenderPipeline&&) noexcept = default;
-DirectX12RenderPipeline& DirectX12RenderPipeline::operator=(DirectX12RenderPipeline&&) noexcept = default;
+//DirectX12RenderPipeline::DirectX12RenderPipeline(DirectX12RenderPipeline&&) noexcept = default;
+//DirectX12RenderPipeline& DirectX12RenderPipeline::operator=(DirectX12RenderPipeline&&) noexcept = default;
 DirectX12RenderPipeline::~DirectX12RenderPipeline() noexcept = default;
 
 SharedPtr<const DirectX12ShaderProgram> DirectX12RenderPipeline::program() const noexcept
@@ -543,7 +547,7 @@ void DirectX12RenderPipeline::updateSamples(MultiSamplingLevel samples)
 	this->handle() = m_impl->initialize(*this, samples);
 }
 
-void DirectX12RenderPipeline::use(const DirectX12CommandBuffer& commandBuffer) const noexcept
+void DirectX12RenderPipeline::use(const DirectX12CommandBuffer& commandBuffer) const
 {
 	// Set the pipeline state.
 	commandBuffer.handle()->SetPipelineState(this->handle().Get());

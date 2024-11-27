@@ -20,7 +20,7 @@ private:
     SharedPtr<spdlog::sinks::daily_file_sink_mt> m_sink{};
 
 public:
-    RollingFileSinkImpl(LogLevel level, const String& fileName, const String& pattern, bool truncate, int maxFiles) noexcept :
+    RollingFileSinkImpl(LogLevel level, const String& fileName, const String& pattern, bool truncate, int maxFiles) :
         m_pattern(pattern), m_fileName(fileName), m_level(level), m_truncate(truncate), m_maxFiles(maxFiles)
     {
         m_sink = makeShared<spdlog::sinks::daily_file_sink_mt>(fileName, 23, 59, truncate, maxFiles); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
@@ -33,7 +33,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-RollingFileSink::RollingFileSink(const String& fileName, LogLevel level, const String& pattern, bool truncate, int maxFiles) noexcept :
+RollingFileSink::RollingFileSink(const String& fileName, LogLevel level, const String& pattern, bool truncate, int maxFiles) :
     m_impl(level, fileName, pattern, truncate, maxFiles)
 {
 }

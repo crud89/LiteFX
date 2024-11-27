@@ -68,7 +68,7 @@ PipelineStage& VulkanBarrier::syncAfter() noexcept
     return m_impl->m_syncAfter;
 }
 
-void VulkanBarrier::wait(ResourceAccess accessBefore, ResourceAccess accessAfter) noexcept
+void VulkanBarrier::wait(ResourceAccess accessBefore, ResourceAccess accessAfter)
 {
     m_impl->m_globalBarriers.push_back({ accessBefore, accessAfter });
 }
@@ -103,11 +103,12 @@ void VulkanBarrier::transition(const IVulkanImage& image, UInt32 level, UInt32 l
     m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, fromLayout, toLayout, level, levels, layer, layers, plane });
 }
 
-void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noexcept
+void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const
 {
     auto syncBefore = Vk::getPipelineStage(m_impl->m_syncBefore);
     auto syncAfter = Vk::getPipelineStage(m_impl->m_syncAfter);
 
+    // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 	// Global barriers.
 	auto globalBarriers = m_impl->m_globalBarriers | std::views::transform([syncBefore, syncAfter](auto& barrier) { 
         return VkMemoryBarrier2 {
@@ -160,6 +161,7 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const noex
             }
         };
 	}) | std::ranges::to<Array<VkImageMemoryBarrier2>>();
+    // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
     // Execute the barriers.
     if (!globalBarriers.empty() || !bufferBarriers.empty() || !imageBarriers.empty())

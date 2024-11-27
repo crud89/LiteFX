@@ -248,7 +248,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        String name() const noexcept override;
+        String name() const override;
 
         /// <inheritdoc />
         UInt64 uniqueId() const noexcept override;
@@ -312,7 +312,7 @@ namespace LiteFX::Rendering::Backends {
         /// Initializes a new exception.
         /// </summary>
         /// <param name="result">The error code returned by the operation.</param>
-        explicit DX12PlatformException(HRESULT result) noexcept :
+        explicit DX12PlatformException(HRESULT result) :
             RuntimeException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), _com_error(result).ErrorMessage()), m_code(result), m_error(result) { }
 
         /// <summary>
@@ -320,7 +320,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="result">The error code returned by the operation.</param>
         /// <param name="message">The error message.</param>
-        explicit DX12PlatformException(HRESULT result, StringView message) noexcept :
+        explicit DX12PlatformException(HRESULT result, StringView message) :
             RuntimeException("{2} {1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), _com_error(result).ErrorMessage(), message), m_code(result), m_error(result) { }
 
         /// <summary>
@@ -330,20 +330,20 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="result">The error code returned by the operation.</param>
         /// <param name="args">The arguments passed to the error message format string.</param>
         template <typename ...TArgs>
-        explicit DX12PlatformException(HRESULT result, std::format_string<TArgs...> format, TArgs&&... args) noexcept :
+        explicit DX12PlatformException(HRESULT result, std::format_string<TArgs...> format, TArgs&&... args) :
             DX12PlatformException(result, std::format(format, std::forward<TArgs>(args)...)) { }
 
         /// <inheritdoc />
-        DX12PlatformException(const DX12PlatformException&) noexcept = default;
-        
-        /// <inheritdoc />
         DX12PlatformException(DX12PlatformException&&) noexcept = default;
-        
+
         /// <inheritdoc />
-        DX12PlatformException& operator=(const DX12PlatformException&) noexcept = default;
-        
+        DX12PlatformException(const DX12PlatformException&) = default;
+
         /// <inheritdoc />
         DX12PlatformException& operator=(DX12PlatformException&&) noexcept = default;
+        
+        /// <inheritdoc />
+        DX12PlatformException& operator=(const DX12PlatformException&) = default;
         
         /// <inheritdoc />
         ~DX12PlatformException() noexcept override = default;

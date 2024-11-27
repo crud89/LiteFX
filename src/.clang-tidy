@@ -1,7 +1,10 @@
 Checks: |
     clang-analyzer-*,
     cppcoreguidelines-*,
-    -clang-analyzer-optin.core.EnumCastOutOfRange
+    bugprone-*,
+    -clang-analyzer-optin.core.EnumCastOutOfRange,
+    -bugprone-macro-parentheses,
+    -bugprone-easily-swappable-parameters
 WarningsAsErrors: true
 HeaderFilterRegex: '.*'
 CheckOptions:

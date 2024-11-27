@@ -13,12 +13,12 @@ public:
 	friend class VulkanGraphicsFactory;
 
 private:
-	const VulkanDevice& m_device;
+	WeakPtr<const VulkanDevice> m_device;
 	VmaAllocator m_allocator{ nullptr };
 
 public:
 	VulkanGraphicsFactoryImpl(const VulkanDevice& device) :
-		m_device(device)
+		m_device(device.weak_from_this())
 	{
 		// Create an buffer allocator.
 		VmaAllocatorCreateInfo allocatorInfo = {};
@@ -30,6 +30,11 @@ public:
 
 		raiseIfFailed(::vmaCreateAllocator(&allocatorInfo, &m_allocator), "Unable to create Vulkan memory allocator.");
 	}
+
+	VulkanGraphicsFactoryImpl(VulkanGraphicsFactoryImpl&&) noexcept = default;
+	VulkanGraphicsFactoryImpl(const VulkanGraphicsFactoryImpl&) noexcept = delete;
+	VulkanGraphicsFactoryImpl& operator=(VulkanGraphicsFactoryImpl&&) noexcept = default;
+	VulkanGraphicsFactoryImpl& operator=(const VulkanGraphicsFactoryImpl&) noexcept = delete;
 
 	~VulkanGraphicsFactoryImpl()
 	{
@@ -65,6 +70,12 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 	if (type == BufferType::AccelerationStructure && LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput)) [[unlikely]]
 		throw InvalidArgumentException("usage", "Invalid resource usage has been specified: acceleration structures cannot be used as build inputs for other acceleration structures.");
 
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot allocate buffer from a released device instance.");
+
 	// Set heap-default usages.
 	if (heap == ResourceHeap::Staging && !LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferSource))
 		usage |= ResourceUsage::TransferSource;
@@ -88,11 +99,11 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 		break;
 	case BufferType::Uniform:
 		usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-		alignment = m_impl->m_device.adapter().limits().minUniformBufferOffsetAlignment;
+		alignment = device->adapter().limits().minUniformBufferOffsetAlignment;
 		break;
 	case BufferType::Storage:
 		usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-		alignment = m_impl->m_device.adapter().limits().minStorageBufferOffsetAlignment;
+		alignment = device->adapter().limits().minStorageBufferOffsetAlignment;
 		break;
 	case BufferType::Texel:
 		if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite))
@@ -100,19 +111,19 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 		else
 			usageFlags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
 
-		alignment = m_impl->m_device.adapter().limits().minTexelBufferOffsetAlignment;
+		alignment = device->adapter().limits().minTexelBufferOffsetAlignment;
 		break;
 	case BufferType::AccelerationStructure:
 		usageFlags |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR;
-		alignment = m_impl->m_device.adapter().limits().minUniformBufferOffsetAlignment;
+		alignment = device->adapter().limits().minUniformBufferOffsetAlignment;
 		break;
 	case BufferType::ShaderBindingTable:
 		usageFlags |= VK_BUFFER_USAGE_SHADER_BINDING_TABLE_BIT_KHR;
-		alignment = m_impl->m_device.adapter().limits().minStorageBufferOffsetAlignment;
+		alignment = device->adapter().limits().minStorageBufferOffsetAlignment;
 		break;
 	case BufferType::Indirect:
 		usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
-		alignment = m_impl->m_device.adapter().limits().minStorageBufferOffsetAlignment;
+		alignment = device->adapter().limits().minStorageBufferOffsetAlignment;
 		break;
 	default:
 		break;
@@ -145,17 +156,17 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
 	UniquePtr<IVulkanBuffer> buffer;
-	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
+	auto queueFamilies = device->queueFamilyIndices() | std::ranges::to<std::vector>();
 
 	bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
-	buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, usage, m_impl->m_device, m_impl->m_allocator, bufferInfo, allocInfo);
+	buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, usage, *device, m_impl->m_allocator, bufferInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())
-		m_impl->m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*buffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+		device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
 #endif
 
 	return buffer;
@@ -171,6 +182,12 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 	// Validate usage.
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite)) [[unlikely]]
 		throw InvalidArgumentException("usage", "Invalid resource usage has been specified: vertex buffers cannot be written to.");
+
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot allocate vertex buffer from a released device instance.");
 
 	// Set heap-default usages.
 	if (heap == ResourceHeap::Staging && !LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferSource))
@@ -205,17 +222,17 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
 	UniquePtr<IVulkanVertexBuffer> buffer;
-	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
+	auto queueFamilies = device->queueFamilyIndices() | std::ranges::to<std::vector>();
 
 	bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
-	buffer = VulkanVertexBuffer::allocate(name, layout, elements, usage, m_impl->m_device, m_impl->m_allocator, bufferInfo, allocInfo);
+	buffer = VulkanVertexBuffer::allocate(name, layout, elements, usage, *device, m_impl->m_allocator, bufferInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())
-		m_impl->m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*buffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+		device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
 #endif
 
 	return buffer;
@@ -231,6 +248,12 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 	// Validate usage.
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite)) [[unlikely]]
 		throw InvalidArgumentException("usage", "Invalid resource usage has been specified: index buffers cannot be written to.");
+
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot allocate index from a released device instance.");
 
 	// Set heap-default usages.
 	if (heap == ResourceHeap::Staging && !LITEFX_FLAG_IS_SET(usage, ResourceUsage::TransferSource))
@@ -268,17 +291,17 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 	//       barrier for queue family ownership transfer. This would allow to further optimize workloads between queues to minimize resource ownership transfers (i.e.,
 	//       prefer executing workloads that depend on one resource on the same queue, even if it could be run in parallel).
 	UniquePtr<IVulkanIndexBuffer> buffer;
-	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
+	auto queueFamilies = device->queueFamilyIndices() | std::ranges::to<std::vector>();
 
 	bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
-	buffer = VulkanIndexBuffer::allocate(name, layout, elements, usage, m_impl->m_device, m_impl->m_allocator, bufferInfo, allocInfo);
+	buffer = VulkanIndexBuffer::allocate(name, layout, elements, usage, *device, m_impl->m_allocator, bufferInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())
-		m_impl->m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*buffer).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+		device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
 #endif
 
 	return buffer;
@@ -295,11 +318,19 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput)) [[unlikely]]
 		throw InvalidArgumentException("usage", "Invalid resource usage has been specified: image resources cannot be used as build inputs for other acceleration structures.");
 
-	if (dimension == ImageDimensions::CUBE && layers != 6) [[unlikely]]
-		throw ArgumentOutOfRangeException("layers", std::make_pair(6u, 6u), layers, "A cube map must be defined with 6 layers, but {0} are provided.", layers);
+	constexpr UInt32 CUBE_SIDES = 6u;
+
+	if (dimension == ImageDimensions::CUBE && layers != CUBE_SIDES) [[unlikely]]
+		throw ArgumentOutOfRangeException("layers", std::make_pair(CUBE_SIDES, CUBE_SIDES), layers, "A cube map must be defined with 6 layers, but {0} are provided.", layers);
 
 	if (dimension == ImageDimensions::DIM_3 && layers != 1) [[unlikely]]
 		throw ArgumentOutOfRangeException("layers", std::make_pair(1u, 1u), layers, "A 3D texture can only have one layer, but {0} are provided.", layers);
+
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot allocate texture from a released device instance.");
 
 	auto width = std::max<UInt32>(1, static_cast<UInt32>(size.width()));
 	auto height = std::max<UInt32>(1, static_cast<UInt32>(size.height()));
@@ -332,7 +363,7 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 			imageInfo.usage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 	}
 
-	auto queueFamilies = m_impl->m_device.queueFamilyIndices() | std::ranges::to<std::vector>();
+	auto queueFamilies = device->queueFamilyIndices() | std::ranges::to<std::vector>();
 	imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
 	imageInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	imageInfo.pQueueFamilyIndices = queueFamilies.data();
@@ -340,11 +371,11 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-	auto image = VulkanImage::allocate(name, m_impl->m_device, { width, height, depth }, format, dimension, levels, layers, samples, usage, m_impl->m_allocator, imageInfo, allocInfo);
+	auto image = VulkanImage::allocate(name, { width, height, depth }, format, dimension, levels, layers, samples, usage, m_impl->m_allocator, imageInfo, allocInfo);
 
 #ifndef NDEBUG
 	if (!name.empty())
-		m_impl->m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*image).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, name);
+		device->setDebugName(std::as_const(*image).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, name);
 #endif
 
 	return image;
@@ -360,16 +391,28 @@ Enumerable<UniquePtr<IVulkanImage>> VulkanGraphicsFactory::createTextures(UInt32
 
 UniquePtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
 {
-	return makeUnique<VulkanSampler>(m_impl->m_device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot allocate sampler from a released device instance.");
+
+	return makeUnique<VulkanSampler>(*device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
 }
 
 UniquePtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
 {
-	auto sampler = makeUnique<VulkanSampler>(m_impl->m_device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot allocate sampler from a released device instance.");
+
+	auto sampler = makeUnique<VulkanSampler>(*device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
 
 #ifndef NDEBUG
 	if (!name.empty())
-		m_impl->m_device.setDebugName(*reinterpret_cast<const UInt64*>(&std::as_const(*sampler).handle()), VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_EXT, name);
+		device->setDebugName(std::as_const(*sampler).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_EXT, name);
 #endif
 
 	return sampler;

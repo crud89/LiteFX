@@ -77,12 +77,12 @@ int AppVersion::engineStatus() const noexcept
 	return LITEFX_STATUS;
 }
 
-String AppVersion::engineIdentifier() const noexcept
+StringView AppVersion::engineIdentifier() const noexcept
 {
 	return LITEFX_ENGINE_ID;
 }
 
-String AppVersion::engineVersion() const noexcept
+StringView AppVersion::engineVersion() const noexcept
 {
 	return LITEFX_VERSION;
 }

@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Buffer implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanBuffer::VulkanBufferImpl : public Implement<VulkanBuffer> {
+class VulkanBuffer::VulkanBufferImpl {
 public:
 	friend class VulkanBuffer;
 
@@ -20,8 +20,8 @@ private:
 	const VulkanDevice& m_device;
 
 public:
-	VulkanBufferImpl(VulkanBuffer* parent, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation) :
-		base(parent), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_usage(usage), m_allocator(allocator), m_allocation(allocation), m_device(device)
+	VulkanBufferImpl(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation) :
+		m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_usage(usage), m_allocator(allocator), m_allocation(allocation), m_device(device)
 	{
 	}
 };
@@ -31,7 +31,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
-	Resource<VkBuffer>(buffer), m_impl(makePimpl<VulkanBufferImpl>(this, type, elements, elementSize, alignment, usage, device, allocator, allocation))
+	Resource<VkBuffer>(buffer), m_impl(type, elements, elementSize, alignment, usage, device, allocator, allocation)
 {
 	if (!name.empty())
 		this->name() = name;
@@ -99,9 +99,10 @@ void VulkanBuffer::map(const void* const data, size_t size, UInt32 element)
 	if (this->size() - (element * this->alignedElementSize()) < size) [[unlikely]]
 		throw InvalidArgumentException("size", "The provided data size would overflow the buffer (buffer offset: 0x{1:X}; {2} bytes remaining but size was set to {0}).", size, element * this->alignedElementSize(), this->size() - (element * this->alignedElementSize()));
 
-	char* buffer;		// A pointer to the whole (aligned) buffer memory.
-	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
-	std::memcpy(static_cast<void*>(buffer + (element * this->alignedElementSize())), data, size);
+	void* buffer{};		// A pointer to the whole (aligned) buffer memory.
+	void* bufferPtr = static_cast<void*>(buffer);
+	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, &bufferPtr), "Unable to map buffer memory.");
+	std::memcpy(static_cast<char*>(bufferPtr) + (element * this->alignedElementSize()), data, size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
 	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
 }
@@ -122,13 +123,14 @@ void VulkanBuffer::map(void* data, size_t size, UInt32 element, bool write)
 	if (this->size() - (element * this->alignedElementSize()) < size) [[unlikely]]
 		throw InvalidArgumentException("size", "The provided data size would overflow the buffer (buffer offset: 0x{1:X}; {2} bytes remaining but size was set to {0}).", size, element * this->alignedElementSize(), this->size() - (element * this->alignedElementSize()));
 
-	char* buffer;		// A pointer to the whole (aligned) buffer memory.
-	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, reinterpret_cast<void**>(&buffer)), "Unable to map buffer memory.");
+	char* buffer{};		// A pointer to the whole (aligned) buffer memory.
+	void* bufferPtr = static_cast<void*>(buffer);
+	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, &bufferPtr), "Unable to map buffer memory.");
 	
 	if (write)
-		std::memcpy(static_cast<void*>(buffer + (element * this->alignedElementSize())), data, size);
+		std::memcpy(static_cast<char*>(bufferPtr) + (element * this->alignedElementSize()), data, size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 	else
-		std::memcpy(data, static_cast<void*>(buffer + (element * this->alignedElementSize())), size);
+		std::memcpy(data, static_cast<char*>(bufferPtr) + (element * this->alignedElementSize()), size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
 	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
 }
@@ -145,8 +147,8 @@ UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(BufferType type, UInt32 elements
 
 UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
-	VkBuffer buffer;
-	VmaAllocation allocation;
+	VkBuffer buffer{};
+	VmaAllocation allocation{};
 
 	raiseIfFailed(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate buffer.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(buffer)) : name, type, elements, elementSize, elements * elementSize, usage);
@@ -158,7 +160,7 @@ UniquePtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, BufferType t
 // Vertex buffer implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanVertexBuffer::VulkanVertexBufferImpl : public Implement<VulkanVertexBuffer> {
+class VulkanVertexBuffer::VulkanVertexBufferImpl {
 public:
 	friend class VulkanVertexBuffer;
 
@@ -166,8 +168,8 @@ private:
 	const VulkanVertexBufferLayout& m_layout;
 
 public:
-	VulkanVertexBufferImpl(VulkanVertexBuffer* parent, const VulkanVertexBufferLayout& layout) :
-		base(parent), m_layout(layout)
+	VulkanVertexBufferImpl(const VulkanVertexBufferLayout& layout) :
+		m_layout(layout)
 	{
 	}
 };
@@ -177,7 +179,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanVertexBuffer::VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
-	VulkanBuffer(buffer, BufferType::Vertex, elements, layout.elementSize(), 0, usage, device, allocator, allocation, name), m_impl(makePimpl<VulkanVertexBufferImpl>(this, layout))
+	VulkanBuffer(buffer, BufferType::Vertex, elements, layout.elementSize(), 0, usage, device, allocator, allocation, name), m_impl(layout)
 {
 }
 
@@ -195,8 +197,8 @@ UniquePtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const VulkanVertexBu
 
 UniquePtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const String& name, const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
-	VkBuffer buffer;
-	VmaAllocation allocation;
+	VkBuffer buffer{};
+	VmaAllocation allocation{};
 
 	raiseIfFailed(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate vertex buffer.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(buffer)) : name, BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements, usage);
@@ -208,7 +210,7 @@ UniquePtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const String& name, 
 // Index buffer implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanIndexBuffer::VulkanIndexBufferImpl : public Implement<VulkanIndexBuffer> {
+class VulkanIndexBuffer::VulkanIndexBufferImpl {
 public:
 	friend class VulkanIndexBuffer;
 
@@ -216,8 +218,8 @@ private:
 	const VulkanIndexBufferLayout& m_layout;
 
 public:
-	VulkanIndexBufferImpl(VulkanIndexBuffer* parent, const VulkanIndexBufferLayout& layout) :
-		base(parent), m_layout(layout)
+	VulkanIndexBufferImpl(const VulkanIndexBufferLayout& layout) :
+		m_layout(layout)
 	{
 	}
 };
@@ -227,7 +229,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanIndexBuffer::VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
-	VulkanBuffer(buffer, BufferType::Index, elements, layout.elementSize(), 0, usage, device, allocator, allocation, name), m_impl(makePimpl<VulkanIndexBufferImpl>(this, layout))
+	VulkanBuffer(buffer, BufferType::Index, elements, layout.elementSize(), 0, usage, device, allocator, allocation, name), m_impl(layout)
 {
 }
 
@@ -245,8 +247,8 @@ UniquePtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const VulkanIndexBuffe
 
 UniquePtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const String& name, const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
-	VkBuffer buffer;
-	VmaAllocation allocation;
+	VkBuffer buffer{};
+	VmaAllocation allocation{};
 
 	raiseIfFailed(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate index buffer.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(buffer)) : name, BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements, usage);

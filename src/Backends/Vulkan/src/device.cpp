@@ -4,6 +4,7 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 PFN_vkCmdDrawMeshTasksEXT vkCmdDrawMeshTasks{ nullptr };
 PFN_vkCmdDrawMeshTasksIndirectEXT vkCmdDrawMeshTasksIndirect{ nullptr };
 PFN_vkCmdDrawMeshTasksIndirectCountEXT vkCmdDrawMeshTasksIndirectCount{ nullptr };
@@ -16,6 +17,7 @@ PFN_vkCmdWriteAccelerationStructuresPropertiesKHR vkCmdWriteAccelerationStructur
 PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelines{ nullptr };
 PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandles{ nullptr };
 PFN_vkCmdTraceRaysKHR vkCmdTraceRays{ nullptr };
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -28,8 +30,8 @@ public:
 private:
     class QueueFamily {
     private:
-        Array<UniquePtr<VulkanQueue>> m_queues;
-        Array<Float> m_queuePriorities;
+        Array<UniquePtr<VulkanQueue>> m_queues{};
+        Array<Float> m_queuePriorities{};
         UInt32 m_id, m_queueCount;
         QueueType m_type;
 
@@ -65,17 +67,11 @@ private:
             m_queuePriorities.insert(m_queuePriorities.end(), low.cbegin(), low.cend());
 #endif
         }
-        QueueFamily(const QueueFamily& _other) = delete;
-        QueueFamily(QueueFamily&& _other) noexcept {
-            m_queues = std::move(_other.m_queues);
-            m_id = std::move(_other.m_id);
-            m_queueCount = std::move(_other.m_queueCount);
-            m_type = std::move(_other.m_type);
-            m_queuePriorities = std::move(_other.m_queuePriorities);
-        }
-        ~QueueFamily() noexcept {
-            m_queues.clear();
-        }
+        QueueFamily(QueueFamily&& _other) noexcept = default;
+        QueueFamily(const QueueFamily& _other) noexcept = delete;
+        QueueFamily& operator=(QueueFamily&& _other) noexcept = default;
+        QueueFamily& operator=(const QueueFamily & _other) noexcept = delete;
+        ~QueueFamily() noexcept = default;
 
     public:
         VulkanQueue* createQueue(const VulkanDevice& device, QueuePriority priority) {
@@ -85,7 +81,7 @@ private:
 
             if (left == std::end(m_queuePriorities)) [[unlikely]]
             {
-                QueuePriority nextPriority;
+                QueuePriority nextPriority{ QueuePriority::Normal };
 
                 switch (priority)
                 {
@@ -118,9 +114,9 @@ private:
     DeviceState m_deviceState;
 
     Array<QueueFamily> m_families;
-    VulkanQueue* m_graphicsQueue;
-    VulkanQueue* m_transferQueue;
-    VulkanQueue* m_computeQueue;
+    VulkanQueue* m_graphicsQueue{};
+    VulkanQueue* m_transferQueue{};
+    VulkanQueue* m_computeQueue{};
 
     UniquePtr<VulkanSwapChain> m_swapChain;
     Array<String> m_extensions;
@@ -141,8 +137,11 @@ public:
             throw ArgumentNotInitializedException("surface", "The surface must be initialized.");
 
         m_extensions.assign(std::begin(extensions), std::end(extensions));
-
+        
+        // Define mandatory extensions for provided features.
         this->defineMandatoryExtensions(features);
+
+        // Load the queue families.
         this->loadQueueFamilies();
     }
 
@@ -161,7 +160,7 @@ private:
         m_factory = nullptr;
     }
 
-    void defineMandatoryExtensions(const GraphicsDeviceFeatures& features) noexcept
+    void defineMandatoryExtensions(const GraphicsDeviceFeatures& features)
     {
         // NOTE: If an extension is not supported, update the graphics driver to the most recent one. You can lookup extension support for individual drivers here:
         // https://vulkan.gpuinfo.org/listdevicescoverage.php?extension=VK_KHR_present_wait (replace the extension name to adjust the filter).
@@ -386,75 +385,75 @@ public:
         };
 
         // Create the device.
-        VkDevice device;
+        VkDevice device{};
         raiseIfFailed(::vkCreateDevice(m_adapter.handle(), &createInfo, nullptr, &device), "Unable to create Vulkan device.");
 
         // Load extension methods.
 #ifndef NDEBUG
-        debugMarkerSetObjectName = reinterpret_cast<PFN_vkDebugMarkerSetObjectNameEXT>(::vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectNameEXT"));
+        debugMarkerSetObjectName = std::bit_cast<PFN_vkDebugMarkerSetObjectNameEXT>(::vkGetDeviceProcAddr(device, "vkDebugMarkerSetObjectNameEXT"));
 #endif
 
         if (features.MeshShaders)
         {
             if (vkCmdDrawMeshTasks == nullptr)
-                vkCmdDrawMeshTasks = reinterpret_cast<PFN_vkCmdDrawMeshTasksEXT>(::vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksEXT"));
+                vkCmdDrawMeshTasks = std::bit_cast<PFN_vkCmdDrawMeshTasksEXT>(::vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksEXT"));
 
             if (vkCmdDrawMeshTasksIndirect)
-                vkCmdDrawMeshTasksIndirect = reinterpret_cast<PFN_vkCmdDrawMeshTasksIndirectEXT>(::vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksIndirectEXT"));
+                vkCmdDrawMeshTasksIndirect = std::bit_cast<PFN_vkCmdDrawMeshTasksIndirectEXT>(::vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksIndirectEXT"));
 
             if (vkCmdDrawMeshTasksIndirectCount)
-                vkCmdDrawMeshTasksIndirectCount = reinterpret_cast<PFN_vkCmdDrawMeshTasksIndirectCountEXT>(::vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksIndirectCountEXT"));
+                vkCmdDrawMeshTasksIndirectCount = std::bit_cast<PFN_vkCmdDrawMeshTasksIndirectCountEXT>(::vkGetDeviceProcAddr(device, "vkCmdDrawMeshTasksIndirectCountEXT"));
         }
 
         if (features.RayTracing)
         {
             if (vkGetAccelerationStructureBuildSizes == nullptr)
-                vkGetAccelerationStructureBuildSizes = reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(::vkGetDeviceProcAddr(device, "vkGetAccelerationStructureBuildSizesKHR"));
+                vkGetAccelerationStructureBuildSizes = std::bit_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(::vkGetDeviceProcAddr(device, "vkGetAccelerationStructureBuildSizesKHR"));
 
             if (vkCreateAccelerationStructure == nullptr)
-                vkCreateAccelerationStructure = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCreateAccelerationStructureKHR"));
+                vkCreateAccelerationStructure = std::bit_cast<PFN_vkCreateAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCreateAccelerationStructureKHR"));
 
             if (vkDestroyAccelerationStructure == nullptr)
-                vkDestroyAccelerationStructure = reinterpret_cast<PFN_vkDestroyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkDestroyAccelerationStructureKHR"));
+                vkDestroyAccelerationStructure = std::bit_cast<PFN_vkDestroyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkDestroyAccelerationStructureKHR"));
 
             if (vkCmdBuildAccelerationStructures == nullptr)
-                vkCmdBuildAccelerationStructures = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(::vkGetDeviceProcAddr(device, "vkCmdBuildAccelerationStructuresKHR"));
+                vkCmdBuildAccelerationStructures = std::bit_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(::vkGetDeviceProcAddr(device, "vkCmdBuildAccelerationStructuresKHR"));
 
             if (vkCmdCopyAccelerationStructure == nullptr)
-                vkCmdCopyAccelerationStructure = reinterpret_cast<PFN_vkCmdCopyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCmdCopyAccelerationStructureKHR"));
+                vkCmdCopyAccelerationStructure = std::bit_cast<PFN_vkCmdCopyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCmdCopyAccelerationStructureKHR"));
 
             if (vkCmdWriteAccelerationStructuresProperties == nullptr)
-                vkCmdWriteAccelerationStructuresProperties = reinterpret_cast<PFN_vkCmdWriteAccelerationStructuresPropertiesKHR>(::vkGetDeviceProcAddr(device, "vkCmdWriteAccelerationStructuresPropertiesKHR"));
+                vkCmdWriteAccelerationStructuresProperties = std::bit_cast<PFN_vkCmdWriteAccelerationStructuresPropertiesKHR>(::vkGetDeviceProcAddr(device, "vkCmdWriteAccelerationStructuresPropertiesKHR"));
 
             if (vkCreateRayTracingPipelines == nullptr)
-                vkCreateRayTracingPipelines = reinterpret_cast<PFN_vkCreateRayTracingPipelinesKHR>(::vkGetDeviceProcAddr(device, "vkCreateRayTracingPipelinesKHR"));
+                vkCreateRayTracingPipelines = std::bit_cast<PFN_vkCreateRayTracingPipelinesKHR>(::vkGetDeviceProcAddr(device, "vkCreateRayTracingPipelinesKHR"));
 
             if (vkGetRayTracingShaderGroupHandles == nullptr)
-                vkGetRayTracingShaderGroupHandles = reinterpret_cast<PFN_vkGetRayTracingShaderGroupHandlesKHR>(::vkGetDeviceProcAddr(device, "vkGetRayTracingShaderGroupHandlesKHR"));
+                vkGetRayTracingShaderGroupHandles = std::bit_cast<PFN_vkGetRayTracingShaderGroupHandlesKHR>(::vkGetDeviceProcAddr(device, "vkGetRayTracingShaderGroupHandlesKHR"));
 
             if (vkCmdTraceRays == nullptr)
-                vkCmdTraceRays = reinterpret_cast<PFN_vkCmdTraceRaysKHR>(::vkGetDeviceProcAddr(device, "vkCmdTraceRaysKHR"));
+                vkCmdTraceRays = std::bit_cast<PFN_vkCmdTraceRaysKHR>(::vkGetDeviceProcAddr(device, "vkCmdTraceRaysKHR"));
         }
 
         if (features.RayQueries)
         {
             if (vkGetAccelerationStructureBuildSizes == nullptr)
-                vkGetAccelerationStructureBuildSizes = reinterpret_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(::vkGetDeviceProcAddr(device, "vkGetAccelerationStructureBuildSizesKHR"));
+                vkGetAccelerationStructureBuildSizes = std::bit_cast<PFN_vkGetAccelerationStructureBuildSizesKHR>(::vkGetDeviceProcAddr(device, "vkGetAccelerationStructureBuildSizesKHR"));
 
             if (vkCreateAccelerationStructure == nullptr)
-                vkCreateAccelerationStructure = reinterpret_cast<PFN_vkCreateAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCreateAccelerationStructureKHR"));
+                vkCreateAccelerationStructure = std::bit_cast<PFN_vkCreateAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCreateAccelerationStructureKHR"));
 
             if (vkDestroyAccelerationStructure == nullptr)
-                vkDestroyAccelerationStructure = reinterpret_cast<PFN_vkDestroyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkDestroyAccelerationStructureKHR"));
+                vkDestroyAccelerationStructure = std::bit_cast<PFN_vkDestroyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkDestroyAccelerationStructureKHR"));
 
             if (vkCmdBuildAccelerationStructures == nullptr)
-                vkCmdBuildAccelerationStructures = reinterpret_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(::vkGetDeviceProcAddr(device, "vkCmdBuildAccelerationStructuresKHR"));
+                vkCmdBuildAccelerationStructures = std::bit_cast<PFN_vkCmdBuildAccelerationStructuresKHR>(::vkGetDeviceProcAddr(device, "vkCmdBuildAccelerationStructuresKHR"));
 
             if (vkCmdCopyAccelerationStructure == nullptr)
-                vkCmdCopyAccelerationStructure = reinterpret_cast<PFN_vkCmdCopyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCmdCopyAccelerationStructureKHR"));
+                vkCmdCopyAccelerationStructure = std::bit_cast<PFN_vkCmdCopyAccelerationStructureKHR>(::vkGetDeviceProcAddr(device, "vkCmdCopyAccelerationStructureKHR"));
 
             if (vkCmdWriteAccelerationStructuresProperties == nullptr)
-                vkCmdWriteAccelerationStructuresProperties = reinterpret_cast<PFN_vkCmdWriteAccelerationStructuresPropertiesKHR>(::vkGetDeviceProcAddr(device, "vkCmdWriteAccelerationStructuresPropertiesKHR"));
+                vkCmdWriteAccelerationStructuresProperties = std::bit_cast<PFN_vkCmdWriteAccelerationStructuresPropertiesKHR>(::vkGetDeviceProcAddr(device, "vkCmdWriteAccelerationStructuresPropertiesKHR"));
         }
 
         return device;
@@ -522,7 +521,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanDevice::VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features, Span<String> extensions) :
-    VulkanDevice(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features, extensions)
+    VulkanDevice(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features, extensions) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 {
 }
 
@@ -575,16 +574,16 @@ void VulkanDevice::setDebugName([[maybe_unused]] UInt64 handle, [[maybe_unused]]
             .sType = VK_STRUCTURE_TYPE_DEBUG_MARKER_OBJECT_NAME_INFO_EXT,
             .objectType = type,
             .object = handle,
-            .pObjectName = name.data()
+            .pObjectName = name.data() // NOLINT(bugprone-suspicious-stringview-data-usage)
         };
 
         if (m_impl->debugMarkerSetObjectName(this->handle(), &nameInfo) != VK_SUCCESS)
-            LITEFX_WARNING(VULKAN_LOG, "Unable to set object name for object handle {0}.", static_cast<void*>(handle));
+            LITEFX_WARNING(VULKAN_LOG, "Unable to set object name for object handle {0}.", static_cast<const void*>(&handle));
     }
 #endif
 }
 
-Enumerable<UInt32> VulkanDevice::queueFamilyIndices(QueueType type) const noexcept
+Enumerable<UInt32> VulkanDevice::queueFamilyIndices(QueueType type) const
 {
     return m_impl->m_families |
         std::views::filter([type](const auto& family) { return type == QueueType::None || LITEFX_FLAG_IS_SET(family.type(), type); }) |
@@ -692,7 +691,7 @@ const VulkanQueue& VulkanDevice::defaultQueue(QueueType type) const
         throw InvalidArgumentException("type", "No default queue for the provided queue type has was found.");
 }
 
-const VulkanQueue* VulkanDevice::createQueue(QueueType type, QueuePriority priority) noexcept
+const VulkanQueue* VulkanDevice::createQueue(QueueType type, QueuePriority priority)
 {
     return m_impl->createQueue(*this, type, priority);
 }
@@ -737,7 +736,9 @@ MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(Format format) const 
 
 double VulkanDevice::ticksPerMillisecond() const noexcept
 {
-    return 1000000.0 / static_cast<double>(this->adapter().limits().timestampPeriod);
+    constexpr double NANOSECONDS_PER_SECOND = 1000000.0;
+
+    return NANOSECONDS_PER_SECOND / static_cast<double>(this->adapter().limits().timestampPeriod);
 }
 
 void VulkanDevice::wait() const

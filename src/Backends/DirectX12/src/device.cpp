@@ -41,9 +41,9 @@ public:
 			throw ArgumentOutOfRangeException("globalSamplerHeapSize", std::make_pair<UInt32, UInt32>(0, D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE), globalSamplerHeapSize, "Only 2048 samplers are allowed in the global sampler heap, but {0} have been specified.", globalSamplerHeapSize);
 	}
 
-	DirectX12DeviceImpl(DirectX12DeviceImpl&&) noexcept = default;
+	DirectX12DeviceImpl(DirectX12DeviceImpl&&) noexcept = delete;
 	DirectX12DeviceImpl(const DirectX12DeviceImpl&) noexcept = delete;
-	DirectX12DeviceImpl& operator=(DirectX12DeviceImpl&&) noexcept = default;
+	DirectX12DeviceImpl& operator=(DirectX12DeviceImpl&&) noexcept = delete;
 	DirectX12DeviceImpl& operator=(const DirectX12DeviceImpl&) noexcept = delete;
 
 	~DirectX12DeviceImpl() noexcept
@@ -306,8 +306,8 @@ DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX1
 	m_impl->createBlitPipeline(*this);
 }
 
-DirectX12Device::DirectX12Device(DirectX12Device&&) noexcept = default;
-DirectX12Device& DirectX12Device::operator=(DirectX12Device&&) noexcept = default;
+//DirectX12Device::DirectX12Device(DirectX12Device&&) noexcept = default;
+//DirectX12Device& DirectX12Device::operator=(DirectX12Device&&) noexcept = default;
 DirectX12Device::~DirectX12Device() noexcept = default;
 
 const DirectX12Backend& DirectX12Device::backend() const noexcept
@@ -399,7 +399,7 @@ void DirectX12Device::allocateGlobalDescriptors(const DirectX12DescriptorSet& de
 	}
 }
 
-void DirectX12Device::releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const noexcept
+void DirectX12Device::releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const
 {
 	std::lock_guard<std::mutex> lock(m_impl->m_bufferBindMutex);
 
@@ -586,7 +586,7 @@ const DirectX12Queue& DirectX12Device::defaultQueue(QueueType type) const
 		throw InvalidArgumentException("type", "No default queue for the provided queue type has was found.");
 }
 
-const DirectX12Queue* DirectX12Device::createQueue(QueueType type, QueuePriority priority) noexcept
+const DirectX12Queue* DirectX12Device::createQueue(QueueType type, QueuePriority priority)
 {
 	return m_impl->createQueue(*this, type, priority);
 }

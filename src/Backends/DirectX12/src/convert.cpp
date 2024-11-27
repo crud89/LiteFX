@@ -441,7 +441,7 @@ PrimitiveTopology LiteFX::Rendering::Backends::DX12::getPrimitiveTopology(const 
 	case D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_LINESTRIP:
 		return PrimitiveTopology::LineStrip;
 	case D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_LINELIST:
-		return PrimitiveTopology::LineStrip;
+		return PrimitiveTopology::LineList;
 	case D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST:
 		return PrimitiveTopology::TriangleList;
 	case D3D12_PRIMITIVE_TOPOLOGY::D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP:

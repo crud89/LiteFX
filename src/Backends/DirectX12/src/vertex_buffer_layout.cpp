@@ -13,7 +13,7 @@ public:
     friend class DirectX12VertexBufferLayout;
 
 private:
-    Array<UniquePtr<BufferAttribute>> m_attributes{};
+    Array<UniquePtr<BufferAttribute>> m_attributes;
     size_t m_vertexSize;
     UInt32 m_binding;
     BufferType m_bufferType{ BufferType::Vertex };
@@ -35,9 +35,9 @@ DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(size_t vertexSize, UInt
 }
 
 DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(DirectX12VertexBufferLayout&&) noexcept = default;
-DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&) noexcept = default;
+//DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&) noexcept = default;
 DirectX12VertexBufferLayout& DirectX12VertexBufferLayout::operator=(DirectX12VertexBufferLayout&&) noexcept = default;
-DirectX12VertexBufferLayout& DirectX12VertexBufferLayout::operator=(const DirectX12VertexBufferLayout&) noexcept = default;
+//DirectX12VertexBufferLayout& DirectX12VertexBufferLayout::operator=(const DirectX12VertexBufferLayout&) noexcept = default;
 DirectX12VertexBufferLayout::~DirectX12VertexBufferLayout() noexcept = default;
 
 size_t DirectX12VertexBufferLayout::elementSize() const noexcept
@@ -55,7 +55,7 @@ BufferType DirectX12VertexBufferLayout::type() const noexcept
     return m_impl->m_bufferType;
 }
 
-Enumerable<const BufferAttribute*> DirectX12VertexBufferLayout::attributes() const noexcept
+Enumerable<const BufferAttribute*> DirectX12VertexBufferLayout::attributes() const
 {
     return m_impl->m_attributes | std::views::transform([](const UniquePtr<BufferAttribute>& attribute) { return attribute.get(); });
 }

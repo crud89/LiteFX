@@ -31,7 +31,7 @@ void VulkanRasterizer::updateLineWidth(Float lineWidth) noexcept
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRasterizerBuilder::VulkanRasterizerBuilder() noexcept :
+VulkanRasterizerBuilder::VulkanRasterizerBuilder() :
     RasterizerBuilder(SharedPtr<VulkanRasterizer>(new VulkanRasterizer()))
 {
 }
@@ -40,12 +40,12 @@ VulkanRasterizerBuilder::~VulkanRasterizerBuilder() noexcept = default;
 
 void VulkanRasterizerBuilder::build()
 {
-    this->instance()->polygonMode() = m_state.polygonMode;
-    this->instance()->cullMode() = m_state.cullMode;
-    this->instance()->cullOrder() = m_state.cullOrder;
-    this->instance()->lineWidth() = m_state.lineWidth;
-    this->instance()->depthStencilState().depthBias() = m_state.depthBias;
-    this->instance()->depthStencilState().depthState() = m_state.depthState;
-    this->instance()->depthStencilState().stencilState() = m_state.stencilState;
+    this->instance()->polygonMode() = this->state().polygonMode;
+    this->instance()->cullMode() = this->state().cullMode;
+    this->instance()->cullOrder() = this->state().cullOrder;
+    this->instance()->lineWidth() = this->state().lineWidth;
+    this->instance()->depthStencilState().depthBias() = this->state().depthBias;
+    this->instance()->depthStencilState().depthState() = this->state().depthState;
+    this->instance()->depthStencilState().stencilState() = this->state().stencilState;
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

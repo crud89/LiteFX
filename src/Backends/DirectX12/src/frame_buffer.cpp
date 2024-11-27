@@ -207,7 +207,7 @@ void DirectX12FrameBuffer::unmapRenderTarget(const RenderTarget& renderTarget) n
     m_impl->m_mappedRenderTargets.erase(renderTarget.identifier());
 }
 
-Enumerable<const IDirectX12Image*> DirectX12FrameBuffer::images() const noexcept
+Enumerable<const IDirectX12Image*> DirectX12FrameBuffer::images() const
 {
     return m_impl->m_images | std::views::transform([](auto& image) { return image.get(); });
 }

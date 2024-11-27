@@ -56,7 +56,7 @@ public:
 
 private:
     Array<UniquePtr<VulkanShaderModule>> m_modules;
-    const VulkanDevice& m_device;
+    WeakPtr<const VulkanDevice> m_device;
 
 private:
     struct DescriptorInfo {
@@ -79,8 +79,8 @@ private:
 
     struct DescriptorSetInfo {
     public:
-        UInt32 space;
-        ShaderStage stage;
+        UInt32 space{};
+        ShaderStage stage{};
         Array<DescriptorInfo> descriptors;
     };
 
@@ -93,13 +93,13 @@ private:
 
 public:
     VulkanShaderProgramImpl(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules) :
-        m_device(device)
+        m_device(device.weak_from_this())
     {
-        m_modules = modules | std::views::as_rvalue | std::ranges::to<std::vector>();
+        m_modules = std::move(modules) | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     VulkanShaderProgramImpl(const VulkanDevice& device) :
-        m_device(device)
+        m_device(device.weak_from_this())
     {
     }
 
@@ -155,7 +155,7 @@ public:
         {
             if (containsGraphicsGroup || containsMeshGroup || containsFragmentGroup) [[unlikely]]
                 throw InvalidArgumentException("modules", "If a shader program contains ray-tracing shaders, it must only contain ray-tracing shaders.");
-            if (containsRaytracingGroup && shaders[ShaderStage::RayGeneration] != 1) [[unlikely]]
+            if (shaders[ShaderStage::RayGeneration] != 1) [[unlikely]]
                 throw InvalidArgumentException("modules", "If ray-tracing shaders are present, there must also be exactly one ray generation shader.");
                 
             return;
@@ -196,12 +196,18 @@ public:
 
     SharedPtr<VulkanPipelineLayout> reflectPipelineLayout()
     {
+        // Check if the device is still valid.
+        auto device = m_device.lock();
+
+        if (device == nullptr) [[unlikely]]
+            throw RuntimeException("Cannot create pipeline layout from a released device instance.");
+
         // First, filter the descriptor sets and push constant ranges.
         Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts;
         Array<PushConstantRangeInfo> pushConstantRanges;
 
         // Extract reflection data from all shader modules.
-        std::ranges::for_each(m_modules, [&descriptorSetLayouts, &pushConstantRanges](UniquePtr<VulkanShaderModule>& shaderModule) {
+        std::ranges::for_each(m_modules, [&descriptorSetLayouts, &pushConstantRanges, device](UniquePtr<VulkanShaderModule>& shaderModule) {
             // Read the file and initialize a reflection module.
             auto bytecode = shaderModule->bytecode();
             spv_reflect::ShaderModule reflection(bytecode.size(), bytecode.c_str());
@@ -211,8 +217,9 @@ public:
                 throw RuntimeException("Unable to reflect shader module (Error {0:x}).", static_cast<UInt32>(reflection.GetResult()));
 
             // Get the number of descriptor sets and push constants.
-            UInt32 descriptorSetCount, pushConstantCount;
+            UInt32 descriptorSetCount{}, pushConstantCount{};
 
+            // NOLINTBEGIN(bugprone-assignment-in-if-condition)
             if ((result = reflection.EnumerateDescriptorSets(&descriptorSetCount, nullptr)) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
                 throw RuntimeException("Unable to get descriptor set count (Error {0:x}).", static_cast<UInt32>(result));
 
@@ -228,17 +235,18 @@ public:
 
             if ((result = reflection.EnumeratePushConstantBlocks(&pushConstantCount, pushConstants.data())) != SPV_REFLECT_RESULT_SUCCESS) [[unlikely]]
                 throw RuntimeException("Unable to enumerate push constants (Error {0:x}).", static_cast<UInt32>(result));
-
+            // NOLINTEND(bugprone-assignment-in-if-condition)
+            
             // Parse the descriptor sets.
             std::ranges::for_each(descriptorSets, [&shaderModule, &descriptorSetLayouts](const SpvReflectDescriptorSet* descriptorSet) {
                 // Get all descriptor layouts.
                 Array<DescriptorInfo> descriptors(descriptorSet->binding_count);
 
                 std::ranges::generate(descriptors, [&descriptorSet, i = 0]() mutable {
-                    auto descriptor = descriptorSet->bindings[i++];
+                    auto descriptor = descriptorSet->bindings[i++]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
                     // Filter the descriptor type.
-                    DescriptorType type;
+                    DescriptorType type{};
                     UInt32 inputAttachmentIndex = 0;
 
                     switch (descriptor->descriptor_type)
@@ -266,7 +274,7 @@ public:
                         // All buffers should have at least one member that stores the type info about the contained type. Descriptor arrays are of type `SpvOpTypeRuntimeArray`. To differentiate
                         // between `ByteAddressBuffer` and `StructuredBuffer`, we check the type flags of the first member. If it identifies an array of DWORDs, we treat the descriptor as 
                         // `ByteAddressBuffer`, though it could be a flavor of `StructuredBuffer<int>`. This is conceptually identical, so it ultimately makes no difference.
-                        if ((descriptor->type_description->members[0].type_flags & SPV_REFLECT_TYPE_FLAG_STRUCT) == SPV_REFLECT_TYPE_FLAG_STRUCT)
+                        if ((descriptor->type_description->members[0].type_flags & SPV_REFLECT_TYPE_FLAG_STRUCT) == SPV_REFLECT_TYPE_FLAG_STRUCT) // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
                             type = (descriptor->resource_type & SPV_REFLECT_RESOURCE_FLAG_SRV) == SPV_REFLECT_RESOURCE_FLAG_SRV ? DescriptorType::StructuredBuffer : DescriptorType::RWStructuredBuffer;
                         else
                             type = (descriptor->resource_type & SPV_REFLECT_RESOURCE_FLAG_SRV) == SPV_REFLECT_RESOURCE_FLAG_SRV ? DescriptorType::ByteAddressBuffer : DescriptorType::RWByteAddressBuffer;
@@ -327,7 +335,7 @@ public:
         });
 
         // Create the descriptor set layouts.
-        auto descriptorSets = [this, &descriptorSetLayouts]() -> std::generator<UniquePtr<VulkanDescriptorSetLayout>> {
+        auto descriptorSets = [&descriptorSetLayouts](SharedPtr<const VulkanDevice> device) -> std::generator<UniquePtr<VulkanDescriptorSetLayout>> {
             for (auto it = descriptorSetLayouts.begin(); it != descriptorSetLayouts.end(); ++it)
             {
                 auto& descriptorSet = it->second;
@@ -340,9 +348,9 @@ public:
                             makeUnique<VulkanDescriptorLayout>(descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements);
                 }() | std::views::as_rvalue;
 
-                co_yield makeUnique<VulkanDescriptorSetLayout>(m_device, std::move(descriptorLayouts), descriptorSet.space, descriptorSet.stage);
+                co_yield makeUnique<VulkanDescriptorSetLayout>(*device, std::move(descriptorLayouts), descriptorSet.space, descriptorSet.stage);
             }
-        }() | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<VulkanDescriptorSetLayout>>>();
+        }(device) | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<VulkanDescriptorSetLayout>>>();
 
         // Create the push constants layout.
         auto pushConstants = [&pushConstantRanges]() -> std::generator<UniquePtr<VulkanPushConstantsRange>> {
@@ -354,7 +362,7 @@ public:
         auto pushConstantsLayout = makeUnique<VulkanPushConstantsLayout>(std::move(pushConstants), overallSize);
 
         // Return the pipeline layout.
-        return makeShared<VulkanPipelineLayout>(m_device, std::move(descriptorSets), std::move(pushConstantsLayout));
+        return makeShared<VulkanPipelineLayout>(*device, std::move(descriptorSets), std::move(pushConstantsLayout));
     }
 };
 
@@ -368,19 +376,14 @@ VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device, Enumerable<
     m_impl->validate();
 }
 
-VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device) noexcept :
+VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device) :
     m_impl(device)
 {
 }
 
 VulkanShaderProgram::~VulkanShaderProgram() noexcept = default;
 
-SharedPtr<VulkanShaderProgram> VulkanShaderProgram::create(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules)
-{
-    return SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device, std::move(modules)));
-}
-
-Enumerable<const VulkanShaderModule*> VulkanShaderProgram::modules() const noexcept
+Enumerable<const VulkanShaderModule*> VulkanShaderProgram::modules() const
 {
     return m_impl->m_modules | std::views::transform([](const UniquePtr<VulkanShaderModule>& shader) { return shader.get(); });
 }
@@ -392,29 +395,11 @@ SharedPtr<VulkanPipelineLayout> VulkanShaderProgram::reflectPipelineLayout() con
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
-// Shader program builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class VulkanShaderProgramBuilder::VulkanShaderProgramBuilderImpl {
-public:
-    friend class VulkanShaderProgramBuilder;
-
-private:
-    const VulkanDevice& m_device;
-
-public:
-    VulkanShaderProgramBuilderImpl(const VulkanDevice& device) :
-        m_device(device)
-    {
-    }
-};
-
-// ------------------------------------------------------------------------------------------------
 // Shader program builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
 VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(const VulkanDevice& device) :
-    ShaderProgramBuilder(SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device))), m_impl(device)
+    ShaderProgramBuilder(SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device)))
 {
 }
 
@@ -422,17 +407,29 @@ VulkanShaderProgramBuilder::~VulkanShaderProgramBuilder() noexcept = default;
 
 void VulkanShaderProgramBuilder::build()
 {
-    this->instance()->m_impl->m_modules = std::move(m_state.modules);
+    this->instance()->m_impl->m_modules = std::move(this->state().modules);
     this->instance()->m_impl->validate();
 }
 
 UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
-    return makeUnique<VulkanShaderModule>(m_impl->m_device, type, fileName, entryPoint, shaderLocalDescriptor);
+    // Check if the device is still valid.
+    auto device = this->instance()->m_impl->m_device.lock();
+
+    if (device == nullptr) [[unlikely]]
+        throw RuntimeException("Cannot allocate shader module from a released device instance.");
+
+    return makeUnique<VulkanShaderModule>(*device, type, fileName, entryPoint, shaderLocalDescriptor);
 }
 
 UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
-    return makeUnique<VulkanShaderModule>(m_impl->m_device, type, stream, name, entryPoint, shaderLocalDescriptor);
+    // Check if the device is still valid.
+    auto device = this->instance()->m_impl->m_device.lock();
+
+    if (device == nullptr) [[unlikely]]
+        throw RuntimeException("Cannot allocate shader module from a released device instance.");
+
+    return makeUnique<VulkanShaderModule>(*device, type, stream, name, entryPoint, shaderLocalDescriptor);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

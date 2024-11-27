@@ -38,10 +38,10 @@ VulkanDescriptorSet& VulkanDescriptorSet::operator=(VulkanDescriptorSet&&) noexc
 VulkanDescriptorSet::~VulkanDescriptorSet() noexcept
 {
     for (auto& bufferView : m_impl->m_bufferViews)
-        ::vkDestroyBufferView(m_impl->m_layout.device().handle(), bufferView.second, nullptr);
+        ::vkDestroyBufferView(m_impl->m_layout.device()->handle(), bufferView.second, nullptr);
 
     for (auto& imageView : m_impl->m_imageViews)
-        ::vkDestroyImageView(m_impl->m_layout.device().handle(), imageView.second, nullptr);
+        ::vkDestroyImageView(m_impl->m_layout.device()->handle(), imageView.second, nullptr);
 
     m_impl->m_layout.free(*this);
 }
@@ -128,8 +128,8 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
             .range = buffer.alignedElementSize() * elementCount
         };
 
-        VkBufferView bufferView;
-        raiseIfFailed(::vkCreateBufferView(m_impl->m_layout.device().handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
+        VkBufferView bufferView{};
+        raiseIfFailed(::vkCreateBufferView(m_impl->m_layout.device()->handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
         m_impl->m_bufferViews[binding] = bufferView;
 
         descriptorWrite.pTexelBufferView = &bufferView;
@@ -149,8 +149,8 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
             .range = buffer.alignedElementSize() * elementCount
         };
 
-        VkBufferView bufferView;
-        raiseIfFailed(::vkCreateBufferView(m_impl->m_layout.device().handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
+        VkBufferView bufferView{};
+        raiseIfFailed(::vkCreateBufferView(m_impl->m_layout.device()->handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
         m_impl->m_bufferViews[binding] = bufferView;
 
         descriptorWrite.pTexelBufferView = &bufferView;
@@ -163,12 +163,12 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
     // Remove the buffer view, if there is one bound to the current descriptor.
     if (m_impl->m_bufferViews.contains(binding))
     {
-        ::vkDestroyBufferView(m_impl->m_layout.device().handle(), m_impl->m_bufferViews[binding], nullptr);
+        ::vkDestroyBufferView(m_impl->m_layout.device()->handle(), m_impl->m_bufferViews[binding], nullptr);
         m_impl->m_bufferViews.erase(binding);
     }
 
     // Update the descriptor set.
-    ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
+    ::vkUpdateDescriptorSets(m_impl->m_layout.device()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
@@ -215,7 +215,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
     // Remove the image view, if there is one bound to the current descriptor.
     if (m_impl->m_imageViews.contains(binding))
     {
-        ::vkDestroyImageView(m_impl->m_layout.device().handle(), m_impl->m_imageViews[binding], nullptr);
+        ::vkDestroyImageView(m_impl->m_layout.device()->handle(), m_impl->m_imageViews[binding], nullptr);
         m_impl->m_imageViews.erase(binding);
     }
     
@@ -255,12 +255,12 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
             imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
     }
 
-    VkImageView imageView;
-    raiseIfFailed(::vkCreateImageView(m_impl->m_layout.device().handle(), &imageViewDesc, nullptr, &imageView), "Unable to create image view.");
+    VkImageView imageView{};
+    raiseIfFailed(::vkCreateImageView(m_impl->m_layout.device()->handle(), &imageViewDesc, nullptr, &imageView), "Unable to create image view.");
     m_impl->m_imageViews[binding] = imageView;
     imageInfo.imageView = imageView;
 
-    ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
+    ::vkUpdateDescriptorSets(m_impl->m_layout.device()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, UInt32 descriptor) const
@@ -292,7 +292,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, 
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
 
-    ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
+    ::vkUpdateDescriptorSets(m_impl->m_layout.device()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStructure& accelerationStructure, UInt32 descriptor) const
@@ -331,5 +331,5 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStruct
         .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
     };
 
-    ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
+    ::vkUpdateDescriptorSets(m_impl->m_layout.device()->handle(), 1, &descriptorWrite, 0, nullptr);
 }

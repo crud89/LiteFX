@@ -50,7 +50,7 @@ namespace LiteFX {
 		/// Gets the name of the backend.
 		/// </summary>
 		/// <returns>The name of the backend.</returns>
-		virtual String name() const noexcept = 0;
+		virtual StringView name() const noexcept = 0;
 
 	protected:
 		/// <summary>
@@ -221,7 +221,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="subscriber">A delegate for the event handler.</param>
 		/// <returns>A unique token of the event handler.</returns>
-		event_token_type add(function_type subscriber) noexcept {
+		event_token_type add(function_type subscriber) {
 			const auto match = std::max_element(m_subscribers.begin(), m_subscribers.end(), [](const auto& lhs, const auto& rhs) { return lhs.token() < rhs.token(); });
 			event_token_type token = match == m_subscribers.end() ? 0 : match->token() + 1;
 			m_subscribers.emplace_back(subscriber, token);
@@ -447,7 +447,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="type">The backend type of the requested backends.</param>
 		/// <returns>All registered instances of <paramref name="type" />.</returns>
-		Enumerable<const IBackend*> getBackends(const BackendType type) const noexcept;
+		Enumerable<const IBackend*> getBackends(const BackendType type) const;
 
 	protected:
 		/// <summary>

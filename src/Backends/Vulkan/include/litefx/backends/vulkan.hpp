@@ -34,13 +34,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanVertexBufferLayout(VulkanVertexBufferLayout&&) noexcept;
 
         /// <inheritdoc />
-        VulkanVertexBufferLayout(const VulkanVertexBufferLayout&) noexcept;
+        VulkanVertexBufferLayout(const VulkanVertexBufferLayout&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanVertexBufferLayout& operator=(VulkanVertexBufferLayout&&) noexcept;
 
         /// <inheritdoc />
-        VulkanVertexBufferLayout& operator=(const VulkanVertexBufferLayout&) noexcept;
+        VulkanVertexBufferLayout& operator=(const VulkanVertexBufferLayout&) noexcept = delete;
 
         /// <inheritdoc />
         ~VulkanVertexBufferLayout() noexcept override;
@@ -48,7 +48,7 @@ namespace LiteFX::Rendering::Backends {
         // IVertexBufferLayout interface.
     public:
         /// <inheritdoc />
-        Enumerable<const BufferAttribute*> attributes() const noexcept override;
+        Enumerable<const BufferAttribute*> attributes() const override;
 
         // IBufferLayout interface.
     public:
@@ -404,7 +404,7 @@ namespace LiteFX::Rendering::Backends {
         bool remove(const Instance& mesh) noexcept override;
 
     private:
-        Array<VkAccelerationStructureInstanceKHR> buildInfo() const noexcept;
+        Array<VkAccelerationStructureInstanceKHR> buildInfo() const;
         void updateState(const VulkanDevice* device, VkAccelerationStructureKHR handle) noexcept;
 
     private:
@@ -466,7 +466,7 @@ namespace LiteFX::Rendering::Backends {
         PipelineStage syncAfter() const noexcept override;
 
         /// <inheritdoc />
-        void wait(ResourceAccess accessBefore, ResourceAccess accessAfter) noexcept override;
+        void wait(ResourceAccess accessBefore, ResourceAccess accessAfter) override;
 
         /// <inheritdoc />
         void transition(const IVulkanBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) override;
@@ -492,7 +492,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="commandBuffer">The command buffer to add the barriers to.</param>
         /// <exception cref="RuntimeException">Thrown, if any of the contained barriers is a image barrier that targets a sub-resource range that does not share the same <see cref="ImageLayout" /> in all sub-resources.</exception>
-        void execute(const VulkanCommandBuffer& commandBuffer) const noexcept;
+        void execute(const VulkanCommandBuffer& commandBuffer) const;
     };
 
     /// <summary>
@@ -591,7 +591,7 @@ namespace LiteFX::Rendering::Backends {
         /// Initializes a new Vulkan shader program.
         /// </summary>
         /// <param name="device">The parent device of the shader program.</param>
-        explicit VulkanShaderProgram(const VulkanDevice& device) noexcept;
+        explicit VulkanShaderProgram(const VulkanDevice& device);
 
         // Factory method.
     public:
@@ -600,7 +600,9 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="device">The parent device of the shader program.</param>
         /// <param name="modules">The shader modules used by the shader program.</param>
-        static SharedPtr<VulkanShaderProgram> create(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules);
+        static inline SharedPtr<VulkanShaderProgram> create(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules) {
+            return SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device, std::move(modules)));
+        }
 
     public:
         /// <inheritdoc />
@@ -620,7 +622,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        Enumerable<const VulkanShaderModule*> modules() const noexcept override;
+        Enumerable<const VulkanShaderModule*> modules() const override;
 
         /// <inheritdoc />
         virtual SharedPtr<VulkanPipelineLayout> reflectPipelineLayout() const;
@@ -819,14 +821,14 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <summary>
-        /// Returns the device, the pipeline layout has been created from.
+        /// Returns a pointer to the device, the pipeline layout has been created from or `nullptr`, if the device has already been released.
         /// </summary>
-        /// <returns>A reference of the device, the pipeline layout has been created from.</returns>
-        virtual const VulkanDevice& device() const noexcept;
+        /// <returns>A pointer to the device, the pipeline layout has been created from.</returns>
+        SharedPtr<const VulkanDevice> device() const noexcept;
 
     public:
         /// <inheritdoc />
-        Enumerable<const VulkanDescriptorLayout*> descriptors() const noexcept override;
+        Enumerable<const VulkanDescriptorLayout*> descriptors() const override;
 
         /// <inheritdoc />
         const VulkanDescriptorLayout& descriptor(UInt32 binding) const override;
@@ -878,7 +880,7 @@ namespace LiteFX::Rendering::Backends {
         Enumerable<UniquePtr<VulkanDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override;
 
         /// <inheritdoc />
-        void free(const VulkanDescriptorSet& descriptorSet) const noexcept override;
+        void free(const VulkanDescriptorSet& descriptorSet) const override;
 
     public:
         /// <summary>
@@ -972,7 +974,7 @@ namespace LiteFX::Rendering::Backends {
         VulkanPushConstantsLayout& operator=(const VulkanPushConstantsLayout&) noexcept = delete;
 
         /// <inheritdoc />
-        virtual ~VulkanPushConstantsLayout() noexcept;
+        ~VulkanPushConstantsLayout() noexcept override;
 
     private:
         /// <summary>
@@ -1003,7 +1005,7 @@ namespace LiteFX::Rendering::Backends {
         const VulkanPushConstantsRange& range(ShaderStage stage) const override;
 
         /// <inheritdoc />
-        Enumerable<const VulkanPushConstantsRange*> ranges() const noexcept override;
+        Enumerable<const VulkanPushConstantsRange*> ranges() const override;
     };
 
     /// <summary>
@@ -1047,10 +1049,10 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <summary>
-        /// Returns a reference to the device that provides this layout.
+        /// Returns a pointer to the device that provides this layout or `nullptr`, if the device has already been released.
         /// </summary>
-        /// <returns>A reference to the layouts parent device.</returns>
-        virtual const VulkanDevice& device() const noexcept;
+        /// <returns>A pointer to the layouts parent device.</returns>
+        SharedPtr<const VulkanDevice> device() const noexcept;
 
         // PipelineLayout interface.
     public:
@@ -1058,7 +1060,7 @@ namespace LiteFX::Rendering::Backends {
         const VulkanDescriptorSetLayout& descriptorSet(UInt32 space) const override;
 
         /// <inheritdoc />
-        Enumerable<const VulkanDescriptorSetLayout*> descriptorSets() const noexcept override;
+        Enumerable<const VulkanDescriptorSetLayout*> descriptorSets() const override;
 
         /// <inheritdoc />
         const VulkanPushConstantsLayout* pushConstants() const noexcept override;
@@ -1104,7 +1106,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        Enumerable<const VulkanVertexBufferLayout*> vertexBufferLayouts() const noexcept override;
+        Enumerable<const VulkanVertexBufferLayout*> vertexBufferLayouts() const override;
 
 		/// <inheritdoc />
 		const VulkanVertexBufferLayout* vertexBufferLayout(UInt32 binding) const override;
@@ -1147,7 +1149,7 @@ namespace LiteFX::Rendering::Backends {
         VulkanRasterizer& operator=(const VulkanRasterizer&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanRasterizer() noexcept override;
+        ~VulkanRasterizer() noexcept override;
 
     private:
         /// <summary>
@@ -1193,14 +1195,14 @@ namespace LiteFX::Rendering::Backends {
         /// Sets the current pipeline state on the <paramref name="commandBuffer" />.
         /// </summary>
         /// <param name="commandBuffer">The command buffer to set the current pipeline state on.</param>
-        virtual void use(const VulkanCommandBuffer& commandBuffer) const noexcept = 0;
+        virtual void use(const VulkanCommandBuffer& commandBuffer) const = 0;
 
         /// <summary>
         /// Binds a descriptor set on a command buffer.
         /// </summary>
         /// <param name="commandBuffer">The command buffer to issue the bind command on.</param>
         /// <param name="descriptorSets">The descriptor sets to bind.</param>
-        virtual void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const noexcept = 0;
+        virtual void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const = 0;
     };
 
     /// <summary>
@@ -1289,16 +1291,16 @@ namespace LiteFX::Rendering::Backends {
         bool isSecondary() const noexcept override;
 
         /// <inheritdoc />
-        void setViewports(Span<const IViewport*> viewports) const noexcept override;
+        void setViewports(Span<const IViewport*> viewports) const override;
 
         /// <inheritdoc />
-        void setViewports(const IViewport* viewport) const noexcept override;
+        void setViewports(const IViewport* viewport) const override;
 
         /// <inheritdoc />
-        void setScissors(Span<const IScissor*> scissors) const noexcept override;
+        void setScissors(Span<const IScissor*> scissors) const override;
 
         /// <inheritdoc />
-        void setScissors(const IScissor* scissor) const noexcept override;
+        void setScissors(const IScissor* scissor) const override;
 
         /// <inheritdoc />
         void setBlendFactors(const Vector4f& blendFactors) const noexcept override;
@@ -1519,13 +1521,13 @@ namespace LiteFX::Rendering::Backends {
 #ifdef LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
     public:
         /// <inheritdoc />
-        void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
+        void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept override;
 
         /// <inheritdoc />
         void endDebugRegion() const noexcept override;
 
         /// <inheritdoc />
-        void setDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
+        void setDebugMarker(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept override;
 #endif // LITEFX_BUILD_SUPPORT_DEBUG_MARKERS
 
     public:
@@ -1563,7 +1565,7 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     /// <seealso cref="VulkanComputePipeline" />
     /// <seealso cref="VulkanRenderPipelineBuilder" />
-    class LITEFX_VULKAN_API VulkanRenderPipeline final : public RenderPipeline<VulkanPipelineLayout, VulkanShaderProgram, VulkanInputAssembler, VulkanRasterizer>, public VulkanPipelineState {
+    class LITEFX_VULKAN_API VulkanRenderPipeline final : public virtual VulkanPipelineState, public RenderPipeline<VulkanPipelineLayout, VulkanShaderProgram, VulkanInputAssembler, VulkanRasterizer> {
         LITEFX_IMPLEMENTATION(VulkanRenderPipelineImpl);
         LITEFX_BUILDER(VulkanRenderPipelineBuilder);
 
@@ -1582,13 +1584,13 @@ namespace LiteFX::Rendering::Backends {
         explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool enableAlphaToCoverage = false, const String& name = "");
 
         /// <inheritdoc />
-        VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept;
+        VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanRenderPipeline& operator=(VulkanRenderPipeline&&) noexcept;
+        VulkanRenderPipeline& operator=(VulkanRenderPipeline&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanRenderPipeline& operator=(const VulkanRenderPipeline&) noexcept = delete;
@@ -1602,7 +1604,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="renderPass">The parent render pass.</param>
         /// <param name="name">The optional name of the render pipeline.</param>
-        VulkanRenderPipeline(const VulkanRenderPass& renderPass, const String& name = "") noexcept;
+        VulkanRenderPipeline(const VulkanRenderPass& renderPass, const String& name = "");
 
         // Pipeline interface.
     public:
@@ -1632,10 +1634,10 @@ namespace LiteFX::Rendering::Backends {
         // VulkanPipelineState interface.
     public:
         /// <inheritdoc />
-        void use(const VulkanCommandBuffer& commandBuffer) const noexcept override;
+        void use(const VulkanCommandBuffer& commandBuffer) const override;
 
         /// <inheritdoc />
-        void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const noexcept override;
+        void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const override;
     };
 
     /// <summary>
@@ -1643,7 +1645,7 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     /// <seealso cref="VulkanRenderPipeline" />
     /// <seealso cref="VulkanComputePipelineBuilder" />
-    class LITEFX_VULKAN_API VulkanComputePipeline final : public ComputePipeline<VulkanPipelineLayout, VulkanShaderProgram>, public VulkanPipelineState {
+    class LITEFX_VULKAN_API VulkanComputePipeline final : public virtual VulkanPipelineState, public ComputePipeline<VulkanPipelineLayout, VulkanShaderProgram> {
         LITEFX_IMPLEMENTATION(VulkanComputePipelineImpl);
         LITEFX_BUILDER(VulkanComputePipelineBuilder);
 
@@ -1690,10 +1692,10 @@ namespace LiteFX::Rendering::Backends {
         // VulkanPipelineState interface.
     public:
         /// <inheritdoc />
-        void use(const VulkanCommandBuffer& commandBuffer) const noexcept override;
+        void use(const VulkanCommandBuffer& commandBuffer) const override;
 
         /// <inheritdoc />
-        void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const noexcept override;
+        void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const override;
     };
     
     /// <summary>
@@ -1701,7 +1703,7 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     /// <seealso cref="VulkanRenderPipeline" />
     /// <seealso cref="VulkanRayTracingPipelineBuilder" />
-    class LITEFX_VULKAN_API VulkanRayTracingPipeline final : public RayTracingPipeline<VulkanPipelineLayout, VulkanShaderProgram>, public VulkanPipelineState {
+    class LITEFX_VULKAN_API VulkanRayTracingPipeline final : public virtual VulkanPipelineState, public RayTracingPipeline<VulkanPipelineLayout, VulkanShaderProgram> {
         LITEFX_IMPLEMENTATION(VulkanRayTracingPipelineImpl);
         LITEFX_BUILDER(VulkanRayTracingPipelineBuilder);
 
@@ -1717,7 +1719,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="maxPayloadSize">The maximum size for ray payloads in the pipeline.</param>
         /// <param name="maxAttributeSize">The maximum size for ray attributes in the pipeline.</param>
         /// <param name="name">The optional debug name of the render pipeline.</param>
-        explicit VulkanRayTracingPipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth = 10, UInt32 maxPayloadSize = 0, UInt32 maxAttributeSize = 32, const String& name = "");
+        explicit VulkanRayTracingPipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth = 10, UInt32 maxPayloadSize = 0, UInt32 maxAttributeSize = 32, const String& name = ""); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
         /// <inheritdoc />
         VulkanRayTracingPipeline(VulkanRayTracingPipeline&&) noexcept;
@@ -1765,15 +1767,15 @@ namespace LiteFX::Rendering::Backends {
         UInt32 maxAttributeSize() const noexcept override;
 
         /// <inheritdoc />
-        UniquePtr<IVulkanBuffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups = ShaderBindingGroup::All) const noexcept override;
+        UniquePtr<IVulkanBuffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups = ShaderBindingGroup::All) const override;
 
         // VulkanPipelineState interface.
     public:
         /// <inheritdoc />
-        void use(const VulkanCommandBuffer& commandBuffer) const noexcept override;
+        void use(const VulkanCommandBuffer& commandBuffer) const override;
 
         /// <inheritdoc />
-        void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const noexcept override;
+        void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const override;
     };
 
     /// <summary>
@@ -1859,7 +1861,7 @@ namespace LiteFX::Rendering::Backends {
         void unmapRenderTarget(const RenderTarget& renderTarget) noexcept override;
 
         /// <inheritdoc />
-        Enumerable<const IVulkanImage*> images() const noexcept override;
+        Enumerable<const IVulkanImage*> images() const override;
 
         /// <inheritdoc />
         inline const IVulkanImage& operator[](UInt32 index) const override {
@@ -1981,56 +1983,56 @@ namespace LiteFX::Rendering::Backends {
         /// </remarks>
         /// <param name="device">The parent device of the render pass.</param>
         /// <param name="name">The name of the render pass state resource.</param>
-        explicit VulkanRenderPass(const VulkanDevice& device, const String& name = "") noexcept;
+        explicit VulkanRenderPass(const VulkanDevice& device, const String& name = "");
 
         // Vulkan render pass interface.
     public:
         /// <summary>
-        /// Returns a reference to the device that provides this queue.
+        /// Returns a pointer to the device that provides this queue or `nullptr`, if the device is already released.
         /// </summary>
-        /// <returns>A reference to the queue's parent device.</returns>
-        virtual const VulkanDevice& device() const noexcept;
+        /// <returns>A pointer to the queue's parent device.</returns>
+        SharedPtr<const VulkanDevice> device() const noexcept;
 
         // RenderPass interface.
     public:
         /// <inheritdoc />
-        const VulkanFrameBuffer& activeFrameBuffer() const;
+        const VulkanFrameBuffer& activeFrameBuffer() const override;
 
         /// <inheritdoc />
-        const VulkanQueue& commandQueue() const noexcept;
+        const VulkanQueue& commandQueue() const noexcept override;
 
         /// <inheritdoc />
-        Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers() const noexcept;
+        Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers() const override;
 
         /// <inheritdoc />
-        SharedPtr<const VulkanCommandBuffer> commandBuffer(UInt32 index) const;
+        SharedPtr<const VulkanCommandBuffer> commandBuffer(UInt32 index) const override;
 
         /// <inheritdoc />
-        UInt32 secondaryCommandBuffers() const noexcept;
+        UInt32 secondaryCommandBuffers() const noexcept override;
 
         /// <inheritdoc />
-        const Array<RenderTarget>& renderTargets() const noexcept;
+        const Array<RenderTarget>& renderTargets() const noexcept override;
 
         /// <inheritdoc />
-        const RenderTarget& renderTarget(UInt32 location) const;
+        const RenderTarget& renderTarget(UInt32 location) const override;
 
         /// <inheritdoc />
-        bool hasPresentTarget() const noexcept;
+        bool hasPresentTarget() const noexcept override;
 
         /// <inheritdoc />
-        const Array<RenderPassDependency>& inputAttachments() const noexcept;
+        const Array<RenderPassDependency>& inputAttachments() const noexcept override;
 
         /// <inheritdoc />
-        const RenderPassDependency& inputAttachment(UInt32 location) const;
+        const RenderPassDependency& inputAttachment(UInt32 location) const override;
         
         /// <inheritdoc />
-        const Optional<DescriptorBindingPoint>& inputAttachmentSamplerBinding() const noexcept;
+        const Optional<DescriptorBindingPoint>& inputAttachmentSamplerBinding() const noexcept override;
 
         /// <inheritdoc />
-        void begin(const VulkanFrameBuffer& frameBuffer) const;
+        void begin(const VulkanFrameBuffer& frameBuffer) const override;
 
         /// <inheritdoc />
-        UInt64 end() const;
+        UInt64 end() const override;
     };
 
     /// <summary>
@@ -2051,7 +2053,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="renderArea">The initial size of the render area.</param>
         /// <param name="buffers">The initial number of buffers.</param>
         /// <param name="enableVsync">`true` if vertical synchronization should be used, otherwise `false`.</param>
-        explicit VulkanSwapChain(const VulkanDevice& device, Format surfaceFormat = Format::B8G8R8A8_SRGB, const Size2d& renderArea = { 800, 600 }, UInt32 buffers = 3, bool enableVsync = false);
+        explicit VulkanSwapChain(const VulkanDevice& device, Format surfaceFormat = Format::B8G8R8A8_SRGB, const Size2d& renderArea = { 800, 600 }, UInt32 buffers = 3, bool enableVsync = false); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
         /// <inheritdoc />
         VulkanSwapChain(VulkanSwapChain&&) noexcept;
@@ -2079,7 +2081,7 @@ namespace LiteFX::Rendering::Backends {
         // SwapChain interface.
     public:
         /// <inheritdoc />
-        Enumerable<SharedPtr<TimingEvent>> timingEvents() const noexcept override;
+        Enumerable<SharedPtr<TimingEvent>> timingEvents() const override;
 
         /// <inheritdoc />
         SharedPtr<TimingEvent> timingEvent(UInt32 queryId) const override;
@@ -2109,14 +2111,14 @@ namespace LiteFX::Rendering::Backends {
         const IVulkanImage& image() const noexcept override;
 
         /// <inheritdoc />
-        Enumerable<IVulkanImage*> images() const noexcept override;
+        Enumerable<IVulkanImage*> images() const override;
 
         /// <inheritdoc />
         void present(UInt64 fence) const override;
 
     public:
         /// <inheritdoc />
-        Enumerable<Format> getSurfaceFormats() const noexcept override;
+        Enumerable<Format> getSurfaceFormats() const override;
 
         /// <inheritdoc />
         void addTimingEvent(SharedPtr<TimingEvent> timingEvent) override;
@@ -2293,6 +2295,19 @@ namespace LiteFX::Rendering::Backends {
         }
 
         // Vulkan Device interface.
+    private:
+        /// <summary>
+        /// Sets the debug name for an object.
+        /// </summary>
+        /// <remarks>
+        /// This function sets the debug name for an object to make it easier to identify when using an external debugger. This function will do nothing
+        /// in release mode or if the device extension VK_EXT_debug_marker is not available.
+        /// </remarks>
+        /// <param name="objectHandle">The handle of the object casted to an integer.</param>
+        /// <param name="objectType">The type of the object.</param>
+        /// <param name="name">The debug name of the object.</param>
+        void setDebugName(UInt64 objectHandle, VkDebugReportObjectTypeEXT objectType, StringView name) const noexcept;
+
     public:
         /// <summary>
         /// Returns the array that stores the extensions that were used to initialize the device.
@@ -2307,102 +2322,106 @@ namespace LiteFX::Rendering::Backends {
         /// This function sets the debug name for an object to make it easier to identify when using an external debugger. This function will do nothing
         /// in release mode or if the device extension VK_EXT_debug_marker is not available.
         /// </remarks>
+        /// <typeparam name="THandle">The type of the handle. Must be a Vulkan handle type.</typeparam>
         /// <param name="objectHandle">The handle of the object casted to an integer.</param>
         /// <param name="objectType">The type of the object.</param>
         /// <param name="name">The debug name of the object.</param>
-        void setDebugName(UInt64 objectHandle, VkDebugReportObjectTypeEXT objectType, StringView name) const noexcept;
+        template <typename THandle>
+        inline void setDebugName(THandle objectHandle, VkDebugReportObjectTypeEXT objectType, StringView name) const noexcept {
+            this->setDebugName(std::bit_cast<UInt64>(objectHandle), objectType, name);
+        }
 
         /// <summary>
         /// Returns the indices of all queue families with support for <paramref name="type" />.
         /// </summary>
         /// <param name="type">The type of workload that must be supported by the family in order for it to be returned. Specifying <see cref="QueueType::None" /> will return all available queue families.</param>
         /// <returns>The indices of the queue families that support queue workloads specified by <paramref name="type" />.</returns>
-        Enumerable<UInt32> queueFamilyIndices(QueueType type = QueueType::None) const noexcept;
+        Enumerable<UInt32> queueFamilyIndices(QueueType type = QueueType::None) const;
 
         // GraphicsDevice interface.
     public:
         /// <inheritdoc />
-        DeviceState& state() const noexcept;
+        DeviceState& state() const noexcept override;
 
         /// <inheritdoc />
-        const VulkanSwapChain& swapChain() const noexcept;
+        const VulkanSwapChain& swapChain() const noexcept override;
 
         /// <inheritdoc />
-        VulkanSwapChain& swapChain() noexcept;
+        VulkanSwapChain& swapChain() noexcept override;
 
         /// <inheritdoc />
-        const VulkanSurface& surface() const noexcept;
+        const VulkanSurface& surface() const noexcept override;
 
         /// <inheritdoc />
-        const VulkanGraphicsAdapter& adapter() const noexcept;
+        const VulkanGraphicsAdapter& adapter() const noexcept override;
 
         /// <inheritdoc />
-        const VulkanGraphicsFactory& factory() const noexcept;
+        const VulkanGraphicsFactory& factory() const noexcept override;
 
         /// <inheritdoc />
-        const VulkanQueue& defaultQueue(QueueType type) const;
+        const VulkanQueue& defaultQueue(QueueType type) const override;
 
         /// <inheritdoc />
-        const VulkanQueue* createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) noexcept;
+        const VulkanQueue* createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) override;
 
         /// <inheritdoc />
-        [[nodiscard]] UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept;
+        [[nodiscard]] UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
 
         /// <inheritdoc />
-        [[nodiscard]] UniquePtr<VulkanFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept;
+        [[nodiscard]] UniquePtr<VulkanFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept override;
 
         /// <inheritdoc />
-        MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept;
+        MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept override;
 
         /// <inheritdoc />
-        double ticksPerMillisecond() const noexcept;
+        double ticksPerMillisecond() const noexcept override;
 
         /// <inheritdoc />
-        void wait() const;
+        void wait() const override;
 
         /// <inheritdoc />
-        void computeAccelerationStructureSizes(const VulkanBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const;
+        void computeAccelerationStructureSizes(const VulkanBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
 
         /// <inheritdoc />
-        void computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const;
+        void computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:
         /// <inheritdoc />
-        [[nodiscard]] VulkanRenderPassBuilder buildRenderPass(UInt32 commandBuffers = 1) const;
+        [[nodiscard]] VulkanRenderPassBuilder buildRenderPass(UInt32 commandBuffers = 1) const override;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanRenderPassBuilder buildRenderPass(const String& name, UInt32 commandBuffers = 1) const;
+        [[nodiscard]] VulkanRenderPassBuilder buildRenderPass(const String& name, UInt32 commandBuffers = 1) const override;
 
         ///// <inheritdoc />
         //[[nodiscard]] VulkanRenderPipelineBuilder buildRenderPipeline(const String& name) const override;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanRenderPipelineBuilder buildRenderPipeline(const VulkanRenderPass& renderPass, const String& name) const;
+        [[nodiscard]] VulkanRenderPipelineBuilder buildRenderPipeline(const VulkanRenderPass& renderPass, const String& name) const override;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanComputePipelineBuilder buildComputePipeline(const String& name) const;
+        [[nodiscard]] VulkanComputePipelineBuilder buildComputePipeline(const String& name) const override;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanRayTracingPipelineBuilder buildRayTracingPipeline(ShaderRecordCollection&& shaderRecords) const;
+        [[nodiscard]] VulkanRayTracingPipelineBuilder buildRayTracingPipeline(ShaderRecordCollection&& shaderRecords) const override;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanRayTracingPipelineBuilder buildRayTracingPipeline(const String& name, ShaderRecordCollection&& shaderRecords) const;
+        [[nodiscard]] VulkanRayTracingPipelineBuilder buildRayTracingPipeline(const String& name, ShaderRecordCollection&& shaderRecords) const override;
         
         /// <inheritdoc />
-        [[nodiscard]] VulkanPipelineLayoutBuilder buildPipelineLayout() const;
+        [[nodiscard]] VulkanPipelineLayoutBuilder buildPipelineLayout() const override;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanInputAssemblerBuilder buildInputAssembler() const;
+        [[nodiscard]] VulkanInputAssemblerBuilder buildInputAssembler() const override;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanRasterizerBuilder buildRasterizer() const;
+        [[nodiscard]] VulkanRasterizerBuilder buildRasterizer() const override;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanShaderProgramBuilder buildShaderProgram() const;
+        [[nodiscard]] VulkanShaderProgramBuilder buildShaderProgram() const override;
 
         /// <inheritdoc />
-        [[nodiscard]] VulkanBarrierBuilder buildBarrier() const;
+        [[nodiscard]] VulkanBarrierBuilder buildBarrier() const override;
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
     };
 
@@ -2471,63 +2490,63 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <returns><c>true</c>, if all elements of <paramref cref="extensions" /> are contained by the a list of available extensions.</returns>
         /// <seealso cref="getAvailableInstanceExtensions" />
-        static bool validateInstanceExtensions(Span<const String> extensions) noexcept;
+        static bool validateInstanceExtensions(Span<const String> extensions);
 
         /// <summary>
         /// Returns a list of available extensions.
         /// </summary>
         /// <returns>A list of available extensions.</returns>
         /// <seealso cref="validateInstanceExtensions" />
-        static Enumerable<String> getAvailableInstanceExtensions() noexcept;
+        static Enumerable<String> getAvailableInstanceExtensions();
 
         /// <summary>
         /// Returns <c>true</c>, if all elements of <paramref cref="validationLayers" /> are contained by the a list of available validation layers.
         /// </summary>
         /// <returns><c>true</c>, if all elements of <paramref cref="validationLayers" /> are contained by the a list of available validation layers.</returns>
         /// <seealso cref="getInstanceValidationLayers" />
-        static bool validateInstanceLayers(const Span<const String> validationLayers) noexcept;
+        static bool validateInstanceLayers(const Span<const String> validationLayers);
 
         /// <summary>
         /// Returns a list of available validation layers.
         /// </summary>
         /// <returns>A list of available validation layers.</returns>
         /// <seealso cref="validateInstanceLayers" />
-        static Enumerable<String> getInstanceValidationLayers() noexcept;
+        static Enumerable<String> getInstanceValidationLayers();
 
         // IBackend interface.
     public:
         /// <inheritdoc />
-        BackendType type() const noexcept;
+        BackendType type() const noexcept override;
 
         /// <inheritdoc />
-        String name() const noexcept;
+        StringView name() const noexcept override;
 
     protected:
         /// <inheritdoc />
-        void activate();
+        void activate() override;
 
         /// <inheritdoc />
-        void deactivate();
+        void deactivate() override;
 
         // RenderBackend interface.
     public:
         /// <inheritdoc />
-        Enumerable<const VulkanGraphicsAdapter*> listAdapters() const;
+        Enumerable<const VulkanGraphicsAdapter*> listAdapters() const override;
 
         /// <inheritdoc />
-        const VulkanGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const;
+        const VulkanGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override;
 
         /// <inheritdoc />
-        void registerDevice(String name, UniquePtr<VulkanDevice>&& device);
+        void registerDevice(String name, UniquePtr<VulkanDevice>&& device) override;
 
         /// <inheritdoc />
-        void releaseDevice(const String& name);
+        void releaseDevice(const String& name) override;
 
         /// <inheritdoc />
-        VulkanDevice* device(const String& name) noexcept;
+        VulkanDevice* device(const String& name) noexcept override;
 
         /// <inheritdoc />
-        const VulkanDevice* device(const String& name) const noexcept;
+        const VulkanDevice* device(const String& name) const noexcept override;
     };
 
 }

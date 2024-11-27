@@ -3,9 +3,11 @@
 using namespace LiteFX::Rendering::Backends;
 using Instance = ITopLevelAccelerationStructure::Instance;
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 extern PFN_vkCreateAccelerationStructureKHR vkCreateAccelerationStructure;
 extern PFN_vkDestroyAccelerationStructureKHR vkDestroyAccelerationStructure;
 extern PFN_vkCmdWriteAccelerationStructuresPropertiesKHR vkCmdWriteAccelerationStructuresProperties;
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -45,7 +47,7 @@ public:
                 .accelerationStructureReference = blasBuffer == nullptr ? 0ull : blasBuffer->virtualAddress() + instance.BottomLevelAccelerationStructure->offset()
             };
 
-            std::memcpy(desc.transform.matrix, instance.Transform.elements(), sizeof(Float) * 12);
+            std::memcpy(desc.transform.matrix, std::addressof(instance.Transform), sizeof(instance.Transform)); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
             return desc;
         }) | std::ranges::to<Array<VkAccelerationStructureInstanceKHR>>();
     }
@@ -101,8 +103,8 @@ UInt64 VulkanTopLevelAccelerationStructure::size() const noexcept
 void VulkanTopLevelAccelerationStructure::build(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer, SharedPtr<const IVulkanBuffer> buffer, UInt64 offset, UInt64 maxSize)
 {
     // Validate the arguments.
-    UInt64 requiredMemory, requiredScratchMemory;
-    auto& device = static_cast<const VulkanQueue&>(commandBuffer.queue()).device();
+    UInt64 requiredMemory{}, requiredScratchMemory{};
+    auto& device = dynamic_cast<const VulkanQueue&>(commandBuffer.queue()).device();
     device.computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory);
     
     if (scratchBuffer != nullptr && scratchBuffer->size() < requiredScratchMemory)
@@ -162,8 +164,8 @@ void VulkanTopLevelAccelerationStructure::update(const VulkanCommandBuffer& comm
         throw RuntimeException("The acceleration structure does not allow updates. Specify `AccelerationStructureFlags::AllowUpdate` during creation.");
 
     // Validate the arguments and create the buffers if required.
-    UInt64 requiredMemory, requiredScratchMemory;
-    auto& device = static_cast<const VulkanQueue&>(commandBuffer.queue()).device();
+    UInt64 requiredMemory{}, requiredScratchMemory{};
+    auto& device = dynamic_cast<const VulkanQueue&>(commandBuffer.queue()).device();
     device.computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory, true);
 
     if (scratchBuffer != nullptr && scratchBuffer->size() < requiredScratchMemory)
@@ -210,8 +212,8 @@ void VulkanTopLevelAccelerationStructure::copy(const VulkanCommandBuffer& comman
         throw RuntimeException("The acceleration structure does not allow compaction. Specify `AccelerationStructureFlags::AllowCompaction` during creation.");
 
     // Query the compacted size, if compression is required, or use the device for requests as usual if not.
-    std::array<UInt64, 2> requiredMemory;
-    auto& device = static_cast<const VulkanQueue&>(commandBuffer.queue()).device();
+    std::array<UInt64, 2> requiredMemory{};
+    auto& device = dynamic_cast<const VulkanQueue&>(commandBuffer.queue()).device();
 
     if (!LITEFX_FLAG_IS_SET(m_impl->m_flags, AccelerationStructureFlags::AllowCompaction))
         device.computeAccelerationStructureSizes(*this, requiredMemory[0], requiredMemory[1], true);
@@ -308,7 +310,7 @@ bool VulkanTopLevelAccelerationStructure::remove(const Instance& instance) noexc
     return false;
 }
 
-Array<VkAccelerationStructureInstanceKHR> VulkanTopLevelAccelerationStructure::buildInfo() const noexcept
+Array<VkAccelerationStructureInstanceKHR> VulkanTopLevelAccelerationStructure::buildInfo() const
 {
     return m_impl->buildInfo();
 }

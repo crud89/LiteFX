@@ -179,7 +179,7 @@ SharedPtr<const DirectX12Device> DirectX12DescriptorSetLayout::device() const no
     return m_impl->m_device.lock();
 }
 
-Enumerable<const DirectX12DescriptorLayout*> DirectX12DescriptorSetLayout::descriptors() const noexcept
+Enumerable<const DirectX12DescriptorLayout*> DirectX12DescriptorSetLayout::descriptors() const
 {
     return m_impl->m_layouts | std::views::transform([](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout.get(); });
 }
@@ -297,7 +297,7 @@ Enumerable<UniquePtr<DirectX12DescriptorSet>> DirectX12DescriptorSetLayout::allo
     }(this, count, descriptors, bindingFactory) | std::views::as_rvalue;
 }
 
-void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptorSet) const noexcept
+void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptorSet) const
 {
     std::lock_guard<std::mutex> lock(m_impl->m_mutex);
 
@@ -315,7 +315,7 @@ void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptor
 // ------------------------------------------------------------------------------------------------
 
 DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 space, ShaderStage stages) :
-    DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(parent.device())))
+    DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(*parent.device())))
 {
     this->state().space = space;
     this->state().stages = stages;
@@ -339,6 +339,6 @@ UniquePtr<DirectX12DescriptorLayout> DirectX12DescriptorSetLayoutBuilder::makeDe
 
 UniquePtr<DirectX12DescriptorLayout> DirectX12DescriptorSetLayoutBuilder::makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy)
 {
-    return makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(this->parent().device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding);
+    return makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

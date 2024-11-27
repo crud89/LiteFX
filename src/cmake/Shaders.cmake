@@ -407,80 +407,88 @@ int main(int argc, char* argv[]) {
     if (argc < 2)
         return -1;
 
-    std::string command(argv[1]);
+    try
+    {
+        std::string command(argv[1]);
 
-    if (command == "init")
-    { 
-        std::string sourceFile(argv[2]);
-        std::ofstream file(sourceFile);
-        file << "#pragma once" << std::endl << 
-            "#include <iostream>" << std::endl <<
-            "#include <array>" << std::endl <<
-            "#include <istream>" << std::endl <<
-            "#include <string>" << std::endl <<
-            "#include <streambuf>" << std::endl << std::endl;
+        if (command == "init")
+        { 
+            std::string sourceFile(argv[2]);
+            std::ofstream file(sourceFile);
+            file << "#pragma once" << std::endl << 
+                "#include <iostream>" << std::endl <<
+                "#include <array>" << std::endl <<
+                "#include <istream>" << std::endl <<
+                "#include <string>" << std::endl <<
+                "#include <streambuf>" << std::endl << std::endl;
             
-        file << "// NOLINTBEGIN" << std::endl;
-        file << "#ifndef _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
-        file << "struct _pcksl_mem_buf : public std::streambuf {" << std::endl;
-        file << "    _pcksl_mem_buf(char* begin, size_t size) { this->setg(begin, begin, begin + size); }" << std::endl;
-        file << "};" << std::endl << std::endl;
-        file << "struct _pcksl_mem_istream : private virtual _pcksl_mem_buf, public std::istream {" << std::endl;
-        file << "    explicit _pcksl_mem_istream(char* begin, size_t size) :" << std::endl;
-        file << "        _pcksl_mem_buf(begin, size), std::istream(static_cast<std::streambuf*>(this)) { }" << std::endl;
-        file << "};" << std::endl;
-        file << "#define _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
-        file << "#endif // !_LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl << std::endl;
-        file << "// NOLINTEND" << std::endl;
+            file << "// NOLINTBEGIN" << std::endl;
+            file << "#ifndef _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
+            file << "struct _pcksl_mem_buf : public std::streambuf {" << std::endl;
+            file << "    _pcksl_mem_buf(char* begin, size_t size) { this->setg(begin, begin, begin + size); }" << std::endl;
+            file << "};" << std::endl << std::endl;
+            file << "struct _pcksl_mem_istream : private virtual _pcksl_mem_buf, public std::istream {" << std::endl;
+            file << "    explicit _pcksl_mem_istream(char* begin, size_t size) :" << std::endl;
+            file << "        _pcksl_mem_buf(begin, size), std::istream(static_cast<std::streambuf*>(this)) { }" << std::endl;
+            file << "};" << std::endl;
+            file << "#define _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
+            file << "#endif // !_LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl << std::endl;
+            file << "// NOLINTEND" << std::endl;
 
-        file.close();
-    }
-    else if (command == "pack")
-    {
-        if (argc != 6)
+            file.close();
+        }
+        else if (command == "pack")
+        {
+            if (argc != 6)
+                return -1;
+
+            std::string sourceFile(argv[2]);
+            std::string resourceFile(argv[3]);
+            std::string ns(argv[4]);
+            std::string resourceName(argv[5]);
+            std::string name(argv[5]);
+            std::replace(resourceName.begin(), resourceName.end(), '.', '_');
+            std::replace(resourceName.begin(), resourceName.end(), ':', '_');
+
+            std::ifstream resource(resourceFile, std::ios::binary);
+            std::vector<uint8_t> buffer(std::istreambuf_iterator<char>(resource), { });
+
+            std::ofstream file(sourceFile, std::ios::app);
+            file << "namespace " << ns << " {" << std::endl;
+            file << "    // Shader source: " << resourceFile << "." << std::endl;
+            file << "    // NOLINTBEGIN" << std::endl;
+            file << "    class " << resourceName << " {" << std::endl;
+            file << "    public:" << std::endl;
+            file << "        " << resourceName << "() = delete;" << std::endl;
+            file << "        ~" << resourceName << "() = delete;" << std::endl;
+            file << "" << std::endl;
+            file << "        static const std::string name() { return \"" << name << "\"; }" << std::endl << std::endl;
+            file << "        static _pcksl_mem_istream open() {" << std::endl;
+            file << "            static std::array<uint8_t, " << buffer.size() << "> _data = {" << std::endl;
+            file << "                ";
+
+            for (const auto& v : buffer) 
+                file << "0x" << std::setfill('0') << std::setw(sizeof(v) * 2) << std::hex << +v << ", ";
+
+            file << std::endl;
+            file << "            };" << std::endl << std::endl;
+            file << "            // NOTE: reinterpret_cast should be safe here: https://eel.is/c++draft/basic.lval#11.3." << std::endl;
+            file << "            return ::_pcksl_mem_istream(reinterpret_cast<char*>(_data.data()), _data.size());" << std::endl; // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+            file << "        }" << std::endl;
+            file << "    };" << std::endl;
+            file << "    // NOLINTEND" << std::endl;
+            file << "}" << std::endl << std::endl;
+
+            file.close();
+        }
+        else
+        {
             return -1;
-
-        std::string sourceFile(argv[2]);
-        std::string resourceFile(argv[3]);
-        std::string ns(argv[4]);
-        std::string resourceName(argv[5]);
-        std::string name(argv[5]);
-        std::replace(resourceName.begin(), resourceName.end(), '.', '_');
-        std::replace(resourceName.begin(), resourceName.end(), ':', '_');
-
-        std::ifstream resource(resourceFile, std::ios::binary);
-        std::vector<uint8_t> buffer(std::istreambuf_iterator<char>(resource), { });
-
-        std::ofstream file(sourceFile, std::ios::app);
-        file << "namespace " << ns << " {" << std::endl;
-        file << "    // Shader source: " << resourceFile << "." << std::endl;
-        file << "    // NOLINTBEGIN" << std::endl;
-        file << "    class " << resourceName << " {" << std::endl;
-        file << "    public:" << std::endl;
-        file << "        " << resourceName << "() = delete;" << std::endl;
-        file << "        ~" << resourceName << "() = delete;" << std::endl;
-        file << "" << std::endl;
-        file << "        static const std::string name() { return \"" << name << "\"; }" << std::endl << std::endl;
-        file << "        static _pcksl_mem_istream open() {" << std::endl;
-        file << "            static std::array<uint8_t, " << buffer.size() << "> _data = {" << std::endl;
-        file << "                ";
-
-        for (const auto& v : buffer) 
-            file << "0x" << std::setfill('0') << std::setw(sizeof(v) * 2) << std::hex << +v << ", ";
-
-        file << std::endl;
-        file << "            };" << std::endl << std::endl;
-        file << "            return ::_pcksl_mem_istream(reinterpret_cast<char*>(_data.data()), _data.size());" << std::endl;
-        file << "        }" << std::endl;
-        file << "    };" << std::endl;
-        file << "    // NOLINTEND" << std::endl;
-        file << "}" << std::endl << std::endl;
-
-        file.close();
+        }
     }
-    else
+    catch(...)
     {
-        return -1;
+        return -2;
     }
 
     return 0;

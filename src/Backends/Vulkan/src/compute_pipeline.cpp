@@ -15,22 +15,28 @@ public:
 private:
 	SharedPtr<VulkanPipelineLayout> m_layout;
 	SharedPtr<VulkanShaderProgram> m_program;
-	const VulkanDevice& m_device;
+	WeakPtr<const VulkanDevice> m_device;
 
 public:
 	VulkanComputePipelineImpl(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram) :
-		m_layout(layout), m_program(shaderProgram), m_device(device)
+		m_layout(layout), m_program(shaderProgram), m_device(device.weak_from_this())
 	{
 	}
 
 	VulkanComputePipelineImpl(const VulkanDevice& device) :
-		m_device(device)
+		m_device(device.weak_from_this())
 	{
 	}
 
 public:
 	VkPipeline initialize([[maybe_unused]] const VulkanComputePipeline& parent)
 	{
+		// Check if the device is still valid.
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot allocate pipeline from a released device instance.");
+
 		LITEFX_TRACE(VULKAN_LOG, "Creating compute pipeline (\"{1}\") for layout {0}...", static_cast<void*>(m_layout.get()), parent.name());
 	
 		// Setup shader stages.
@@ -50,11 +56,11 @@ public:
 		pipelineInfo.layout = std::as_const(*m_layout.get()).handle();
 		pipelineInfo.stage = shaderStages.front();
 
-		VkPipeline pipeline;
-		raiseIfFailed(::vkCreateComputePipelines(m_device.handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create compute pipeline.");
+		VkPipeline pipeline{};
+		raiseIfFailed(::vkCreateComputePipelines(device->handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create compute pipeline.");
 
 #ifndef NDEBUG
-		m_device.setDebugName(*reinterpret_cast<const UInt64*>(&pipeline), VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, parent.name());
+		device->setDebugName(pipeline, VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, parent.name());
 #endif
 
 		return pipeline;
@@ -83,7 +89,13 @@ VulkanComputePipeline::VulkanComputePipeline(VulkanComputePipeline&&) noexcept =
 VulkanComputePipeline& VulkanComputePipeline::operator=(VulkanComputePipeline&&) noexcept = default;
 VulkanComputePipeline::~VulkanComputePipeline() noexcept
 {
-	::vkDestroyPipeline(m_impl->m_device.handle(), this->handle(), nullptr);
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		LITEFX_FATAL_ERROR(VULKAN_LOG, "Invalid attempt to release compute pipeline after parent device.");
+	else
+		::vkDestroyPipeline(device->handle(), this->handle(), nullptr);
 }
 
 SharedPtr<const VulkanShaderProgram> VulkanComputePipeline::program() const noexcept
@@ -96,12 +108,12 @@ SharedPtr<const VulkanPipelineLayout> VulkanComputePipeline::layout() const noex
 	return m_impl->m_layout;
 }
 
-void VulkanComputePipeline::use(const VulkanCommandBuffer& commandBuffer) const noexcept
+void VulkanComputePipeline::use(const VulkanCommandBuffer& commandBuffer) const
 {
 	::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_COMPUTE, this->handle());
 }
 
-void VulkanComputePipeline::bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const noexcept
+void VulkanComputePipeline::bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const
 {
 	// Filter out uninitialized sets.
 	auto sets = descriptorSets | std::views::filter([](auto set) { return set != nullptr; }) | std::ranges::to<Array<const VulkanDescriptorSet*>>();
@@ -145,8 +157,8 @@ VulkanComputePipelineBuilder::~VulkanComputePipelineBuilder() noexcept = default
 void VulkanComputePipelineBuilder::build()
 {
 	auto instance = this->instance();
-	instance->m_impl->m_layout = m_state.pipelineLayout;
-	instance->m_impl->m_program = m_state.shaderProgram;
+	instance->m_impl->m_layout = this->state().pipelineLayout;
+	instance->m_impl->m_program = this->state().shaderProgram;
 	instance->handle() = instance->m_impl->initialize(*instance);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

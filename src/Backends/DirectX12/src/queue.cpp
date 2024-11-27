@@ -29,10 +29,10 @@ public:
 	{
 	}
 
-	DirectX12QueueImpl(const DirectX12QueueImpl&) noexcept = default;
-	DirectX12QueueImpl(DirectX12QueueImpl&&) noexcept = default;
-	DirectX12QueueImpl& operator=(const DirectX12QueueImpl&) noexcept = default;
-	DirectX12QueueImpl& operator=(DirectX12QueueImpl&&) noexcept = default;
+	DirectX12QueueImpl(const DirectX12QueueImpl&) noexcept = delete;
+	DirectX12QueueImpl(DirectX12QueueImpl&&) noexcept = delete;
+	DirectX12QueueImpl& operator=(const DirectX12QueueImpl&) noexcept = delete;
+	DirectX12QueueImpl& operator=(DirectX12QueueImpl&&) noexcept = delete;
 
 	~DirectX12QueueImpl()
 	{
@@ -113,8 +113,8 @@ DirectX12Queue::DirectX12Queue(const DirectX12Device& device, QueueType type, Qu
 	this->handle() = m_impl->initialize();
 }
 
-DirectX12Queue::DirectX12Queue(DirectX12Queue&&) noexcept = default;
-DirectX12Queue& DirectX12Queue::operator=(DirectX12Queue&&) noexcept = default;
+//DirectX12Queue::DirectX12Queue(DirectX12Queue&&) noexcept = default;
+//DirectX12Queue& DirectX12Queue::operator=(DirectX12Queue&&) noexcept = default;
 DirectX12Queue::~DirectX12Queue() noexcept = default;
 
 SharedPtr<const DirectX12Device> DirectX12Queue::device() const noexcept
@@ -232,7 +232,7 @@ UInt64 DirectX12Queue::submit(const Enumerable<SharedPtr<const DirectX12CommandB
 	return fence;
 }
 
-void DirectX12Queue::waitFor(UInt64 fence) const noexcept
+void DirectX12Queue::waitFor(UInt64 fence) const
 {
 	auto completedValue = m_impl->m_fence->GetCompletedValue();
 

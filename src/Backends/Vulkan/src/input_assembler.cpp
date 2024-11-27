@@ -14,18 +14,19 @@ public:
 private:
     Dictionary<UInt32, UniquePtr<VulkanVertexBufferLayout>> m_vertexBufferLayouts;
     UniquePtr<VulkanIndexBufferLayout> m_indexBufferLayout;
-    PrimitiveTopology m_primitiveTopology;
+    PrimitiveTopology m_primitiveTopology{ PrimitiveTopology::TriangleList };
 
 public:
-    VulkanInputAssemblerImpl() noexcept = default;
+    VulkanInputAssemblerImpl() = default;
 
 public:
     void initialize(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology)
     {
         m_primitiveTopology = primitiveTopology;
         m_indexBufferLayout = std::move(indexBufferLayout);
+        auto layouts = std::move(vertexBufferLayouts);
 
-        for (auto& vertexBufferLayout : vertexBufferLayouts)
+        for (auto& vertexBufferLayout : layouts)
             if (vertexBufferLayout == nullptr) [[unlikely]]
                 throw ArgumentNotInitializedException("vertexBufferLayouts", "One of the provided vertex buffer layouts is not initialized.");
             else if (m_vertexBufferLayouts.contains(vertexBufferLayout->binding())) [[unlikely]]
@@ -50,7 +51,7 @@ VulkanInputAssembler::VulkanInputAssembler(VulkanInputAssembler&&) noexcept = de
 VulkanInputAssembler& VulkanInputAssembler::operator=(VulkanInputAssembler&&) noexcept = default;
 VulkanInputAssembler::~VulkanInputAssembler() noexcept = default;
 
-Enumerable<const VulkanVertexBufferLayout*> VulkanInputAssembler::vertexBufferLayouts() const noexcept
+Enumerable<const VulkanVertexBufferLayout*> VulkanInputAssembler::vertexBufferLayouts() const
 {
     return m_impl->m_vertexBufferLayouts | std::views::transform([](const auto& pair) { return pair.second.get(); });
 }
@@ -86,14 +87,14 @@ public:
 private:
     Array<UniquePtr<VulkanVertexBufferLayout>> m_vertexBufferLayouts;
     UniquePtr<VulkanIndexBufferLayout> m_indexBufferLayout;
-    PrimitiveTopology m_primitiveTopology;
+    PrimitiveTopology m_primitiveTopology{ PrimitiveTopology::TriangleList };
 };
 
 // ------------------------------------------------------------------------------------------------
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanInputAssemblerBuilder::VulkanInputAssemblerBuilder() noexcept :
+VulkanInputAssemblerBuilder::VulkanInputAssemblerBuilder() :
     InputAssemblerBuilder(SharedPtr<VulkanInputAssembler>(new VulkanInputAssembler())), m_impl()
 {
 }
@@ -102,7 +103,7 @@ VulkanInputAssemblerBuilder::~VulkanInputAssemblerBuilder() noexcept = default;
 
 void VulkanInputAssemblerBuilder::build()
 {
-    this->instance()->m_impl->initialize(m_state.vertexBufferLayouts | std::views::as_rvalue, std::move(m_state.indexBufferLayout), m_state.topology);
+    this->instance()->m_impl->initialize(this->state().vertexBufferLayouts | std::views::as_rvalue, std::move(this->state().indexBufferLayout), this->state().topology);
 }
 
 VulkanVertexBufferLayoutBuilder VulkanInputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)
