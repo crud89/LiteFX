@@ -4549,7 +4549,7 @@ namespace LiteFX::Rendering {
             /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
             /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
             TriangleMesh(SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) :
-                VertexBuffer(vertexBuffer), IndexBuffer(indexBuffer), TransformBuffer(transformBuffer), Flags(flags) { 
+                VertexBuffer(vertexBuffer), IndexBuffer(std::move(indexBuffer)), TransformBuffer(std::move(transformBuffer)), Flags(flags) { 
                 if (vertexBuffer == nullptr) [[unlikely]]
                     throw ArgumentNotInitializedException("vertexBuffer", "The vertex buffer must be initialized.");
             }
@@ -5955,7 +5955,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="shaderProgram">The shader program that contains the shader modules</param>
         ShaderRecordCollection(SharedPtr<const IShaderProgram> shaderProgram) noexcept : 
-            m_program(shaderProgram) 
+            m_program(std::move(shaderProgram)) 
         {
             // This can only be built from a shader program, which passes the pointer to itself, which must not be nullptr. If more factory methods are added,
             // we must validate the program pointer here.
@@ -6310,7 +6310,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The shader record collection instance.</returns>
         [[nodiscard]] inline ShaderRecordCollection buildShaderRecordCollection() const noexcept {
-            return ShaderRecordCollection(this->shared_from_this());
+            return { this->shared_from_this() };
         }
 
     private:
@@ -7631,8 +7631,8 @@ namespace LiteFX::Rendering {
             Size2d m_newSize;
 
         public:
-            ResizeEventArgs(const Size2d& newSize) noexcept :
-                EventArgs(), m_newSize(newSize) { }
+            ResizeEventArgs(Size2d newSize) noexcept :
+                EventArgs(), m_newSize(std::move(newSize)) { }
             ResizeEventArgs(const ResizeEventArgs&) noexcept = default;
             ResizeEventArgs(ResizeEventArgs&&) noexcept = default;
             ResizeEventArgs& operator=(const ResizeEventArgs&) noexcept = default;
@@ -8162,8 +8162,8 @@ namespace LiteFX::Rendering {
             bool m_vsync;
 
         public:
-            ResetEventArgs(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers, bool enableVsync) noexcept :
-                EventArgs(), m_surfaceFormat(surfaceFormat), m_renderArea(renderArea), m_buffers(buffers), m_vsync(enableVsync) { }
+            ResetEventArgs(Format surfaceFormat, Size2d renderArea, UInt32 buffers, bool enableVsync) noexcept :
+                EventArgs(), m_surfaceFormat(surfaceFormat), m_renderArea(std::move(renderArea)), m_buffers(buffers), m_vsync(enableVsync) { }
             ResetEventArgs(const ResetEventArgs&) noexcept = default;
             ResetEventArgs(ResetEventArgs&&) noexcept = default;
             ResetEventArgs& operator=(const ResetEventArgs&) noexcept = default;

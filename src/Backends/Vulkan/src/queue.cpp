@@ -214,7 +214,7 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) c
 	raiseIfFailed(::vkQueueSubmit2(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
 
 	// Add the command buffer to the submitted command buffers list.
-	m_impl->m_submittedCommandBuffers.push_back({ fence, commandBuffer });
+	m_impl->m_submittedCommandBuffers.emplace_back(fence, commandBuffer);
 
 	// Fire end event.
 	this->submitted(this, { fence });

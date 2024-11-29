@@ -167,7 +167,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a new Vulkan pipeline layout builder.
 		/// </summary>
-		VulkanPipelineLayoutBuilder(const VulkanDevice& device);
+		explicit VulkanPipelineLayoutBuilder(const VulkanDevice& device);
 		~VulkanPipelineLayoutBuilder() noexcept override;
 
 		VulkanPipelineLayoutBuilder(VulkanPipelineLayoutBuilder&&) noexcept = delete;

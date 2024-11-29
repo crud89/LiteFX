@@ -3,7 +3,7 @@
 using namespace LiteFX::Rendering::Backends;
 
 #define VMA_IMPLEMENTATION
-#include "vk_mem_alloc.h"
+#include <vma/vk_mem_alloc.h>
 
 // ------------------------------------------------------------------------------------------------
 // Image Base implementation.
@@ -24,8 +24,8 @@ private:
 	MultiSamplingLevel m_samples;
 
 public:
-	VulkanImageImpl(const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator, VmaAllocation allocation) :
-		m_allocator(allocator), m_allocationInfo(allocation), m_format(format), m_extent(extent), m_layers(layers), m_levels(levels), m_planes(::hasDepth(format) && ::hasStencil(format) ? 2 : 1), m_dimensions(dimensions), m_usage(usage), m_samples(samples)
+	VulkanImageImpl(Size3d extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator, VmaAllocation allocation) :
+		m_allocator(allocator), m_allocationInfo(allocation), m_format(format), m_extent(std::move(extent)), m_layers(layers), m_levels(levels), m_planes(::hasDepth(format) && ::hasStencil(format) ? 2 : 1), m_dimensions(dimensions), m_usage(usage), m_samples(samples)
 	{
 		// Note: Currently no multi-planar images are supported. Planes have a two-fold meaning in this context. Multi-planar images are images, which have a format with `_2PLANE` or `_3PLANE` in the name, or
 		//       which are listed here: https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#formats-requiring-sampler-ycbcr-conversion.

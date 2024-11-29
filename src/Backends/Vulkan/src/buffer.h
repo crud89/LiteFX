@@ -2,7 +2,7 @@
 
 #include <litefx/rendering.hpp>
 #include <litefx/backends/vulkan.hpp>
-#include "vk_mem_alloc.h"
+#include <vma/vk_mem_alloc.h>
 
 #pragma warning(push)
 #pragma warning(disable:4250) // Base class members are inherited via dominance.

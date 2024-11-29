@@ -15,8 +15,8 @@ private:
     DescriptorBindingPoint m_descriptorBinding;
 
 public:
-    RenderPassDependencyImpl(const RenderTarget& renderTarget, const DescriptorBindingPoint& descriptorBinding) :
-        m_renderTarget(renderTarget), m_descriptorBinding(descriptorBinding)
+    RenderPassDependencyImpl(RenderTarget renderTarget, DescriptorBindingPoint descriptorBinding) :
+        m_renderTarget(std::move(renderTarget)), m_descriptorBinding(std::move(descriptorBinding))
     {
     }
 };

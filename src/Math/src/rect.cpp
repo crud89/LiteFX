@@ -42,7 +42,7 @@ Vector<size_t, 2> Rect::position() const noexcept {
 }
 
 Size2d Rect::extent() const noexcept {
-	return Size2d(this->z(), this->w());
+	return { this->z(), this->w() };
 }
 
 size_t Rect::width() const noexcept {
@@ -98,7 +98,7 @@ Vector<Int32, 2> RectI::position() const noexcept {
 }
 
 Size2d RectI::extent() const noexcept {
-	return Size2d(this->z(), this->w());
+	return { static_cast<size_t>(this->z()), static_cast<size_t>(this->w()) };
 }
 
 Int32 RectI::width() const noexcept {
@@ -154,7 +154,7 @@ Vector<Float, 2> RectF::position() const noexcept {
 }
 
 Size2d RectF::extent() const noexcept {
-	return Size2d(static_cast<size_t>(this->z()), static_cast<size_t>(this->w()));
+	return { static_cast<size_t>(this->z()), static_cast<size_t>(this->w()) };
 }
 
 Float RectF::width() const noexcept {

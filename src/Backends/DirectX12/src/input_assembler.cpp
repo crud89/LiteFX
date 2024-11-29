@@ -111,6 +111,6 @@ void DirectX12InputAssemblerBuilder::build()
 
 DirectX12VertexBufferLayoutBuilder DirectX12InputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)
 {
-    return DirectX12VertexBufferLayoutBuilder(*this, makeUnique<DirectX12VertexBufferLayout>(elementSize, binding));
+    return DirectX12VertexBufferLayoutBuilder { *this, makeUnique<DirectX12VertexBufferLayout>(elementSize, binding) };
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

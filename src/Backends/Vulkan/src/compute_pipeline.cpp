@@ -19,7 +19,7 @@ private:
 
 public:
 	VulkanComputePipelineImpl(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram) :
-		m_layout(layout), m_program(shaderProgram), m_device(device.weak_from_this())
+		m_layout(std::move(layout)), m_program(std::move(shaderProgram)), m_device(device.weak_from_this())
 	{
 	}
 

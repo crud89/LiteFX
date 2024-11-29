@@ -70,37 +70,37 @@ PipelineStage& VulkanBarrier::syncAfter() noexcept
 
 void VulkanBarrier::wait(ResourceAccess accessBefore, ResourceAccess accessAfter)
 {
-    m_impl->m_globalBarriers.push_back({ accessBefore, accessAfter });
+    m_impl->m_globalBarriers.emplace_back(accessBefore, accessAfter);
 }
 
 void VulkanBarrier::transition(const IVulkanBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter)
 {
-    m_impl->m_bufferBarriers.push_back({ accessBefore, accessAfter, buffer, std::numeric_limits<UInt32>::max() });
+    m_impl->m_bufferBarriers.emplace_back(accessBefore, accessAfter, buffer, std::numeric_limits<UInt32>::max());
 }
 
 void VulkanBarrier::transition(const IVulkanBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter)
 {
-    m_impl->m_bufferBarriers.push_back({ accessBefore, accessAfter, buffer, element });
+    m_impl->m_bufferBarriers.emplace_back(accessBefore, accessAfter, buffer, element);
 }
 
 void VulkanBarrier::transition(const IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout)
 {
-    m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, std::nullopt, layout, 0, image.levels(), 0, image.layers(), 0 });
+    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image, std::nullopt, layout, 0, image.levels(), 0, image.layers(), 0);
 }
 
 void VulkanBarrier::transition(const IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout)
 {
-    m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, fromLayout, toLayout, 0, image.levels(), 0, image.layers(), 0 });
+    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image, fromLayout, toLayout, 0, image.levels(), 0, image.layers(), 0);
 }
 
 void VulkanBarrier::transition(const IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout)
 {
-    m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, std::nullopt, layout, level, levels, layer, layers, plane });
+    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image, std::nullopt, layout, level, levels, layer, layers, plane);
 }
 
 void VulkanBarrier::transition(const IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout)
 {
-    m_impl->m_imageBarriers.push_back({ accessBefore, accessAfter, image, fromLayout, toLayout, level, levels, layer, layers, plane });
+    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image, fromLayout, toLayout, level, levels, layer, layers, plane);
 }
 
 void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const

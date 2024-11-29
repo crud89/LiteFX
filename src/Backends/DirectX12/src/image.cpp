@@ -21,8 +21,8 @@ private:
 	MultiSamplingLevel m_samples;
 
 public:
-	DirectX12ImageImpl(const DirectX12Device& device, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation) :
-		m_allocator(allocator), m_allocation(std::move(allocation)), m_format(format), m_extent(extent), m_levels(levels), m_layers(layers), m_planes{ ::D3D12GetFormatPlaneCount(device.handle().Get(), DX12::getFormat(format)) }, m_dimensions(dimension), m_usage(usage), m_samples(samples)
+	DirectX12ImageImpl(const DirectX12Device& device, Size3d extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation) :
+		m_allocator(std::move(allocator)), m_allocation(std::move(allocation)), m_format(format), m_extent(std::move(extent)), m_levels(levels), m_layers(layers), m_planes{ ::D3D12GetFormatPlaneCount(device.handle().Get(), DX12::getFormat(format)) }, m_dimensions(dimension), m_usage(usage), m_samples(samples)
 	{
 		m_elements = m_planes * m_layers * m_levels;
 	}

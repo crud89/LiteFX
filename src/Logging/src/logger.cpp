@@ -15,8 +15,8 @@ private:
     String m_name;
 
 public:
-    LogImpl(const String& name) : 
-        m_name(name) { }
+    LogImpl(String name) : 
+        m_name(std::move(name)) { }
 };
 
 // ------------------------------------------------------------------------------------------------

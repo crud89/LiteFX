@@ -166,36 +166,36 @@ private:
         // https://vulkan.gpuinfo.org/listdevicescoverage.php?extension=VK_KHR_present_wait (replace the extension name to adjust the filter).
 
         // Required to query image and buffer requirements.
-        m_extensions.push_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+        m_extensions.emplace_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
 
         // Required for mesh shading.
         if (features.MeshShaders)
-            m_extensions.push_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
+            m_extensions.emplace_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
 
         if (features.RayTracing)
-            m_extensions.push_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
+            m_extensions.emplace_back(VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME);
 
         if (features.RayQueries)
-            m_extensions.push_back(VK_KHR_RAY_QUERY_EXTENSION_NAME);
+            m_extensions.emplace_back(VK_KHR_RAY_QUERY_EXTENSION_NAME);
 
         if (features.RayTracing || features.RayQueries)
         {
-            m_extensions.push_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
-            m_extensions.push_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
-            m_extensions.push_back(VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME);
+            m_extensions.emplace_back(VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME);
+            m_extensions.emplace_back(VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME);
+            m_extensions.emplace_back(VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME);
         }
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
         // Interop swap chain requires external memory access.
-        m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
-        m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
-        m_extensions.push_back(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
+        m_extensions.emplace_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
+        m_extensions.emplace_back(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
+        m_extensions.emplace_back(VK_KHR_DEDICATED_ALLOCATION_EXTENSION_NAME);
 
         // Required to synchronize Vulkan command execution with D3D presentation.
-        m_extensions.push_back(VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME);
-        //m_extensions.push_back(VK_KHR_EXTERNAL_FENCE_WIN32_EXTENSION_NAME);
+        m_extensions.emplace_back(VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME);
+        //m_extensions.emplace_back(VK_KHR_EXTERNAL_FENCE_WIN32_EXTENSION_NAME);
 #else
-        m_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        m_extensions.emplace_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 #ifndef NDEBUG
@@ -203,7 +203,7 @@ private:
 
         // Required to set debug names.
         if (auto match = std::ranges::find_if(availableExtensions, [](const String& extension) { return extension == VK_EXT_DEBUG_MARKER_EXTENSION_NAME; }); match != availableExtensions.end())
-            m_extensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+            m_extensions.emplace_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
 #endif
     }
 

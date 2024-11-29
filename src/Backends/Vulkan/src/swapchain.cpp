@@ -828,7 +828,7 @@ public:
 
 		// Resize the query pools array and allocate a pool for each back buffer.
 		m_timingQueryPools.resize(m_buffers);
-		std::ranges::generate(m_timingQueryPools, [this, &timingEvents, device]() {
+		std::ranges::generate(m_timingQueryPools, [&timingEvents, device]() {
 			VkQueryPoolCreateInfo poolInfo {
 				.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
 				.queryType = VkQueryType::VK_QUERY_TYPE_TIMESTAMP,

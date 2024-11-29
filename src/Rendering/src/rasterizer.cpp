@@ -18,8 +18,8 @@ private:
     DepthStencilState m_depthStencilState{};
 
 public:
-    RasterizerImpl(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth, const DepthStencilState& depthStencilState) :
-        m_polygonMode(polygonMode), m_cullMode(cullMode), m_cullOrder(cullOrder), m_lineWidth(lineWidth), m_depthStencilState(depthStencilState)
+    RasterizerImpl(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth, DepthStencilState depthStencilState) :
+        m_polygonMode(polygonMode), m_cullMode(cullMode), m_cullOrder(cullOrder), m_lineWidth(lineWidth), m_depthStencilState(std::move(depthStencilState))
     {
     }
 };

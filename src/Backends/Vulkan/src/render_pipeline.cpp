@@ -28,7 +28,7 @@ private:
 
 public:
 	VulkanRenderPipelineImpl(const VulkanRenderPass& renderPass, bool alphaToCoverage, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer) :
-		m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_alphaToCoverage(alphaToCoverage), m_renderPass(renderPass)
+		m_layout(std::move(layout)), m_program(std::move(shaderProgram)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_alphaToCoverage(alphaToCoverage), m_renderPass(renderPass)
 	{
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
 			m_inputAttachmentSampler = m_renderPass.device()->factory().createSampler();

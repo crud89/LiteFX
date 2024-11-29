@@ -108,6 +108,6 @@ void VulkanInputAssemblerBuilder::build()
 
 VulkanVertexBufferLayoutBuilder VulkanInputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)
 {
-    return VulkanVertexBufferLayoutBuilder(*this, makeUnique<VulkanVertexBufferLayout>(elementSize, binding));
+    return VulkanVertexBufferLayoutBuilder { *this, makeUnique<VulkanVertexBufferLayout>(elementSize, binding) };
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

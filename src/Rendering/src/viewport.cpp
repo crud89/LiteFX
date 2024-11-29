@@ -15,8 +15,8 @@ private:
     Float m_minDepth{ 0.f }, m_maxDepth{ 1.f };
 
 public:
-    ViewportImpl(const RectF& clientRect, Float minDepth, Float maxDepth) :
-        m_clientRect(clientRect), m_minDepth(minDepth), m_maxDepth(maxDepth)
+    ViewportImpl(RectF clientRect, Float minDepth, Float maxDepth) :
+        m_clientRect(std::move(clientRect)), m_minDepth(minDepth), m_maxDepth(maxDepth)
     {
     }
 };

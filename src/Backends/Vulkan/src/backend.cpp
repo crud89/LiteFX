@@ -38,16 +38,16 @@ public:
 
     void defineMandatoryExtensions()
     {
-        m_extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+        m_extensions.emplace_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
         // Interop swap chain requires external memory access.
-        m_extensions.push_back(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
+        m_extensions.emplace_back(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 #if defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) || !defined(NDEBUG)
         // Debugging extension should be guaranteed to be available.
-        m_extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+        m_extensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif // defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) || !defined(NDEBUG)
     }
 

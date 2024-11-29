@@ -115,7 +115,7 @@ namespace LiteFX {
 		/// <param name="fn">The delegate function.</param>
 		/// <param name="t">The unique token of the delegate within the parent event.</param>
 		inline Delegate(function_type fn, token_type t) noexcept : 
-			m_target(fn), m_token(t) { }
+			m_target(std::move(fn)), m_token(t) { }
 
 	public:
 		/// <summary>

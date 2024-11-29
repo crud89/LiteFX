@@ -32,7 +32,7 @@ Log Logger::get(StringView name)
         spdlog::register_logger(logger);
     }
 
-    return Log(nameCopy);
+    return { nameCopy };
 }
 
 void Logger::sinkTo(const ISink* sink)

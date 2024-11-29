@@ -14,8 +14,8 @@ private:
     RectF m_rect;
 
 public:
-    ScissorImpl(const RectF& clientRect) : 
-        m_rect(clientRect) 
+    ScissorImpl(RectF clientRect) : 
+        m_rect(std::move(clientRect)) 
     {
     }
 };

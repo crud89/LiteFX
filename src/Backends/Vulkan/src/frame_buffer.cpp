@@ -18,8 +18,8 @@ private:
 	Size2d m_size;
 
 public:
-    VulkanFrameBufferImpl(const VulkanDevice& device, const Size2d& renderArea) :
-        m_device(device.weak_from_this()), m_size(renderArea)
+    VulkanFrameBufferImpl(const VulkanDevice& device, Size2d renderArea) :
+        m_device(device.weak_from_this()), m_size(std::move(renderArea))
 	{
 	}
 

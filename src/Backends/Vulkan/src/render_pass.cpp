@@ -608,6 +608,6 @@ void VulkanRenderPassBuilder::build()
 
 RenderPassDependency VulkanRenderPassBuilder::makeInputAttachment(DescriptorBindingPoint binding, const RenderTarget& renderTarget)
 {
-    return RenderPassDependency(renderTarget, binding);
+    return { renderTarget, binding };
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

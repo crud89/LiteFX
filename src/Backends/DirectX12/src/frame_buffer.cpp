@@ -20,8 +20,8 @@ private:
     WeakPtr<const DirectX12Device> m_device;
 
 public:
-    DirectX12FrameBufferImpl(const DirectX12Device& device, const Size2d& renderArea) :
-        m_size(renderArea), m_device(device.weak_from_this())
+    DirectX12FrameBufferImpl(const DirectX12Device& device, Size2d renderArea) :
+        m_size(std::move(renderArea)), m_device(device.weak_from_this())
     {
     }
 

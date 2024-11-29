@@ -80,7 +80,7 @@ Vector2f::Vector2f(glm::f32vec2&& v) noexcept {
 }
 
 Vector2f::operator glm::f32vec2() const noexcept {
-    return glm::f32vec2(m_elements[0], m_elements[1]);
+    return { m_elements[0], m_elements[1] };
 }
 #endif
 
@@ -135,7 +135,7 @@ Vector2u::Vector2u(glm::u32vec2&& v) noexcept {
 }
 
 Vector2u::operator glm::u32vec2() const noexcept {
-    return glm::u32vec2(m_elements[0], m_elements[1]);
+    return { m_elements[0], m_elements[1] };
 }
 #endif
 
@@ -190,7 +190,7 @@ Vector2i::Vector2i(glm::i32vec2&& v) noexcept {
 }
 
 Vector2i::operator glm::i32vec2() const noexcept {
-    return glm::i32vec2(m_elements[0], m_elements[1]);
+    return { m_elements[0], m_elements[1] };
 }
 #endif
 
@@ -245,7 +245,7 @@ Vector3f::Vector3f(glm::f32vec3&& v) noexcept {
 }
 
 Vector3f::operator glm::f32vec3() const noexcept {
-    return glm::f32vec3(m_elements[0], m_elements[1], m_elements[2]);
+    return { m_elements[0], m_elements[1], m_elements[2] };
 }
 #endif
 
@@ -304,7 +304,7 @@ Vector3u::Vector3u(glm::u32vec3&& v) noexcept {
 }
 
 Vector3u::operator glm::u32vec3() const noexcept {
-    return glm::u32vec3(m_elements[0], m_elements[1], m_elements[2]);
+    return { m_elements[0], m_elements[1], m_elements[2] };
 }
 #endif
 
@@ -363,7 +363,7 @@ Vector3i::Vector3i(glm::i32vec3&& v) noexcept {
 }
 
 Vector3i::operator glm::i32vec3() const noexcept {
-    return glm::i32vec3(m_elements[0], m_elements[1], m_elements[2]);
+    return { m_elements[0], m_elements[1], m_elements[2] };
 }
 #endif
 
@@ -422,7 +422,7 @@ Vector4f::Vector4f(glm::f32vec4&& v) noexcept {
 }
 
 Vector4f::operator glm::f32vec4() const noexcept {
-    return glm::f32vec4(m_elements[0], m_elements[1], m_elements[2], m_elements[3]);
+    return { m_elements[0], m_elements[1], m_elements[2], m_elements[3] };
 }
 #endif
 
@@ -485,7 +485,7 @@ Vector4u::Vector4u(glm::u32vec4&& v) noexcept {
 }
 
 Vector4u::operator glm::u32vec4() const noexcept {
-    return glm::u32vec4(m_elements[0], m_elements[1], m_elements[2], m_elements[3]);
+    return { m_elements[0], m_elements[1], m_elements[2], m_elements[3] };
 }
 #endif
 
@@ -548,7 +548,7 @@ Vector4i::Vector4i(glm::i32vec4&& v) noexcept {
 }
 
 Vector4i::operator glm::i32vec4() const noexcept {
-    return glm::i32vec4(m_elements[0], m_elements[1], m_elements[2], m_elements[3]);
+    return { m_elements[0], m_elements[1], m_elements[2], m_elements[3] };
 }
 #endif
 

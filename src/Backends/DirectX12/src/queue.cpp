@@ -183,7 +183,7 @@ UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuf
 	raiseIfFailed(this->handle()->Signal(m_impl->m_fence.Get(), fence), "Unable to add fence signal to command buffer.");
 
 	// Add the command buffer to the submitted command buffers list.
-	m_impl->m_submittedCommandBuffers.push_back({ fence, commandBuffer });
+	m_impl->m_submittedCommandBuffers.emplace_back(fence, commandBuffer);
 
 	// Fire end event.
 	this->submitted(this, { fence });

@@ -26,7 +26,7 @@ namespace LiteFX {
 		/// <param name="location">The source location of the error.</param>
 		/// <param name="trace">The stack trace leading to the error.</param>
 		explicit Exception(std::string message, const std::source_location& location, std::stacktrace trace) :
-			std::runtime_error(message.c_str()), m_location(location), m_trace(trace) { }
+			std::runtime_error(message.c_str()), m_location(location), m_trace(std::move(trace)) { }
 
 	public:
 		Exception(const Exception&) = default;

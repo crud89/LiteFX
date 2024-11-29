@@ -304,8 +304,8 @@ void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptor
     // Unbounded array descriptor sets aren't cached.
     if (!m_impl->m_isRuntimeArray)
     {
-        m_impl->m_freeDescriptorSets.push(ComPtr<ID3D12DescriptorHeap>(descriptorSet.bufferHeap()));
-        m_impl->m_freeSamplerSets.push(ComPtr<ID3D12DescriptorHeap>(descriptorSet.samplerHeap()));
+        m_impl->m_freeDescriptorSets.emplace(descriptorSet.bufferHeap());
+        m_impl->m_freeSamplerSets.emplace(descriptorSet.samplerHeap());
     }
 }
 

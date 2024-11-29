@@ -18,8 +18,8 @@ private:
 	Optional<DescriptorBindingPoint> m_shaderLocalDescriptor;
 
 public:
-	VulkanShaderModuleImpl(const VulkanDevice& device, ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
-		m_device(device.weak_from_this()), m_type(type), m_fileName(fileName), m_entryPoint(entryPoint), m_shaderLocalDescriptor(shaderLocalDescriptor)
+	VulkanShaderModuleImpl(const VulkanDevice& device, ShaderStage type, String fileName, String entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
+		m_device(device.weak_from_this()), m_type(type), m_fileName(std::move(fileName)), m_entryPoint(std::move(entryPoint)), m_shaderLocalDescriptor(shaderLocalDescriptor)
 	{
 	}
 
@@ -36,7 +36,7 @@ private:
 
 	String readStreamContents(std::istream& stream)
 	{
-		return String(std::istreambuf_iterator<char>(stream), {});
+		return { std::istreambuf_iterator<char>(stream), {} };
 	}
 
 public:

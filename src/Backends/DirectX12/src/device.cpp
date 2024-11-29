@@ -404,10 +404,10 @@ void DirectX12Device::releaseGlobalDescriptors(const DirectX12DescriptorSet& des
 	std::lock_guard<std::mutex> lock(m_impl->m_bufferBindMutex);
 
 	if (descriptorSet.bufferHeap() != nullptr)
-		m_impl->m_bufferDescriptorFragments.push_back(std::make_pair(descriptorSet.bufferOffset(), descriptorSet.bufferHeap()->GetDesc().NumDescriptors));
+		m_impl->m_bufferDescriptorFragments.emplace_back(descriptorSet.bufferOffset(), descriptorSet.bufferHeap()->GetDesc().NumDescriptors);
 
 	if (descriptorSet.samplerHeap() != nullptr)
-		m_impl->m_samplerDescriptorFragments.push_back(std::make_pair(descriptorSet.samplerOffset(), descriptorSet.samplerHeap()->GetDesc().NumDescriptors));
+		m_impl->m_samplerDescriptorFragments.emplace_back(descriptorSet.samplerOffset(), descriptorSet.samplerHeap()->GetDesc().NumDescriptors);
 }
 
 void DirectX12Device::updateBufferDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 firstDescriptor, UInt32 descriptors) const noexcept
@@ -519,7 +519,7 @@ DirectX12RayTracingPipelineBuilder DirectX12Device::buildRayTracingPipeline(cons
 
 DirectX12PipelineLayoutBuilder DirectX12Device::buildPipelineLayout() const
 {
-	return DirectX12PipelineLayoutBuilder(*this);
+	return { *this };
 }
 
 DirectX12InputAssemblerBuilder DirectX12Device::buildInputAssembler() const

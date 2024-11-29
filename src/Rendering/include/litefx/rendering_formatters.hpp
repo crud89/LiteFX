@@ -25,17 +25,17 @@ struct LITEFX_RENDERING_API std::formatter<QueueType> : std::formatter<std::stri
 		Array<String> names;
 
 		if (t == QueueType::None)
-			names.push_back("None");
+			names.emplace_back("None");
 		else if(t == QueueType::Other)
-			names.push_back("Other");
+			names.emplace_back("Other");
 		else 
 		{
 			if ((t & QueueType::Compute) == QueueType::Compute)
-				names.push_back("Compute");
+				names.emplace_back("Compute");
 			if ((t & QueueType::Graphics) == QueueType::Graphics)
-				names.push_back("Graphics");
+				names.emplace_back("Graphics");
 			if ((t & QueueType::Transfer) == QueueType::Transfer)
-				names.push_back("Transfer");
+				names.emplace_back("Transfer");
 		}
 
 		String name = Join(names, " | ");
@@ -268,19 +268,19 @@ struct LITEFX_RENDERING_API std::formatter<ResourceUsage> : std::formatter<std::
 		Array<String> names;
 
 		if (t == ResourceUsage::None)
-			names.push_back("None");
+			names.emplace_back("None");
 		else if (t == ResourceUsage::Default)
-			names.push_back("Default");
+			names.emplace_back("Default");
 		else
 		{
 			if ((t & ResourceUsage::AllowWrite) == ResourceUsage::AllowWrite)
-				names.push_back("AllowWrite");
+				names.emplace_back("AllowWrite");
 			if ((t & ResourceUsage::TransferSource) == ResourceUsage::TransferSource)
-				names.push_back("TransferSource");
+				names.emplace_back("TransferSource");
 			if ((t & ResourceUsage::TransferDestination) == ResourceUsage::TransferDestination)
-				names.push_back("TransferDestination");
+				names.emplace_back("TransferDestination");
 			if ((t & ResourceUsage::AccelerationStructureBuildInput) == ResourceUsage::AccelerationStructureBuildInput)
-				names.push_back("AccelerationStructureBuildInput");
+				names.emplace_back("AccelerationStructureBuildInput");
 		}
 
 		String name = Join(names, " | ");
@@ -322,41 +322,41 @@ struct LITEFX_RENDERING_API std::formatter<ShaderStage> : std::formatter<std::st
 		Array<String> names;
 
 		if (t == ShaderStage::Other)
-			names.push_back("Other");
+			names.emplace_back("Other");
 		else if (t == ShaderStage::MeshPipeline)
-			names.push_back("Mesh Shading");
+			names.emplace_back("Mesh Shading");
 		if (t == ShaderStage::RayTracingPipeline)
-			names.push_back("Ray Tracing");
+			names.emplace_back("Ray Tracing");
 		else
 		{
 			if ((t & ShaderStage::Vertex) == ShaderStage::Vertex)
-				names.push_back("Vertex");
+				names.emplace_back("Vertex");
 			if ((t & ShaderStage::TessellationControl) == ShaderStage::TessellationControl)
-				names.push_back("Tessellation Control");
+				names.emplace_back("Tessellation Control");
 			if ((t & ShaderStage::TessellationEvaluation) == ShaderStage::TessellationEvaluation)
-				names.push_back("Tessellation Evaluation");
+				names.emplace_back("Tessellation Evaluation");
 			if ((t & ShaderStage::Geometry) == ShaderStage::Geometry)
-				names.push_back("Geometry");
+				names.emplace_back("Geometry");
 			if ((t & ShaderStage::Fragment) == ShaderStage::Fragment)
-				names.push_back("Fragment");
+				names.emplace_back("Fragment");
 			if ((t & ShaderStage::Compute) == ShaderStage::Compute)
-				names.push_back("Compute");
+				names.emplace_back("Compute");
 			if ((t & ShaderStage::Mesh) == ShaderStage::Mesh)
-				names.push_back("Mesh");
+				names.emplace_back("Mesh");
 			if ((t & ShaderStage::Task) == ShaderStage::Task)
-				names.push_back("Task");
+				names.emplace_back("Task");
 			if ((t & ShaderStage::RayGeneration) == ShaderStage::RayGeneration)
-				names.push_back("Ray Generation");
+				names.emplace_back("Ray Generation");
 			if ((t & ShaderStage::AnyHit) == ShaderStage::AnyHit)
-				names.push_back("Any Hit");
+				names.emplace_back("Any Hit");
 			if ((t & ShaderStage::ClosestHit) == ShaderStage::ClosestHit)
-				names.push_back("Closest Hit");
+				names.emplace_back("Closest Hit");
 			if ((t & ShaderStage::Intersection) == ShaderStage::Intersection)
-				names.push_back("Intersection");
+				names.emplace_back("Intersection");
 			if ((t & ShaderStage::Miss) == ShaderStage::Miss)
-				names.push_back("Miss");
+				names.emplace_back("Miss");
 			if ((t & ShaderStage::Callable) == ShaderStage::Callable)
-				names.push_back("Callable");
+				names.emplace_back("Callable");
 		}
 
 		String name = Join(names, " | ");
@@ -373,16 +373,16 @@ struct LITEFX_RENDERING_API std::formatter<BufferFormat> : std::formatter<std::s
 		switch (::getBufferFormatChannels(t))
 		{
 		case 1:
-			names.push_back("X");
+			names.emplace_back("X");
 			break;
 		case 2:
-			names.push_back("XY");
+			names.emplace_back("XY");
 			break;
 		case 3:
-			names.push_back("XYZ");
+			names.emplace_back("XYZ");
 			break;
 		case 4:
-			names.push_back("XYZW");
+			names.emplace_back("XYZW");
 			break;
 		default:
 			return formatter<string_view>::format("Invalid", ctx);
@@ -391,16 +391,16 @@ struct LITEFX_RENDERING_API std::formatter<BufferFormat> : std::formatter<std::s
 		switch (::getBufferFormatChannelSize(t))
 		{
 		case 8:
-			names.push_back("8");
+			names.emplace_back("8");
 			break;
 		case 16:
-			names.push_back("16");
+			names.emplace_back("16");
 			break;
 		case 32:
-			names.push_back("32");
+			names.emplace_back("32");
 			break;
 		case 64:
-			names.push_back("64");
+			names.emplace_back("64");
 			break;
 		default:
 			return formatter<string_view>::format("Invalid", ctx);
@@ -409,13 +409,13 @@ struct LITEFX_RENDERING_API std::formatter<BufferFormat> : std::formatter<std::s
 		switch (::getBufferFormatType(t))
 		{
 		case 0x01:
-			names.push_back("F");
+			names.emplace_back("F");
 			break;
 		case 0x02:
-			names.push_back("I");
+			names.emplace_back("I");
 			break;
 		case 0x04:
-			names.push_back("S");
+			names.emplace_back("S");
 			break;
 		default:
 			return formatter<string_view>::format("Invalid", ctx);
@@ -597,13 +597,13 @@ struct LITEFX_RENDERING_API std::formatter<GeometryFlags> : std::formatter<std::
 		Array<String> names;
 
 		if (t == GeometryFlags::None)
-			names.push_back("None");
+			names.emplace_back("None");
 		else
 		{
 			if ((t & GeometryFlags::Opaque) == GeometryFlags::Opaque)
-				names.push_back("Opaque");
+				names.emplace_back("Opaque");
 			if ((t & GeometryFlags::OneShotAnyHit) == GeometryFlags::OneShotAnyHit)
-				names.push_back("OneShotAnyHit");
+				names.emplace_back("OneShotAnyHit");
 		}
 
 		String name = Join(names, " | ");
@@ -617,19 +617,19 @@ struct LITEFX_RENDERING_API std::formatter<AccelerationStructureFlags> : std::fo
 		Array<String> names;
 
 		if (t == AccelerationStructureFlags::None)
-			names.push_back("None");
+			names.emplace_back("None");
 		else
 		{
 			if ((t & AccelerationStructureFlags::AllowUpdate) == AccelerationStructureFlags::AllowUpdate)
-				names.push_back("AllowUpdate");
+				names.emplace_back("AllowUpdate");
 			if ((t & AccelerationStructureFlags::AllowCompaction) == AccelerationStructureFlags::AllowCompaction)
-				names.push_back("AllowCompaction");
+				names.emplace_back("AllowCompaction");
 			if ((t & AccelerationStructureFlags::PreferFastTrace) == AccelerationStructureFlags::AllowCompaction)
-				names.push_back("PreferFastTrace");
+				names.emplace_back("PreferFastTrace");
 			if ((t & AccelerationStructureFlags::PreferFastBuild) == AccelerationStructureFlags::PreferFastBuild)
-				names.push_back("PreferFastBuild");
+				names.emplace_back("PreferFastBuild");
 			if ((t & AccelerationStructureFlags::MinimizeMemory) == AccelerationStructureFlags::MinimizeMemory)
-				names.push_back("MinimizeMemory");
+				names.emplace_back("MinimizeMemory");
 		}
 
 		String name = Join(names, " | ");
@@ -643,17 +643,17 @@ struct LITEFX_RENDERING_API std::formatter<InstanceFlags> : std::formatter<std::
 		Array<String> names;
 
 		if (t == InstanceFlags::None)
-			names.push_back("None");
+			names.emplace_back("None");
 		else
 		{
 			if ((t & InstanceFlags::DisableCull) == InstanceFlags::DisableCull)
-				names.push_back("DisableCull");
+				names.emplace_back("DisableCull");
 			if ((t & InstanceFlags::FlipWinding) == InstanceFlags::FlipWinding)
-				names.push_back("FlipWinding");
+				names.emplace_back("FlipWinding");
 			if ((t & InstanceFlags::ForceOpaque) == InstanceFlags::ForceOpaque)
-				names.push_back("ForceOpaque");
+				names.emplace_back("ForceOpaque");
 			if ((t & InstanceFlags::ForceNonOpaque) == InstanceFlags::ForceNonOpaque)
-				names.push_back("ForceNonOpaque");
+				names.emplace_back("ForceNonOpaque");
 		}
 
 		String name = Join(names, " | ");
