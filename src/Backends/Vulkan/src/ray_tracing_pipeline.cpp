@@ -147,7 +147,7 @@ public:
 		return pipeline;
 	}
 
-	UniquePtr<IVulkanBuffer> allocateShaderBindingTable(const VulkanRayTracingPipeline& parent, ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups)
+	SharedPtr<IVulkanBuffer> allocateShaderBindingTable(const VulkanRayTracingPipeline& parent, ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups)
 	{
 		// Check if the device is still valid.
 		auto device = m_device.lock();
@@ -339,7 +339,7 @@ UInt32 VulkanRayTracingPipeline::maxAttributeSize() const noexcept
 	return m_impl->m_maxAttributeSize;
 }
 
-UniquePtr<IVulkanBuffer> VulkanRayTracingPipeline::allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const
+SharedPtr<IVulkanBuffer> VulkanRayTracingPipeline::allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const
 {
 	return m_impl->allocateShaderBindingTable(*this, offsets, groups);
 }

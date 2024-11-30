@@ -20,7 +20,7 @@ private:
 	Format m_format { Format::None };
 	UInt32 m_buffers { };
 	UInt32 m_currentImage { };
-	Array<UniquePtr<IVulkanImage>> m_presentImages { };
+	Array<SharedPtr<IVulkanImage>> m_presentImages { };
 	const VulkanDevice& m_device;
 	VkSwapchainKHR m_handle = VK_NULL_HANDLE;
 	VkFence m_waitForImage;
@@ -137,7 +137,7 @@ public:
 
 		m_presentImages = imageChain |
 			std::views::transform([this, &actualRenderArea, &selectedFormat](const VkImage& image) { return makeUnique<VulkanImage>(m_device, image, Size3d{ actualRenderArea.width(), actualRenderArea.height(), 1 }, selectedFormat, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination); }) |
-			std::ranges::to<Array<UniquePtr<IVulkanImage>>>();
+			std::ranges::to<Array<SharedPtr<IVulkanImage>>>();
 
 		// Store state variables.
 		m_renderArea = actualRenderArea;
@@ -371,7 +371,7 @@ private:
 	Format m_format{ Format::None };
 	UInt32 m_buffers{ };
 	UInt32 m_currentImage{ };
-	Array<UniquePtr<IVulkanImage>> m_presentImages{ };
+	Array<SharedPtr<IVulkanImage>> m_presentImages{ };
 	Array<ImageResource> m_imageResources;
 	Array<UInt64> m_presentFences;
 	WeakPtr<const VulkanDevice> m_device;
@@ -800,7 +800,7 @@ public:
 			m_imageResources[image].handle = resourceHandle;
 			m_imageResources[image].image = std::move(resource);
 
-			return makeUnique<VulkanImage>(backBuffer, Size3d { imageInfo.extent.width, imageInfo.extent.height, imageInfo.extent.depth }, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
+			return makeShared<VulkanImage>(backBuffer, Size3d { imageInfo.extent.width, imageInfo.extent.height, imageInfo.extent.depth }, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
 		});
 
 		// Store state variables.
@@ -1116,7 +1116,7 @@ const IVulkanImage& VulkanSwapChain::image() const noexcept
 
 Enumerable<IVulkanImage*> VulkanSwapChain::images() const
 {
-	return m_impl->m_presentImages | std::views::transform([](UniquePtr<IVulkanImage>& image) { return image.get(); });
+	return m_impl->m_presentImages | std::views::transform([](SharedPtr<IVulkanImage>& image) { return image.get(); });
 }
 
 void VulkanSwapChain::present(UInt64 fence) const 

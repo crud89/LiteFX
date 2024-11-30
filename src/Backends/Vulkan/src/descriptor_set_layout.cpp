@@ -642,6 +642,6 @@ UniquePtr<VulkanDescriptorLayout> VulkanDescriptorSetLayoutBuilder::makeDescript
 
 UniquePtr<VulkanDescriptorLayout> VulkanDescriptorSetLayoutBuilder::makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy)
 {
-    return makeUnique<VulkanDescriptorLayout>(makeUnique<VulkanSampler>(*this->parent().instance()->device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding);
+    return makeUnique<VulkanDescriptorLayout>(VulkanSampler::allocate(*this->parent().instance()->device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

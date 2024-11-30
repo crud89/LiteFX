@@ -16,7 +16,7 @@ private:
 	Format m_format{ Format::None };
 	UInt32 m_buffers{ };
 	UInt32 m_currentImage{ };
-	Array<UniquePtr<IDirectX12Image>> m_presentImages{ };
+	Array<SharedPtr<IDirectX12Image>> m_presentImages{ };
 	Array<UInt64> m_presentFences{ };
 	bool m_supportsVariableRefreshRates{ false };
 	bool m_vsync{ false };
@@ -25,7 +25,7 @@ private:
 	Array<SharedPtr<TimingEvent>> m_timingEvents;
 	Array<UInt64> m_timestamps;
 	Array<ComPtr<ID3D12QueryHeap>> m_timingQueryHeaps;
-	Array<UniquePtr<IDirectX12Buffer>> m_timingQueryReadbackBuffers;
+	Array<SharedPtr<IDirectX12Buffer>> m_timingQueryReadbackBuffers;
 	ID3D12QueryHeap* m_currentQueryHeap{};
 
 public:
@@ -91,7 +91,7 @@ public:
 		std::ranges::generate(m_presentImages, [&size, &format, &swapChain, device, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed(swapChain->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
-			return makeUnique<DirectX12Image>(*device.get(), std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
+			return SharedPtr<DirectX12Image>(new DirectX12Image(*device.get(), std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination));
 		});
 
 		// Disable Alt+Enter shortcut for fullscreen-toggle.
@@ -132,7 +132,7 @@ public:
 		std::ranges::generate(m_presentImages, [&swapChain, &size, &format, device, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed(swapChain.handle()->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
-			return makeUnique<DirectX12Image>(*device.get(), std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
+			return SharedPtr<DirectX12Image>(new DirectX12Image(*device.get(), std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination));
 		});
 
 		m_format = format;
@@ -311,7 +311,7 @@ const IDirectX12Image& DirectX12SwapChain::image() const noexcept
 
 Enumerable<IDirectX12Image*> DirectX12SwapChain::images() const
 {
-	return m_impl->m_presentImages | std::views::transform([](UniquePtr<IDirectX12Image>& image) { return image.get(); });
+	return m_impl->m_presentImages | std::views::transform([](SharedPtr<IDirectX12Image>& image) { return image.get(); });
 }
 
 void DirectX12SwapChain::present(UInt64 fence) const

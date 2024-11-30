@@ -189,8 +189,8 @@ public:
 		tlas.updateState(&device, handle);
 
 		// Store the scratch buffer.
-		m_sharedResources.push_back(asShared(std::move(instanceBuffer)));
-		m_sharedResources.push_back(scratchBuffer);
+		m_sharedResources.emplace_back(instanceBuffer);
+		m_sharedResources.emplace_back(scratchBuffer);
 	}
 };
 
@@ -436,7 +436,7 @@ void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanBuf
 
 void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IVulkanBuffer& target, UInt32 targetElement, UInt32 elements) const
 {
-	auto stagingBuffer = asShared(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements));
+	auto stagingBuffer = m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements);
 	stagingBuffer->map(data, size, 0);
 
 	this->transfer(stagingBuffer, target, 0, targetElement, elements);
@@ -445,7 +445,7 @@ void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IV
 void VulkanCommandBuffer::transfer(Span<const void* const> data, size_t elementSize, const IVulkanBuffer& target, UInt32 firstElement) const
 {
 	auto elements = static_cast<UInt32>(data.size());
-	auto stagingBuffer = asShared(m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements));
+	auto stagingBuffer = m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements);
 	stagingBuffer->map(data, elementSize, 0);
 
 	this->transfer(stagingBuffer, target, 0, firstElement, elements);
@@ -484,7 +484,7 @@ void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanIma
 
 void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IVulkanImage& target, UInt32 subresource) const
 {
-	auto stagingBuffer = asShared(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, size));
+	auto stagingBuffer = m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, size);
 	stagingBuffer->map(data, size, 0);
 
 	this->transfer(stagingBuffer, target, 0, subresource, 1);
@@ -493,7 +493,7 @@ void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IV
 void VulkanCommandBuffer::transfer(Span<const void* const> data, size_t elementSize, const IVulkanImage& target, UInt32 firstSubresource, UInt32 subresources) const
 {
 	auto elements = static_cast<UInt32>(data.size());
-	auto stagingBuffer = asShared(m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, elementSize, elements));
+	auto stagingBuffer = m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, elementSize, elements);
 	stagingBuffer->map(data, elementSize, 0);
 
 	this->transfer(stagingBuffer, target, 0, firstSubresource, subresources);

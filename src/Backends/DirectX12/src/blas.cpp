@@ -17,7 +17,7 @@ private:
     Array<BoundingBoxes> m_boundingBoxes{};
     AccelerationStructureFlags m_flags{};
     SharedPtr<const IDirectX12Buffer> m_buffer{};
-    UniquePtr<IDirectX12Buffer> m_postBuildBuffer{}, m_postBuildResults{};
+    SharedPtr<IDirectX12Buffer> m_postBuildBuffer{}, m_postBuildResults{};
     UInt64 m_offset{}, m_size{};
 
 public:

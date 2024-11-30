@@ -241,16 +241,14 @@ UInt64 VulkanQueue::submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>
 	m_impl->releaseCommandBuffers(*this, completedValue);
 
 	// End the command buffer.
-	auto commandBufferInfos = [&commandBuffers]() -> std::generator<VkCommandBufferSubmitInfo> {
-		for (auto buffer = commandBuffers.begin(); buffer != commandBuffers.end(); ++buffer) {
-			(*buffer)->end();
+	auto commandBufferInfos = commandBuffers | std::views::transform([](auto& buffer) {
+		buffer->end();
 
-			co_yield VkCommandBufferSubmitInfo {
-				.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
-				.commandBuffer = (*buffer)->handle()
-			};
-		}
-	}() | std::ranges::to<Array<VkCommandBufferSubmitInfo>>();
+		return VkCommandBufferSubmitInfo {
+			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_SUBMIT_INFO,
+			.commandBuffer = buffer->handle()
+		};
+	}) | std::ranges::to<Array<VkCommandBufferSubmitInfo>>();
 
 	// Submit the command buffer.
 	auto fence = ++m_impl->m_fenceValue;

@@ -20,7 +20,7 @@ private:
 	bool m_alphaToCoverage{ false };
 	MultiSamplingLevel m_samples{ MultiSamplingLevel::x1 };
 	const VulkanRenderPass& m_renderPass;
-	UniquePtr<IVulkanSampler> m_inputAttachmentSampler;
+	SharedPtr<IVulkanSampler> m_inputAttachmentSampler;
 	Dictionary<const IFrameBuffer*, Array<UniquePtr<VulkanDescriptorSet>>> m_inputAttachmentBindings;
 	Dictionary<const IFrameBuffer*, size_t> m_frameBufferResizeTokens, m_frameBufferReleaseTokens;
 	mutable std::mutex m_usageMutex;

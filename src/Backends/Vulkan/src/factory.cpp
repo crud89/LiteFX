@@ -52,16 +52,14 @@ VulkanGraphicsFactory::VulkanGraphicsFactory(const VulkanDevice& device) :
 {
 }
 
-VulkanGraphicsFactory::VulkanGraphicsFactory(VulkanGraphicsFactory&&) noexcept = default;
-VulkanGraphicsFactory& VulkanGraphicsFactory::operator=(VulkanGraphicsFactory&&) noexcept = default;
 VulkanGraphicsFactory::~VulkanGraphicsFactory() noexcept = default;
 
-UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const
 {
 	return this->createBuffer("", type, heap, elementSize, elements, usage);
 }
 
-UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const
 {
 	// Validate inputs.
 	if ((type == BufferType::Vertex || type == BufferType::Index || type == BufferType::Uniform) && LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite)) [[unlikely]]
@@ -155,29 +153,30 @@ UniquePtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 	}
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
-	UniquePtr<IVulkanBuffer> buffer;
 	auto queueFamilies = device->queueFamilyIndices() | std::ranges::to<std::vector>();
 
 	bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
-	buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, usage, *device, m_impl->m_allocator, bufferInfo, allocInfo);
-
 #ifndef NDEBUG
+	auto buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, usage, *device, m_impl->m_allocator, bufferInfo, allocInfo);
+
 	if (!name.empty())
 		device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
-#endif
 
 	return buffer;
+#else
+	return VulkanBuffer::allocate(name, type, elements, elementSize, alignment, usage, *device, m_impl->m_allocator, bufferInfo, allocInfo);
+#endif
 }
 
-UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
 {
 	return this->createVertexBuffer("", layout, heap, elements, usage);
 }
 
-UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
 {
 	// Validate usage.
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite)) [[unlikely]]
@@ -221,29 +220,30 @@ UniquePtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 	}
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
-	UniquePtr<IVulkanVertexBuffer> buffer;
 	auto queueFamilies = device->queueFamilyIndices() | std::ranges::to<std::vector>();
 
 	bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
-	buffer = VulkanVertexBuffer::allocate(name, layout, elements, usage, *device, m_impl->m_allocator, bufferInfo, allocInfo);
-
 #ifndef NDEBUG
+	auto buffer = VulkanVertexBuffer::allocate(name, layout, elements, usage, *device, m_impl->m_allocator, bufferInfo, allocInfo);
+
 	if (!name.empty())
 		device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
-#endif
 
 	return buffer;
+#else
+	return VulkanVertexBuffer::allocate(name, layout, elements, usage, *device, m_impl->m_allocator, bufferInfo, allocInfo);
+#endif
 }
 
-UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
 {
 	return this->createIndexBuffer("", layout, heap, elements, usage);
 }
 
-UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
 {
 	// Validate usage.
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite)) [[unlikely]]
@@ -290,29 +290,30 @@ UniquePtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 	//       needs to ensure that resource state is valid. Ideally, we would set sharing mode to exclusive and detect queue family switches where we need to insert a 
 	//       barrier for queue family ownership transfer. This would allow to further optimize workloads between queues to minimize resource ownership transfers (i.e.,
 	//       prefer executing workloads that depend on one resource on the same queue, even if it could be run in parallel).
-	UniquePtr<IVulkanIndexBuffer> buffer;
 	auto queueFamilies = device->queueFamilyIndices() | std::ranges::to<std::vector>();
 
 	bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
-	buffer = VulkanIndexBuffer::allocate(name, layout, elements, usage, *device, m_impl->m_allocator, bufferInfo, allocInfo);
-
 #ifndef NDEBUG
+	auto buffer = VulkanIndexBuffer::allocate(name, layout, elements, usage, *device, m_impl->m_allocator, bufferInfo, allocInfo);
+
 	if (!name.empty())
 		device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
-#endif
 
 	return buffer;
+#else
+	return VulkanIndexBuffer::allocate(name, layout, elements, usage, *device, m_impl->m_allocator, bufferInfo, allocInfo);
+#endif
 }
 
-UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
+SharedPtr<IVulkanImage> VulkanGraphicsFactory::createTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
 {
 	return this->createTexture("", format, size, dimension, levels, layers, samples, usage);
 }
 
-UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
+SharedPtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
 {
 	// Validate usage flags
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput)) [[unlikely]]
@@ -371,25 +372,27 @@ UniquePtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
+#ifndef NDEBUG
 	auto image = VulkanImage::allocate(name, { width, height, depth }, format, dimension, levels, layers, samples, usage, m_impl->m_allocator, imageInfo, allocInfo);
 
-#ifndef NDEBUG
 	if (!name.empty())
 		device->setDebugName(std::as_const(*image).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT, name);
-#endif
 
 	return image;
+#else 
+	return VulkanImage::allocate(name, { width, height, depth }, format, dimension, levels, layers, samples, usage, m_impl->m_allocator, imageInfo, allocInfo);
+#endif
 }
 
-Enumerable<UniquePtr<IVulkanImage>> VulkanGraphicsFactory::createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
+Enumerable<SharedPtr<IVulkanImage>> VulkanGraphicsFactory::createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
 {
-	return [&, this]() -> std::generator<UniquePtr<IVulkanImage>> {
+	return [](SharedPtr<const VulkanGraphicsFactory> factory, UInt32 elements, Format format, Size3d size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) -> std::generator<SharedPtr<IVulkanImage>> {
 		for (UInt32 i = 0; i < elements; ++i)
-			co_yield this->createTexture(format, size, dimension, levels, layers, samples, usage);
-	}() | std::views::as_rvalue;
+			co_yield factory->createTexture(format, size, dimension, levels, layers, samples, usage);
+	}(this->shared_from_this(), elements, format, size, dimension, levels, layers, samples, usage) | std::views::as_rvalue;
 }
 
-UniquePtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
+SharedPtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
 {
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
@@ -397,33 +400,35 @@ UniquePtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(FilterMode magFil
 	if (device == nullptr) [[unlikely]]
 		throw RuntimeException("Cannot allocate sampler from a released device instance.");
 
-	return makeUnique<VulkanSampler>(*device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
+	return VulkanSampler::allocate(*device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
 }
 
-UniquePtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
+SharedPtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
 {
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
 
 	if (device == nullptr) [[unlikely]]
 		throw RuntimeException("Cannot allocate sampler from a released device instance.");
-
-	auto sampler = makeUnique<VulkanSampler>(*device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
 
 #ifndef NDEBUG
+	auto sampler = VulkanSampler::allocate(*device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
+
 	if (!name.empty())
 		device->setDebugName(std::as_const(*sampler).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_EXT, name);
-#endif
 
 	return sampler;
+#else
+	return VulkanSampler::allocate(*device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
+#endif
 }
 
-Enumerable<UniquePtr<IVulkanSampler>> VulkanGraphicsFactory::createSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
+Enumerable<SharedPtr<IVulkanSampler>> VulkanGraphicsFactory::createSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
 {
-	return [&, this]() -> std::generator<UniquePtr<IVulkanSampler>> {
+	return [](SharedPtr<const VulkanGraphicsFactory> factory, UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) -> std::generator<SharedPtr<IVulkanSampler>> {
 		for (UInt32 i = 0; i < elements; ++i)
-			co_yield this->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
-	}() | std::views::as_rvalue;
+			co_yield factory->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+	}(this->shared_from_this(), elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy) | std::views::as_rvalue;
 }
 
 UniquePtr<VulkanBottomLevelAccelerationStructure> VulkanGraphicsFactory::createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const

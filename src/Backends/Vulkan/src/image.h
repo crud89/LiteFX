@@ -15,14 +15,17 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class VulkanImage : public virtual IVulkanImage, public Resource<VkImage>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanImageImpl);
+		friend class VulkanSwapChain::VulkanSwapChainImpl;
 
-	public:
+	private:
 		explicit VulkanImage(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr, const String& name = "");
 		
 		VulkanImage(VulkanImage&&) noexcept = delete;
 		VulkanImage(const VulkanImage&) noexcept = delete;
 		VulkanImage& operator=(VulkanImage&&) noexcept = delete;
 		VulkanImage& operator=(const VulkanImage&) noexcept = delete;
+
+	public:
 		~VulkanImage() noexcept override;
 
 		// IDeviceMemory interface.
@@ -84,8 +87,8 @@ namespace LiteFX::Rendering::Backends {
 		virtual VmaAllocation& allocationInfo() const noexcept;
 
 	public:
-		static UniquePtr<VulkanImage> allocate(const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
-		static UniquePtr<VulkanImage> allocate(const String& name, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static SharedPtr<VulkanImage> allocate(const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static SharedPtr<VulkanImage> allocate(const String& name, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	/// <summary>
@@ -94,7 +97,7 @@ namespace LiteFX::Rendering::Backends {
 	class VulkanSampler : public virtual IVulkanSampler, public Resource<VkSampler>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanSamplerImpl);
 
-	public:
+	private:
 		/// <summary>
 		/// Initializes a new sampler instance.
 		/// </summary>
@@ -115,6 +118,8 @@ namespace LiteFX::Rendering::Backends {
 		VulkanSampler(const VulkanSampler&) noexcept = delete;
 		VulkanSampler& operator=(VulkanSampler&&) noexcept = delete;
 		VulkanSampler& operator=(const VulkanSampler&) noexcept = delete;
+
+	public:
 		~VulkanSampler() noexcept override;
 
 		// ISampler interface.
@@ -148,6 +153,11 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		Float getMinLOD() const noexcept override;
+
+	public:
+		static inline SharedPtr<VulkanSampler> allocate(const VulkanDevice& device, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float minLod = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float anisotropy = 0.f, const String& name = "") {
+			return SharedPtr<VulkanSampler>(new VulkanSampler(device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name));
+		}
 	};
 }
 

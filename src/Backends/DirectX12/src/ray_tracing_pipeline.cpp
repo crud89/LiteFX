@@ -367,7 +367,7 @@ public:
 		m_pipelineState = pipelineState;
 	}
 
-	UniquePtr<IDirectX12Buffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups)
+	SharedPtr<IDirectX12Buffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups)
 	{
 		// Check if the device is still valid.
 		auto device = m_device.lock();
@@ -567,7 +567,7 @@ ComPtr<ID3D12StateObject> DirectX12RayTracingPipeline::stateObject() const noexc
 	return m_impl->m_pipelineState;
 }
 
-UniquePtr<IDirectX12Buffer> DirectX12RayTracingPipeline::allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const
+SharedPtr<IDirectX12Buffer> DirectX12RayTracingPipeline::allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const
 {
 	return m_impl->allocateShaderBindingTable(offsets, groups);
 }

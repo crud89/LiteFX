@@ -123,7 +123,7 @@ private:
 
     const VulkanGraphicsAdapter& m_adapter;
     UniquePtr<VulkanSurface> m_surface;
-    UniquePtr<VulkanGraphicsFactory> m_factory;
+    SharedPtr<VulkanGraphicsFactory> m_factory;
 
 #ifndef NDEBUG
     PFN_vkDebugMarkerSetObjectNameEXT debugMarkerSetObjectName = nullptr;
@@ -153,11 +153,6 @@ private:
 
         // This will also cause all queue instances to be automatically released (graphicsQueue, transferQueue, bufferQueue).
         m_families.clear();
-
-        // Release other resources.
-        m_swapChain = nullptr;
-        m_surface = nullptr;
-        m_factory = nullptr;
     }
 
     void defineMandatoryExtensions(const GraphicsDeviceFeatures& features)
@@ -482,11 +477,6 @@ public:
         }
     }
 
-    void createFactory(const VulkanDevice& device)
-    {
-        m_factory = makeUnique<VulkanGraphicsFactory>(device);
-    }
-
     void createSwapChain(const VulkanDevice& device, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
     {
         m_swapChain = makeUnique<VulkanSwapChain>(device, format, renderArea, backBuffers, enableVsync);
@@ -544,7 +534,7 @@ VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphic
 
     this->handle() = m_impl->initialize(features);
     m_impl->initializeDefaultQueues(*this);
-    m_impl->createFactory(*this);
+    m_impl->m_factory = VulkanGraphicsFactory::create(*this);
     m_impl->createSwapChain(*this, format, renderArea, backBuffers, enableVsync);
 }
 

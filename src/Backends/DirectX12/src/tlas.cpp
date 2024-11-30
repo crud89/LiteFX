@@ -16,7 +16,7 @@ private:
     Array<Instance> m_instances{};
     AccelerationStructureFlags m_flags{};
     SharedPtr<const IDirectX12Buffer> m_buffer{};
-    UniquePtr<IDirectX12Buffer> m_postBuildBuffer{}, m_postBuildResults{};
+    SharedPtr<IDirectX12Buffer> m_postBuildBuffer{}, m_postBuildResults{};
     UInt64 m_offset{}, m_size{};
 
 public:

@@ -16,7 +16,7 @@ private:
     DescriptorType m_descriptorType;
     BufferType m_bufferType;
     UInt32 m_descriptors;
-    UniquePtr<IDirectX12Sampler> m_staticSampler{};
+    SharedPtr<const IDirectX12Sampler> m_staticSampler{};
     bool m_local;
 
 public:
@@ -46,13 +46,13 @@ public:
         }
     }
 
-    DirectX12DescriptorLayoutImpl(UniquePtr<IDirectX12Sampler>&& staticSampler, UInt32 binding, bool local) :
+    DirectX12DescriptorLayoutImpl(SharedPtr<const IDirectX12Sampler> staticSampler, UInt32 binding, bool local) :
         DirectX12DescriptorLayoutImpl(DescriptorType::Sampler, binding, 0, 1, local)
     {
         if (staticSampler == nullptr)
             throw ArgumentNotInitializedException("staticSampler", "The static sampler must be initialized.");
 
-        m_staticSampler = std::move(staticSampler);
+        m_staticSampler = staticSampler;
     }
 };
 
@@ -65,8 +65,8 @@ DirectX12DescriptorLayout::DirectX12DescriptorLayout(DescriptorType type, UInt32
 {
 }
 
-DirectX12DescriptorLayout::DirectX12DescriptorLayout(UniquePtr<IDirectX12Sampler>&& staticSampler, UInt32 binding, bool local) :
-    m_impl(std::move(staticSampler), binding, local)
+DirectX12DescriptorLayout::DirectX12DescriptorLayout(SharedPtr<const IDirectX12Sampler> staticSampler, UInt32 binding, bool local) :
+    m_impl(staticSampler, binding, local)
 {
 }
 

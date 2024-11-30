@@ -11,7 +11,7 @@ public:
     friend class DirectX12FrameBuffer;
 
 private:
-    Array<UniquePtr<IDirectX12Image>> m_images;
+    Array<SharedPtr<IDirectX12Image>> m_images;
     ComPtr<ID3D12DescriptorHeap> m_renderTargetHeap, m_depthStencilHeap;
     Dictionary<UInt64, IDirectX12Image*> m_mappedRenderTargets;
     Dictionary<const IDirectX12Image*, D3D12_CPU_DESCRIPTOR_HANDLE> m_renderTargetHandles;
@@ -59,7 +59,7 @@ public:
         // Initialize the output attachments from render targets of the parent render pass.
         m_renderTargetHandles.clear();
 
-        std::ranges::for_each(m_images, [&, i = 0, device](const UniquePtr<IDirectX12Image>& image) mutable {
+        std::ranges::for_each(m_images, [&, i = 0, device](const SharedPtr<IDirectX12Image>& image) mutable {
             // Check if the device supports the multi sampling level for the render target.
             auto samples = image->samples();
             auto format = image->format();
@@ -109,11 +109,11 @@ public:
         Dictionary<const IDirectX12Image*, IDirectX12Image*> imageReplacements;
 
         auto images = m_images |
-            std::views::transform([&](const UniquePtr<IDirectX12Image>& image) { 
+            std::views::transform([&](const SharedPtr<IDirectX12Image>& image) { 
                 auto newImage = device->factory().createTexture(image->name(), image->format(), renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage()); 
                 imageReplacements[image.get()] = newImage.get();
-                return std::move(newImage);
-            }) | std::views::as_rvalue | std::ranges::to<Array<UniquePtr<IDirectX12Image>>>();
+                return newImage;
+            }) | std::views::as_rvalue | std::ranges::to<Array<SharedPtr<IDirectX12Image>>>();
 
         // Update the mappings.
         std::ranges::for_each(m_mappedRenderTargets | std::views::values, [&imageReplacements](auto& image) { image = imageReplacements[image]; });
@@ -152,7 +152,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE DirectX12FrameBuffer::descriptorHandle(StringView im
 {
     auto nameHash = hash(imageName);
 
-    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](UniquePtr<IDirectX12Image>& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end())
+    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](SharedPtr<IDirectX12Image>& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end())
         return m_impl->m_renderTargetHandles.at(match->get());
     else
         throw InvalidArgumentException("imageName", "The frame buffer does not contain an image with the name \"{0}\".", imageName);
@@ -196,7 +196,7 @@ void DirectX12FrameBuffer::mapRenderTarget(const RenderTarget& renderTarget, Str
 {
     auto nameHash = hash(name);
 
-    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](UniquePtr<IDirectX12Image>& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end())
+    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](SharedPtr<IDirectX12Image>& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end())
         this->mapRenderTarget(renderTarget, static_cast<UInt32>(std::ranges::distance(m_impl->m_images.begin(), match)));
     else
         throw InvalidArgumentException("name", "The frame buffer does not contain an image with the name \"{0}\".", name);

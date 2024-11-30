@@ -22,7 +22,7 @@ private:
 	UInt32 m_stencilRef{ 0 };
 	bool m_alphaToCoverage{ false };
 	MultiSamplingLevel m_samples{ MultiSamplingLevel::x1 };
-	UniquePtr<IDirectX12Sampler> m_inputAttachmentSampler;
+	SharedPtr<IDirectX12Sampler> m_inputAttachmentSampler;
 	Dictionary<const IFrameBuffer*, Array<UniquePtr<DirectX12DescriptorSet>>> m_inputAttachmentBindings;
 	Dictionary<const IFrameBuffer*, size_t> m_frameBufferResizeTokens, m_frameBufferReleaseTokens;
 	mutable std::mutex m_usageMutex;

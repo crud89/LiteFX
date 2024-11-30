@@ -485,7 +485,7 @@ public:
                 auto descriptors = [](const DescriptorSetInfo& descriptorSet) -> std::generator<UniquePtr<DirectX12DescriptorLayout>> {
                     for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor)
                         co_yield descriptor->staticSamplerState.has_value() ?
-                            makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(
+                            makeUnique<DirectX12DescriptorLayout>(DirectX12Sampler::allocate(
                                 D3D12_DECODE_MAG_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
                                 D3D12_DECODE_MIN_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
                                 DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressU), DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressV), DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressW),

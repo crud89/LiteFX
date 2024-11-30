@@ -19,7 +19,7 @@ private:
 	UniquePtr<DirectX12Surface> m_surface;
 	DirectX12Queue* m_graphicsQueue{}, * m_transferQueue{}, * m_computeQueue{};
 	Array<UniquePtr<DirectX12Queue>> m_queues;
-	UniquePtr<DirectX12GraphicsFactory> m_factory;
+	SharedPtr<DirectX12GraphicsFactory> m_factory;
 	UniquePtr<DirectX12ComputePipeline> m_blitPipeline;
 	ComPtr<ID3D12InfoQueue1> m_eventQueue;
 	UniquePtr<DirectX12SwapChain> m_swapChain;
@@ -195,11 +195,6 @@ public:
 		return device;
 	}
 
-	void createFactory(const DirectX12Device& device)
-	{
-		m_factory = makeUnique<DirectX12GraphicsFactory>(device);
-	}
-
 	void createSwapChain(const DirectX12Device& device, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
 	{
 		m_swapChain = makeUnique<DirectX12SwapChain>(device, format, renderArea, backBuffers, enableVsync);
@@ -301,7 +296,7 @@ DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX1
 
 	this->handle() = m_impl->initialize(features);
 	m_impl->createQueues(*this);
-	m_impl->createFactory(*this);
+	m_impl->m_factory = DirectX12GraphicsFactory::create(*this);
 	m_impl->createSwapChain(*this, format, renderArea, backBuffers, enableVsync);
 	m_impl->createBlitPipeline(*this);
 }
