@@ -26,11 +26,12 @@ private:
     const RenderTarget* m_depthStencilTarget = nullptr;
     Optional<DescriptorBindingPoint> m_inputAttachmentSamplerBinding{ };
     WeakPtr<const VulkanDevice> m_device;
-    const VulkanQueue* m_queue;
+    SharedPtr<const VulkanQueue> m_queue;
+    bool m_onDefaultGraphicsQueue = false;
 
 public:
     VulkanRenderPassImpl(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding, UInt32 secondaryCommandBuffers) :
-        m_secondaryCommandBufferCount(secondaryCommandBuffers), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding), m_device(device.weak_from_this()), m_queue(&queue)
+        m_secondaryCommandBufferCount(secondaryCommandBuffers), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding), m_device(device.weak_from_this()), m_queue(queue.shared_from_this()), m_onDefaultGraphicsQueue(std::addressof(queue) == std::addressof(device.defaultQueue(QueueType::Graphics)))
     {
         this->mapRenderTargets(renderTargets);
         this->mapInputAttachments(inputAttachments);
@@ -40,7 +41,7 @@ public:
     }
 
     VulkanRenderPassImpl(const VulkanDevice& device) :
-        m_device(device.weak_from_this()), m_queue(&device.defaultQueue(QueueType::Graphics))
+        m_device(device.weak_from_this()), m_queue(device.defaultQueue(QueueType::Graphics).shared_from_this()), m_onDefaultGraphicsQueue(true)
     {
     }
 
@@ -96,7 +97,7 @@ public:
 
         // TODO: If there is a present target, we need to check if the provided queue can actually present on the surface. Currently, 
         //       we simply check if the queue is the same as the swap chain queue (which is the default graphics queue).
-        if (m_presentTarget != nullptr && m_queue != std::addressof(device->defaultQueue(QueueType::Graphics))) [[unlikely]]
+        if (m_presentTarget != nullptr && m_onDefaultGraphicsQueue) [[unlikely]]
             throw InvalidArgumentException("renderTargets", "A render pass with a present target must be executed on the default graphics queue.");
 
         // Listen to swap chain resets in order to clear back buffer image views.
@@ -109,7 +110,7 @@ public:
         m_inputAttachments.assign(std::begin(inputAttachments), std::end(inputAttachments));
     }
 
-    void registerFrameBuffer([[maybe_unused]] const VulkanRenderPass& renderPass, const VulkanFrameBuffer& frameBuffer)
+    void registerFrameBuffer([[maybe_unused]] const VulkanRenderPass& renderPass, const VulkanQueue& queue, const VulkanFrameBuffer& frameBuffer)
     {
 #ifndef NDEBUG
         // Check if the device is still valid.
@@ -128,7 +129,7 @@ public:
 
             // Create primary command buffers.
             {
-                auto commandBuffer = m_queue->createCommandBuffer(false);
+                auto commandBuffer = queue.createCommandBuffer(false);
 #ifndef NDEBUG
                 device->setDebugName(std::as_const(*commandBuffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, 
                     std::format("{0} Primary Commands {1}", renderPass.name(), m_primaryCommandBuffers.size()).c_str());
@@ -139,7 +140,7 @@ public:
             // Create secondary command buffers.
             m_secondaryCommandBuffers[interfacePointer] = std::views::iota(0u, m_secondaryCommandBufferCount) |
                 std::views::transform([&]([[maybe_unused]] UInt32 i) {
-                    auto commandBuffer = m_queue->createCommandBuffer(false, true);
+                    auto commandBuffer = queue.createCommandBuffer(false, true);
 #ifndef NDEBUG
                     device->setDebugName(std::as_const(*commandBuffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, 
                         std::format("{0} Secondary Commands {1}", renderPass.name(), i).c_str());
@@ -348,7 +349,7 @@ SharedPtr<const VulkanCommandBuffer> VulkanRenderPass::commandBuffer(UInt32 inde
     if (index >= m_impl->m_secondaryCommandBufferCount) [[unlikely]]
         throw ArgumentOutOfRangeException("index", std::make_pair(0u, m_impl->m_secondaryCommandBufferCount), index, "The render pass only contains {0} command buffers, but an index of {1} has been provided.", m_impl->m_secondaryCommandBufferCount, index);
 
-    return m_impl->m_secondaryCommandBuffers[m_impl->m_activeFrameBuffer][index];
+    return m_impl->m_secondaryCommandBuffers.at(m_impl->m_activeFrameBuffer).at(index);
 }
 
 Enumerable<SharedPtr<const VulkanCommandBuffer>> VulkanRenderPass::commandBuffers() const
@@ -356,7 +357,7 @@ Enumerable<SharedPtr<const VulkanCommandBuffer>> VulkanRenderPass::commandBuffer
     if (m_impl->m_secondaryCommandBufferCount == 0u || m_impl->m_activeFrameBuffer == nullptr)
         return { };
 
-    return m_impl->m_secondaryCommandBuffers[m_impl->m_activeFrameBuffer];
+    return m_impl->m_secondaryCommandBuffers.at(m_impl->m_activeFrameBuffer);
 }
 
 UInt32 VulkanRenderPass::secondaryCommandBuffers() const noexcept
@@ -402,7 +403,7 @@ const Optional<DescriptorBindingPoint>& VulkanRenderPass::inputAttachmentSampler
 
 void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
 {
-    // Check if the device is still valid.
+    // Check if the device and the parent queue are still valid.
     auto device = m_impl->m_device.lock();
 
     if (device == nullptr) [[unlikely]]
@@ -413,7 +414,7 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
         throw RuntimeException("Unable to begin a render pass, that is already running. End the current pass first.");
 
     // Register the frame buffer.
-    m_impl->registerFrameBuffer(*this, frameBuffer);
+    m_impl->registerFrameBuffer(*this, *m_impl->m_queue, frameBuffer);
 
     // Initialize the render pass context.
     auto colorTargetInfos  = m_impl->colorTargetContext(frameBuffer);
@@ -452,7 +453,7 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
 
     // If the present target is multi-sampled, transition the back buffer image into resolve state.
     const auto& backBufferImage = device->swapChain().image();
-    bool requiresResolve = this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1;
+    bool requiresResolve{ this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1 };
 
     if (requiresResolve)
     {
@@ -504,7 +505,7 @@ UInt64 VulkanRenderPass::end() const
 
     // If the present target is multi-sampled, we need to resolve it to the back buffer.
     const auto& backBufferImage = swapChain.image();
-    bool requiresResolve = this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1;
+    bool requiresResolve{ this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1 };
 
     // Transition the present and depth/stencil views.
     VulkanBarrier renderTargetBarrier(PipelineStage::RenderTarget, PipelineStage::None), depthStencilBarrier(PipelineStage::DepthStencil, PipelineStage::None),

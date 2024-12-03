@@ -1291,7 +1291,7 @@ namespace LiteFX::Rendering::Backends {
         // CommandBuffer interface.
     public:
         /// <inheritdoc />
-        const ICommandQueue& queue() const noexcept override;
+        SharedPtr<const DirectX12Queue> queue() const noexcept;
 
         /// <inheritdoc />
         void begin() const override;
@@ -1327,7 +1327,7 @@ namespace LiteFX::Rendering::Backends {
         void generateMipMaps(IDirectX12Image& image) override;
 
         /// <inheritdoc />
-        [[nodiscard]] UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
+        [[nodiscard]] UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const override;
 
         /// <inheritdoc />
         void barrier(const DirectX12Barrier& barrier) const noexcept override;
@@ -1378,10 +1378,10 @@ namespace LiteFX::Rendering::Backends {
         void bind(Span<const DirectX12DescriptorSet*> descriptorSets) const override;
 
         /// <inheritdoc />
-        void bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept override;
+        void bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const override;
 
 		/// <inheritdoc />
-		void bind(Span<const DirectX12DescriptorSet*> descriptorSets, const DirectX12PipelineState& pipeline) const noexcept override;
+		void bind(Span<const DirectX12DescriptorSet*> descriptorSets, const DirectX12PipelineState& pipeline) const override;
 
         /// <inheritdoc />
         void bind(const IDirectX12VertexBuffer& buffer) const noexcept override;
@@ -1459,6 +1459,10 @@ namespace LiteFX::Rendering::Backends {
         void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IDirectX12Buffer& rayGenerationShaderBindingTable, const IDirectX12Buffer* missShaderBindingTable, const IDirectX12Buffer* hitShaderBindingTable, const IDirectX12Buffer* callableShaderBindingTable) const noexcept override;
 
     private:
+        inline SharedPtr<const ICommandQueue> getQueue() const noexcept override {
+            return std::static_pointer_cast<const ICommandQueue>(this->queue());
+        }
+
         void releaseSharedState() const override;
     };
 
@@ -1473,7 +1477,7 @@ namespace LiteFX::Rendering::Backends {
         using base_type = CommandQueue<DirectX12CommandBuffer>;
         using base_type::submit;
 
-    public:
+    private:
         /// <summary>
         /// Initializes the DirectX 12 command queue.
         /// </summary>
@@ -1482,6 +1486,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="priority">The priority, of which commands are issued on the device.</param>
         explicit DirectX12Queue(const DirectX12Device& device, QueueType type, QueuePriority priority);
 
+    public:
         /// <inheritdoc />
         DirectX12Queue(DirectX12Queue&&) noexcept = delete;
 
@@ -1496,6 +1501,18 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         ~DirectX12Queue() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates the DirectX 12 command queue.
+        /// </summary>
+        /// <param name="device">The device, commands get send to.</param>
+        /// <param name="type">The type of the command queue.</param>
+        /// <param name="priority">The priority, of which commands are issued on the device.</param>
+        /// <returns>A pointer to the command queue instance.</returns>
+        static inline SharedPtr<DirectX12Queue> create(const DirectX12Device& device, QueueType type, QueuePriority priority) {
+            return SharedPtr<DirectX12Queue>(new DirectX12Queue(device, type, priority));
+        }
 
         // DirectX12Queue interface.
     public:
@@ -2438,7 +2455,7 @@ namespace LiteFX::Rendering::Backends {
         const DirectX12Queue& defaultQueue(QueueType type) const override;
 
         /// <inheritdoc />
-        const DirectX12Queue* createQueue(QueueType type, QueuePriority priority) override;
+        SharedPtr<const DirectX12Queue> createQueue(QueueType type, QueuePriority priority) override;
 
         /// <inheritdoc />
         [[nodiscard]] UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;

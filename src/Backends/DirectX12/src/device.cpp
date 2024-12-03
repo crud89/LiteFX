@@ -17,8 +17,8 @@ private:
 	const DirectX12Backend& m_backend;
 	DeviceState m_deviceState;
 	UniquePtr<DirectX12Surface> m_surface;
-	DirectX12Queue* m_graphicsQueue{}, * m_transferQueue{}, * m_computeQueue{};
-	Array<UniquePtr<DirectX12Queue>> m_queues;
+	SharedPtr<DirectX12Queue> m_graphicsQueue{}, m_transferQueue{}, m_computeQueue{};
+	Array<SharedPtr<DirectX12Queue>> m_queues;
 	SharedPtr<DirectX12GraphicsFactory> m_factory;
 	UniquePtr<DirectX12ComputePipeline> m_blitPipeline;
 	ComPtr<ID3D12InfoQueue1> m_eventQueue;
@@ -202,18 +202,15 @@ public:
 
 	void createQueues(const DirectX12Device& device)
 	{
-		//m_graphicsQueue = makeUnique<DirectX12Queue>(device, QueueType::Graphics, QueuePriority::Realtime);
+		//m_graphicsQueue = this->createQueue(device, QueueType::Graphics, QueuePriority::Realtime);
 		m_graphicsQueue = this->createQueue(device, QueueType::Graphics, QueuePriority::High);
 		m_transferQueue = this->createQueue(device, QueueType::Transfer, QueuePriority::High);
 		m_computeQueue  = this->createQueue(device, QueueType::Compute,  QueuePriority::High);
 	}
 
-	DirectX12Queue* createQueue(const DirectX12Device& device, QueueType type, QueuePriority priority)
+	SharedPtr<DirectX12Queue> createQueue(const DirectX12Device& device, QueueType type, QueuePriority priority)
 	{
-		auto queue = makeUnique<DirectX12Queue>(device, type, priority);
-		auto result = queue.get();
-		m_queues.push_back(std::move(queue));
-		return result;
+		return m_queues.emplace_back(DirectX12Queue::create(device, type, priority));
 	}
 
 	void createBlitPipeline(const DirectX12Device& device)
@@ -581,7 +578,7 @@ const DirectX12Queue& DirectX12Device::defaultQueue(QueueType type) const
 		throw InvalidArgumentException("type", "No default queue for the provided queue type has was found.");
 }
 
-const DirectX12Queue* DirectX12Device::createQueue(QueueType type, QueuePriority priority)
+SharedPtr<const DirectX12Queue> DirectX12Device::createQueue(QueueType type, QueuePriority priority)
 {
 	return m_impl->createQueue(*this, type, priority);
 }

@@ -30,7 +30,7 @@ public:
 private:
     class QueueFamily {
     private:
-        Array<UniquePtr<VulkanQueue>> m_queues{};
+        Array<SharedPtr<VulkanQueue>> m_queues{};
         Array<Float> m_queuePriorities{};
         UInt32 m_id, m_queueCount;
         QueueType m_type;
@@ -40,7 +40,7 @@ private:
         UInt32 total() const noexcept { return m_queueCount; }
         UInt32 active() const noexcept { return static_cast<UInt32>(m_queues.size()); }
         UInt32 id() const noexcept { return m_id; }
-        const Array<UniquePtr<VulkanQueue>>& queues() const noexcept { return m_queues; }
+        const Array<SharedPtr<VulkanQueue>>& queues() const noexcept { return m_queues; }
 
     public:
         QueueFamily(UInt32 id, UInt32 queueCount, QueueType type) :
@@ -74,7 +74,7 @@ private:
         ~QueueFamily() noexcept = default;
 
     public:
-        VulkanQueue* createQueue(const VulkanDevice& device, QueuePriority priority) {
+        SharedPtr<VulkanQueue> createQueue(const VulkanDevice& device, QueuePriority priority) {
             // First, list all queues with the requested priority.
             auto left = std::ranges::lower_bound(m_queuePriorities, static_cast<Float>(priority) / 100.0f, std::greater<float>{});
             auto right = std::ranges::upper_bound(m_queuePriorities, static_cast<Float>(priority) / 100.0f, std::greater<float>{});
@@ -104,19 +104,16 @@ private:
             LITEFX_DEBUG(VULKAN_LOG, "Creating queue with id {0} of type {2} (referenced {1} times).", queueId, refCount, m_type);
 
             // Create a queue instance with the queue id.
-            auto queue = makeUnique<VulkanQueue>(device, m_type, priority, m_id, static_cast<UInt32>(queueId));
-            auto queuePointer = queue.get();
-            m_queues.push_back(std::move(queue));
-            return queuePointer;
+            return m_queues.emplace_back(VulkanQueue::create(device, m_type, priority, m_id, static_cast<UInt32>(queueId)));
         }
     };
 
     DeviceState m_deviceState;
 
     Array<QueueFamily> m_families;
-    VulkanQueue* m_graphicsQueue{};
-    VulkanQueue* m_transferQueue{};
-    VulkanQueue* m_computeQueue{};
+    SharedPtr<VulkanQueue> m_graphicsQueue{};
+    SharedPtr<VulkanQueue> m_transferQueue{};
+    SharedPtr<VulkanQueue> m_computeQueue{};
 
     UniquePtr<VulkanSwapChain> m_swapChain;
     Array<String> m_extensions;
@@ -483,7 +480,7 @@ public:
     }
 
 public:
-    VulkanQueue* createQueue(const VulkanDevice& device, QueueType type, QueuePriority priority, const VkSurfaceKHR& surface = VK_NULL_HANDLE)
+    SharedPtr<VulkanQueue> createQueue(const VulkanDevice& device, QueueType type, QueuePriority priority, const VkSurfaceKHR& surface = VK_NULL_HANDLE)
     {
         // Find the queue that is most specialized for the provided queue type. Since the queues are ordered based on their type popcount (most specialized queues come first, as they have 
         // lower type flags set), we can simply pick the first one we find, that matches all the flags.
@@ -681,7 +678,7 @@ const VulkanQueue& VulkanDevice::defaultQueue(QueueType type) const
         throw InvalidArgumentException("type", "No default queue for the provided queue type has was found.");
 }
 
-const VulkanQueue* VulkanDevice::createQueue(QueueType type, QueuePriority priority)
+SharedPtr<const VulkanQueue> VulkanDevice::createQueue(QueueType type, QueuePriority priority)
 {
     return m_impl->createQueue(*this, type, priority);
 }

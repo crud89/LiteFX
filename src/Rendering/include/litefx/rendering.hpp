@@ -596,7 +596,7 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
+        virtual UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const = 0;
 
         /// <inheritdoc />
         virtual void barrier(const barrier_type& barrier) const noexcept = 0;
@@ -650,10 +650,10 @@ namespace LiteFX::Rendering {
         virtual void bind(Span<const descriptor_set_type*> descriptorSets) const = 0;
 
         /// <inheritdoc />
-        virtual void bind(const descriptor_set_type& descriptorSet, const pipeline_type& pipeline) const noexcept = 0;
+        virtual void bind(const descriptor_set_type& descriptorSet, const pipeline_type& pipeline) const = 0;
 
         /// <inheritdoc />
-        virtual void bind(Span<const descriptor_set_type*> descriptorSets, const pipeline_type& pipeline) const noexcept = 0;
+        virtual void bind(Span<const descriptor_set_type*> descriptorSets, const pipeline_type& pipeline) const = 0;
 
         /// <inheritdoc />
         virtual void bind(const vertex_buffer_type& buffer) const noexcept = 0;
@@ -737,7 +737,7 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        inline UniquePtr<IBarrier> getBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override {
+        inline UniquePtr<IBarrier> getBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const override {
             return this->makeBarrier(syncBefore, syncAfter);
         }
 
@@ -1131,6 +1131,9 @@ namespace LiteFX::Rendering {
         virtual Enumerable<SharedPtr<const command_buffer_type>> commandBuffers() const = 0;
 
         /// <inheritdoc />
+        virtual const command_queue_type& commandQueue() const noexcept = 0;
+
+        /// <inheritdoc />
         virtual SharedPtr<const command_buffer_type> commandBuffer(UInt32 index) const = 0;
 
         /// <inheritdoc />
@@ -1139,6 +1142,10 @@ namespace LiteFX::Rendering {
     private:
         inline SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept override {
             return this->commandBuffer(index);
+        }
+
+        inline const ICommandQueue& getCommandQueue() const noexcept override {
+            return this->commandQueue();
         }
 
         inline Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const override {
@@ -1428,7 +1435,7 @@ namespace LiteFX::Rendering {
         virtual const command_queue_type& defaultQueue(QueueType type) const = 0;
 
         /// <inheritdoc />
-        virtual const command_queue_type* createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) = 0;
+        virtual SharedPtr<const command_queue_type> createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) = 0;
 
         /// <inheritdoc />
         [[nodiscard]] virtual UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
@@ -1454,8 +1461,8 @@ namespace LiteFX::Rendering {
             return this->defaultQueue(type);
         }
 
-        inline const ICommandQueue* getNewQueue(QueueType type, QueuePriority priority) override {
-            return this->createQueue(type, priority);
+        inline SharedPtr<const ICommandQueue> getNewQueue(QueueType type, QueuePriority priority) override {
+            return std::static_pointer_cast<const ICommandQueue>(this->createQueue(type, priority));
         }
 
     public:

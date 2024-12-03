@@ -6463,12 +6463,6 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
-        /// Gets a reference to the command queue that this command buffer was allocated from.
-        /// </summary>
-        /// <returns>A reference to the command queue that this command buffer was allocated from.</returns>
-        virtual const ICommandQueue& queue() const noexcept = 0;
-
-        /// <summary>
         /// Sets the command buffer into recording state, so that it can receive command that should be submitted to the parent <see cref="CommandQueue" />.
         /// </summary>
         /// <remarks>
@@ -6495,12 +6489,20 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// Gets a pointer to the command queue that this command buffer was allocated from or `nullptr`, if the queue has already been released.
+        /// </summary>
+        /// <returns>A reference to the command queue that this command buffer was allocated from.</returns>
+        inline SharedPtr<const ICommandQueue> queue() const noexcept {
+            return this->getQueue();
+        }
+
+        /// <summary>
         /// Creates a new barrier instance.
         /// </summary>
         /// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
         /// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
         /// <returns>The instance of the barrier.</returns>
-        [[nodiscard]] inline UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
+        [[nodiscard]] inline UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const {
             return this->getBarrier(syncBefore, syncAfter);
         }
 
@@ -7404,7 +7406,8 @@ namespace LiteFX::Rendering {
         virtual void releaseSharedState() const = 0;
 
     private:
-        virtual UniquePtr<IBarrier> getBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
+        virtual SharedPtr<const ICommandQueue> getQueue() const noexcept = 0;
+        virtual UniquePtr<IBarrier> getBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const = 0;
         virtual void cmdBarrier(const IBarrier& barrier) const noexcept = 0;
         virtual void cmdGenerateMipMaps(IImage& image) = 0;
         virtual void cmdTransfer(const IBuffer& source, const IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const = 0;
@@ -8042,10 +8045,12 @@ namespace LiteFX::Rendering {
         virtual const IFrameBuffer& activeFrameBuffer() const = 0;
 
         /// <summary>
-        /// Returns the command queue, the render pass is executing on.
+        /// Returns the command queue, the render pass is executing on or `nullptr`, if the queue has already been released.
         /// </summary>
-        /// <returns>A reference of the command queue, the render pass is executing on.</returns>
-        virtual const ICommandQueue& commandQueue() const noexcept = 0;
+        /// <returns>A pointer to the command queue, the render pass is executing on.</returns>
+        inline const ICommandQueue& commandQueue() const noexcept {
+            return this->getCommandQueue();
+        }
 
         /// <summary>
         /// Returns all command buffers, that can be currently used for recording multi-threaded commands in the render pass.
@@ -8142,6 +8147,7 @@ namespace LiteFX::Rendering {
 
     private:
         virtual void beginRenderPass(const IFrameBuffer& frameBuffer) const = 0;
+        virtual const ICommandQueue& getCommandQueue() const noexcept = 0;
         virtual SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept = 0;
         virtual Enumerable<SharedPtr<const ICommandBuffer>> getCommandBuffers() const = 0;
     };
@@ -8373,7 +8379,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// The interface for a command queue.
     /// </summary>
-    class LITEFX_RENDERING_API ICommandQueue {
+    class LITEFX_RENDERING_API ICommandQueue : public SharedObject {
     public:
         /// <summary>
         /// Event arguments for a <see cref="ICommandQueue::submitting" /> event.
@@ -8438,7 +8444,7 @@ namespace LiteFX::Rendering {
         ICommandQueue& operator=(ICommandQueue&&) noexcept = default;
 
     public:
-        virtual ~ICommandQueue() noexcept = default;
+        ~ICommandQueue() noexcept override = default;
 
     public:
         /// <summary>
@@ -9160,7 +9166,7 @@ namespace LiteFX::Rendering {
         /// <param name="priority">The preferred priority of the queue.</param>
         /// <returns>A pointer to the newly created queue, or `nullptr`, if no queue could be created.</returns>
         /// <seealso cref="defaultQueue" />
-        inline const ICommandQueue* createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) {
+        inline SharedPtr<const ICommandQueue> createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) {
             return this->getNewQueue(type, priority);
         }
 
@@ -9265,7 +9271,7 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
         virtual UniquePtr<IFrameBuffer> getNewFrameBuffer(StringView name, const Size2d& renderArea) const noexcept = 0;
         virtual const ICommandQueue& getDefaultQueue(QueueType type) const = 0;
-        virtual const ICommandQueue* getNewQueue(QueueType type, QueuePriority priority) = 0;
+        virtual SharedPtr<const ICommandQueue> getNewQueue(QueueType type, QueuePriority priority) = 0;
     };
 
     /// <summary>

@@ -48,7 +48,7 @@ public:
     
     inline void queuePostbuildInfoCommands(const DirectX12CommandBuffer& commandBuffer, bool afterCopy = false) 
     {
-        auto device = dynamic_cast<const DirectX12Queue&>(commandBuffer.queue()).device();
+        auto device = commandBuffer.queue()->device();
 
         if (m_postBuildBuffer == nullptr) [[unlikely]]
         {
@@ -131,7 +131,7 @@ void DirectX12TopLevelAccelerationStructure::build(const DirectX12CommandBuffer&
 {
     // Validate the arguments.
     UInt64 requiredMemory{}, requiredScratchMemory{};
-    auto device = dynamic_cast<const DirectX12Queue&>(commandBuffer.queue()).device();
+    auto device = commandBuffer.queue()->device();
     device->computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory);
 
     if ((offset % D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT) != 0) [[unlikely]]
@@ -173,7 +173,7 @@ void DirectX12TopLevelAccelerationStructure::update(const DirectX12CommandBuffer
 
     // Validate the arguments and create the buffers if required.
     UInt64 requiredMemory{}, requiredScratchMemory{};
-    auto device = dynamic_cast<const DirectX12Queue&>(commandBuffer.queue()).device();
+    auto device = commandBuffer.queue()->device();
     device->computeAccelerationStructureSizes(*this, requiredMemory, requiredScratchMemory, true);
 
     if ((offset % D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT) != 0) [[unlikely]]
@@ -218,7 +218,7 @@ void DirectX12TopLevelAccelerationStructure::copy(const DirectX12CommandBuffer& 
 
     // Get the amount of memory required. Note that in DirectX it is not possible to query the availability of size info, so we have to rely on external synchronization anyway.
     UInt64 requiredMemory = this->size();
-    auto device = dynamic_cast<const DirectX12Queue&>(commandBuffer.queue()).device();
+    auto device = commandBuffer.queue()->device();
 
     // Validate the input arguments.
     if (buffer == nullptr)

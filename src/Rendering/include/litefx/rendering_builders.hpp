@@ -1760,7 +1760,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The command queue, the render pass will execute on.
             /// </summary>
-            const command_queue_type* commandQueue{ nullptr };
+            SharedPtr<const command_queue_type> commandQueue{ nullptr };
 
             /// <summary>
             /// The binding point for input attachment samplers, if required.

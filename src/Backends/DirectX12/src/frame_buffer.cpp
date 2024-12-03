@@ -13,8 +13,8 @@ public:
 private:
     Array<SharedPtr<IDirectX12Image>> m_images;
     ComPtr<ID3D12DescriptorHeap> m_renderTargetHeap, m_depthStencilHeap;
-    Dictionary<UInt64, IDirectX12Image*> m_mappedRenderTargets;
-    Dictionary<const IDirectX12Image*, D3D12_CPU_DESCRIPTOR_HANDLE> m_renderTargetHandles;
+    Dictionary<UInt64, SharedPtr<IDirectX12Image>> m_mappedRenderTargets;
+    Dictionary<SharedPtr<const IDirectX12Image>, D3D12_CPU_DESCRIPTOR_HANDLE> m_renderTargetHandles;
     UInt32 m_renderTargetDescriptorSize{}, m_depthStencilDescriptorSize{};
     Size2d m_size;
     WeakPtr<const DirectX12Device> m_device;
@@ -76,7 +76,7 @@ public:
                 };
 
                 device->handle()->CreateDepthStencilView(std::as_const(*image).handle().Get(), &depthStencilViewDesc, depthStencilViewDescriptor);
-                m_renderTargetHandles[image.get()] = depthStencilViewDescriptor;
+                m_renderTargetHandles[image] = depthStencilViewDescriptor;
                 depthStencilViewDescriptor = depthStencilViewDescriptor.Offset(static_cast<INT>(m_depthStencilDescriptorSize));
             }
             else
@@ -88,7 +88,7 @@ public:
                 };
 
                 device->handle()->CreateRenderTargetView(std::as_const(*image).handle().Get(), &renderTargetViewDesc, renderTargetViewDescriptor);
-                m_renderTargetHandles[image.get()] = renderTargetViewDescriptor;
+                m_renderTargetHandles[image] = renderTargetViewDescriptor;
                 renderTargetViewDescriptor = renderTargetViewDescriptor.Offset(static_cast<INT>(m_renderTargetDescriptorSize));
             }
         });
@@ -106,17 +106,14 @@ public:
         m_size = renderArea;
 
         // Recreate all resources.
-        Dictionary<const IDirectX12Image*, IDirectX12Image*> imageReplacements;
+        Dictionary<const IDirectX12Image*, SharedPtr<IDirectX12Image>> imageReplacements;
 
-        auto images = m_images |
-            std::views::transform([&](const SharedPtr<IDirectX12Image>& image) { 
-                auto newImage = device->factory().createTexture(image->name(), image->format(), renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage()); 
-                imageReplacements[image.get()] = newImage.get();
-                return newImage;
+        auto images = m_images | std::views::transform([&](const SharedPtr<IDirectX12Image>& image) { 
+                return imageReplacements[image.get()] = device->factory().createTexture(image->name(), image->format(), renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage());
             }) | std::views::as_rvalue | std::ranges::to<Array<SharedPtr<IDirectX12Image>>>();
 
         // Update the mappings.
-        std::ranges::for_each(m_mappedRenderTargets | std::views::values, [&imageReplacements](auto& image) { image = imageReplacements[image]; });
+        std::ranges::for_each(m_mappedRenderTargets | std::views::values, [&imageReplacements](auto& image) { image = imageReplacements.at(image.get()); });
 
         // Store the new images.
         m_images = std::move(images);
@@ -145,7 +142,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE DirectX12FrameBuffer::descriptorHandle(UInt32 imageI
     if (imageIndex >= m_impl->m_images.size()) [[unlikely]]
         throw ArgumentOutOfRangeException("imageIndex", std::make_pair(0uz, m_impl->m_images.size()), static_cast<size_t>(imageIndex), "The frame buffer does not contain an image at index {0}.", imageIndex);
 
-    return m_impl->m_renderTargetHandles.at(m_impl->m_images[imageIndex].get());
+    return m_impl->m_renderTargetHandles.at(m_impl->m_images[imageIndex]);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE DirectX12FrameBuffer::descriptorHandle(StringView imageName) const
@@ -153,7 +150,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE DirectX12FrameBuffer::descriptorHandle(StringView im
     auto nameHash = hash(imageName);
 
     if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](SharedPtr<IDirectX12Image>& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end())
-        return m_impl->m_renderTargetHandles.at(match->get());
+        return m_impl->m_renderTargetHandles.at(*match);
     else
         throw InvalidArgumentException("imageName", "The frame buffer does not contain an image with the name \"{0}\".", imageName);
 }
@@ -189,7 +186,7 @@ void DirectX12FrameBuffer::mapRenderTarget(const RenderTarget& renderTarget, UIn
     if (m_impl->m_images[index]->format() != renderTarget.format()) [[unlikely]]
         LITEFX_WARNING(DIRECTX12_LOG, "The render target format {0} does not match the image format {1} for image {2}.", renderTarget.format(), m_impl->m_images[index]->format(), index);
 
-    m_impl->m_mappedRenderTargets[renderTarget.identifier()] = m_impl->m_images[index].get();
+    m_impl->m_mappedRenderTargets[renderTarget.identifier()] = m_impl->m_images[index];
 }
 
 void DirectX12FrameBuffer::mapRenderTarget(const RenderTarget& renderTarget, StringView name)

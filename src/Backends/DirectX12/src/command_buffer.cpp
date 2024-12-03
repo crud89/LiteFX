@@ -13,22 +13,29 @@ public:
 private:
 	ComPtr<ID3D12CommandAllocator> m_commandAllocator;
 	bool m_recording{ false }, m_secondary{ false };
-	const DirectX12Queue& m_queue;
+	WeakPtr<const DirectX12Queue> m_queue;
+	WeakPtr<const DirectX12Device> m_device;
 	Array<SharedPtr<const IStateResource>> m_sharedResources;
 	const DirectX12PipelineState* m_lastPipeline = nullptr;
 	ComPtr<ID3D12CommandSignature> m_dispatchSignature, m_drawSignature, m_drawIndexedSignature, m_dispatchMeshSignature;
 
 public:
 	DirectX12CommandBufferImpl(const DirectX12Queue& queue) :
-		m_queue(queue)
+		m_queue(queue.weak_from_this()), m_device(queue.device())
 	{
 	}
 
 public:
-	ComPtr<ID3D12GraphicsCommandList7> initialize(bool begin, bool primary)
+	ComPtr<ID3D12GraphicsCommandList7> initialize(const DirectX12Queue& queue, bool begin, bool primary)
 	{
+		// Get the parent device instance.
+		auto device = queue.device();
+		
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot initialize command queue on a released device instance.");
+
 		// Store the command signatures for indirect drawing.
-		m_queue.device()->indirectDrawSignatures(m_dispatchSignature, m_dispatchMeshSignature, m_drawSignature, m_drawIndexedSignature);
+		device->indirectDrawSignatures(m_dispatchSignature, m_dispatchMeshSignature, m_drawSignature, m_drawIndexedSignature);
 
 		// Create a command allocator.
 		D3D12_COMMAND_LIST_TYPE type{};
@@ -38,7 +45,7 @@ public:
 			type = D3D12_COMMAND_LIST_TYPE_BUNDLE;
 		else
 		{
-			switch (m_queue.type())
+			switch (queue.type())
 			{
 			case QueueType::Compute: type = D3D12_COMMAND_LIST_TYPE_COMPUTE; break;
 			case QueueType::Transfer: type = D3D12_COMMAND_LIST_TYPE_COPY; break;
@@ -47,16 +54,17 @@ public:
 			}
 		}
 
-		raiseIfFailed(m_queue.device()->handle()->CreateCommandAllocator(type, IID_PPV_ARGS(&m_commandAllocator)), "Unable to create command allocator for command buffer.");
+		raiseIfFailed(device->handle()->CreateCommandAllocator(type, IID_PPV_ARGS(&m_commandAllocator)), "Unable to create command allocator for command buffer.");
 
 		// Create the actual command list.
 		ComPtr<ID3D12GraphicsCommandList7> commandList;
 
 		m_recording = begin;
+
 		if (begin)
-			raiseIfFailed(m_queue.device()->handle()->CreateCommandList(0, type, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
+			raiseIfFailed(device->handle()->CreateCommandList(0, type, m_commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
 		else
-			raiseIfFailed(m_queue.device()->handle()->CreateCommandList1(0, type, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
+			raiseIfFailed(device->handle()->CreateCommandList1(0, type, D3D12_COMMAND_LIST_FLAG_NONE, IID_PPV_ARGS(&commandList)), "Unable to create command list for command buffer.");
 
 		return commandList;
 	}
@@ -73,8 +81,21 @@ public:
 
 	void bindDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer)
 	{
-		if (m_queue.type() == QueueType::Compute || m_queue.type() == QueueType::Graphics)
-			m_queue.device()->bindGlobalDescriptorHeaps(commandBuffer);
+		// Check if the queue is still valid.
+		auto queue = m_queue.lock();
+
+		if (queue == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot bind descriptor heaps on a released command queue.");
+		
+		auto device = queue->device();
+		
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot bind descriptor heaps on a released device instance.");
+
+		if (queue->type() == QueueType::Compute || queue->type() == QueueType::Graphics)
+			device->bindGlobalDescriptorHeaps(commandBuffer);
+		else [[unlikely]]
+			throw new RuntimeException("Unable to bind descriptors on a command queue that's not a compute or graphics queue.");
 	}
 
 	inline void buildAccelerationStructure(const DirectX12CommandBuffer& commandBuffer, DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)
@@ -109,12 +130,18 @@ public:
 
 	inline void buildAccelerationStructure(const DirectX12CommandBuffer& commandBuffer, DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)
 	{
+		// Check if the device is still valid.
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot build acceleration struction on a released device instance.");
+
 		if (scratchBuffer == nullptr) [[unlikely]]
 			throw ArgumentNotInitializedException("scratchBuffer");
 
 		// Create a buffer to store the instance build info.
 		auto buildInfo = tlas.buildInfo();
-		auto instanceBuffer = m_queue.device()->factory().createBuffer(BufferType::Storage, ResourceHeap::Dynamic, sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * buildInfo.size(), 1, ResourceUsage::AccelerationStructureBuildInput);
+		auto instanceBuffer = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Dynamic, sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * buildInfo.size(), 1, ResourceUsage::AccelerationStructureBuildInput);
 
 		// Map the instance buffer.
 		instanceBuffer->map(buildInfo.data(), sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * buildInfo.size());
@@ -152,7 +179,7 @@ public:
 DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, bool begin, bool primary) :
 	ComResource<ID3D12GraphicsCommandList7>(nullptr), m_impl(queue)
 {
-	this->handle() = m_impl->initialize(begin, primary);
+	this->handle() = m_impl->initialize(queue, begin, primary);
 
 	if (begin)
 		m_impl->bindDescriptorHeaps(*this);
@@ -162,9 +189,9 @@ DirectX12CommandBuffer::DirectX12CommandBuffer(DirectX12CommandBuffer&&) noexcep
 DirectX12CommandBuffer& DirectX12CommandBuffer::operator=(DirectX12CommandBuffer&&) noexcept = default;
 DirectX12CommandBuffer::~DirectX12CommandBuffer() noexcept = default;
 
-const ICommandQueue& DirectX12CommandBuffer::queue() const noexcept
+SharedPtr<const DirectX12Queue> DirectX12CommandBuffer::queue() const noexcept
 {
-	return m_impl->m_queue;
+	return m_impl->m_queue.lock();
 }
 
 void DirectX12CommandBuffer::begin() const
@@ -232,14 +259,26 @@ void DirectX12CommandBuffer::setStencilRef(UInt32 stencilRef) const noexcept
 
 UInt64 DirectX12CommandBuffer::submit() const
 {
+	// Check if the queue is still valid.
+	auto queue = m_impl->m_queue.lock();
+
+	if (queue == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot submit command buffer to a released command queue.");
+
 	if (this->isSecondary())
 		throw RuntimeException("A secondary command buffer cannot be directly submitted to a command queue and must be executed on a primary command buffer instead.");
 
-	return m_impl->m_queue.submit(this->shared_from_this());
+	return queue->submit(this->shared_from_this());
 }
 
 void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image)
 {
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot generate mip maps on a released device instance.");	
+
 	struct Parameters {
 		Float sizeX;
 		Float sizeY;
@@ -265,20 +304,20 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image)
 		std::ranges::to<Array<const void*>>();
 
 	// Set the active pipeline state.
-	auto& pipeline = m_impl->m_queue.device()->blitPipeline();
+	auto& pipeline = device->blitPipeline();
 	this->use(pipeline);
 
 	// Create and bind the parameters.
 	const auto& resourceBindingsLayout = pipeline.layout()->descriptorSet(0);
 	auto resourceBindings = resourceBindingsLayout.allocateMultiple(image.levels() * image.layers());
 	const auto& parametersLayout = resourceBindingsLayout.descriptor(0);
-	auto parameters = m_impl->m_queue.device()->factory().createBuffer(parametersLayout.type(), ResourceHeap::Dynamic, parametersLayout.elementSize(), image.levels());
+	auto parameters = device->factory().createBuffer(parametersLayout.type(), ResourceHeap::Dynamic, parametersLayout.elementSize(), image.levels());
 	parameters->map(parametersBlock, sizeof(Parameters));
 
 	// Create and bind the sampler.
 	const auto& samplerBindingsLayout = pipeline.layout()->descriptorSet(1);
 	auto samplerBindings = samplerBindingsLayout.allocate();
-	auto sampler = m_impl->m_queue.device()->factory().createSampler(FilterMode::Linear, FilterMode::Linear, BorderMode::ClampToEdge, BorderMode::ClampToEdge, BorderMode::ClampToEdge);
+	auto sampler = device->factory().createSampler(FilterMode::Linear, FilterMode::Linear, BorderMode::ClampToEdge, BorderMode::ClampToEdge, BorderMode::ClampToEdge);
 	samplerBindings->update(0, *sampler);
 	this->bind(*samplerBindings, pipeline);
 
@@ -321,9 +360,15 @@ void DirectX12CommandBuffer::generateMipMaps(IDirectX12Image& image)
 	}
 }
 
-UniquePtr<DirectX12Barrier> DirectX12CommandBuffer::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept
+UniquePtr<DirectX12Barrier> DirectX12CommandBuffer::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const
 {
-	return m_impl->m_queue.device()->makeBarrier(syncBefore, syncAfter);
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot create barrier on a released device instance.");
+
+	return device->makeBarrier(syncBefore, syncAfter);
 }
 
 void DirectX12CommandBuffer::barrier(const DirectX12Barrier& barrier) const noexcept
@@ -344,7 +389,13 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDir
 
 void DirectX12CommandBuffer::transfer(const void* const data, size_t size, const IDirectX12Buffer& target, UInt32 targetElement, UInt32 elements) const
 {
-	auto stagingBuffer = m_impl->m_queue.device()->factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements);
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot create staging buffer on a released device instance.");
+
+	auto stagingBuffer = device->factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements);
 	stagingBuffer->map(data, size, 0);
 
 	this->transfer(stagingBuffer, target, 0, targetElement, elements);
@@ -352,8 +403,14 @@ void DirectX12CommandBuffer::transfer(const void* const data, size_t size, const
 
 void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t elementSize, const IDirectX12Buffer& target, UInt32 firstElement) const
 {
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot create staging buffer on a released device instance.");
+
 	auto elements = static_cast<UInt32>(data.size());
-	auto stagingBuffer = m_impl->m_queue.device()->factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements);
+	auto stagingBuffer = device->factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements);
 	stagingBuffer->map(data, elementSize, 0);
 
 	this->transfer(stagingBuffer, target, 0, firstElement, elements);
@@ -361,6 +418,12 @@ void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t eleme
 
 void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDirectX12Image& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot transfer buffers on a released device instance.");
+
 	if (source.elements() < sourceElement + elements) [[unlikely]]
 		throw ArgumentOutOfRangeException("sourceElement", "The source buffer has only {0} elements, but a transfer for {1} elements starting from element {2} has been requested.", source.elements(), elements, sourceElement);
 
@@ -372,7 +435,7 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDir
 
 	for (UInt32 sr(0); sr < elements; ++sr)
 	{
-		m_impl->m_queue.device()->handle()->GetCopyableFootprints(&targetDesc, sourceElement + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
+		device->handle()->GetCopyableFootprints(&targetDesc, sourceElement + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
 		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(), footprint), targetLocation(std::as_const(target).handle().Get(), firstSubresource + sr);
 		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
 	}
@@ -380,7 +443,13 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Buffer& source, const IDir
 
 void DirectX12CommandBuffer::transfer(const void* const data, size_t size, const IDirectX12Image& target, UInt32 subresource) const
 {
-	auto stagingBuffer = m_impl->m_queue.device()->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, size);
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot transfer buffers on a released device instance.");
+
+	auto stagingBuffer = device->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, size);
 	stagingBuffer->map(data, size, 0);
 
 	this->transfer(stagingBuffer, target, 0, subresource, 1);
@@ -388,8 +457,14 @@ void DirectX12CommandBuffer::transfer(const void* const data, size_t size, const
 
 void DirectX12CommandBuffer::transfer(Span<const void* const> data, size_t elementSize, const IDirectX12Image& target, UInt32 firstSubresource, UInt32 subresources) const
 {
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot transfer buffers on a released device instance.");
+
 	auto elements = static_cast<UInt32>(data.size());
-	auto stagingBuffer = m_impl->m_queue.device()->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, elementSize, elements);
+	auto stagingBuffer = device->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, elementSize, elements);
 	stagingBuffer->map(data, elementSize, 0);
 
 	this->transfer(stagingBuffer, target, 0, firstSubresource, subresources);
@@ -412,6 +487,12 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDire
 
 void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDirectX12Buffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot transfer buffers on a released device instance.");
+
 	if (source.elements() < firstSubresource + subresources) [[unlikely]]
 		throw ArgumentOutOfRangeException("sourceElement", "The source image has only {0} sub-resources, but a transfer for {1} sub-resources starting from sub-resource {2} has been requested.", source.elements(), subresources, firstSubresource);
 
@@ -423,7 +504,7 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDire
 
 	for (UInt32 sr(0); sr < subresources; ++sr)
 	{
-		m_impl->m_queue.device()->handle()->GetCopyableFootprints(&targetDesc, firstSubresource + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
+		device->handle()->GetCopyableFootprints(&targetDesc, firstSubresource + sr, 1, 0, &footprint, nullptr, nullptr, nullptr);
 		CD3DX12_TEXTURE_COPY_LOCATION sourceLocation(std::as_const(source).handle().Get(), footprint), targetLocation(std::as_const(target).handle().Get(), targetElement + sr);
 		this->handle()->CopyTextureRegion(&targetLocation, 0, 0, 0, &sourceLocation, nullptr);
 	}
@@ -461,28 +542,52 @@ void DirectX12CommandBuffer::use(const DirectX12PipelineState& pipeline) const n
 
 void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet) const
 {
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot bind descriptor set on a released device instance.");
+
 	if (m_impl->m_lastPipeline) [[likely]]
-		m_impl->m_queue.device()->bindDescriptorSet(*this, descriptorSet, *m_impl->m_lastPipeline);
+		device->bindDescriptorSet(*this, descriptorSet, *m_impl->m_lastPipeline);
 	else
 		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
 }
 
 void DirectX12CommandBuffer::bind(Span<const DirectX12DescriptorSet*> descriptorSets) const
 {
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot bind descriptor set on a released device instance.");
+
 	if (m_impl->m_lastPipeline) [[likely]]
-		std::ranges::for_each(descriptorSets | std::views::filter([](auto descriptorSet) { return descriptorSet != nullptr; }), [this](auto descriptorSet) { m_impl->m_queue.device()->bindDescriptorSet(*this, *descriptorSet, *m_impl->m_lastPipeline); });
+		std::ranges::for_each(descriptorSets | std::views::filter([](auto descriptorSet) { return descriptorSet != nullptr; }), [&](auto descriptorSet) { device->bindDescriptorSet(*this, *descriptorSet, *m_impl->m_lastPipeline); });
 	else
 		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
 }
 
-void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept
+void DirectX12CommandBuffer::bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const
 {
-	m_impl->m_queue.device()->bindDescriptorSet(*this, descriptorSet, pipeline);
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot bind descriptor set on a released device instance.");
+
+	device->bindDescriptorSet(*this, descriptorSet, pipeline);
 }
 
-void DirectX12CommandBuffer::bind(Span<const DirectX12DescriptorSet*> descriptorSets, const DirectX12PipelineState& pipeline) const noexcept
+void DirectX12CommandBuffer::bind(Span<const DirectX12DescriptorSet*> descriptorSets, const DirectX12PipelineState& pipeline) const
 {
-	std::ranges::for_each(descriptorSets | std::views::filter([](auto descriptorSet) { return descriptorSet != nullptr; }), [this, &pipeline](auto descriptorSet) { m_impl->m_queue.device()->bindDescriptorSet(*this, *descriptorSet, pipeline); });
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot transfer buffers on a released device instance.");
+
+	std::ranges::for_each(descriptorSets | std::views::filter([](auto descriptorSet) { return descriptorSet != nullptr; }), [&](auto descriptorSet) { device->bindDescriptorSet(*this, *descriptorSet, pipeline); });
 }
 
 void DirectX12CommandBuffer::bind(const IDirectX12VertexBuffer& buffer) const noexcept 
@@ -562,10 +667,16 @@ void DirectX12CommandBuffer::pushConstants(const DirectX12PushConstantsLayout& l
 
 void DirectX12CommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const
 {
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot write timing event on a released device instance.");
+
 	if (timingEvent == nullptr) [[unlikely]]
 		throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");
 
-	this->handle()->EndQuery(m_impl->m_queue.device()->swapChain().timestampQueryHeap(), D3D12_QUERY_TYPE_TIMESTAMP, timingEvent->queryId());
+	this->handle()->EndQuery(device->swapChain().timestampQueryHeap(), D3D12_QUERY_TYPE_TIMESTAMP, timingEvent->queryId());
 }
 
 void DirectX12CommandBuffer::execute(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const

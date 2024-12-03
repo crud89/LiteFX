@@ -1279,7 +1279,7 @@ namespace LiteFX::Rendering::Backends {
         // CommandBuffer interface.
     public:
         /// <inheritdoc />
-        const ICommandQueue& queue() const noexcept override;
+        SharedPtr<const VulkanQueue> queue() const noexcept;
 
         /// <inheritdoc />
         void begin() const override;
@@ -1315,7 +1315,7 @@ namespace LiteFX::Rendering::Backends {
         void generateMipMaps(IVulkanImage& image) noexcept override;
 
         /// <inheritdoc />
-        [[nodiscard]] UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
+        [[nodiscard]] UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const override;
 
         /// <inheritdoc />
         void barrier(const VulkanBarrier& barrier) const noexcept override;
@@ -1366,10 +1366,10 @@ namespace LiteFX::Rendering::Backends {
         void bind(Span<const VulkanDescriptorSet*> descriptorSets) const override;
 
 		/// <inheritdoc />
-		void bind(const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept override;
+		void bind(const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const override;
 
         /// <inheritdoc />
-        void bind(Span<const VulkanDescriptorSet*> descriptorSets, const VulkanPipelineState& pipeline) const noexcept override;
+        void bind(Span<const VulkanDescriptorSet*> descriptorSets, const VulkanPipelineState& pipeline) const override;
 
         /// <inheritdoc />
         void bind(const IVulkanVertexBuffer& buffer) const noexcept override;
@@ -1444,6 +1444,10 @@ namespace LiteFX::Rendering::Backends {
         void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IVulkanBuffer& rayGenerationShaderBindingTable, const IVulkanBuffer* missShaderBindingTable, const IVulkanBuffer* hitShaderBindingTable, const IVulkanBuffer* callableShaderBindingTable) const noexcept override;
 
     private:
+        inline SharedPtr<const ICommandQueue> getQueue() const noexcept override {
+            return std::static_pointer_cast<const ICommandQueue>(this->queue());
+        }
+
         void releaseSharedState() const override;
     };
 
@@ -1458,7 +1462,7 @@ namespace LiteFX::Rendering::Backends {
         using base_type = CommandQueue<VulkanCommandBuffer>;
         using base_type::submit;
 
-    public:
+    private:
         /// <summary>
         /// Initializes the Vulkan command queue.
         /// </summary>
@@ -1469,14 +1473,15 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="queueId">The ID of the queue.</param>
         explicit VulkanQueue(const VulkanDevice& device, QueueType type, QueuePriority priority, UInt32 familyId, UInt32 queueId);
 
+    public:
         /// <inheritdoc />
-        VulkanQueue(VulkanQueue&&) noexcept;
+        VulkanQueue(VulkanQueue&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanQueue(const VulkanQueue&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanQueue& operator=(VulkanQueue&&) noexcept;
+        VulkanQueue& operator=(VulkanQueue&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanQueue& operator=(const VulkanQueue&) noexcept = delete;
@@ -1484,31 +1489,45 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         ~VulkanQueue() noexcept override;
 
+    public:
+        /// <summary>
+        /// Creates a new Vulkan command queue.
+        /// </summary>
+        /// <param name="device">The device, commands get send to.</param>
+        /// <param name="type">The type of the command queue.</param>
+        /// <param name="priority">The priority, of which commands are issued on the device.</param>
+        /// <param name="familyId">The ID of the queue family.</param>
+        /// <param name="queueId">The ID of the queue.</param>
+        /// <returns>A pointer to the newly created command queue instance.</returns>
+        static inline SharedPtr<VulkanQueue> create(const VulkanDevice& device, QueueType type, QueuePriority priority, UInt32 familyId, UInt32 queueId) {
+            return SharedPtr<VulkanQueue>(new VulkanQueue(device, type, priority, familyId, queueId));
+        }
+
         // VulkanQueue interface.
     public:
         /// <summary>
-        /// Returns a reference to the device that provides this queue.
+        /// Returns a pointer to the device that provides this queue or `nullptr`, if the device has already been released.
         /// </summary>
-        /// <returns>A reference to the queue's parent device.</returns>
-        virtual const VulkanDevice& device() const noexcept;
+        /// <returns>A pointer to the queue's parent device.</returns>
+        SharedPtr<const VulkanDevice> device() const noexcept;
 
         /// <summary>
         /// Returns the queue family ID.
         /// </summary>
         /// <returns>The queue family ID.</returns>
-        virtual UInt32 familyId() const noexcept;
+        UInt32 familyId() const noexcept;
 
         /// <summary>
         /// Returns the queue ID.
         /// </summary>
         /// <returns>The queue ID.</returns>
-        virtual UInt32 queueId() const noexcept;
+        UInt32 queueId() const noexcept;
 
         /// <summary>
         /// Returns the internal timeline semaphore used to synchronize the queue execution.
         /// </summary>
         /// <returns>The internal timeline semaphore.</returns>
-        virtual const VkSemaphore& timelineSemaphore() const noexcept;
+        const VkSemaphore& timelineSemaphore() const noexcept;
 
         // CommandQueue interface.
     public:
@@ -1541,7 +1560,7 @@ namespace LiteFX::Rendering::Backends {
         UInt64 submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const override;
 
         /// <inheritdoc />
-        void waitFor(UInt64 fence) const noexcept override;
+        void waitFor(UInt64 fence) const override;
 
         /// <inheritdoc />
         void waitFor(const VulkanQueue& queue, UInt64 fence) const noexcept;
@@ -2374,7 +2393,7 @@ namespace LiteFX::Rendering::Backends {
         const VulkanQueue& defaultQueue(QueueType type) const override;
 
         /// <inheritdoc />
-        const VulkanQueue* createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) override;
+        SharedPtr<const VulkanQueue> createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) override;
 
         /// <inheritdoc />
         [[nodiscard]] UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;

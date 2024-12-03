@@ -22,39 +22,47 @@ public:
 	friend class VulkanCommandBuffer;
 
 private:
-	const VulkanQueue& m_queue;
 	bool m_recording{ false }, m_secondary{ false };
 	VkCommandPool m_commandPool{};
 	Array<SharedPtr<const IStateResource>> m_sharedResources;
 	const VulkanPipelineState* m_lastPipeline = nullptr;
+	WeakPtr<const VulkanQueue> m_queue;
+	WeakPtr<const VulkanDevice> m_device;
 
 public:
 	VulkanCommandBufferImpl(const VulkanQueue& queue, bool primary) :
-		m_queue(queue), m_secondary(!primary)
+		m_secondary(!primary), m_queue(queue.weak_from_this()), m_device(queue.device())
 	{
 	}
 
 public:
 	void release(const VulkanCommandBuffer& commandBuffer) 
 	{
-		::vkFreeCommandBuffers(m_queue.device().handle(), m_commandPool, 1, &commandBuffer.handle());
-		::vkDestroyCommandPool(m_queue.device().handle(), m_commandPool, nullptr);
+		auto device = m_device.lock();
+		
+		if (device == nullptr) [[unlikely]]
+			LITEFX_FATAL_ERROR(VULKAN_LOG, "Invalid attempt to release command buffer after parent device has been released.");
+		else
+		{
+			::vkFreeCommandBuffers(device->handle(), m_commandPool, 1, &commandBuffer.handle());
+			::vkDestroyCommandPool(device->handle(), m_commandPool, nullptr);
+		}
 	}
 
-	VkCommandBuffer initialize()
+	VkCommandBuffer initialize(const VulkanQueue& queue, const VulkanDevice& device)
 	{
 		// Create command pool.
 		VkCommandPoolCreateInfo poolInfo = {
 			.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
 			.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
-			.queueFamilyIndex = m_queue.familyId(),
+			.queueFamilyIndex = queue.familyId(),
 		};
 
 		// Primary command buffers are frequently reset and re-allocated, whilst secondary command buffers must be recorded once and never reset.
 		if (!m_secondary)
 			poolInfo.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
 
-		raiseIfFailed(::vkCreateCommandPool(m_queue.device().handle(), &poolInfo, nullptr, &m_commandPool), "Unable to create command pool.");
+		raiseIfFailed(::vkCreateCommandPool(device.handle(), &poolInfo, nullptr, &m_commandPool), "Unable to create command pool.");
 
 		// Create the command buffer.
 		VkCommandBufferAllocateInfo bufferInfo = {
@@ -65,20 +73,24 @@ public:
 		};
 
 		VkCommandBuffer buffer{};
-		raiseIfFailed(::vkAllocateCommandBuffers(m_queue.device().handle(), &bufferInfo, &buffer), "Unable to allocate command buffer.");
+		raiseIfFailed(::vkAllocateCommandBuffers(device.handle(), &bufferInfo, &buffer), "Unable to allocate command buffer.");
 
 		return buffer;
 	}
 
 	inline void buildAccelerationStructure(const VulkanCommandBuffer& commandBuffer, VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset, bool update)
 	{
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Unable to build acceleration structure from a released device instance.");
+
 		if (scratchBuffer == nullptr) [[unlikely]]
 			throw ArgumentNotInitializedException("scratchBuffer");
 
 		// Create new acceleration structure handle.
-		auto& device = m_queue.device();
 		UInt64 size{}, scratchSize{};
-		device.computeAccelerationStructureSizes(blas, size, scratchSize, update);
+		device->computeAccelerationStructureSizes(blas, size, scratchSize, update);
 		VkAccelerationStructureKHR handle{};
 
 		VkAccelerationStructureCreateInfoKHR info = {
@@ -89,7 +101,7 @@ public:
 			.type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR
 		};
 
-		raiseIfFailed(::vkCreateAccelerationStructure(device.handle(), &info, nullptr, &handle), "Unable to update acceleration structure handle.");
+		raiseIfFailed(::vkCreateAccelerationStructure(device->handle(), &info, nullptr, &handle), "Unable to update acceleration structure handle.");
 
 		auto buildInfo = blas.buildInfo();
 		auto descriptions = buildInfo | std::views::values | std::ranges::to<Array<VkAccelerationStructureGeometryKHR>>();
@@ -115,7 +127,7 @@ public:
 		::vkCmdBuildAccelerationStructures(commandBuffer.handle(), 1, &inputs, &rangePointer);
 
 		// Store the acceleration structure handle.
-		blas.updateState(&device, handle);
+		blas.updateState(device.get(), handle);
 
 		// Store the scratch buffer.
 		m_sharedResources.push_back(scratchBuffer);
@@ -123,13 +135,17 @@ public:
 
 	inline void buildAccelerationStructure(const VulkanCommandBuffer& commandBuffer, VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset, bool update)
 	{
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Unable to build acceleration structure from a released device instance.");
+
 		if (scratchBuffer == nullptr) [[unlikely]]
 			throw ArgumentNotInitializedException("scratchBuffer");
 
 		// Create a buffer to store the instance data.
-		auto& device = m_queue.device();
 		auto buildInfo = tlas.buildInfo();
-		auto instanceBuffer = device.factory().createBuffer(BufferType::Storage, ResourceHeap::Dynamic, sizeof(VkAccelerationStructureInstanceKHR) * buildInfo.size(), 1, ResourceUsage::AccelerationStructureBuildInput);
+		auto instanceBuffer = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Dynamic, sizeof(VkAccelerationStructureInstanceKHR) * buildInfo.size(), 1, ResourceUsage::AccelerationStructureBuildInput);
 
 		// Map the instance buffer.
 		instanceBuffer->map(buildInfo.data(), sizeof(VkAccelerationStructureInstanceKHR) * buildInfo.size());
@@ -139,7 +155,7 @@ public:
 
 		// Create new acceleration structure handle.
 		UInt64 size{}, scratchSize{};
-		device.computeAccelerationStructureSizes(tlas, size, scratchSize, update);
+		device->computeAccelerationStructureSizes(tlas, size, scratchSize, update);
 		VkAccelerationStructureKHR handle{};
 
 		VkAccelerationStructureCreateInfoKHR info = {
@@ -150,7 +166,7 @@ public:
 			.type = VK_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL_KHR
 		};
 
-		raiseIfFailed(::vkCreateAccelerationStructure(device.handle(), &info, nullptr, &handle), "Unable to update acceleration structure handle.");
+		raiseIfFailed(::vkCreateAccelerationStructure(device->handle(), &info, nullptr, &handle), "Unable to update acceleration structure handle.");
 
 		// Setup TLAS bindings.
 		VkAccelerationStructureGeometryInstancesDataKHR instanceInfo = {
@@ -186,7 +202,7 @@ public:
 		::vkCmdBuildAccelerationStructures(commandBuffer.handle(), 1, &inputs, &rangePointer);
 
 		// Store the acceleration structure handle.
-		tlas.updateState(&device, handle);
+		tlas.updateState(device.get(), handle);
 
 		// Store the scratch buffer.
 		m_sharedResources.emplace_back(instanceBuffer);
@@ -201,7 +217,7 @@ public:
 VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, bool begin, bool primary) :
 	Resource<VkCommandBuffer>(nullptr), m_impl(queue, primary)
 {
-	this->handle() = m_impl->initialize();
+	this->handle() = m_impl->initialize(queue, *queue.device());
 
 	if (begin)
 		this->begin();
@@ -214,9 +230,9 @@ VulkanCommandBuffer::~VulkanCommandBuffer() noexcept
 	m_impl->release(*this);
 }
 
-const ICommandQueue& VulkanCommandBuffer::queue() const noexcept
+SharedPtr<const VulkanQueue> VulkanCommandBuffer::queue() const noexcept
 {
-	return m_impl->m_queue;
+	return m_impl->m_queue.lock();
 }
 
 void VulkanCommandBuffer::begin() const
@@ -343,10 +359,15 @@ void VulkanCommandBuffer::setStencilRef(UInt32 stencilRef) const noexcept
 
 UInt64 VulkanCommandBuffer::submit() const 
 {
+	auto queue = m_impl->m_queue.lock();
+
+	if (queue == nullptr) [[unlikely]]
+		throw RuntimeException("Unable to submit command buffer to a released device instance.");
+
 	if (this->isSecondary())
 		throw RuntimeException("A secondary command buffer cannot be directly submitted to a command queue and must be executed on a primary command buffer instead.");
 
-	return m_impl->m_queue.submit(this->shared_from_this());
+	return queue->submit(this->shared_from_this());
 }
 
 void VulkanCommandBuffer::generateMipMaps(IVulkanImage& image) noexcept
@@ -407,9 +428,15 @@ void VulkanCommandBuffer::generateMipMaps(IVulkanImage& image) noexcept
 	this->barrier(endBarrier);
 }
 
-UniquePtr<VulkanBarrier> VulkanCommandBuffer::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept
+UniquePtr<VulkanBarrier> VulkanCommandBuffer::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const
 {
-	return m_impl->m_queue.device().makeBarrier(syncBefore, syncAfter);
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot create barrier on a released device instance.");
+
+	return device->makeBarrier(syncBefore, syncAfter);
 }
 
 void VulkanCommandBuffer::barrier(const VulkanBarrier& barrier) const noexcept
@@ -436,7 +463,13 @@ void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanBuf
 
 void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IVulkanBuffer& target, UInt32 targetElement, UInt32 elements) const
 {
-	auto stagingBuffer = m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements);
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot create staging buffer on a released device instance.");
+
+	auto stagingBuffer = device->factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements);
 	stagingBuffer->map(data, size, 0);
 
 	this->transfer(stagingBuffer, target, 0, targetElement, elements);
@@ -444,8 +477,14 @@ void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IV
 
 void VulkanCommandBuffer::transfer(Span<const void* const> data, size_t elementSize, const IVulkanBuffer& target, UInt32 firstElement) const
 {
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot create staging buffer on a released device instance.");
+
 	auto elements = static_cast<UInt32>(data.size());
-	auto stagingBuffer = m_impl->m_queue.device().factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements);
+	auto stagingBuffer = device->factory().createBuffer(target.type(), ResourceHeap::Staging, target.elementSize(), elements);
 	stagingBuffer->map(data, elementSize, 0);
 
 	this->transfer(stagingBuffer, target, 0, firstElement, elements);
@@ -484,7 +523,13 @@ void VulkanCommandBuffer::transfer(const IVulkanBuffer& source, const IVulkanIma
 
 void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IVulkanImage& target, UInt32 subresource) const
 {
-	auto stagingBuffer = m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, size);
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot create staging buffer on a released device instance.");
+
+	auto stagingBuffer = device->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, size);
 	stagingBuffer->map(data, size, 0);
 
 	this->transfer(stagingBuffer, target, 0, subresource, 1);
@@ -492,8 +537,14 @@ void VulkanCommandBuffer::transfer(const void* const data, size_t size, const IV
 
 void VulkanCommandBuffer::transfer(Span<const void* const> data, size_t elementSize, const IVulkanImage& target, UInt32 firstSubresource, UInt32 subresources) const
 {
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot create staging buffer on a released device instance.");
+
 	auto elements = static_cast<UInt32>(data.size());
-	auto stagingBuffer = m_impl->m_queue.device().factory().createBuffer(BufferType::Other, ResourceHeap::Staging, elementSize, elements);
+	auto stagingBuffer = device->factory().createBuffer(BufferType::Other, ResourceHeap::Staging, elementSize, elements);
 	stagingBuffer->map(data, elementSize, 0);
 
 	this->transfer(stagingBuffer, target, 0, firstSubresource, subresources);
@@ -617,13 +668,13 @@ void VulkanCommandBuffer::bind(Span<const VulkanDescriptorSet*> descriptorSets) 
 		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
 }
 
-void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept
+void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const
 {
 	auto set = &descriptorSet;
 	pipeline.bind(*this, { std::addressof(set), 1 });
 }
 
-void VulkanCommandBuffer::bind(Span<const VulkanDescriptorSet*> descriptorSets, const VulkanPipelineState& pipeline) const noexcept
+void VulkanCommandBuffer::bind(Span<const VulkanDescriptorSet*> descriptorSets, const VulkanPipelineState& pipeline) const
 {
 	pipeline.bind(*this, descriptorSets);
 }
@@ -701,10 +752,16 @@ void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout,
 
 void VulkanCommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const
 {
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot write timing event on a released device instance.");
+
 	if (timingEvent == nullptr) [[unlikely]]
 		throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");
 
-	::vkCmdWriteTimestamp2(this->handle(), VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT, m_impl->m_queue.device().swapChain().timestampQueryPool(), timingEvent->queryId());
+	::vkCmdWriteTimestamp2(this->handle(), VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT, device->swapChain().timestampQueryPool(), timingEvent->queryId());
 }
 
 void VulkanCommandBuffer::execute(SharedPtr<const VulkanCommandBuffer> commandBuffer) const

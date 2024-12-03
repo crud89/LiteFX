@@ -41,14 +41,8 @@ public:
 
 public:
 	[[nodiscard]]
-	ComPtr<ID3D12CommandQueue> initialize()
+	ComPtr<ID3D12CommandQueue> initialize(const DirectX12Device& device)
 	{
-		// Check if the device is still valid.
-		auto device = m_device.lock();
-
-		if (device == nullptr) [[unlikely]]
-			throw RuntimeException("Cannot allocate command queue on a released device instance.");
-
 		ComPtr<ID3D12CommandQueue> commandQueue;
 
 		D3D12_COMMAND_QUEUE_DESC desc = {};
@@ -82,8 +76,8 @@ public:
 			break;
 		}
 
-		raiseIfFailed(device->handle()->CreateCommandQueue(&desc, IID_PPV_ARGS(&commandQueue)), "Unable to create command queue of type {0} with priority {1}.", m_type, m_priority);
-		raiseIfFailed(device->handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)), "Unable to create command buffer synchronization fence.");
+		raiseIfFailed(device.handle()->CreateCommandQueue(&desc, IID_PPV_ARGS(&commandQueue)), "Unable to create command queue of type {0} with priority {1}.", m_type, m_priority);
+		raiseIfFailed(device.handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)), "Unable to create command buffer synchronization fence.");
 
 		return commandQueue;
 	}
@@ -110,7 +104,7 @@ public:
 DirectX12Queue::DirectX12Queue(const DirectX12Device& device, QueueType type, QueuePriority priority) :
 	ComResource<ID3D12CommandQueue>(nullptr), m_impl(device, type, priority)
 {
-	this->handle() = m_impl->initialize();
+	this->handle() = m_impl->initialize(device);
 }
 
 //DirectX12Queue::DirectX12Queue(DirectX12Queue&&) noexcept = default;
@@ -225,7 +219,7 @@ UInt64 DirectX12Queue::submit(const Enumerable<SharedPtr<const DirectX12CommandB
 	raiseIfFailed(this->handle()->Signal(m_impl->m_fence.Get(), fence), "Unable to add fence signal to command buffer.");
 
 	// Add the command buffers to the submitted command buffers list.
-	std::ranges::for_each(commandBuffers, [this, &fence](auto& buffer) { m_impl->m_submittedCommandBuffers.push_back({ fence, buffer }); });
+	std::ranges::for_each(commandBuffers, [this, &fence](auto& buffer) { m_impl->m_submittedCommandBuffers.emplace_back(fence, buffer); });
 
 	// Fire end event.
 	this->submitted(this, { fence });
