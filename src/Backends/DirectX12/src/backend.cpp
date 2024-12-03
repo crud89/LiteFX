@@ -14,13 +14,6 @@ private:
     Array<UniquePtr<DirectX12GraphicsAdapter>> m_adapters{ };
     Dictionary<String, UniquePtr<DirectX12Device>> m_devices;
     ComPtr<ID3D12Debug> m_debugInterface;
-    const App& m_app;
-
-public:
-    DirectX12BackendImpl(const App& app) :
-        m_app(app)
-    { 
-    }
 
 public:
     [[nodiscard]]
@@ -76,8 +69,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Backend::DirectX12Backend(const App& app, bool useAdvancedSoftwareRasterizer) :
-    ComResource<IDXGIFactory7>(nullptr), m_impl(app)
+DirectX12Backend::DirectX12Backend(const App& /*app*/, bool useAdvancedSoftwareRasterizer) :
+    ComResource<IDXGIFactory7>(nullptr), m_impl()
 {
     this->handle() = m_impl->initialize();
     m_impl->loadAdapters(*this, useAdvancedSoftwareRasterizer);

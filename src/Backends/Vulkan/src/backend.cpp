@@ -24,11 +24,9 @@ private:
     Dictionary<String, UniquePtr<VulkanDevice>> m_devices;
     Array<String> m_extensions;
     Array<String> m_layers;
-    const App& m_app;
 
 public:
-    VulkanBackendImpl(const App& app, Span<String> extensions, Span<String> validationLayers) :
-        m_app(app)
+    VulkanBackendImpl(Span<String> extensions, Span<String> validationLayers)
     {
         m_extensions.assign(std::begin(extensions), std::end(extensions));
         m_layers.assign(std::begin(validationLayers), std::end(validationLayers));
@@ -111,7 +109,7 @@ private:
     }
 
 public:
-    VkInstance initialize()
+    VkInstance initialize(const App& app)
     {
         // Check if all extensions are available.
         if (!VulkanBackend::validateInstanceExtensions(m_extensions))
@@ -126,14 +124,14 @@ public:
         auto enabledLayers = m_layers | std::views::transform([](const auto& layer) { return layer.c_str(); }) | std::ranges::to<Array<const char*>>();
 
         // Get the app instance.
-        auto appName = String(m_app.name());
+        auto appName = String(app.name());
 
         // Define Vulkan app.
         VkApplicationInfo appInfo = {};
 
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
         appInfo.pApplicationName = appName.c_str();
-        appInfo.applicationVersion = VK_MAKE_VERSION(m_app.version().major(), m_app.version().minor(), m_app.version().patch());
+        appInfo.applicationVersion = VK_MAKE_VERSION(app.version().major(), app.version().minor(), app.version().patch());
         appInfo.pEngineName = LITEFX_ENGINE_ID;
         appInfo.engineVersion = VK_MAKE_VERSION(LITEFX_MAJOR, LITEFX_MINOR, LITEFX_REV);
         appInfo.apiVersion = VK_API_VERSION_1_3;
@@ -220,9 +218,9 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanBackend::VulkanBackend(const App& app, Span<String> extensions, Span<String> validationLayers) :
-    Resource<VkInstance>(nullptr), m_impl(app, extensions, validationLayers)
+    Resource<VkInstance>(nullptr), m_impl(extensions, validationLayers)
 {
-    this->handle() = m_impl->initialize();
+    this->handle() = m_impl->initialize(app);
     m_impl->loadAdapters(*this);
 
     LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
