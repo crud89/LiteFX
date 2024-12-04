@@ -401,11 +401,11 @@ namespace LiteFX {
 		/// <summary>
 		/// Initializes a new app instance.
 		/// </summary>
-		App() noexcept;
+		App();
 		App(const App&) = delete;
-		App(App&&) = delete;
+		App(App&&) noexcept = delete;
 		auto operator=(const App&) = delete;
-		auto operator=(App&&) = delete;
+		auto operator=(App&&) noexcept = delete;
 
 		virtual ~App() noexcept;
 

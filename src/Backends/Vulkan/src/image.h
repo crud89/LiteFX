@@ -16,6 +16,7 @@ namespace LiteFX::Rendering::Backends {
 	class VulkanImage : public virtual IVulkanImage, public Resource<VkImage>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanImageImpl);
 		friend class VulkanSwapChain::VulkanSwapChainImpl;
+		friend struct SharedObject::Allocator<VulkanImage>;
 
 	private:
 		explicit VulkanImage(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr, const String& name = "");
@@ -96,6 +97,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class VulkanSampler : public virtual IVulkanSampler, public Resource<VkSampler>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanSamplerImpl);
+		friend struct SharedObject::Allocator<VulkanSampler>;
 
 	private:
 		/// <summary>
@@ -156,7 +158,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		static inline SharedPtr<VulkanSampler> allocate(const VulkanDevice& device, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float minLod = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float anisotropy = 0.f, const String& name = "") {
-			return SharedPtr<VulkanSampler>(new VulkanSampler(device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name));
+			return SharedObject::create<VulkanSampler>(device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
 		}
 	};
 }

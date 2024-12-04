@@ -683,12 +683,12 @@ SharedPtr<const VulkanQueue> VulkanDevice::createQueue(QueueType type, QueuePrio
     return m_impl->createQueue(*this, type, priority);
 }
 
-UniquePtr<VulkanBarrier> VulkanDevice::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept
+UniquePtr<VulkanBarrier> VulkanDevice::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const
 {
     return makeUnique<VulkanBarrier>(syncBefore, syncAfter);
 }
 
-SharedPtr<VulkanFrameBuffer> VulkanDevice::makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept
+SharedPtr<VulkanFrameBuffer> VulkanDevice::makeFrameBuffer(StringView name, const Size2d& renderArea) const
 {
     return VulkanFrameBuffer::create(*this, renderArea, name);
 }

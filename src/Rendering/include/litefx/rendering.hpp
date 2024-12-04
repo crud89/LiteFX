@@ -1445,22 +1445,22 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<const command_queue_type> createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) = 0;
 
         /// <inheritdoc />
-        [[nodiscard]] virtual UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
+        [[nodiscard]] virtual UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const = 0;
 
         /// <inheritdoc />
-        [[nodiscard]] inline SharedPtr<frame_buffer_type> makeFrameBuffer(const Size2d& renderArea) const noexcept {
+        [[nodiscard]] inline SharedPtr<frame_buffer_type> makeFrameBuffer(const Size2d& renderArea) const {
             return this->makeFrameBuffer("", renderArea);
         }
 
         /// <inheritdoc />
-        [[nodiscard]] virtual SharedPtr<frame_buffer_type> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept = 0;
+        [[nodiscard]] virtual SharedPtr<frame_buffer_type> makeFrameBuffer(StringView name, const Size2d& renderArea) const = 0;
 
     private:
-        inline UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override {
+        inline UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const override {
             return this->makeBarrier(syncBefore, syncAfter);
         }
 
-        inline SharedPtr<IFrameBuffer> getNewFrameBuffer(StringView name, const Size2d& renderArea) const noexcept override {
+        inline SharedPtr<IFrameBuffer> getNewFrameBuffer(StringView name, const Size2d& renderArea) const override {
             return this->makeFrameBuffer(name, renderArea);
         }
 

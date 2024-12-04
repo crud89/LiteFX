@@ -513,7 +513,7 @@ DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& de
 }
 
 DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, const String& name) :
-    RenderPassBuilder(SharedPtr<DirectX12RenderPass>(new DirectX12RenderPass(device, name)))
+    RenderPassBuilder(DirectX12RenderPass::create(device, name))
 {
     this->state().commandBufferCount = commandBuffers;
 }

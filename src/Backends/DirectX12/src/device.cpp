@@ -583,12 +583,12 @@ SharedPtr<const DirectX12Queue> DirectX12Device::createQueue(QueueType type, Que
 	return m_impl->createQueue(*this, type, priority);
 }
 
-UniquePtr<DirectX12Barrier> DirectX12Device::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept
+UniquePtr<DirectX12Barrier> DirectX12Device::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const
 {
 	return makeUnique<DirectX12Barrier>(syncBefore, syncAfter);
 }
 
-SharedPtr<DirectX12FrameBuffer> DirectX12Device::makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept
+SharedPtr<DirectX12FrameBuffer> DirectX12Device::makeFrameBuffer(StringView name, const Size2d& renderArea) const
 {
 	return DirectX12FrameBuffer::create(*this, renderArea, name);
 }

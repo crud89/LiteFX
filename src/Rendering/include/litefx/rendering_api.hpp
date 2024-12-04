@@ -2280,7 +2280,7 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Creates a new device state instance.
         /// </summary>
-        explicit DeviceState() noexcept;
+        explicit DeviceState();
 
         /// <summary>
         /// Takes over another instance of a device state.
@@ -2971,7 +2971,7 @@ namespace LiteFX::Rendering {
         /// Creates a copy of a render target.
         /// </summary>
         /// <param name="_other">The render target instance to copy.</param>
-        RenderTarget(const RenderTarget& _other) noexcept;
+        RenderTarget(const RenderTarget& _other);
 
         /// <summary>
         /// Takes over another instance of a render target.
@@ -2984,7 +2984,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="_other">The render target instance to copy.</param>
         /// <returns>A reference to the current render target instance.</returns>
-        RenderTarget& operator=(const RenderTarget& _other) noexcept;
+        RenderTarget& operator=(const RenderTarget& _other);
 
         /// <summary>
         /// Assigns a render target by taking it over.
@@ -3696,7 +3696,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="swapChain">The swap chain on which the timing event is registered.</param>
         /// <param name="name">The name of the timing event.</param>
-        explicit TimingEvent(const ISwapChain& swapChain, StringView name = "") noexcept;
+        explicit TimingEvent(const ISwapChain& swapChain, StringView name = "");
 
     public:
         /// <summary>
@@ -9178,7 +9178,7 @@ namespace LiteFX::Rendering {
         /// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
         /// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
         /// <returns>The instance of the memory barrier.</returns>
-        [[nodiscard]] inline UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept {
+        [[nodiscard]] inline UniquePtr<IBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const {
             return this->getNewBarrier(syncBefore, syncAfter);
         }
 
@@ -9187,7 +9187,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="renderArea">The initial render area of the frame buffer.</param>
         /// <returns>The instance of the frame buffer.</returns>
-        [[nodiscard]] inline SharedPtr<IFrameBuffer> makeFrameBuffer(const Size2d& renderArea) const noexcept {
+        [[nodiscard]] inline SharedPtr<IFrameBuffer> makeFrameBuffer(const Size2d& renderArea) const {
             return this->makeFrameBuffer("", renderArea);
         }
 
@@ -9197,7 +9197,7 @@ namespace LiteFX::Rendering {
         /// <param name="name">The name of the frame buffer.</param>
         /// <param name="renderArea">The initial render area of the frame buffer.</param>
         /// <returns>The instance of the frame buffer.</returns>
-        [[nodiscard]] inline SharedPtr<IFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept {
+        [[nodiscard]] inline SharedPtr<IFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const {
             return this->getNewFrameBuffer(name, renderArea);
         }
 
@@ -9270,8 +9270,8 @@ namespace LiteFX::Rendering {
         virtual void wait() const = 0;
 
     private:
-        virtual UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
-        virtual SharedPtr<IFrameBuffer> getNewFrameBuffer(StringView name, const Size2d& renderArea) const noexcept = 0;
+        virtual UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const = 0;
+        virtual SharedPtr<IFrameBuffer> getNewFrameBuffer(StringView name, const Size2d& renderArea) const = 0;
         virtual const ICommandQueue& getDefaultQueue(QueueType type) const = 0;
         virtual SharedPtr<const ICommandQueue> getNewQueue(QueueType type, QueuePriority priority) = 0;
     };

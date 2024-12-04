@@ -426,6 +426,9 @@ namespace LiteFX {
 	template <class pImpl>
 	class PimplPtr final {
 	private:
+		/// <summary>
+		/// Stores the shared pointer to the implementation.
+		/// </summary>
 		SharedPtr<pImpl> m_ptr;
 
 	public:
@@ -433,7 +436,7 @@ namespace LiteFX {
 		/// Initializes a new pointer to an implementation instance.
 		/// </summary>
 		constexpr PimplPtr() /*requires std::is_default_constructible_v<pImpl>*/ :
-			m_ptr(new pImpl()) { }
+			m_ptr(makeShared<pImpl>()) { }
 
 		/// <summary>
 		/// Initializes a new pointer of an implementation.
@@ -442,21 +445,20 @@ namespace LiteFX {
 		/// <param name="...args">The arguments passed to the implementation constructor.</param>
 		template <typename... TArgs>
 		constexpr PimplPtr(TArgs&&... args) /*requires std::constructible_from<pImpl, TArgs...>*/ :
-			m_ptr(new pImpl(std::forward<TArgs>(args)...)) { } // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
+			m_ptr(makeShared<pImpl>(std::forward<TArgs>(args)...)) { } // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 
 		/// <summary>
 		/// Initializes a new pointer to a copy of the implementation instance managed by <paramref name="src" />.
 		/// </summary>
 		/// <param name="src">The source pointer to copy the implementation instance from.</param>
 		constexpr PimplPtr(const PimplPtr& src) /*requires std::copy_constructible<pImpl>*/ : 
-			m_ptr(new pImpl(*src.m_ptr)) { }
+			m_ptr(makeShared<pImpl>(*src.m_ptr)) { }
 
 		/// <summary>
 		/// Initializes a new pointer by taking over the implementation instance managed by <paramref name="src" />.
 		/// </summary>
 		/// <param name="src">The source pointer to take over.</param>
-		constexpr PimplPtr(PimplPtr&& src) noexcept /*requires std::move_constructible<pImpl>*/ :
-			m_ptr(std::move(src.m_ptr)) { }
+		constexpr PimplPtr(PimplPtr&& src) noexcept = default;
 
 		/// <summary>
 		/// Initializes a new pointer to a copy of the implementation instance managed by <paramref name="src" />.
@@ -470,7 +472,7 @@ namespace LiteFX {
 		constexpr PimplPtr& operator=(const PimplPtr& src) /*requires std::copy_constructible<pImpl>*/
 		{
 			if (&src != this)
-				m_ptr = SharedPtr<pImpl>(new pImpl(*src.m_ptr));
+				m_ptr = makeShared<pImpl>(*src.m_ptr);
 
 			return *this; 
 		}
@@ -480,13 +482,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="src">The source pointer to take over.</param>
 		/// <returns>A new pointer to the provided implementation instance.</returns>
-		constexpr PimplPtr& operator=(PimplPtr&& src) noexcept /*requires std::move_constructible<pImpl>*/
-		{
-			if (&src != this)
-				m_ptr = SharedPtr<pImpl>(std::move(src.m_ptr));
-
-			return *this;
-		}
+		constexpr PimplPtr& operator=(PimplPtr&& src) noexcept = default;
 
 		constexpr ~PimplPtr() noexcept = default;
 
@@ -796,7 +792,25 @@ namespace LiteFX {
 	/// not provide any public constructors; instead provide a private constructor and a publicly accessible static factory method, that returns a shared pointer.
 	/// 
 	/// Note that the above rule does not apply for objects that are stored within a <see cref="PimplPtr" />, as those are handled correctly by the pointer implementation.
+	/// 
+	/// You may want to create objects by creating a static factory method that calls the protected <see cref="SharedObject::create" /> method. This has the advantage of allocating a single memory block for 
+	/// both, the object and the shared pointers control block. To do this, make sure to declare friendship to <see cref="SharedObject::Allocator" /> in your class, as shown in the example below.
 	/// </remarks>
+	/// <example>
+	/// <code>
+	/// class Foo : public SharedObject {
+	///     friend struct SharedObject::Allocator<Foo>;
+	/// 
+	/// private:
+	///     explicit Foo(int a, std::string b) { }
+	/// 
+	/// public:
+	///     static inline auto create(int a, std::string b) {
+	///         return SharedObject::create<Foo>(a, b);
+	///     }
+	/// }
+	/// </code>
+	/// </example>
 	/// <seealso href="https://en.cppreference.com/w/cpp/memory/enable_shared_from_this" />
 	class SharedObject : public std::enable_shared_from_this<SharedObject> {
 	protected:
@@ -814,6 +828,31 @@ namespace LiteFX {
 		/// Destroys the shared object.
 		/// </summary>
 		virtual ~SharedObject() noexcept = default;
+
+	protected:
+		/// <summary>
+		/// An allocator used to allocate the shared object.
+		/// </summary>
+		/// <typeparam name="T">The type of the class that inherits from <see cref="SharedObject" />.</typeparam>
+		template <typename T>
+		struct Allocator : public std::allocator<T> {
+			template<typename TParent, typename... TArgs>
+			void construct(TParent* parent, TArgs&&... args) {
+				::new(static_cast<void*>(parent)) TParent(std::forward<TArgs>(args)...);
+			}
+		};
+
+		/// <summary>
+		/// Generic factory method used to create instances of the shared object.
+		/// </summary>
+		/// <typeparam name="T">The type of the class that inherits from <see cref="SharedObject" />.</typeparam>
+		/// <typeparam name="TArgs">The types of the arguments passed to the shared object's constructor.</typeparam>
+		/// <param name="args">The arguments that are forwarded to the shared object's constructor.</param>
+		/// <returns>A shared pointer of the shared object.</returns>
+		template <typename T, typename... TArgs>
+		static inline auto create(TArgs&&... args) -> SharedPtr<T> {
+			return std::allocate_shared<T>(Allocator<T>{}, std::forward<TArgs>(args)...);
+		}
 
 	public:
 		/// <summary>

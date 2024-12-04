@@ -1232,6 +1232,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12Queue" />
     class LITEFX_DIRECTX12_API DirectX12CommandBuffer final : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>, public ComResource<ID3D12GraphicsCommandList7> {
         LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
+        friend struct SharedObject::Allocator<DirectX12CommandBuffer>;
 
     public:
         using base_type = CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>;
@@ -1285,7 +1286,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
         /// <param name="primary"><c>true</c>, if the command buffer is a primary command buffer.</param>
         static inline SharedPtr<DirectX12CommandBuffer> create(const DirectX12Queue& queue, bool begin = false, bool primary = true) {
-            return SharedPtr<DirectX12CommandBuffer>(new DirectX12CommandBuffer(queue, begin, primary));
+            return SharedObject::create<DirectX12CommandBuffer>(queue, begin, primary);
         }
 
         // CommandBuffer interface.
@@ -1472,6 +1473,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12CommandBuffer" />
     class LITEFX_DIRECTX12_API DirectX12Queue final : public CommandQueue<DirectX12CommandBuffer>, public ComResource<ID3D12CommandQueue> {
         LITEFX_IMPLEMENTATION(DirectX12QueueImpl);
+        friend struct SharedObject::Allocator<DirectX12Queue>;
 
     public:
         using base_type = CommandQueue<DirectX12CommandBuffer>;
@@ -1511,7 +1513,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="priority">The priority, of which commands are issued on the device.</param>
         /// <returns>A pointer to the command queue instance.</returns>
         static inline SharedPtr<DirectX12Queue> create(const DirectX12Device& device, QueueType type, QueuePriority priority) {
-            return SharedPtr<DirectX12Queue>(new DirectX12Queue(device, type, priority));
+            return SharedObject::create<DirectX12Queue>(device, type, priority);
         }
 
         // DirectX12Queue interface.
@@ -1799,6 +1801,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12RenderPass" />
     class LITEFX_DIRECTX12_API DirectX12FrameBuffer final : public FrameBuffer<IDirectX12Image> {
         LITEFX_IMPLEMENTATION(DirectX12FrameBufferImpl);
+        friend struct SharedObject::Allocator<DirectX12FrameBuffer>;
 
     public:
         using FrameBuffer::addImage;
@@ -1839,7 +1842,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="name">The name of the frame buffer.</param>
         /// <returns>A pointer to the newly created frame buffer instance.</returns>
         static inline SharedPtr<DirectX12FrameBuffer> create(const DirectX12Device& device, const Size2d& renderArea, StringView name = "") {
-            return SharedPtr<DirectX12FrameBuffer>(new DirectX12FrameBuffer(device, renderArea, name));
+            return SharedObject::create<DirectX12FrameBuffer>(device, renderArea, name);
         }
 
         // DirectX 12 FrameBuffer
@@ -1937,6 +1940,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12RenderPass final : public RenderPass<DirectX12Queue, DirectX12FrameBuffer> {
         LITEFX_IMPLEMENTATION(DirectX12RenderPassImpl);
         LITEFX_BUILDER(DirectX12RenderPassBuilder);
+        friend struct SharedObject::Allocator<DirectX12RenderPass>;
 
     public:
         using base_type = RenderPass<DirectX12Queue, DirectX12FrameBuffer>;
@@ -2018,7 +2022,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
         /// <returns>A pointer to the newly created render pass instance.</returns>
         static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
-            return SharedPtr<DirectX12RenderPass>(new DirectX12RenderPass(device, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers));
+            return SharedObject::create<DirectX12RenderPass>(device, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
         }
 
         /// <summary>
@@ -2033,7 +2037,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
         /// <returns>A pointer to the newly created render pass instance.</returns>
         static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
-            return SharedPtr<DirectX12RenderPass>(new DirectX12RenderPass(device, name, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers));
+            return SharedObject::create<DirectX12RenderPass>(device, name, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
         }
 
         /// <summary>
@@ -2048,7 +2052,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
         /// <returns>A pointer to the newly created render pass instance.</returns>
         static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
-            return SharedPtr<DirectX12RenderPass>(new DirectX12RenderPass(device, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers));
+            return SharedObject::create<DirectX12RenderPass>(device, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
         }
 
         /// <summary>
@@ -2064,20 +2068,30 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
         /// <returns>A pointer to the newly created render pass instance.</returns>
         static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
-            return SharedPtr<DirectX12RenderPass>(new DirectX12RenderPass(device, name, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers));
+            return SharedObject::create<DirectX12RenderPass>(device, name, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
         }
 
     private:
         /// <summary>
         /// Creates an uninitialized DirectX 12 render pass instance.
         /// </summary>
-        /// <remarks>
-        /// This constructor is called by the <see cref="DirectX12RenderPassBuilder" /> in order to create a render pass instance without initializing it. The instance 
-        /// is only initialized after calling <see cref="DirectX12RenderPassBuilder::go" />.
-        /// </remarks>
         /// <param name="device">The parent device of the render pass.</param>
         /// <param name="name">The name of the render pass state resource.</param>
         explicit DirectX12RenderPass(const DirectX12Device& device, const String& name = "");
+
+        /// <summary>
+        /// Creates an uninitialized DirectX 12 render pass instance.
+        /// </summary>
+        /// <remarks>
+        /// This factory is called by the <see cref="DirectX12RenderPassBuilder" /> in order to create a render pass instance without initializing it. The instance is only initialized 
+        /// after calling <see cref="DirectX12RenderPassBuilder::go" />.
+        /// </remarks>
+        /// <param name="device">The parent device of the render pass.</param>
+        /// <param name="name">The name of the render pass state resource.</param>
+        /// <returns>A pointer to the newly created render pass instance.</returns>
+        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, const String& name = "") {
+            return SharedObject::create<DirectX12RenderPass>(device, name);
+        }
 
         // DirectX 12 render pass.
     public:
@@ -2244,6 +2258,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12GraphicsFactory final : public GraphicsFactory<DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure> {
         LITEFX_IMPLEMENTATION(DirectX12GraphicsFactoryImpl);
         friend class DirectX12Device;
+        friend struct SharedObject::Allocator<DirectX12GraphicsFactory>;
 
     public:
         using base_type = GraphicsFactory<DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>;
@@ -2284,7 +2299,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="device">The device the factory should produce objects for.</param>
         static inline SharedPtr<DirectX12GraphicsFactory> create(const DirectX12Device& device) {
-            return SharedPtr<DirectX12GraphicsFactory>(new DirectX12GraphicsFactory(device));
+            return SharedObject::create<DirectX12GraphicsFactory>(device);
         }
 
     public:
@@ -2336,6 +2351,7 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     class LITEFX_DIRECTX12_API DirectX12Device final : public GraphicsDevice<DirectX12GraphicsFactory, DirectX12Surface, DirectX12GraphicsAdapter, DirectX12SwapChain, DirectX12Queue, DirectX12RenderPass, DirectX12RenderPipeline, DirectX12ComputePipeline, DirectX12RayTracingPipeline, DirectX12Barrier>, public ComResource<ID3D12Device10> {
         LITEFX_IMPLEMENTATION(DirectX12DeviceImpl);
+        friend struct SharedObject::Allocator<DirectX12Device>;
 
     private:
         /// <summary>
@@ -2389,7 +2405,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="features">The features that should be supported by this device.</param>
         /// <returns>A shared pointer to the new device instance.</returns>
         static inline SharedPtr<DirectX12Device> create(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, GraphicsDeviceFeatures features = {}) {
-            return SharedPtr<DirectX12Device>(new DirectX12Device(backend, adapter, std::move(surface), features));
+            return SharedObject::create<DirectX12Device>(backend, adapter, std::move(surface), features);
         }
 
         /// <summary>
@@ -2407,7 +2423,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="globalSamplerHeapSize">The size of the global heap for samplers.</param>
         /// <returns>A shared pointer to the new device instance.</returns>
         static inline SharedPtr<DirectX12Device> create(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = {}, UInt32 globalBufferHeapSize = D3D12_MAX_SHADER_VISIBLE_DESCRIPTOR_HEAP_SIZE_TIER_1, UInt32 globalSamplerHeapSize = D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE) {
-            return SharedPtr<DirectX12Device>(new DirectX12Device(backend, adapter, std::move(surface), format, renderArea, backBuffers, enableVsync, features, globalBufferHeapSize, globalSamplerHeapSize));
+            return SharedObject::create<DirectX12Device>(backend, adapter, std::move(surface), format, renderArea, backBuffers, enableVsync, features, globalBufferHeapSize, globalSamplerHeapSize);
         }
 
         // DirectX 12 Device interface.
@@ -2533,10 +2549,10 @@ namespace LiteFX::Rendering::Backends {
         SharedPtr<const DirectX12Queue> createQueue(QueueType type, QueuePriority priority) override;
 
         /// <inheritdoc />
-        [[nodiscard]] UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
+        [[nodiscard]] UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const override;
 
         /// <inheritdoc />
-        [[nodiscard]] SharedPtr<DirectX12FrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept override;
+        [[nodiscard]] SharedPtr<DirectX12FrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const override;
 
         /// <inheritdoc />
         /// <seealso href="https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_standard_multisample_quality_levels" />

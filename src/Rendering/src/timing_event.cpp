@@ -25,7 +25,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-TimingEvent::TimingEvent(const ISwapChain& swapChain, StringView name) noexcept :
+TimingEvent::TimingEvent(const ISwapChain& swapChain, StringView name) :
 	m_impl(swapChain, name)
 {
 }

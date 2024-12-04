@@ -16,6 +16,7 @@ namespace LiteFX::Rendering::Backends {
 	class DirectX12Image : public virtual IDirectX12Image, public ComResource<ID3D12Resource>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(DirectX12ImageImpl);
 		friend class DirectX12SwapChain::DirectX12SwapChainImpl; // Allows swap chain to wrap back buffer images.
+		friend struct SharedObject::Allocator<DirectX12Image>;
 
 	private:
 		explicit DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr, const String& name = "");
@@ -92,6 +93,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class DirectX12Sampler : public virtual IDirectX12Sampler, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(DirectX12SamplerImpl);
+		friend struct SharedObject::Allocator<DirectX12Sampler>;
 
 	private:
 		/// <summary>
@@ -151,7 +153,7 @@ namespace LiteFX::Rendering::Backends {
 
 	public:
 		static inline SharedPtr<DirectX12Sampler> allocate(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float minLod = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float anisotropy = 0.f, const String& name = "") {
-			return SharedPtr<DirectX12Sampler>(new DirectX12Sampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name));
+			return SharedObject::create<DirectX12Sampler>(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
 		}
 	};
 }

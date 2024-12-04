@@ -578,6 +578,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanShaderProgram final : public ShaderProgram<VulkanShaderModule> {
         LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl);
         LITEFX_BUILDER(VulkanShaderProgramBuilder);
+        friend struct SharedObject::Allocator<VulkanShaderProgram>;
 
     private:
         /// <summary>
@@ -601,7 +602,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="device">The parent device of the shader program.</param>
         /// <param name="modules">The shader modules used by the shader program.</param>
         static inline SharedPtr<VulkanShaderProgram> create(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules) {
-            return SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device, std::move(modules)));
+            return SharedObject::create<VulkanShaderProgram>(device, std::move(modules));
         }
 
     public:
@@ -1211,6 +1212,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="VulkanQueue" />
     class LITEFX_VULKAN_API VulkanCommandBuffer final : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>, public Resource<VkCommandBuffer> {
         LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
+        friend struct SharedObject::Allocator<VulkanCommandBuffer>;
 
     public:
         using base_type = CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>;
@@ -1265,7 +1267,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
         /// <param name="primary"><c>true</c>, if the command buffer is a primary command buffer.</param>
         static inline SharedPtr<VulkanCommandBuffer> create(const VulkanQueue& queue, bool begin = false, bool primary = true) {
-            return SharedPtr<VulkanCommandBuffer>(new VulkanCommandBuffer(queue, begin, primary));
+            return SharedObject::create<VulkanCommandBuffer>(queue, begin, primary);
         }
 
         // Vulkan Command Buffer interface.
@@ -1457,6 +1459,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="VulkanCommandBuffer" />
     class LITEFX_VULKAN_API VulkanQueue final : public CommandQueue<VulkanCommandBuffer>, public Resource<VkQueue> {
         LITEFX_IMPLEMENTATION(VulkanQueueImpl);
+        friend struct SharedObject::Allocator<VulkanQueue>;
 
     public:
         using base_type = CommandQueue<VulkanCommandBuffer>;
@@ -1500,7 +1503,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="queueId">The ID of the queue.</param>
         /// <returns>A pointer to the newly created command queue instance.</returns>
         static inline SharedPtr<VulkanQueue> create(const VulkanDevice& device, QueueType type, QueuePriority priority, UInt32 familyId, UInt32 queueId) {
-            return SharedPtr<VulkanQueue>(new VulkanQueue(device, type, priority, familyId, queueId));
+            return SharedObject::create<VulkanQueue>(device, type, priority, familyId, queueId);
         }
 
         // VulkanQueue interface.
@@ -1803,6 +1806,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="VulkanRenderPass" />
     class LITEFX_VULKAN_API VulkanFrameBuffer final : public FrameBuffer<IVulkanImage> {
         LITEFX_IMPLEMENTATION(VulkanFrameBufferImpl);
+        friend struct SharedObject::Allocator<VulkanFrameBuffer>;
 
     public:
         using FrameBuffer::addImage;
@@ -1843,7 +1847,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="name">The name of the frame buffer.</param>
         /// <returns>A pointer to the newly created frame buffer instance.</returns>
         static inline SharedPtr<VulkanFrameBuffer> create(const VulkanDevice& device, const Size2d& renderArea, StringView name = "") {
-            return SharedPtr<VulkanFrameBuffer>(new VulkanFrameBuffer(device, renderArea, name));
+            return SharedObject::create<VulkanFrameBuffer>(device, renderArea, name);
         }
 
         // Vulkan frame buffer interface.
@@ -1941,6 +1945,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanRenderPass final : public RenderPass<VulkanQueue, VulkanFrameBuffer> {
         LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
         LITEFX_BUILDER(VulkanRenderPassBuilder);
+        friend struct SharedObject::Allocator<VulkanRenderPass>;
 
     public:
         using base_type = RenderPass<VulkanQueue, VulkanFrameBuffer>;
@@ -2015,8 +2020,9 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <returns>A pointer to the newly created render pass instance.</returns>
         static inline SharedPtr<VulkanRenderPass> create(const VulkanDevice& device, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
-            return SharedPtr<VulkanRenderPass>(new VulkanRenderPass(device, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers));
+            return SharedObject::create<VulkanRenderPass>(device, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
         }
 
         /// <summary>
@@ -2028,8 +2034,9 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <returns>A pointer to the newly created render pass instance.</returns>
         static inline SharedPtr<VulkanRenderPass> create(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
-            return SharedPtr<VulkanRenderPass>(new VulkanRenderPass(device, name, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers));
+            return SharedObject::create<VulkanRenderPass>(device, name, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
         }
 
         /// <summary>
@@ -2041,8 +2048,9 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <returns>A pointer to the newly created render pass instance.</returns>
         static inline SharedPtr<VulkanRenderPass> create(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
-            return SharedPtr<VulkanRenderPass>(new VulkanRenderPass(device, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers));
+            return SharedObject::create<VulkanRenderPass>(device, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
         }
 
         /// <summary>
@@ -2055,21 +2063,32 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <returns>A pointer to the newly created render pass instance.</returns>
         static inline SharedPtr<VulkanRenderPass> create(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
-            return SharedPtr<VulkanRenderPass>(new VulkanRenderPass(device, name, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers));
+            return SharedObject::create<VulkanRenderPass>(device, name, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
         }
 
     private:
         /// <summary>
         /// Creates an uninitialized Vulkan render pass instance.
         /// </summary>
-        /// <remarks>
-        /// This constructor is called by the <see cref="VulkanRenderPassBuilder" /> in order to create a render pass instance without initializing it. The instance 
-        /// is only initialized after calling <see cref="VulkanRenderPassBuilder::go" />.
-        /// </remarks>
         /// <param name="device">The parent device of the render pass.</param>
         /// <param name="name">The name of the render pass state resource.</param>
         explicit VulkanRenderPass(const VulkanDevice& device, const String& name = "");
+
+        /// <summary>
+        /// Creates an uninitialized Vulkan render pass instance.
+        /// </summary>
+        /// <remarks>
+        /// This factory is called by the <see cref="VulkanRenderPassBuilder" /> in order to create a render pass instance without initializing it. The instance is only initialized 
+        /// after calling <see cref="VulkanRenderPassBuilder::go" />.
+        /// </remarks>
+        /// <param name="device">The parent device of the render pass.</param>
+        /// <param name="name">The name of the render pass state resource.</param>
+        /// <returns>A pointer to the newly created render pass instance.</returns>
+        static inline SharedPtr<VulkanRenderPass> create(const VulkanDevice& device, const String& name = "") {
+            return SharedObject::create<VulkanRenderPass>(device, name);
+        }
 
         // Vulkan render pass interface.
     public:
@@ -2226,6 +2245,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanGraphicsFactory final : public GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure> {
         LITEFX_IMPLEMENTATION(VulkanGraphicsFactoryImpl);
         friend class VulkanDevice;
+        friend struct SharedObject::Allocator<VulkanGraphicsFractory>;
 
     public:
         using base_type = GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>;
@@ -2266,7 +2286,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="device">The device the factory should produce objects for.</param>
         static inline SharedPtr<VulkanGraphicsFactory> create(const VulkanDevice& device) {
-            return SharedPtr<VulkanGraphicsFactory>(new VulkanGraphicsFactory(device));
+            return SharedObject::create<VulkanGraphicsFactory>(device);
         }
 
     public:
@@ -2318,6 +2338,7 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     class LITEFX_VULKAN_API VulkanDevice final : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanRenderPipeline, VulkanComputePipeline, VulkanRayTracingPipeline, VulkanBarrier>, public Resource<VkDevice> {
         LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
+        friend struct SharedObject::Allocator<VulkanDevice>;
 
     private:
         /// <summary>
@@ -2372,7 +2393,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
         /// <returns>A shared pointer to the new device instance.</returns>
         static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }) {
-            return SharedPtr<VulkanDevice>(new VulkanDevice(backend, adapter, std::move(surface), features, extensions));
+            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions);
         }
 
         /// <summary>
@@ -2389,7 +2410,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
         /// <returns>A shared pointer to the new device instance.</returns>
         static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }) {
-            return SharedPtr<VulkanDevice>(new VulkanDevice(backend, adapter, std::move(surface), format, renderArea, backBuffers, enableVsync, features, extensions));
+            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), format, renderArea, backBuffers, enableVsync, features, extensions);
         }
 
         // Vulkan Device interface.
@@ -2463,10 +2484,10 @@ namespace LiteFX::Rendering::Backends {
         SharedPtr<const VulkanQueue> createQueue(QueueType type, QueuePriority priority = QueuePriority::Normal) override;
 
         /// <inheritdoc />
-        [[nodiscard]] UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
+        [[nodiscard]] UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const override;
 
         /// <inheritdoc />
-        [[nodiscard]] SharedPtr<VulkanFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept override;
+        [[nodiscard]] SharedPtr<VulkanFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const override;
 
         /// <inheritdoc />
         MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept override;

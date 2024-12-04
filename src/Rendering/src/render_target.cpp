@@ -41,9 +41,9 @@ RenderTarget::RenderTarget(StringView name, UInt32 location, RenderTargetType ty
 {
 }
 
-RenderTarget::RenderTarget(const RenderTarget& _other) noexcept = default;
+RenderTarget::RenderTarget(const RenderTarget& _other) = default;
 RenderTarget::RenderTarget(RenderTarget&& _other) noexcept = default;
-RenderTarget& RenderTarget::operator=(const RenderTarget& _other) noexcept = default;
+RenderTarget& RenderTarget::operator=(const RenderTarget& _other) = default;
 RenderTarget& RenderTarget::operator=(RenderTarget&& _other) noexcept = default;
 RenderTarget::~RenderTarget() noexcept = default;
 

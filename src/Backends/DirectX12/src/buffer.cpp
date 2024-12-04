@@ -164,7 +164,7 @@ SharedPtr<IDirectX12Buffer> DirectX12Buffer::allocate(const String& name, Alloca
 	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate buffer.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(resource.Get())) : name, type, elements, elementSize, elements * elementSize, usage);
 
-	return SharedPtr<DirectX12Buffer>(new DirectX12Buffer(std::move(resource), type, elements, elementSize, alignment, usage, allocator, AllocationPtr(allocation), name));
+	return SharedObject::create<DirectX12Buffer>(std::move(resource), type, elements, elementSize, alignment, usage, allocator, AllocationPtr(allocation), name);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -234,7 +234,7 @@ SharedPtr<IDirectX12VertexBuffer> DirectX12VertexBuffer::allocate(const String& 
 	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(resource.Get())) : name, BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements, usage);
 
-	return SharedPtr<DirectX12VertexBuffer>(new DirectX12VertexBuffer(std::move(resource), layout, elements, usage, allocator, AllocationPtr(allocation), name));
+	return SharedObject::create<DirectX12VertexBuffer>(std::move(resource), layout, elements, usage, allocator, AllocationPtr(allocation), name);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -304,5 +304,5 @@ SharedPtr<IDirectX12IndexBuffer> DirectX12IndexBuffer::allocate(const String& na
 	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(resource.Get())) : name, BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements, usage);
 
-	return SharedPtr<DirectX12IndexBuffer>(new DirectX12IndexBuffer(std::move(resource), layout, elements, usage, allocator, AllocationPtr(allocation), name));
+	return SharedObject::create<DirectX12IndexBuffer>(std::move(resource), layout, elements, usage, allocator, AllocationPtr(allocation), name);
 }

@@ -27,7 +27,7 @@ private:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DeviceState::DeviceState() noexcept = default;
+DeviceState::DeviceState() = default;
 DeviceState::DeviceState(DeviceState&& _other) noexcept = default;
 DeviceState& DeviceState::operator=(DeviceState&& _other) noexcept = default;
 

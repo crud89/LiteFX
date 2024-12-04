@@ -582,7 +582,7 @@ VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, con
 }
 
 VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, UInt32 commandBuffers, const String& name) :
-    RenderPassBuilder(SharedPtr<VulkanRenderPass>(new VulkanRenderPass(device, name)))
+    RenderPassBuilder(VulkanRenderPass::create(device, name))
 {
     this->state().commandBufferCount = commandBuffers;
 }
