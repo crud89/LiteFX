@@ -222,13 +222,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) noexcept;
 
         /// <inheritdoc />
-        VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) noexcept = delete;
+        VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
 
         /// <inheritdoc />
         VulkanGraphicsAdapter& operator=(VulkanGraphicsAdapter&&) noexcept;
 
         /// <inheritdoc />
-        VulkanGraphicsAdapter& operator=(const VulkanGraphicsAdapter&) noexcept = delete;
+        VulkanGraphicsAdapter& operator=(const VulkanGraphicsAdapter&) = delete;
 
         /// <inheritdoc />
         ~VulkanGraphicsAdapter() noexcept override;
@@ -323,13 +323,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanSurface(VulkanSurface&&) noexcept;
 
         /// <inheritdoc />
-        VulkanSurface(const VulkanSurface&) noexcept = delete;
+        VulkanSurface(const VulkanSurface&) = delete;
 
         /// <inheritdoc />
         VulkanSurface& operator=(VulkanSurface&&) noexcept;
 
         /// <inheritdoc />
-        VulkanSurface& operator=(const VulkanSurface&) noexcept = delete;
+        VulkanSurface& operator=(const VulkanSurface&) = delete;
 
         /// <inheritdoc />
         ~VulkanSurface() noexcept override;

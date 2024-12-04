@@ -57,7 +57,7 @@ namespace LiteFX::Math {
         /// Initializes a vector with the values provided by another vector.
         /// </summary>
         /// <param name="_other">The other vector to copy the values from.</param>
-        constexpr Vector(const Vector& _other) noexcept = default;
+        constexpr Vector(const Vector& _other) = default;
 
         /// <summary>
         /// Moves the elements of the other vector to the current vector.
@@ -71,7 +71,7 @@ namespace LiteFX::Math {
         /// </summary>
         /// <param name="_other">The vector to copy the elements from.</param>
         /// <returns>A reference to the current vector instance.</returns>
-        constexpr Vector& operator=(const Vector& _other) noexcept = default;
+        constexpr Vector& operator=(const Vector& _other) = default;
 
         /// <summary>
         /// Destroys the vector.

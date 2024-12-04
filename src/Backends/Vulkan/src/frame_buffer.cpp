@@ -24,9 +24,9 @@ public:
 	}
 
     VulkanFrameBufferImpl(VulkanFrameBufferImpl&&) noexcept = default;
-    VulkanFrameBufferImpl(const VulkanFrameBufferImpl&) noexcept = delete;
+    VulkanFrameBufferImpl(const VulkanFrameBufferImpl&) = delete;
     VulkanFrameBufferImpl& operator=(VulkanFrameBufferImpl&&) noexcept = default;
-    VulkanFrameBufferImpl& operator=(const VulkanFrameBufferImpl&) noexcept = delete;
+    VulkanFrameBufferImpl& operator=(const VulkanFrameBufferImpl&) = delete;
 
     ~VulkanFrameBufferImpl() noexcept
     {

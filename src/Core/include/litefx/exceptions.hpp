@@ -30,11 +30,11 @@ namespace LiteFX {
 
 	public:
 		Exception(const Exception&) = default;
-		Exception(Exception&&) = default;
+		Exception(Exception&&) noexcept = default;
 		~Exception() noexcept override = default;
 
 		Exception& operator=(const Exception&) = default;
-		Exception& operator=(Exception&&) = default;
+		Exception& operator=(Exception&&) noexcept = default;
 
 	public:
 		/// <summary>
@@ -88,11 +88,11 @@ namespace LiteFX {
 			Exception(std::format("Invalid argument provided: {}. {}", argument, std::format(format, std::forward<TArgs>(args)...)), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
 
 		InvalidArgumentException(const InvalidArgumentException&) = default;
-		InvalidArgumentException(InvalidArgumentException&&) = default;
+		InvalidArgumentException(InvalidArgumentException&&) noexcept = default;
 		~InvalidArgumentException() noexcept override = default;
 
 		InvalidArgumentException& operator=(const InvalidArgumentException&) = default;
-		InvalidArgumentException& operator=(InvalidArgumentException&&) = default;
+		InvalidArgumentException& operator=(InvalidArgumentException&&) noexcept = default;
 
 	public:
 		/// <summary>
@@ -163,11 +163,11 @@ namespace LiteFX {
 			Exception(std::format("Argument was out of range: {} (valid range is [{}, {}) but actual value was {}). {}", argument, validRange.first, validRange.second, value, std::format(format, std::forward<TArgs>(args)...)), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
 
 		ArgumentOutOfRangeException(const ArgumentOutOfRangeException&) = default;
-		ArgumentOutOfRangeException(ArgumentOutOfRangeException&&) = default;
+		ArgumentOutOfRangeException(ArgumentOutOfRangeException&&) noexcept = default;
 		~ArgumentOutOfRangeException() noexcept override = default;
 
 		ArgumentOutOfRangeException& operator=(const ArgumentOutOfRangeException&) = default;
-		ArgumentOutOfRangeException& operator=(ArgumentOutOfRangeException&&) = default;
+		ArgumentOutOfRangeException& operator=(ArgumentOutOfRangeException&&) noexcept = default;
 
 	public:
 		/// <summary>
@@ -213,11 +213,11 @@ namespace LiteFX {
 			Exception(std::format("Argument was not initialized: {}. {}", argument, std::format(format, std::forward<TArgs>(args)...)), std::source_location::current(), std::stacktrace::current()), m_argument(argument) { }
 
 		ArgumentNotInitializedException(const ArgumentNotInitializedException&) = default;
-		ArgumentNotInitializedException(ArgumentNotInitializedException&&) = default;
+		ArgumentNotInitializedException(ArgumentNotInitializedException&&) noexcept = default;
 		~ArgumentNotInitializedException() noexcept override = default;
 
 		ArgumentNotInitializedException& operator=(const ArgumentNotInitializedException&) = default;
-		ArgumentNotInitializedException& operator=(ArgumentNotInitializedException&&) = default;
+		ArgumentNotInitializedException& operator=(ArgumentNotInitializedException&&) noexcept = default;
 
 	public:
 		/// <summary>
@@ -257,10 +257,10 @@ namespace LiteFX {
 			Exception(std::format("The operation could not be executed: {}", std::format(format, std::forward<TArgs>(args)...)), std::source_location::current(), std::stacktrace::current()) { }
 
 		RuntimeException(const RuntimeException&) = default;
-		RuntimeException(RuntimeException&&) = default;
+		RuntimeException(RuntimeException&&) noexcept = default;
 		~RuntimeException() noexcept override = default;
 
 		RuntimeException& operator=(const RuntimeException&) = default;
-		RuntimeException& operator=(RuntimeException&&) = default;
+		RuntimeException& operator=(RuntimeException&&) noexcept = default;
 	};
 };

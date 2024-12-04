@@ -32,9 +32,9 @@ DirectX12IndexBufferLayout::DirectX12IndexBufferLayout(IndexType type) :
 }
 
 DirectX12IndexBufferLayout::DirectX12IndexBufferLayout(DirectX12IndexBufferLayout&&) noexcept = default;
-DirectX12IndexBufferLayout::DirectX12IndexBufferLayout(const DirectX12IndexBufferLayout&) noexcept = default;
+DirectX12IndexBufferLayout::DirectX12IndexBufferLayout(const DirectX12IndexBufferLayout&) = default;
 DirectX12IndexBufferLayout& DirectX12IndexBufferLayout::operator=(DirectX12IndexBufferLayout&&) noexcept = default;
-DirectX12IndexBufferLayout& DirectX12IndexBufferLayout::operator=(const DirectX12IndexBufferLayout&) noexcept = default;
+DirectX12IndexBufferLayout& DirectX12IndexBufferLayout::operator=(const DirectX12IndexBufferLayout&) = default;
 DirectX12IndexBufferLayout::~DirectX12IndexBufferLayout() noexcept = default;
 
 size_t DirectX12IndexBufferLayout::elementSize() const noexcept

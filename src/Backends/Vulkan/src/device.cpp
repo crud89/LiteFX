@@ -68,9 +68,9 @@ private:
 #endif
         }
         QueueFamily(QueueFamily&& _other) noexcept = default;
-        QueueFamily(const QueueFamily& _other) noexcept = delete;
+        QueueFamily(const QueueFamily& _other) = delete;
         QueueFamily& operator=(QueueFamily&& _other) noexcept = default;
-        QueueFamily& operator=(const QueueFamily & _other) noexcept = delete;
+        QueueFamily& operator=(const QueueFamily & _other) = delete;
         ~QueueFamily() noexcept = default;
 
     public:

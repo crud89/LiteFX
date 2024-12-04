@@ -2203,9 +2203,9 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IStateResource {
     protected:
         IStateResource() noexcept = default;
-        IStateResource(const IStateResource&) noexcept = delete;
+        IStateResource(const IStateResource&) = delete;
         IStateResource(IStateResource&&) noexcept = default;
-        IStateResource& operator=(const IStateResource&) noexcept = delete;
+        IStateResource& operator=(const IStateResource&) = delete;
         IStateResource& operator=(IStateResource&&) noexcept = default;
 
     public:
@@ -2611,9 +2611,9 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IGraphicsAdapter {
     protected:
         IGraphicsAdapter() noexcept = default;
-        IGraphicsAdapter(const IGraphicsAdapter&) noexcept = default;
+        IGraphicsAdapter(const IGraphicsAdapter&) = default;
         IGraphicsAdapter(IGraphicsAdapter&&) noexcept = default;
-        IGraphicsAdapter& operator=(const IGraphicsAdapter&) noexcept = default;
+        IGraphicsAdapter& operator=(const IGraphicsAdapter&) = default;
         IGraphicsAdapter& operator=(IGraphicsAdapter&&) noexcept = default;
 
     public:
@@ -2683,9 +2683,9 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API ISurface {
     protected:
         ISurface() noexcept = default;
-        ISurface(const ISurface&) noexcept = default;
+        ISurface(const ISurface&) = default;
         ISurface(ISurface&&) noexcept = default;
-        ISurface& operator=(const ISurface&) noexcept = default;
+        ISurface& operator=(const ISurface&) = default;
         ISurface& operator=(ISurface&&) noexcept = default;
 
     public:
@@ -2718,9 +2718,9 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IShaderModule {
     protected:
         IShaderModule() noexcept = default;
-        IShaderModule(const IShaderModule&) noexcept = default;
+        IShaderModule(const IShaderModule&) = default;
         IShaderModule(IShaderModule&&) noexcept = default;
-        IShaderModule& operator=(const IShaderModule&) noexcept = default;
+        IShaderModule& operator=(const IShaderModule&) = default;
         IShaderModule& operator=(IShaderModule&&) noexcept = default;
 
     public:
@@ -2829,9 +2829,9 @@ namespace LiteFX::Rendering {
 
     protected:
         IRenderTarget() noexcept = default;
-        IRenderTarget(const IRenderTarget&) noexcept = default;
+        IRenderTarget(const IRenderTarget&) = default;
         IRenderTarget(IRenderTarget&&) noexcept = default;
-        IRenderTarget& operator=(const IRenderTarget&) noexcept = default;
+        IRenderTarget& operator=(const IRenderTarget&) = default;
         IRenderTarget& operator=(IRenderTarget&&) noexcept = default;
 
     public:
@@ -3059,7 +3059,7 @@ namespace LiteFX::Rendering {
         /// Creates a copy of another render pass dependency.
         /// </summary>
         /// <param name="_other">The render pass dependency to copy.</param>
-        RenderPassDependency(const RenderPassDependency& _other) noexcept;
+        RenderPassDependency(const RenderPassDependency& _other);
 
         /// <summary>
         /// Takes over another render pass dependency instance.
@@ -3072,7 +3072,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="_other">The render pass dependency to copy.</param>
         /// <returns>A reference of the current render pass dependency instance.</returns>
-        RenderPassDependency& operator=(const RenderPassDependency& _other) noexcept;
+        RenderPassDependency& operator=(const RenderPassDependency& _other);
 
         /// <summary>
         /// Assigns another render pass dependency by taking it over.
@@ -3234,7 +3234,7 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Creates a copy of a depth/stencil state.
         /// </summary>
-        DepthStencilState(const DepthStencilState&) noexcept;
+        DepthStencilState(const DepthStencilState&);
 
         /// <summary>
         /// Moves a depth/stencil state.
@@ -3245,7 +3245,7 @@ namespace LiteFX::Rendering {
         /// Copies a depth/stencil state.
         /// </summary>
         /// <returns>A reference to the current depth/stencil state instance.</returns>
-        DepthStencilState& operator=(const DepthStencilState&) noexcept;
+        DepthStencilState& operator=(const DepthStencilState&);
 
         /// <summary>
         /// Moves a depth/stencil state.
@@ -3284,9 +3284,9 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IRasterizer {
     protected:
         IRasterizer() noexcept = default;
-        IRasterizer(const IRasterizer&) noexcept = default;
+        IRasterizer(const IRasterizer&) = default;
         IRasterizer(IRasterizer&&) noexcept = default;
-        IRasterizer& operator=(const IRasterizer&) noexcept = default;
+        IRasterizer& operator=(const IRasterizer&) = default;
         IRasterizer& operator=(IRasterizer&&) noexcept = default;
 
     public:
@@ -3349,7 +3349,7 @@ namespace LiteFX::Rendering {
         /// Creates a copy of a rasterizer.
         /// </summary>
         /// <param name="_other">The rasterizer instance to copy.</param>
-        Rasterizer(const Rasterizer& _other) noexcept;
+        Rasterizer(const Rasterizer& _other);
 
         /// <summary>
         /// Takes over another instance of a rasterizer.
@@ -3362,7 +3362,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="_other">The rasterizer instance to copy.</param>
         /// <returns>A reference to the current rasterizer instance.</returns>
-        Rasterizer& operator=(const Rasterizer& _other) noexcept;
+        Rasterizer& operator=(const Rasterizer& _other);
 
         /// <summary>
         /// Assigns a rasterizer by taking it over.
@@ -3407,9 +3407,9 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IViewport {
     protected:
         IViewport() noexcept = default;
-        IViewport(const IViewport&) noexcept = default;
+        IViewport(const IViewport&) = default;
         IViewport(IViewport&&) noexcept = default;
-        IViewport& operator=(const IViewport&) noexcept = default;
+        IViewport& operator=(const IViewport&) = default;
         IViewport& operator=(IViewport&&) noexcept = default;
 
     public:
@@ -3472,7 +3472,7 @@ namespace LiteFX::Rendering {
         /// Creates a copy of a viewport.
         /// </summary>
         /// <param name="_other">The viewport instance to copy.</param>
-        Viewport(const Viewport& _other) noexcept;
+        Viewport(const Viewport& _other);
 
         /// <summary>
         /// Takes over another instance of a viewport.
@@ -3485,7 +3485,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="_other">The viewport instance to copy.</param>
         /// <returns>A reference to the current viewport instance.</returns>
-        Viewport& operator=(const Viewport& _other) noexcept;
+        Viewport& operator=(const Viewport& _other);
 
         /// <summary>
         /// Assigns a viewport by taking it over.
@@ -3526,9 +3526,9 @@ namespace LiteFX::Rendering {
     protected:
         IScissor() noexcept = default;
         IScissor(IScissor&&) noexcept = default;
-        IScissor(const IScissor&) noexcept = default;
+        IScissor(const IScissor&) = default;
         IScissor& operator=(IScissor&&) noexcept = default;
-        IScissor& operator=(const IScissor&) noexcept = default;
+        IScissor& operator=(const IScissor&) = default;
 
     public:
         virtual ~IScissor() noexcept = default;
@@ -3564,7 +3564,7 @@ namespace LiteFX::Rendering {
         /// Creates a copy of a scissor.
         /// </summary>
         /// <param name="_other">The scissor instance to copy.</param>
-        Scissor(const Scissor& _other) noexcept;
+        Scissor(const Scissor& _other);
 
         /// <summary>
         /// Takes over another instance of a scissor.
@@ -3577,7 +3577,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="_other">The scissor instance to copy.</param>
         /// <returns>A reference to the current scissor instance.</returns>
-        Scissor& operator=(const Scissor& _other) noexcept;
+        Scissor& operator=(const Scissor& _other);
 
         /// <summary>
         /// Assigns a scissor by taking it over.
@@ -3704,9 +3704,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         ~TimingEvent() noexcept override;
 
-        TimingEvent(TimingEvent&&) = delete;
+        TimingEvent(TimingEvent&&) noexcept = delete;
         TimingEvent(const TimingEvent&) = delete;
-        auto operator=(TimingEvent&&) = delete;
+        auto operator=(TimingEvent&&) noexcept = delete;
         auto operator=(const TimingEvent&) = delete;
 
     public:
@@ -3761,7 +3761,7 @@ namespace LiteFX::Rendering {
         /// Creates a copy of a buffer attribute.
         /// </summary>
         /// <param name="_other">The buffer attribute instance to copy.</param>
-        BufferAttribute(const BufferAttribute& _other) noexcept;
+        BufferAttribute(const BufferAttribute& _other);
 
         /// <summary>
         /// Takes over another instance of a buffer attribute.
@@ -3774,7 +3774,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="_other">The buffer attribute instance to copy.</param>
         /// <returns>A reference to the current buffer attribute instance.</returns>
-        BufferAttribute& operator=(const BufferAttribute& _other) noexcept;
+        BufferAttribute& operator=(const BufferAttribute& _other);
 
         /// <summary>
         /// Assigns a buffer attribute by taking it over.
@@ -3841,9 +3841,9 @@ namespace LiteFX::Rendering {
     protected:
         IBufferLayout() noexcept = default;
         IBufferLayout(IBufferLayout&&) noexcept = default;
-        IBufferLayout(const IBufferLayout&) noexcept = default;
+        IBufferLayout(const IBufferLayout&) = default;
         IBufferLayout& operator=(IBufferLayout&&) noexcept = default;
-        IBufferLayout& operator=(const IBufferLayout&) noexcept = default;
+        IBufferLayout& operator=(const IBufferLayout&) = default;
 
     public:
         virtual ~IBufferLayout() noexcept = default;
@@ -3879,9 +3879,9 @@ namespace LiteFX::Rendering {
     protected:
         IVertexBufferLayout() noexcept = default;
         IVertexBufferLayout(IVertexBufferLayout&&) noexcept = default;
-        IVertexBufferLayout(const IVertexBufferLayout&) noexcept = default;
+        IVertexBufferLayout(const IVertexBufferLayout&) = default;
         IVertexBufferLayout& operator=(IVertexBufferLayout&&) noexcept = default;
-        IVertexBufferLayout& operator=(const IVertexBufferLayout&) noexcept = default;
+        IVertexBufferLayout& operator=(const IVertexBufferLayout&) = default;
 
     public:
         ~IVertexBufferLayout() noexcept override = default;
@@ -3902,9 +3902,9 @@ namespace LiteFX::Rendering {
     protected:
         IIndexBufferLayout() noexcept = default;
         IIndexBufferLayout(IIndexBufferLayout&&) noexcept = default;
-        IIndexBufferLayout(const IIndexBufferLayout&) noexcept = default;
+        IIndexBufferLayout(const IIndexBufferLayout&) = default;
         IIndexBufferLayout& operator=(IIndexBufferLayout&&) noexcept = default;
-        IIndexBufferLayout& operator=(const IIndexBufferLayout&) noexcept = default;
+        IIndexBufferLayout& operator=(const IIndexBufferLayout&) = default;
 
     public:
         ~IIndexBufferLayout() noexcept override = default;
@@ -3943,9 +3943,9 @@ namespace LiteFX::Rendering {
     protected:
         IDescriptorLayout() noexcept = default;
         IDescriptorLayout(IDescriptorLayout&&) noexcept = default;
-        IDescriptorLayout(const IDescriptorLayout&) noexcept = default;
+        IDescriptorLayout(const IDescriptorLayout&) = default;
         IDescriptorLayout& operator=(IDescriptorLayout&&) noexcept = default;
-        IDescriptorLayout& operator=(const IDescriptorLayout&) noexcept = default;
+        IDescriptorLayout& operator=(const IDescriptorLayout&) = default;
 
     public:
         ~IDescriptorLayout() noexcept override = default;
@@ -3988,9 +3988,9 @@ namespace LiteFX::Rendering {
     protected:
         IMappable() noexcept = default;
         IMappable(IMappable&&) noexcept = default;
-        IMappable(const IMappable&) noexcept = default;
+        IMappable(const IMappable&) = default;
         IMappable& operator=(IMappable&&) noexcept = default;
-        IMappable& operator=(const IMappable&) noexcept = default;
+        IMappable& operator=(const IMappable&) = default;
 
     public:
         virtual ~IMappable() noexcept = default;
@@ -4038,9 +4038,9 @@ namespace LiteFX::Rendering {
     protected:
         IDeviceMemory() noexcept = default;
         IDeviceMemory(IDeviceMemory&&) noexcept = default;
-        IDeviceMemory(const IDeviceMemory&) noexcept = default;
+        IDeviceMemory(const IDeviceMemory&) = default;
         IDeviceMemory& operator=(IDeviceMemory&&) noexcept = default;
-        IDeviceMemory& operator=(const IDeviceMemory&) noexcept = default;
+        IDeviceMemory& operator=(const IDeviceMemory&) = default;
 
     public:
         virtual ~IDeviceMemory() noexcept = default;
@@ -4136,9 +4136,9 @@ namespace LiteFX::Rendering {
     protected:
         IBuffer() noexcept = default;
         IBuffer(IBuffer&&) noexcept = default;
-        IBuffer(const IBuffer&) noexcept = delete;
+        IBuffer(const IBuffer&) = delete;
         IBuffer& operator=(IBuffer&&) noexcept = default;
-        IBuffer& operator=(const IBuffer&) noexcept = delete;
+        IBuffer& operator=(const IBuffer&) = delete;
 
     public:
         ~IBuffer() noexcept override = default;
@@ -4161,9 +4161,9 @@ namespace LiteFX::Rendering {
     protected:
         IImage() noexcept = default;
         IImage(IImage&&) noexcept = default;
-        IImage(const IImage&) noexcept = delete;
+        IImage(const IImage&) = delete;
         IImage& operator=(IImage&&) noexcept = default;
-        IImage& operator=(const IImage&) noexcept = delete;
+        IImage& operator=(const IImage&) = delete;
 
     public:
         ~IImage() noexcept override = default;
@@ -4274,9 +4274,9 @@ namespace LiteFX::Rendering {
     protected:
         ISampler() noexcept = default;
         ISampler(ISampler&&) noexcept = default;
-        ISampler(const ISampler&) noexcept = delete;
+        ISampler(const ISampler&) = delete;
         ISampler& operator=(ISampler&&) noexcept = default;
-        ISampler& operator=(const ISampler&) noexcept = delete;
+        ISampler& operator=(const ISampler&) = delete;
 
     public:
         ~ISampler() noexcept override = default;
@@ -4352,9 +4352,9 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IVertexBuffer : public virtual IBuffer {
     protected:
         IVertexBuffer() noexcept = default;
-        IVertexBuffer(const IVertexBuffer&) noexcept = delete;
+        IVertexBuffer(const IVertexBuffer&) = delete;
         IVertexBuffer(IVertexBuffer&&) noexcept = default;
-        IVertexBuffer& operator=(const IVertexBuffer&) noexcept = delete;
+        IVertexBuffer& operator=(const IVertexBuffer&) = delete;
         IVertexBuffer& operator=(IVertexBuffer&&) noexcept = default;
 
     public:
@@ -4374,9 +4374,9 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IIndexBuffer : public virtual IBuffer {
     protected:
         IIndexBuffer() noexcept = default;
-        IIndexBuffer(const IIndexBuffer&) noexcept = delete;
+        IIndexBuffer(const IIndexBuffer&) = delete;
         IIndexBuffer(IIndexBuffer&&) noexcept = default;
-        IIndexBuffer& operator=(const IIndexBuffer&) noexcept = delete;
+        IIndexBuffer& operator=(const IIndexBuffer&) = delete;
         IIndexBuffer& operator=(IIndexBuffer&&) noexcept = default;
 
     public:
@@ -4399,9 +4399,9 @@ namespace LiteFX::Rendering {
     protected:
         IAccelerationStructure() noexcept = default;
         IAccelerationStructure(IAccelerationStructure&&) noexcept = default;
-        IAccelerationStructure(const IAccelerationStructure&) noexcept = delete;
+        IAccelerationStructure(const IAccelerationStructure&) = delete;
         IAccelerationStructure& operator=(IAccelerationStructure&&) noexcept = default;
-        IAccelerationStructure& operator=(const IAccelerationStructure&) noexcept = delete;
+        IAccelerationStructure& operator=(const IAccelerationStructure&) = delete;
 
     public:
         ~IAccelerationStructure() noexcept override = default;
@@ -4666,9 +4666,9 @@ namespace LiteFX::Rendering {
     protected:
         IBottomLevelAccelerationStructure() noexcept = default;
         IBottomLevelAccelerationStructure(IBottomLevelAccelerationStructure&&) noexcept = default;
-        IBottomLevelAccelerationStructure(const IBottomLevelAccelerationStructure&) noexcept = delete;
+        IBottomLevelAccelerationStructure(const IBottomLevelAccelerationStructure&) = delete;
         IBottomLevelAccelerationStructure& operator=(IBottomLevelAccelerationStructure&&) noexcept = default;
-        IBottomLevelAccelerationStructure& operator=(const IBottomLevelAccelerationStructure&) noexcept = delete;
+        IBottomLevelAccelerationStructure& operator=(const IBottomLevelAccelerationStructure&) = delete;
 
     public:
         ~IBottomLevelAccelerationStructure() noexcept override = default;
@@ -4892,9 +4892,9 @@ namespace LiteFX::Rendering {
     protected:
         ITopLevelAccelerationStructure() noexcept = default;
         ITopLevelAccelerationStructure(ITopLevelAccelerationStructure&&) noexcept = default;
-        ITopLevelAccelerationStructure(const ITopLevelAccelerationStructure&) noexcept = delete;
+        ITopLevelAccelerationStructure(const ITopLevelAccelerationStructure&) = delete;
         ITopLevelAccelerationStructure& operator=(ITopLevelAccelerationStructure&&) noexcept = default;
-        ITopLevelAccelerationStructure& operator=(const ITopLevelAccelerationStructure&) noexcept = delete;
+        ITopLevelAccelerationStructure& operator=(const ITopLevelAccelerationStructure&) = delete;
 
     public:
         ~ITopLevelAccelerationStructure() noexcept override = default;
@@ -5081,9 +5081,9 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IBarrier {
     protected:
         IBarrier() noexcept = default;
-        IBarrier(const IBarrier&) noexcept = default;
+        IBarrier(const IBarrier&) = default;
         IBarrier(IBarrier&&) noexcept = default;
-        IBarrier& operator=(const IBarrier&) noexcept = default;
+        IBarrier& operator=(const IBarrier&) = default;
         IBarrier& operator=(IBarrier&&) noexcept = default;
 
     public:
@@ -5224,9 +5224,9 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IDescriptorSet {
     protected:
         IDescriptorSet() noexcept = default;
-        IDescriptorSet(const IDescriptorSet&) noexcept = default;
+        IDescriptorSet(const IDescriptorSet&) = default;
         IDescriptorSet(IDescriptorSet&&) noexcept = default;
-        IDescriptorSet& operator=(const IDescriptorSet&) noexcept = default;
+        IDescriptorSet& operator=(const IDescriptorSet&) = default;
         IDescriptorSet& operator=(IDescriptorSet&&) noexcept = default;
 
     public:
@@ -5377,9 +5377,9 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IDescriptorSetLayout {
     protected:
         IDescriptorSetLayout() noexcept = default;
-        IDescriptorSetLayout(const IDescriptorSetLayout&) noexcept = default;
+        IDescriptorSetLayout(const IDescriptorSetLayout&) = default;
         IDescriptorSetLayout(IDescriptorSetLayout&&) noexcept = default;
-        IDescriptorSetLayout& operator=(const IDescriptorSetLayout&) noexcept = default;
+        IDescriptorSetLayout& operator=(const IDescriptorSetLayout&) = default;
         IDescriptorSetLayout& operator=(IDescriptorSetLayout&&) noexcept = default;
 
     public:
@@ -5570,9 +5570,9 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IPushConstantsRange {
     protected:
         IPushConstantsRange() noexcept = default;
-        IPushConstantsRange(const IPushConstantsRange&) noexcept = default;
+        IPushConstantsRange(const IPushConstantsRange&) = default;
         IPushConstantsRange(IPushConstantsRange&&) noexcept = default;
-        IPushConstantsRange& operator=(const IPushConstantsRange&) noexcept = default;
+        IPushConstantsRange& operator=(const IPushConstantsRange&) = default;
         IPushConstantsRange& operator=(IPushConstantsRange&&) noexcept = default;
 
     public:
@@ -5618,9 +5618,9 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IPushConstantsLayout {
     protected:
         IPushConstantsLayout() noexcept = default;
-        IPushConstantsLayout(const IPushConstantsLayout&) noexcept = default;
+        IPushConstantsLayout(const IPushConstantsLayout&) = default;
         IPushConstantsLayout(IPushConstantsLayout&&) noexcept = default;
-        IPushConstantsLayout& operator=(const IPushConstantsLayout&) noexcept = default;
+        IPushConstantsLayout& operator=(const IPushConstantsLayout&) = default;
         IPushConstantsLayout& operator=(IPushConstantsLayout&&) noexcept = default;
 
     public:
@@ -5697,9 +5697,9 @@ namespace LiteFX::Rendering {
 
     protected:
         constexpr IShaderRecord() noexcept = default;
-        IShaderRecord(const IShaderRecord&) noexcept = default;
+        IShaderRecord(const IShaderRecord&) = default;
         IShaderRecord(IShaderRecord&&) noexcept = default;
-        IShaderRecord& operator=(const IShaderRecord&) noexcept = default;
+        IShaderRecord& operator=(const IShaderRecord&) = default;
         IShaderRecord& operator=(IShaderRecord&&) noexcept = default;
 
     public:
@@ -5831,7 +5831,7 @@ namespace LiteFX::Rendering {
         /// Copies another shader record.
         /// </summary>
         /// <param name="_other">The shader record to copy.</param>
-        constexpr ShaderRecord(const ShaderRecord& _other) noexcept :
+        constexpr ShaderRecord(const ShaderRecord& _other) :
             m_payload(_other.m_payload), m_shaderGroup(_other.m_shaderGroup) { }
 
         /// <summary>
@@ -5846,7 +5846,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="_other">The shader record to copy.</param>
         /// <returns>A reference to the current shader record.</returns>
-        constexpr auto& operator=(const ShaderRecord& _other) noexcept {
+        constexpr auto& operator=(const ShaderRecord& _other) {
             m_shaderGroup = _other.m_shaderGroup;
             m_payload = _other.m_payload;
             return *this;
@@ -5909,7 +5909,7 @@ namespace LiteFX::Rendering {
         /// Copies another shader record.
         /// </summary>
         /// <param name="_other">The shader record to copy.</param>
-        ShaderRecord(const ShaderRecord& _other) noexcept :
+        ShaderRecord(const ShaderRecord& _other) :
             m_shaderGroup(_other.m_shaderGroup) { }
 
         /// <summary>
@@ -5924,7 +5924,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="_other">The shader record to copy.</param>
         /// <returns>A reference to the current shader record.</returns>
-        auto& operator=(const ShaderRecord& _other) noexcept {
+        auto& operator=(const ShaderRecord& _other) {
             m_shaderGroup = _other.m_shaderGroup;
             return *this;
         }
@@ -6230,9 +6230,9 @@ namespace LiteFX::Rendering {
         ~IShaderProgram() noexcept override = default;
 
         IShaderProgram(const IShaderProgram&) = delete;
-        IShaderProgram(IShaderProgram&&) = delete;
+        IShaderProgram(IShaderProgram&&) noexcept = delete;
         auto operator=(const IShaderProgram&) = delete;
-        auto operator=(IShaderProgram&&) = delete;
+        auto operator=(IShaderProgram&&) noexcept = delete;
 
     public:
         /// <summary>
@@ -6324,9 +6324,9 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IPipelineLayout {
     protected:
         IPipelineLayout() noexcept = default;
-        IPipelineLayout(const IPipelineLayout&) noexcept = default;
+        IPipelineLayout(const IPipelineLayout&) = default;
         IPipelineLayout(IPipelineLayout&&) noexcept = default;
-        IPipelineLayout& operator=(const IPipelineLayout&) noexcept = default;
+        IPipelineLayout& operator=(const IPipelineLayout&) = default;
         IPipelineLayout& operator=(IPipelineLayout&&) noexcept = default;
 
     public:
@@ -6364,9 +6364,9 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IInputAssembler {
     protected:
         IInputAssembler() noexcept = default;
-        IInputAssembler(const IInputAssembler&) noexcept = default;
+        IInputAssembler(const IInputAssembler&) = default;
         IInputAssembler(IInputAssembler&&) noexcept = default;
-        IInputAssembler& operator=(const IInputAssembler&) noexcept = default;
+        IInputAssembler& operator=(const IInputAssembler&) = default;
         IInputAssembler& operator=(IInputAssembler&&) noexcept = default;
 
     public:
@@ -6414,9 +6414,9 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IPipeline : public virtual IStateResource {
     protected:
         IPipeline() noexcept = default;
-        IPipeline(const IPipeline&) noexcept = delete;
+        IPipeline(const IPipeline&) = delete;
         IPipeline(IPipeline&&) noexcept = default;
-        IPipeline& operator=(const IPipeline&) noexcept = delete;
+        IPipeline& operator=(const IPipeline&) = delete;
         IPipeline& operator=(IPipeline&&) noexcept = default;
 
     public:
@@ -6454,8 +6454,8 @@ namespace LiteFX::Rendering {
     protected:
         ICommandBuffer() noexcept = default;
         ICommandBuffer(ICommandBuffer&&) noexcept = default;
-        ICommandBuffer(const ICommandBuffer&) noexcept = default;
-        ICommandBuffer& operator=(const ICommandBuffer&) noexcept = default;
+        ICommandBuffer(const ICommandBuffer&) = default;
+        ICommandBuffer& operator=(const ICommandBuffer&) = default;
         ICommandBuffer& operator=(ICommandBuffer&&) noexcept = default;
 
     public:
@@ -7458,9 +7458,9 @@ namespace LiteFX::Rendering {
     protected:
         IRenderPipeline() noexcept = default;
         IRenderPipeline(IRenderPipeline&&) noexcept = default;
-        IRenderPipeline(const IRenderPipeline&) noexcept = delete;
+        IRenderPipeline(const IRenderPipeline&) = delete;
         IRenderPipeline& operator=(IRenderPipeline&&) noexcept = default;
-        IRenderPipeline& operator=(const IRenderPipeline&) noexcept = delete;
+        IRenderPipeline& operator=(const IRenderPipeline&) = delete;
 
     public:
         ~IRenderPipeline() noexcept override = default;
@@ -7528,9 +7528,9 @@ namespace LiteFX::Rendering {
     protected:
         IComputePipeline() noexcept = default;
         IComputePipeline(IComputePipeline&&) noexcept = default;
-        IComputePipeline(const IComputePipeline&) noexcept = delete;
+        IComputePipeline(const IComputePipeline&) = delete;
         IComputePipeline& operator=(IComputePipeline&&) noexcept = default;
-        IComputePipeline& operator=(const IComputePipeline&) noexcept = delete;
+        IComputePipeline& operator=(const IComputePipeline&) = delete;
 
     public:
         ~IComputePipeline() noexcept override = default;
@@ -7543,9 +7543,9 @@ namespace LiteFX::Rendering {
     protected:
         IRayTracingPipeline() noexcept = default;
         IRayTracingPipeline(IRayTracingPipeline&&) noexcept = default;
-        IRayTracingPipeline(const IRayTracingPipeline&) noexcept = delete;
+        IRayTracingPipeline(const IRayTracingPipeline&) = delete;
         IRayTracingPipeline& operator=(IRayTracingPipeline&&) noexcept = default;
-        IRayTracingPipeline& operator=(const IRayTracingPipeline&) noexcept = delete;
+        IRayTracingPipeline& operator=(const IRayTracingPipeline&) = delete;
 
     public:
         ~IRayTracingPipeline() noexcept override = default;
@@ -7636,9 +7636,9 @@ namespace LiteFX::Rendering {
         public:
             ResizeEventArgs(Size2d newSize) noexcept :
                 EventArgs(), m_newSize(std::move(newSize)) { }
-            ResizeEventArgs(const ResizeEventArgs&) noexcept = default;
+            ResizeEventArgs(const ResizeEventArgs&) = default;
             ResizeEventArgs(ResizeEventArgs&&) noexcept = default;
-            ResizeEventArgs& operator=(const ResizeEventArgs&) noexcept = default;
+            ResizeEventArgs& operator=(const ResizeEventArgs&) = default;
             ResizeEventArgs& operator=(ResizeEventArgs&&) noexcept = default;
             ~ResizeEventArgs() noexcept override = default;
 
@@ -7661,9 +7661,9 @@ namespace LiteFX::Rendering {
         public:
             ReleasedEventArgs() noexcept :
                 EventArgs() { }
-            ReleasedEventArgs(const ReleasedEventArgs&) noexcept = default;
+            ReleasedEventArgs(const ReleasedEventArgs&) = default;
             ReleasedEventArgs(ReleasedEventArgs&&) noexcept = default;
-            ReleasedEventArgs& operator=(const ReleasedEventArgs&) noexcept = default;
+            ReleasedEventArgs& operator=(const ReleasedEventArgs&) = default;
             ReleasedEventArgs& operator=(ReleasedEventArgs&&) noexcept = default;
             ~ReleasedEventArgs() noexcept override = default;
         };
@@ -7671,9 +7671,9 @@ namespace LiteFX::Rendering {
     protected:
         IFrameBuffer() noexcept = default;
         IFrameBuffer(IFrameBuffer&&) noexcept = default;
-        IFrameBuffer(const IFrameBuffer&) noexcept = delete;
+        IFrameBuffer(const IFrameBuffer&) = delete;
         IFrameBuffer& operator=(IFrameBuffer&&) noexcept = default;
-        IFrameBuffer& operator=(const IFrameBuffer&) noexcept = delete;
+        IFrameBuffer& operator=(const IFrameBuffer&) = delete;
 
     public:
         /// <summary>
@@ -7991,9 +7991,9 @@ namespace LiteFX::Rendering {
         public:
             BeginEventArgs(const IFrameBuffer& frameBuffer) noexcept :
                 EventArgs(), m_frameBuffer(&frameBuffer) { }
-            BeginEventArgs(const BeginEventArgs&) noexcept = default;
+            BeginEventArgs(const BeginEventArgs&) = default;
             BeginEventArgs(BeginEventArgs&&) noexcept = default;
-            BeginEventArgs& operator=(const BeginEventArgs&) noexcept = default;
+            BeginEventArgs& operator=(const BeginEventArgs&) = default;
             BeginEventArgs& operator=(BeginEventArgs&&) noexcept = default;
             ~BeginEventArgs() noexcept override = default;
 
@@ -8010,9 +8010,9 @@ namespace LiteFX::Rendering {
     protected:
         IRenderPass() noexcept = default;
         IRenderPass(IRenderPass&&) noexcept = default;
-        IRenderPass(const IRenderPass&) noexcept = delete;
+        IRenderPass(const IRenderPass&) = delete;
         IRenderPass& operator=(IRenderPass&&) noexcept = default;
-        IRenderPass& operator=(const IRenderPass&) noexcept = delete;
+        IRenderPass& operator=(const IRenderPass&) = delete;
 
     public:
         ~IRenderPass() noexcept override = default;
@@ -8172,9 +8172,9 @@ namespace LiteFX::Rendering {
         public:
             ResetEventArgs(Format surfaceFormat, Size2d renderArea, UInt32 buffers, bool enableVsync) noexcept :
                 EventArgs(), m_surfaceFormat(surfaceFormat), m_renderArea(std::move(renderArea)), m_buffers(buffers), m_vsync(enableVsync) { }
-            ResetEventArgs(const ResetEventArgs&) noexcept = default;
+            ResetEventArgs(const ResetEventArgs&) = default;
             ResetEventArgs(ResetEventArgs&&) noexcept = default;
-            ResetEventArgs& operator=(const ResetEventArgs&) noexcept = default;
+            ResetEventArgs& operator=(const ResetEventArgs&) = default;
             ResetEventArgs& operator=(ResetEventArgs&&) noexcept = default;
             ~ResetEventArgs() noexcept override = default;
 
@@ -8215,8 +8215,8 @@ namespace LiteFX::Rendering {
     protected:
         ISwapChain() noexcept = default;
         ISwapChain(ISwapChain&&) noexcept = default;
-        ISwapChain(const ISwapChain&) noexcept = default;
-        ISwapChain& operator=(const ISwapChain&) noexcept = default;
+        ISwapChain(const ISwapChain&) = default;
+        ISwapChain& operator=(const ISwapChain&) = default;
         ISwapChain& operator=(ISwapChain&&) noexcept = default;
 
     public:
@@ -8397,8 +8397,8 @@ namespace LiteFX::Rendering {
                 m_commandBuffers = commandBuffers | std::ranges::to<Array<SharedPtr<const ICommandBuffer>>>();
             }
             QueueSubmittingEventArgs(const QueueSubmittingEventArgs&) = default;
-            QueueSubmittingEventArgs(QueueSubmittingEventArgs&&) = default;
-            QueueSubmittingEventArgs& operator=(const QueueSubmittingEventArgs&) noexcept = default;
+            QueueSubmittingEventArgs(QueueSubmittingEventArgs&&) noexcept = default;
+            QueueSubmittingEventArgs& operator=(const QueueSubmittingEventArgs&) = default;
             QueueSubmittingEventArgs& operator=(QueueSubmittingEventArgs&&) noexcept = default;
             ~QueueSubmittingEventArgs() noexcept override = default;
 
@@ -8422,9 +8422,9 @@ namespace LiteFX::Rendering {
         public:
             QueueSubmittedEventArgs(UInt64 fence) noexcept :
                 EventArgs(), m_fence(fence) { }
-            QueueSubmittedEventArgs(const QueueSubmittedEventArgs&) noexcept = default;
+            QueueSubmittedEventArgs(const QueueSubmittedEventArgs&) = default;
             QueueSubmittedEventArgs(QueueSubmittedEventArgs&&) noexcept = default;
-            QueueSubmittedEventArgs& operator=(const QueueSubmittedEventArgs&) noexcept = default;
+            QueueSubmittedEventArgs& operator=(const QueueSubmittedEventArgs&) = default;
             QueueSubmittedEventArgs& operator=(QueueSubmittedEventArgs&&) noexcept = default;
             ~QueueSubmittedEventArgs() noexcept override = default;
 
@@ -8440,9 +8440,9 @@ namespace LiteFX::Rendering {
 
     protected:
         ICommandQueue() noexcept = default;
-        ICommandQueue(const ICommandQueue&) noexcept = default;
+        ICommandQueue(const ICommandQueue&) = default;
         ICommandQueue(ICommandQueue&&) noexcept = default;
-        ICommandQueue& operator=(const ICommandQueue&) noexcept = default;
+        ICommandQueue& operator=(const ICommandQueue&) = default;
         ICommandQueue& operator=(ICommandQueue&&) noexcept = default;
 
     public:
@@ -8638,8 +8638,8 @@ namespace LiteFX::Rendering {
     protected:
         IGraphicsFactory() noexcept = default;
         IGraphicsFactory(IGraphicsFactory&&) noexcept = default;
-        IGraphicsFactory(const IGraphicsFactory&) noexcept = default;
-        IGraphicsFactory& operator=(const IGraphicsFactory&) noexcept = default;
+        IGraphicsFactory(const IGraphicsFactory&) = default;
+        IGraphicsFactory& operator=(const IGraphicsFactory&) = default;
         IGraphicsFactory& operator=(IGraphicsFactory&&) noexcept = default;
 
     public:
@@ -9089,8 +9089,8 @@ namespace LiteFX::Rendering {
     protected:
         IGraphicsDevice() noexcept = default;
         IGraphicsDevice(IGraphicsDevice&&) noexcept = default;
-        IGraphicsDevice(const IGraphicsDevice&) noexcept = default;
-        IGraphicsDevice& operator=(const IGraphicsDevice&) noexcept = default;
+        IGraphicsDevice(const IGraphicsDevice&) = default;
+        IGraphicsDevice& operator=(const IGraphicsDevice&) = default;
         IGraphicsDevice& operator=(IGraphicsDevice&&) noexcept = default;
 
     public:
@@ -9283,8 +9283,8 @@ namespace LiteFX::Rendering {
     protected:
         IRenderBackend() noexcept = default;
         IRenderBackend(IRenderBackend&&) noexcept = default;
-        IRenderBackend(const IRenderBackend&) noexcept = default;
-        IRenderBackend& operator=(const IRenderBackend&) noexcept = default;
+        IRenderBackend(const IRenderBackend&) = default;
+        IRenderBackend& operator=(const IRenderBackend&) = default;
         IRenderBackend& operator=(IRenderBackend&&) noexcept = default;
 
     public:

@@ -53,9 +53,9 @@ public:
     }
 
     DirectX12RenderPassImpl(DirectX12RenderPassImpl&&) noexcept = default;
-    DirectX12RenderPassImpl(const DirectX12RenderPassImpl&) noexcept = default;
+    DirectX12RenderPassImpl(const DirectX12RenderPassImpl&) = default;
     DirectX12RenderPassImpl& operator=(DirectX12RenderPassImpl&&) noexcept = default;
-    DirectX12RenderPassImpl& operator=(const DirectX12RenderPassImpl&) noexcept = default;
+    DirectX12RenderPassImpl& operator=(const DirectX12RenderPassImpl&) = default;
 
     ~DirectX12RenderPassImpl() noexcept
     {

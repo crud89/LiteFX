@@ -33,9 +33,9 @@ Rasterizer::Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cul
 {
 }
 
-Rasterizer::Rasterizer(const Rasterizer& _other) noexcept = default;
+Rasterizer::Rasterizer(const Rasterizer& _other) = default;
 Rasterizer::Rasterizer(Rasterizer&& _other) noexcept = default;
-Rasterizer& Rasterizer::operator=(const Rasterizer& _other) noexcept = default;
+Rasterizer& Rasterizer::operator=(const Rasterizer& _other) = default;
 Rasterizer& Rasterizer::operator=(Rasterizer&& _other) noexcept = default;
 Rasterizer::~Rasterizer() noexcept = default;
 

@@ -35,9 +35,9 @@ DepthStencilState::DepthStencilState(const DepthState& depthState, const DepthBi
 {
 }
 
-DepthStencilState::DepthStencilState(const DepthStencilState& _other) noexcept = default;
+DepthStencilState::DepthStencilState(const DepthStencilState& _other) = default;
 DepthStencilState::DepthStencilState(DepthStencilState&& _other) noexcept = default;
-DepthStencilState& DepthStencilState::operator=(const DepthStencilState& _other) noexcept = default;
+DepthStencilState& DepthStencilState::operator=(const DepthStencilState& _other) = default;
 DepthStencilState& DepthStencilState::operator=(DepthStencilState&& _other) noexcept = default;
 DepthStencilState::~DepthStencilState() noexcept = default;
 

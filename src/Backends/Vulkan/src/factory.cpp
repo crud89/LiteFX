@@ -32,9 +32,9 @@ public:
 	}
 
 	VulkanGraphicsFactoryImpl(VulkanGraphicsFactoryImpl&&) noexcept = default;
-	VulkanGraphicsFactoryImpl(const VulkanGraphicsFactoryImpl&) noexcept = delete;
+	VulkanGraphicsFactoryImpl(const VulkanGraphicsFactoryImpl&) = delete;
 	VulkanGraphicsFactoryImpl& operator=(VulkanGraphicsFactoryImpl&&) noexcept = default;
-	VulkanGraphicsFactoryImpl& operator=(const VulkanGraphicsFactoryImpl&) noexcept = delete;
+	VulkanGraphicsFactoryImpl& operator=(const VulkanGraphicsFactoryImpl&) = delete;
 
 	~VulkanGraphicsFactoryImpl()
 	{

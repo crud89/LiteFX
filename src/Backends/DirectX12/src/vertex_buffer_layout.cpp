@@ -35,9 +35,9 @@ DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(size_t vertexSize, UInt
 }
 
 DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(DirectX12VertexBufferLayout&&) noexcept = default;
-//DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&) noexcept = default;
+//DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&) = default;
 DirectX12VertexBufferLayout& DirectX12VertexBufferLayout::operator=(DirectX12VertexBufferLayout&&) noexcept = default;
-//DirectX12VertexBufferLayout& DirectX12VertexBufferLayout::operator=(const DirectX12VertexBufferLayout&) noexcept = default;
+//DirectX12VertexBufferLayout& DirectX12VertexBufferLayout::operator=(const DirectX12VertexBufferLayout&) = default;
 DirectX12VertexBufferLayout::~DirectX12VertexBufferLayout() noexcept = default;
 
 size_t DirectX12VertexBufferLayout::elementSize() const noexcept

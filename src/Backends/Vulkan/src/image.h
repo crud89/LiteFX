@@ -22,9 +22,9 @@ namespace LiteFX::Rendering::Backends {
 		explicit VulkanImage(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr, const String& name = "");
 		
 		VulkanImage(VulkanImage&&) noexcept = delete;
-		VulkanImage(const VulkanImage&) noexcept = delete;
+		VulkanImage(const VulkanImage&) = delete;
 		VulkanImage& operator=(VulkanImage&&) noexcept = delete;
-		VulkanImage& operator=(const VulkanImage&) noexcept = delete;
+		VulkanImage& operator=(const VulkanImage&) = delete;
 
 	public:
 		~VulkanImage() noexcept override;
@@ -117,9 +117,9 @@ namespace LiteFX::Rendering::Backends {
 		explicit VulkanSampler(const VulkanDevice& device, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float minLod = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float anisotropy = 0.f, const String& name = "");
 		
 		VulkanSampler(VulkanSampler&&) noexcept = delete;
-		VulkanSampler(const VulkanSampler&) noexcept = delete;
+		VulkanSampler(const VulkanSampler&) = delete;
 		VulkanSampler& operator=(VulkanSampler&&) noexcept = delete;
-		VulkanSampler& operator=(const VulkanSampler&) noexcept = delete;
+		VulkanSampler& operator=(const VulkanSampler&) = delete;
 
 	public:
 		~VulkanSampler() noexcept override;

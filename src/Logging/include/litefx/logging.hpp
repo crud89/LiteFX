@@ -37,9 +37,9 @@ namespace LiteFX::Logging {
     class LITEFX_LOGGING_API ISink {
     protected:
         ISink() noexcept = default;
-        ISink(const ISink&) noexcept = default;
+        ISink(const ISink&) = default;
         ISink(ISink&&) noexcept = default;
-        ISink& operator=(const ISink&) noexcept = default;
+        ISink& operator=(const ISink&) = default;
         ISink& operator=(ISink&&) noexcept = default;
 
     public:
@@ -73,9 +73,9 @@ namespace LiteFX::Logging {
         ~ConsoleSink() noexcept override;
 
         ConsoleSink(const ConsoleSink&) = delete;
-        ConsoleSink(ConsoleSink&&) = delete;
+        ConsoleSink(ConsoleSink&&) noexcept = delete;
         auto operator=(const ConsoleSink&) = delete;
-        auto operator=(ConsoleSink&&) = delete;
+        auto operator=(ConsoleSink&&) noexcept = delete;
 
     public:
         /// <inheritdoc />
@@ -99,9 +99,9 @@ namespace LiteFX::Logging {
         ~RollingFileSink() noexcept override;
 
         RollingFileSink(const RollingFileSink&) = delete;
-        RollingFileSink(RollingFileSink&&) = delete;
+        RollingFileSink(RollingFileSink&&) noexcept = delete;
         auto operator=(const RollingFileSink&) = delete;
-        auto operator=(RollingFileSink&&) = delete;
+        auto operator=(RollingFileSink&&) noexcept = delete;
 
     public:
         /// <inheritdoc />
@@ -130,9 +130,9 @@ namespace LiteFX::Logging {
         Log(const String& name);
         virtual ~Log() noexcept;
 
-        Log(Log&&) = delete;
+        Log(Log&&) noexcept = delete;
         Log(const Log&) = delete;
-        auto operator=(Log&&) = delete;
+        auto operator=(Log&&) noexcept = delete;
         auto operator=(const Log&) = delete;
 
     public:
@@ -192,10 +192,10 @@ namespace LiteFX::Logging {
     public:
         virtual ~Logger() noexcept;
 
-        Logger(Logger&&) = delete;
+        Logger(Logger&&) noexcept = delete;
         Logger(const Logger&) = delete;
         auto operator=(const Logger&) = delete;
-        auto operator=(Logger&&) = delete;
+        auto operator=(Logger&&) noexcept = delete;
 
     public:
         // TODO: Cache logs by name and return them, instead of re-creating them with each call.

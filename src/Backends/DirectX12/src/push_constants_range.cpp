@@ -39,9 +39,9 @@ DirectX12PushConstantsRange::DirectX12PushConstantsRange(ShaderStage shaderStage
 }
 
 DirectX12PushConstantsRange::DirectX12PushConstantsRange(DirectX12PushConstantsRange&&) noexcept = default;
-DirectX12PushConstantsRange::DirectX12PushConstantsRange(const DirectX12PushConstantsRange&) noexcept = default;
+DirectX12PushConstantsRange::DirectX12PushConstantsRange(const DirectX12PushConstantsRange&) = default;
 DirectX12PushConstantsRange& DirectX12PushConstantsRange::operator=(DirectX12PushConstantsRange&&) noexcept = default;
-DirectX12PushConstantsRange& DirectX12PushConstantsRange::operator=(const DirectX12PushConstantsRange&) noexcept = default;
+DirectX12PushConstantsRange& DirectX12PushConstantsRange::operator=(const DirectX12PushConstantsRange&) = default;
 DirectX12PushConstantsRange::~DirectX12PushConstantsRange() noexcept = default;
 
 UInt32 DirectX12PushConstantsRange::space() const noexcept

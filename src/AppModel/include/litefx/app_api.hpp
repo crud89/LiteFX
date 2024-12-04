@@ -62,9 +62,9 @@ namespace LiteFX {
 		virtual ~AppVersion() noexcept;
 
 		AppVersion(const AppVersion& _other) = delete;
-		AppVersion(AppVersion&& _other) = delete;
+		AppVersion(AppVersion&& _other) noexcept = delete;
 		AppVersion& operator=(const AppVersion&) = delete;
-		AppVersion& operator=(AppVersion&&) = delete;
+		AppVersion& operator=(AppVersion&&) noexcept = delete;
 
 	public:
 		/// <summary>

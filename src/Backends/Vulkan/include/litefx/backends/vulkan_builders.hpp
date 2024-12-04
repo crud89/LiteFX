@@ -22,9 +22,9 @@ namespace LiteFX::Rendering::Backends {
 		~VulkanBarrierBuilder() noexcept override;
 
 		VulkanBarrierBuilder(VulkanBarrierBuilder&&) noexcept = delete;
-		VulkanBarrierBuilder(const VulkanBarrierBuilder&) noexcept = delete;
+		VulkanBarrierBuilder(const VulkanBarrierBuilder&) = delete;
 		VulkanBarrierBuilder& operator=(VulkanBarrierBuilder&&) noexcept = delete;
-		VulkanBarrierBuilder& operator=(const VulkanBarrierBuilder&) noexcept = delete;
+		VulkanBarrierBuilder& operator=(const VulkanBarrierBuilder&) = delete;
 
 		// BarrierBuilder interface.
 	public:
@@ -55,9 +55,9 @@ namespace LiteFX::Rendering::Backends {
 		~VulkanShaderProgramBuilder() noexcept override;
 
 		VulkanShaderProgramBuilder(VulkanShaderProgramBuilder&&) noexcept = delete;
-		VulkanShaderProgramBuilder(const VulkanShaderProgramBuilder&) noexcept = delete;
+		VulkanShaderProgramBuilder(const VulkanShaderProgramBuilder&) = delete;
 		VulkanShaderProgramBuilder& operator=(VulkanShaderProgramBuilder&&) noexcept = delete;
-		VulkanShaderProgramBuilder& operator=(const VulkanShaderProgramBuilder&) noexcept = delete;
+		VulkanShaderProgramBuilder& operator=(const VulkanShaderProgramBuilder&) = delete;
 
 		// Builder interface.
 	protected:
@@ -86,9 +86,9 @@ namespace LiteFX::Rendering::Backends {
 		~VulkanRasterizerBuilder() noexcept override;
 
 		VulkanRasterizerBuilder(VulkanRasterizerBuilder&&) noexcept = delete;
-		VulkanRasterizerBuilder(const VulkanRasterizerBuilder&) noexcept = delete;
+		VulkanRasterizerBuilder(const VulkanRasterizerBuilder&) = delete;
 		VulkanRasterizerBuilder& operator=(VulkanRasterizerBuilder&&) noexcept = delete;
-		VulkanRasterizerBuilder& operator=(const VulkanRasterizerBuilder&) noexcept = delete;
+		VulkanRasterizerBuilder& operator=(const VulkanRasterizerBuilder&) = delete;
 
 		// Builder interface.
 	public:
@@ -111,9 +111,9 @@ namespace LiteFX::Rendering::Backends {
 		~VulkanInputAssemblerBuilder() noexcept override;
 
 		VulkanInputAssemblerBuilder(VulkanInputAssemblerBuilder&&) noexcept = delete;
-		VulkanInputAssemblerBuilder(const VulkanInputAssemblerBuilder&) noexcept = delete;
+		VulkanInputAssemblerBuilder(const VulkanInputAssemblerBuilder&) = delete;
 		VulkanInputAssemblerBuilder& operator=(VulkanInputAssemblerBuilder&&) noexcept = delete;
-		VulkanInputAssemblerBuilder& operator=(const VulkanInputAssemblerBuilder&) noexcept = delete;
+		VulkanInputAssemblerBuilder& operator=(const VulkanInputAssemblerBuilder&) = delete;
 
 		// Builder interface.
 	protected:
@@ -171,9 +171,9 @@ namespace LiteFX::Rendering::Backends {
 		~VulkanPipelineLayoutBuilder() noexcept override;
 
 		VulkanPipelineLayoutBuilder(VulkanPipelineLayoutBuilder&&) noexcept = delete;
-		VulkanPipelineLayoutBuilder(const VulkanPipelineLayoutBuilder&) noexcept = delete;
+		VulkanPipelineLayoutBuilder(const VulkanPipelineLayoutBuilder&) = delete;
 		VulkanPipelineLayoutBuilder& operator=(VulkanPipelineLayoutBuilder&&) noexcept = delete;
-		VulkanPipelineLayoutBuilder& operator=(const VulkanPipelineLayoutBuilder&) noexcept = delete;
+		VulkanPipelineLayoutBuilder& operator=(const VulkanPipelineLayoutBuilder&) = delete;
 
 		// Builder interface.
 	protected:
@@ -214,9 +214,9 @@ namespace LiteFX::Rendering::Backends {
 		~VulkanDescriptorSetLayoutBuilder() noexcept override;
 
 		VulkanDescriptorSetLayoutBuilder(VulkanDescriptorSetLayoutBuilder&&) noexcept = delete;
-		VulkanDescriptorSetLayoutBuilder(const VulkanDescriptorSetLayoutBuilder&) noexcept = delete;
+		VulkanDescriptorSetLayoutBuilder(const VulkanDescriptorSetLayoutBuilder&) = delete;
 		VulkanDescriptorSetLayoutBuilder& operator=(VulkanDescriptorSetLayoutBuilder&&) noexcept = delete;
-		VulkanDescriptorSetLayoutBuilder& operator=(const VulkanDescriptorSetLayoutBuilder&) noexcept = delete;
+		VulkanDescriptorSetLayoutBuilder& operator=(const VulkanDescriptorSetLayoutBuilder&) = delete;
 
 		// Builder interface.
 	protected:
@@ -247,9 +247,9 @@ namespace LiteFX::Rendering::Backends {
 		~VulkanPushConstantsLayoutBuilder() noexcept override;
 
 		VulkanPushConstantsLayoutBuilder(VulkanPushConstantsLayoutBuilder&&) noexcept = delete;
-		VulkanPushConstantsLayoutBuilder(const VulkanPushConstantsLayoutBuilder&) noexcept = delete;
+		VulkanPushConstantsLayoutBuilder(const VulkanPushConstantsLayoutBuilder&) = delete;
 		VulkanPushConstantsLayoutBuilder& operator=(VulkanPushConstantsLayoutBuilder&&) noexcept = delete;
-		VulkanPushConstantsLayoutBuilder& operator=(const VulkanPushConstantsLayoutBuilder&) noexcept = delete;
+		VulkanPushConstantsLayoutBuilder& operator=(const VulkanPushConstantsLayoutBuilder&) = delete;
 
 		// Builder interface.
 	protected:
@@ -277,9 +277,9 @@ namespace LiteFX::Rendering::Backends {
 		~VulkanRenderPipelineBuilder() noexcept override;
 
 		VulkanRenderPipelineBuilder(VulkanRenderPipelineBuilder&&) noexcept = delete;
-		VulkanRenderPipelineBuilder(const VulkanRenderPipelineBuilder&) noexcept = delete;
+		VulkanRenderPipelineBuilder(const VulkanRenderPipelineBuilder&) = delete;
 		VulkanRenderPipelineBuilder& operator=(VulkanRenderPipelineBuilder&&) noexcept = delete;
-		VulkanRenderPipelineBuilder& operator=(const VulkanRenderPipelineBuilder&) noexcept = delete;
+		VulkanRenderPipelineBuilder& operator=(const VulkanRenderPipelineBuilder&) = delete;
 
 		// Builder interface.
 	public:
@@ -302,9 +302,9 @@ namespace LiteFX::Rendering::Backends {
 		~VulkanComputePipelineBuilder() noexcept override;
 
 		VulkanComputePipelineBuilder(VulkanComputePipelineBuilder&&) noexcept = delete;
-		VulkanComputePipelineBuilder(const VulkanComputePipelineBuilder&) noexcept = delete;
+		VulkanComputePipelineBuilder(const VulkanComputePipelineBuilder&) = delete;
 		VulkanComputePipelineBuilder& operator=(VulkanComputePipelineBuilder&&) noexcept = delete;
-		VulkanComputePipelineBuilder& operator=(const VulkanComputePipelineBuilder&) noexcept = delete;
+		VulkanComputePipelineBuilder& operator=(const VulkanComputePipelineBuilder&) = delete;
 
 		// Builder interface.
 	public:
@@ -328,9 +328,9 @@ namespace LiteFX::Rendering::Backends {
 		~VulkanRayTracingPipelineBuilder() noexcept override;
 
 		VulkanRayTracingPipelineBuilder(VulkanRayTracingPipelineBuilder&&) noexcept = delete;
-		VulkanRayTracingPipelineBuilder(const VulkanRayTracingPipelineBuilder&) noexcept = delete;
+		VulkanRayTracingPipelineBuilder(const VulkanRayTracingPipelineBuilder&) = delete;
 		VulkanRayTracingPipelineBuilder& operator=(VulkanRayTracingPipelineBuilder&&) noexcept = delete;
-		VulkanRayTracingPipelineBuilder& operator=(const VulkanRayTracingPipelineBuilder&) noexcept = delete;
+		VulkanRayTracingPipelineBuilder& operator=(const VulkanRayTracingPipelineBuilder&) = delete;
 
 		// Builder interface.
 	public:
@@ -363,9 +363,9 @@ namespace LiteFX::Rendering::Backends {
 		~VulkanRenderPassBuilder() noexcept override;
 
 		VulkanRenderPassBuilder(VulkanRenderPassBuilder&&) noexcept = delete;
-		VulkanRenderPassBuilder(const VulkanRenderPassBuilder&) noexcept = delete;
+		VulkanRenderPassBuilder(const VulkanRenderPassBuilder&) = delete;
 		VulkanRenderPassBuilder& operator=(VulkanRenderPassBuilder&&) noexcept = delete;
-		VulkanRenderPassBuilder& operator=(const VulkanRenderPassBuilder&) noexcept = delete;
+		VulkanRenderPassBuilder& operator=(const VulkanRenderPassBuilder&) = delete;
 
 		// Builder interface.
 	protected:

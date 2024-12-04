@@ -108,7 +108,7 @@ namespace LiteFX::Math {
 		/// <typeparam name="cols">The columns of the other matrix.</typeparam>
 		/// <param name="_other">The other matrix.</param>
 		template <unsigned rows, unsigned cols>
-		constexpr Matrix(const Matrix<scalar_type, rows, cols>& _other) noexcept {
+		constexpr Matrix(const Matrix<scalar_type, rows, cols>& _other) {
 			for (size_t r { 0 }; r < rows && r < mat_rows; ++r)
 				std::ranges::copy(_other.row(r), std::begin(m_elements) + r * mat_cols);
 		}
@@ -123,7 +123,7 @@ namespace LiteFX::Math {
 		/// Initializes a matrix with the values provided by another matrix.
 		/// </summary>
 		/// <param name="_other">The other matrix to copy the values from.</param>
-		constexpr Matrix(const Matrix& _other) noexcept = default;
+		constexpr Matrix(const Matrix& _other) = default;
 
 		/// <summary>
 		/// Moves the elements of the other matrix to the current matrix.
@@ -137,7 +137,7 @@ namespace LiteFX::Math {
 		/// </summary>
 		/// <param name="_other">The matrix to copy the elements from.</param>
 		/// <returns>A reference to the current matrix instance.</returns>
-		constexpr Matrix& operator=(const Matrix& _other) noexcept = default;
+		constexpr Matrix& operator=(const Matrix& _other) = default;
 
 		/// <summary>
 		/// Destroys the matrix instance.

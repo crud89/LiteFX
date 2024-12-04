@@ -19,9 +19,9 @@ public:
 	{
 	}
 
-	AppVersionImpl(const AppVersionImpl&) noexcept = default;
+	AppVersionImpl(const AppVersionImpl&) = default;
 	AppVersionImpl(AppVersionImpl&&) noexcept = default;
-	AppVersionImpl& operator=(const AppVersionImpl&) noexcept = default;
+	AppVersionImpl& operator=(const AppVersionImpl&) = default;
 	AppVersionImpl& operator=(AppVersionImpl&&) noexcept = default;
 	~AppVersionImpl() noexcept = default;
 };

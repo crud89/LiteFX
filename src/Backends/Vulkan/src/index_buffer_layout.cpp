@@ -32,9 +32,9 @@ VulkanIndexBufferLayout::VulkanIndexBufferLayout(IndexType type) :
 }
 
 VulkanIndexBufferLayout::VulkanIndexBufferLayout(VulkanIndexBufferLayout&&) noexcept = default;
-VulkanIndexBufferLayout::VulkanIndexBufferLayout(const VulkanIndexBufferLayout&) noexcept = default;
+VulkanIndexBufferLayout::VulkanIndexBufferLayout(const VulkanIndexBufferLayout&) = default;
 VulkanIndexBufferLayout& VulkanIndexBufferLayout::operator=(VulkanIndexBufferLayout&&) noexcept = default;
-VulkanIndexBufferLayout& VulkanIndexBufferLayout::operator=(const VulkanIndexBufferLayout&) noexcept = default;
+VulkanIndexBufferLayout& VulkanIndexBufferLayout::operator=(const VulkanIndexBufferLayout&) = default;
 VulkanIndexBufferLayout::~VulkanIndexBufferLayout() noexcept = default;
 
 size_t VulkanIndexBufferLayout::elementSize() const noexcept

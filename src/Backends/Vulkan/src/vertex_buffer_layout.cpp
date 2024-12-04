@@ -35,9 +35,9 @@ VulkanVertexBufferLayout::VulkanVertexBufferLayout(size_t vertexSize, UInt32 bin
 }
 
 VulkanVertexBufferLayout::VulkanVertexBufferLayout(VulkanVertexBufferLayout&&) noexcept = default;
-//VulkanVertexBufferLayout::VulkanVertexBufferLayout(const VulkanVertexBufferLayout&) noexcept = default;
+//VulkanVertexBufferLayout::VulkanVertexBufferLayout(const VulkanVertexBufferLayout&) = default;
 VulkanVertexBufferLayout& VulkanVertexBufferLayout::operator=(VulkanVertexBufferLayout&&) noexcept = default;
-//VulkanVertexBufferLayout& VulkanVertexBufferLayout::operator=(const VulkanVertexBufferLayout&) noexcept = default;
+//VulkanVertexBufferLayout& VulkanVertexBufferLayout::operator=(const VulkanVertexBufferLayout&) = default;
 VulkanVertexBufferLayout::~VulkanVertexBufferLayout() noexcept = default;
 
 size_t VulkanVertexBufferLayout::elementSize() const noexcept

@@ -23,9 +23,9 @@ namespace LiteFX {
 
 	protected:
 		IBackend() noexcept = default;
-		IBackend(const IBackend&) noexcept = default;
+		IBackend(const IBackend&) = default;
 		IBackend(IBackend&&) noexcept = default;
-		IBackend& operator=(const IBackend&) noexcept = default;
+		IBackend& operator=(const IBackend&) = default;
 		IBackend& operator=(IBackend&&) noexcept = default;
 
 	public:
@@ -81,9 +81,9 @@ namespace LiteFX {
 	public:
 		EventArgs() = default;
 
-		EventArgs(const EventArgs&) noexcept = default;
+		EventArgs(const EventArgs&) = default;
 		EventArgs(EventArgs&&) noexcept = default;
-		EventArgs& operator=(const EventArgs&) noexcept = default;
+		EventArgs& operator=(const EventArgs&) = default;
 		EventArgs& operator=(EventArgs&&) noexcept = default;
 		virtual ~EventArgs() noexcept = default;
 	};
@@ -182,7 +182,7 @@ namespace LiteFX {
 		/// This constructor is implemented in order to support copying of types that contain events. Subscribers are not copied!
 		/// </remarks>
 		/// <param name="_other">The event instance to copy.</param>
-		constexpr Event([[maybe_unused]] const Event& _other) noexcept { }
+		constexpr Event([[maybe_unused]] const Event& _other) { }
 
 		/// <summary>
 		/// Takes over another instance of a event.
@@ -362,12 +362,12 @@ namespace LiteFX {
 		/// <param name="width">The old window width.</param>
 		/// <param name="height">The old window height.</param>
 		ResizeEventArgs(int width, int height) noexcept : m_width(width), m_height(height) { }
-		ResizeEventArgs(const ResizeEventArgs&) noexcept = default;
+		ResizeEventArgs(const ResizeEventArgs&) = default;
 		ResizeEventArgs(ResizeEventArgs&&) noexcept = default;
 		~ResizeEventArgs() noexcept override = default;
 
 	public:
-		ResizeEventArgs& operator=(const ResizeEventArgs&) noexcept = default;
+		ResizeEventArgs& operator=(const ResizeEventArgs&) = default;
 		ResizeEventArgs& operator=(ResizeEventArgs&&) noexcept = default;
 
 	public:

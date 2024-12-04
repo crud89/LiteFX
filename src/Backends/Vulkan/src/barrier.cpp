@@ -43,9 +43,9 @@ VulkanBarrier::VulkanBarrier() noexcept :
 }
 
 VulkanBarrier::VulkanBarrier(VulkanBarrier&&) noexcept = default;
-VulkanBarrier::VulkanBarrier(const VulkanBarrier&) noexcept = default;
+VulkanBarrier::VulkanBarrier(const VulkanBarrier&) = default;
 VulkanBarrier& VulkanBarrier::operator=(VulkanBarrier&&) noexcept = default;
-VulkanBarrier& VulkanBarrier::operator=(const VulkanBarrier&) noexcept = default;
+VulkanBarrier& VulkanBarrier::operator=(const VulkanBarrier&) = default;
 VulkanBarrier::~VulkanBarrier() noexcept = default;
 
 PipelineStage VulkanBarrier::syncBefore() const noexcept

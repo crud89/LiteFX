@@ -39,9 +39,9 @@ VulkanPushConstantsRange::VulkanPushConstantsRange(ShaderStage shaderStage, UInt
 }
 
 VulkanPushConstantsRange::VulkanPushConstantsRange(VulkanPushConstantsRange&&) noexcept = default;
-VulkanPushConstantsRange::VulkanPushConstantsRange(const VulkanPushConstantsRange&) noexcept = default;
+VulkanPushConstantsRange::VulkanPushConstantsRange(const VulkanPushConstantsRange&) = default;
 VulkanPushConstantsRange& VulkanPushConstantsRange::operator=(VulkanPushConstantsRange&&) noexcept = default;
-VulkanPushConstantsRange& VulkanPushConstantsRange::operator=(const VulkanPushConstantsRange&) noexcept = default;
+VulkanPushConstantsRange& VulkanPushConstantsRange::operator=(const VulkanPushConstantsRange&) = default;
 VulkanPushConstantsRange::~VulkanPushConstantsRange() noexcept = default;
 
 UInt32 VulkanPushConstantsRange::space() const noexcept

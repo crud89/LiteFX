@@ -7,7 +7,7 @@ using namespace LiteFX::Math;
 // ------------------------------------------------------------------------------------------------
 
 Rect::Rect() noexcept : Vector<scalar_type, vec_size>() {}
-Rect::Rect(const Rect& _other) noexcept : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>>(_other)) {}
+Rect::Rect(const Rect& _other) : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>>(_other)) {}
 Rect::Rect(Rect&& _other) noexcept : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>&&>(_other)) {}
 
 Rect::Rect(const Vector<size_t, 2>& pos, size_t w, size_t h) noexcept : Vector<scalar_type, vec_size>() {
@@ -24,7 +24,7 @@ Rect::Rect(size_t x, size_t y, size_t w, size_t h) noexcept : Vector<scalar_type
 	this->w() = h;
 }
 
-Rect& Rect::Rect::operator=(const Rect& _other) noexcept {
+Rect& Rect::Rect::operator=(const Rect& _other) {
 	Vector<scalar_type, vec_size>::operator=(static_cast<Vector<scalar_type, vec_size>>(_other));
 	return *this;
 }
@@ -66,7 +66,7 @@ size_t& Rect::height() noexcept {
 // ------------------------------------------------------------------------------------------------
 
 RectI::RectI() noexcept : Vector<scalar_type, vec_size>() {}
-RectI::RectI(const RectI& _other) noexcept : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>>(_other)) {}
+RectI::RectI(const RectI& _other) : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>>(_other)) {}
 RectI::RectI(RectI&& _other) noexcept : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>&&>(_other)) {}
 
 RectI::RectI(const Vector<Int32, 2>& pos, Int32 w, Int32 h) noexcept : Vector<scalar_type, vec_size>() {
@@ -83,7 +83,7 @@ RectI::RectI(Int32 x, Int32 y, Int32 w, Int32 h) noexcept : Vector<scalar_type, 
 	this->w() = h;
 }
 
-RectI& RectI::RectI::operator=(const RectI& _other) noexcept {
+RectI& RectI::RectI::operator=(const RectI& _other) {
 	Vector<scalar_type, vec_size>::operator=(static_cast<Vector<scalar_type, vec_size>>(_other));
 	return *this;
 }
@@ -122,7 +122,7 @@ Int32& RectI::height() noexcept {
 // ------------------------------------------------------------------------------------------------
 
 RectF::RectF() noexcept : Vector<scalar_type, vec_size>() {}
-RectF::RectF(const RectF& _other) noexcept : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>>(_other)) {}
+RectF::RectF(const RectF& _other) : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>>(_other)) {}
 RectF::RectF(RectF&& _other) noexcept : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>&&>(_other)) {}
 
 RectF::RectF(const Vector<Float, 2>& pos, Float w, Float h) noexcept : Vector<scalar_type, vec_size>() {
@@ -139,7 +139,7 @@ RectF::RectF(Float x, Float y, Float w, Float h) noexcept : Vector<scalar_type, 
 	this->w() = h;
 }
 
-RectF& RectF::RectF::operator=(const RectF& _other) noexcept {
+RectF& RectF::RectF::operator=(const RectF& _other) {
 	Vector<scalar_type, vec_size>::operator=(static_cast<Vector<scalar_type, vec_size>>(_other));
 	return *this;
 }

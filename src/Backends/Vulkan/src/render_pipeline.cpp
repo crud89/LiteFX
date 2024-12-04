@@ -46,9 +46,9 @@ public:
 	}
 
 	VulkanRenderPipelineImpl(VulkanRenderPipelineImpl&&) noexcept = delete;
-	VulkanRenderPipelineImpl(const VulkanRenderPipelineImpl&) noexcept = delete;
+	VulkanRenderPipelineImpl(const VulkanRenderPipelineImpl&) = delete;
 	VulkanRenderPipelineImpl& operator=(VulkanRenderPipelineImpl&&) noexcept = delete;
-	VulkanRenderPipelineImpl& operator=(const VulkanRenderPipelineImpl&) noexcept = delete;
+	VulkanRenderPipelineImpl& operator=(const VulkanRenderPipelineImpl&) = delete;
 
 	~VulkanRenderPipelineImpl()
 	{

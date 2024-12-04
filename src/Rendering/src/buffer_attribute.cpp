@@ -38,9 +38,9 @@ BufferAttribute::BufferAttribute(UInt32 location, UInt32 offset, BufferFormat fo
 {
 }
 
-BufferAttribute::BufferAttribute(const BufferAttribute& _other) noexcept = default;
+BufferAttribute::BufferAttribute(const BufferAttribute& _other) = default;
 BufferAttribute::BufferAttribute(BufferAttribute&& _other) noexcept = default;
-BufferAttribute& BufferAttribute::operator=(const BufferAttribute& _other) noexcept = default;
+BufferAttribute& BufferAttribute::operator=(const BufferAttribute& _other) = default;
 BufferAttribute& BufferAttribute::operator=(BufferAttribute&& _other) noexcept = default;
 BufferAttribute::~BufferAttribute() noexcept = default;
 

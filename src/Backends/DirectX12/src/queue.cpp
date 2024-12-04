@@ -29,9 +29,9 @@ public:
 	{
 	}
 
-	DirectX12QueueImpl(const DirectX12QueueImpl&) noexcept = delete;
+	DirectX12QueueImpl(const DirectX12QueueImpl&) = delete;
 	DirectX12QueueImpl(DirectX12QueueImpl&&) noexcept = delete;
-	DirectX12QueueImpl& operator=(const DirectX12QueueImpl&) noexcept = delete;
+	DirectX12QueueImpl& operator=(const DirectX12QueueImpl&) = delete;
 	DirectX12QueueImpl& operator=(DirectX12QueueImpl&&) noexcept = delete;
 
 	~DirectX12QueueImpl()

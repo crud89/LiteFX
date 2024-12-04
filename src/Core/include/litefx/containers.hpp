@@ -287,7 +287,7 @@ namespace LiteFX {
 		/// Note that this constructor can only be used of <typeparamref name="T" /> is movable.
 		/// </remarks>
 		/// <param name="_other">The `Enumerable` to take over.</param>
-		constexpr Enumerable(Enumerable<T>&& _other) = default;
+		constexpr Enumerable(Enumerable<T>&& _other) noexcept = default;
 
 		/// <summary>
 		/// Initializes the `Enumerable` by taking over <paramref name="_other" />.
@@ -297,7 +297,7 @@ namespace LiteFX {
 		/// </remarks>
 		/// <param name="_other">The `Enumerable` to take over.</param>
 		/// <returns>A reference of the `Enumerable` after the move.</returns>
-		constexpr Enumerable<T>& operator=(Enumerable<T>&& _other) = default;
+		constexpr Enumerable<T>& operator=(Enumerable<T>&& _other) noexcept = default;
 
 		/// <summary>
 		/// Initializes the `Enumerable` by copying <paramref name="_other" />.
@@ -532,9 +532,9 @@ namespace LiteFX {
 	class IResource {
 	protected:
 		IResource() noexcept = default;
-		IResource(const IResource&) noexcept = delete;
+		IResource(const IResource&) = delete;
 		IResource(IResource&&) noexcept = default;
-		IResource& operator=(const IResource&) noexcept = delete;
+		IResource& operator=(const IResource&) = delete;
 		IResource& operator=(IResource&&) noexcept = default;
 
 	public:
@@ -573,9 +573,9 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="handle">The managed resource handle.</param>
 		explicit Resource(const THandle handle) noexcept : m_handle(handle) { }
-		Resource(const Resource&) noexcept = delete;
+		Resource(const Resource&) = delete;
 		Resource(Resource&&) noexcept = default;
-		Resource& operator=(const Resource&) noexcept = delete;
+		Resource& operator=(const Resource&) = delete;
 		Resource& operator=(Resource&&) noexcept = default;
 
 	public:
@@ -659,7 +659,7 @@ namespace LiteFX {
 
 		Builder(const Builder&) = delete;
 		auto operator=(const Builder&) = delete;
-		auto operator=(const Builder&&) = delete;
+		auto operator=(const Builder&&) noexcept = delete;
 
 		constexpr virtual ~Builder() noexcept = default;
 
@@ -679,7 +679,7 @@ namespace LiteFX {
 		/// builders. It is not possible to define a child builder without implementing the counter part in the parent builder.
 		/// </remarks>
 		template <typename TInstance>
-		void use(pointer_type&&) = delete;
+		void use(pointer_type&&) noexcept = delete;
 
 		/// <summary>
 		/// Calls <see cref="build" /> and returns the instance.
@@ -743,7 +743,7 @@ namespace LiteFX {
 
 		constexpr Builder(const Builder&) = delete;
 		auto operator=(const Builder&) = delete;
-		auto operator=(Builder&&) = delete;
+		auto operator=(Builder&&) noexcept = delete;
 		constexpr virtual ~Builder() noexcept = default;
 
 	protected:
@@ -762,7 +762,7 @@ namespace LiteFX {
 		/// builders. It is not possible to define a child builder without implementing the counter part in the parent builder.
 		/// </remarks>
 		template <typename TInstance>
-		void use(pointer_type&&) = delete;
+		void use(pointer_type&&) noexcept = delete;
 
 		/// <summary>
 		/// First, calls <see cref="build" />, then `use` on the parent builder using the current object instance and finally returns the parent builder.
@@ -819,9 +819,9 @@ namespace LiteFX {
 		/// </summary>
 		SharedObject() noexcept = default;
 		SharedObject(SharedObject&&) noexcept = default;
-		SharedObject(const SharedObject&) noexcept = default;
+		SharedObject(const SharedObject&) = default;
 		SharedObject& operator=(SharedObject&&) noexcept = default;
-		SharedObject& operator=(const SharedObject&) noexcept = default;
+		SharedObject& operator=(const SharedObject&) = default;
 
 	public:
 		/// <summary>

@@ -43,9 +43,9 @@ DirectX12Barrier::DirectX12Barrier() noexcept :
 }
 
 DirectX12Barrier::DirectX12Barrier(DirectX12Barrier&&) noexcept = default;
-DirectX12Barrier::DirectX12Barrier(const DirectX12Barrier&) noexcept = default;
+DirectX12Barrier::DirectX12Barrier(const DirectX12Barrier&) = default;
 DirectX12Barrier& DirectX12Barrier::operator=(DirectX12Barrier&&) noexcept = default;
-DirectX12Barrier& DirectX12Barrier::operator=(const DirectX12Barrier&) noexcept = default;
+DirectX12Barrier& DirectX12Barrier::operator=(const DirectX12Barrier&) = default;
 DirectX12Barrier::~DirectX12Barrier() noexcept = default;
 
 PipelineStage DirectX12Barrier::syncBefore() const noexcept

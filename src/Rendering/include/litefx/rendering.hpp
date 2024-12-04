@@ -23,9 +23,9 @@ namespace LiteFX::Rendering {
 
     protected:
         Barrier() noexcept = default;
-        Barrier(const Barrier&) noexcept = default;
+        Barrier(const Barrier&) = default;
         Barrier(Barrier&&) noexcept = default;
-        Barrier& operator=(const Barrier&) noexcept = default;
+        Barrier& operator=(const Barrier&) = default;
         Barrier& operator=(Barrier&&) noexcept = default;
 
     public:
@@ -158,9 +158,9 @@ namespace LiteFX::Rendering {
 
     protected:
         DescriptorSet() noexcept = default;
-        DescriptorSet(const DescriptorSet&) noexcept = default;
+        DescriptorSet(const DescriptorSet&) = default;
         DescriptorSet(DescriptorSet&&) noexcept = default;
-        DescriptorSet& operator=(const DescriptorSet&) noexcept = default;
+        DescriptorSet& operator=(const DescriptorSet&) = default;
         DescriptorSet& operator=(DescriptorSet&&) noexcept = default;
 
     public:
@@ -221,9 +221,9 @@ namespace LiteFX::Rendering {
 
     protected:
         DescriptorSetLayout() noexcept = default;
-        DescriptorSetLayout(const DescriptorSetLayout&) noexcept = default;
+        DescriptorSetLayout(const DescriptorSetLayout&) = default;
         DescriptorSetLayout(DescriptorSetLayout&&) noexcept = default;
-        DescriptorSetLayout& operator=(const DescriptorSetLayout&) noexcept = default;
+        DescriptorSetLayout& operator=(const DescriptorSetLayout&) = default;
         DescriptorSetLayout& operator=(DescriptorSetLayout&&) noexcept = default;
 
     public:
@@ -310,9 +310,9 @@ namespace LiteFX::Rendering {
 
     protected:
         PushConstantsLayout() noexcept = default;
-        PushConstantsLayout(const PushConstantsLayout&) noexcept = default;
+        PushConstantsLayout(const PushConstantsLayout&) = default;
         PushConstantsLayout(PushConstantsLayout&&) noexcept = default;
-        PushConstantsLayout& operator=(const PushConstantsLayout&) noexcept = default;
+        PushConstantsLayout& operator=(const PushConstantsLayout&) = default;
         PushConstantsLayout& operator=(PushConstantsLayout&&) noexcept = default;
 
     public:
@@ -341,9 +341,9 @@ namespace LiteFX::Rendering {
 
     protected:
         ShaderProgram() noexcept = default;
-        ShaderProgram(const ShaderProgram&) noexcept = default;
+        ShaderProgram(const ShaderProgram&) = default;
         ShaderProgram(ShaderProgram&&) noexcept = default;
-        ShaderProgram& operator=(const ShaderProgram&) noexcept = default;
+        ShaderProgram& operator=(const ShaderProgram&) = default;
         ShaderProgram& operator=(ShaderProgram&&) noexcept = default;
 
     public:
@@ -374,9 +374,9 @@ namespace LiteFX::Rendering {
 
     protected:
         PipelineLayout() noexcept = default;
-        PipelineLayout(const PipelineLayout&) noexcept = default;
+        PipelineLayout(const PipelineLayout&) = default;
         PipelineLayout(PipelineLayout&&) noexcept = default;
-        PipelineLayout& operator=(const PipelineLayout&) noexcept = default;
+        PipelineLayout& operator=(const PipelineLayout&) = default;
         PipelineLayout& operator=(PipelineLayout&&) noexcept = default;
 
     public:
@@ -409,9 +409,9 @@ namespace LiteFX::Rendering {
         using vertex_buffer_layout_type = TVertexBufferLayout;
     protected:
         VertexBuffer() noexcept = default;
-        VertexBuffer(const VertexBuffer&) noexcept = default;
+        VertexBuffer(const VertexBuffer&) = default;
         VertexBuffer(VertexBuffer&&) noexcept = default;
-        VertexBuffer& operator=(const VertexBuffer&) noexcept = default;
+        VertexBuffer& operator=(const VertexBuffer&) = default;
         VertexBuffer& operator=(VertexBuffer&&) noexcept = default;
 
     public:
@@ -434,9 +434,9 @@ namespace LiteFX::Rendering {
     
     protected:
         IndexBuffer() noexcept = default;
-        IndexBuffer(const IndexBuffer&) noexcept = default;
+        IndexBuffer(const IndexBuffer&) = default;
         IndexBuffer(IndexBuffer&&) noexcept = default;
-        IndexBuffer& operator=(const IndexBuffer&) noexcept = default;
+        IndexBuffer& operator=(const IndexBuffer&) = default;
         IndexBuffer& operator=(IndexBuffer&&) noexcept = default;
     
     public:
@@ -462,9 +462,9 @@ namespace LiteFX::Rendering {
 
     protected:
         InputAssembler() noexcept = default;
-        InputAssembler(const InputAssembler&) noexcept = default;
+        InputAssembler(const InputAssembler&) = default;
         InputAssembler(InputAssembler&&) noexcept = default;
-        InputAssembler& operator=(const InputAssembler&) noexcept = default;
+        InputAssembler& operator=(const InputAssembler&) = default;
         InputAssembler& operator=(InputAssembler&&) noexcept = default;
 
     public:
@@ -503,9 +503,9 @@ namespace LiteFX::Rendering {
 
     protected:
         Pipeline() noexcept = default;
-        Pipeline(const Pipeline&) noexcept = default;
+        Pipeline(const Pipeline&) = default;
         Pipeline(Pipeline&&) noexcept = default;
-        Pipeline& operator=(const Pipeline&) noexcept = default;
+        Pipeline& operator=(const Pipeline&) = default;
         Pipeline& operator=(Pipeline&&) noexcept = default;
 
     public:
@@ -587,8 +587,8 @@ namespace LiteFX::Rendering {
     private:
         CommandBuffer() noexcept = default;
         CommandBuffer(CommandBuffer&&) noexcept = default;
-        CommandBuffer(const CommandBuffer&) noexcept = default;
-        CommandBuffer& operator=(const CommandBuffer&) noexcept = default;
+        CommandBuffer(const CommandBuffer&) = default;
+        CommandBuffer& operator=(const CommandBuffer&) = default;
         CommandBuffer& operator=(CommandBuffer&&) noexcept = default;
 
     public:
@@ -927,9 +927,9 @@ namespace LiteFX::Rendering {
     protected:
         RenderPipeline() noexcept = default;
         RenderPipeline(RenderPipeline&&) noexcept = default;
-        RenderPipeline(const RenderPipeline&) noexcept = default;
+        RenderPipeline(const RenderPipeline&) = default;
         RenderPipeline& operator=(RenderPipeline&&) noexcept = default;
-        RenderPipeline& operator=(const RenderPipeline&) noexcept = default;
+        RenderPipeline& operator=(const RenderPipeline&) = default;
 
     public:
         ~RenderPipeline() noexcept override = default;
@@ -962,9 +962,9 @@ namespace LiteFX::Rendering {
     protected:
         ComputePipeline() noexcept = default;
         ComputePipeline(ComputePipeline&&) noexcept = default;
-        ComputePipeline(const ComputePipeline&) noexcept = default;
+        ComputePipeline(const ComputePipeline&) = default;
         ComputePipeline& operator=(ComputePipeline&&) noexcept = default;
-        ComputePipeline& operator=(const ComputePipeline&) noexcept = default;
+        ComputePipeline& operator=(const ComputePipeline&) = default;
 
     public:
         ~ComputePipeline() noexcept override = default;
@@ -990,9 +990,9 @@ namespace LiteFX::Rendering {
     protected:
         RayTracingPipeline() noexcept = default;
         RayTracingPipeline(RayTracingPipeline&&) noexcept = default;
-        RayTracingPipeline(const RayTracingPipeline&) noexcept = default;
+        RayTracingPipeline(const RayTracingPipeline&) = default;
         RayTracingPipeline& operator=(RayTracingPipeline&&) noexcept = default;
-        RayTracingPipeline& operator=(const RayTracingPipeline&) noexcept = default;
+        RayTracingPipeline& operator=(const RayTracingPipeline&) = default;
 
     public:
         ~RayTracingPipeline() noexcept override = default;
@@ -1024,9 +1024,9 @@ namespace LiteFX::Rendering {
     protected:
         FrameBuffer() noexcept = default;
         FrameBuffer(FrameBuffer&&) noexcept = default;
-        FrameBuffer(const FrameBuffer&) noexcept = default;
+        FrameBuffer(const FrameBuffer&) = default;
         FrameBuffer& operator=(FrameBuffer&&) noexcept = default;
-        FrameBuffer& operator=(const FrameBuffer&) noexcept = default;
+        FrameBuffer& operator=(const FrameBuffer&) = default;
 
     public:
         ~FrameBuffer() noexcept override = default;
@@ -1056,9 +1056,9 @@ namespace LiteFX::Rendering {
     protected:
         CommandQueue() noexcept = default;
         CommandQueue(CommandQueue&&) noexcept = default;
-        CommandQueue(const CommandQueue&) noexcept = default;
+        CommandQueue(const CommandQueue&) = default;
         CommandQueue& operator=(CommandQueue&&) noexcept = default;
-        CommandQueue& operator=(const CommandQueue&) noexcept = default;
+        CommandQueue& operator=(const CommandQueue&) = default;
 
     public:
         ~CommandQueue() noexcept override = default;
@@ -1119,9 +1119,9 @@ namespace LiteFX::Rendering {
     protected:
         RenderPass() noexcept = default;
         RenderPass(RenderPass&&) noexcept = default;
-        RenderPass(const RenderPass&) noexcept = default;
+        RenderPass(const RenderPass&) = default;
         RenderPass& operator=(RenderPass&&) noexcept = default;
-        RenderPass& operator=(const RenderPass&) noexcept = default;
+        RenderPass& operator=(const RenderPass&) = default;
 
     public:
         ~RenderPass() noexcept override = default;
@@ -1177,9 +1177,9 @@ namespace LiteFX::Rendering {
     protected:
         SwapChain() noexcept = default;
         SwapChain(SwapChain&&) noexcept = default;
-        SwapChain(const SwapChain&) noexcept = default;
+        SwapChain(const SwapChain&) = default;
         SwapChain& operator=(SwapChain&&) noexcept = default;
-        SwapChain& operator=(const SwapChain&) noexcept = default;
+        SwapChain& operator=(const SwapChain&) = default;
 
     public:
         ~SwapChain() noexcept override = default;
@@ -1238,9 +1238,9 @@ namespace LiteFX::Rendering {
     protected:
         GraphicsFactory() noexcept = default;
         GraphicsFactory(GraphicsFactory&&) noexcept = default;
-        GraphicsFactory(const GraphicsFactory&) noexcept = default;
+        GraphicsFactory(const GraphicsFactory&) = default;
         GraphicsFactory& operator=(GraphicsFactory&&) noexcept = default;
-        GraphicsFactory& operator=(const GraphicsFactory&) noexcept = default;
+        GraphicsFactory& operator=(const GraphicsFactory&) = default;
 
     public:
         ~GraphicsFactory() noexcept override = default;
@@ -1415,9 +1415,9 @@ namespace LiteFX::Rendering {
     protected:
         GraphicsDevice() noexcept = default;
         GraphicsDevice(GraphicsDevice&&) noexcept = default;
-        GraphicsDevice(const GraphicsDevice&) noexcept = default;
+        GraphicsDevice(const GraphicsDevice&) = default;
         GraphicsDevice& operator=(GraphicsDevice&&) noexcept = default;
-        GraphicsDevice& operator=(const GraphicsDevice&) noexcept = default;
+        GraphicsDevice& operator=(const GraphicsDevice&) = default;
 
     public:
         ~GraphicsDevice() noexcept override = default;
@@ -1625,9 +1625,9 @@ namespace LiteFX::Rendering {
     protected:
         RenderBackend() noexcept = default;
         RenderBackend(RenderBackend&&) noexcept = default;
-        RenderBackend(const RenderBackend&) noexcept = default;
+        RenderBackend(const RenderBackend&) = default;
         RenderBackend& operator=(RenderBackend&&) noexcept = default;
-        RenderBackend& operator=(const RenderBackend&) noexcept = default;
+        RenderBackend& operator=(const RenderBackend&) = default;
 
     public:
         ~RenderBackend() noexcept override = default;

@@ -35,9 +35,9 @@ RenderPassDependency::RenderPassDependency(const RenderTarget& renderTarget, UIn
 {
 }
 
-RenderPassDependency::RenderPassDependency(const RenderPassDependency& _other) noexcept = default;
+RenderPassDependency::RenderPassDependency(const RenderPassDependency& _other) = default;
 RenderPassDependency::RenderPassDependency(RenderPassDependency&& _other) noexcept = default;
-RenderPassDependency& RenderPassDependency::operator=(const RenderPassDependency& _other) noexcept = default;
+RenderPassDependency& RenderPassDependency::operator=(const RenderPassDependency& _other) = default;
 RenderPassDependency& RenderPassDependency::operator=(RenderPassDependency&& _other) noexcept = default;
 RenderPassDependency::~RenderPassDependency() noexcept = default;
 

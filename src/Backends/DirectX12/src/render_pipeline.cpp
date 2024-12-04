@@ -57,9 +57,9 @@ public:
 	}
 
 	DirectX12RenderPipelineImpl(DirectX12RenderPipelineImpl&&) noexcept = delete;
-	DirectX12RenderPipelineImpl(const DirectX12RenderPipelineImpl&) noexcept = delete;
+	DirectX12RenderPipelineImpl(const DirectX12RenderPipelineImpl&) = delete;
 	DirectX12RenderPipelineImpl& operator=(DirectX12RenderPipelineImpl&&) noexcept = delete;
-	DirectX12RenderPipelineImpl& operator=(const DirectX12RenderPipelineImpl&) noexcept = delete;
+	DirectX12RenderPipelineImpl& operator=(const DirectX12RenderPipelineImpl&) = delete;
 
 public:
 	ComPtr<ID3D12PipelineState> initialize(const DirectX12RenderPipeline& pipeline, MultiSamplingLevel samples)

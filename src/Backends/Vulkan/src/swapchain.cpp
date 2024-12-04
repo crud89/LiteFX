@@ -346,9 +346,9 @@ private:
 	public:
 		ImageResource() noexcept = default;
 		ImageResource(ImageResource&&) noexcept = default;
-		ImageResource(const ImageResource&) noexcept = delete;
+		ImageResource(const ImageResource&) = delete;
 		ImageResource& operator=(ImageResource&&) noexcept = default;
-		ImageResource& operator=(const ImageResource&) noexcept = delete;
+		ImageResource& operator=(const ImageResource&) = delete;
 
 		~ImageResource() noexcept
 		{
@@ -409,9 +409,9 @@ public:
 	}
 
 	VulkanSwapChainImpl(VulkanSwapChainImpl&&) noexcept = default;
-	VulkanSwapChainImpl(const VulkanSwapChainImpl&) noexcept = delete;
+	VulkanSwapChainImpl(const VulkanSwapChainImpl&) = delete;
 	VulkanSwapChainImpl& operator=(VulkanSwapChainImpl&&) noexcept = default;
-	VulkanSwapChainImpl& operator=(const VulkanSwapChainImpl&) noexcept = delete;
+	VulkanSwapChainImpl& operator=(const VulkanSwapChainImpl&) = delete;
 
 	~VulkanSwapChainImpl()
 	{

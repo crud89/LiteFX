@@ -34,13 +34,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanVertexBufferLayout(VulkanVertexBufferLayout&&) noexcept;
 
         /// <inheritdoc />
-        VulkanVertexBufferLayout(const VulkanVertexBufferLayout&) noexcept = delete;
+        VulkanVertexBufferLayout(const VulkanVertexBufferLayout&) = delete;
 
         /// <inheritdoc />
         VulkanVertexBufferLayout& operator=(VulkanVertexBufferLayout&&) noexcept;
 
         /// <inheritdoc />
-        VulkanVertexBufferLayout& operator=(const VulkanVertexBufferLayout&) noexcept = delete;
+        VulkanVertexBufferLayout& operator=(const VulkanVertexBufferLayout&) = delete;
 
         /// <inheritdoc />
         ~VulkanVertexBufferLayout() noexcept override;
@@ -81,13 +81,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanIndexBufferLayout(VulkanIndexBufferLayout&&) noexcept;
 
         /// <inheritdoc />
-        VulkanIndexBufferLayout(const VulkanIndexBufferLayout&) noexcept;
+        VulkanIndexBufferLayout(const VulkanIndexBufferLayout&);
 
         /// <inheritdoc />
         VulkanIndexBufferLayout& operator=(VulkanIndexBufferLayout&&) noexcept;
 
         /// <inheritdoc />
-        VulkanIndexBufferLayout& operator=(const VulkanIndexBufferLayout&) noexcept;
+        VulkanIndexBufferLayout& operator=(const VulkanIndexBufferLayout&);
 
         /// <inheritdoc />
         ~VulkanIndexBufferLayout() noexcept override;
@@ -120,9 +120,9 @@ namespace LiteFX::Rendering::Backends {
     protected:
         IVulkanBuffer() noexcept = default;
         IVulkanBuffer(IVulkanBuffer&&) noexcept = default;
-        IVulkanBuffer(const IVulkanBuffer&) noexcept = delete;
+        IVulkanBuffer(const IVulkanBuffer&) = delete;
         IVulkanBuffer& operator=(IVulkanBuffer&&) noexcept = default;
-        IVulkanBuffer& operator=(const IVulkanBuffer&) noexcept = delete;
+        IVulkanBuffer& operator=(const IVulkanBuffer&) = delete;
 
     public:
         ~IVulkanBuffer() noexcept override = default;
@@ -137,9 +137,9 @@ namespace LiteFX::Rendering::Backends {
     protected:
         IVulkanVertexBuffer() noexcept = default;
         IVulkanVertexBuffer(IVulkanVertexBuffer&&) noexcept = default;
-        IVulkanVertexBuffer(const IVulkanVertexBuffer&) noexcept = delete;
+        IVulkanVertexBuffer(const IVulkanVertexBuffer&) = delete;
         IVulkanVertexBuffer& operator=(IVulkanVertexBuffer&&) noexcept = default;
-        IVulkanVertexBuffer& operator=(const IVulkanVertexBuffer&) noexcept = delete;
+        IVulkanVertexBuffer& operator=(const IVulkanVertexBuffer&) = delete;
 
     public:
         ~IVulkanVertexBuffer() noexcept override = default;
@@ -154,9 +154,9 @@ namespace LiteFX::Rendering::Backends {
     protected:
         IVulkanIndexBuffer() noexcept = default;
         IVulkanIndexBuffer(IVulkanIndexBuffer&&) noexcept = default;
-        IVulkanIndexBuffer(const IVulkanIndexBuffer&) noexcept = delete;
+        IVulkanIndexBuffer(const IVulkanIndexBuffer&) = delete;
         IVulkanIndexBuffer& operator=(IVulkanIndexBuffer&&) noexcept = default;
-        IVulkanIndexBuffer& operator=(const IVulkanIndexBuffer&) noexcept = delete;
+        IVulkanIndexBuffer& operator=(const IVulkanIndexBuffer&) = delete;
 
     public:
         ~IVulkanIndexBuffer() noexcept override = default;
@@ -174,9 +174,9 @@ namespace LiteFX::Rendering::Backends {
     protected:
         IVulkanImage() noexcept = default;
         IVulkanImage(IVulkanImage&&) noexcept = default;
-        IVulkanImage(const IVulkanImage&) noexcept = delete;
+        IVulkanImage(const IVulkanImage&) = delete;
         IVulkanImage& operator=(IVulkanImage&&) noexcept = default;
-        IVulkanImage& operator=(const IVulkanImage&) noexcept = delete;
+        IVulkanImage& operator=(const IVulkanImage&) = delete;
 
     public:
         ~IVulkanImage() noexcept override = default;
@@ -207,9 +207,9 @@ namespace LiteFX::Rendering::Backends {
     protected:
         IVulkanSampler() noexcept = default;
         IVulkanSampler(IVulkanSampler&&) noexcept = default;
-        IVulkanSampler(const IVulkanSampler&) noexcept = delete;
+        IVulkanSampler(const IVulkanSampler&) = delete;
         IVulkanSampler& operator=(IVulkanSampler&&) noexcept = default;
-        IVulkanSampler& operator=(const IVulkanSampler&) noexcept = delete;
+        IVulkanSampler& operator=(const IVulkanSampler&) = delete;
 
     public:
         ~IVulkanSampler() noexcept override = default;
@@ -225,9 +225,9 @@ namespace LiteFX::Rendering::Backends {
     protected:
         IVulkanAccelerationStructure() noexcept = default;
         IVulkanAccelerationStructure(IVulkanAccelerationStructure&&) noexcept = default;
-        IVulkanAccelerationStructure(const IVulkanAccelerationStructure&) noexcept = delete;
+        IVulkanAccelerationStructure(const IVulkanAccelerationStructure&) = delete;
         IVulkanAccelerationStructure& operator=(IVulkanAccelerationStructure&&) noexcept = default;
-        IVulkanAccelerationStructure& operator=(const IVulkanAccelerationStructure&) noexcept = delete;
+        IVulkanAccelerationStructure& operator=(const IVulkanAccelerationStructure&) = delete;
 
     public:
         ~IVulkanAccelerationStructure() noexcept override = default;
@@ -260,13 +260,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanBottomLevelAccelerationStructure(VulkanBottomLevelAccelerationStructure&&) noexcept;
 
         /// <inheritdoc />
-        VulkanBottomLevelAccelerationStructure(const VulkanBottomLevelAccelerationStructure&) noexcept = delete;
+        VulkanBottomLevelAccelerationStructure(const VulkanBottomLevelAccelerationStructure&) = delete;
 
         /// <inheritdoc />
         VulkanBottomLevelAccelerationStructure& operator=(VulkanBottomLevelAccelerationStructure&&) noexcept;
 
         /// <inheritdoc />
-        VulkanBottomLevelAccelerationStructure& operator=(const VulkanBottomLevelAccelerationStructure&) noexcept = delete;
+        VulkanBottomLevelAccelerationStructure& operator=(const VulkanBottomLevelAccelerationStructure&) = delete;
         
         /// <inheritdoc />
         ~VulkanBottomLevelAccelerationStructure() noexcept override;
@@ -355,13 +355,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanTopLevelAccelerationStructure(VulkanTopLevelAccelerationStructure&&) noexcept;
 
         /// <inheritdoc />
-        VulkanTopLevelAccelerationStructure(const VulkanTopLevelAccelerationStructure&) noexcept = delete;
+        VulkanTopLevelAccelerationStructure(const VulkanTopLevelAccelerationStructure&) = delete;
 
         /// <inheritdoc />
         VulkanTopLevelAccelerationStructure& operator=(VulkanTopLevelAccelerationStructure&&) noexcept;
 
         /// <inheritdoc />
-        VulkanTopLevelAccelerationStructure& operator=(const VulkanTopLevelAccelerationStructure&) noexcept = delete;
+        VulkanTopLevelAccelerationStructure& operator=(const VulkanTopLevelAccelerationStructure&) = delete;
 
         /// <inheritdoc />
         ~VulkanTopLevelAccelerationStructure() noexcept override;
@@ -441,13 +441,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanBarrier(VulkanBarrier&&) noexcept;
 
         /// <inheritdoc />
-        VulkanBarrier(const VulkanBarrier&) noexcept;
+        VulkanBarrier(const VulkanBarrier&);
 
         /// <inheritdoc />
         VulkanBarrier& operator=(VulkanBarrier&&) noexcept;
 
         /// <inheritdoc />
-        VulkanBarrier& operator=(const VulkanBarrier&) noexcept;
+        VulkanBarrier& operator=(const VulkanBarrier&);
 
         /// <inheritdoc />
         ~VulkanBarrier() noexcept override;
@@ -530,13 +530,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanShaderModule(VulkanShaderModule&&) noexcept;
 
         /// <inheritdoc />
-        VulkanShaderModule(const VulkanShaderModule&) noexcept = delete;
+        VulkanShaderModule(const VulkanShaderModule&) = delete;
 
         /// <inheritdoc />
         VulkanShaderModule& operator=(VulkanShaderModule&&) noexcept;
 
         /// <inheritdoc />
-        VulkanShaderModule& operator=(const VulkanShaderModule&) noexcept = delete;
+        VulkanShaderModule& operator=(const VulkanShaderModule&) = delete;
 
         /// <inheritdoc />
         ~VulkanShaderModule() noexcept override;
@@ -610,13 +610,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanShaderProgram(VulkanShaderProgram&&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanShaderProgram(const VulkanShaderProgram&) noexcept = delete;
+        VulkanShaderProgram(const VulkanShaderProgram&) = delete;
 
         /// <inheritdoc />
         VulkanShaderProgram& operator=(VulkanShaderProgram&&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanShaderProgram& operator=(const VulkanShaderProgram&) noexcept = delete;
+        VulkanShaderProgram& operator=(const VulkanShaderProgram&) = delete;
 
         /// <inheritdoc />
         ~VulkanShaderProgram() noexcept override;
@@ -657,13 +657,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanDescriptorSet(VulkanDescriptorSet&&) noexcept;
 
         /// <inheritdoc />
-        VulkanDescriptorSet(const VulkanDescriptorSet&) noexcept = delete;
+        VulkanDescriptorSet(const VulkanDescriptorSet&) = delete;
 
         /// <inheritdoc />
         VulkanDescriptorSet& operator=(VulkanDescriptorSet&&) noexcept;
 
         /// <inheritdoc />
-        VulkanDescriptorSet& operator=(const VulkanDescriptorSet&) noexcept = delete;
+        VulkanDescriptorSet& operator=(const VulkanDescriptorSet&) = delete;
 
         /// <inheritdoc />
         ~VulkanDescriptorSet() noexcept override;
@@ -729,13 +729,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanDescriptorLayout(VulkanDescriptorLayout&&) noexcept;
 
         /// <inheritdoc />
-        VulkanDescriptorLayout(const VulkanDescriptorLayout&) noexcept = delete;
+        VulkanDescriptorLayout(const VulkanDescriptorLayout&) = delete;
 
         /// <inheritdoc />
         VulkanDescriptorLayout& operator=(VulkanDescriptorLayout&&) noexcept;
 
         /// <inheritdoc />
-        VulkanDescriptorLayout& operator=(const VulkanDescriptorLayout&) noexcept = delete;
+        VulkanDescriptorLayout& operator=(const VulkanDescriptorLayout&) = delete;
 
         /// <inheritdoc />
         ~VulkanDescriptorLayout() noexcept override;
@@ -802,13 +802,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanDescriptorSetLayout(VulkanDescriptorSetLayout&&) noexcept;
 
         /// <inheritdoc />
-        VulkanDescriptorSetLayout(const VulkanDescriptorSetLayout&) noexcept = delete;
+        VulkanDescriptorSetLayout(const VulkanDescriptorSetLayout&) = delete;
 
         /// <inheritdoc />
         VulkanDescriptorSetLayout& operator=(VulkanDescriptorSetLayout&&) noexcept;
 
         /// <inheritdoc />
-        VulkanDescriptorSetLayout& operator=(const VulkanDescriptorSetLayout&) noexcept = delete;
+        VulkanDescriptorSetLayout& operator=(const VulkanDescriptorSetLayout&) = delete;
 
         /// <inheritdoc />
         ~VulkanDescriptorSetLayout() noexcept override;
@@ -915,13 +915,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanPushConstantsRange(VulkanPushConstantsRange&&) noexcept;
 
         /// <inheritdoc />
-        VulkanPushConstantsRange(const VulkanPushConstantsRange&) noexcept;
+        VulkanPushConstantsRange(const VulkanPushConstantsRange&);
 
         /// <inheritdoc />
         VulkanPushConstantsRange& operator=(VulkanPushConstantsRange&&) noexcept;
 
         /// <inheritdoc />
-        VulkanPushConstantsRange& operator=(const VulkanPushConstantsRange&) noexcept;
+        VulkanPushConstantsRange& operator=(const VulkanPushConstantsRange&);
 
         /// <inheritdoc />
         ~VulkanPushConstantsRange() noexcept override;
@@ -966,13 +966,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanPushConstantsLayout(VulkanPushConstantsLayout&&) noexcept;
 
         /// <inheritdoc />
-        VulkanPushConstantsLayout(const VulkanPushConstantsLayout&) noexcept = delete;
+        VulkanPushConstantsLayout(const VulkanPushConstantsLayout&) = delete;
 
         /// <inheritdoc />
         VulkanPushConstantsLayout& operator=(VulkanPushConstantsLayout&&) noexcept;
 
         /// <inheritdoc />
-        VulkanPushConstantsLayout& operator=(const VulkanPushConstantsLayout&) noexcept = delete;
+        VulkanPushConstantsLayout& operator=(const VulkanPushConstantsLayout&) = delete;
 
         /// <inheritdoc />
         ~VulkanPushConstantsLayout() noexcept override;
@@ -1030,13 +1030,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanPipelineLayout(VulkanPipelineLayout&&) noexcept;
 
         /// <inheritdoc />
-        VulkanPipelineLayout(const VulkanPipelineLayout&) noexcept = delete;
+        VulkanPipelineLayout(const VulkanPipelineLayout&) = delete;
 
         /// <inheritdoc />
         VulkanPipelineLayout& operator=(VulkanPipelineLayout&&) noexcept;
 
         /// <inheritdoc />
-        VulkanPipelineLayout& operator=(const VulkanPipelineLayout&) noexcept = delete;
+        VulkanPipelineLayout& operator=(const VulkanPipelineLayout&) = delete;
 
         /// <inheritdoc />
         ~VulkanPipelineLayout() noexcept override;
@@ -1088,13 +1088,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanInputAssembler(VulkanInputAssembler&&) noexcept;
 
         /// <inheritdoc />
-		VulkanInputAssembler(const VulkanInputAssembler&) noexcept = delete;
+		VulkanInputAssembler(const VulkanInputAssembler&) = delete;
 
         /// <inheritdoc />
         VulkanInputAssembler& operator=(VulkanInputAssembler&&) noexcept;
 
         /// <inheritdoc />
-        VulkanInputAssembler& operator=(const VulkanInputAssembler&) noexcept = delete;
+        VulkanInputAssembler& operator=(const VulkanInputAssembler&) = delete;
 
         /// <inheritdoc />
 		~VulkanInputAssembler() noexcept override;
@@ -1141,13 +1141,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanRasterizer(VulkanRasterizer&&) noexcept;
 
         /// <inheritdoc />
-        VulkanRasterizer(const VulkanRasterizer&) noexcept = delete;
+        VulkanRasterizer(const VulkanRasterizer&) = delete;
 
         /// <inheritdoc />
         VulkanRasterizer& operator=(VulkanRasterizer&&) noexcept;
 
         /// <inheritdoc />
-        VulkanRasterizer& operator=(const VulkanRasterizer&) noexcept = delete;
+        VulkanRasterizer& operator=(const VulkanRasterizer&) = delete;
 
         /// <inheritdoc />
         ~VulkanRasterizer() noexcept override;
@@ -1184,9 +1184,9 @@ namespace LiteFX::Rendering::Backends {
         using Resource<VkPipeline>::Resource;
 
         VulkanPipelineState(VulkanPipelineState&&) noexcept = default;
-        VulkanPipelineState(const VulkanPipelineState&) noexcept = delete;
+        VulkanPipelineState(const VulkanPipelineState&) = delete;
         VulkanPipelineState& operator=(VulkanPipelineState&&) noexcept = default;
-        VulkanPipelineState& operator=(const VulkanPipelineState&) noexcept = delete;
+        VulkanPipelineState& operator=(const VulkanPipelineState&) = delete;
 
     public:
         ~VulkanPipelineState() noexcept override = default;
@@ -1247,13 +1247,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanCommandBuffer(VulkanCommandBuffer&&) noexcept;
 
         /// <inheritdoc />
-        VulkanCommandBuffer(const VulkanCommandBuffer&) noexcept = delete;
+        VulkanCommandBuffer(const VulkanCommandBuffer&) = delete;
 
         /// <inheritdoc />
         VulkanCommandBuffer& operator=(VulkanCommandBuffer&&) noexcept;
 
         /// <inheritdoc />
-        VulkanCommandBuffer& operator=(const VulkanCommandBuffer&) noexcept = delete;
+        VulkanCommandBuffer& operator=(const VulkanCommandBuffer&) = delete;
         
         /// <inheritdoc />
         ~VulkanCommandBuffer() noexcept override;
@@ -1481,13 +1481,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanQueue(VulkanQueue&&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanQueue(const VulkanQueue&) noexcept = delete;
+        VulkanQueue(const VulkanQueue&) = delete;
 
         /// <inheritdoc />
         VulkanQueue& operator=(VulkanQueue&&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanQueue& operator=(const VulkanQueue&) noexcept = delete;
+        VulkanQueue& operator=(const VulkanQueue&) = delete;
 
         /// <inheritdoc />
         ~VulkanQueue() noexcept override;
@@ -1609,13 +1609,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanRenderPipeline(const VulkanRenderPipeline&) noexcept = delete;
+        VulkanRenderPipeline(const VulkanRenderPipeline&) = delete;
 
         /// <inheritdoc />
         VulkanRenderPipeline& operator=(VulkanRenderPipeline&&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanRenderPipeline& operator=(const VulkanRenderPipeline&) noexcept = delete;
+        VulkanRenderPipeline& operator=(const VulkanRenderPipeline&) = delete;
 
         /// <inheritdoc />
         ~VulkanRenderPipeline() noexcept override;
@@ -1685,13 +1685,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanComputePipeline(VulkanComputePipeline&&) noexcept;
 
         /// <inheritdoc />
-        VulkanComputePipeline(const VulkanComputePipeline&) noexcept = delete;
+        VulkanComputePipeline(const VulkanComputePipeline&) = delete;
 
         /// <inheritdoc />
         VulkanComputePipeline& operator=(VulkanComputePipeline&&) noexcept;
 
         /// <inheritdoc />
-        VulkanComputePipeline& operator=(const VulkanComputePipeline&) noexcept = delete;
+        VulkanComputePipeline& operator=(const VulkanComputePipeline&) = delete;
 
         /// <inheritdoc />
         ~VulkanComputePipeline() noexcept override;
@@ -1747,13 +1747,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanRayTracingPipeline(VulkanRayTracingPipeline&&) noexcept;
 
         /// <inheritdoc />
-        VulkanRayTracingPipeline(const VulkanRayTracingPipeline&) noexcept = delete;
+        VulkanRayTracingPipeline(const VulkanRayTracingPipeline&) = delete;
 
         /// <inheritdoc />
         VulkanRayTracingPipeline& operator=(VulkanRayTracingPipeline&&) noexcept;
 
         /// <inheritdoc />
-        VulkanRayTracingPipeline& operator=(const VulkanRayTracingPipeline&) noexcept = delete;
+        VulkanRayTracingPipeline& operator=(const VulkanRayTracingPipeline&) = delete;
 
         /// <inheritdoc />
         ~VulkanRayTracingPipeline() noexcept override;
@@ -1827,13 +1827,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanFrameBuffer(VulkanFrameBuffer&&) noexcept = delete;
         
         /// <inheritdoc />
-        VulkanFrameBuffer(const VulkanFrameBuffer&) noexcept = delete;
+        VulkanFrameBuffer(const VulkanFrameBuffer&) = delete;
 
         /// <inheritdoc />
         VulkanFrameBuffer& operator=(VulkanFrameBuffer&&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanFrameBuffer& operator=(const VulkanFrameBuffer&) noexcept = delete;
+        VulkanFrameBuffer& operator=(const VulkanFrameBuffer&) = delete;
 
         /// <inheritdoc />
         ~VulkanFrameBuffer() noexcept override;
@@ -2000,13 +2000,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanRenderPass(VulkanRenderPass&&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanRenderPass(const VulkanRenderPass&) noexcept = delete;
+        VulkanRenderPass(const VulkanRenderPass&) = delete;
 
         /// <inheritdoc />
         VulkanRenderPass& operator=(VulkanRenderPass&&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanRenderPass& operator=(const VulkanRenderPass&) noexcept = delete;
+        VulkanRenderPass& operator=(const VulkanRenderPass&) = delete;
 
         /// <inheritdoc />
         ~VulkanRenderPass() noexcept override;
@@ -2165,13 +2165,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanSwapChain(VulkanSwapChain&&) noexcept;
 
         /// <inheritdoc />
-        VulkanSwapChain(const VulkanSwapChain&) noexcept = delete;
+        VulkanSwapChain(const VulkanSwapChain&) = delete;
 
         /// <inheritdoc />
         VulkanSwapChain& operator=(VulkanSwapChain&&) noexcept;
 
         /// <inheritdoc />
-        VulkanSwapChain& operator=(const VulkanSwapChain&) noexcept = delete;
+        VulkanSwapChain& operator=(const VulkanSwapChain&) = delete;
 
         /// <inheritdoc />
         ~VulkanSwapChain() noexcept override;
@@ -2269,13 +2269,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanGraphicsFactory(VulkanGraphicsFactory&&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanGraphicsFactory(const VulkanGraphicsFactory&) noexcept = delete;
+        VulkanGraphicsFactory(const VulkanGraphicsFactory&) = delete;
 
         /// <inheritdoc />
         VulkanGraphicsFactory& operator=(VulkanGraphicsFactory&&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanGraphicsFactory& operator=(const VulkanGraphicsFactory&) noexcept = delete;
+        VulkanGraphicsFactory& operator=(const VulkanGraphicsFactory&) = delete;
 
         /// <inheritdoc />
         ~VulkanGraphicsFactory() noexcept override;
@@ -2370,13 +2370,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanDevice(VulkanDevice&&) noexcept;
 
         /// <inheritdoc />
-        VulkanDevice(const VulkanDevice&) noexcept = delete;
+        VulkanDevice(const VulkanDevice&) = delete;
 
         /// <inheritdoc />
         VulkanDevice& operator=(VulkanDevice&&) noexcept;
 
         /// <inheritdoc />
-        VulkanDevice& operator=(const VulkanDevice&) noexcept = delete;
+        VulkanDevice& operator=(const VulkanDevice&) = delete;
 
         /// <inheritdoc />
         ~VulkanDevice() noexcept override;
@@ -2563,13 +2563,13 @@ namespace LiteFX::Rendering::Backends {
         VulkanBackend(VulkanBackend&&) noexcept;
 
         /// <inheritdoc />
-        VulkanBackend(const VulkanBackend&) noexcept = delete;
+        VulkanBackend(const VulkanBackend&) = delete;
 
         /// <inheritdoc />
         VulkanBackend& operator=(VulkanBackend&&) noexcept;
 
         /// <inheritdoc />
-        VulkanBackend& operator=(const VulkanBackend&) noexcept = delete;
+        VulkanBackend& operator=(const VulkanBackend&) = delete;
 
         /// <inheritdoc />
         ~VulkanBackend() noexcept override;

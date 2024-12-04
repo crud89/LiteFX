@@ -46,9 +46,9 @@ public:
     }
 
     VulkanRenderPassImpl(VulkanRenderPassImpl&&) noexcept = default;
-    VulkanRenderPassImpl(const VulkanRenderPassImpl&) noexcept = delete;
+    VulkanRenderPassImpl(const VulkanRenderPassImpl&) = delete;
     VulkanRenderPassImpl& operator=(VulkanRenderPassImpl&&) noexcept = default;
-    VulkanRenderPassImpl& operator=(const VulkanRenderPassImpl&) noexcept = delete;
+    VulkanRenderPassImpl& operator=(const VulkanRenderPassImpl&) = delete;
 
     ~VulkanRenderPassImpl() noexcept
     {
