@@ -124,7 +124,7 @@ namespace LiteFX {
 		/// <param name="...args">The arguments passed to the function.</param>
 		/// <returns>The result of the delegate function call.</returns>
 		inline TResult invoke(TArgs... args) const {
-			return m_target(args...);
+			return m_target(std::move(args)...);
 		}
 
 		/// <summary>
@@ -142,7 +142,7 @@ namespace LiteFX {
 		/// <param name="...args">The arguments passed to the function.</param>
 		/// <returns>The result of the delegate function call.</returns>
 		inline TResult operator()(TArgs... args) const {
-			return this->invoke(args...);
+			return this->invoke(std::move(args)...);
 		}
 	};
 
@@ -221,7 +221,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="subscriber">A delegate for the event handler.</param>
 		/// <returns>A unique token of the event handler.</returns>
-		event_token_type add(function_type subscriber) {
+		event_token_type add(const function_type& subscriber) {
 			const auto match = std::max_element(m_subscribers.begin(), m_subscribers.end(), [](const auto& lhs, const auto& rhs) { return lhs.token() < rhs.token(); });
 			event_token_type token = match == m_subscribers.end() ? 0 : match->token() + 1;
 			m_subscribers.emplace_back(subscriber, token);
@@ -264,7 +264,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="sender">The source of the event.</param>
 		/// <param name="args">The additional event arguments.</param>
-		void invoke(const void* sender, TEventArgs args) const {
+		void invoke(const void* sender, const TEventArgs& args) const {
 			for (const auto& handler : m_subscribers)
 				handler(sender, args);
 		}
@@ -332,7 +332,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="sender">The source of the event.</param>
 		/// <param name="args">The additional event arguments.</param>
-		void operator ()(const void* sender, TEventArgs args) const {
+		void operator ()(const void* sender, const TEventArgs& args) const {
 			this->invoke(sender, args);
 		}
 

@@ -98,7 +98,7 @@ public:
 			throw RuntimeException("Unable to bind descriptors on a command queue that's not a compute or graphics queue.");
 	}
 
-	inline void buildAccelerationStructure(const DirectX12CommandBuffer& commandBuffer, DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)
+	inline void buildAccelerationStructure(const DirectX12CommandBuffer& commandBuffer, DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)
 	{
 		if (scratchBuffer == nullptr) [[unlikely]]
 			throw ArgumentNotInitializedException("scratchBuffer");
@@ -128,7 +128,7 @@ public:
 		m_sharedResources.push_back(scratchBuffer);
 	}
 
-	inline void buildAccelerationStructure(const DirectX12CommandBuffer& commandBuffer, DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)
+	inline void buildAccelerationStructure(const DirectX12CommandBuffer& commandBuffer, DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)
 	{
 		// Check if the device is still valid.
 		auto device = m_device.lock();
@@ -510,25 +510,25 @@ void DirectX12CommandBuffer::transfer(const IDirectX12Image& source, const IDire
 	}
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Buffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
+void DirectX12CommandBuffer::transfer(const SharedPtr<const IDirectX12Buffer>& source, const IDirectX12Buffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
 {
 	this->transfer(*source, target, sourceElement, targetElement, elements);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Image& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
+void DirectX12CommandBuffer::transfer(const SharedPtr<const IDirectX12Buffer>& source, const IDirectX12Image& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
 	this->transfer(*source, target, sourceElement, firstSubresource, elements);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Image& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
+void DirectX12CommandBuffer::transfer(const SharedPtr<const IDirectX12Image>& source, const IDirectX12Image& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
 	this->transfer(*source, target, sourceSubresource, targetSubresource, subresources);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void DirectX12CommandBuffer::transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Buffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
+void DirectX12CommandBuffer::transfer(const SharedPtr<const IDirectX12Image>& source, const IDirectX12Buffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
 	this->transfer(*source, target, firstSubresource, targetElement, subresources);
 	m_impl->m_sharedResources.push_back(source);
@@ -665,7 +665,7 @@ void DirectX12CommandBuffer::pushConstants(const DirectX12PushConstantsLayout& l
 	std::ranges::for_each(layout.ranges(), [this, &memory](const DirectX12PushConstantsRange* range) { this->handle()->SetGraphicsRoot32BitConstants(range->rootParameterIndex(), range->size() / sizeof(UInt32), static_cast<const char* const>(memory) + range->offset(), 0); }); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 }
 
-void DirectX12CommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const
+void DirectX12CommandBuffer::writeTimingEvent(const SharedPtr<const TimingEvent>& timingEvent) const
 {
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
@@ -679,7 +679,7 @@ void DirectX12CommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timin
 	this->handle()->EndQuery(device->swapChain().timestampQueryHeap(), D3D12_QUERY_TYPE_TIMESTAMP, timingEvent->queryId());
 }
 
-void DirectX12CommandBuffer::execute(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const
+void DirectX12CommandBuffer::execute(const SharedPtr<const DirectX12CommandBuffer>& commandBuffer) const
 {
 	this->handle()->ExecuteBundle(commandBuffer->handle().Get());
 }
@@ -694,22 +694,22 @@ void DirectX12CommandBuffer::releaseSharedState() const
 	m_impl->m_sharedResources.clear();
 }
 
-void DirectX12CommandBuffer::buildAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
+void DirectX12CommandBuffer::buildAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
 {
 	m_impl->buildAccelerationStructure(*this, blas, scratchBuffer, buffer, offset, false);
 }
 
-void DirectX12CommandBuffer::buildAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
+void DirectX12CommandBuffer::buildAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
 {
 	m_impl->buildAccelerationStructure(*this, tlas, scratchBuffer, buffer, offset, false);
 }
 
-void DirectX12CommandBuffer::updateAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
+void DirectX12CommandBuffer::updateAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
 {
 	m_impl->buildAccelerationStructure(*this, blas, scratchBuffer, buffer, offset, true);
 }
 
-void DirectX12CommandBuffer::updateAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
+void DirectX12CommandBuffer::updateAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset) const
 {
 	m_impl->buildAccelerationStructure(*this, tlas, scratchBuffer, buffer, offset, true);
 }

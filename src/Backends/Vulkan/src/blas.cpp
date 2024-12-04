@@ -38,7 +38,7 @@ public:
 public:
     Array<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> build() const
     {
-        static auto builder = [](const WeakPtr<const VulkanBottomLevelAccelerationStructureImpl> impl) -> std::generator<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> {
+        static auto builder = [](WeakPtr<const VulkanBottomLevelAccelerationStructureImpl> impl) -> std::generator<std::pair<UInt32, VkAccelerationStructureGeometryKHR>> {
             // Store meshes and bounding boxes on local frame.
             auto accelerationStructure = impl.lock();
 
@@ -125,7 +125,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBottomLevelAccelerationStructure::VulkanBottomLevelAccelerationStructure(AccelerationStructureFlags flags, StringView name) noexcept :
+VulkanBottomLevelAccelerationStructure::VulkanBottomLevelAccelerationStructure(AccelerationStructureFlags flags, StringView name) :
     StateResource(name), Resource(VK_NULL_HANDLE), m_impl(flags)
 {
 }
@@ -167,7 +167,7 @@ UInt64 VulkanBottomLevelAccelerationStructure::size() const noexcept
     return size;
 }
 
-void VulkanBottomLevelAccelerationStructure::build(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer, SharedPtr<const IVulkanBuffer> buffer, UInt64 offset, UInt64 maxSize)
+void VulkanBottomLevelAccelerationStructure::build(const VulkanCommandBuffer& commandBuffer, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const SharedPtr<const IVulkanBuffer>& buffer, UInt64 offset, UInt64 maxSize)
 {
     // Validate the arguments.
     UInt64 requiredMemory{}, requiredScratchMemory{};
@@ -180,14 +180,17 @@ void VulkanBottomLevelAccelerationStructure::build(const VulkanCommandBuffer& co
     if ((offset % 256) != 0) [[unlikely]]
         throw InvalidArgumentException("offset", "The offset must be aligned to {0} bytes", 256);
     // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
+    
+    auto scratch = scratchBuffer;
+    auto memory = buffer;
 
     if (scratchBuffer != nullptr && scratchBuffer->size() < requiredScratchMemory)
         throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer does not contain enough memory to build the acceleration structure (contained memory: {0} bytes, required memory: {1} bytes).", scratchBuffer->size(), requiredScratchMemory);
     else if (scratchBuffer == nullptr)
-        scratchBuffer = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
+        scratch = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
 
     if (buffer == nullptr)
-        buffer = m_impl->m_buffer && m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
+        memory = m_impl->m_buffer && m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
     else if (maxSize < requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("maxSize", std::make_pair(0_ui64, maxSize), requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
@@ -211,11 +214,11 @@ void VulkanBottomLevelAccelerationStructure::build(const VulkanCommandBuffer& co
     }
 
     // Perform the build.
-    commandBuffer.buildAccelerationStructure(*this, scratchBuffer, *buffer, offset);
+    commandBuffer.buildAccelerationStructure(*this, scratch, *memory, offset);
 
     // Store the buffer and the offset.
     m_impl->m_offset = offset;
-    m_impl->m_buffer = buffer;
+    m_impl->m_buffer = memory;
     m_impl->m_size = requiredMemory;
 
     // Write out the acceleration structure properties to make the compacted size available.
@@ -228,7 +231,7 @@ void VulkanBottomLevelAccelerationStructure::build(const VulkanCommandBuffer& co
     }
 }
 
-void VulkanBottomLevelAccelerationStructure::update(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer, SharedPtr<const IVulkanBuffer> buffer, UInt64 offset, UInt64 maxSize)
+void VulkanBottomLevelAccelerationStructure::update(const VulkanCommandBuffer& commandBuffer, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const SharedPtr<const IVulkanBuffer>& buffer, UInt64 offset, UInt64 maxSize)
 {
     // Validate the state.
     if (m_impl->m_buffer == nullptr) [[unlikely]]
@@ -249,13 +252,16 @@ void VulkanBottomLevelAccelerationStructure::update(const VulkanCommandBuffer& c
         throw InvalidArgumentException("offset", "The offset must be aligned to {0} bytes", 256);
     // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
+    auto scratch = scratchBuffer;
+    auto memory = buffer;
+
     if (scratchBuffer != nullptr && scratchBuffer->size() < requiredScratchMemory)
         throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer does not contain enough memory to update the acceleration structure (contained memory: {0} bytes, required memory: {1} bytes).", scratchBuffer->size(), requiredScratchMemory);
     else if (scratchBuffer == nullptr)
-        scratchBuffer = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
+        scratch = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
 
     if (buffer == nullptr)
-        buffer = m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
+        memory = m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
     else if (maxSize < requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("maxSize", std::make_pair(0_ui64, maxSize), requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
@@ -266,11 +272,11 @@ void VulkanBottomLevelAccelerationStructure::update(const VulkanCommandBuffer& c
         ::vkResetQueryPool(device->handle(), m_impl->m_queryPool, 0, 1);
 
     // Perform the update.
-    commandBuffer.updateAccelerationStructure(*this, scratchBuffer, *buffer, offset);
+    commandBuffer.updateAccelerationStructure(*this, scratch, *memory, offset);
 
     // Store the buffer and the offset.
     m_impl->m_offset = offset;
-    m_impl->m_buffer = buffer;
+    m_impl->m_buffer = memory;
     m_impl->m_size = requiredMemory;
 
     // Write out the acceleration structure properties to make the compacted size available.
@@ -283,7 +289,7 @@ void VulkanBottomLevelAccelerationStructure::update(const VulkanCommandBuffer& c
     }
 }
 
-void VulkanBottomLevelAccelerationStructure::copy(const VulkanCommandBuffer& commandBuffer, VulkanBottomLevelAccelerationStructure& destination, bool compress, SharedPtr<const IVulkanBuffer> buffer, UInt64 offset, bool copyBuildInfo) const
+void VulkanBottomLevelAccelerationStructure::copy(const VulkanCommandBuffer& commandBuffer, VulkanBottomLevelAccelerationStructure& destination, bool compress, const SharedPtr<const IVulkanBuffer>& buffer, UInt64 offset, bool copyBuildInfo) const
 {
     // Validate the state.
     if (m_impl->m_buffer == nullptr) [[unlikely]]
@@ -309,8 +315,10 @@ void VulkanBottomLevelAccelerationStructure::copy(const VulkanCommandBuffer& com
         raiseIfFailed(::vkGetQueryPoolResults(device->handle(), m_impl->m_queryPool, 0, 1, sizeof(UInt64), &requiredMemory, 0, VkQueryResultFlagBits::VK_QUERY_RESULT_64_BIT), "Unable to query for compressed acceleration structure size.");
 
     // Validate the input arguments.
+    auto memory = buffer;
+
     if (buffer == nullptr)
-        buffer = destination.m_impl->m_buffer->size() >= requiredMemory[0] ? destination.m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory[0], 1, ResourceUsage::AllowWrite);
+        memory = destination.m_impl->m_buffer->size() >= requiredMemory[0] ? destination.m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory[0], 1, ResourceUsage::AllowWrite);
     else if (buffer->size() < offset + requiredMemory[0]) [[unlikely]]
         throw ArgumentOutOfRangeException("buffer", std::make_pair(0uz, buffer->size()), offset + requiredMemory[0], "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
 
@@ -338,7 +346,7 @@ void VulkanBottomLevelAccelerationStructure::copy(const VulkanCommandBuffer& com
 
     VkAccelerationStructureCreateInfoKHR info = {
         .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_CREATE_INFO_KHR,
-        .buffer = buffer->handle(),
+        .buffer = memory->handle(),
         .offset = offset,
         .size = requiredMemory[0],
         .type = VK_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL_KHR
@@ -348,7 +356,7 @@ void VulkanBottomLevelAccelerationStructure::copy(const VulkanCommandBuffer& com
 
     // Store the buffer and the offset.
     destination.m_impl->m_offset = offset;
-    destination.m_impl->m_buffer = buffer;
+    destination.m_impl->m_buffer = memory;
     destination.m_impl->m_size = requiredMemory[0];
     destination.m_impl->m_device = m_impl->m_device;
 
@@ -451,17 +459,17 @@ SharedPtr<const IBuffer> VulkanBottomLevelAccelerationStructure::getBuffer() con
     return std::static_pointer_cast<const IBuffer>(m_impl->m_buffer);
 }
 
-void VulkanBottomLevelAccelerationStructure::doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize)
+void VulkanBottomLevelAccelerationStructure::doBuild(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize)
 {
     this->build(dynamic_cast<const VulkanCommandBuffer&>(commandBuffer), std::dynamic_pointer_cast<const IVulkanBuffer>(scratchBuffer), std::dynamic_pointer_cast<const IVulkanBuffer>(buffer), offset, maxSize);
 }
 
-void VulkanBottomLevelAccelerationStructure::doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize)
+void VulkanBottomLevelAccelerationStructure::doUpdate(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize)
 {
     this->update(dynamic_cast<const VulkanCommandBuffer&>(commandBuffer), std::dynamic_pointer_cast<const IVulkanBuffer>(scratchBuffer), std::dynamic_pointer_cast<const IVulkanBuffer>(buffer), offset, maxSize);
 }
 
-void VulkanBottomLevelAccelerationStructure::doCopy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const
+void VulkanBottomLevelAccelerationStructure::doCopy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress, const SharedPtr<const IBuffer>& buffer, UInt64 offset, bool copyBuildInfo) const
 {
     this->copy(dynamic_cast<const VulkanCommandBuffer&>(commandBuffer), dynamic_cast<VulkanBottomLevelAccelerationStructure&>(destination), compress, std::dynamic_pointer_cast<const IVulkanBuffer>(buffer), offset, copyBuildInfo);
 }

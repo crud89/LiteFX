@@ -68,6 +68,8 @@ namespace LiteFX::Rendering {
 
 #pragma region "Enumerations"
 
+    // NOLINTBEGIN(performance-enum-size)
+
     /// <summary>
     /// Defines different types of graphics adapters.
     /// </summary>
@@ -1853,6 +1855,8 @@ namespace LiteFX::Rendering {
         /// <seealso cref="GeometryFlags::Opaque" />
         ForceNonOpaque = 0x08
     };
+
+    // NOLINTEND(performance-enum-size)
 
 #pragma endregion
 
@@ -4440,7 +4444,7 @@ namespace LiteFX::Rendering {
         /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and the range provided by <paramref name="offset" /> and <paramref name="maxSize" /> is not fully contained by the buffer.</exception>
         /// <seealso cref="update" />
-        inline void build(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer = nullptr, SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0) {
+        inline void build(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer = nullptr, const SharedPtr<const IBuffer>& buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0) {
             this->doBuild(commandBuffer, scratchBuffer, buffer, offset, maxSize);
         }
 
@@ -4476,7 +4480,7 @@ namespace LiteFX::Rendering {
         /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and the range provided by <paramref name="offset" /> and <paramref name="maxSize" /> is not fully contained by the buffer.</exception>
         /// <seealso cref="build" />
-        inline void update(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer = nullptr, SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0) {
+        inline void update(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer = nullptr, const SharedPtr<const IBuffer>& buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0) {
             this->doUpdate(commandBuffer, scratchBuffer, buffer, offset, maxSize);
         }
 
@@ -4515,8 +4519,8 @@ namespace LiteFX::Rendering {
 
     private:
         virtual SharedPtr<const IBuffer> getBuffer() const noexcept = 0;
-        virtual void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) = 0;
-        virtual void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) = 0;
+        virtual void doBuild(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize) = 0;
+        virtual void doUpdate(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize) = 0;
     };
 
     /// <summary>
@@ -4548,64 +4552,42 @@ namespace LiteFX::Rendering {
             /// <param name="indexBuffer">The index buffer that stores the mesh indices.</param>
             /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
             /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
-            TriangleMesh(SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) :
-                VertexBuffer(vertexBuffer), IndexBuffer(std::move(indexBuffer)), TransformBuffer(std::move(transformBuffer)), Flags(flags) { 
+            TriangleMesh(const SharedPtr<const IVertexBuffer>& vertexBuffer, const SharedPtr<const IIndexBuffer>& indexBuffer = nullptr, const SharedPtr<const IBuffer>& transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) :
+                VertexBuffer(vertexBuffer), IndexBuffer(indexBuffer), TransformBuffer(transformBuffer), Flags(flags) { 
                 if (vertexBuffer == nullptr) [[unlikely]]
                     throw ArgumentNotInitializedException("vertexBuffer", "The vertex buffer must be initialized.");
             }
 
             /// <summary>
-            /// Initializes a new triangle mesh by copying another one.
-            /// </summary>
-            /// <param name="other">The triangle mesh to copy.</param>
-            TriangleMesh(const TriangleMesh& other) noexcept :
-                VertexBuffer(other.VertexBuffer), IndexBuffer(other.IndexBuffer), TransformBuffer(other.TransformBuffer), Flags(other.Flags) { }
-
-            /// <summary>
             /// Initializes a new triangle mesh by taking over another one.
             /// </summary>
             /// <param name="other">The triangle mesh to take over.</param>
-            TriangleMesh(TriangleMesh&& other) noexcept :
-                VertexBuffer(std::move(other.VertexBuffer)), IndexBuffer(std::move(other.IndexBuffer)), TransformBuffer(std::move(other.TransformBuffer)), Flags(std::move(other.Flags)) { }
+            TriangleMesh(TriangleMesh&& other) noexcept = default;
 
             /// <summary>
-            /// Releases the triangle mesh.
-            /// </summary>
-            ~TriangleMesh() noexcept = default;
-
-            /// <summary>
-            /// Copies another triangle mesh.
+            /// Initializes a new triangle mesh by copying another one.
             /// </summary>
             /// <param name="other">The triangle mesh to copy.</param>
-            /// <returns>A reference to the current triangle mesh instance.</returns>
-            TriangleMesh& operator=(const TriangleMesh& other) noexcept {
-                if (&other != this)
-                {
-                    this->VertexBuffer = other.VertexBuffer;
-                    this->IndexBuffer = other.IndexBuffer;
-                    this->TransformBuffer = other.TransformBuffer;
-                    this->Flags = other.Flags;
-                }
-
-                return *this;
-            }
+            TriangleMesh(const TriangleMesh& other) = default;
 
             /// <summary>
             /// Takes over another triangle mesh.
             /// </summary>
             /// <param name="other">The triangle mesh to take over.</param>
             /// <returns>A reference to the current triangle mesh instance.</returns>
-            TriangleMesh& operator=(TriangleMesh&& other) noexcept {
-                if (&other != this)
-                {
-                    this->VertexBuffer = std::move(other.VertexBuffer);
-                    this->IndexBuffer = std::move(other.IndexBuffer);
-                    this->TransformBuffer = std::move(other.TransformBuffer);
-                    this->Flags = std::move(other.Flags);
-                }
+            TriangleMesh& operator=(TriangleMesh&& other) noexcept = default;
 
-                return *this;
-            }
+            /// <summary>
+            /// Copies another triangle mesh.
+            /// </summary>
+            /// <param name="other">The triangle mesh to copy.</param>
+            /// <returns>A reference to the current triangle mesh instance.</returns>
+            TriangleMesh& operator=(const TriangleMesh& other) = default;
+
+            /// <summary>
+            /// Releases the triangle mesh.
+            /// </summary>
+            ~TriangleMesh() noexcept = default;
 
         public:
             /// <summary>
@@ -4695,7 +4677,7 @@ namespace LiteFX::Rendering {
         /// <param name="transformBuffer">A buffer that stores a row-major 3x4 transformation matrix applied to the vertices when building the BLAS.</param>
         /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
         /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes.</exception>
-        inline void addTriangleMesh(SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) {
+        inline void addTriangleMesh(const SharedPtr<const IVertexBuffer>& vertexBuffer, const SharedPtr<const IIndexBuffer>& indexBuffer = nullptr, const SharedPtr<const IBuffer>& transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) {
             this->addTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer, flags));
         }
 
@@ -4718,7 +4700,7 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">A buffer containing the bounding box definitions.</param>
         /// <param name="flags">The flags that control how the primitives in the geometry behaves during ray-tracing.</param>
         /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes.</exception>
-        inline void addBoundingBox(SharedPtr<const IBuffer> buffer, GeometryFlags flags = GeometryFlags::None) {
+        inline void addBoundingBox(const SharedPtr<const IBuffer>& buffer, GeometryFlags flags = GeometryFlags::None) {
             this->addBoundingBox(BoundingBoxes { .Buffer = buffer, .Flags = flags });
         }
 
@@ -4775,7 +4757,7 @@ namespace LiteFX::Rendering {
         /// <excetpion cref="InvalidArgumentException">Thrown, if <paramref name="compress" /> is set to `true`, but the current acceleration structure has not been created with the <see cref="AccelerationStructureFlags::AllowCompaction" /> flag.</exception>
         /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and does not fully contain the required memory to store the copy, starting at <paramref name="offset" />.</exception>
-        inline void copy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const {
+        inline void copy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress = false, const SharedPtr<const IBuffer>& buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const {
             this->doCopy(commandBuffer, destination, compress, buffer, offset, copyBuildInfo);
         }
 
@@ -4802,7 +4784,7 @@ namespace LiteFX::Rendering {
         /// <returns>A reference to the current BLAS.</returns>
         /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains bounding boxes.</exception>
         template <typename TSelf>
-        inline auto withTriangleMesh(this TSelf&& self, SharedPtr<const IVertexBuffer> vertexBuffer, SharedPtr<const IIndexBuffer> indexBuffer = nullptr, SharedPtr<const IBuffer> transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) -> TSelf&& {
+        inline auto withTriangleMesh(this TSelf&& self, const SharedPtr<const IVertexBuffer>& vertexBuffer, const SharedPtr<const IIndexBuffer>& indexBuffer = nullptr, const SharedPtr<const IBuffer>& transformBuffer = nullptr, GeometryFlags flags = GeometryFlags::None) -> TSelf&& {
             return std::forward<TSelf>(self).withTriangleMesh(TriangleMesh(vertexBuffer, indexBuffer, transformBuffer, flags));
         }
 
@@ -4826,12 +4808,12 @@ namespace LiteFX::Rendering {
         /// <returns>A reference to the current BLAS.</returns>
         /// <exception cref="RuntimeException">Thrown, if the acceleration structure already contains triangle meshes.</exception>
         template <typename TSelf>
-        inline auto withBoundingBox(this TSelf&& self, SharedPtr<const IBuffer> buffer, GeometryFlags flags = GeometryFlags::None) -> TSelf&& {
+        inline auto withBoundingBox(this TSelf&& self, const SharedPtr<const IBuffer>& buffer, GeometryFlags flags = GeometryFlags::None) -> TSelf&& {
             return std::forward<TSelf>(self).withBoundingBox(BoundingBoxes { .Buffer = buffer, .Flags = flags });
         }
 
     private:
-        virtual void doCopy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const = 0;
+        virtual void doCopy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress, const SharedPtr<const IBuffer>& buffer, UInt64 offset, bool copyBuildInfo) const = 0;
     };
 
     /// <summary>
@@ -4921,7 +4903,7 @@ namespace LiteFX::Rendering {
         /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
         /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
         /// <param name="flags">The flags that control the behavior of the instance.</param>
-        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        inline void addInstance(const SharedPtr<const IBottomLevelAccelerationStructure>& blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
         }
         
@@ -4934,7 +4916,7 @@ namespace LiteFX::Rendering {
         /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
         /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
         /// <param name="flags">The flags that control the behavior of the instance.</param>
-        inline void addInstance(SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        inline void addInstance(const SharedPtr<const IBottomLevelAccelerationStructure>& blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
         }
 
@@ -4984,7 +4966,7 @@ namespace LiteFX::Rendering {
         /// <excetpion cref="InvalidArgumentException">Thrown, if <paramref name="compress" /> is set to `true`, but the current acceleration structure has not been created with the <see cref="AccelerationStructureFlags::AllowCompaction" /> flag.</exception>
         /// <exception cref="InvalidArgumentException">Thrown, if <paramref name="offset" /> is not aligned to 256 bytes.</exception>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if <paramref name="buffer" /> is not `nullptr` and does not fully contain the required memory to store the copy, starting at <paramref name="offset" />.</exception>
-        inline void copy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IBuffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const {
+        inline void copy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress = false, const SharedPtr<const IBuffer>& buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const {
             this->doCopy(commandBuffer, destination, compress, buffer, offset, copyBuildInfo);
         }
 
@@ -5010,7 +4992,7 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <returns>A reference to the current TLAS.</returns>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        inline auto withInstance(this TSelf&& self, const SharedPtr<const IBottomLevelAccelerationStructure>& blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
             return std::forward<TSelf>(self);
         }
@@ -5026,13 +5008,13 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <returns>A reference to the current TLAS.</returns>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, SharedPtr<const IBottomLevelAccelerationStructure> blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        inline auto withInstance(this TSelf&& self, const SharedPtr<const IBottomLevelAccelerationStructure>& blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
             return std::forward<TSelf>(self);
         }
 
     private:
-        virtual void doCopy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const = 0;
+        virtual void doCopy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress, const SharedPtr<const IBuffer>& buffer, UInt64 offset, bool copyBuildInfo) const = 0;
     };
 
     /// <summary>
@@ -5521,7 +5503,7 @@ namespace LiteFX::Rendering {
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
         inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const {
-            return this->allocateMultiple(descriptorSets, 0, bindingFactory);
+            return this->allocateMultiple(descriptorSets, 0, std::move(bindingFactory));
         }
 
         /// <summary>
@@ -5545,7 +5527,7 @@ namespace LiteFX::Rendering {
         /// <returns>The array of descriptor set instances.</returns>
         /// <seealso cref="allocate" />
         inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const {
-            return this->getDescriptorSets(descriptorSets, descriptors, bindingFactory);
+            return this->getDescriptorSets(descriptorSets, descriptors, std::move(bindingFactory));
         }
 
         /// <summary>
@@ -5696,7 +5678,7 @@ namespace LiteFX::Rendering {
         using shader_group_type = Variant<const IShaderModule*, MeshGeometryHitGroup>;
 
     protected:
-        constexpr IShaderRecord() noexcept = default;
+        IShaderRecord() noexcept = default;
         IShaderRecord(const IShaderRecord&) = default;
         IShaderRecord(IShaderRecord&&) noexcept = default;
         IShaderRecord& operator=(const IShaderRecord&) = default;
@@ -5817,6 +5799,8 @@ namespace LiteFX::Rendering {
 
     public:
         ShaderRecord() = delete;
+
+        /// <inheritdoc />
         constexpr ~ShaderRecord() noexcept override = default;
 
         /// <summary>
@@ -5824,44 +5808,34 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="group">The shader group containing the modules to invoke.</param>
         /// <param name="payload">The shader-local data to pass to the shader's local resource bindings.</param>
-        constexpr ShaderRecord(const shader_group_type& group, TLocalData payload) noexcept :
+        ShaderRecord(const shader_group_type& group, TLocalData payload) noexcept :
             m_payload(payload), m_shaderGroup(group) { }
 
         /// <summary>
         /// Copies another shader record.
         /// </summary>
         /// <param name="_other">The shader record to copy.</param>
-        constexpr ShaderRecord(const ShaderRecord& _other) :
-            m_payload(_other.m_payload), m_shaderGroup(_other.m_shaderGroup) { }
+        constexpr ShaderRecord(const ShaderRecord& _other) = default;
 
         /// <summary>
         /// Takes over another shader record.
         /// </summary>
         /// <param name="_other">The shader record to take over.</param>
-        constexpr ShaderRecord(ShaderRecord&& _other) noexcept :
-            m_payload(std::move(_other.m_payload)), m_shaderGroup(std::move(_other.m_shaderGroup)) { }
+        constexpr ShaderRecord(ShaderRecord&& _other) noexcept = default;
 
         /// <summary>
         /// Copies another shader record.
         /// </summary>
         /// <param name="_other">The shader record to copy.</param>
         /// <returns>A reference to the current shader record.</returns>
-        constexpr auto& operator=(const ShaderRecord& _other) {
-            m_shaderGroup = _other.m_shaderGroup;
-            m_payload = _other.m_payload;
-            return *this;
-        }
+        constexpr ShaderRecord& operator=(const ShaderRecord& _other) = default;
 
         /// <summary>
         /// Takes over another shader record.
         /// </summary>
         /// <param name="_other">The shader record to take over.</param>
         /// <returns>A reference to the current shader record.</returns>
-        constexpr auto& operator=(ShaderRecord&& _other) noexcept {
-            m_shaderGroup = std::move(_other.m_shaderGroup);
-            m_payload = std::move(_other.m_payload);
-            return *this;
-        }
+        constexpr ShaderRecord& operator=(ShaderRecord&& _other) noexcept = default;
     };
 
     /// <summary>
@@ -5896,7 +5870,9 @@ namespace LiteFX::Rendering {
 
     public:
         ShaderRecord() = delete;
-        ~ShaderRecord() noexcept override = default;
+
+        /// <inheritdoc />
+        constexpr ~ShaderRecord() noexcept override = default;
 
         /// <summary>
         /// Initializes a shader record.
@@ -5909,35 +5885,27 @@ namespace LiteFX::Rendering {
         /// Copies another shader record.
         /// </summary>
         /// <param name="_other">The shader record to copy.</param>
-        ShaderRecord(const ShaderRecord& _other) :
-            m_shaderGroup(_other.m_shaderGroup) { }
+        constexpr ShaderRecord(const ShaderRecord& _other) = default;
 
         /// <summary>
         /// Takes over another shader record.
         /// </summary>
         /// <param name="_other">The shader record to take over.</param>
-        ShaderRecord(ShaderRecord&& _other) noexcept :
-            m_shaderGroup(std::move(_other.m_shaderGroup)) { }
+        constexpr ShaderRecord(ShaderRecord&& _other) noexcept = default;
 
         /// <summary>
         /// Copies another shader record.
         /// </summary>
         /// <param name="_other">The shader record to copy.</param>
         /// <returns>A reference to the current shader record.</returns>
-        auto& operator=(const ShaderRecord& _other) {
-            m_shaderGroup = _other.m_shaderGroup;
-            return *this;
-        }
+        constexpr ShaderRecord& operator=(const ShaderRecord& _other) = default;
 
         /// <summary>
         /// Takes over another shader record.
         /// </summary>
         /// <param name="_other">The shader record to take over.</param>
         /// <returns>A reference to the current shader record.</returns>
-        auto& operator=(ShaderRecord&& _other) noexcept {
-            m_shaderGroup = std::move(_other.m_shaderGroup);
-            return *this;
-        }
+        constexpr ShaderRecord& operator=(ShaderRecord&& _other) noexcept = default;
     };
 
     /// <summary>
@@ -6574,7 +6542,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetElement">The index of the first element in the target buffer to copy to.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target buffer.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        inline void transfer(SharedPtr<const IBuffer> source, const IBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const {
+        inline void transfer(const SharedPtr<const IBuffer>& source, const IBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, targetElement, elements);
         }
 
@@ -6692,7 +6660,7 @@ namespace LiteFX::Rendering {
         /// <param name="firstSubresource">The index of the first sub-resource of the target image to receive data.</param>
         /// <param name="elements">The number of elements to copy from the source buffer into the target image sub-resources.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        inline void transfer(SharedPtr<const IBuffer> source, const IImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
+        inline void transfer(const SharedPtr<const IBuffer>& source, const IImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const {
             this->cmdTransfer(source, target, sourceElement, firstSubresource, elements);
         }
 
@@ -6767,7 +6735,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetSubresource">The image of the first sub-resource in the target image to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy between the images.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        inline void transfer(SharedPtr<const IImage> source, const IImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const {
+        inline void transfer(const SharedPtr<const IImage>& source, const IImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, sourceSubresource, targetSubresource, subresources);
         }
 
@@ -6852,7 +6820,7 @@ namespace LiteFX::Rendering {
         /// <param name="targetElement">The index of the first target element to receive data.</param>
         /// <param name="subresources">The number of sub-resources to copy.</param>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if the number of either the source buffer or the target buffer has not enough elements for the specified <paramref name="elements" /> parameter.</exception>
-        inline void transfer(SharedPtr<const IImage> source, const IBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const {
+        inline void transfer(const SharedPtr<const IImage>& source, const IBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const {
             this->cmdTransfer(source, target, firstSubresource, targetElement, subresources);
         }
 
@@ -7283,13 +7251,13 @@ namespace LiteFX::Rendering {
         /// Writes the current GPU time stamp value for the timing event.
         /// </summary>
         /// <param name="timingEvent">The timing event for which the time stamp is written.</param>
-        virtual void writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const = 0;
+        virtual void writeTimingEvent(const SharedPtr<const TimingEvent>& timingEvent) const = 0;
 
         /// <summary>
         /// Executes a secondary command buffer/bundle.
         /// </summary>
         /// <param name="commandBuffer">The secondary command buffer/bundle to execute.</param>
-        inline void execute(SharedPtr<const ICommandBuffer> commandBuffer) const {
+        inline void execute(const SharedPtr<const ICommandBuffer>& commandBuffer) const {
             this->cmdExecute(commandBuffer);
         }
 
@@ -7298,7 +7266,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="commandBuffers">The command buffers to execute.</param>
         inline void execute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const {
-            this->cmdExecute(commandBuffers);
+            this->cmdExecute(std::move(commandBuffers));
         }
 
         /// <summary>
@@ -7313,7 +7281,7 @@ namespace LiteFX::Rendering {
         /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
         /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
         /// <seealso cref="IAccelerationStructure::build" />
-        inline void buildAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
+        inline void buildAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
             this->cmdBuildAccelerationStructure(blas, scratchBuffer, buffer, offset);
         }
 
@@ -7329,7 +7297,7 @@ namespace LiteFX::Rendering {
         /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
         /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
         /// <seealso cref="IAccelerationStructure::build" />
-        inline void buildAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
+        inline void buildAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
             this->cmdBuildAccelerationStructure(tlas, scratchBuffer, buffer, offset);
         }
 
@@ -7345,7 +7313,7 @@ namespace LiteFX::Rendering {
         /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
         /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
         /// <seealso cref="IAccelerationStructure::build" />
-        inline void updateAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
+        inline void updateAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
             this->cmdUpdateAccelerationStructure(blas, scratchBuffer, buffer, offset);
         }
 
@@ -7361,7 +7329,7 @@ namespace LiteFX::Rendering {
         /// <param name="offset">The offset into <paramref name="buffer" /> at which the acceleration structure gets stored after the build.</param>
         /// <exception cref="ArgumentNotInitializedException">Thrown, if the provided <paramref name="scratchBuffer" /> is not initialized.</exception>
         /// <seealso cref="IAccelerationStructure::build" />
-        inline void updateAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
+        inline void updateAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset = 0) const {
             this->cmdUpdateAccelerationStructure(tlas, scratchBuffer, buffer, offset);
         }
 
@@ -7414,10 +7382,10 @@ namespace LiteFX::Rendering {
         virtual void cmdTransfer(const IBuffer& source, const IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const = 0;
         virtual void cmdTransfer(const IImage& source, const IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const = 0;
         virtual void cmdTransfer(const IImage& source, const IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const = 0;
-        virtual void cmdTransfer(SharedPtr<const IBuffer> source, const IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const = 0;
-        virtual void cmdTransfer(SharedPtr<const IBuffer> source, const IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const = 0;
-        virtual void cmdTransfer(SharedPtr<const IImage> source, const IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const = 0;
-        virtual void cmdTransfer(SharedPtr<const IImage> source, const IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const = 0;
+        virtual void cmdTransfer(const SharedPtr<const IBuffer>& source, const IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const = 0;
+        virtual void cmdTransfer(const SharedPtr<const IBuffer>& source, const IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const = 0;
+        virtual void cmdTransfer(const SharedPtr<const IImage>& source, const IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const = 0;
+        virtual void cmdTransfer(const SharedPtr<const IImage>& source, const IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const = 0;
         virtual void cmdTransfer(const void* const data, size_t size, const IBuffer& target, UInt32 targetElement, UInt32 elements) const = 0;
         virtual void cmdTransfer(Span<const void* const> data, size_t elementSize, const IBuffer& target, UInt32 targetElement) const = 0;
         virtual void cmdTransfer(const void* const data, size_t size, const IImage& target, UInt32 subresource) const = 0;
@@ -7440,12 +7408,12 @@ namespace LiteFX::Rendering {
         virtual void cmdDrawIndexed(const IVertexBuffer& vertexBuffer, const IIndexBuffer& indexBuffer, UInt32 instances, UInt32 firstIndex, Int32 vertexOffset, UInt32 firstInstance) const = 0;
         virtual void cmdDrawIndexedIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
         virtual void cmdDrawIndexedIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept = 0;
-        virtual void cmdExecute(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
+        virtual void cmdExecute(const SharedPtr<const ICommandBuffer>& commandBuffer) const = 0;
         virtual void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffer) const = 0;
-        virtual void cmdBuildAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
-        virtual void cmdBuildAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
-        virtual void cmdUpdateAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
-        virtual void cmdUpdateAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
+        virtual void cmdBuildAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
+        virtual void cmdBuildAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
+        virtual void cmdUpdateAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
+        virtual void cmdUpdateAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset) const = 0;
         virtual void cmdCopyAccelerationStructure(const IBottomLevelAccelerationStructure& from, const IBottomLevelAccelerationStructure& to, bool compress) const noexcept = 0;
         virtual void cmdCopyAccelerationStructure(const ITopLevelAccelerationStructure& from, const ITopLevelAccelerationStructure& to, bool compress) const noexcept = 0;
         virtual void cmdTraceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IBuffer& rayGenerationShaderBindingTable, const IBuffer* missShaderBindingTable, const IBuffer* hitShaderBindingTable, const IBuffer* callableShaderBindingTable) const noexcept = 0;
@@ -8391,7 +8359,7 @@ namespace LiteFX::Rendering {
             Array<SharedPtr<const ICommandBuffer>> m_commandBuffers;
 
         public:
-            QueueSubmittingEventArgs(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) :
+            QueueSubmittingEventArgs(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) :
                 EventArgs() 
             {
                 m_commandBuffers = commandBuffers | std::ranges::to<Array<SharedPtr<const ICommandBuffer>>>();
@@ -8537,7 +8505,7 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffer.</returns>
         /// <seealso cref="waitFor" />
-        inline UInt64 submit(SharedPtr<const ICommandBuffer> commandBuffer) const {
+        inline UInt64 submit(const SharedPtr<const ICommandBuffer>& commandBuffer) const {
             return this->submitCommandBuffer(commandBuffer);
         }
 
@@ -8553,7 +8521,7 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffer">The command buffer to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffer.</returns>
         /// <seealso cref="waitFor" />
-        inline UInt64 submit(SharedPtr<ICommandBuffer> commandBuffer) const {
+        inline UInt64 submit(const SharedPtr<ICommandBuffer>& commandBuffer) const {
             return this->submitCommandBuffer(commandBuffer);
         }
 
@@ -8569,8 +8537,8 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffers.</returns>
         /// <seealso cref="waitFor" />
-        inline UInt64 submit(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const {
-            return this->submitCommandBuffers(commandBuffers);
+        inline UInt64 submit(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const {
+            return this->submitCommandBuffers(std::move(commandBuffers));
         }
 
         /// <summary>
@@ -8585,7 +8553,8 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffers.</returns>
         /// <seealso cref="waitFor" />
-        inline UInt64 submit(const Enumerable<SharedPtr<ICommandBuffer>>& commandBuffers) const {
+        [[deprecated("Consider using overload, that takes a set of constant ICommandBuffer pointers.")]]
+        inline UInt64 submit(Enumerable<SharedPtr<ICommandBuffer>> commandBuffers) const { // NOLINT(performance-unnecessary-value-param)
             return this->submitCommandBuffers(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const ICommandBuffer>>>());
         }
 
@@ -8621,8 +8590,8 @@ namespace LiteFX::Rendering {
 
     private:
         virtual SharedPtr<ICommandBuffer> getCommandBuffer(bool beginRecording, bool secondary) const = 0;
-        virtual UInt64 submitCommandBuffer(SharedPtr<const ICommandBuffer> commandBuffer) const = 0;
-        virtual UInt64 submitCommandBuffers(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const = 0;
+        virtual UInt64 submitCommandBuffer(const SharedPtr<const ICommandBuffer>& commandBuffer) const = 0;
+        virtual UInt64 submitCommandBuffers(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const = 0;
         virtual void waitForQueue(const ICommandQueue& queue, UInt64 fence) const = 0;
         
     protected:

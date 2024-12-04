@@ -153,7 +153,7 @@ public:
         m_activeFrameBuffer = frameBuffer.shared_from_this();
     }
 
-    void onFrameBufferRelease(const void* sender, IFrameBuffer::ReleasedEventArgs /*args*/)
+    void onFrameBufferRelease(const void* sender, const IFrameBuffer::ReleasedEventArgs& /*args*/)
     {
         // Obtain the interface pointer and release all resources bound to the frame buffer.
         auto interfacePointer = static_cast<const IFrameBuffer*>(sender);
@@ -168,7 +168,7 @@ public:
         m_frameBufferTokens.erase(interfacePointer);
     }
 
-    void onSwapChainReset([[maybe_unused]] const void* sender, ISwapChain::ResetEventArgs /*args*/)
+    void onSwapChainReset([[maybe_unused]] const void* sender, const ISwapChain::ResetEventArgs& /*args*/)
     {
         // Check if the device is still valid.
         auto device = m_device.lock();
@@ -493,7 +493,7 @@ UInt64 VulkanRenderPass::end() const
     // End secondary command buffers and end rendering.
     auto primaryCommandBuffer = m_impl->getPrimaryCommandBuffer(frameBuffer);
     auto secondaryHandles = m_impl->getSecondaryCommandBuffers(frameBuffer) |
-        std::views::transform([](auto commandBuffer) { commandBuffer->end(); return std::as_const(*commandBuffer).handle(); }) |
+        std::views::transform([](auto& commandBuffer) { commandBuffer->end(); return std::as_const(*commandBuffer).handle(); }) |
         std::ranges::to<Array<VkCommandBuffer>>();
     ::vkCmdExecuteCommands(std::as_const(*primaryCommandBuffer).handle(), static_cast<UInt32>(secondaryHandles.size()), secondaryHandles.data());
     ::vkCmdEndRendering(std::as_const(*primaryCommandBuffer).handle());

@@ -127,7 +127,7 @@ UInt64 DirectX12TopLevelAccelerationStructure::size() const noexcept
     return size;
 }
 
-void DirectX12TopLevelAccelerationStructure::build(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer, SharedPtr<const IDirectX12Buffer> buffer, UInt64 offset, UInt64 maxSize)
+void DirectX12TopLevelAccelerationStructure::build(const DirectX12CommandBuffer& commandBuffer, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const SharedPtr<const IDirectX12Buffer>& buffer, UInt64 offset, UInt64 maxSize)
 {
     // Validate the arguments.
     UInt64 requiredMemory{}, requiredScratchMemory{};
@@ -137,24 +137,27 @@ void DirectX12TopLevelAccelerationStructure::build(const DirectX12CommandBuffer&
     if ((offset % D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT) != 0) [[unlikely]]
         throw InvalidArgumentException("offset", "The offset must be aligned to {0} bytes", D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT);
 
+    auto scratch = scratchBuffer;
+    auto memory = buffer;
+
     if (scratchBuffer != nullptr && scratchBuffer->size() < requiredScratchMemory)
         throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer does not contain enough memory to build the acceleration structure (contained memory: {0} bytes, required memory: {1} bytes).", scratchBuffer->size(), requiredScratchMemory);
     else if (scratchBuffer == nullptr)
-        scratchBuffer = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
+        scratch = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
 
     if (buffer == nullptr)
-        buffer = m_impl->m_buffer && m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
+        memory = m_impl->m_buffer && m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
     else if (maxSize < requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("maxSize", std::make_pair(0_ui64, maxSize), requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("buffer", std::make_pair(0uz, buffer->size()), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
 
     // Perform the build.
-    commandBuffer.buildAccelerationStructure(*this, scratchBuffer, *buffer, offset);
+    commandBuffer.buildAccelerationStructure(*this, scratch, *memory, offset);
 
     // Store the buffer and the offset.
     m_impl->m_offset = offset;
-    m_impl->m_buffer = buffer;
+    m_impl->m_buffer = memory;
     m_impl->m_size = requiredMemory;
 
     // If the acceleration structure allows for compaction, create a query pool in order to query the compacted size later.
@@ -162,7 +165,7 @@ void DirectX12TopLevelAccelerationStructure::build(const DirectX12CommandBuffer&
         m_impl->queuePostbuildInfoCommands(commandBuffer);
 }
 
-void DirectX12TopLevelAccelerationStructure::update(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer, SharedPtr<const IDirectX12Buffer> buffer, UInt64 offset, UInt64 maxSize)
+void DirectX12TopLevelAccelerationStructure::update(const DirectX12CommandBuffer& commandBuffer, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const SharedPtr<const IDirectX12Buffer>& buffer, UInt64 offset, UInt64 maxSize)
 {
     // Validate the state.
     if (m_impl->m_buffer == nullptr) [[unlikely]]
@@ -179,24 +182,27 @@ void DirectX12TopLevelAccelerationStructure::update(const DirectX12CommandBuffer
     if ((offset % D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT) != 0) [[unlikely]]
         throw InvalidArgumentException("offset", "The offset must be aligned to {0} bytes", D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BYTE_ALIGNMENT);
 
+    auto scratch = scratchBuffer;
+    auto memory = buffer;
+
     if (scratchBuffer != nullptr && scratchBuffer->size() < requiredScratchMemory)
         throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer does not contain enough memory to update the acceleration structure (contained memory: {0} bytes, required memory: {1} bytes).", scratchBuffer->size(), requiredScratchMemory);
     else if (scratchBuffer == nullptr)
-        scratchBuffer = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
+        scratch = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
 
     if (buffer == nullptr)
-        buffer = m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
+        memory = m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
     else if (maxSize < requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("maxSize", std::make_pair(0_ui64, maxSize), requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("buffer", std::make_pair(0uz, buffer->size()), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
 
     // Perform the update.
-    commandBuffer.updateAccelerationStructure(*this, scratchBuffer, *buffer, offset);
+    commandBuffer.updateAccelerationStructure(*this, scratch, *memory, offset);
 
     // Store the buffer and the offset.
     m_impl->m_offset = offset;
-    m_impl->m_buffer = buffer;
+    m_impl->m_buffer = memory;
     m_impl->m_size = requiredMemory;
 
     // If the acceleration structure allows for compaction, create a query pool in order to query the compacted size later.
@@ -204,7 +210,7 @@ void DirectX12TopLevelAccelerationStructure::update(const DirectX12CommandBuffer
         m_impl->queuePostbuildInfoCommands(commandBuffer);
 }
 
-void DirectX12TopLevelAccelerationStructure::copy(const DirectX12CommandBuffer& commandBuffer, DirectX12TopLevelAccelerationStructure& destination, bool compress, SharedPtr<const IDirectX12Buffer> buffer, UInt64 offset, bool copyBuildInfo) const
+void DirectX12TopLevelAccelerationStructure::copy(const DirectX12CommandBuffer& commandBuffer, DirectX12TopLevelAccelerationStructure& destination, bool compress, const SharedPtr<const IDirectX12Buffer>& buffer, UInt64 offset, bool copyBuildInfo) const
 {
     // Validate the state.
     if (m_impl->m_buffer == nullptr) [[unlikely]]
@@ -219,16 +225,17 @@ void DirectX12TopLevelAccelerationStructure::copy(const DirectX12CommandBuffer& 
     // Get the amount of memory required. Note that in DirectX it is not possible to query the availability of size info, so we have to rely on external synchronization anyway.
     UInt64 requiredMemory = this->size();
     auto device = commandBuffer.queue()->device();
+    auto memory = buffer;
 
     // Validate the input arguments.
     if (buffer == nullptr)
-        buffer = destination.m_impl->m_buffer->size() >= requiredMemory ? destination.m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
+        memory = destination.m_impl->m_buffer->size() >= requiredMemory ? destination.m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("buffer", std::make_pair(0uz, buffer->size()), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
 
     // Store the buffer and the offset.
     destination.m_impl->m_offset = offset;
-    destination.m_impl->m_buffer = buffer;
+    destination.m_impl->m_buffer = memory;
     destination.m_impl->m_size = requiredMemory;
 
     // Perform the update.
@@ -282,17 +289,17 @@ SharedPtr<const IBuffer> DirectX12TopLevelAccelerationStructure::getBuffer() con
     return std::static_pointer_cast<const IBuffer>(m_impl->m_buffer);
 }
 
-void DirectX12TopLevelAccelerationStructure::doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize)
+void DirectX12TopLevelAccelerationStructure::doBuild(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize)
 {
     this->build(dynamic_cast<const DirectX12CommandBuffer&>(commandBuffer), std::dynamic_pointer_cast<const IDirectX12Buffer>(scratchBuffer), std::dynamic_pointer_cast<const IDirectX12Buffer>(buffer), offset, maxSize);
 }
 
-void DirectX12TopLevelAccelerationStructure::doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize)
+void DirectX12TopLevelAccelerationStructure::doUpdate(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize)
 {
     this->update(dynamic_cast<const DirectX12CommandBuffer&>(commandBuffer), std::dynamic_pointer_cast<const IDirectX12Buffer>(scratchBuffer), std::dynamic_pointer_cast<const IDirectX12Buffer>(buffer), offset, maxSize);
 }
 
-void DirectX12TopLevelAccelerationStructure::doCopy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const
+void DirectX12TopLevelAccelerationStructure::doCopy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress, const SharedPtr<const IBuffer>& buffer, UInt64 offset, bool copyBuildInfo) const
 {
     this->copy(dynamic_cast<const DirectX12CommandBuffer&>(commandBuffer), dynamic_cast<DirectX12TopLevelAccelerationStructure&>(destination), compress, std::dynamic_pointer_cast<const IDirectX12Buffer>(buffer), offset, copyBuildInfo);
 }

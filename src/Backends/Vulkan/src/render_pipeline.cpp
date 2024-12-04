@@ -27,8 +27,8 @@ private:
 
 
 public:
-	VulkanRenderPipelineImpl(const VulkanRenderPass& renderPass, bool alphaToCoverage, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer) :
-		m_layout(std::move(layout)), m_program(std::move(shaderProgram)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_alphaToCoverage(alphaToCoverage), m_renderPass(renderPass.shared_from_this())
+	VulkanRenderPipelineImpl(const VulkanRenderPass& renderPass, bool alphaToCoverage, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanShaderProgram>& shaderProgram, const SharedPtr<VulkanInputAssembler>& inputAssembler, const SharedPtr<VulkanRasterizer>& rasterizer) :
+		m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_alphaToCoverage(alphaToCoverage), m_renderPass(renderPass.shared_from_this())
 	{
 		auto device = renderPass.device();
 
@@ -424,7 +424,7 @@ public:
 		parent.bind(commandBuffer, descriptorSets);
 	}
 
-	void onFrameBufferResize(const void* sender, IFrameBuffer::ResizeEventArgs /*args*/)
+	void onFrameBufferResize(const void* sender, const IFrameBuffer::ResizeEventArgs& /*args*/)
 	{
 		// Update the descriptors in the descriptor sets.
 		// NOTE: No slicing here, as the event is always triggered by the frame buffer instance.
@@ -432,7 +432,7 @@ public:
 		this->updateInputAttachmentBindings(*frameBuffer);
 	}
 
-	void onFrameBufferRelease(const void* sender, IFrameBuffer::ReleasedEventArgs /*args*/)
+	void onFrameBufferRelease(const void* sender, const IFrameBuffer::ReleasedEventArgs& /*args*/)
 	{
 		// Get the frame buffer pointer.
 		auto interfacePointer = static_cast<const IFrameBuffer*>(sender);
@@ -450,7 +450,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, MultiSamplingLevel samples, bool enableAlphaToCoverage, const String& name) :
+VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const SharedPtr<VulkanShaderProgram>& shaderProgram, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanInputAssembler>& inputAssembler, const SharedPtr<VulkanRasterizer>& rasterizer, MultiSamplingLevel samples, bool enableAlphaToCoverage, const String& name) :
 	VulkanPipelineState(VK_NULL_HANDLE), m_impl(renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer)
 {
 	this->handle() = m_impl->initialize(*this, samples);

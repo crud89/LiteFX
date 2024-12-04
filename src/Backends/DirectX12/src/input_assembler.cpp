@@ -45,7 +45,7 @@ DirectX12InputAssembler::DirectX12InputAssembler(Enumerable<UniquePtr<DirectX12V
     m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
 }
 
-DirectX12InputAssembler::DirectX12InputAssembler() noexcept :
+DirectX12InputAssembler::DirectX12InputAssembler() :
     m_impl()
 {
 }

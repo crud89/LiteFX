@@ -33,7 +33,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Image::DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
-	ComResource<ID3D12Resource>(nullptr), m_impl(device, extent, format, dimension, levels, layers, samples, usage, allocator, std::move(allocation))
+	ComResource<ID3D12Resource>(nullptr), m_impl(device, extent, format, dimension, levels, layers, samples, usage, std::move(allocator), std::move(allocation))
 {
 	this->handle() = std::move(image);
 
@@ -210,7 +210,7 @@ const D3D12MA::Allocation* DirectX12Image::allocationInfo() const noexcept
 
 SharedPtr<DirectX12Image> DirectX12Image::allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
 {
-	return DirectX12Image::allocate("", device, allocator, extent, format, dimension, levels, layers, samples, usage, resourceDesc, allocationDesc);
+	return DirectX12Image::allocate("", device, std::move(allocator), extent, format, dimension, levels, layers, samples, usage, resourceDesc, allocationDesc);
 }
 
 SharedPtr<DirectX12Image> DirectX12Image::allocate(const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
@@ -225,7 +225,7 @@ SharedPtr<DirectX12Image> DirectX12Image::allocate(const String& name, const Dir
 	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, isDepthStencil ? D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ : D3D12_BARRIER_LAYOUT_COMMON, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to create image resource.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}", name.empty() ? std::format("{0}", static_cast<void*>(resource.Get())) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples);
 	
-	return SharedObject::create<DirectX12Image>(device, std::move(resource), extent, format, dimension, levels, layers, samples, usage, allocator, AllocationPtr(allocation), name);
+	return SharedObject::create<DirectX12Image>(device, std::move(resource), extent, format, dimension, levels, layers, samples, usage, std::move(allocator), AllocationPtr(allocation), name);
 }
 
 // ------------------------------------------------------------------------------------------------

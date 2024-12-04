@@ -178,7 +178,7 @@ public:
             throw InvalidArgumentException("modules", "A shader program that contains only a fragment/pixel shader is not valid.");
     }
 
-    void reflectRootSignature(ComPtr<ID3D12RootSignatureDeserializer> deserializer, Dictionary<UInt32, DescriptorSetInfo>& descriptorSetLayouts, Array<PushConstantRangeInfo>& pushConstantRanges)
+    void reflectRootSignature(const ComPtr<ID3D12RootSignatureDeserializer>& deserializer, Dictionary<UInt32, DescriptorSetInfo>& descriptorSetLayouts, Array<PushConstantRangeInfo>& pushConstantRanges)
     {
         // NOLINTBEGIN(cppcoreguidelines-pro-type-union-access)
         // Collect the shader stages.

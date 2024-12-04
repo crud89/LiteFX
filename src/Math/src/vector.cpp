@@ -2,6 +2,8 @@
 
 using namespace LiteFX::Math;
 
+// NOLINTBEGIN(performance-move-const-arg)
+
 // ------------------------------------------------------------------------------------------------
 // Vector1f.
 // ------------------------------------------------------------------------------------------------
@@ -596,3 +598,5 @@ Vector4i::operator DirectX::XMINT4() const noexcept {
     return DirectX::XMINT4(m_elements.data());
 }
 #endif
+
+// NOLINTEND(performance-move-const-arg)

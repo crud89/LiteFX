@@ -142,7 +142,7 @@ DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12Device
     m_impl->initialize();
 }
 
-DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12Device& device) noexcept :
+DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12Device& device) :
     m_impl(device)
 {
 }
@@ -327,8 +327,8 @@ void DirectX12DescriptorSetLayoutBuilder::build()
 {
     auto instance = this->instance();
     instance->m_impl->m_layouts = std::move(this->state().descriptorLayouts);
-    instance->m_impl->m_space = std::move(this->state().space);
-    instance->m_impl->m_stages = std::move(this->state().stages);
+    instance->m_impl->m_space = this->state().space;
+    instance->m_impl->m_stages = this->state().stages;
     instance->m_impl->initialize();
 }
 

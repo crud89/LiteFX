@@ -18,8 +18,8 @@ private:
 	SharedPtr<DirectX12ShaderProgram> m_program;
 
 public:
-	DirectX12ComputePipelineImpl(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram) :
-		m_device(device.weak_from_this()), m_layout(std::move(layout)), m_program(std::move(shaderProgram))
+	DirectX12ComputePipelineImpl(const DirectX12Device& device, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram) :
+		m_device(device.weak_from_this()), m_layout(layout), m_program(shaderProgram)
 	{
 	}
 
@@ -82,7 +82,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12ComputePipeline::DirectX12ComputePipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, const String& name) :
+DirectX12ComputePipeline::DirectX12ComputePipeline(const DirectX12Device& device, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram, const String& name) :
 	DirectX12PipelineState(nullptr), m_impl(device, layout, shaderProgram)
 {
 	if (!name.empty())

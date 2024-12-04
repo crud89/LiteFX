@@ -271,13 +271,13 @@ namespace LiteFX::Rendering::Backends {
         SharedPtr<const IDirectX12Buffer> buffer() const noexcept;
 
         /// <inheritdoc />
-        void build(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer = nullptr, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+        void build(const DirectX12CommandBuffer& commandBuffer, const SharedPtr<const IDirectX12Buffer>& scratchBuffer = nullptr, const SharedPtr<const IDirectX12Buffer>& buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
-        void update(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer = nullptr, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+        void update(const DirectX12CommandBuffer& commandBuffer, const SharedPtr<const IDirectX12Buffer>& scratchBuffer = nullptr, const SharedPtr<const IDirectX12Buffer>& buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
-        void copy(const DirectX12CommandBuffer& commandBuffer, DirectX12BottomLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
+        void copy(const DirectX12CommandBuffer& commandBuffer, DirectX12BottomLevelAccelerationStructure& destination, bool compress = false, const SharedPtr<const IDirectX12Buffer>& buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
 
         /// <inheritdoc />
         UInt64 offset() const noexcept override;
@@ -313,9 +313,9 @@ namespace LiteFX::Rendering::Backends {
 
     private:
         SharedPtr<const IBuffer> getBuffer() const noexcept override;
-        void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
-        void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
-        void doCopy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const override;
+        void doBuild(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize) override;
+        void doUpdate(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize) override;
+        void doCopy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress, const SharedPtr<const IBuffer>& buffer, UInt64 offset, bool copyBuildInfo) const override;
     };
 
     /// <summary>
@@ -365,13 +365,13 @@ namespace LiteFX::Rendering::Backends {
         SharedPtr<const IDirectX12Buffer> buffer() const noexcept;
 
         /// <inheritdoc />
-        void build(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer = nullptr, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+        void build(const DirectX12CommandBuffer& commandBuffer, const SharedPtr<const IDirectX12Buffer>& scratchBuffer = nullptr, const SharedPtr<const IDirectX12Buffer>& buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
-        void update(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer = nullptr, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+        void update(const DirectX12CommandBuffer& commandBuffer, const SharedPtr<const IDirectX12Buffer>& scratchBuffer = nullptr, const SharedPtr<const IDirectX12Buffer>& buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
-        void copy(const DirectX12CommandBuffer& commandBuffer, DirectX12TopLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
+        void copy(const DirectX12CommandBuffer& commandBuffer, DirectX12TopLevelAccelerationStructure& destination, bool compress = false, const SharedPtr<const IDirectX12Buffer>& buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
 
         /// <inheritdoc />
         UInt64 offset() const noexcept override;
@@ -398,9 +398,9 @@ namespace LiteFX::Rendering::Backends {
 
     private:
         SharedPtr<const IBuffer> getBuffer() const noexcept override;
-        void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
-        void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
-        void doCopy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const override;
+        void doBuild(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize) override;
+        void doUpdate(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize) override;
+        void doCopy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress, const SharedPtr<const IBuffer>& buffer, UInt64 offset, bool copyBuildInfo) const override;
     };
 
     /// <summary>
@@ -730,7 +730,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="staticSampler">The static sampler to initialize the state with.</param>
         /// <param name="binding">The binding point for the descriptor.</param>
         /// <param name="local">Determines if the descriptor is part of the local or global root signature for ray-tracing shaders.</param>
-        explicit DirectX12DescriptorLayout(SharedPtr<const IDirectX12Sampler> staticSampler, UInt32 binding, bool local = false);
+        explicit DirectX12DescriptorLayout(const SharedPtr<const IDirectX12Sampler>& staticSampler, UInt32 binding, bool local = false);
         
         /// <inheritdoc />
         DirectX12DescriptorLayout(DirectX12DescriptorLayout&&) noexcept;
@@ -825,7 +825,7 @@ namespace LiteFX::Rendering::Backends {
         /// Initializes a DirectX 12 descriptor set layout.
         /// </summary>
         /// <param name="device">The device, the descriptor set layout is created on.</param>
-        explicit DirectX12DescriptorSetLayout(const DirectX12Device& device) noexcept;
+        explicit DirectX12DescriptorSetLayout(const DirectX12Device& device);
 
     public:
         /// <summary>
@@ -1145,7 +1145,7 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// Initializes a new DirectX 12 input assembler state.
         /// </summary>
-        explicit DirectX12InputAssembler() noexcept;
+        explicit DirectX12InputAssembler();
 
     public:
         /// <inheritdoc />
@@ -1358,16 +1358,16 @@ namespace LiteFX::Rendering::Backends {
         void transfer(const IDirectX12Image& source, const IDirectX12Buffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
-        void transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Buffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
+        void transfer(const SharedPtr<const IDirectX12Buffer>& source, const IDirectX12Buffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
-        void transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Image& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
+        void transfer(const SharedPtr<const IDirectX12Buffer>& source, const IDirectX12Image& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
-        void transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Image& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
+        void transfer(const SharedPtr<const IDirectX12Image>& source, const IDirectX12Image& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
-        void transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Buffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
+        void transfer(const SharedPtr<const IDirectX12Image>& source, const IDirectX12Buffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
         void use(const DirectX12PipelineState& pipeline) const noexcept override;
@@ -1430,25 +1430,25 @@ namespace LiteFX::Rendering::Backends {
         void pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept override;
 
         /// <inheritdoc />
-        void writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
+        void writeTimingEvent(const SharedPtr<const TimingEvent>& timingEvent) const override;
 
         /// <inheritdoc />
-        void execute(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const override;
+        void execute(const SharedPtr<const DirectX12CommandBuffer>& commandBuffer) const override;
 
         /// <inheritdoc />
         void execute(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
+        void buildAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
+        void buildAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
 
         /// <inheritdoc />
-        void updateAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
+        void updateAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
 
         /// <inheritdoc />
-        void updateAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
+        void updateAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
 
         /// <inheritdoc />
         void copyAccelerationStructure(const DirectX12BottomLevelAccelerationStructure& from, const DirectX12BottomLevelAccelerationStructure& to, bool compress = false) const noexcept override;
@@ -1549,10 +1549,10 @@ namespace LiteFX::Rendering::Backends {
         SharedPtr<DirectX12CommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const override;
 
         /// <inheritdoc />
-        UInt64 submit(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const override;
+        UInt64 submit(const SharedPtr<const DirectX12CommandBuffer>& commandBuffer) const override;
 
         /// <inheritdoc />
-        UInt64 submit(const Enumerable<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers) const override;
+        UInt64 submit(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const override;
 
         /// <inheritdoc />
         void waitFor(UInt64 fence) const override;
@@ -1595,7 +1595,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="samples">The initial multi-sampling level of the render pipeline.</param>
         /// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
         /// <param name="name">The optional name of the render pipeline.</param>
-        explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool enableAlphaToCoverage = false, const String& name = "");
+        explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram, const SharedPtr<DirectX12InputAssembler>& inputAssembler, const SharedPtr<DirectX12Rasterizer>& rasterizer, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool enableAlphaToCoverage = false, const String& name = "");
 
         /// <inheritdoc />
         DirectX12RenderPipeline(DirectX12RenderPipeline&&) noexcept = delete;
@@ -1668,7 +1668,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="layout">The layout of the pipeline.</param>
         /// <param name="shaderProgram">The shader program used by this pipeline.</param>
         /// <param name="name">The optional debug name of the compute pipeline.</param>
-        explicit DirectX12ComputePipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, const String& name = "");
+        explicit DirectX12ComputePipeline(const DirectX12Device& device, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram, const String& name = "");
 
         /// <inheritdoc />
         DirectX12ComputePipeline(DirectX12ComputePipeline&&) noexcept;
@@ -1733,7 +1733,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="maxPayloadSize">The maximum size for ray payloads in the pipeline.</param>
         /// <param name="maxAttributeSize">The maximum size for ray attributes in the pipeline.</param>
         /// <param name="name">The optional debug name of the ray-tracing pipeline.</param>
-        explicit DirectX12RayTracingPipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth = 10, UInt32 maxPayloadSize = 0, UInt32 maxAttributeSize = 32, const String& name = ""); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        explicit DirectX12RayTracingPipeline(const DirectX12Device& device, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth = 10, UInt32 maxPayloadSize = 0, UInt32 maxAttributeSize = 32, const String& name = ""); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
         /// <inheritdoc />
         DirectX12RayTracingPipeline(DirectX12RayTracingPipeline&&) noexcept;

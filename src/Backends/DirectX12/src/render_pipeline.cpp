@@ -28,8 +28,8 @@ private:
 	mutable std::mutex m_usageMutex;
 
 public:
-	DirectX12RenderPipelineImpl(const DirectX12RenderPass& renderPass, bool alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer) :
-		m_renderPass(renderPass.shared_from_this()), m_layout(std::move(layout)), m_program(std::move(shaderProgram)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_alphaToCoverage(alphaToCoverage)
+	DirectX12RenderPipelineImpl(const DirectX12RenderPass& renderPass, bool alphaToCoverage, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram, const SharedPtr<DirectX12InputAssembler>& inputAssembler, const SharedPtr<DirectX12Rasterizer>& rasterizer) :
+		m_renderPass(renderPass.shared_from_this()), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_alphaToCoverage(alphaToCoverage)
 	{
 		auto device = renderPass.device();
 
@@ -467,7 +467,7 @@ public:
 		commandBuffer.bind(m_inputAttachmentBindings.at(interfacePointer) | std::views::transform([](auto& set) { return set.get(); }));
 	}
 
-	void onFrameBufferResize(const void* sender, IFrameBuffer::ResizeEventArgs /*args*/)
+	void onFrameBufferResize(const void* sender, const IFrameBuffer::ResizeEventArgs& /*args*/)
 	{
 		// Update the descriptors in the descriptor sets.
 		// NOTE: No slicing here, as the event is always triggered by the frame buffer instance.
@@ -475,7 +475,7 @@ public:
 		this->updateInputAttachmentBindings(*frameBuffer);
 	}
 
-	void onFrameBufferRelease(const void* sender, IFrameBuffer::ReleasedEventArgs /*args*/)
+	void onFrameBufferRelease(const void* sender, const IFrameBuffer::ReleasedEventArgs& /*args*/)
 	{
 		// Get the frame buffer pointer.
 		auto interfacePointer = static_cast<const IFrameBuffer*>(sender);
@@ -493,7 +493,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, MultiSamplingLevel samples, bool enableAlphaToCoverage, const String& name) :
+DirectX12RenderPipeline::DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram, const SharedPtr<DirectX12InputAssembler>& inputAssembler, const SharedPtr<DirectX12Rasterizer>& rasterizer, MultiSamplingLevel samples, bool enableAlphaToCoverage, const String& name) :
 	DirectX12PipelineState(nullptr), m_impl(renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer)
 {
 	if (!name.empty())

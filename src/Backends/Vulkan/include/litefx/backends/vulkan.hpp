@@ -254,7 +254,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="name">The name of the acceleration structure resource.</param>
         /// <exception cref="InvalidArgumentException">Thrown if the provided <paramref name="flags" /> contain an unsupported combination of flags.</exception>
         /// <seealso cref="AccelerationStructureFlags" />
-        explicit VulkanBottomLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None, StringView name = "") noexcept;
+        explicit VulkanBottomLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None, StringView name = "");
 
         /// <inheritdoc />
         VulkanBottomLevelAccelerationStructure(VulkanBottomLevelAccelerationStructure&&) noexcept;
@@ -280,13 +280,13 @@ namespace LiteFX::Rendering::Backends {
         SharedPtr<const IVulkanBuffer> buffer() const noexcept;
 
         /// <inheritdoc />
-        void build(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer = nullptr, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+        void build(const VulkanCommandBuffer& commandBuffer, const SharedPtr<const IVulkanBuffer>& scratchBuffer = nullptr, const SharedPtr<const IVulkanBuffer>& buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
-        void update(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer = nullptr, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+        void update(const VulkanCommandBuffer& commandBuffer, const SharedPtr<const IVulkanBuffer>& scratchBuffer = nullptr, const SharedPtr<const IVulkanBuffer>& buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
-        void copy(const VulkanCommandBuffer& commandBuffer, VulkanBottomLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
+        void copy(const VulkanCommandBuffer& commandBuffer, VulkanBottomLevelAccelerationStructure& destination, bool compress = false, const SharedPtr<const IVulkanBuffer>& buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
 
         /// <inheritdoc />
         UInt64 offset() const noexcept override;
@@ -323,9 +323,9 @@ namespace LiteFX::Rendering::Backends {
 
     private:
         SharedPtr<const IBuffer> getBuffer() const noexcept override;
-        void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
-        void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
-        void doCopy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const override;
+        void doBuild(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize) override;
+        void doUpdate(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize) override;
+        void doCopy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress, const SharedPtr<const IBuffer>& buffer, UInt64 offset, bool copyBuildInfo) const override;
     };
 
     /// <summary>
@@ -349,7 +349,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="name">The name of the acceleration structure resource.</param>
         /// <exception cref="InvalidArgumentException">Thrown if the provided <paramref name="flags" /> contain an unsupported combination of flags.</exception>
         /// <seealso cref="AccelerationStructureFlags" />
-        explicit VulkanTopLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None, StringView name = "") noexcept;
+        explicit VulkanTopLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None, StringView name = "");
 
         /// <inheritdoc />
         VulkanTopLevelAccelerationStructure(VulkanTopLevelAccelerationStructure&&) noexcept;
@@ -375,13 +375,13 @@ namespace LiteFX::Rendering::Backends {
         SharedPtr<const IVulkanBuffer> buffer() const noexcept;
 
         /// <inheritdoc />
-        void build(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer = nullptr, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+        void build(const VulkanCommandBuffer& commandBuffer, const SharedPtr<const IVulkanBuffer>& scratchBuffer = nullptr, const SharedPtr<const IVulkanBuffer>& buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
-        void update(const VulkanCommandBuffer& commandBuffer, SharedPtr<const IVulkanBuffer> scratchBuffer = nullptr, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+        void update(const VulkanCommandBuffer& commandBuffer, const SharedPtr<const IVulkanBuffer>& scratchBuffer = nullptr, const SharedPtr<const IVulkanBuffer>& buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
-        void copy(const VulkanCommandBuffer& commandBuffer, VulkanTopLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IVulkanBuffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
+        void copy(const VulkanCommandBuffer& commandBuffer, VulkanTopLevelAccelerationStructure& destination, bool compress = false, const SharedPtr<const IVulkanBuffer>& buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
 
         /// <inheritdoc />
         UInt64 offset() const noexcept override;
@@ -409,9 +409,9 @@ namespace LiteFX::Rendering::Backends {
 
     private:
         SharedPtr<const IBuffer> getBuffer() const noexcept override;
-        void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
-        void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
-        void doCopy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const override;
+        void doBuild(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize) override;
+        void doUpdate(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize) override;
+        void doCopy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress, const SharedPtr<const IBuffer>& buffer, UInt64 offset, bool copyBuildInfo) const override;
     };
 
     /// <summary>
@@ -716,7 +716,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="staticSampler">The static sampler to initialize the state with.</param>
         /// <param name="binding">The binding point for the descriptor.</param>
-        explicit VulkanDescriptorLayout(SharedPtr<IVulkanSampler> staticSampler, UInt32 binding);
+        explicit VulkanDescriptorLayout(const SharedPtr<const IVulkanSampler>& staticSampler, UInt32 binding);
 
         /// <summary>
         /// Initializes a new Vulkan descriptor layout for an input attachment.
@@ -818,7 +818,7 @@ namespace LiteFX::Rendering::Backends {
         /// Initializes a Vulkan descriptor set layout.
         /// </summary>
         /// <param name="device">The parent device, the pipeline layout has been created from.</param>
-        explicit VulkanDescriptorSetLayout(const VulkanDevice& device) noexcept;
+        explicit VulkanDescriptorSetLayout(const VulkanDevice& device);
 
     public:
         /// <summary>
@@ -1103,7 +1103,7 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// Initializes a new Vulkan input assembler state.
         /// </summary>
-        explicit VulkanInputAssembler() noexcept;
+        explicit VulkanInputAssembler();
 
     public:
         /// <inheritdoc />
@@ -1347,16 +1347,16 @@ namespace LiteFX::Rendering::Backends {
         void transfer(const IVulkanImage& source, const IVulkanBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
-        void transfer(SharedPtr<const IVulkanBuffer> source, const IVulkanBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
+        void transfer(const SharedPtr<const IVulkanBuffer>& source, const IVulkanBuffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
-        void transfer(SharedPtr<const IVulkanBuffer> source, const IVulkanImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
+        void transfer(const SharedPtr<const IVulkanBuffer>& source, const IVulkanImage& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
-        void transfer(SharedPtr<const IVulkanImage> source, const IVulkanImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
+        void transfer(const SharedPtr<const IVulkanImage>& source, const IVulkanImage& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
-        void transfer(SharedPtr<const IVulkanImage> source, const IVulkanBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
+        void transfer(const SharedPtr<const IVulkanImage>& source, const IVulkanBuffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
         void use(const VulkanPipelineState& pipeline) const noexcept override;
@@ -1416,25 +1416,25 @@ namespace LiteFX::Rendering::Backends {
         void pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept override;
 
         /// <inheritdoc />
-        void writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
+        void writeTimingEvent(const SharedPtr<const TimingEvent>& timingEvent) const override;
 
         /// <inheritdoc />
-        void execute(SharedPtr<const VulkanCommandBuffer> commandBuffer) const override;
+        void execute(const SharedPtr<const VulkanCommandBuffer>& commandBuffer) const override;
 
         /// <inheritdoc />
         void execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
+        void buildAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
+        void buildAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
 
         /// <inheritdoc />
-        void updateAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
+        void updateAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
 
         /// <inheritdoc />
-        void updateAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
+        void updateAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const override;
 
         /// <inheritdoc />
         void copyAccelerationStructure(const VulkanBottomLevelAccelerationStructure& from, const VulkanBottomLevelAccelerationStructure& to, bool compress = false) const noexcept override;
@@ -1557,10 +1557,10 @@ namespace LiteFX::Rendering::Backends {
         SharedPtr<VulkanCommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const override;
 
         /// <inheritdoc />
-        UInt64 submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) const override;
+        UInt64 submit(const SharedPtr<const VulkanCommandBuffer>& commandBuffer) const override;
 
         /// <inheritdoc />
-        UInt64 submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const override;
+        UInt64 submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const override;
 
         /// <inheritdoc />
         void waitFor(UInt64 fence) const override;
@@ -1603,7 +1603,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="samples">The initial multi-sampling level of the render pipeline.</param>
         /// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
         /// <param name="name">The optional name of the render pipeline.</param>
-        explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool enableAlphaToCoverage = false, const String& name = "");
+        explicit VulkanRenderPipeline(const VulkanRenderPass& renderPass, const SharedPtr<VulkanShaderProgram>& shaderProgram, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanInputAssembler>& inputAssembler, const SharedPtr<VulkanRasterizer>& rasterizer, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool enableAlphaToCoverage = false, const String& name = "");
 
         /// <inheritdoc />
         VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = delete;
@@ -1679,7 +1679,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="layout">The layout of the pipeline.</param>
         /// <param name="shaderProgram">The shader program used by the pipeline.</param>
         /// <param name="name">The optional debug name of the render pipeline.</param>
-        explicit VulkanComputePipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, const String& name = "");
+        explicit VulkanComputePipeline(const VulkanDevice& device, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanShaderProgram>& shaderProgram, const String& name = "");
 
         /// <inheritdoc />
         VulkanComputePipeline(VulkanComputePipeline&&) noexcept;
@@ -1741,7 +1741,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="maxPayloadSize">The maximum size for ray payloads in the pipeline.</param>
         /// <param name="maxAttributeSize">The maximum size for ray attributes in the pipeline.</param>
         /// <param name="name">The optional debug name of the render pipeline.</param>
-        explicit VulkanRayTracingPipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth = 10, UInt32 maxPayloadSize = 0, UInt32 maxAttributeSize = 32, const String& name = ""); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        explicit VulkanRayTracingPipeline(const VulkanDevice& device, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanShaderProgram>& shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth = 10, UInt32 maxPayloadSize = 0, UInt32 maxAttributeSize = 32, const String& name = ""); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
         /// <inheritdoc />
         VulkanRayTracingPipeline(VulkanRayTracingPipeline&&) noexcept;
@@ -2245,7 +2245,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanGraphicsFactory final : public GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure> {
         LITEFX_IMPLEMENTATION(VulkanGraphicsFactoryImpl);
         friend class VulkanDevice;
-        friend struct SharedObject::Allocator<VulkanGraphicsFractory>;
+        friend struct SharedObject::Allocator<VulkanGraphicsFactory>;
 
     public:
         using base_type = GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>;

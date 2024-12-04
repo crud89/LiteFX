@@ -402,6 +402,7 @@ FILE(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/Auxiliary/pcksl.cxx" CONTENT [==[
 
 // NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
+// NOLINTBEGIN(performance-avoid-endl)
 
 int main(int argc, char* argv[]) {
     if (argc < 2)
@@ -494,6 +495,7 @@ int main(int argc, char* argv[]) {
     return 0;
 }
 
+// NOLINTEND(performance-avoid-endl)
 // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 // NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 

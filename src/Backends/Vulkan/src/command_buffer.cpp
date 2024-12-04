@@ -78,7 +78,7 @@ public:
 		return buffer;
 	}
 
-	inline void buildAccelerationStructure(const VulkanCommandBuffer& commandBuffer, VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset, bool update)
+	inline void buildAccelerationStructure(const VulkanCommandBuffer& commandBuffer, VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset, bool update)
 	{
 		auto device = m_device.lock();
 
@@ -133,7 +133,7 @@ public:
 		m_sharedResources.push_back(scratchBuffer);
 	}
 
-	inline void buildAccelerationStructure(const VulkanCommandBuffer& commandBuffer, VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset, bool update)
+	inline void buildAccelerationStructure(const VulkanCommandBuffer& commandBuffer, VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset, bool update)
 	{
 		auto device = m_device.lock();
 
@@ -624,25 +624,25 @@ void VulkanCommandBuffer::transfer(const IVulkanImage& source, const IVulkanBuff
 	::vkCmdCopyImageToBuffer(this->handle(), std::as_const(source).handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, std::as_const(target).handle(), static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 }
 
-void VulkanCommandBuffer::transfer(SharedPtr<const IVulkanBuffer> source, const IVulkanBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
+void VulkanCommandBuffer::transfer(const SharedPtr<const IVulkanBuffer>& source, const IVulkanBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const
 {
 	this->transfer(*source, target, sourceElement, targetElement, elements);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void VulkanCommandBuffer::transfer(SharedPtr<const IVulkanBuffer> source, const IVulkanImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
+void VulkanCommandBuffer::transfer(const SharedPtr<const IVulkanBuffer>& source, const IVulkanImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const
 {
 	this->transfer(*source, target, sourceElement, firstSubresource, elements);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void VulkanCommandBuffer::transfer(SharedPtr<const IVulkanImage> source, const IVulkanImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
+void VulkanCommandBuffer::transfer(const SharedPtr<const IVulkanImage>& source, const IVulkanImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const
 {
 	this->transfer(*source, target, sourceSubresource, targetSubresource, subresources);
 	m_impl->m_sharedResources.push_back(source);
 }
 
-void VulkanCommandBuffer::transfer(SharedPtr<const IVulkanImage> source, const IVulkanBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
+void VulkanCommandBuffer::transfer(const SharedPtr<const IVulkanImage>& source, const IVulkanBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const
 {
 	this->transfer(*source, target, firstSubresource, targetElement, subresources);
 	m_impl->m_sharedResources.push_back(source);
@@ -754,7 +754,7 @@ void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout,
 	std::ranges::for_each(layout.ranges(), [this, &layout, &memory](const VulkanPushConstantsRange* range) { ::vkCmdPushConstants(this->handle(), layout.pipelineLayout().handle(), static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), range->offset(), range->size(), memory); });
 }
 
-void VulkanCommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const
+void VulkanCommandBuffer::writeTimingEvent(const SharedPtr<const TimingEvent>& timingEvent) const
 {
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
@@ -768,7 +768,7 @@ void VulkanCommandBuffer::writeTimingEvent(SharedPtr<const TimingEvent> timingEv
 	::vkCmdWriteTimestamp2(this->handle(), VK_PIPELINE_STAGE_2_BOTTOM_OF_PIPE_BIT, device->swapChain().timestampQueryPool(), timingEvent->queryId());
 }
 
-void VulkanCommandBuffer::execute(SharedPtr<const VulkanCommandBuffer> commandBuffer) const
+void VulkanCommandBuffer::execute(const SharedPtr<const VulkanCommandBuffer>& commandBuffer) const
 {
 	::vkCmdExecuteCommands(this->handle(), 1, &commandBuffer->handle());
 }
@@ -776,7 +776,7 @@ void VulkanCommandBuffer::execute(SharedPtr<const VulkanCommandBuffer> commandBu
 void VulkanCommandBuffer::execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const
 {
 	auto secondaryHandles = commandBuffers | 
-		std::views::transform([](auto commandBuffer) { return commandBuffer->handle(); }) | 
+		std::views::transform([](auto& commandBuffer) { return commandBuffer->handle(); }) | 
 		std::ranges::to<Array<VkCommandBuffer>>();
 
 	::vkCmdExecuteCommands(this->handle(), static_cast<UInt32>(secondaryHandles.size()), secondaryHandles.data());
@@ -787,22 +787,22 @@ void VulkanCommandBuffer::releaseSharedState() const
 	m_impl->m_sharedResources.clear();
 }
 
-void VulkanCommandBuffer::buildAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
+void VulkanCommandBuffer::buildAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
 {
 	m_impl->buildAccelerationStructure(*this, blas, scratchBuffer, buffer, offset, false);
 }
 
-void VulkanCommandBuffer::buildAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
+void VulkanCommandBuffer::buildAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
 {
 	m_impl->buildAccelerationStructure(*this, tlas, scratchBuffer, buffer, offset, false);
 }
 
-void VulkanCommandBuffer::updateAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
+void VulkanCommandBuffer::updateAccelerationStructure(VulkanBottomLevelAccelerationStructure& blas, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
 {
 	m_impl->buildAccelerationStructure(*this, blas, scratchBuffer, buffer, offset, true);
 }
 
-void VulkanCommandBuffer::updateAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer> scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
+void VulkanCommandBuffer::updateAccelerationStructure(VulkanTopLevelAccelerationStructure& tlas, const SharedPtr<const IVulkanBuffer>& scratchBuffer, const IVulkanBuffer& buffer, UInt64 offset) const
 {
 	m_impl->buildAccelerationStructure(*this, tlas, scratchBuffer, buffer, offset, true);
 }

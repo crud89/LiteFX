@@ -169,7 +169,7 @@ SharedPtr<VulkanCommandBuffer> VulkanQueue::createCommandBuffer(bool beginRecord
 	return VulkanCommandBuffer::create(*this, beginRecording, !secondary);
 }
 
-UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) const
+UInt64 VulkanQueue::submit(const SharedPtr<const VulkanCommandBuffer>& commandBuffer) const
 {
 	auto device = m_impl->m_device.lock();
 
@@ -229,7 +229,7 @@ UInt64 VulkanQueue::submit(SharedPtr<const VulkanCommandBuffer> commandBuffer) c
 	return fence;
 }
 
-UInt64 VulkanQueue::submit(const Enumerable<SharedPtr<const VulkanCommandBuffer>>& commandBuffers) const
+UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const
 {
 	auto device = m_impl->m_device.lock();
 

@@ -148,7 +148,7 @@ SharedPtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(bool begin
 	return DirectX12CommandBuffer::create(*this, beginRecording, !secondary);
 }
 
-UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const
+UInt64 DirectX12Queue::submit(const SharedPtr<const DirectX12CommandBuffer>& commandBuffer) const
 {
 	if (commandBuffer == nullptr)
 		throw InvalidArgumentException("commandBuffer", "The command buffer must be initialized.");
@@ -184,7 +184,7 @@ UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuf
 	return fence;
 }
 
-UInt64 DirectX12Queue::submit(const Enumerable<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers) const
+UInt64 DirectX12Queue::submit(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const
 {
 	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return buffer != nullptr; }))
 		throw InvalidArgumentException("commandBuffers", "At least one command buffer is not initialized.");

@@ -13,13 +13,13 @@ public:
 	friend class VulkanComputePipeline;
 
 private:
+	WeakPtr<const VulkanDevice> m_device;
 	SharedPtr<VulkanPipelineLayout> m_layout;
 	SharedPtr<VulkanShaderProgram> m_program;
-	WeakPtr<const VulkanDevice> m_device;
 
 public:
-	VulkanComputePipelineImpl(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram) :
-		m_layout(std::move(layout)), m_program(std::move(shaderProgram)), m_device(device.weak_from_this())
+	VulkanComputePipelineImpl(const VulkanDevice& device, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanShaderProgram>& shaderProgram) :
+		m_device(device.weak_from_this()), m_layout(layout), m_program(shaderProgram)
 	{
 	}
 
@@ -71,7 +71,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, const String& name) :
+VulkanComputePipeline::VulkanComputePipeline(const VulkanDevice& device, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanShaderProgram>& shaderProgram, const String& name) :
 	VulkanPipelineState(VK_NULL_HANDLE), m_impl(device, layout, shaderProgram)
 {
 	if (!name.empty())

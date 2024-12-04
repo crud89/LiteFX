@@ -572,7 +572,7 @@ namespace LiteFX {
 		/// Initializes the managed resource.
 		/// </summary>
 		/// <param name="handle">The managed resource handle.</param>
-		explicit Resource(const THandle handle) noexcept : m_handle(handle) { }
+		explicit Resource(THandle handle) noexcept : m_handle(std::move(handle)) { }
 		Resource(const Resource&) = delete;
 		Resource(Resource&&) noexcept = default;
 		Resource& operator=(const Resource&) = delete;

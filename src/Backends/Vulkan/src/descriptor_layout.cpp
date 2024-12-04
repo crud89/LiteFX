@@ -45,13 +45,13 @@ public:
         }
     }
 
-    VulkanDescriptorLayoutImpl(SharedPtr<const IVulkanSampler> staticSampler, UInt32 binding) :
+    VulkanDescriptorLayoutImpl(const SharedPtr<const IVulkanSampler>& staticSampler, UInt32 binding) :
         VulkanDescriptorLayoutImpl(DescriptorType::Sampler, binding, 0, 1)
     {
         if (staticSampler == nullptr) [[unlikely]]
             throw ArgumentNotInitializedException("staticSampler", "The static sampler must be initialized.");
 
-        m_staticSampler = std::move(staticSampler);
+        m_staticSampler = staticSampler;
     }
 
     VulkanDescriptorLayoutImpl(UInt32 binding, UInt32 inputAttachmentIndex) :
@@ -70,7 +70,7 @@ VulkanDescriptorLayout::VulkanDescriptorLayout(DescriptorType type, UInt32 bindi
 {
 }
 
-VulkanDescriptorLayout::VulkanDescriptorLayout(SharedPtr<IVulkanSampler> staticSampler, UInt32 binding) :
+VulkanDescriptorLayout::VulkanDescriptorLayout(const SharedPtr<const IVulkanSampler>& staticSampler, UInt32 binding) :
     m_impl(staticSampler, binding)
 {
 }

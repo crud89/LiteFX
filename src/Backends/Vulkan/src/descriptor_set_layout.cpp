@@ -346,7 +346,7 @@ VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device,
     this->handle() = m_impl->initialize();
 }
 
-VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device) noexcept :
+VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device) :
     Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE), m_impl(device)
 {
 }
@@ -504,7 +504,7 @@ Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMu
         }()) | std::views::transform([this](auto handle) { return makeUnique<VulkanDescriptorSet>(*this, handle); }) | std::views::as_rvalue;
 
     // Apply the default bindings.
-    for (auto [descriptorSet, bindingsPerDescriptor] : std::views::zip(descriptorSets | std::views::transform([](auto& set) { return set.get(); }), bindingsPerSet))
+    for (const auto& [descriptorSet, bindingsPerDescriptor] : std::views::zip(descriptorSets | std::views::transform([](auto& set) { return set.get(); }), bindingsPerSet))
     {
         for (UInt32 i{ 0 }; auto& binding : bindingsPerDescriptor)
         {
@@ -630,8 +630,8 @@ void VulkanDescriptorSetLayoutBuilder::build()
 {
     auto instance = this->instance();
     instance->m_impl->m_descriptorLayouts = std::move(this->state().descriptorLayouts);
-    instance->m_impl->m_space = std::move(this->state().space);
-    instance->m_impl->m_stages = std::move(this->state().stages);
+    instance->m_impl->m_space = this->state().space;
+    instance->m_impl->m_stages = this->state().stages;
     instance->m_impl->initialize();
 }
 

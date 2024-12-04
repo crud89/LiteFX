@@ -133,7 +133,7 @@ public:
         m_activeFrameBuffer = frameBuffer.shared_from_this();
     }
 
-    void onFrameBufferRelease(const void* sender, IFrameBuffer::ReleasedEventArgs /*args*/)
+    void onFrameBufferRelease(const void* sender, const IFrameBuffer::ReleasedEventArgs& /*args*/)
     {
         // Obtain the interface pointer and release all resources bound to the frame buffer.
         auto interfacePointer = static_cast<const IFrameBuffer*>(sender);
@@ -372,7 +372,7 @@ void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer) const
     // NOLINTBEGIN(bugprone-unchecked-optional-access)
     std::as_const(*beginCommandBuffer).handle()->BeginRenderPass(static_cast<UINT>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
     std::as_const(*beginCommandBuffer).handle()->EndRenderPass();
-    std::ranges::for_each(m_impl->getSecondaryCommandBuffers(frameBuffer), [&context](auto commandBuffer) { 
+    std::ranges::for_each(m_impl->getSecondaryCommandBuffers(frameBuffer), [&context](auto& commandBuffer) { 
         commandBuffer->begin(); 
         std::as_const(*commandBuffer).handle()->BeginRenderPass(static_cast<UINT>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS | D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
     });
@@ -403,7 +403,7 @@ UInt64 DirectX12RenderPass::end() const
     // Resume and end the render pass.
     const auto& context = m_impl->m_activeContext;
     auto endCommandBuffer = m_impl->getEndCommandBuffer(frameBuffer);
-    std::ranges::for_each(m_impl->getSecondaryCommandBuffers(frameBuffer), [](auto commandBuffer) { std::as_const(*commandBuffer).handle()->EndRenderPass(); });
+    std::ranges::for_each(m_impl->getSecondaryCommandBuffers(frameBuffer), [](auto& commandBuffer) { std::as_const(*commandBuffer).handle()->EndRenderPass(); });
     endCommandBuffer->begin();
     std::as_const(*endCommandBuffer).handle()->BeginRenderPass(static_cast<UInt32>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_RESUMING_PASS); // NOLINT(bugprone-unchecked-optional-access)
     std::as_const(*endCommandBuffer).handle()->EndRenderPass();

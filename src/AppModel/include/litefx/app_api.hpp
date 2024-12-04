@@ -26,20 +26,20 @@ namespace LiteFX {
 	class App;
 	class AppBuilder;
 
-	enum class Platform {
-		None = 0x00000000,
-		Win32 = 0x00000001,
-		Other = 0x7FFFFFFF
+	enum class Platform : std::uint8_t {
+		None = 0x00,
+		Win32 = 0x01,
+		Other = 0xFF
 	};
 
-	enum class BackendType {
+	enum class BackendType : std::uint8_t {
 		Rendering = 0x01,
 		Other = 0xFF
 	};
 
 	constexpr std::array VALID_BACKEND_TYPES { BackendType::Rendering };
 
-	enum class BackendState {
+	enum class BackendState : std::uint8_t {
 		Inactive = 0x01,
 		Active = 0x02
 	};

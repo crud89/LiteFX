@@ -50,7 +50,7 @@ public:
 		return this->initialize(this->readStreamContents(stream));
 	}
 
-	VkShaderModule initialize(String fileContents)
+	VkShaderModule initialize(const String& fileContents)
 	{
 		// Check if the device is still valid.
 		auto device = m_device.lock();

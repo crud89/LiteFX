@@ -629,16 +629,16 @@ namespace LiteFX::Rendering {
         virtual void transfer(const image_type& source, const buffer_type& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(SharedPtr<const buffer_type> source, const buffer_type& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const = 0;
+        virtual void transfer(const SharedPtr<const buffer_type>& source, const buffer_type& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(SharedPtr<const buffer_type> source, const image_type& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const = 0;
+        virtual void transfer(const SharedPtr<const buffer_type>& source, const image_type& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(SharedPtr<const image_type> source, const image_type& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const = 0;
+        virtual void transfer(const SharedPtr<const image_type>& source, const image_type& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const = 0;
 
         /// <inheritdoc />
-        virtual void transfer(SharedPtr<const image_type> source, const buffer_type& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const = 0;
+        virtual void transfer(const SharedPtr<const image_type>& source, const buffer_type& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const = 0;
 
         /// <inheritdoc />
         virtual void use(const pipeline_type& pipeline) const noexcept = 0;
@@ -705,22 +705,22 @@ namespace LiteFX::Rendering {
         }
 
         /// <inheritdoc />
-        virtual void execute(SharedPtr<const command_buffer_type> commandBuffer) const = 0;
+        virtual void execute(const SharedPtr<const command_buffer_type>& commandBuffer) const = 0;
 
         /// <inheritdoc />
         virtual void execute(Enumerable<SharedPtr<const command_buffer_type>> commandBuffers) const = 0;
 
         /// <inheritdoc />
-        virtual void buildAccelerationStructure(bottom_level_acceleration_structure_type& blas, const SharedPtr<const buffer_type> scratchBuffer, const buffer_type& buffer, UInt64 offset = 0) const = 0;
+        virtual void buildAccelerationStructure(bottom_level_acceleration_structure_type& blas, const SharedPtr<const buffer_type>& scratchBuffer, const buffer_type& buffer, UInt64 offset = 0) const = 0;
 
         /// <inheritdoc />
-        virtual void buildAccelerationStructure(top_level_acceleration_structure_type& tlas, const SharedPtr<const buffer_type> scratchBuffer, const buffer_type& buffer, UInt64 offset = 0) const = 0;
+        virtual void buildAccelerationStructure(top_level_acceleration_structure_type& tlas, const SharedPtr<const buffer_type>& scratchBuffer, const buffer_type& buffer, UInt64 offset = 0) const = 0;
 
         /// <inheritdoc />
-        virtual void updateAccelerationStructure(bottom_level_acceleration_structure_type& blas, const SharedPtr<const buffer_type> scratchBuffer, const buffer_type& buffer, UInt64 offset = 0) const = 0;
+        virtual void updateAccelerationStructure(bottom_level_acceleration_structure_type& blas, const SharedPtr<const buffer_type>& scratchBuffer, const buffer_type& buffer, UInt64 offset = 0) const = 0;
 
         /// <inheritdoc />
-        virtual void updateAccelerationStructure(top_level_acceleration_structure_type& tlas, const SharedPtr<const buffer_type> scratchBuffer, const buffer_type& buffer, UInt64 offset = 0) const = 0;
+        virtual void updateAccelerationStructure(top_level_acceleration_structure_type& tlas, const SharedPtr<const buffer_type>& scratchBuffer, const buffer_type& buffer, UInt64 offset = 0) const = 0;
 
         /// <inheritdoc />
         virtual void copyAccelerationStructure(const bottom_level_acceleration_structure_type& from, const bottom_level_acceleration_structure_type& to, bool compress = false) const noexcept = 0;
@@ -765,19 +765,19 @@ namespace LiteFX::Rendering {
             this->transfer(dynamic_cast<const image_type&>(source), dynamic_cast<const buffer_type&>(target), firstSubresource, targetElement, subresources);
         }
 
-        inline void cmdTransfer(SharedPtr<const IBuffer> source, const IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const override {
+        inline void cmdTransfer(const SharedPtr<const IBuffer>& source, const IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const override {
             this->transfer(std::dynamic_pointer_cast<const buffer_type>(source), dynamic_cast<const buffer_type&>(target), sourceElement, targetElement, elements);
         }
         
-        inline void cmdTransfer(SharedPtr<const IBuffer> source, const IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const override {
+        inline void cmdTransfer(const SharedPtr<const IBuffer>& source, const IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const override {
             this->transfer(std::dynamic_pointer_cast<const buffer_type>(source), dynamic_cast<const image_type&>(target), sourceElement, firstSubresource, elements);
         }
         
-        inline void cmdTransfer(SharedPtr<const IImage> source, const IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const override {
+        inline void cmdTransfer(const SharedPtr<const IImage>& source, const IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const override {
             this->transfer(std::dynamic_pointer_cast<const image_type>(source), dynamic_cast<const image_type&>(target), sourceSubresource, targetSubresource, subresources);
         }
         
-        inline void cmdTransfer(SharedPtr<const IImage> source, const IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const override {
+        inline void cmdTransfer(const SharedPtr<const IImage>& source, const IBuffer& target, UInt32 firstSubresource, UInt32 targetElement, UInt32 subresources) const override {
             this->transfer(std::dynamic_pointer_cast<const image_type>(source), dynamic_cast<const buffer_type&>(target), firstSubresource, targetElement, subresources);
         }
 
@@ -871,27 +871,27 @@ namespace LiteFX::Rendering {
             this->drawIndexedIndirect(dynamic_cast<const buffer_type&>(batchBuffer), dynamic_cast<const buffer_type&>(countBuffer), offset, countOffset, maxBatches);
         }
 
-        inline void cmdExecute(SharedPtr<const ICommandBuffer> commandBuffer) const override {
+        inline void cmdExecute(const SharedPtr<const ICommandBuffer>& commandBuffer) const override {
             this->execute(std::dynamic_pointer_cast<const command_buffer_type>(commandBuffer));
         }
         
         inline void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const override {
-            return this->execute(commandBuffers | std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }));
+            return this->execute(commandBuffers | std::views::transform([](auto& buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }));
         }
 
-        void cmdBuildAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
+        void cmdBuildAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
             this->buildAccelerationStructure(dynamic_cast<bottom_level_acceleration_structure_type&>(blas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer), dynamic_cast<const buffer_type&>(buffer), offset);
         }
 
-        void cmdBuildAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
+        void cmdBuildAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
             this->buildAccelerationStructure(dynamic_cast<top_level_acceleration_structure_type&>(tlas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer), dynamic_cast<const buffer_type&>(buffer), offset);
         }
 
-        void cmdUpdateAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
+        void cmdUpdateAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
             this->updateAccelerationStructure(dynamic_cast<bottom_level_acceleration_structure_type&>(blas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer), dynamic_cast<const buffer_type&>(buffer), offset);
         }
         
-        void cmdUpdateAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer> scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
+        void cmdUpdateAccelerationStructure(ITopLevelAccelerationStructure& tlas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
             this->updateAccelerationStructure(dynamic_cast<top_level_acceleration_structure_type&>(tlas), std::dynamic_pointer_cast<const buffer_type>(scratchBuffer), dynamic_cast<const buffer_type&>(buffer), offset);
         }
 
@@ -1068,32 +1068,33 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<command_buffer_type> createCommandBuffer(bool beginRecording = false, bool secondary = false) const = 0;
 
         /// <inheritdoc />
-        virtual inline UInt64 submit(SharedPtr<command_buffer_type> commandBuffer) const {
+        virtual inline UInt64 submit(const SharedPtr<command_buffer_type>& commandBuffer) const {
             return this->submit(std::static_pointer_cast<const command_buffer_type>(commandBuffer));
         }
 
         /// <inheritdoc />
-        virtual UInt64 submit(SharedPtr<const command_buffer_type> commandBuffer) const = 0;
+        virtual UInt64 submit(const SharedPtr<const command_buffer_type>& commandBuffer) const = 0;
 
         /// <inheritdoc />
-        virtual inline UInt64 submit(const Enumerable<SharedPtr<command_buffer_type>>& commandBuffers) const {
+        virtual inline UInt64 submit(Enumerable<SharedPtr<command_buffer_type>> commandBuffers) const { // NOLINT(performance-unnecessary-value-param)
             return this->submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const command_buffer_type>>>());
         }
 
         /// <inheritdoc />
-        virtual UInt64 submit(const Enumerable<SharedPtr<const command_buffer_type>>& commandBuffers) const = 0;
+        [[deprecated("Consider using overload, that takes a set of constant ICommandBuffer pointers.")]]
+        virtual UInt64 submit(Enumerable<SharedPtr<const command_buffer_type>> commandBuffers) const = 0;
 
     private:
         inline SharedPtr<ICommandBuffer> getCommandBuffer(bool beginRecording, bool secondary) const override {
             return this->createCommandBuffer(beginRecording, secondary);
         }
 
-        inline UInt64 submitCommandBuffer(SharedPtr<const ICommandBuffer> commandBuffer) const override {
+        inline UInt64 submitCommandBuffer(const SharedPtr<const ICommandBuffer>& commandBuffer) const override {
             return this->submit(std::dynamic_pointer_cast<const command_buffer_type>(commandBuffer));
         }
 
-        inline UInt64 submitCommandBuffers(const Enumerable<SharedPtr<const ICommandBuffer>>& commandBuffers) const override {
-            return this->submit(commandBuffers | std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) | std::ranges::to<Enumerable<SharedPtr<const command_buffer_type>>>());
+        inline UInt64 submitCommandBuffers(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const override {
+            return this->submit(commandBuffers | std::views::transform([](auto& buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) | std::ranges::to<Enumerable<SharedPtr<const command_buffer_type>>>());
         }
     };
 

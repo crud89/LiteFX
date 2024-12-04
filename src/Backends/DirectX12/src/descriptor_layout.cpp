@@ -46,7 +46,7 @@ public:
         }
     }
 
-    DirectX12DescriptorLayoutImpl(SharedPtr<const IDirectX12Sampler> staticSampler, UInt32 binding, bool local) :
+    DirectX12DescriptorLayoutImpl(const SharedPtr<const IDirectX12Sampler>& staticSampler, UInt32 binding, bool local) :
         DirectX12DescriptorLayoutImpl(DescriptorType::Sampler, binding, 0, 1, local)
     {
         if (staticSampler == nullptr)
@@ -65,7 +65,7 @@ DirectX12DescriptorLayout::DirectX12DescriptorLayout(DescriptorType type, UInt32
 {
 }
 
-DirectX12DescriptorLayout::DirectX12DescriptorLayout(SharedPtr<const IDirectX12Sampler> staticSampler, UInt32 binding, bool local) :
+DirectX12DescriptorLayout::DirectX12DescriptorLayout(const SharedPtr<const IDirectX12Sampler>& staticSampler, UInt32 binding, bool local) :
     m_impl(staticSampler, binding, local)
 {
 }

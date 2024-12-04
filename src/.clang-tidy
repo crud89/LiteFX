@@ -2,13 +2,14 @@ Checks: |
     clang-analyzer-*,
     cppcoreguidelines-*,
     bugprone-*,
+    performance-*,
     modernize-pass-by-value,
     modernize-return-braced-init-list,
     modernize-use-emplace,
     -clang-analyzer-optin.core.EnumCastOutOfRange,
     -bugprone-macro-parentheses,
     -bugprone-easily-swappable-parameters
-WarningsAsErrors: clang-analyzer-*, cppcoreguidelines-*, bugprone-*, modernize-*
+WarningsAsErrors: clang-analyzer-*, cppcoreguidelines-*, bugprone-*, modernize-*, performance-*
 HeaderFilterRegex: '.*'
 CheckOptions:
   - key:   cppcoreguidelines-rvalue-reference-param-not-moved.AllowPartialMove

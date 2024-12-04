@@ -46,7 +46,7 @@ VulkanInputAssembler::VulkanInputAssembler(Enumerable<UniquePtr<VulkanVertexBuff
     m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
 }
 
-VulkanInputAssembler::VulkanInputAssembler() noexcept = default;
+VulkanInputAssembler::VulkanInputAssembler() = default;
 VulkanInputAssembler::VulkanInputAssembler(VulkanInputAssembler&&) noexcept = default;
 VulkanInputAssembler& VulkanInputAssembler::operator=(VulkanInputAssembler&&) noexcept = default;
 VulkanInputAssembler::~VulkanInputAssembler() noexcept = default;

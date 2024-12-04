@@ -43,7 +43,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12GraphicsAdapter::DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter) noexcept :
-    ComResource<IDXGIAdapter4>(adapter), m_impl(*this)
+    ComResource<IDXGIAdapter4>(std::move(adapter)), m_impl(*this)
 {
 }
 

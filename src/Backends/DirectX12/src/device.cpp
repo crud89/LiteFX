@@ -653,7 +653,7 @@ void DirectX12Device::wait() const
 		raiseIfFailed(hr, "Unable to wait for queue synchronization fence.");
 	}
 
-		return { std::move(eventHandle), std::move(fence) };
+		return { eventHandle, std::move(fence) };
 	});
 
 	// Wait for all the fences.

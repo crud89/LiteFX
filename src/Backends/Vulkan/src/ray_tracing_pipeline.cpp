@@ -25,8 +25,8 @@ private:
 	UInt32 m_maxRecursionDepth{ 10 }, m_maxPayloadSize{ 0 }, m_maxAttributeSize{ 32 }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
 public:
-	VulkanRayTracingPipelineImpl(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, ShaderRecordCollection&& shaderRecords) :
-		m_device(device.weak_from_this()), m_layout(std::move(layout)), m_program(std::move(shaderProgram)), m_shaderRecordCollection(std::move(shaderRecords)), m_maxRecursionDepth(maxRecursionDepth), m_maxPayloadSize(maxPayloadSize), m_maxAttributeSize(maxAttributeSize)
+	VulkanRayTracingPipelineImpl(const VulkanDevice& device, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanShaderProgram>& shaderProgram, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, ShaderRecordCollection&& shaderRecords) :
+		m_device(device.weak_from_this()), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords)), m_maxRecursionDepth(maxRecursionDepth), m_maxPayloadSize(maxPayloadSize), m_maxAttributeSize(maxAttributeSize)
 	{
 	}
 
@@ -281,7 +281,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, const String& name) :
+VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice& device, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanShaderProgram>& shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, const String& name) :
 	VulkanPipelineState(VK_NULL_HANDLE), m_impl(device, layout, shaderProgram, maxRecursionDepth, maxPayloadSize, maxAttributeSize, std::move(shaderRecords))
 {
 	if (!name.empty())
