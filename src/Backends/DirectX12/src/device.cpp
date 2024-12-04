@@ -588,9 +588,9 @@ UniquePtr<DirectX12Barrier> DirectX12Device::makeBarrier(PipelineStage syncBefor
 	return makeUnique<DirectX12Barrier>(syncBefore, syncAfter);
 }
 
-UniquePtr<DirectX12FrameBuffer> DirectX12Device::makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept
+SharedPtr<DirectX12FrameBuffer> DirectX12Device::makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept
 {
-	return makeUnique<DirectX12FrameBuffer>(*this, renderArea, name);
+	return DirectX12FrameBuffer::create(*this, renderArea, name);
 }
 
 MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(Format format) const noexcept

@@ -13,7 +13,7 @@ public:
 	friend class DirectX12RenderPipeline;
 
 private:
-	const DirectX12RenderPass& m_renderPass;
+	SharedPtr<const DirectX12RenderPass> m_renderPass;
 	SharedPtr<DirectX12PipelineLayout> m_layout;
 	SharedPtr<DirectX12ShaderProgram> m_program;
 	SharedPtr<DirectX12InputAssembler> m_inputAssembler;
@@ -29,17 +29,21 @@ private:
 
 public:
 	DirectX12RenderPipelineImpl(const DirectX12RenderPass& renderPass, bool alphaToCoverage, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer) :
-		m_renderPass(renderPass), m_layout(std::move(layout)), m_program(std::move(shaderProgram)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_alphaToCoverage(alphaToCoverage)
+		m_renderPass(renderPass.shared_from_this()), m_layout(std::move(layout)), m_program(std::move(shaderProgram)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_alphaToCoverage(alphaToCoverage)
 	{
+		auto device = renderPass.device();
+
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
-			m_inputAttachmentSampler = m_renderPass.device()->factory().createSampler();
+			m_inputAttachmentSampler = device->factory().createSampler();
 	}
 
 	DirectX12RenderPipelineImpl(const DirectX12RenderPass& renderPass) :
-		m_renderPass(renderPass)
+		m_renderPass(renderPass.shared_from_this())
 	{
+		auto device = renderPass.device();
+
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
-			m_inputAttachmentSampler = m_renderPass.device()->factory().createSampler();
+			m_inputAttachmentSampler = device->factory().createSampler();
 	}
 
 	~DirectX12RenderPipelineImpl() noexcept
@@ -52,10 +56,10 @@ public:
 			frameBuffer->released -= token;
 	}
 
-	DirectX12RenderPipelineImpl(const DirectX12RenderPipelineImpl&) noexcept = delete;
 	DirectX12RenderPipelineImpl(DirectX12RenderPipelineImpl&&) noexcept = delete;
-	DirectX12RenderPipelineImpl& operator=(const DirectX12RenderPipelineImpl&) noexcept = delete;
+	DirectX12RenderPipelineImpl(const DirectX12RenderPipelineImpl&) noexcept = delete;
 	DirectX12RenderPipelineImpl& operator=(DirectX12RenderPipelineImpl&&) noexcept = delete;
+	DirectX12RenderPipelineImpl& operator=(const DirectX12RenderPipelineImpl&) noexcept = delete;
 
 public:
 	ComPtr<ID3D12PipelineState> initialize(const DirectX12RenderPipeline& pipeline, MultiSamplingLevel samples)
@@ -134,7 +138,7 @@ public:
 		// NOTE: We assume, that the targets are returned sorted by location and the location range is contiguous.
 		D3D12_BLEND_DESC blendState = {};
 		D3D12_DEPTH_STENCIL_DESC depthStencilState = {};
-		auto targets = m_renderPass.renderTargets();
+		auto targets = m_renderPass->renderTargets();
 		UInt32 renderTargets = static_cast<UInt32>(std::ranges::count_if(targets, [](auto& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; }));
 		UInt32 depthStencilTargets = static_cast<UInt32>(targets.size()) - renderTargets;
 		DXGI_FORMAT dsvFormat { };
@@ -260,7 +264,7 @@ public:
 
 		// Create the pipeline state instance.
 		ComPtr<ID3D12PipelineState> pipelineState;
-		raiseIfFailed(m_renderPass.device()->handle()->CreatePipelineState(&pipelineDesc, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
+		raiseIfFailed(m_renderPass->device()->handle()->CreatePipelineState(&pipelineDesc, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
 		
 #ifndef NDEBUG
 		pipelineState->SetName(Widen(pipeline.name()).c_str());
@@ -327,7 +331,7 @@ public:
 
 		// Create the pipeline state instance.
 		ComPtr<ID3D12PipelineState> pipelineState;
-		raiseIfFailed(m_renderPass.device()->handle()->CreateGraphicsPipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
+		raiseIfFailed(m_renderPass->device()->handle()->CreateGraphicsPipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
 		
 #ifndef NDEBUG
 		pipelineState->SetName(Widen(pipeline.name()).c_str());
@@ -340,7 +344,7 @@ public:
 	{
 		// Find out how many descriptor sets there are within the input attachments and which descriptors are bound.
 		Dictionary<UInt32, Array<UInt32>> descriptorsPerSet;
-		std::ranges::for_each(m_renderPass.inputAttachments(), [&descriptorsPerSet](auto& dependency) { descriptorsPerSet[dependency.binding().Space].push_back(dependency.binding().Register); });
+		std::ranges::for_each(m_renderPass->inputAttachments(), [&descriptorsPerSet](auto& dependency) { descriptorsPerSet[dependency.binding().Space].push_back(dependency.binding().Register); });
 
 		// Validate the descriptor sets, so that no descriptors are bound twice all descriptor sets are fully bound.
 		for (auto& [set, descriptors] : descriptorsPerSet)
@@ -365,7 +369,7 @@ public:
 		}
 
 		// Don't forget the sampler.
-		auto& samplerBinding = m_renderPass.inputAttachmentSamplerBinding();
+		auto& samplerBinding = m_renderPass->inputAttachmentSamplerBinding();
 
 		if (samplerBinding.has_value())
 		{
@@ -408,7 +412,7 @@ public:
 		auto& bindings = m_inputAttachmentBindings.at(interfacePointer);
 
 		// Iterate the dependencies and update the binding for each one.
-		std::ranges::for_each(m_renderPass.inputAttachments(), [&](auto& dependency) {
+		std::ranges::for_each(m_renderPass->inputAttachments(), [&](auto& dependency) {
 			for (auto& binding : bindings)
 			{
 				if (binding->layout().space() == dependency.binding().Space)
@@ -427,7 +431,7 @@ public:
 		});
 
 		// If there's a sampler, bind it too.
-		auto& inputAttachmentSamplerBinding = m_renderPass.inputAttachmentSamplerBinding();
+		auto& inputAttachmentSamplerBinding = m_renderPass->inputAttachmentSamplerBinding();
 		
 		if (inputAttachmentSamplerBinding.has_value())
 		{
@@ -445,14 +449,18 @@ public:
 	void bindInputAttachments(const DirectX12CommandBuffer& commandBuffer)
 	{
 		// If this is the first time, the current frame buffer is bound to the render pass, we need to allocate descriptors for it.
-		auto& frameBuffer = m_renderPass.activeFrameBuffer();
-		auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
+		auto frameBuffer = m_renderPass->activeFrameBuffer();
+
+		if (frameBuffer == nullptr)
+			throw RuntimeException("Cannot bind input attachments for inactive render pass.");
+
+		auto interfacePointer = static_cast<const IFrameBuffer*>(frameBuffer.get());
 
 		if (!m_inputAttachmentBindings.contains(interfacePointer))
 		{
 			// Allocate and update input attachment bindings.
-			this->initializeInputAttachmentBindings(frameBuffer);
-			this->updateInputAttachmentBindings(frameBuffer);
+			this->initializeInputAttachmentBindings(*frameBuffer);
+			this->updateInputAttachmentBindings(*frameBuffer);
 		}
 
 		// Bind the input attachment sets.

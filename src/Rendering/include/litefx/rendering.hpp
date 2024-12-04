@@ -1128,6 +1128,9 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
+        virtual SharedPtr<const frame_buffer_type> activeFrameBuffer() const noexcept = 0;
+
+        /// <inheritdoc />
         virtual Enumerable<SharedPtr<const command_buffer_type>> commandBuffers() const = 0;
 
         /// <inheritdoc />
@@ -1140,6 +1143,10 @@ namespace LiteFX::Rendering {
         virtual void begin(const frame_buffer_type& frameBuffer) const = 0;
 
     private:
+        inline SharedPtr<const IFrameBuffer> getActiveFrameBuffer() const noexcept override {
+            return this->activeFrameBuffer();
+        }
+
         inline SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept override {
             return this->commandBuffer(index);
         }
@@ -1441,19 +1448,19 @@ namespace LiteFX::Rendering {
         [[nodiscard]] virtual UniquePtr<barrier_type> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
 
         /// <inheritdoc />
-        [[nodiscard]] inline UniquePtr<frame_buffer_type> makeFrameBuffer(const Size2d& renderArea) const noexcept {
+        [[nodiscard]] inline SharedPtr<frame_buffer_type> makeFrameBuffer(const Size2d& renderArea) const noexcept {
             return this->makeFrameBuffer("", renderArea);
         }
 
         /// <inheritdoc />
-        [[nodiscard]] virtual UniquePtr<frame_buffer_type> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept = 0;
+        [[nodiscard]] virtual SharedPtr<frame_buffer_type> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept = 0;
 
     private:
         inline UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override {
             return this->makeBarrier(syncBefore, syncAfter);
         }
 
-        inline UniquePtr<IFrameBuffer> getNewFrameBuffer(StringView name, const Size2d& renderArea) const noexcept override {
+        inline SharedPtr<IFrameBuffer> getNewFrameBuffer(StringView name, const Size2d& renderArea) const noexcept override {
             return this->makeFrameBuffer(name, renderArea);
         }
 

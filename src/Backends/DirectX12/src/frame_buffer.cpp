@@ -133,8 +133,6 @@ DirectX12FrameBuffer::DirectX12FrameBuffer(const DirectX12Device& device, const 
     m_impl->initialize();
 }
 
-DirectX12FrameBuffer::DirectX12FrameBuffer(DirectX12FrameBuffer&&) noexcept = default;
-DirectX12FrameBuffer& DirectX12FrameBuffer::operator=(DirectX12FrameBuffer&&) noexcept = default;
 DirectX12FrameBuffer::~DirectX12FrameBuffer() noexcept = default;
 
 D3D12_CPU_DESCRIPTOR_HANDLE DirectX12FrameBuffer::descriptorHandle(UInt32 imageIndex) const

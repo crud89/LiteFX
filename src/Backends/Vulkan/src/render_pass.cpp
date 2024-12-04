@@ -21,7 +21,7 @@ private:
     Dictionary<const IFrameBuffer*, Array<SharedPtr<VulkanCommandBuffer>>> m_secondaryCommandBuffers;
     Dictionary<const IVulkanImage*, VkImageView> m_swapChainViews;
     UInt32 m_secondaryCommandBufferCount = 0;
-    const VulkanFrameBuffer* m_activeFrameBuffer = nullptr;
+    SharedPtr<const VulkanFrameBuffer> m_activeFrameBuffer = nullptr;
     const RenderTarget* m_presentTarget = nullptr;
     const RenderTarget* m_depthStencilTarget = nullptr;
     Optional<DescriptorBindingPoint> m_inputAttachmentSamplerBinding{ };
@@ -150,7 +150,7 @@ public:
         }
 
         // Store the active frame buffer pointer.
-        m_activeFrameBuffer = &frameBuffer;
+        m_activeFrameBuffer = frameBuffer.shared_from_this();
     }
 
     void onFrameBufferRelease(const void* sender, IFrameBuffer::ReleasedEventArgs /*args*/)
@@ -158,7 +158,7 @@ public:
         // Obtain the interface pointer and release all resources bound to the frame buffer.
         auto interfacePointer = static_cast<const IFrameBuffer*>(sender);
 
-        if (static_cast<const IFrameBuffer*>(m_activeFrameBuffer) == interfacePointer) [[unlikely]]
+        if (static_cast<const IFrameBuffer*>(m_activeFrameBuffer.get()) == interfacePointer) [[unlikely]]
             throw RuntimeException("A frame buffer that is currently in use on a render pass cannot be released.");
 
         m_primaryCommandBuffers.erase(interfacePointer);
@@ -319,8 +319,6 @@ VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& nam
         this->name() = name;
 }
 
-VulkanRenderPass::VulkanRenderPass(VulkanRenderPass&&) noexcept = default;
-VulkanRenderPass& VulkanRenderPass::operator=(VulkanRenderPass&&) noexcept = default;
 VulkanRenderPass::~VulkanRenderPass() noexcept = default;
 
 SharedPtr<const VulkanDevice> VulkanRenderPass::device() const noexcept
@@ -328,12 +326,9 @@ SharedPtr<const VulkanDevice> VulkanRenderPass::device() const noexcept
     return m_impl->m_device.lock();
 }
 
-const VulkanFrameBuffer& VulkanRenderPass::activeFrameBuffer() const
+SharedPtr<const VulkanFrameBuffer> VulkanRenderPass::activeFrameBuffer() const noexcept
 {
-    if (m_impl->m_activeFrameBuffer == nullptr) [[unlikely]]
-        throw RuntimeException("No frame buffer is active, since the render pass has not begun.");
-
-    return *m_impl->m_activeFrameBuffer;
+    return m_impl->m_activeFrameBuffer;
 }
 
 const VulkanQueue& VulkanRenderPass::commandQueue() const noexcept
@@ -349,7 +344,7 @@ SharedPtr<const VulkanCommandBuffer> VulkanRenderPass::commandBuffer(UInt32 inde
     if (index >= m_impl->m_secondaryCommandBufferCount) [[unlikely]]
         throw ArgumentOutOfRangeException("index", std::make_pair(0u, m_impl->m_secondaryCommandBufferCount), index, "The render pass only contains {0} command buffers, but an index of {1} has been provided.", m_impl->m_secondaryCommandBufferCount, index);
 
-    return m_impl->m_secondaryCommandBuffers.at(m_impl->m_activeFrameBuffer).at(index);
+    return m_impl->m_secondaryCommandBuffers.at(m_impl->m_activeFrameBuffer.get()).at(index);
 }
 
 Enumerable<SharedPtr<const VulkanCommandBuffer>> VulkanRenderPass::commandBuffers() const
@@ -357,7 +352,7 @@ Enumerable<SharedPtr<const VulkanCommandBuffer>> VulkanRenderPass::commandBuffer
     if (m_impl->m_secondaryCommandBufferCount == 0u || m_impl->m_activeFrameBuffer == nullptr)
         return { };
 
-    return m_impl->m_secondaryCommandBuffers.at(m_impl->m_activeFrameBuffer);
+    return m_impl->m_secondaryCommandBuffers.at(m_impl->m_activeFrameBuffer.get());
 }
 
 UInt32 VulkanRenderPass::secondaryCommandBuffers() const noexcept
@@ -587,7 +582,7 @@ VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, con
 }
 
 VulkanRenderPassBuilder::VulkanRenderPassBuilder(const VulkanDevice& device, UInt32 commandBuffers, const String& name) :
-    RenderPassBuilder(UniquePtr<VulkanRenderPass>(new VulkanRenderPass(device, name)))
+    RenderPassBuilder(SharedPtr<VulkanRenderPass>(new VulkanRenderPass(device, name)))
 {
     this->state().commandBufferCount = commandBuffers;
 }

@@ -95,7 +95,7 @@ public:
 		if (queue->type() == QueueType::Compute || queue->type() == QueueType::Graphics)
 			device->bindGlobalDescriptorHeaps(commandBuffer);
 		else [[unlikely]]
-			throw new RuntimeException("Unable to bind descriptors on a command queue that's not a compute or graphics queue.");
+			throw RuntimeException("Unable to bind descriptors on a command queue that's not a compute or graphics queue.");
 	}
 
 	inline void buildAccelerationStructure(const DirectX12CommandBuffer& commandBuffer, DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)

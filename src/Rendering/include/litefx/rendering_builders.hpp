@@ -1731,9 +1731,9 @@ namespace LiteFX::Rendering {
     /// <seealso cref="RenderPass" />
     template <typename TRenderPass> requires
         meta::implements<TRenderPass, RenderPass<typename TRenderPass::command_queue_type, typename TRenderPass::frame_buffer_type>>
-    class RenderPassBuilder : public Builder<TRenderPass> {
+    class RenderPassBuilder : public Builder<TRenderPass, std::nullptr_t, SharedPtr<TRenderPass>> {
     public:
-        using Builder<TRenderPass>::Builder;
+        using Builder<TRenderPass, std::nullptr_t, SharedPtr<TRenderPass>>::Builder;
         using render_pass_type = TRenderPass;
         using command_queue_type = render_pass_type::command_queue_type;
 

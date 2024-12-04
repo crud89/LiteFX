@@ -19,7 +19,7 @@ private:
 	SharedPtr<VulkanRasterizer> m_rasterizer;
 	bool m_alphaToCoverage{ false };
 	MultiSamplingLevel m_samples{ MultiSamplingLevel::x1 };
-	const VulkanRenderPass& m_renderPass;
+	SharedPtr<const VulkanRenderPass> m_renderPass;
 	SharedPtr<IVulkanSampler> m_inputAttachmentSampler;
 	Dictionary<const IFrameBuffer*, Array<UniquePtr<VulkanDescriptorSet>>> m_inputAttachmentBindings;
 	Dictionary<const IFrameBuffer*, size_t> m_frameBufferResizeTokens, m_frameBufferReleaseTokens;
@@ -28,17 +28,21 @@ private:
 
 public:
 	VulkanRenderPipelineImpl(const VulkanRenderPass& renderPass, bool alphaToCoverage, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer) :
-		m_layout(std::move(layout)), m_program(std::move(shaderProgram)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_alphaToCoverage(alphaToCoverage), m_renderPass(renderPass)
+		m_layout(std::move(layout)), m_program(std::move(shaderProgram)), m_inputAssembler(std::move(inputAssembler)), m_rasterizer(std::move(rasterizer)), m_alphaToCoverage(alphaToCoverage), m_renderPass(renderPass.shared_from_this())
 	{
+		auto device = renderPass.device();
+
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
-			m_inputAttachmentSampler = m_renderPass.device()->factory().createSampler();
+			m_inputAttachmentSampler = device->factory().createSampler();
 	}
 
 	VulkanRenderPipelineImpl(const VulkanRenderPass& renderPass) :
-		m_renderPass(renderPass)
+		m_renderPass(renderPass.shared_from_this())
 	{
+		auto device = renderPass.device();
+
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
-			m_inputAttachmentSampler = m_renderPass.device()->factory().createSampler();
+			m_inputAttachmentSampler = device->factory().createSampler();
 	}
 
 	VulkanRenderPipelineImpl(VulkanRenderPipelineImpl&&) noexcept = delete;
@@ -88,7 +92,7 @@ public:
 		auto pipeline = this->initializeGraphicsPipeline(parent, dynamicState, shaderStages);
 
 #ifndef NDEBUG
-		m_renderPass.device()->setDebugName(pipeline, VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, parent.name());
+		m_renderPass->device()->setDebugName(pipeline, VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, parent.name());
 #endif
 
 		// Return the pipeline instance.
@@ -194,8 +198,10 @@ public:
 		multisampling.alphaToOneEnable = VK_FALSE;
 
 		// Setup color blend state.
+		auto renderTargets = m_renderPass->renderTargets();
 		Array<VkPipelineColorBlendAttachmentState> colorBlendAttachments;
-		std::ranges::for_each(m_renderPass.renderTargets(), [&colorBlendAttachments](const RenderTarget& renderTarget) {
+
+		std::ranges::for_each(renderTargets, [&colorBlendAttachments](const RenderTarget& renderTarget) {
 			if (renderTarget.type() == RenderTargetType::DepthStencil)
 				return;
 
@@ -240,7 +246,6 @@ public:
 		depthStencilState.back.depthFailOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.DepthFailOp);
 
 		// Setup rendering info for dynamic render pass.
-		auto renderTargets = m_renderPass.renderTargets();
 		auto formats = renderTargets |
 			std::views::filter([](auto& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; }) |
 			std::views::transform([](auto& renderTarget) { return Vk::getFormat(renderTarget.format()); }) |
@@ -279,7 +284,7 @@ public:
 		};
 
 		VkPipeline pipeline{};
-		raiseIfFailed(::vkCreateGraphicsPipelines(m_renderPass.device()->handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
+		raiseIfFailed(::vkCreateGraphicsPipelines(m_renderPass->device()->handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
 
 		return pipeline;
 	}
@@ -288,7 +293,7 @@ public:
 	{
 		// Find out how many descriptor sets there are within the input attachments and which descriptors are bound.
 		Dictionary<UInt32, Array<UInt32>> descriptorsPerSet;
-		std::ranges::for_each(m_renderPass.inputAttachments(), [&descriptorsPerSet](auto& dependency) { descriptorsPerSet[dependency.binding().Space].push_back(dependency.binding().Register); });
+		std::ranges::for_each(m_renderPass->inputAttachments(), [&descriptorsPerSet](auto& dependency) { descriptorsPerSet[dependency.binding().Space].push_back(dependency.binding().Register); });
 
 		// Validate the descriptor sets, so that no descriptors are bound twice all descriptor sets are fully bound.
 		for (auto& [set, descriptors] : descriptorsPerSet)
@@ -313,7 +318,7 @@ public:
 		}
 
 		// Don't forget the sampler.
-		auto& inputAttachmentSamplerBinding = m_renderPass.inputAttachmentSamplerBinding();
+		auto& inputAttachmentSamplerBinding = m_renderPass->inputAttachmentSamplerBinding();
 
 		if (inputAttachmentSamplerBinding.has_value())
 		{
@@ -362,7 +367,7 @@ public:
 		auto& bindings = m_inputAttachmentBindings.at(interfacePointer);
 
 		// Iterate the dependencies and update the binding for each one.
-		std::ranges::for_each(m_renderPass.inputAttachments(), [&](auto& dependency) {
+		std::ranges::for_each(m_renderPass->inputAttachments(), [&](auto& dependency) {
 			for (auto& binding : bindings)
 			{
 				if (binding->layout().space() == dependency.binding().Space)
@@ -381,7 +386,7 @@ public:
 		});
 
 		// If there's a sampler, bind it too.
-		auto& inputAttachmentSamplerBinding = m_renderPass.inputAttachmentSamplerBinding();
+		auto& inputAttachmentSamplerBinding = m_renderPass->inputAttachmentSamplerBinding();
 
 		if (inputAttachmentSamplerBinding.has_value())
 		{
@@ -399,14 +404,18 @@ public:
 	void bindInputAttachments(const VulkanRenderPipeline& parent, const VulkanCommandBuffer& commandBuffer)
 	{
 		// If this is the first time, the current frame buffer is bound to the render pass, we need to allocate descriptors for it.
-		auto& frameBuffer = m_renderPass.activeFrameBuffer();
-		auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
+		auto frameBuffer = m_renderPass->activeFrameBuffer();
+
+		if (frameBuffer == nullptr)
+			throw RuntimeException("Cannot bind input attachments for inactive render pass.");
+
+		auto interfacePointer = static_cast<const IFrameBuffer*>(frameBuffer.get());
 
 		if (!m_inputAttachmentBindings.contains(interfacePointer))
 		{
 			// Allocate and update input attachment bindings.
-			this->initializeInputAttachmentBindings(frameBuffer);
-			this->updateInputAttachmentBindings(frameBuffer);
+			this->initializeInputAttachmentBindings(*frameBuffer);
+			this->updateInputAttachmentBindings(*frameBuffer);
 		}
 
 		// Bind the input attachment sets.
@@ -462,7 +471,7 @@ VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, c
 
 VulkanRenderPipeline::~VulkanRenderPipeline() noexcept
 {
-	::vkDestroyPipeline(m_impl->m_renderPass.device()->handle(), this->handle(), nullptr);
+	::vkDestroyPipeline(m_impl->m_renderPass->device()->handle(), this->handle(), nullptr);
 }
 
 SharedPtr<const VulkanShaderProgram> VulkanRenderPipeline::program() const noexcept
@@ -501,7 +510,7 @@ void VulkanRenderPipeline::updateSamples(MultiSamplingLevel samples)
 	m_impl->m_inputAttachmentBindings.clear();
 
 	// Release current pipeline state.
-	::vkDestroyPipeline(m_impl->m_renderPass.device()->handle(), this->handle(), nullptr);
+	::vkDestroyPipeline(m_impl->m_renderPass->device()->handle(), this->handle(), nullptr);
 
 	// Rebuild the pipeline.
 	this->handle() = m_impl->initialize(*this, samples);

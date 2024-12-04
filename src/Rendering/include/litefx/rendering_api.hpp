@@ -7622,7 +7622,7 @@ namespace LiteFX::Rendering {
     /// overwrite the mapping. It is also possible to remove a render target mapping by calling <see cref="IFrameBuffer::unmapRenderTarget" />. This will result in future attempts
     /// to resolve this render target using the frame buffer instance to fail.
     /// </remarks>
-    class LITEFX_RENDERING_API IFrameBuffer : public virtual IStateResource {
+    class LITEFX_RENDERING_API IFrameBuffer : public virtual IStateResource, public SharedObject {
     public:
         /// <summary>
         /// Event arguments that are published to subscribers when a frame buffer gets resized.
@@ -7978,7 +7978,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// The interface for a render pass.
     /// </summary>
-    class LITEFX_RENDERING_API IRenderPass : public virtual IStateResource {
+    class LITEFX_RENDERING_API IRenderPass : public virtual IStateResource, public SharedObject {
     public:
         /// <summary>
         /// Event arguments that are published to subscribers when a render pass is beginning.
@@ -8039,10 +8039,11 @@ namespace LiteFX::Rendering {
         /// method will instead raise an exception.
         /// </remarks>
         /// <param name="buffer">The index of the frame buffer.</param>
-        /// <returns>A back buffer used by the render pass.</returns>
-        /// <exception cref="RuntimeException">Thrown, if the render pass has not started.</exception>
+        /// <returns>A pointer to the currently active frame buffer or `nullptr`, if the render pass has not been started.</returns>
         /// <seealso cref="begin" />
-        virtual const IFrameBuffer& activeFrameBuffer() const = 0;
+        inline SharedPtr<const IFrameBuffer> activeFrameBuffer() const noexcept {
+            return this->getActiveFrameBuffer();
+        }
 
         /// <summary>
         /// Returns the command queue, the render pass is executing on or `nullptr`, if the queue has already been released.
@@ -8146,6 +8147,7 @@ namespace LiteFX::Rendering {
         virtual UInt64 end() const = 0;
 
     private:
+        virtual SharedPtr<const IFrameBuffer> getActiveFrameBuffer() const noexcept = 0;
         virtual void beginRenderPass(const IFrameBuffer& frameBuffer) const = 0;
         virtual const ICommandQueue& getCommandQueue() const noexcept = 0;
         virtual SharedPtr<const ICommandBuffer> getCommandBuffer(UInt32 index) const noexcept = 0;
@@ -9185,7 +9187,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="renderArea">The initial render area of the frame buffer.</param>
         /// <returns>The instance of the frame buffer.</returns>
-        [[nodiscard]] inline UniquePtr<IFrameBuffer> makeFrameBuffer(const Size2d& renderArea) const noexcept {
+        [[nodiscard]] inline SharedPtr<IFrameBuffer> makeFrameBuffer(const Size2d& renderArea) const noexcept {
             return this->makeFrameBuffer("", renderArea);
         }
 
@@ -9195,7 +9197,7 @@ namespace LiteFX::Rendering {
         /// <param name="name">The name of the frame buffer.</param>
         /// <param name="renderArea">The initial render area of the frame buffer.</param>
         /// <returns>The instance of the frame buffer.</returns>
-        [[nodiscard]] inline UniquePtr<IFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept {
+        [[nodiscard]] inline SharedPtr<IFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept {
             return this->getNewFrameBuffer(name, renderArea);
         }
 
@@ -9269,7 +9271,7 @@ namespace LiteFX::Rendering {
 
     private:
         virtual UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
-        virtual UniquePtr<IFrameBuffer> getNewFrameBuffer(StringView name, const Size2d& renderArea) const noexcept = 0;
+        virtual SharedPtr<IFrameBuffer> getNewFrameBuffer(StringView name, const Size2d& renderArea) const noexcept = 0;
         virtual const ICommandQueue& getDefaultQueue(QueueType type) const = 0;
         virtual SharedPtr<const ICommandQueue> getNewQueue(QueueType type, QueuePriority priority) = 0;
     };

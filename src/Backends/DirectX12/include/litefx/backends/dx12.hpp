@@ -1805,7 +1805,7 @@ namespace LiteFX::Rendering::Backends {
         using FrameBuffer::mapRenderTarget;
         using FrameBuffer::mapRenderTargets;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a DirectX 12 frame buffer.
         /// </summary>
@@ -1814,20 +1814,33 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="name">The name of the frame buffer.</param>
         DirectX12FrameBuffer(const DirectX12Device& device, const Size2d& renderArea, StringView name = "");
 
+    public:
         /// <inheritdoc />
-        DirectX12FrameBuffer(DirectX12FrameBuffer&&) noexcept;
+        DirectX12FrameBuffer(DirectX12FrameBuffer&&) noexcept = delete;
 
         /// <inheritdoc />
         DirectX12FrameBuffer(const DirectX12FrameBuffer&) noexcept = delete;
 
         /// <inheritdoc />
-        DirectX12FrameBuffer& operator=(DirectX12FrameBuffer&&) noexcept;
+        DirectX12FrameBuffer& operator=(DirectX12FrameBuffer&&) noexcept = delete;
 
         /// <inheritdoc />
         DirectX12FrameBuffer& operator=(const DirectX12FrameBuffer&) noexcept = delete;
 
         /// <inheritdoc />
         ~DirectX12FrameBuffer() noexcept override;
+
+    public:
+        /// <summary>
+        /// Initializes a DirectX 12 frame buffer.
+        /// </summary>
+        /// <param name="device">The device the frame buffer is allocated on.</param>
+        /// <param name="renderArea">The initial size of the render area.</param>
+        /// <param name="name">The name of the frame buffer.</param>
+        /// <returns>A pointer to the newly created frame buffer instance.</returns>
+        static inline SharedPtr<DirectX12FrameBuffer> create(const DirectX12Device& device, const Size2d& renderArea, StringView name = "") {
+            return SharedPtr<DirectX12FrameBuffer>(new DirectX12FrameBuffer(device, renderArea, name));
+        }
 
         // DirectX 12 FrameBuffer
     public:
@@ -1928,7 +1941,7 @@ namespace LiteFX::Rendering::Backends {
     public:
         using base_type = RenderPass<DirectX12Queue, DirectX12FrameBuffer>;
 
-    public:
+    private:
         /// <summary>
         /// Creates and initializes a new DirectX 12 render pass instance that executes on the default graphics queue.
         /// </summary>
@@ -1977,20 +1990,82 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
         explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u);
 
+    public:
         /// <inheritdoc />
-        DirectX12RenderPass(DirectX12RenderPass&&) noexcept;
+        DirectX12RenderPass(DirectX12RenderPass&&) noexcept = delete;
 
         /// <inheritdoc />
         DirectX12RenderPass(const DirectX12RenderPass&) noexcept = delete;
 
         /// <inheritdoc />
-        DirectX12RenderPass& operator=(DirectX12RenderPass&&) noexcept;
+        DirectX12RenderPass& operator=(DirectX12RenderPass&&) noexcept = delete;
 
         /// <inheritdoc />
         DirectX12RenderPass& operator=(const DirectX12RenderPass&) noexcept = delete;
 
         /// <inheritdoc />
         ~DirectX12RenderPass() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates and initializes a new DirectX 12 render pass instance that executes on the default graphics queue.
+        /// </summary>
+        /// <param name="device">The parent device instance.</param>
+        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
+        /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+        /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
+        /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <returns>A pointer to the newly created render pass instance.</returns>
+        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
+            return SharedPtr<DirectX12RenderPass>(new DirectX12RenderPass(device, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers));
+        }
+
+        /// <summary>
+        /// Creates and initializes a new DirectX 12 render pass instance that executes on the default graphics queue.
+        /// </summary>
+        /// <param name="device">The parent device instance.</param>
+        /// <param name="name">The name of the render pass state resource.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
+        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+        /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+        /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
+        /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <returns>A pointer to the newly created render pass instance.</returns>
+        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
+            return SharedPtr<DirectX12RenderPass>(new DirectX12RenderPass(device, name, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers));
+        }
+
+        /// <summary>
+        /// Creates and initializes a new DirectX 12 render pass instance.
+        /// </summary>
+        /// <param name="device">The parent device instance.</param>
+        /// <param name="queue">The command queue to execute the render pass on.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
+        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+        /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+        /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
+        /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <returns>A pointer to the newly created render pass instance.</returns>
+        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
+            return SharedPtr<DirectX12RenderPass>(new DirectX12RenderPass(device, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers));
+        }
+
+        /// <summary>
+        /// Creates and initializes a new DirectX 12 render pass instance.
+        /// </summary>
+        /// <param name="device">The parent device instance.</param>
+        /// <param name="name">The name of the render pass state resource.</param>
+        /// <param name="queue">The command queue to execute the render pass on.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
+        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+        /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+        /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
+        /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <returns>A pointer to the newly created render pass instance.</returns>
+        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
+            return SharedPtr<DirectX12RenderPass>(new DirectX12RenderPass(device, name, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers));
+        }
 
     private:
         /// <summary>
@@ -2015,7 +2090,7 @@ namespace LiteFX::Rendering::Backends {
         // RenderPass interface.
     public:
         /// <inheritdoc />
-        const DirectX12FrameBuffer& activeFrameBuffer() const override;
+        SharedPtr<const DirectX12FrameBuffer> activeFrameBuffer() const noexcept override;
 
         /// <inheritdoc />
         const DirectX12Queue& commandQueue() const noexcept override;
@@ -2461,7 +2536,7 @@ namespace LiteFX::Rendering::Backends {
         [[nodiscard]] UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
 
         /// <inheritdoc />
-        [[nodiscard]] UniquePtr<DirectX12FrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept override;
+        [[nodiscard]] SharedPtr<DirectX12FrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept override;
 
         /// <inheritdoc />
         /// <seealso href="https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_standard_multisample_quality_levels" />

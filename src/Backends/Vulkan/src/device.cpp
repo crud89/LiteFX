@@ -688,9 +688,9 @@ UniquePtr<VulkanBarrier> VulkanDevice::makeBarrier(PipelineStage syncBefore, Pip
     return makeUnique<VulkanBarrier>(syncBefore, syncAfter);
 }
 
-UniquePtr<VulkanFrameBuffer> VulkanDevice::makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept
+SharedPtr<VulkanFrameBuffer> VulkanDevice::makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept
 {
-    return makeUnique<VulkanFrameBuffer>(*this, renderArea, name);
+    return VulkanFrameBuffer::create(*this, renderArea, name);
 }
 
 MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(Format format) const noexcept

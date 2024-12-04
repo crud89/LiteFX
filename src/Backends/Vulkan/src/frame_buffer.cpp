@@ -57,7 +57,7 @@ public:
             throw RuntimeException("Cannot allocate frame buffer from a released device instance.");
 
         // Define a factory callback for an image view.
-        auto getImageView = [&](SharedPtr<const IVulkanImage>& image) -> std::pair<SharedPtr<const IVulkanImage>, VkImageView> {
+        auto getImageView = [&](SharedPtr<IVulkanImage>& image) -> std::pair<SharedPtr<const IVulkanImage>, VkImageView> {
             VkImageViewCreateInfo createInfo = {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
                 .pNext = nullptr,
@@ -165,8 +165,6 @@ VulkanFrameBuffer::VulkanFrameBuffer(const VulkanDevice& device, const Size2d& r
 {
 }
 
-VulkanFrameBuffer::VulkanFrameBuffer(VulkanFrameBuffer&&) noexcept = default;
-VulkanFrameBuffer& VulkanFrameBuffer::operator=(VulkanFrameBuffer&&) noexcept = default;
 VulkanFrameBuffer::~VulkanFrameBuffer() noexcept = default;
 
 VkImageView VulkanFrameBuffer::imageView(UInt32 imageIndex) const

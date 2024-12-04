@@ -27,7 +27,7 @@ private:
     Dictionary<const IFrameBuffer*, SharedPtr<DirectX12CommandBuffer>> m_endCommandBuffers;
     Dictionary<const IFrameBuffer*, Array<SharedPtr<DirectX12CommandBuffer>>> m_secondaryCommandBuffers;
     UInt32 m_secondaryCommandBufferCount = 0;
-    const DirectX12FrameBuffer* m_activeFrameBuffer = nullptr;
+    SharedPtr<const DirectX12FrameBuffer> m_activeFrameBuffer = nullptr;
     RenderPassContext m_activeContext;
     const RenderTarget* m_presentTarget = nullptr;
     const RenderTarget* m_depthStencilTarget = nullptr;
@@ -130,7 +130,7 @@ public:
         }
 
         // Store the active frame buffer pointer.
-        m_activeFrameBuffer = &frameBuffer;
+        m_activeFrameBuffer = frameBuffer.shared_from_this();
     }
 
     void onFrameBufferRelease(const void* sender, IFrameBuffer::ReleasedEventArgs /*args*/)
@@ -138,7 +138,7 @@ public:
         // Obtain the interface pointer and release all resources bound to the frame buffer.
         auto interfacePointer = static_cast<const IFrameBuffer*>(sender);
 
-        if (static_cast<const IFrameBuffer*>(m_activeFrameBuffer) == interfacePointer) [[unlikely]]
+        if (static_cast<const IFrameBuffer*>(m_activeFrameBuffer.get()) == interfacePointer) [[unlikely]]
             throw RuntimeException("A frame buffer that is currently in use on a render pass cannot be released.");
 
         m_beginCommandBuffers.erase(interfacePointer);
@@ -248,8 +248,6 @@ DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const St
         this->name() = name;
 }
 
-DirectX12RenderPass::DirectX12RenderPass(DirectX12RenderPass&&) noexcept = default;
-DirectX12RenderPass& DirectX12RenderPass::operator=(DirectX12RenderPass&&) noexcept = default;
 DirectX12RenderPass::~DirectX12RenderPass() noexcept = default;
 
 SharedPtr<const DirectX12Device> DirectX12RenderPass::device() const noexcept
@@ -257,12 +255,9 @@ SharedPtr<const DirectX12Device> DirectX12RenderPass::device() const noexcept
     return m_impl->m_device.lock();
 }
 
-const DirectX12FrameBuffer& DirectX12RenderPass::activeFrameBuffer() const
+SharedPtr<const DirectX12FrameBuffer> DirectX12RenderPass::activeFrameBuffer() const noexcept
 {
-    if (m_impl->m_activeFrameBuffer == nullptr) [[unlikely]]
-        throw RuntimeException("No frame buffer is active, since the render pass has not begun.");
-
-    return *m_impl->m_activeFrameBuffer;
+    return m_impl->m_activeFrameBuffer;
 }
 
 const DirectX12Queue& DirectX12RenderPass::commandQueue() const noexcept 
@@ -278,7 +273,7 @@ SharedPtr<const DirectX12CommandBuffer> DirectX12RenderPass::commandBuffer(UInt3
     if (index >= m_impl->m_secondaryCommandBufferCount) [[unlikely]]
         throw ArgumentOutOfRangeException("index", std::make_pair(0u, m_impl->m_secondaryCommandBufferCount), index, "The render pass only contains {0} command buffers, but an index of {1} has been provided.", m_impl->m_secondaryCommandBufferCount, index);
 
-    return m_impl->m_secondaryCommandBuffers.at(m_impl->m_activeFrameBuffer).at(index);
+    return m_impl->m_secondaryCommandBuffers.at(m_impl->m_activeFrameBuffer.get()).at(index);
 }
 
 Enumerable<SharedPtr<const DirectX12CommandBuffer>> DirectX12RenderPass::commandBuffers() const
@@ -286,7 +281,7 @@ Enumerable<SharedPtr<const DirectX12CommandBuffer>> DirectX12RenderPass::command
     if (m_impl->m_secondaryCommandBufferCount == 0u || m_impl->m_activeFrameBuffer == nullptr)
         return { };
 
-    return m_impl->m_secondaryCommandBuffers[m_impl->m_activeFrameBuffer];
+    return m_impl->m_secondaryCommandBuffers.at(m_impl->m_activeFrameBuffer.get());
 }
 
 UInt32 DirectX12RenderPass::secondaryCommandBuffers() const noexcept
@@ -518,7 +513,7 @@ DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& de
 }
 
 DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, const String& name) :
-    RenderPassBuilder(UniquePtr<DirectX12RenderPass>(new DirectX12RenderPass(device, name)))
+    RenderPassBuilder(SharedPtr<DirectX12RenderPass>(new DirectX12RenderPass(device, name)))
 {
     this->state().commandBufferCount = commandBuffers;
 }

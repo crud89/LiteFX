@@ -254,7 +254,11 @@ void VulkanCommandBuffer::begin() const
 void VulkanCommandBuffer::begin(const VulkanRenderPass& renderPass) const
 {
 	// Get the render target formats.
-	auto& frameBuffer = renderPass.activeFrameBuffer();
+	auto frameBuffer = renderPass.activeFrameBuffer();
+
+	if (frameBuffer == nullptr)
+		throw RuntimeException("Cannot begin secondary command buffer on inactive render pass.");
+
 	auto renderTargets = renderPass.renderTargets();
 	auto formats = renderTargets |
 		std::views::filter([](auto& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; }) |
@@ -269,7 +273,7 @@ void VulkanCommandBuffer::begin(const VulkanRenderPass& renderPass) const
 
 	// Get the multi sampling level.
 	auto samples = renderTargets |
-		std::views::transform([&frameBuffer](auto& renderTarget) { return Vk::getSamples(frameBuffer[renderTarget].samples()); }) |
+		std::views::transform([&frameBuffer](auto& renderTarget) { return Vk::getSamples(frameBuffer->image(renderTarget).samples()); }) |
 		std::ranges::to<Array<VkSampleCountFlagBits>>();
 
 	if (std::ranges::adjacent_find(samples, std::not_equal_to { }) != samples.end()) [[unlikely]]

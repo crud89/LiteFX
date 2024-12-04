@@ -715,7 +715,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="staticSampler">The static sampler to initialize the state with.</param>
         /// <param name="binding">The binding point for the descriptor.</param>
-        explicit VulkanDescriptorLayout(UniquePtr<IVulkanSampler>&& staticSampler, UInt32 binding);
+        explicit VulkanDescriptorLayout(SharedPtr<IVulkanSampler> staticSampler, UInt32 binding);
 
         /// <summary>
         /// Initializes a new Vulkan descriptor layout for an input attachment.
@@ -1809,7 +1809,7 @@ namespace LiteFX::Rendering::Backends {
         using FrameBuffer::mapRenderTarget;
         using FrameBuffer::mapRenderTargets;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a Vulkan frame buffer.
         /// </summary>
@@ -1818,20 +1818,33 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="name">The name of the frame buffer.</param>
         VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea, StringView name = "");
 
+    public:
         /// <inheritdoc />
-        VulkanFrameBuffer(VulkanFrameBuffer&&) noexcept;
+        VulkanFrameBuffer(VulkanFrameBuffer&&) noexcept = delete;
         
         /// <inheritdoc />
         VulkanFrameBuffer(const VulkanFrameBuffer&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanFrameBuffer& operator=(VulkanFrameBuffer&&) noexcept;
+        VulkanFrameBuffer& operator=(VulkanFrameBuffer&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanFrameBuffer& operator=(const VulkanFrameBuffer&) noexcept = delete;
 
         /// <inheritdoc />
         ~VulkanFrameBuffer() noexcept override;
+
+    public:
+        /// <summary>
+        /// Initializes a Vulkan frame buffer.
+        /// </summary>
+        /// <param name="device">The device the frame buffer is allocated on.</param>
+        /// <param name="renderArea">The initial size of the render area.</param>
+        /// <param name="name">The name of the frame buffer.</param>
+        /// <returns>A pointer to the newly created frame buffer instance.</returns>
+        static inline SharedPtr<VulkanFrameBuffer> create(const VulkanDevice& device, const Size2d& renderArea, StringView name = "") {
+            return SharedPtr<VulkanFrameBuffer>(new VulkanFrameBuffer(device, renderArea, name));
+        }
 
         // Vulkan frame buffer interface.
     public:
@@ -1932,7 +1945,7 @@ namespace LiteFX::Rendering::Backends {
     public:
         using base_type = RenderPass<VulkanQueue, VulkanFrameBuffer>;
 
-    public:
+    private:
         /// <summary>
         /// Creates and initializes a new Vulkan render pass instance that executes on the default graphics queue.
         /// </summary>
@@ -1977,20 +1990,74 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
         explicit VulkanRenderPass(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u);
 
+    public:
         /// <inheritdoc />
-        VulkanRenderPass(VulkanRenderPass&&) noexcept;
+        VulkanRenderPass(VulkanRenderPass&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanRenderPass(const VulkanRenderPass&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanRenderPass& operator=(VulkanRenderPass&&) noexcept;
+        VulkanRenderPass& operator=(VulkanRenderPass&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanRenderPass& operator=(const VulkanRenderPass&) noexcept = delete;
 
         /// <inheritdoc />
         ~VulkanRenderPass() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates and initializes a new Vulkan render pass instance that executes on the default graphics queue.
+        /// </summary>
+        /// <param name="device">The parent device instance.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
+        /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+        /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
+        /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        static inline SharedPtr<VulkanRenderPass> create(const VulkanDevice& device, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
+            return SharedPtr<VulkanRenderPass>(new VulkanRenderPass(device, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers));
+        }
+
+        /// <summary>
+        /// Creates and initializes a new Vulkan render pass instance that executes on the default graphics queue.
+        /// </summary>
+        /// <param name="device">The parent device instance.</param>
+        /// <param name="name">The name of the render pass state resource.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
+        /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+        /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
+        /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        static inline SharedPtr<VulkanRenderPass> create(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
+            return SharedPtr<VulkanRenderPass>(new VulkanRenderPass(device, name, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers));
+        }
+
+        /// <summary>
+        /// Creates and initializes a new Vulkan render pass instance.
+        /// </summary>
+        /// <param name="device">The parent device instance.</param>
+        /// <param name="queue">The command queue to execute the render pass on.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
+        /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+        /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
+        /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        static inline SharedPtr<VulkanRenderPass> create(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
+            return SharedPtr<VulkanRenderPass>(new VulkanRenderPass(device, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers));
+        }
+
+        /// <summary>
+        /// Creates and initializes a new Vulkan render pass instance.
+        /// </summary>
+        /// <param name="device">The parent device instance.</param>
+        /// <param name="name">The name of the render pass state resource.</param>
+        /// <param name="queue">The command queue to execute the render pass on.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
+        /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+        /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
+        /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        static inline SharedPtr<VulkanRenderPass> create(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
+            return SharedPtr<VulkanRenderPass>(new VulkanRenderPass(device, name, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers));
+        }
 
     private:
         /// <summary>
@@ -2015,7 +2082,7 @@ namespace LiteFX::Rendering::Backends {
         // RenderPass interface.
     public:
         /// <inheritdoc />
-        const VulkanFrameBuffer& activeFrameBuffer() const override;
+        SharedPtr<const VulkanFrameBuffer> activeFrameBuffer() const noexcept override;
 
         /// <inheritdoc />
         const VulkanQueue& commandQueue() const noexcept override;
@@ -2399,7 +2466,7 @@ namespace LiteFX::Rendering::Backends {
         [[nodiscard]] UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
 
         /// <inheritdoc />
-        [[nodiscard]] UniquePtr<VulkanFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept override;
+        [[nodiscard]] SharedPtr<VulkanFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept override;
 
         /// <inheritdoc />
         MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept override;

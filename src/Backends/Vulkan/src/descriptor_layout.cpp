@@ -15,7 +15,7 @@ private:
     UInt32 m_binding, m_descriptors, m_inputAttachmentIndex;
     DescriptorType m_descriptorType;
     BufferType m_bufferType;
-    UniquePtr<IVulkanSampler> m_staticSampler;
+    SharedPtr<const IVulkanSampler> m_staticSampler;
 
 public:
     VulkanDescriptorLayoutImpl(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors) :
@@ -45,7 +45,7 @@ public:
         }
     }
 
-    VulkanDescriptorLayoutImpl(UniquePtr<IVulkanSampler>&& staticSampler, UInt32 binding) :
+    VulkanDescriptorLayoutImpl(SharedPtr<const IVulkanSampler> staticSampler, UInt32 binding) :
         VulkanDescriptorLayoutImpl(DescriptorType::Sampler, binding, 0, 1)
     {
         if (staticSampler == nullptr) [[unlikely]]
@@ -70,8 +70,8 @@ VulkanDescriptorLayout::VulkanDescriptorLayout(DescriptorType type, UInt32 bindi
 {
 }
 
-VulkanDescriptorLayout::VulkanDescriptorLayout(UniquePtr<IVulkanSampler>&& staticSampler, UInt32 binding) :
-    m_impl(std::move(staticSampler), binding)
+VulkanDescriptorLayout::VulkanDescriptorLayout(SharedPtr<IVulkanSampler> staticSampler, UInt32 binding) :
+    m_impl(staticSampler, binding)
 {
 }
 
