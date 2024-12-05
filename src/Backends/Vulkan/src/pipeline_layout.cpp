@@ -114,9 +114,6 @@ VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device) noexcept 
 {
 }
 
-VulkanPipelineLayout::VulkanPipelineLayout(VulkanPipelineLayout&&) noexcept = default;
-VulkanPipelineLayout& VulkanPipelineLayout::operator=(VulkanPipelineLayout&&) noexcept = default;
-
 VulkanPipelineLayout::~VulkanPipelineLayout() noexcept
 {
     // Check if the device is still valid.
@@ -157,7 +154,7 @@ const VulkanPushConstantsLayout* VulkanPipelineLayout::pushConstants() const noe
 // ------------------------------------------------------------------------------------------------
 
 VulkanPipelineLayoutBuilder::VulkanPipelineLayoutBuilder(const VulkanDevice& parent) :
-    PipelineLayoutBuilder(std::allocate_shared<VulkanPipelineLayout>(SharedAllocator<VulkanPipelineLayout>{}, parent))
+    PipelineLayoutBuilder(VulkanPipelineLayout::create(parent))
 {
 }
 

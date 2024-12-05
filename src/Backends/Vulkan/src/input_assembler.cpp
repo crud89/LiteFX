@@ -47,8 +47,6 @@ VulkanInputAssembler::VulkanInputAssembler(Enumerable<UniquePtr<VulkanVertexBuff
 }
 
 VulkanInputAssembler::VulkanInputAssembler() = default;
-VulkanInputAssembler::VulkanInputAssembler(VulkanInputAssembler&&) noexcept = default;
-VulkanInputAssembler& VulkanInputAssembler::operator=(VulkanInputAssembler&&) noexcept = default;
 VulkanInputAssembler::~VulkanInputAssembler() noexcept = default;
 
 Enumerable<const VulkanVertexBufferLayout*> VulkanInputAssembler::vertexBufferLayouts() const
@@ -95,7 +93,7 @@ private:
 // ------------------------------------------------------------------------------------------------
 
 VulkanInputAssemblerBuilder::VulkanInputAssemblerBuilder() :
-    InputAssemblerBuilder(std::allocate_shared<VulkanInputAssembler>(SharedAllocator<VulkanInputAssembler>{})), m_impl()
+    InputAssemblerBuilder(VulkanInputAssembler::create()), m_impl()
 {
 }
 

@@ -50,8 +50,6 @@ DirectX12InputAssembler::DirectX12InputAssembler() :
 {
 }
 
-DirectX12InputAssembler::DirectX12InputAssembler(DirectX12InputAssembler&&) noexcept = default;
-DirectX12InputAssembler& DirectX12InputAssembler::operator=(DirectX12InputAssembler&&) noexcept = default;
 DirectX12InputAssembler::~DirectX12InputAssembler() noexcept = default;
 
 Enumerable<const DirectX12VertexBufferLayout*> DirectX12InputAssembler::vertexBufferLayouts() const
@@ -98,7 +96,7 @@ private:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12InputAssemblerBuilder::DirectX12InputAssemblerBuilder() :
-    InputAssemblerBuilder(std::allocate_shared<DirectX12InputAssembler>(SharedAllocator<DirectX12InputAssembler>{})), m_impl()
+    InputAssemblerBuilder(DirectX12InputAssembler::create()), m_impl()
 {
 }
 

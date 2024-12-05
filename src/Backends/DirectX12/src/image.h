@@ -16,17 +16,16 @@ namespace LiteFX::Rendering::Backends {
 	class DirectX12Image : public virtual IDirectX12Image, public ComResource<ID3D12Resource>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(DirectX12ImageImpl);
 		friend class DirectX12SwapChain::DirectX12SwapChainImpl; // Allows swap chain to wrap back buffer images.
-		friend struct SharedAllocator<DirectX12Image>;
+		friend struct SharedObject::Allocator<DirectX12Image>;
 
 	private:
 		explicit DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr, const String& name = "");
 		
+	public:
 		DirectX12Image(DirectX12Image&&) noexcept = delete;
 		DirectX12Image(const DirectX12Image&) = delete;
 		DirectX12Image& operator=(DirectX12Image&&) noexcept = delete;
 		DirectX12Image& operator=(const DirectX12Image&) = delete;
-
-	public:
 		~DirectX12Image() noexcept override;
 
 		// IDeviceMemory interface.
@@ -83,6 +82,11 @@ namespace LiteFX::Rendering::Backends {
 		virtual AllocatorPtr allocator() const noexcept;
 		virtual const D3D12MA::Allocation* allocationInfo() const noexcept;
 
+	private:
+		static inline auto create(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const AllocatorPtr& allocator = nullptr, AllocationPtr&& allocation = nullptr, const String& name = "") {
+			return SharedObject::create<DirectX12Image>(device, std::move(image), extent, format, dimension, levels, layers, samples, usage, allocator, std::move(allocation), name);
+		}
+
 	public:
 		static SharedPtr<DirectX12Image> allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
 		static SharedPtr<DirectX12Image> allocate(const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
@@ -93,7 +97,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class DirectX12Sampler : public virtual IDirectX12Sampler, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(DirectX12SamplerImpl);
-		friend struct SharedAllocator<DirectX12Sampler>;
+		friend struct SharedObject::Allocator<DirectX12Sampler>;
 
 	private:
 		/// <summary>

@@ -509,7 +509,7 @@ public:
         auto pushConstantsLayout = makeUnique<DirectX12PushConstantsLayout>(std::move(pushConstants), overallSize);
 
         // Return the pipeline layout.
-        return makeShared<DirectX12PipelineLayout>(*device.get(), std::move(descriptorSets), std::move(pushConstantsLayout));
+        return DirectX12PipelineLayout::create(*device.get(), std::move(descriptorSets), std::move(pushConstantsLayout));
     }
 };
 
@@ -569,7 +569,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilder(const DirectX12Device& device) :
-    ShaderProgramBuilder(std::allocate_shared<DirectX12ShaderProgram>(SharedAllocator<DirectX12ShaderProgram>{}, device)), m_impl(device)
+    ShaderProgramBuilder(DirectX12ShaderProgram::create(device)), m_impl(device)
 {
 }
 

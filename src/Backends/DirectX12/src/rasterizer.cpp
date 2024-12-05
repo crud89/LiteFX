@@ -23,7 +23,7 @@ DirectX12Rasterizer::DirectX12Rasterizer() noexcept :
 // ------------------------------------------------------------------------------------------------
 
 DirectX12RasterizerBuilder::DirectX12RasterizerBuilder() :
-    RasterizerBuilder(std::allocate_shared<DirectX12Rasterizer>(SharedAllocator<DirectX12Rasterizer>{}))
+    RasterizerBuilder(DirectX12Rasterizer::create())
 {
 }
 

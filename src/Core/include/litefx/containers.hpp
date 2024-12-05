@@ -784,19 +784,6 @@ namespace LiteFX {
 
 	// NOLINTEND(cppcoreguidelines-macro-usage)
 
-
-	/// <summary>
-	/// An allocator used to allocate the shared object.
-	/// </summary>
-	/// <typeparam name="T">The type of the class that inherits from <see cref="SharedObject" />.</typeparam>
-	template <typename T>
-	struct SharedAllocator : public std::allocator<T> {
-		template<typename TParent, typename... TArgs>
-		void construct(TParent* parent, TArgs&&... args) {
-			::new(static_cast<void*>(parent)) TParent(std::forward<TArgs>(args)...);
-		}
-	};
-
 	/// <summary>
 	/// Base class for an object that can be shared.
 	/// </summary>
@@ -812,7 +799,7 @@ namespace LiteFX {
 	/// <example>
 	/// <code>
 	/// class Foo : public SharedObject {
-	///     friend struct SharedAllocator<Foo>;
+	///     friend struct SharedObject::Allocator<Foo>;
 	/// 
 	/// private:
 	///     explicit Foo(int a, std::string b) { }
@@ -844,16 +831,28 @@ namespace LiteFX {
 
 	protected:
 		/// <summary>
+		/// An allocator used to allocate the shared object.
+		/// </summary>
+		/// <typeparam name="T">The type of the class that inherits from <see cref="SharedObject" />.</typeparam>
+		template <typename T>
+		struct Allocator : public std::allocator<T> {
+			template<typename TParent, typename... TArgs>
+			void construct(TParent* parent, TArgs&&... args) {
+				::new(static_cast<void*>(parent)) TParent(std::forward<TArgs>(args)...);
+			}
+		};
+
+		/// <summary>
 		/// Generic factory method used to create instances of the shared object.
 		/// </summary>
 		/// <typeparam name="T">The type of the class that inherits from <see cref="SharedObject" />.</typeparam>
 		/// <typeparam name="TArgs">The types of the arguments passed to the shared object's constructor.</typeparam>
 		/// <param name="args">The arguments that are forwarded to the shared object's constructor.</param>
 		/// <returns>A shared pointer of the shared object.</returns>
-		/// <seealso cref="SharedAllocator" />
+		/// <seealso cref="Allocator" />
 		template <typename T, typename... TArgs>
 		static inline auto create(TArgs&&... args) -> SharedPtr<T> {
-			return std::allocate_shared<T>(SharedAllocator<T>{}, std::forward<TArgs>(args)...);
+			return std::allocate_shared<T>(Allocator<T>{}, std::forward<TArgs>(args)...);
 		}
 
 	public:

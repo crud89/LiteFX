@@ -362,7 +362,7 @@ public:
         auto pushConstantsLayout = makeUnique<VulkanPushConstantsLayout>(std::move(pushConstants), overallSize);
 
         // Return the pipeline layout.
-        return makeShared<VulkanPipelineLayout>(*device, std::move(descriptorSets), std::move(pushConstantsLayout));
+        return VulkanPipelineLayout::create(*device, std::move(descriptorSets), std::move(pushConstantsLayout));
     }
 };
 
@@ -399,7 +399,7 @@ SharedPtr<VulkanPipelineLayout> VulkanShaderProgram::reflectPipelineLayout() con
 // ------------------------------------------------------------------------------------------------
 
 VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(const VulkanDevice& device) :
-    ShaderProgramBuilder(std::allocate_shared<VulkanShaderProgram>(SharedAllocator<VulkanShaderProgram>{}, device))
+    ShaderProgramBuilder(VulkanShaderProgram::create(device))
 {
 }
 

@@ -223,8 +223,6 @@ VulkanCommandBuffer::VulkanCommandBuffer(const VulkanQueue& queue, bool begin, b
 		this->begin();
 }
 
-VulkanCommandBuffer::VulkanCommandBuffer(VulkanCommandBuffer&&) noexcept = default;
-VulkanCommandBuffer& VulkanCommandBuffer::operator=(VulkanCommandBuffer&&) noexcept = default;
 VulkanCommandBuffer::~VulkanCommandBuffer() noexcept
 {
 	m_impl->release(*this);

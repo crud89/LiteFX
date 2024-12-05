@@ -578,7 +578,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanShaderProgram final : public ShaderProgram<VulkanShaderModule> {
         LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl);
         LITEFX_BUILDER(VulkanShaderProgramBuilder);
-        friend struct SharedAllocator<VulkanShaderProgram>;
+        friend struct SharedObject::Allocator<VulkanShaderProgram>;
 
     private:
         /// <summary>
@@ -594,17 +594,6 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="device">The parent device of the shader program.</param>
         explicit VulkanShaderProgram(const VulkanDevice& device);
 
-        // Factory method.
-    public:
-        /// <summary>
-        /// Initializes a new Vulkan shader program.
-        /// </summary>
-        /// <param name="device">The parent device of the shader program.</param>
-        /// <param name="modules">The shader modules used by the shader program.</param>
-        static inline SharedPtr<VulkanShaderProgram> create(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules) {
-            return SharedObject::create<VulkanShaderProgram>(device, std::move(modules));
-        }
-
     public:
         /// <inheritdoc />
         VulkanShaderProgram(VulkanShaderProgram&&) noexcept = delete;
@@ -618,8 +607,30 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         VulkanShaderProgram& operator=(const VulkanShaderProgram&) = delete;
 
+    public:
         /// <inheritdoc />
         ~VulkanShaderProgram() noexcept override;
+
+        // Factory method.
+    public:
+        /// <summary>
+        /// Creates a new Vulkan shader program.
+        /// </summary>
+        /// <param name="device">The parent device of the shader program.</param>
+        /// <param name="modules">The shader modules used by the shader program.</param>
+        /// <returns>A shared pointer to the newly created shader program instance.</returns>
+        static inline auto create(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules) {
+            return SharedObject::create<VulkanShaderProgram>(device, std::move(modules));
+        }
+
+    private:
+        /// <summary>
+        /// Creates a new Vulkan shader program.
+        /// </summary>
+        /// <returns>A shared pointer to the newly created shader program instance.</returns>
+        static inline auto create(const VulkanDevice& device) {
+            return SharedObject::create<VulkanShaderProgram>(device);
+        }
 
     public:
         /// <inheritdoc />
@@ -1016,9 +1027,9 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanPipelineLayout final : public PipelineLayout<VulkanDescriptorSetLayout, VulkanPushConstantsLayout>, public Resource<VkPipelineLayout> {
         LITEFX_IMPLEMENTATION(VulkanPipelineLayoutImpl);
         LITEFX_BUILDER(VulkanPipelineLayoutBuilder);
-        friend struct SharedAllocator<VulkanPipelineLayout>;
+        friend struct SharedObject::Allocator<VulkanPipelineLayout>;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a new Vulkan render pipeline layout.
         /// </summary>
@@ -1027,27 +1038,50 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
         explicit VulkanPipelineLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout);
 
-        /// <inheritdoc />
-        VulkanPipelineLayout(VulkanPipelineLayout&&) noexcept;
-
-        /// <inheritdoc />
-        VulkanPipelineLayout(const VulkanPipelineLayout&) = delete;
-
-        /// <inheritdoc />
-        VulkanPipelineLayout& operator=(VulkanPipelineLayout&&) noexcept;
-
-        /// <inheritdoc />
-        VulkanPipelineLayout& operator=(const VulkanPipelineLayout&) = delete;
-
-        /// <inheritdoc />
-        ~VulkanPipelineLayout() noexcept override;
-
-    private:
         /// <summary>
         /// Initializes a new Vulkan render pipeline layout.
         /// </summary>
         /// <param name="device">The parent device, the layout is created from.</param>
         explicit VulkanPipelineLayout(const VulkanDevice& device) noexcept;
+
+    private:
+        /// <inheritdoc />
+        VulkanPipelineLayout(VulkanPipelineLayout&&) noexcept = delete;
+
+        /// <inheritdoc />
+        VulkanPipelineLayout(const VulkanPipelineLayout&) = delete;
+
+        /// <inheritdoc />
+        VulkanPipelineLayout& operator=(VulkanPipelineLayout&&) noexcept = delete;
+
+        /// <inheritdoc />
+        VulkanPipelineLayout& operator=(const VulkanPipelineLayout&) = delete;
+
+    public:
+        /// <inheritdoc />
+        ~VulkanPipelineLayout() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates a new Vulkan render pipeline layout.
+        /// </summary>
+        /// <param name="device">The parent device, the layout is created from.</param>
+        /// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
+        /// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
+        /// <returns>A shared pointer to the newly created pipeline layout instance.</returns>
+        static inline auto create(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) {
+            return SharedObject::create<VulkanPipelineLayout>(device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
+        }
+
+    private:
+        /// <summary>
+        /// Creates a new Vulkan render pipeline layout.
+        /// </summary>
+        /// <param name="device">The parent device, the layout is created from.</param>
+        /// <returns>A shared pointer to the newly created pipeline layout instance.</returns>
+        static inline auto create(const VulkanDevice& device) {
+            return SharedObject::create<VulkanPipelineLayout>(device);
+        }
 
     public:
         /// <summary>
@@ -1075,9 +1109,9 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanInputAssembler final : public InputAssembler<VulkanVertexBufferLayout, VulkanIndexBufferLayout> {
         LITEFX_IMPLEMENTATION(VulkanInputAssemblerImpl);
         LITEFX_BUILDER(VulkanInputAssemblerBuilder);
-        friend struct SharedAllocator<VulkanInputAssembler>;
+        friend struct SharedObject::Allocator<VulkanInputAssembler>;
 
-	public:
+	private:
 		/// <summary>
 		/// Initializes a new Vulkan input assembler state.
 		/// </summary>
@@ -1086,26 +1120,57 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="primitiveTopology">The primitive topology.</param>
 		explicit VulkanInputAssembler(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout = nullptr, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList);
 
-        /// <inheritdoc />
-        VulkanInputAssembler(VulkanInputAssembler&&) noexcept;
-
-        /// <inheritdoc />
-		VulkanInputAssembler(const VulkanInputAssembler&) = delete;
-
-        /// <inheritdoc />
-        VulkanInputAssembler& operator=(VulkanInputAssembler&&) noexcept;
-
-        /// <inheritdoc />
-        VulkanInputAssembler& operator=(const VulkanInputAssembler&) = delete;
-
-        /// <inheritdoc />
-		~VulkanInputAssembler() noexcept override;
-
-    private:
         /// <summary>
         /// Initializes a new Vulkan input assembler state.
         /// </summary>
         explicit VulkanInputAssembler();
+
+    private:
+        /// <inheritdoc />
+        VulkanInputAssembler(VulkanInputAssembler&&) noexcept = delete;
+
+        /// <inheritdoc />
+		VulkanInputAssembler(const VulkanInputAssembler&) = default;
+
+        /// <inheritdoc />
+        VulkanInputAssembler& operator=(VulkanInputAssembler&&) noexcept = delete;
+
+        /// <inheritdoc />
+        VulkanInputAssembler& operator=(const VulkanInputAssembler&) = delete;
+
+    public:
+        /// <inheritdoc />
+		~VulkanInputAssembler() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates a new Vulkan input assembler state.
+        /// </summary>
+        /// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
+        /// <param name="indexBufferLayout">The index buffer layout.</param>
+        /// <param name="primitiveTopology">The primitive topology.</param>
+        /// <returns>A shared pointer to the newly created input assembler instance.</returns>
+        static inline auto create(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout = nullptr, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList) {
+            return SharedObject::create<VulkanInputAssembler>(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
+        }
+
+        /// <summary>
+        /// Creates a new Vulkan input assembler state as a copy from another one.
+        /// </summary>
+        /// <param name="other">The input assembler state to copy.</param>
+        /// <returns>A shared pointer to the newly created input assembler instance.</returns>
+        static inline auto create(const VulkanInputAssembler& other) {
+            return SharedObject::create<VulkanInputAssembler>(other);
+        }
+
+    private:
+        /// <summary>
+        /// Creates a new Vulkan input assembler state.
+        /// </summary>
+        /// <returns>A shared pointer to the newly created input assembler instance.</returns>
+        static inline auto create() {
+            return SharedObject::create<VulkanInputAssembler>();
+        }
 
     public:
         /// <inheritdoc />
@@ -1127,9 +1192,9 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="VulkanRasterizerBuilder" />
     class LITEFX_VULKAN_API VulkanRasterizer final : public Rasterizer {
         LITEFX_BUILDER(VulkanRasterizerBuilder);
-        friend struct SharedAllocator<VulkanRasterizer>;
+        friend struct SharedObject::Allocator<VulkanRasterizer>;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a new Vulkan rasterizer state.
         /// </summary>
@@ -1140,26 +1205,59 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
         explicit VulkanRasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
 
-        /// <inheritdoc />
-        VulkanRasterizer(VulkanRasterizer&&) noexcept;
-
-        /// <inheritdoc />
-        VulkanRasterizer(const VulkanRasterizer&) = delete;
-
-        /// <inheritdoc />
-        VulkanRasterizer& operator=(VulkanRasterizer&&) noexcept;
-
-        /// <inheritdoc />
-        VulkanRasterizer& operator=(const VulkanRasterizer&) = delete;
-
-        /// <inheritdoc />
-        ~VulkanRasterizer() noexcept override;
-
-    private:
         /// <summary>
         /// Initializes a new Vulkan rasterizer state.
         /// </summary>
         explicit VulkanRasterizer() noexcept;
+
+    private:
+        /// <inheritdoc />
+        VulkanRasterizer(VulkanRasterizer&&) noexcept = delete;
+
+        /// <inheritdoc />
+        VulkanRasterizer(const VulkanRasterizer&) = default;
+
+        /// <inheritdoc />
+        VulkanRasterizer& operator=(VulkanRasterizer&&) noexcept = delete;
+
+        /// <inheritdoc />
+        VulkanRasterizer& operator=(const VulkanRasterizer&) = delete;
+
+    public:
+        /// <inheritdoc />
+        ~VulkanRasterizer() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates a new Vulkan rasterizer state.
+        /// </summary>
+        /// <param name="polygonMode">The polygon mode used by the pipeline.</param>
+        /// <param name="cullMode">The cull mode used by the pipeline.</param>
+        /// <param name="cullOrder">The cull order used by the pipeline.</param>
+        /// <param name="lineWidth">The line width used by the pipeline.</param>
+        /// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
+        /// <returns>A shared pointer to the newly created rasterizer instance.</returns>
+        static inline auto create(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) {
+            return SharedObject::create<VulkanRasterizer>(polygonMode, cullMode, cullOrder, lineWidth, depthStencilState);
+        }
+
+        /// <summary>
+        /// Creates a new Vulkan rasterizer state by copying an existing one.
+        /// </summary>
+        /// <param name="other">The rasterizer state to copy.</param>
+        /// <returns>A shared pointer to the newly created rasterizer instance.</returns>
+        static inline auto create(const VulkanRasterizer& other) {
+            return SharedObject::create<VulkanRasterizer>(other);
+        }
+
+    private:
+        /// <summary>
+        /// Creates a new Vulkan rasterizer state.
+        /// </summary>
+        /// <returns>A shared pointer to the newly created rasterizer instance.</returns>
+        static inline auto create() {
+            return SharedObject::create<VulkanRasterizer>();
+        }
 
     public:
         /// <summary>
@@ -1215,7 +1313,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="VulkanQueue" />
     class LITEFX_VULKAN_API VulkanCommandBuffer final : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>, public Resource<VkCommandBuffer> {
         LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
-        friend struct SharedAllocator<VulkanCommandBuffer>;
+        friend struct SharedObject::Allocator<VulkanCommandBuffer>;
 
     public:
         using base_type = CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>;
@@ -1245,19 +1343,20 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="primary"><c>true</c>, if the command buffer is a primary command buffer.</param>
         explicit VulkanCommandBuffer(const VulkanQueue& queue, bool begin = false, bool primary = true);
 
-    public:
+    private:
         /// <inheritdoc />
-        VulkanCommandBuffer(VulkanCommandBuffer&&) noexcept;
+        VulkanCommandBuffer(VulkanCommandBuffer&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanCommandBuffer(const VulkanCommandBuffer&) = delete;
 
         /// <inheritdoc />
-        VulkanCommandBuffer& operator=(VulkanCommandBuffer&&) noexcept;
+        VulkanCommandBuffer& operator=(VulkanCommandBuffer&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanCommandBuffer& operator=(const VulkanCommandBuffer&) = delete;
         
+    public:
         /// <inheritdoc />
         ~VulkanCommandBuffer() noexcept override;
 
@@ -1462,7 +1561,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="VulkanCommandBuffer" />
     class LITEFX_VULKAN_API VulkanQueue final : public CommandQueue<VulkanCommandBuffer>, public Resource<VkQueue> {
         LITEFX_IMPLEMENTATION(VulkanQueueImpl);
-        friend struct SharedAllocator<VulkanQueue>;
+        friend struct SharedObject::Allocator<VulkanQueue>;
 
     public:
         using base_type = CommandQueue<VulkanCommandBuffer>;
@@ -1479,7 +1578,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="queueId">The ID of the queue.</param>
         explicit VulkanQueue(const VulkanDevice& device, QueueType type, QueuePriority priority, UInt32 familyId, UInt32 queueId);
 
-    public:
+    private:
         /// <inheritdoc />
         VulkanQueue(VulkanQueue&&) noexcept = delete;
 
@@ -1492,6 +1591,7 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         VulkanQueue& operator=(const VulkanQueue&) = delete;
 
+    public:
         /// <inheritdoc />
         ~VulkanQueue() noexcept override;
 
@@ -1809,7 +1909,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="VulkanRenderPass" />
     class LITEFX_VULKAN_API VulkanFrameBuffer final : public FrameBuffer<IVulkanImage> {
         LITEFX_IMPLEMENTATION(VulkanFrameBufferImpl);
-        friend struct SharedAllocator<VulkanFrameBuffer>;
+        friend struct SharedObject::Allocator<VulkanFrameBuffer>;
 
     public:
         using FrameBuffer::addImage;
@@ -1825,7 +1925,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="name">The name of the frame buffer.</param>
         VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea, StringView name = "");
 
-    public:
+    private:
         /// <inheritdoc />
         VulkanFrameBuffer(VulkanFrameBuffer&&) noexcept = delete;
         
@@ -1838,6 +1938,7 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         VulkanFrameBuffer& operator=(const VulkanFrameBuffer&) = delete;
 
+    public:
         /// <inheritdoc />
         ~VulkanFrameBuffer() noexcept override;
 
@@ -1948,7 +2049,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanRenderPass final : public RenderPass<VulkanQueue, VulkanFrameBuffer> {
         LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
         LITEFX_BUILDER(VulkanRenderPassBuilder);
-        friend struct SharedAllocator<VulkanRenderPass>;
+        friend struct SharedObject::Allocator<VulkanRenderPass>;
 
     public:
         using base_type = RenderPass<VulkanQueue, VulkanFrameBuffer>;
@@ -1998,7 +2099,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
         explicit VulkanRenderPass(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u);
 
-    public:
+    private:
         /// <inheritdoc />
         VulkanRenderPass(VulkanRenderPass&&) noexcept = delete;
 
@@ -2011,6 +2112,7 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         VulkanRenderPass& operator=(const VulkanRenderPass&) = delete;
 
+    public:
         /// <inheritdoc />
         ~VulkanRenderPass() noexcept override;
 
@@ -2248,7 +2350,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanGraphicsFactory final : public GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure> {
         LITEFX_IMPLEMENTATION(VulkanGraphicsFactoryImpl);
         friend class VulkanDevice;
-        friend struct SharedAllocator<VulkanGraphicsFactory>;
+        friend struct SharedObject::Allocator<VulkanGraphicsFactory>;
 
     public:
         using base_type = GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>;
@@ -2267,7 +2369,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="device">The device the factory should produce objects for.</param>
         explicit VulkanGraphicsFactory(const VulkanDevice& device);
 
-    public:
+    private:
         /// <inheritdoc />
         VulkanGraphicsFactory(VulkanGraphicsFactory&&) noexcept = delete;
 
@@ -2280,6 +2382,7 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         VulkanGraphicsFactory& operator=(const VulkanGraphicsFactory&) = delete;
 
+    public:
         /// <inheritdoc />
         ~VulkanGraphicsFactory() noexcept override;
 
@@ -2341,7 +2444,7 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     class LITEFX_VULKAN_API VulkanDevice final : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanRenderPipeline, VulkanComputePipeline, VulkanRayTracingPipeline, VulkanBarrier>, public Resource<VkDevice> {
         LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
-        friend struct SharedAllocator<VulkanDevice>;
+        friend struct SharedObject::Allocator<VulkanDevice>;
 
     private:
         /// <summary>
@@ -2368,19 +2471,20 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
         explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = { }, Span<String> extensions = { });
 
-    public:
+    private:
         /// <inheritdoc />
-        VulkanDevice(VulkanDevice&&) noexcept;
+        VulkanDevice(VulkanDevice&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanDevice(const VulkanDevice&) = delete;
 
         /// <inheritdoc />
-        VulkanDevice& operator=(VulkanDevice&&) noexcept;
+        VulkanDevice& operator=(VulkanDevice&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanDevice& operator=(const VulkanDevice&) = delete;
 
+    public:
         /// <inheritdoc />
         ~VulkanDevice() noexcept override;
 

@@ -239,8 +239,6 @@ DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device) 
 {
 }
 
-DirectX12PipelineLayout::DirectX12PipelineLayout(DirectX12PipelineLayout&&) noexcept = default;
-DirectX12PipelineLayout& DirectX12PipelineLayout::operator=(DirectX12PipelineLayout&&) noexcept = default;
 DirectX12PipelineLayout::~DirectX12PipelineLayout() noexcept = default;
 
 SharedPtr<const DirectX12Device> DirectX12PipelineLayout::device() const noexcept
@@ -291,7 +289,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12PipelineLayoutBuilder::DirectX12PipelineLayoutBuilder(const DirectX12Device& parent) :
-    PipelineLayoutBuilder(std::allocate_shared<DirectX12PipelineLayout>(SharedAllocator<DirectX12PipelineLayout>{}, parent)), m_impl(parent)
+    PipelineLayoutBuilder(DirectX12PipelineLayout::create(parent)), m_impl(parent)
 {
 }
 

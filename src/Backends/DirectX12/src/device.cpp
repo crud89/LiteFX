@@ -241,7 +241,7 @@ public:
 			// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 			
 			// Create a pipeline layout.
-			auto pipelineLayout = makeShared<DirectX12PipelineLayout>(device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
+			auto pipelineLayout = DirectX12PipelineLayout::create(device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
 
 			// Create the pipeline.
 			m_blitPipeline = makeUnique<DirectX12ComputePipeline>(device, pipelineLayout, shaderProgram, "Blit");

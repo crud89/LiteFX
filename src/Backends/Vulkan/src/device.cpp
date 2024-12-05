@@ -535,9 +535,6 @@ VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphic
     m_impl->createSwapChain(*this, format, renderArea, backBuffers, enableVsync);
 }
 
-VulkanDevice::VulkanDevice(VulkanDevice&&) noexcept = default;
-VulkanDevice& VulkanDevice::operator=(VulkanDevice&&) noexcept = default;
-
 VulkanDevice::~VulkanDevice() noexcept
 {
     // Destroy the implementation.

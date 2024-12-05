@@ -800,7 +800,7 @@ public:
 			m_imageResources[image].handle = resourceHandle;
 			m_imageResources[image].image = std::move(resource);
 
-			return std::allocate_shared<VulkanImage>(SharedAllocator<VulkanImage>{}, backBuffer, Size3d{ imageInfo.extent.width, imageInfo.extent.height, imageInfo.extent.depth }, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
+			return VulkanImage::create(backBuffer, Size3d{imageInfo.extent.width, imageInfo.extent.height, imageInfo.extent.depth}, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
 		});
 
 		// Store state variables.

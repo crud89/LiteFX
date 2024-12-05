@@ -91,7 +91,7 @@ public:
 		std::ranges::generate(m_presentImages, [&size, &format, &swapChain, device, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed(swapChain->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
-			return std::allocate_shared<DirectX12Image>(SharedAllocator<DirectX12Image>{}, *device.get(), std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
+			return DirectX12Image::create(*device.get(), std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
 		});
 
 		// Disable Alt+Enter shortcut for fullscreen-toggle.
@@ -132,7 +132,7 @@ public:
 		std::ranges::generate(m_presentImages, [&swapChain, &size, &format, device, i = 0]() mutable {
 			ComPtr<ID3D12Resource> resource;
 			raiseIfFailed(swapChain.handle()->GetBuffer(i++, IID_PPV_ARGS(&resource)), "Unable to acquire image resource from swap chain back buffer {0}.", i);
-			return std::allocate_shared<DirectX12Image>(SharedAllocator<DirectX12Image>{}, *device.get(), std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
+			return DirectX12Image::create(*device.get(), std::move(resource), size, format, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination);
 		});
 
 		m_format = format;

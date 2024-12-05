@@ -185,8 +185,6 @@ DirectX12CommandBuffer::DirectX12CommandBuffer(const DirectX12Queue& queue, bool
 		m_impl->bindDescriptorHeaps(*this);
 }
 
-DirectX12CommandBuffer::DirectX12CommandBuffer(DirectX12CommandBuffer&&) noexcept = default;
-DirectX12CommandBuffer& DirectX12CommandBuffer::operator=(DirectX12CommandBuffer&&) noexcept = default;
 DirectX12CommandBuffer::~DirectX12CommandBuffer() noexcept = default;
 
 SharedPtr<const DirectX12Queue> DirectX12CommandBuffer::queue() const noexcept

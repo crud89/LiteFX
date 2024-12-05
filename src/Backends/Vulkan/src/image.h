@@ -16,7 +16,7 @@ namespace LiteFX::Rendering::Backends {
 	class VulkanImage : public virtual IVulkanImage, public Resource<VkImage>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanImageImpl);
 		friend class VulkanSwapChain::VulkanSwapChainImpl;
-		friend struct SharedAllocator<VulkanImage>;
+		friend struct SharedObject::Allocator<VulkanImage>;
 
 	private:
 		explicit VulkanImage(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr, const String& name = "");
@@ -87,6 +87,11 @@ namespace LiteFX::Rendering::Backends {
 		virtual VmaAllocator& allocator() const noexcept;
 		virtual VmaAllocation& allocationInfo() const noexcept;
 
+	private:
+		static inline auto create(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr, const String& name = "") {
+			return SharedObject::create<VulkanImage>(image, extent, format, dimensions, levels, layers, samples, usage, allocator, allocation, name);
+		}
+
 	public:
 		static SharedPtr<VulkanImage> allocate(const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 		static SharedPtr<VulkanImage> allocate(const String& name, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
@@ -97,7 +102,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class VulkanSampler : public virtual IVulkanSampler, public Resource<VkSampler>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanSamplerImpl);
-		friend struct SharedAllocator<VulkanSampler>;
+		friend struct SharedObject::Allocator<VulkanSampler>;
 
 	private:
 		/// <summary>

@@ -3285,7 +3285,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Represents the rasterizer state of a <see cref="RenderPipeline" />.
     /// </summary>
-    class LITEFX_RENDERING_API IRasterizer {
+    class LITEFX_RENDERING_API IRasterizer : public SharedObject {
     protected:
         IRasterizer() noexcept = default;
         IRasterizer(const IRasterizer&) = default;
@@ -3294,7 +3294,7 @@ namespace LiteFX::Rendering {
         IRasterizer& operator=(IRasterizer&&) noexcept = default;
 
     public:
-        virtual ~IRasterizer() noexcept = default;
+        ~IRasterizer() noexcept override = default;
 
     public:
         /// <summary>
@@ -3693,11 +3693,11 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API TimingEvent final : public SharedObject {
         LITEFX_IMPLEMENTATION(TimingEventImpl);
         friend class ISwapChain;
-        friend struct SharedAllocator<TimingEvent>;
+        friend struct SharedObject::Allocator<TimingEvent>;
 
     private:
         /// <summary>
-        /// Creates a new timing event instance.
+        /// Initializes a new timing event instance.
         /// </summary>
         /// <param name="swapChain">The swap chain on which the timing event is registered.</param>
         /// <param name="name">The name of the timing event.</param>
@@ -3713,6 +3713,17 @@ namespace LiteFX::Rendering {
         TimingEvent(const TimingEvent&) = delete;
         auto operator=(TimingEvent&&) noexcept = delete;
         auto operator=(const TimingEvent&) = delete;
+
+    private:
+        /// <summary>
+        /// Creates a new timing event instance.
+        /// </summary>
+        /// <param name="swapChain">The swap chain on which the timing event is registered.</param>
+        /// <param name="name">The name of the timing event.</param>
+        /// <returns>A shared pointer to the timing event instance.</returns>
+        static inline auto create(const ISwapChain& swapChain, StringView name = "") {
+            return SharedObject::create<TimingEvent>(swapChain, name);
+        }
 
     public:
         /// <summary>
@@ -6290,7 +6301,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// The interface for a pipeline layout.
     /// </summary>
-    class LITEFX_RENDERING_API IPipelineLayout {
+    class LITEFX_RENDERING_API IPipelineLayout : public SharedObject {
     protected:
         IPipelineLayout() noexcept = default;
         IPipelineLayout(const IPipelineLayout&) = default;
@@ -6299,7 +6310,7 @@ namespace LiteFX::Rendering {
         IPipelineLayout& operator=(IPipelineLayout&&) noexcept = default;
 
     public:
-        virtual ~IPipelineLayout() noexcept = default;
+        ~IPipelineLayout() noexcept override = default;
 
     public:
         /// <summary>
@@ -6330,7 +6341,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// The interface for an input assembler state.
     /// </summary>
-    class LITEFX_RENDERING_API IInputAssembler {
+    class LITEFX_RENDERING_API IInputAssembler : public SharedObject {
     protected:
         IInputAssembler() noexcept = default;
         IInputAssembler(const IInputAssembler&) = default;
@@ -6339,7 +6350,7 @@ namespace LiteFX::Rendering {
         IInputAssembler& operator=(IInputAssembler&&) noexcept = default;
 
     public:
-        virtual ~IInputAssembler() noexcept = default;
+        ~IInputAssembler() noexcept override = default;
 
     public:
         /// <summary>
@@ -8202,7 +8213,7 @@ namespace LiteFX::Rendering {
         /// <param name="name">The name of the timing event.</param>
         /// <returns>A pointer with shared ownership to the newly created timing event instance.</returns>
         [[nodiscard]] inline std::shared_ptr<TimingEvent> registerTimingEvent(StringView name = "") {
-            auto timingEvent = std::allocate_shared<TimingEvent>(SharedAllocator<TimingEvent>{}, *this, name);
+            auto timingEvent = TimingEvent::create(*this, name);
             this->addTimingEvent(timingEvent);
             return timingEvent;
         }

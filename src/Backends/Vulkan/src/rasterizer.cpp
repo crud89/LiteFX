@@ -17,8 +17,6 @@ VulkanRasterizer::VulkanRasterizer() noexcept :
 {
 }
 
-VulkanRasterizer::VulkanRasterizer(VulkanRasterizer&&) noexcept = default;
-VulkanRasterizer& VulkanRasterizer::operator=(VulkanRasterizer&&) noexcept = default;
 VulkanRasterizer::~VulkanRasterizer() noexcept = default;
 
 void VulkanRasterizer::updateLineWidth(Float lineWidth) noexcept
@@ -32,7 +30,7 @@ void VulkanRasterizer::updateLineWidth(Float lineWidth) noexcept
 // ------------------------------------------------------------------------------------------------
 
 VulkanRasterizerBuilder::VulkanRasterizerBuilder() :
-    RasterizerBuilder(std::allocate_shared<VulkanRasterizer>(SharedAllocator<VulkanRasterizer>{}))
+    RasterizerBuilder(VulkanRasterizer::create())
 {
 }
 
