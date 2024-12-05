@@ -12,15 +12,15 @@ public:
     friend class VulkanInputAssembler;
 
 private:
-    Dictionary<UInt32, UniquePtr<VulkanVertexBufferLayout>> m_vertexBufferLayouts;
-    UniquePtr<VulkanIndexBufferLayout> m_indexBufferLayout;
+    Dictionary<UInt32, SharedPtr<VulkanVertexBufferLayout>> m_vertexBufferLayouts;
+    SharedPtr<VulkanIndexBufferLayout> m_indexBufferLayout;
     PrimitiveTopology m_primitiveTopology{ PrimitiveTopology::TriangleList };
 
 public:
     VulkanInputAssemblerImpl() = default;
 
 public:
-    void initialize(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology)
+    void initialize(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology)
     {
         m_primitiveTopology = primitiveTopology;
         m_indexBufferLayout = std::move(indexBufferLayout);
@@ -40,13 +40,14 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanInputAssembler::VulkanInputAssembler(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology) :
+VulkanInputAssembler::VulkanInputAssembler(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology) :
     m_impl()
 {
     m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
 }
 
 VulkanInputAssembler::VulkanInputAssembler() = default;
+VulkanInputAssembler::VulkanInputAssembler(const VulkanInputAssembler&) = default;
 VulkanInputAssembler::~VulkanInputAssembler() noexcept = default;
 
 Enumerable<const VulkanVertexBufferLayout*> VulkanInputAssembler::vertexBufferLayouts() const
@@ -83,8 +84,8 @@ public:
     friend class VulkanInputAssembler;
 
 private:
-    Array<UniquePtr<VulkanVertexBufferLayout>> m_vertexBufferLayouts;
-    UniquePtr<VulkanIndexBufferLayout> m_indexBufferLayout;
+    Array<SharedPtr<VulkanVertexBufferLayout>> m_vertexBufferLayouts;
+    SharedPtr<VulkanIndexBufferLayout> m_indexBufferLayout;
     PrimitiveTopology m_primitiveTopology{ PrimitiveTopology::TriangleList };
 };
 
@@ -106,6 +107,6 @@ void VulkanInputAssemblerBuilder::build()
 
 VulkanVertexBufferLayoutBuilder VulkanInputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)
 {
-    return VulkanVertexBufferLayoutBuilder { *this, makeUnique<VulkanVertexBufferLayout>(elementSize, binding) };
+    return VulkanVertexBufferLayoutBuilder { *this, VulkanVertexBufferLayout::create(elementSize, binding) };
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

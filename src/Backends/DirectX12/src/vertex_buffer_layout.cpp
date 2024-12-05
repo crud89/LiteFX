@@ -13,15 +13,20 @@ public:
     friend class DirectX12VertexBufferLayout;
 
 private:
-    Array<UniquePtr<BufferAttribute>> m_attributes;
+    Array<BufferAttribute> m_attributes{};
     size_t m_vertexSize;
     UInt32 m_binding;
-    BufferType m_bufferType{ BufferType::Vertex };
 
 public:
     DirectX12VertexBufferLayoutImpl(size_t vertexSize, UInt32 binding) :
         m_vertexSize(vertexSize), m_binding(binding)
     {
+    }
+
+    DirectX12VertexBufferLayoutImpl(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding) :
+        m_vertexSize(vertexSize), m_binding(binding)
+    {
+        m_attributes = attributes | std::ranges::to<Array<BufferAttribute>>();
     }
 };
 
@@ -34,10 +39,12 @@ DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(size_t vertexSize, UInt
 {
 }
 
-DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(DirectX12VertexBufferLayout&&) noexcept = default;
-//DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&) = default;
-DirectX12VertexBufferLayout& DirectX12VertexBufferLayout::operator=(DirectX12VertexBufferLayout&&) noexcept = default;
-//DirectX12VertexBufferLayout& DirectX12VertexBufferLayout::operator=(const DirectX12VertexBufferLayout&) = default;
+DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding) :
+    m_impl(vertexSize, attributes, binding)
+{
+}
+
+DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&) = default;
 DirectX12VertexBufferLayout::~DirectX12VertexBufferLayout() noexcept = default;
 
 size_t DirectX12VertexBufferLayout::elementSize() const noexcept
@@ -52,12 +59,12 @@ UInt32 DirectX12VertexBufferLayout::binding() const noexcept
 
 BufferType DirectX12VertexBufferLayout::type() const noexcept
 {
-    return m_impl->m_bufferType;
+    return BufferType::Vertex;
 }
 
 Enumerable<const BufferAttribute*> DirectX12VertexBufferLayout::attributes() const
 {
-    return m_impl->m_attributes | std::views::transform([](const UniquePtr<BufferAttribute>& attribute) { return attribute.get(); });
+    return m_impl->m_attributes | std::views::transform([](const auto& attribute) { return std::addressof(attribute); });
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

@@ -129,6 +129,9 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		~VulkanSampler() noexcept override;
 
+	private:
+		const VulkanDevice& device() const;
+
 		// ISampler interface.
 	public:
 		/// <inheritdoc />
@@ -162,6 +165,10 @@ namespace LiteFX::Rendering::Backends {
 		Float getMinLOD() const noexcept override;
 
 	public:
+		static inline SharedPtr<VulkanSampler> copy(const IVulkanSampler& sampler) {
+			return allocate(dynamic_cast<const VulkanSampler&>(sampler).device(), sampler.getMagnifyingFilter(), sampler.getMinifyingFilter(), sampler.getBorderModeU(), sampler.getBorderModeV(), sampler.getBorderModeW(), sampler.getMipMapMode(), sampler.getMipMapBias(), sampler.getMinLOD(), sampler.getMaxLOD(), sampler.getAnisotropy(), sampler.name());
+		}
+
 		static inline SharedPtr<VulkanSampler> allocate(const VulkanDevice& device, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float minLod = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float anisotropy = 0.f, const String& name = "") {
 			return SharedObject::create<VulkanSampler>(device, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
 		}

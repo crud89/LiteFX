@@ -15,10 +15,10 @@ public:
 private:
     WeakPtr<const VulkanDevice> m_device;
     UniquePtr<VulkanPushConstantsLayout> m_pushConstantsLayout;
-    Array<UniquePtr<VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
+    Array<SharedPtr<VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
 
 public:
-    VulkanPipelineLayoutImpl(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
+    VulkanPipelineLayoutImpl(const VulkanDevice& device, Enumerable<SharedPtr<VulkanDescriptorSetLayout>>&& descriptorLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
         m_device(device.weak_from_this()), m_pushConstantsLayout(std::move(pushConstantsLayout))
     {
         m_descriptorSetLayouts = std::move(descriptorLayouts) | std::views::as_rvalue | std::ranges::to<std::vector>();
@@ -39,7 +39,7 @@ public:
             throw RuntimeException("Cannot create pipeline layout on a released device instance.");
 
         // Since Vulkan does not know spaces, descriptor sets are mapped to their indices based on the order they are defined. Hence we need to sort the descriptor set layouts accordingly.
-        std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<VulkanDescriptorSetLayout>& a, const UniquePtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
+        std::ranges::sort(m_descriptorSetLayouts, [](const SharedPtr<VulkanDescriptorSetLayout>& a, const SharedPtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
 
         // Find unused and duplicate descriptor sets. Initialize with all the set indices up until the first set index is reached.
         Array<UInt32> emptySets;
@@ -47,7 +47,7 @@ public:
         if (!m_descriptorSetLayouts.empty())
             emptySets.append_range(std::views::iota(0u, m_descriptorSetLayouts.front()->space()));
 
-        for (Tuple<UInt32, UInt32> spaces : m_descriptorSetLayouts | std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout->space(); }) | std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
+        for (Tuple<UInt32, UInt32> spaces : m_descriptorSetLayouts | std::views::transform([](const SharedPtr<VulkanDescriptorSetLayout>& layout) { return layout->space(); }) | std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
         {
             auto [a, b] = spaces;
 
@@ -62,10 +62,10 @@ public:
         if (!emptySets.empty())
         {
             for (auto s : emptySets)
-                m_descriptorSetLayouts.push_back(UniquePtr<VulkanDescriptorSetLayout>{ new VulkanDescriptorSetLayout(*device, { }, s, ShaderStage::Any) }); // No descriptor can ever be allocated from an empty descriptor set.
+                m_descriptorSetLayouts.push_back(VulkanDescriptorSetLayout::create(*device, { }, s, ShaderStage::Any)); // No descriptor can ever be allocated from an empty descriptor set.
 
             // Re-order them.
-            std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<VulkanDescriptorSetLayout>& a, const UniquePtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
+            std::ranges::sort(m_descriptorSetLayouts, [](const SharedPtr<VulkanDescriptorSetLayout>& a, const SharedPtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
         }
 
         // Store the pipeline layout on the push constants.
@@ -74,7 +74,7 @@ public:
 
         // Query for the descriptor set layout handles.
         auto descriptorSetLayouts = m_descriptorSetLayouts |
-            std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return std::as_const(*layout.get()).handle(); }) |
+            std::views::transform([](const SharedPtr<VulkanDescriptorSetLayout>& layout) { return std::as_const(*layout.get()).handle(); }) |
             std::ranges::to<Array<VkDescriptorSetLayout>>();
 
         // Query for push constant ranges.
@@ -103,7 +103,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
+VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, Enumerable<SharedPtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
     Resource<VkPipelineLayout>(VK_NULL_HANDLE), m_impl(device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout))
 {
     this->handle() = m_impl->initialize(*this);
@@ -132,7 +132,7 @@ SharedPtr<const VulkanDevice> VulkanPipelineLayout::device() const noexcept
 
 const VulkanDescriptorSetLayout& VulkanPipelineLayout::descriptorSet(UInt32 space) const
 {
-    if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
+    if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](const SharedPtr<VulkanDescriptorSetLayout>& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
         return *match->get();
 
     throw InvalidArgumentException("space", "No descriptor set layout uses the provided space {0}.", space);
@@ -140,7 +140,7 @@ const VulkanDescriptorSetLayout& VulkanPipelineLayout::descriptorSet(UInt32 spac
 
 Enumerable<const VulkanDescriptorSetLayout*> VulkanPipelineLayout::descriptorSets() const
 {
-    return m_impl->m_descriptorSetLayouts | std::views::transform([](const UniquePtr<VulkanDescriptorSetLayout>& layout) { return layout.get(); });
+    return m_impl->m_descriptorSetLayouts | std::views::transform([](const SharedPtr<VulkanDescriptorSetLayout>& layout) { return layout.get(); });
 }
 
 const VulkanPushConstantsLayout* VulkanPipelineLayout::pushConstants() const noexcept

@@ -476,27 +476,35 @@ public:
 
         // Create the descriptor set layouts.
         // NOLINTBEGIN(cppcoreguidelines-avoid-reference-coroutine-parameters)
-        auto descriptorSets = [](SharedPtr<const DirectX12Device> device, const Dictionary<UInt32, DescriptorSetInfo>& descriptorSetLayouts) -> std::generator<UniquePtr<DirectX12DescriptorSetLayout>> {
+        auto descriptorSets = [](SharedPtr<const DirectX12Device> device, const Dictionary<UInt32, DescriptorSetInfo>& descriptorSetLayouts) -> std::generator<SharedPtr<DirectX12DescriptorSetLayout>> {
             for (auto it = descriptorSetLayouts.begin(); it != descriptorSetLayouts.end(); ++it)
             {
                 auto& descriptorSet = it->second;
 
                 // Create the descriptor layouts.
-                auto descriptors = [](const DescriptorSetInfo& descriptorSet) -> std::generator<UniquePtr<DirectX12DescriptorLayout>> {
+                auto descriptors = [](const DescriptorSetInfo& descriptorSet) -> std::generator<DirectX12DescriptorLayout> {
                     for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor)
-                        co_yield descriptor->staticSamplerState.has_value() ?
-                            makeUnique<DirectX12DescriptorLayout>(DirectX12Sampler::allocate(
+                    {
+                        if (descriptor->staticSamplerState.has_value())
+                        {
+                            auto sampler = DirectX12Sampler::allocate(
                                 D3D12_DECODE_MAG_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
                                 D3D12_DECODE_MIN_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
                                 DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressU), DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressV), DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressW),
                                 D3D12_DECODE_MIP_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? MipMapMode::Nearest : MipMapMode::Linear,
-                                descriptor->staticSamplerState->MipLODBias, descriptor->staticSamplerState->MinLOD, descriptor->staticSamplerState->MaxLOD, static_cast<Float>(descriptor->staticSamplerState->MaxAnisotropy)), descriptor->location) :
-                            makeUnique<DirectX12DescriptorLayout>(descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->local);
-                }(descriptorSet) | std::views::as_rvalue;
+                                descriptor->staticSamplerState->MipLODBias, descriptor->staticSamplerState->MinLOD, descriptor->staticSamplerState->MaxLOD, static_cast<Float>(descriptor->staticSamplerState->MaxAnisotropy));
+                            co_yield { *sampler, descriptor->location };
+                        }
+                        else
+                        {
+                            co_yield { descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->local };
+                        }
+                    }
+                }(descriptorSet);
 
-                co_yield makeUnique<DirectX12DescriptorSetLayout>(*device.get(), std::move(descriptors), descriptorSet.space, descriptorSet.stage);
+                co_yield DirectX12DescriptorSetLayout::create(*device.get(), descriptors, descriptorSet.space, descriptorSet.stage);
             }
-        }(device, descriptorSetLayouts) | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>>();
+        }(device, descriptorSetLayouts) | std::views::as_rvalue | std::ranges::to<Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>>();
 
         // Create the push constants layout.
         auto pushConstants = [](const Array<PushConstantRangeInfo>& pushConstantRanges) -> std::generator<UniquePtr<DirectX12PushConstantsRange>> {

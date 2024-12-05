@@ -12,8 +12,6 @@ public:
 
 private:
     IndexType m_indexType;
-    UInt32 m_binding{ 0 };
-    BufferType m_bufferType{ BufferType::Index };
 
 public:
     DirectX12IndexBufferLayoutImpl(IndexType type) : 
@@ -31,25 +29,22 @@ DirectX12IndexBufferLayout::DirectX12IndexBufferLayout(IndexType type) :
 {
 }
 
-DirectX12IndexBufferLayout::DirectX12IndexBufferLayout(DirectX12IndexBufferLayout&&) noexcept = default;
 DirectX12IndexBufferLayout::DirectX12IndexBufferLayout(const DirectX12IndexBufferLayout&) = default;
-DirectX12IndexBufferLayout& DirectX12IndexBufferLayout::operator=(DirectX12IndexBufferLayout&&) noexcept = default;
-DirectX12IndexBufferLayout& DirectX12IndexBufferLayout::operator=(const DirectX12IndexBufferLayout&) = default;
 DirectX12IndexBufferLayout::~DirectX12IndexBufferLayout() noexcept = default;
 
 size_t DirectX12IndexBufferLayout::elementSize() const noexcept
 {
-    return static_cast<UInt32>(m_impl->m_indexType) >> 3;
+    return std::to_underlying(m_impl->m_indexType) >> 3;
 }
 
 UInt32 DirectX12IndexBufferLayout::binding() const noexcept
 {
-    return m_impl->m_binding;
+    return 0u;
 }
 
 BufferType DirectX12IndexBufferLayout::type() const noexcept
 {
-    return m_impl->m_bufferType;
+    return BufferType::Index;
 }
 
 IndexType DirectX12IndexBufferLayout::indexType() const noexcept

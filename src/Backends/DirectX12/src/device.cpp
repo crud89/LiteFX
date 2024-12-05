@@ -226,18 +226,9 @@ public:
 			// Allocate descriptor set layouts.
 			// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 			UniquePtr<DirectX12PushConstantsLayout> pushConstantsLayout = nullptr;
-			auto bufferLayouts = Enumerable<UniquePtr<DirectX12DescriptorLayout>>(
-				makeUnique<DirectX12DescriptorLayout>(DescriptorType::ConstantBuffer, 0, 16), 
-				makeUnique<DirectX12DescriptorLayout>(DescriptorType::Texture, 1, 0),
-				makeUnique<DirectX12DescriptorLayout>(DescriptorType::RWTexture, 2, 0)
-			);
-			auto samplerLayouts = Enumerable<UniquePtr<DirectX12DescriptorLayout>>(
-				makeUnique<DirectX12DescriptorLayout>(DescriptorType::Sampler, 0, 0) 
-			);
-			auto descriptorSetLayouts = Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>(
-				makeUnique<DirectX12DescriptorSetLayout>(device, std::move(bufferLayouts), 0, ShaderStage::Compute),
-				makeUnique<DirectX12DescriptorSetLayout>(device, std::move(samplerLayouts), 1, ShaderStage::Compute)
-			);
+			auto bufferLayouts = Enumerable<DirectX12DescriptorLayout>(DirectX12DescriptorLayout { DescriptorType::ConstantBuffer, 0, 16 }, DirectX12DescriptorLayout { DescriptorType::Texture, 1, 0 }, DirectX12DescriptorLayout { DescriptorType::RWTexture, 2, 0 });
+			auto samplerLayouts = Enumerable<DirectX12DescriptorLayout>(DirectX12DescriptorLayout { DescriptorType::Sampler, 0, 0 } );
+			auto descriptorSetLayouts = Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>(DirectX12DescriptorSetLayout::create(device, bufferLayouts, 0, ShaderStage::Compute), DirectX12DescriptorSetLayout::create(device, samplerLayouts, 1, ShaderStage::Compute));
 			// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 			
 			// Create a pipeline layout.

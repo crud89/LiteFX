@@ -14,7 +14,7 @@ public:
     friend class VulkanDescriptorSetLayout;
 
 private:
-    Array<UniquePtr<VulkanDescriptorLayout>> m_descriptorLayouts;
+    Array<VulkanDescriptorLayout> m_descriptorLayouts;
     Array<VkDescriptorPool> m_descriptorPools;
     Queue<VkDescriptorSet> m_freeDescriptorSets;
     Array<VkDescriptorPoolSize> m_poolSizes {
@@ -47,10 +47,10 @@ private:
     Dictionary<const VkDescriptorSet*, const VkDescriptorPool*> m_descriptorSetSources;
 
 public:
-    VulkanDescriptorSetLayoutImpl(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages) :
+    VulkanDescriptorSetLayoutImpl(const VulkanDevice& device, const Enumerable<VulkanDescriptorLayout>& descriptorLayouts, UInt32 space, ShaderStage stages) :
         m_stages(stages), m_space(space), m_device(device.weak_from_this())
     {
-        m_descriptorLayouts = std::move(descriptorLayouts) | std::views::as_rvalue | std::ranges::to<std::vector>();
+        m_descriptorLayouts = std::move(descriptorLayouts) | std::ranges::to<Array<VulkanDescriptorLayout>>();
     }
 
     VulkanDescriptorSetLayoutImpl(const VulkanDevice& device) :
@@ -114,14 +114,14 @@ public:
         auto maxSamplers       = device->adapter().limits().maxDescriptorSetSamplers;
         auto maxAttachments    = device->adapter().limits().maxDescriptorSetInputAttachments;
 
-        std::ranges::for_each(m_descriptorLayouts, [&, i = 0](const UniquePtr<VulkanDescriptorLayout>& layout) mutable {
-            auto bindingPoint = layout->binding();
-            auto type = layout->descriptorType();
+        std::ranges::for_each(m_descriptorLayouts, [&, i = 0](const auto& layout) mutable {
+            auto bindingPoint = layout.binding();
+            auto type = layout.descriptorType();
 
 #ifdef NDEBUG
             (void)i; // Required as [[maybe_unused]] is not supported in captures.
 #else
-            LITEFX_TRACE(VULKAN_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Array size: {6}, Offset: {4}, Binding point: {5} }}...", ++i, m_descriptorLayouts.size(), type, layout->elementSize(), 0, bindingPoint, layout->descriptors());
+            LITEFX_TRACE(VULKAN_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Array size: {6}, Offset: {4}, Binding point: {5} }}...", ++i, m_descriptorLayouts.size(), type, layout.elementSize(), 0, bindingPoint, layout.descriptors());
 #endif
 
             // Unbounded arrays are only allowed for the last descriptor in the descriptor set (https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkDescriptorBindingFlagBits.html#_description).
@@ -130,7 +130,7 @@ public:
 
             VkDescriptorSetLayoutBinding binding = {};
             binding.binding = bindingPoint;
-            binding.descriptorCount = layout->descriptors();
+            binding.descriptorCount = layout.descriptors();
             binding.pImmutableSamplers = nullptr;
             binding.stageFlags = shaderStages;
 
@@ -154,10 +154,10 @@ public:
             default: LITEFX_WARNING(VULKAN_LOG, "The descriptor type is unsupported. Binding will be skipped.");       return;
             }
 
-            if (type != DescriptorType::Sampler || (type == DescriptorType::Sampler && layout->staticSampler() == nullptr))
+            if (type != DescriptorType::Sampler || (type == DescriptorType::Sampler && layout.staticSampler() == nullptr))
                 m_poolSizes[m_poolSizeMapping[binding.descriptorType]].descriptorCount++;
             else
-                binding.pImmutableSamplers = &layout->staticSampler()->handle();
+                binding.pImmutableSamplers = &layout.staticSampler()->handle();
             
             // If the descriptor is an unbounded runtime array, disable validation warnings about partially bound elements.
             if (binding.descriptorCount != std::numeric_limits<UInt32>::max())
@@ -330,7 +330,7 @@ public:
         raiseIfFailed(::vkAllocateDescriptorSets(device->handle(), &descriptorSetInfo, descriptorSetHandles.data()), "Unable to allocate descriptor set.");
 
         for (auto handle : descriptorSetHandles)
-            m_descriptorSetSources.insert(std::make_pair(&handle, &m_descriptorPools.back()));
+            m_descriptorSetSources.emplace(&handle, &m_descriptorPools.back());
 
         return descriptorSetHandles;
     }
@@ -340,8 +340,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages) :
-    Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE), m_impl(device, std::move(descriptorLayouts), space, stages)
+VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device, const Enumerable<VulkanDescriptorLayout>& descriptorLayouts, UInt32 space, ShaderStage stages) :
+    Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE), m_impl(device, descriptorLayouts, space, stages)
 {
     this->handle() = m_impl->initialize();
 }
@@ -351,8 +351,14 @@ VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device)
 {
 }
 
-VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(VulkanDescriptorSetLayout&&) noexcept = default;
-VulkanDescriptorSetLayout& VulkanDescriptorSetLayout::operator=(VulkanDescriptorSetLayout&&) noexcept = default;
+VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDescriptorSetLayout& other) :
+    Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE), DescriptorSetLayout(other), m_impl(*other.device())
+{
+    m_impl->m_descriptorLayouts = other.m_impl->m_descriptorLayouts;
+    m_impl->m_space = other.space();
+    m_impl->m_stages = other.shaderStages();
+    this->handle() = m_impl->initialize();
+}
 
 VulkanDescriptorSetLayout::~VulkanDescriptorSetLayout() noexcept
 {
@@ -376,13 +382,13 @@ SharedPtr<const VulkanDevice> VulkanDescriptorSetLayout::device() const noexcept
 
 Enumerable<const VulkanDescriptorLayout*> VulkanDescriptorSetLayout::descriptors() const
 {
-    return m_impl->m_descriptorLayouts | std::views::transform([](const UniquePtr<VulkanDescriptorLayout>& layout) { return layout.get(); });
+    return m_impl->m_descriptorLayouts | std::views::transform([](const auto& layout) { return std::addressof(layout); });
 }
 
 const VulkanDescriptorLayout& VulkanDescriptorSetLayout::descriptor(UInt32 binding) const
 {
-    if (auto match = std::ranges::find_if(m_impl->m_descriptorLayouts, [&binding](const UniquePtr<VulkanDescriptorLayout>& layout) { return layout->binding() == binding; }); match != m_impl->m_descriptorLayouts.end()) [[likely]]
-        return *match->get();
+    if (auto match = std::ranges::find_if(m_impl->m_descriptorLayouts, [&binding](const auto& layout) { return layout.binding() == binding; }); match != m_impl->m_descriptorLayouts.end()) [[likely]]
+        return *match;
 
     throw InvalidArgumentException("binding", "No layout has been provided for the binding {0}.", binding);
 }
@@ -424,7 +430,7 @@ UInt32 VulkanDescriptorSetLayout::samplers() const noexcept
 
 UInt32 VulkanDescriptorSetLayout::staticSamplers() const noexcept
 {
-    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_descriptorLayouts, [](const UniquePtr<VulkanDescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Sampler && layout->staticSampler() != nullptr; }));
+    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Sampler && layout.staticSampler() != nullptr; }));
 }
 
 UInt32 VulkanDescriptorSetLayout::inputAttachments() const noexcept
@@ -618,7 +624,7 @@ size_t VulkanDescriptorSetLayout::pools() const noexcept
 // ------------------------------------------------------------------------------------------------
 
 VulkanDescriptorSetLayoutBuilder::VulkanDescriptorSetLayoutBuilder(VulkanPipelineLayoutBuilder& parent, UInt32 space, ShaderStage stages) :
-    DescriptorSetLayoutBuilder(parent, UniquePtr<VulkanDescriptorSetLayout>(new VulkanDescriptorSetLayout(*parent.instance()->device())))
+    DescriptorSetLayoutBuilder(parent, SharedPtr<VulkanDescriptorSetLayout>(new VulkanDescriptorSetLayout(*parent.instance()->device())))
 {
     this->state().space = space;
     this->state().stages = stages;
@@ -635,13 +641,15 @@ void VulkanDescriptorSetLayoutBuilder::build()
     instance->m_impl->initialize();
 }
 
-UniquePtr<VulkanDescriptorLayout> VulkanDescriptorSetLayoutBuilder::makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors)
+VulkanDescriptorLayout VulkanDescriptorSetLayoutBuilder::makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors)
 {
-    return makeUnique<VulkanDescriptorLayout>(type, binding, descriptorSize, descriptors);
+    return { type, binding, descriptorSize, descriptors };
 }
 
-UniquePtr<VulkanDescriptorLayout> VulkanDescriptorSetLayoutBuilder::makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy)
+VulkanDescriptorLayout VulkanDescriptorSetLayoutBuilder::makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy)
 {
-    return makeUnique<VulkanDescriptorLayout>(VulkanSampler::allocate(*this->parent().instance()->device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding);
+    // TODO: This could be made more efficient if we provide a constructor that takes an rvalue shared-pointer sampler instead.
+    auto sampler = VulkanSampler::allocate(*this->parent().instance()->device(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
+    return { *sampler, binding };
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

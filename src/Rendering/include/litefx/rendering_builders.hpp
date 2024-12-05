@@ -927,9 +927,9 @@ namespace LiteFX::Rendering {
     /// <seealso cref="IVertexBufferLayout" />
     template <typename TVertexBufferLayout, typename TParent> requires
         meta::implements<TVertexBufferLayout, IVertexBufferLayout>
-    class VertexBufferLayoutBuilder : public Builder<TVertexBufferLayout, TParent> {
+    class VertexBufferLayoutBuilder : public Builder<TVertexBufferLayout, TParent, SharedPtr<TVertexBufferLayout>> {
     public:
-        using Builder<TVertexBufferLayout, TParent>::Builder;
+        using Builder<TVertexBufferLayout, TParent, SharedPtr<TVertexBufferLayout>>::Builder;
         using vertex_buffer_layout_type = TVertexBufferLayout;
 
     private:
@@ -940,7 +940,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The vertex buffer attributes of the layout.
             /// </summary>
-            Array<UniquePtr<BufferAttribute>> attributes;
+            Array<BufferAttribute> attributes;
         } m_state;
 
     protected:
@@ -958,7 +958,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="attribute">The attribute to add to the layout.</param>
         template <typename TSelf>
-        constexpr auto withAttribute(this TSelf&& self, UniquePtr<BufferAttribute>&& attribute) -> TSelf&& {
+        [[nodiscard]] constexpr auto withAttribute(this TSelf&& self, BufferAttribute&& attribute) -> TSelf&& {
             self.m_state.attributes.push_back(std::move(attribute));
             return std::forward<TSelf>(self);
         }
@@ -974,8 +974,8 @@ namespace LiteFX::Rendering {
         /// <param name="semantic">The semantic of the attribute.</param>
         /// <param name="semanticIndex">The semantic index of the attribute.</param>
         template <typename TSelf>
-        constexpr auto withAttribute(this TSelf&& self, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf&& {
-            self.withAttribute(std::move(makeUnique<BufferAttribute>(static_cast<UInt32>(self.m_state.attributes.size()), offset, format, semantic, semanticIndex)));
+        [[nodiscard]] constexpr auto withAttribute(this TSelf&& self, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf&& {
+            self.withAttribute({ static_cast<UInt32>(self.m_state.attributes.size()), offset, format, semantic, semanticIndex });
             return std::forward<TSelf>(self);
         }
 
@@ -988,8 +988,8 @@ namespace LiteFX::Rendering {
         /// <param name="semantic">The semantic of the attribute.</param>
         /// <param name="semanticIndex">The semantic index of the attribute.</param>
         template <typename TSelf>
-        constexpr auto withAttribute(this TSelf&& self, UInt32 location, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf&& {
-            self.withAttribute(std::move(makeUnique<BufferAttribute>(location, offset, format, semantic, semanticIndex)));
+        [[nodiscard]] constexpr auto withAttribute(this TSelf&& self, UInt32 location, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf&& {
+            self.withAttribute({ location, offset, format, semantic, semanticIndex });
             return std::forward<TSelf>(self);
         }
     };
@@ -1002,9 +1002,9 @@ namespace LiteFX::Rendering {
     /// <seealso cref="PipelineLayout" />
     template <typename TDescriptorSetLayout, typename TParent> requires
         meta::implements<TDescriptorSetLayout, DescriptorSetLayout<typename TDescriptorSetLayout::descriptor_layout_type, typename TDescriptorSetLayout::descriptor_set_type>>
-    class DescriptorSetLayoutBuilder : public Builder<TDescriptorSetLayout, TParent> {
+    class DescriptorSetLayoutBuilder : public Builder<TDescriptorSetLayout, TParent, SharedPtr<TDescriptorSetLayout>> {
     public:
-        using Builder<TDescriptorSetLayout, TParent>::Builder;
+        using Builder<TDescriptorSetLayout, TParent, SharedPtr<TDescriptorSetLayout>>::Builder;
         using descriptor_set_layout_type = TDescriptorSetLayout;
         using descriptor_layout_type = descriptor_set_layout_type::descriptor_layout_type;
         using descriptor_set_type = descriptor_set_layout_type::descriptor_set_type;
@@ -1027,7 +1027,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The layouts of the descriptors within the descriptor set.
             /// </summary>
-            Array<UniquePtr<descriptor_layout_type>> descriptorLayouts{};
+            Array<descriptor_layout_type> descriptorLayouts{};
         } m_state;
 
     protected:
@@ -1047,7 +1047,7 @@ namespace LiteFX::Rendering {
         /// <param name="descriptorSize">The size of a single descriptor.</param>
         /// <param name="descriptors">The number of descriptors to bind.</param>
         /// <returns>The descriptor layout instance.</returns>
-        constexpr virtual UniquePtr<descriptor_layout_type> makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors) = 0;
+        constexpr virtual descriptor_layout_type makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors) = 0;
 
         /// <summary>
         /// Creates a static sampler for the descriptor bound to <see cref="binding" />.
@@ -1064,7 +1064,7 @@ namespace LiteFX::Rendering {
         /// <param name="maxLod">The furthest mip map distance level. </param>
         /// <param name="anisotropy">The maximum anisotropy.</param>
         /// <returns>The descriptor layout instance for the static sampler.</returns>
-        constexpr virtual UniquePtr<descriptor_layout_type> makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) = 0;
+        constexpr virtual descriptor_layout_type makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) = 0;
 
     public:
         /// <summary>
@@ -1072,7 +1072,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="layout">The descriptor layout to add.</param>
         template <typename TSelf>
-        [[nodiscard]] constexpr auto withDescriptor(this TSelf&& self, UniquePtr<descriptor_layout_type>&& layout) -> TSelf&& {
+        [[nodiscard]] constexpr auto withDescriptor(this TSelf&& self, descriptor_layout_type&& layout) -> TSelf&& {
             self.m_state.descriptorLayouts.push_back(std::move(layout));
             return std::forward<TSelf>(self);
         }
@@ -1319,7 +1319,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The descriptor set layouts of the pipeline state.
             /// </summary>
-            Array<UniquePtr<descriptor_set_layout_type>> descriptorSetLayouts;
+            Array<SharedPtr<descriptor_set_layout_type>> descriptorSetLayouts;
 
             /// <summary>
             /// The push constant layout of the pipeline state.
@@ -1343,7 +1343,7 @@ namespace LiteFX::Rendering {
         /// <param name="layout">The layout of the descriptor set.</param>
         /// <seealso cref="DescriptorSetLayout" />
         template <typename TSelf>
-        constexpr auto use(this TSelf&& self, UniquePtr<descriptor_set_layout_type>&& layout) -> TSelf&& {
+        constexpr auto use(this TSelf&& self, SharedPtr<descriptor_set_layout_type>&& layout) -> TSelf&& {
             self.m_state.descriptorSetLayouts.push_back(std::move(layout));
             return std::forward<TSelf>(self);
         }
@@ -1387,12 +1387,12 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The vertex buffer layouts.
             /// </summary>
-            Array<UniquePtr<vertex_buffer_layout_type>> vertexBufferLayouts{};
+            Array<SharedPtr<vertex_buffer_layout_type>> vertexBufferLayouts{};
             
             /// <summary>
             /// The index buffer layout.
             /// </summary>
-            UniquePtr<index_buffer_layout_type> indexBufferLayout{};
+            SharedPtr<index_buffer_layout_type> indexBufferLayout{};
         } m_state;
 
     protected:
@@ -1420,7 +1420,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="layout">The layout to add to the input assembler.</param>
         template <typename TSelf>
-        constexpr auto use(this TSelf&& self, UniquePtr<vertex_buffer_layout_type>&& layout) -> TSelf&& {
+        constexpr auto use(this TSelf&& self, SharedPtr<vertex_buffer_layout_type>&& layout) -> TSelf&& {
             self.m_state.vertexBufferLayouts.push_back(std::move(layout));
             return std::forward<TSelf>(self);
         }
@@ -1431,7 +1431,7 @@ namespace LiteFX::Rendering {
         /// <param name="layout"></param>
         /// <exception cref="RuntimeException">Thrown if another index buffer layout has already been specified.</excpetion>
         template <typename TSelf>
-        constexpr auto use(this TSelf&& self, UniquePtr<index_buffer_layout_type>&& layout) -> TSelf&& {
+        constexpr auto use(this TSelf&& self, SharedPtr<index_buffer_layout_type>&& layout) -> TSelf&& {
             self.m_state.indexBufferLayout = std::move(layout);
             return std::forward<TSelf>(self);
         }

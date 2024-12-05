@@ -17,11 +17,11 @@ private:
 	ResourceUsage m_usage;
 	VmaAllocator m_allocator;
 	VmaAllocation m_allocation;
-	const VulkanDevice& m_device;
+	UInt64 m_virtualAddress{0};
 
 public:
-	VulkanBufferImpl(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation) :
-		m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_usage(usage), m_allocator(allocator), m_allocation(allocation), m_device(device)
+	VulkanBufferImpl(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VmaAllocator& allocator, const VmaAllocation& allocation) :
+		m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_usage(usage), m_allocator(allocator), m_allocation(allocation)
 	{
 	}
 };
@@ -31,10 +31,18 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
-	Resource<VkBuffer>(buffer), m_impl(type, elements, elementSize, alignment, usage, device, allocator, allocation)
+	Resource<VkBuffer>(buffer), m_impl(type, elements, elementSize, alignment, usage, allocator, allocation)
 {
 	if (!name.empty())
 		this->name() = name;
+
+	// Store the virtual address.
+	VkBufferDeviceAddressInfo info{
+		.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+		.buffer = this->handle()
+	};
+
+	m_impl->m_virtualAddress = static_cast<UInt64>(::vkGetBufferDeviceAddress(device.handle(), &info));
 }
 
 VulkanBuffer::~VulkanBuffer() noexcept
@@ -80,12 +88,7 @@ ResourceUsage VulkanBuffer::usage() const noexcept
 
 UInt64 VulkanBuffer::virtualAddress() const noexcept
 {
-	VkBufferDeviceAddressInfo info = {
-		.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
-		.buffer = this->handle()
-	};
-
-	return static_cast<UInt64>(::vkGetBufferDeviceAddress(m_impl->m_device.handle(), &info));
+	return m_impl->m_virtualAddress;
 }
 
 void VulkanBuffer::map(const void* const data, size_t size, UInt32 element)
@@ -165,11 +168,11 @@ public:
 	friend class VulkanVertexBuffer;
 
 private:
-	const VulkanVertexBufferLayout& m_layout;
+	SharedPtr<const VulkanVertexBufferLayout> m_layout;
 
 public:
 	VulkanVertexBufferImpl(const VulkanVertexBufferLayout& layout) :
-		m_layout(layout)
+		m_layout(layout.shared_from_this())
 	{
 	}
 };
@@ -187,7 +190,7 @@ VulkanVertexBuffer::~VulkanVertexBuffer() noexcept = default;
 
 const VulkanVertexBufferLayout& VulkanVertexBuffer::layout() const noexcept
 {
-	return m_impl->m_layout;
+	return *m_impl->m_layout;
 }
 
 SharedPtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
@@ -215,11 +218,11 @@ public:
 	friend class VulkanIndexBuffer;
 
 private:
-	const VulkanIndexBufferLayout& m_layout;
+	SharedPtr<const VulkanIndexBufferLayout> m_layout;
 
 public:
 	VulkanIndexBufferImpl(const VulkanIndexBufferLayout& layout) :
-		m_layout(layout)
+		m_layout(layout.shared_from_this())
 	{
 	}
 };
@@ -237,7 +240,7 @@ VulkanIndexBuffer::~VulkanIndexBuffer() noexcept = default;
 
 const VulkanIndexBufferLayout& VulkanIndexBuffer::layout() const noexcept
 {
-	return m_impl->m_layout;
+	return *m_impl->m_layout;
 }
 
 SharedPtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)

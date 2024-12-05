@@ -423,6 +423,16 @@ VulkanSampler::~VulkanSampler() noexcept
 		::vkDestroySampler(device->handle(), this->handle(), nullptr);
 }
 
+const VulkanDevice& VulkanSampler::device() const
+{
+	auto device = m_impl->m_device.lock();
+	
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("The device has alrady been released.");
+
+	return *device;
+}
+
 FilterMode VulkanSampler::getMinifyingFilter() const noexcept
 {
 	return m_impl->m_minFilter;

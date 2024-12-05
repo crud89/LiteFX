@@ -13,15 +13,20 @@ public:
     friend class VulkanVertexBufferLayout;
 
 private:
-    Array<UniquePtr<BufferAttribute>> m_attributes;
+    Array<BufferAttribute> m_attributes{};
     size_t m_vertexSize;
     UInt32 m_binding;
-    BufferType m_bufferType{ BufferType::Vertex };
 
 public:
     VulkanVertexBufferLayoutImpl(size_t vertexSize, UInt32 binding) : 
         m_vertexSize(vertexSize), m_binding(binding) 
     {
+    }
+
+    VulkanVertexBufferLayoutImpl(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding) :
+        m_vertexSize(vertexSize), m_binding(binding) 
+    {
+        m_attributes = attributes | std::ranges::to<Array<BufferAttribute>>();
     }
 };
 
@@ -34,10 +39,12 @@ VulkanVertexBufferLayout::VulkanVertexBufferLayout(size_t vertexSize, UInt32 bin
 {
 }
 
-VulkanVertexBufferLayout::VulkanVertexBufferLayout(VulkanVertexBufferLayout&&) noexcept = default;
-//VulkanVertexBufferLayout::VulkanVertexBufferLayout(const VulkanVertexBufferLayout&) = default;
-VulkanVertexBufferLayout& VulkanVertexBufferLayout::operator=(VulkanVertexBufferLayout&&) noexcept = default;
-//VulkanVertexBufferLayout& VulkanVertexBufferLayout::operator=(const VulkanVertexBufferLayout&) = default;
+VulkanVertexBufferLayout::VulkanVertexBufferLayout(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding) :
+    m_impl(vertexSize, attributes, binding)
+{
+}
+
+VulkanVertexBufferLayout::VulkanVertexBufferLayout(const VulkanVertexBufferLayout&) = default;
 VulkanVertexBufferLayout::~VulkanVertexBufferLayout() noexcept = default;
 
 size_t VulkanVertexBufferLayout::elementSize() const noexcept
@@ -52,12 +59,12 @@ UInt32 VulkanVertexBufferLayout::binding() const noexcept
 
 BufferType VulkanVertexBufferLayout::type() const noexcept
 {
-    return m_impl->m_bufferType;
+    return BufferType::Vertex;
 }
 
 Enumerable<const BufferAttribute*> VulkanVertexBufferLayout::attributes() const
 {
-    return m_impl->m_attributes | std::views::transform([](const UniquePtr<BufferAttribute>& attribute) { return attribute.get(); });
+    return m_impl->m_attributes | std::views::transform([](const auto& attribute) { return std::addressof(attribute); });
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

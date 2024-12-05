@@ -1,4 +1,5 @@
 #include <litefx/backends/vulkan.hpp>
+#include "image.h"
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -45,13 +46,10 @@ public:
         }
     }
 
-    VulkanDescriptorLayoutImpl(const SharedPtr<const IVulkanSampler>& staticSampler, UInt32 binding) :
+    VulkanDescriptorLayoutImpl(const IVulkanSampler& staticSampler, UInt32 binding) :
         VulkanDescriptorLayoutImpl(DescriptorType::Sampler, binding, 0, 1)
     {
-        if (staticSampler == nullptr) [[unlikely]]
-            throw ArgumentNotInitializedException("staticSampler", "The static sampler must be initialized.");
-
-        m_staticSampler = staticSampler;
+        m_staticSampler = VulkanSampler::copy(staticSampler);
     }
 
     VulkanDescriptorLayoutImpl(UInt32 binding, UInt32 inputAttachmentIndex) :
@@ -70,7 +68,7 @@ VulkanDescriptorLayout::VulkanDescriptorLayout(DescriptorType type, UInt32 bindi
 {
 }
 
-VulkanDescriptorLayout::VulkanDescriptorLayout(const SharedPtr<const IVulkanSampler>& staticSampler, UInt32 binding) :
+VulkanDescriptorLayout::VulkanDescriptorLayout(const IVulkanSampler& staticSampler, UInt32 binding) :
     m_impl(staticSampler, binding)
 {
 }
@@ -81,7 +79,9 @@ VulkanDescriptorLayout::VulkanDescriptorLayout(UInt32 binding, UInt32 inputAttac
 }
 
 VulkanDescriptorLayout::VulkanDescriptorLayout(VulkanDescriptorLayout&&) noexcept = default;
+VulkanDescriptorLayout::VulkanDescriptorLayout(const VulkanDescriptorLayout&) = default;
 VulkanDescriptorLayout& VulkanDescriptorLayout::operator=(VulkanDescriptorLayout&&) noexcept = default;
+VulkanDescriptorLayout& VulkanDescriptorLayout::operator=(const VulkanDescriptorLayout&) = default;
 VulkanDescriptorLayout::~VulkanDescriptorLayout() noexcept = default;
 
 size_t VulkanDescriptorLayout::elementSize() const noexcept

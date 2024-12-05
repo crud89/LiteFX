@@ -335,22 +335,22 @@ public:
         });
 
         // Create the descriptor set layouts.
-        auto descriptorSets = [&descriptorSetLayouts](SharedPtr<const VulkanDevice> device) -> std::generator<UniquePtr<VulkanDescriptorSetLayout>> {
+        auto descriptorSets = [&descriptorSetLayouts](SharedPtr<const VulkanDevice> device) -> std::generator<SharedPtr<VulkanDescriptorSetLayout>> {
             for (auto it = descriptorSetLayouts.begin(); it != descriptorSetLayouts.end(); ++it)
             {
                 auto& descriptorSet = it->second;
 
                 // Create the descriptor layouts.
-                auto descriptorLayouts = [&descriptorSet]() -> std::generator<UniquePtr<VulkanDescriptorLayout>> {
+                auto descriptorLayouts = [&descriptorSet]() -> std::generator<VulkanDescriptorLayout> {
                     for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor)
                         co_yield descriptor->type == DescriptorType::InputAttachment ?
-                            makeUnique<VulkanDescriptorLayout>(descriptor->type, descriptor->location, descriptor->inputAttachmentIndex) :
-                            makeUnique<VulkanDescriptorLayout>(descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements);
-                }() | std::views::as_rvalue;
+                            VulkanDescriptorLayout { descriptor->type, descriptor->location, descriptor->inputAttachmentIndex} :
+                            VulkanDescriptorLayout { descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements };
+                }();
 
-                co_yield makeUnique<VulkanDescriptorSetLayout>(*device, std::move(descriptorLayouts), descriptorSet.space, descriptorSet.stage);
+                co_yield VulkanDescriptorSetLayout::create(*device, descriptorLayouts, descriptorSet.space, descriptorSet.stage);
             }
-        }(device) | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<VulkanDescriptorSetLayout>>>();
+        }(device) | std::views::as_rvalue | std::ranges::to<Enumerable<SharedPtr<VulkanDescriptorSetLayout>>>();
 
         // Create the push constants layout.
         auto pushConstants = [&pushConstantRanges]() -> std::generator<UniquePtr<VulkanPushConstantsRange>> {

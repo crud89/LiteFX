@@ -748,7 +748,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// Describes the element type of an index buffer.
     /// </summary>
-    enum class IndexType {
+    enum class IndexType : UInt32 {
         /// <summary>
         /// Indices are stored as 2 byte unsigned integers.
         /// </summary>
@@ -3891,7 +3891,7 @@ namespace LiteFX::Rendering {
     /// Describes a vertex buffer layout.
     /// </summary>
     /// <seealso cref="IVertexBuffer" />
-    class LITEFX_RENDERING_API IVertexBufferLayout : public IBufferLayout {
+    class LITEFX_RENDERING_API IVertexBufferLayout : public IBufferLayout, public SharedObject {
     protected:
         IVertexBufferLayout() noexcept = default;
         IVertexBufferLayout(IVertexBufferLayout&&) noexcept = default;
@@ -3914,7 +3914,7 @@ namespace LiteFX::Rendering {
     /// Describes a index buffer layout.
     /// </summary>
     /// <seealso cref="IIndexBuffer" />
-    class LITEFX_RENDERING_API IIndexBufferLayout : public IBufferLayout {
+    class LITEFX_RENDERING_API IIndexBufferLayout : public IBufferLayout, public SharedObject {
     protected:
         IIndexBufferLayout() noexcept = default;
         IIndexBufferLayout(IIndexBufferLayout&&) noexcept = default;
@@ -5368,7 +5368,7 @@ namespace LiteFX::Rendering {
     /// <summary>
     /// The interface for a descriptor set layout.
     /// </summary>
-    class LITEFX_RENDERING_API IDescriptorSetLayout {
+    class LITEFX_RENDERING_API IDescriptorSetLayout : public SharedObject {
     protected:
         IDescriptorSetLayout() noexcept = default;
         IDescriptorSetLayout(const IDescriptorSetLayout&) = default;
@@ -5377,7 +5377,7 @@ namespace LiteFX::Rendering {
         IDescriptorSetLayout& operator=(IDescriptorSetLayout&&) noexcept = default;
 
     public:
-        virtual ~IDescriptorSetLayout() noexcept = default;
+        ~IDescriptorSetLayout() noexcept override = default;
 
     public:
         /// <summary>

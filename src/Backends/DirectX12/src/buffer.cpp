@@ -176,12 +176,12 @@ public:
 	friend class DirectX12VertexBuffer;
 
 private:
-	const DirectX12VertexBufferLayout& m_layout;
+	SharedPtr<const DirectX12VertexBufferLayout> m_layout;
 	D3D12_VERTEX_BUFFER_VIEW m_view{};
 
 public:
 	DirectX12VertexBufferImpl(const DirectX12VertexBufferLayout& layout) :
-		m_layout(layout)
+		m_layout(layout.shared_from_this())
 	{
 	}
 
@@ -211,7 +211,7 @@ DirectX12VertexBuffer::~DirectX12VertexBuffer() noexcept = default;
 
 const DirectX12VertexBufferLayout& DirectX12VertexBuffer::layout() const noexcept
 {
-	return m_impl->m_layout;
+	return *m_impl->m_layout;
 }
 
 const D3D12_VERTEX_BUFFER_VIEW& DirectX12VertexBuffer::view() const noexcept
@@ -246,12 +246,12 @@ public:
 	friend class DirectX12IndexBuffer;
 
 private:
-	const DirectX12IndexBufferLayout& m_layout;
+	SharedPtr<const DirectX12IndexBufferLayout> m_layout;
 	D3D12_INDEX_BUFFER_VIEW m_view{};
 
 public:
 	DirectX12IndexBufferImpl(const DirectX12IndexBufferLayout& layout) :
-		m_layout(layout)
+		m_layout(layout.shared_from_this())
 	{
 	}
 
@@ -281,7 +281,7 @@ DirectX12IndexBuffer::~DirectX12IndexBuffer() noexcept = default;
 
 const DirectX12IndexBufferLayout& DirectX12IndexBuffer::layout() const noexcept
 {
-	return m_impl->m_layout;
+	return *m_impl->m_layout;
 }
 
 const D3D12_INDEX_BUFFER_VIEW& DirectX12IndexBuffer::view() const noexcept

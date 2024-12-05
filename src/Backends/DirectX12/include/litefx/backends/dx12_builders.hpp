@@ -136,7 +136,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="type">The type of the index buffer.</param>
 		template <typename TSelf>
 		inline auto indexType(this TSelf&& self, IndexType type) -> TSelf&& {
-			self.use(makeUnique<DirectX12IndexBufferLayout>(type));
+			self.use(DirectX12IndexBufferLayout::create(type));
 			return std::forward<TSelf>(self);
 		}
 	};
@@ -236,10 +236,10 @@ namespace LiteFX::Rendering::Backends {
 		// DescriptorSetLayoutBuilder interface.
 	protected:
 		/// <inheritdoc />
-		UniquePtr<DirectX12DescriptorLayout> makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors) override;
+		DirectX12DescriptorLayout makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors) override;
 
 		/// <inheritdoc />
-		UniquePtr<DirectX12DescriptorLayout> makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) override;
+		DirectX12DescriptorLayout makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) override;
 	};
 
 	/// <summary>

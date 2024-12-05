@@ -21,29 +21,71 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanVertexBufferLayout final : public IVertexBufferLayout {
         LITEFX_IMPLEMENTATION(VulkanVertexBufferLayoutImpl);
         LITEFX_BUILDER(VulkanVertexBufferLayoutBuilder);
+        friend struct SharedObject::Allocator<VulkanVertexBufferLayout>;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a new vertex buffer layout.
         /// </summary>
-        /// <param name="vertexSize">The size of a single vertex.</param>
+        /// <param name="vertexSize">The overall size of a single vertex.</param>
         /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
         explicit VulkanVertexBufferLayout(size_t vertexSize, UInt32 binding = 0);
 
+        /// <summary>
+        /// Initializes a new vertex buffer layout.
+        /// </summary>
+        /// <param name="vertexSize">The overall size of a single vertex.</param>
+        /// <param name="attributes">The vertex attributes.</param>
+        /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
+        explicit VulkanVertexBufferLayout(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding = 0);
+
+    private:
         /// <inheritdoc />
-        VulkanVertexBufferLayout(VulkanVertexBufferLayout&&) noexcept;
+        VulkanVertexBufferLayout(VulkanVertexBufferLayout&&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanVertexBufferLayout(const VulkanVertexBufferLayout&) = delete;
+        VulkanVertexBufferLayout(const VulkanVertexBufferLayout&);
 
         /// <inheritdoc />
-        VulkanVertexBufferLayout& operator=(VulkanVertexBufferLayout&&) noexcept;
+        VulkanVertexBufferLayout& operator=(VulkanVertexBufferLayout&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanVertexBufferLayout& operator=(const VulkanVertexBufferLayout&) = delete;
 
+    public:
         /// <inheritdoc />
         ~VulkanVertexBufferLayout() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates a new vertex buffer layout.
+        /// </summary>
+        /// <param name="vertexSize">The overall size of a single vertex.</param>
+        /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
+        /// <returns>A shared pointer to the newly created vertex buffer layout.</returns>
+        static inline auto create(size_t vertexSize, UInt32 binding = 0) {
+            return SharedObject::create<VulkanVertexBufferLayout>(vertexSize, binding);
+        }
+
+        /// <summary>
+        /// Creates a new vertex buffer layout.
+        /// </summary>
+        /// <param name="vertexSize">The overall size of a single vertex.</param>
+        /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
+        /// <param name="attributes">The vertex attributes.</param>
+        /// <returns>A shared pointer to the newly created vertex buffer layout.</returns>
+        static inline auto create(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding = 0) {
+            return SharedObject::create<VulkanVertexBufferLayout>(vertexSize, attributes, binding);
+        }
+
+        /// <summary>
+        /// Creates a copy of a vertex buffer layout.
+        /// </summary>
+        /// <param name="other">The vertex buffer layout to copy.</param>
+        /// <returns>A shared pointer to the newly created vertex buffer layout.</returns>
+        static inline auto create(const VulkanVertexBufferLayout& other) {
+            return SharedObject::create<VulkanVertexBufferLayout>(other);
+        }
 
         // IVertexBufferLayout interface.
     public:
@@ -69,28 +111,50 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="VulkanVertexBufferLayout" />
     class LITEFX_VULKAN_API VulkanIndexBufferLayout final : public IIndexBufferLayout {
         LITEFX_IMPLEMENTATION(VulkanIndexBufferLayoutImpl);
+        friend struct SharedObject::Allocator<VulkanIndexBufferLayout>;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a new index buffer layout
         /// </summary>
         /// <param name="type">The type of the indices within the index buffer.</param>
         explicit VulkanIndexBufferLayout(IndexType type);
 
+    private:
         /// <inheritdoc />
-        VulkanIndexBufferLayout(VulkanIndexBufferLayout&&) noexcept;
+        VulkanIndexBufferLayout(VulkanIndexBufferLayout&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanIndexBufferLayout(const VulkanIndexBufferLayout&);
 
         /// <inheritdoc />
-        VulkanIndexBufferLayout& operator=(VulkanIndexBufferLayout&&) noexcept;
+        VulkanIndexBufferLayout& operator=(VulkanIndexBufferLayout&&) noexcept = delete;
 
         /// <inheritdoc />
-        VulkanIndexBufferLayout& operator=(const VulkanIndexBufferLayout&);
+        VulkanIndexBufferLayout& operator=(const VulkanIndexBufferLayout&) = delete;
 
+    public:
         /// <inheritdoc />
         ~VulkanIndexBufferLayout() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates a new index buffer layout
+        /// </summary>
+        /// <param name="type">The type of the indices within the index buffer.</param>
+        /// <returns>A shared pointer to the newly created index buffer layout instance.</returns>
+        static inline auto create(IndexType type) {
+            return SharedObject::create<VulkanIndexBufferLayout>(type);
+        }
+
+        /// <summary>
+        /// Creates a copy of an index buffer layout.
+        /// </summary>
+        /// <param name="other">The index buffer layout to copy.</param>
+        /// <returns>A shared pointer to the newly created index buffer layout instance.</returns>
+        static inline auto create(const VulkanIndexBufferLayout& other) {
+            return SharedObject::create<VulkanIndexBufferLayout>(other);
+        }
 
         // IIndexBufferLayout interface.
     public:
@@ -665,13 +729,13 @@ namespace LiteFX::Rendering::Backends {
         explicit VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, VkDescriptorSet descriptorSet);
 
         /// <inheritdoc />
-        VulkanDescriptorSet(VulkanDescriptorSet&&) noexcept;
+        VulkanDescriptorSet(VulkanDescriptorSet&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanDescriptorSet(const VulkanDescriptorSet&) = delete;
 
         /// <inheritdoc />
-        VulkanDescriptorSet& operator=(VulkanDescriptorSet&&) noexcept;
+        VulkanDescriptorSet& operator=(VulkanDescriptorSet&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanDescriptorSet& operator=(const VulkanDescriptorSet&) = delete;
@@ -720,33 +784,33 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="elementSize">The size of the descriptor.</param>
         /// <param name="descriptors">The number of descriptors in the descriptor array. If set to `-1`, the descriptor will be unbounded.</param>
         /// <seealso cref="descriptors" />
-        explicit VulkanDescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1);
+        VulkanDescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1);
 
         /// <summary>
         /// Initializes a new Vulkan descriptor layout for a static sampler.
         /// </summary>
         /// <param name="staticSampler">The static sampler to initialize the state with.</param>
         /// <param name="binding">The binding point for the descriptor.</param>
-        explicit VulkanDescriptorLayout(const SharedPtr<const IVulkanSampler>& staticSampler, UInt32 binding);
+        VulkanDescriptorLayout(const IVulkanSampler& staticSampler, UInt32 binding);
 
         /// <summary>
         /// Initializes a new Vulkan descriptor layout for an input attachment.
         /// </summary>
         /// <param name="binding">The binding point for the descriptor.</param>
         /// <param name="inputAttachmentIndex">If <paramref name="type" /> equals <see cref="DescriptorType::InputAttachment" /> this value specifies the index of the input attachment. Otherwise, the value is ignored.</param>
-        explicit VulkanDescriptorLayout(UInt32 binding, UInt32 inputAttachmentIndex);
+        VulkanDescriptorLayout(UInt32 binding, UInt32 inputAttachmentIndex);
 
         /// <inheritdoc />
         VulkanDescriptorLayout(VulkanDescriptorLayout&&) noexcept;
 
         /// <inheritdoc />
-        VulkanDescriptorLayout(const VulkanDescriptorLayout&) = delete;
+        VulkanDescriptorLayout(const VulkanDescriptorLayout&);
 
         /// <inheritdoc />
         VulkanDescriptorLayout& operator=(VulkanDescriptorLayout&&) noexcept;
 
         /// <inheritdoc />
-        VulkanDescriptorLayout& operator=(const VulkanDescriptorLayout&) = delete;
+        VulkanDescriptorLayout& operator=(const VulkanDescriptorLayout&);
 
         /// <inheritdoc />
         ~VulkanDescriptorLayout() noexcept override;
@@ -794,12 +858,13 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanDescriptorSetLayout final : public DescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet>, public Resource<VkDescriptorSetLayout> {
         LITEFX_IMPLEMENTATION(VulkanDescriptorSetLayoutImpl);
         LITEFX_BUILDER(VulkanDescriptorSetLayoutBuilder);
+        friend class SharedObject::Allocator<VulkanDescriptorSetLayout>;
 
     public:
         using base_type = DescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet>;
         using base_type::free;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a Vulkan descriptor set layout.
         /// </summary>
@@ -807,29 +872,62 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="descriptorLayouts">The descriptor layouts of the descriptors within the descriptor set.</param>
         /// <param name="space">The space or set id of the descriptor set.</param>
         /// <param name="stages">The shader stages, the descriptor sets are bound to.</param>
-        explicit VulkanDescriptorSetLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages);
-
-        /// <inheritdoc />
-        VulkanDescriptorSetLayout(VulkanDescriptorSetLayout&&) noexcept;
-
-        /// <inheritdoc />
-        VulkanDescriptorSetLayout(const VulkanDescriptorSetLayout&) = delete;
-
-        /// <inheritdoc />
-        VulkanDescriptorSetLayout& operator=(VulkanDescriptorSetLayout&&) noexcept;
-
-        /// <inheritdoc />
-        VulkanDescriptorSetLayout& operator=(const VulkanDescriptorSetLayout&) = delete;
-
-        /// <inheritdoc />
-        ~VulkanDescriptorSetLayout() noexcept override;
-
-    private:
+        explicit VulkanDescriptorSetLayout(const VulkanDevice& device, const Enumerable<VulkanDescriptorLayout>& descriptorLayouts, UInt32 space, ShaderStage stages);
+        
         /// <summary>
         /// Initializes a Vulkan descriptor set layout.
         /// </summary>
         /// <param name="device">The parent device, the pipeline layout has been created from.</param>
         explicit VulkanDescriptorSetLayout(const VulkanDevice& device);
+
+    private:
+        /// <inheritdoc />
+        VulkanDescriptorSetLayout(VulkanDescriptorSetLayout&&) noexcept = delete;
+
+        /// <inheritdoc />
+        VulkanDescriptorSetLayout(const VulkanDescriptorSetLayout& other);
+
+        /// <inheritdoc />
+        VulkanDescriptorSetLayout& operator=(VulkanDescriptorSetLayout&&) noexcept = delete;
+
+        /// <inheritdoc />
+        VulkanDescriptorSetLayout& operator=(const VulkanDescriptorSetLayout&) = delete;
+
+    public:
+        /// <inheritdoc />
+        ~VulkanDescriptorSetLayout() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates a Vulkan descriptor set layout.
+        /// </summary>
+        /// <param name="device">The device, the descriptor set layout is created on.</param>
+        /// <param name="descriptorLayouts">The descriptor layouts of the descriptors within the descriptor set.</param>
+        /// <param name="space">The space or set id of the descriptor set.</param>
+        /// <param name="stages">The shader stages, the descriptor sets are bound to.</param>
+        /// <returns>Returns a shared pointer to the newly created descriptor set layout.</returns>
+        static inline auto create(const VulkanDevice& device, const Enumerable<VulkanDescriptorLayout>& descriptorLayouts, UInt32 space, ShaderStage stages) {
+            return SharedObject::create<VulkanDescriptorSetLayout>(device, descriptorLayouts, space, stages);
+        }
+
+        /// <summary>
+        /// Creates a copy of a Vulkan descriptor set layout.
+        /// </summary>
+        /// <param name="other">The descriptor set layout to copy.</param>
+        /// <returns>Returns a shared pointer to the newly created descriptor set layout.</returns>
+        static inline auto create(const VulkanDescriptorSetLayout& other) {
+            return SharedObject::create<VulkanDescriptorSetLayout>(other);
+        }
+
+    private:
+        /// <summary>
+        /// Creates a Vulkan descriptor set layout.
+        /// </summary>
+        /// <param name="device">The device, the descriptor set layout is created on.</param>
+        /// <returns>Returns a shared pointer to the newly created descriptor set layout.</returns>
+        static inline auto create(const VulkanDevice& device) {
+            return SharedObject::create<VulkanDescriptorSetLayout>(device);
+        }
 
     public:
         /// <summary>
@@ -1036,7 +1134,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="device">The parent device, the layout is created from.</param>
         /// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
         /// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
-        explicit VulkanPipelineLayout(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout);
+        explicit VulkanPipelineLayout(const VulkanDevice& device, Enumerable<SharedPtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout);
 
         /// <summary>
         /// Initializes a new Vulkan render pipeline layout.
@@ -1069,7 +1167,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
         /// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
         /// <returns>A shared pointer to the newly created pipeline layout instance.</returns>
-        static inline auto create(const VulkanDevice& device, Enumerable<UniquePtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) {
+        static inline auto create(const VulkanDevice& device, Enumerable<SharedPtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) {
             return SharedObject::create<VulkanPipelineLayout>(device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
         }
 
@@ -1118,7 +1216,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
 		/// <param name="indexBufferLayout">The index buffer layout.</param>
 		/// <param name="primitiveTopology">The primitive topology.</param>
-		explicit VulkanInputAssembler(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout = nullptr, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList);
+		explicit VulkanInputAssembler(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout = nullptr, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList);
 
         /// <summary>
         /// Initializes a new Vulkan input assembler state.
@@ -1130,7 +1228,7 @@ namespace LiteFX::Rendering::Backends {
         VulkanInputAssembler(VulkanInputAssembler&&) noexcept = delete;
 
         /// <inheritdoc />
-		VulkanInputAssembler(const VulkanInputAssembler&) = default;
+		VulkanInputAssembler(const VulkanInputAssembler&);
 
         /// <inheritdoc />
         VulkanInputAssembler& operator=(VulkanInputAssembler&&) noexcept = delete;
@@ -1150,7 +1248,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="indexBufferLayout">The index buffer layout.</param>
         /// <param name="primitiveTopology">The primitive topology.</param>
         /// <returns>A shared pointer to the newly created input assembler instance.</returns>
-        static inline auto create(Enumerable<UniquePtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<VulkanIndexBufferLayout>&& indexBufferLayout = nullptr, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList) {
+        static inline auto create(Enumerable<SharedPtr<VulkanVertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<VulkanIndexBufferLayout>&& indexBufferLayout = nullptr, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList) {
             return SharedObject::create<VulkanInputAssembler>(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
         }
 

@@ -1,4 +1,5 @@
 #include <litefx/backends/dx12.hpp>
+#include "image.h"
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -46,13 +47,10 @@ public:
         }
     }
 
-    DirectX12DescriptorLayoutImpl(const SharedPtr<const IDirectX12Sampler>& staticSampler, UInt32 binding, bool local) :
+    DirectX12DescriptorLayoutImpl(const IDirectX12Sampler& staticSampler, UInt32 binding, bool local) :
         DirectX12DescriptorLayoutImpl(DescriptorType::Sampler, binding, 0, 1, local)
     {
-        if (staticSampler == nullptr)
-            throw ArgumentNotInitializedException("staticSampler", "The static sampler must be initialized.");
-
-        m_staticSampler = staticSampler;
+        m_staticSampler = DirectX12Sampler::copy(staticSampler);
     }
 };
 
@@ -65,13 +63,15 @@ DirectX12DescriptorLayout::DirectX12DescriptorLayout(DescriptorType type, UInt32
 {
 }
 
-DirectX12DescriptorLayout::DirectX12DescriptorLayout(const SharedPtr<const IDirectX12Sampler>& staticSampler, UInt32 binding, bool local) :
+DirectX12DescriptorLayout::DirectX12DescriptorLayout(const IDirectX12Sampler& staticSampler, UInt32 binding, bool local) :
     m_impl(staticSampler, binding, local)
 {
 }
 
 DirectX12DescriptorLayout::DirectX12DescriptorLayout(DirectX12DescriptorLayout&&) noexcept = default;
+DirectX12DescriptorLayout::DirectX12DescriptorLayout(const DirectX12DescriptorLayout&) = default;
 DirectX12DescriptorLayout& DirectX12DescriptorLayout::operator=(DirectX12DescriptorLayout&&) noexcept = default;
+DirectX12DescriptorLayout& DirectX12DescriptorLayout::operator=(const DirectX12DescriptorLayout&)= default;
 DirectX12DescriptorLayout::~DirectX12DescriptorLayout() noexcept = default;
 
 bool DirectX12DescriptorLayout::local() const noexcept

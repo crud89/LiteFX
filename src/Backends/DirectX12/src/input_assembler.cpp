@@ -11,12 +11,12 @@ public:
     friend class DirectX12InputAssembler;
 
 private:
-    Dictionary<UInt32, UniquePtr<DirectX12VertexBufferLayout>> m_vertexBufferLayouts{};
-    UniquePtr<DirectX12IndexBufferLayout> m_indexBufferLayout{};
+    Dictionary<UInt32, SharedPtr<DirectX12VertexBufferLayout>> m_vertexBufferLayouts{};
+    SharedPtr<DirectX12IndexBufferLayout> m_indexBufferLayout{};
     PrimitiveTopology m_primitiveTopology{};
 
 public:
-    void initialize(Enumerable<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology)
+    void initialize(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology)
     {
         m_primitiveTopology = primitiveTopology;
         m_indexBufferLayout = std::move(indexBufferLayout);
@@ -39,7 +39,7 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12InputAssembler::DirectX12InputAssembler(Enumerable<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology) :
+DirectX12InputAssembler::DirectX12InputAssembler(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology) :
     m_impl()
 {
     m_impl->initialize(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
@@ -50,6 +50,7 @@ DirectX12InputAssembler::DirectX12InputAssembler() :
 {
 }
 
+DirectX12InputAssembler::DirectX12InputAssembler(const DirectX12InputAssembler&) = default;
 DirectX12InputAssembler::~DirectX12InputAssembler() noexcept = default;
 
 Enumerable<const DirectX12VertexBufferLayout*> DirectX12InputAssembler::vertexBufferLayouts() const
@@ -86,8 +87,8 @@ public:
     friend class DirectX12InputAssembler;
 
 private:
-    Array<UniquePtr<DirectX12VertexBufferLayout>> m_vertexBufferLayouts{};
-    UniquePtr<DirectX12IndexBufferLayout> m_indexBufferLayout{};
+    Array<SharedPtr<DirectX12VertexBufferLayout>> m_vertexBufferLayouts{};
+    SharedPtr<DirectX12IndexBufferLayout> m_indexBufferLayout{};
     PrimitiveTopology m_primitiveTopology{};
 };
 
@@ -109,6 +110,6 @@ void DirectX12InputAssemblerBuilder::build()
 
 DirectX12VertexBufferLayoutBuilder DirectX12InputAssemblerBuilder::vertexBuffer(size_t elementSize, UInt32 binding)
 {
-    return DirectX12VertexBufferLayoutBuilder { *this, makeUnique<DirectX12VertexBufferLayout>(elementSize, binding) };
+    return DirectX12VertexBufferLayoutBuilder { *this, DirectX12VertexBufferLayout::create(elementSize, binding) };
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

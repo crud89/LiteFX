@@ -14,7 +14,7 @@ public:
     friend class DirectX12DescriptorSetLayout;
 
 private:
-    Array<UniquePtr<DirectX12DescriptorLayout>> m_layouts{};
+    Array<DirectX12DescriptorLayout> m_layouts{};
     UInt32 m_space{ 0 }, m_samplers{ 0 }, m_descriptors{ 0 }, m_rootParameterIndex{ 0 };
     ShaderStage m_stages{ ShaderStage::Other };
     Queue<ComPtr<ID3D12DescriptorHeap>> m_freeDescriptorSets{}, m_freeSamplerSets{};
@@ -24,10 +24,10 @@ private:
     mutable std::mutex m_mutex;
 
 public:
-    DirectX12DescriptorSetLayoutImpl(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages) :
+    DirectX12DescriptorSetLayoutImpl(const DirectX12Device& device, const Enumerable<DirectX12DescriptorLayout>& descriptorLayouts, UInt32 space, ShaderStage stages) :
         m_space(space), m_stages(stages), m_device(device.weak_from_this())
     {
-        m_layouts = std::move(descriptorLayouts) | std::views::as_rvalue | std::ranges::to<std::vector>();
+        m_layouts = descriptorLayouts | std::ranges::to<Array<DirectX12DescriptorLayout>>();
     }
 
     DirectX12DescriptorSetLayoutImpl(const DirectX12Device& device) :
@@ -41,17 +41,17 @@ public:
         LITEFX_TRACE(DIRECTX12_LOG, "Defining layout for descriptor set {0} {{ Stages: {1} }}...", m_space, m_stages);
 
         // Sort the layouts by binding.
-        std::sort(std::begin(m_layouts), std::end(m_layouts), [](const UniquePtr<DirectX12DescriptorLayout>& a, const UniquePtr<DirectX12DescriptorLayout>& b) { return a->binding() < b->binding(); });
+        std::sort(std::begin(m_layouts), std::end(m_layouts), [](const auto& a, const auto& b) { return a.binding() < b.binding(); });
 
         // Count the samplers and descriptors.
-        std::ranges::for_each(m_layouts, [&, i = 0](const UniquePtr<DirectX12DescriptorLayout>& layout) mutable {
+        std::ranges::for_each(m_layouts, [&, i = 0](const auto& layout) mutable {
 #ifdef NDEBUG
             (void)i; // Required as [[maybe_unused]] is not supported in captures.
 #else
-            LITEFX_TRACE(DIRECTX12_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Array size: {6}, Offset: {4}, Binding point: {5} }}...", ++i, m_layouts.size(), layout->descriptorType(), layout->elementSize(), 0, layout->binding(), layout->descriptors());
+            LITEFX_TRACE(DIRECTX12_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Array size: {6}, Offset: {4}, Binding point: {5} }}...", ++i, m_layouts.size(), layout.descriptorType(), layout.elementSize(), 0, layout.binding(), layout.descriptors());
 #endif
             
-            if (layout->descriptors() == std::numeric_limits<UInt32>::max())
+            if (layout.descriptors() == std::numeric_limits<UInt32>::max())
             {
                 if (m_layouts.size() != 1) [[unlikely]]
                     throw InvalidArgumentException("descriptorLayouts", "If an unbounded runtime array descriptor is used, it must be the only descriptor in the descriptor set, however the current descriptor set specifies {0} descriptors", m_layouts.size());
@@ -59,19 +59,19 @@ public:
                     m_isRuntimeArray = true;
             }
             
-            if (layout->descriptorType() == DescriptorType::Sampler)
+            if (layout.descriptorType() == DescriptorType::Sampler)
             {
                 // Only count dynamic samplers.
-                if (layout->staticSampler() == nullptr)
+                if (layout.staticSampler() == nullptr)
                 {
-                    m_bindingToDescriptor[layout->binding()] = m_samplers;
-                    m_samplers += layout->descriptors();
+                    m_bindingToDescriptor[layout.binding()] = m_samplers;
+                    m_samplers += layout.descriptors();
                 }
             }
             else
             {
-                m_bindingToDescriptor[layout->binding()] = m_descriptors;
-                m_descriptors += layout->descriptors();
+                m_bindingToDescriptor[layout.binding()] = m_descriptors;
+                m_descriptors += layout.descriptors();
             }
         });
     }
@@ -136,8 +136,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages) :
-    m_impl(device, std::move(descriptorLayouts), space, stages)
+DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12Device& device, const Enumerable<DirectX12DescriptorLayout>& descriptorLayouts, UInt32 space, ShaderStage stages) :
+    m_impl(device, descriptorLayouts, space, stages)
 {
     m_impl->initialize();
 }
@@ -147,8 +147,15 @@ DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12Device
 {
 }
 
-DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(DirectX12DescriptorSetLayout&&) noexcept = default;
-DirectX12DescriptorSetLayout& DirectX12DescriptorSetLayout::operator=(DirectX12DescriptorSetLayout&&) noexcept = default;
+DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12DescriptorSetLayout& other) :
+    DescriptorSetLayout(other), m_impl(*other.device())
+{
+    m_impl->m_layouts = other.m_impl->m_layouts;
+    m_impl->m_space = other.space();
+    m_impl->m_stages = other.shaderStages();
+    m_impl->initialize();
+}
+
 DirectX12DescriptorSetLayout::~DirectX12DescriptorSetLayout() noexcept = default;
 
 UInt32 DirectX12DescriptorSetLayout::rootParameterIndex() const noexcept
@@ -181,13 +188,13 @@ SharedPtr<const DirectX12Device> DirectX12DescriptorSetLayout::device() const no
 
 Enumerable<const DirectX12DescriptorLayout*> DirectX12DescriptorSetLayout::descriptors() const
 {
-    return m_impl->m_layouts | std::views::transform([](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout.get(); });
+    return m_impl->m_layouts | std::views::transform([](const auto& layout) { return std::addressof(layout); });
 }
 
 const DirectX12DescriptorLayout& DirectX12DescriptorSetLayout::descriptor(UInt32 binding) const
 {
-    if (auto match = std::ranges::find_if(m_impl->m_layouts, [&binding](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->binding() == binding; }); match != m_impl->m_layouts.end()) [[likely]]
-        return *match->get();
+    if (auto match = std::ranges::find_if(m_impl->m_layouts, [&binding](const auto& layout) { return layout.binding() == binding; }); match != m_impl->m_layouts.end()) [[likely]]
+        return *match;
 
     throw InvalidArgumentException("binding", "No layout has been provided for the binding {0}.", binding);
 }
@@ -204,37 +211,37 @@ ShaderStage DirectX12DescriptorSetLayout::shaderStages() const noexcept
 
 UInt32 DirectX12DescriptorSetLayout::uniforms() const noexcept
 {
-    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::ConstantBuffer; }));
+    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::ConstantBuffer; }));
 }
 
 UInt32 DirectX12DescriptorSetLayout::storages() const noexcept
 {
-    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::StructuredBuffer || layout->descriptorType() == DescriptorType::RWStructuredBuffer || layout->descriptorType() == DescriptorType::ByteAddressBuffer || layout->descriptorType() == DescriptorType::RWByteAddressBuffer; }));
+    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::StructuredBuffer || layout.descriptorType() == DescriptorType::RWStructuredBuffer || layout.descriptorType() == DescriptorType::ByteAddressBuffer || layout.descriptorType() == DescriptorType::RWByteAddressBuffer; }));
 }
 
 UInt32 DirectX12DescriptorSetLayout::buffers() const noexcept
 {
-    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Buffer || layout->descriptorType() == DescriptorType::RWBuffer; }));
+    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Buffer || layout.descriptorType() == DescriptorType::RWBuffer; }));
 }
 
 UInt32 DirectX12DescriptorSetLayout::images() const noexcept
 {
-    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Texture || layout->descriptorType() == DescriptorType::RWTexture; }));
+    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Texture || layout.descriptorType() == DescriptorType::RWTexture; }));
 }
 
 UInt32 DirectX12DescriptorSetLayout::samplers() const noexcept
 {
-    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Sampler && layout->staticSampler() == nullptr; }));
+    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Sampler && layout.staticSampler() == nullptr; }));
 }
 
 UInt32 DirectX12DescriptorSetLayout::staticSamplers() const noexcept
 {
-    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::Sampler && layout->staticSampler() != nullptr; }));
+    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Sampler && layout.staticSampler() != nullptr; }));
 }
 
 UInt32 DirectX12DescriptorSetLayout::inputAttachments() const noexcept
 {
-    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const UniquePtr<DirectX12DescriptorLayout>& layout) { return layout->descriptorType() == DescriptorType::InputAttachment; }));
+    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::InputAttachment; }));
 }
 
 UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(const Enumerable<DescriptorBinding>& bindings) const
@@ -315,7 +322,7 @@ void DirectX12DescriptorSetLayout::free(const DirectX12DescriptorSet& descriptor
 // ------------------------------------------------------------------------------------------------
 
 DirectX12DescriptorSetLayoutBuilder::DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 space, ShaderStage stages) :
-    DescriptorSetLayoutBuilder(parent, UniquePtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(*parent.device())))
+    DescriptorSetLayoutBuilder(parent, SharedPtr<DirectX12DescriptorSetLayout>(new DirectX12DescriptorSetLayout(*parent.device())))
 {
     this->state().space = space;
     this->state().stages = stages;
@@ -332,13 +339,15 @@ void DirectX12DescriptorSetLayoutBuilder::build()
     instance->m_impl->initialize();
 }
 
-UniquePtr<DirectX12DescriptorLayout> DirectX12DescriptorSetLayoutBuilder::makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors)
+DirectX12DescriptorLayout DirectX12DescriptorSetLayoutBuilder::makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors)
 {
-    return makeUnique<DirectX12DescriptorLayout>(type, binding, descriptorSize, descriptors);
+    return { type, binding, descriptorSize, descriptors };
 }
 
-UniquePtr<DirectX12DescriptorLayout> DirectX12DescriptorSetLayoutBuilder::makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy)
+DirectX12DescriptorLayout DirectX12DescriptorSetLayoutBuilder::makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy)
 {
-    return makeUnique<DirectX12DescriptorLayout>(DirectX12Sampler::allocate(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy), binding);
+    // TODO: This could be made more efficient if we provide a constructor that takes an rvalue shared-pointer sampler instead.
+    auto sampler = DirectX12Sampler::allocate(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy);
+    return { *sampler, binding };
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

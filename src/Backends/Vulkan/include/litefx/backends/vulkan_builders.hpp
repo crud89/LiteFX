@@ -134,7 +134,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="type">The type of the index buffer.</param>
 		template <typename TSelf>
 		auto indexType(this TSelf&& self, IndexType type) -> TSelf&& {
-			self.use(makeUnique<VulkanIndexBufferLayout>(type));
+			self.use(VulkanIndexBufferLayout::create(type));
 			return std::forward<TSelf>(self);
 		}
 	};
@@ -226,10 +226,10 @@ namespace LiteFX::Rendering::Backends {
 		// DescriptorSetLayoutBuilder interface.
 	protected:
 		/// <inheritdoc />
-		UniquePtr<VulkanDescriptorLayout> makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors) override;
+		VulkanDescriptorLayout makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors) override;
 
 		/// <inheritdoc />
-		UniquePtr<VulkanDescriptorLayout> makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) override;
+		VulkanDescriptorLayout makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) override;
 	};
 
 	/// <summary>

@@ -21,29 +21,71 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12VertexBufferLayout final : public IVertexBufferLayout {
         LITEFX_IMPLEMENTATION(DirectX12VertexBufferLayoutImpl);
         LITEFX_BUILDER(DirectX12VertexBufferLayoutBuilder);
+        friend struct SharedObject::Allocator<DirectX12VertexBufferLayout>;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a new vertex buffer layout.
         /// </summary>
-        /// <param name="vertexSize">The size of a single vertex.</param>
+        /// <param name="vertexSize">The overall size of a single vertex.</param>
         /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
         explicit DirectX12VertexBufferLayout(size_t vertexSize, UInt32 binding = 0);
 
+        /// <summary>
+        /// Initializes a new vertex buffer layout.
+        /// </summary>
+        /// <param name="vertexSize">The overall size of a single vertex.</param>
+        /// <param name="attributes">The vertex attributes.</param>
+        /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
+        explicit DirectX12VertexBufferLayout(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding = 0);
+
+    private:
         /// <inheritdoc />
-        DirectX12VertexBufferLayout(DirectX12VertexBufferLayout&&) noexcept;
+        DirectX12VertexBufferLayout(DirectX12VertexBufferLayout&&) noexcept = delete;
 
         /// <inheritdoc />
-        DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&) = delete;
+        DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&);
 
         /// <inheritdoc />
-        DirectX12VertexBufferLayout& operator=(DirectX12VertexBufferLayout&&) noexcept;
+        DirectX12VertexBufferLayout& operator=(DirectX12VertexBufferLayout&&) noexcept = delete;
 
         /// <inheritdoc />
         DirectX12VertexBufferLayout& operator=(const DirectX12VertexBufferLayout&) = delete;
 
+    public:
         /// <inheritdoc />
         ~DirectX12VertexBufferLayout() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates a new vertex buffer layout.
+        /// </summary>
+        /// <param name="vertexSize">The overall size of a single vertex.</param>
+        /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
+        /// <returns>A shared pointer to the newly created vertex buffer layout.</returns>
+        static inline auto create(size_t vertexSize, UInt32 binding = 0) {
+            return SharedObject::create<DirectX12VertexBufferLayout>(vertexSize, binding);
+        }
+
+        /// <summary>
+        /// Creates a new vertex buffer layout.
+        /// </summary>
+        /// <param name="vertexSize">The overall size of a single vertex.</param>
+        /// <param name="attributes">The vertex attributes.</param>
+        /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
+        /// <returns>A shared pointer to the newly created vertex buffer layout.</returns>
+        static inline auto create(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding = 0) {
+            return SharedObject::create<DirectX12VertexBufferLayout>(vertexSize, attributes, binding);
+        }
+
+        /// <summary>
+        /// Creates a copy of a vertex buffer layout.
+        /// </summary>
+        /// <param name="other">The vertex buffer layout to copy.</param>
+        /// <returns>A shared pointer to the newly created vertex buffer layout.</returns>
+        static inline auto create(const DirectX12VertexBufferLayout& other) {
+            return SharedObject::create<DirectX12VertexBufferLayout>(other);
+        }
 
         // IVertexBufferLayout interface.
     public:
@@ -69,28 +111,50 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12VertexBufferLayout" />
     class LITEFX_DIRECTX12_API DirectX12IndexBufferLayout final : public IIndexBufferLayout {
         LITEFX_IMPLEMENTATION(DirectX12IndexBufferLayoutImpl);
+        friend struct SharedObject::Allocator<DirectX12IndexBufferLayout>;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a new index buffer layout
         /// </summary>
         /// <param name="type">The type of the indices within the index buffer.</param>
         explicit DirectX12IndexBufferLayout(IndexType type);
 
+    private:
         /// <inheritdoc />
-        DirectX12IndexBufferLayout(DirectX12IndexBufferLayout&&) noexcept;
+        DirectX12IndexBufferLayout(DirectX12IndexBufferLayout&&) noexcept = delete;
 
         /// <inheritdoc />
         DirectX12IndexBufferLayout(const DirectX12IndexBufferLayout&);
 
         /// <inheritdoc />
-        DirectX12IndexBufferLayout& operator=(DirectX12IndexBufferLayout&&) noexcept;
+        DirectX12IndexBufferLayout& operator=(DirectX12IndexBufferLayout&&) noexcept = delete;
 
         /// <inheritdoc />
-        DirectX12IndexBufferLayout& operator=(const DirectX12IndexBufferLayout&);
+        DirectX12IndexBufferLayout& operator=(const DirectX12IndexBufferLayout&) = delete;
 
+    public:
         /// <inheritdoc />
         ~DirectX12IndexBufferLayout() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates a new index buffer layout
+        /// </summary>
+        /// <param name="type">The type of the indices within the index buffer.</param>
+        /// <returns>A shared pointer to the newly created index buffer layout instance.</returns>
+        static inline auto create(IndexType type) {
+            return SharedObject::create<DirectX12IndexBufferLayout>(type);
+        }
+
+        /// <summary>
+        /// Creates a copy of an index buffer layout.
+        /// </summary>
+        /// <param name="other">The index buffer layout to copy.</param>
+        /// <returns>A shared pointer to the newly created index buffer layout instance.</returns>
+        static inline auto create(const DirectX12IndexBufferLayout& other) {
+            return SharedObject::create<DirectX12IndexBufferLayout>(other);
+        }
 
         // IIndexBufferLayout interface.
     public:
@@ -655,13 +719,13 @@ namespace LiteFX::Rendering::Backends {
         explicit DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& bufferHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap);
 
         /// <inheritdoc />
-        DirectX12DescriptorSet(DirectX12DescriptorSet&&) noexcept;
+        DirectX12DescriptorSet(DirectX12DescriptorSet&&) noexcept = delete;
         
         /// <inheritdoc />
         DirectX12DescriptorSet(const DirectX12DescriptorSet&) = delete;
         
         /// <inheritdoc />
-        DirectX12DescriptorSet& operator=(DirectX12DescriptorSet&&) noexcept;
+        DirectX12DescriptorSet& operator=(DirectX12DescriptorSet&&) noexcept = delete;
         
         /// <inheritdoc />
         DirectX12DescriptorSet& operator=(const DirectX12DescriptorSet&) = delete;
@@ -735,7 +799,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="elementSize">The size of the descriptor.</param>
         /// <param name="elementSize">The number of descriptors in the descriptor array.</param>
         /// <param name="local">Determines if the descriptor is part of the local or global root signature for ray-tracing shaders.</param>
-        explicit DirectX12DescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1, bool local = false);
+        DirectX12DescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1, bool local = false);
 
         /// <summary>
         /// Initializes a new DirectX 12 descriptor layout for a static sampler.
@@ -743,19 +807,19 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="staticSampler">The static sampler to initialize the state with.</param>
         /// <param name="binding">The binding point for the descriptor.</param>
         /// <param name="local">Determines if the descriptor is part of the local or global root signature for ray-tracing shaders.</param>
-        explicit DirectX12DescriptorLayout(const SharedPtr<const IDirectX12Sampler>& staticSampler, UInt32 binding, bool local = false);
+        DirectX12DescriptorLayout(const IDirectX12Sampler& staticSampler, UInt32 binding, bool local = false);
         
         /// <inheritdoc />
         DirectX12DescriptorLayout(DirectX12DescriptorLayout&&) noexcept;
 
         /// <inheritdoc />
-        DirectX12DescriptorLayout(const DirectX12DescriptorLayout&) = delete;
+        DirectX12DescriptorLayout(const DirectX12DescriptorLayout&);
 
         /// <inheritdoc />
         DirectX12DescriptorLayout& operator=(DirectX12DescriptorLayout&&) noexcept;
 
         /// <inheritdoc />
-        DirectX12DescriptorLayout& operator=(const DirectX12DescriptorLayout&) = delete;
+        DirectX12DescriptorLayout& operator=(const DirectX12DescriptorLayout&);
 
         /// <inheritdoc />
         ~DirectX12DescriptorLayout() noexcept override;
@@ -803,12 +867,13 @@ namespace LiteFX::Rendering::Backends {
         LITEFX_IMPLEMENTATION(DirectX12DescriptorSetLayoutImpl);
         LITEFX_BUILDER(DirectX12DescriptorSetLayoutBuilder);
         friend class DirectX12PipelineLayout;
+        friend class SharedObject::Allocator<DirectX12DescriptorSetLayout>;
 
     public:
         using base_type = DescriptorSetLayout<DirectX12DescriptorLayout, DirectX12DescriptorSet>;
         using base_type::free;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a DirectX 12 descriptor set layout.
         /// </summary>
@@ -816,29 +881,62 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="descriptorLayouts">The descriptor layouts of the descriptors within the descriptor set.</param>
         /// <param name="space">The space or set id of the descriptor set.</param>
         /// <param name="stages">The shader stages, the descriptor sets are bound to.</param>
-        explicit DirectX12DescriptorSetLayout(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages);
+        explicit DirectX12DescriptorSetLayout(const DirectX12Device& device, const Enumerable<DirectX12DescriptorLayout>& descriptorLayouts, UInt32 space, ShaderStage stages);
 
-        /// <inheritdoc />
-        DirectX12DescriptorSetLayout(DirectX12DescriptorSetLayout&&) noexcept;
-
-        /// <inheritdoc />
-        DirectX12DescriptorSetLayout(const DirectX12DescriptorSetLayout&) = delete;
-
-        /// <inheritdoc />
-        DirectX12DescriptorSetLayout& operator=(DirectX12DescriptorSetLayout&&) noexcept;
-
-        /// <inheritdoc />
-        DirectX12DescriptorSetLayout& operator=(const DirectX12DescriptorSetLayout&) = delete;
-
-        /// <inheritdoc />
-        ~DirectX12DescriptorSetLayout() noexcept override;
-
-    private:
         /// <summary>
         /// Initializes a DirectX 12 descriptor set layout.
         /// </summary>
         /// <param name="device">The device, the descriptor set layout is created on.</param>
         explicit DirectX12DescriptorSetLayout(const DirectX12Device& device);
+
+    private:
+        /// <inheritdoc />
+        DirectX12DescriptorSetLayout(DirectX12DescriptorSetLayout&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12DescriptorSetLayout(const DirectX12DescriptorSetLayout& other);
+
+        /// <inheritdoc />
+        DirectX12DescriptorSetLayout& operator=(DirectX12DescriptorSetLayout&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12DescriptorSetLayout& operator=(const DirectX12DescriptorSetLayout&) = delete;
+
+    public:
+        /// <inheritdoc />
+        ~DirectX12DescriptorSetLayout() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates a DirectX 12 descriptor set layout.
+        /// </summary>
+        /// <param name="device">The device, the descriptor set layout is created on.</param>
+        /// <param name="descriptorLayouts">The descriptor layouts of the descriptors within the descriptor set.</param>
+        /// <param name="space">The space or set id of the descriptor set.</param>
+        /// <param name="stages">The shader stages, the descriptor sets are bound to.</param>
+        /// <returns>Returns a shared pointer to the newly created descriptor set layout.</returns>
+        static inline auto create(const DirectX12Device& device, const Enumerable<DirectX12DescriptorLayout>& descriptorLayouts, UInt32 space, ShaderStage stages) {
+            return SharedObject::create<DirectX12DescriptorSetLayout>(device, descriptorLayouts, space, stages);
+        }
+
+        /// <summary>
+        /// Creates a copy of a DirectX 12 descriptor set layout.
+        /// </summary>
+        /// <param name="other">The descriptor set layout to copy.</param>
+        /// <returns>Returns a shared pointer to the newly created descriptor set layout.</returns>
+        static inline auto create(const DirectX12DescriptorSetLayout& other) {
+            return SharedObject::create<DirectX12DescriptorSetLayout>(other);
+        }
+
+    private:
+        /// <summary>
+        /// Creates a DirectX 12 descriptor set layout.
+        /// </summary>
+        /// <param name="device">The device, the descriptor set layout is created on.</param>
+        /// <returns>Returns a shared pointer to the newly created descriptor set layout.</returns>
+        static inline auto create(const DirectX12Device& device) {
+            return SharedObject::create<DirectX12DescriptorSetLayout>(device);
+        }
 
     public:
         /// <summary>
@@ -1080,7 +1178,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="device">The parent device, the layout is created from.</param>
         /// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
         /// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
-        explicit DirectX12PipelineLayout(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout);
+        explicit DirectX12PipelineLayout(const DirectX12Device& device, Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout);
 
         /// <summary>
         /// Initializes a new DirectX 12 render pipeline layout.
@@ -1113,7 +1211,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
         /// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
         /// <returns>A shared pointer to the newly created pipeline layout instance.</returns>
-        static inline auto create(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) {
+        static inline auto create(const DirectX12Device& device, Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) {
             return SharedObject::create<DirectX12PipelineLayout>(device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
         }
 
@@ -1162,7 +1260,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
 		/// <param name="indexBufferLayout">The index buffer layout.</param>
 		/// <param name="primitiveTopology">The primitive topology.</param>
-		explicit DirectX12InputAssembler(Enumerable<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList);
+		explicit DirectX12InputAssembler(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList);
 
         /// <summary>
         /// Initializes a new DirectX 12 input assembler state.
@@ -1174,7 +1272,7 @@ namespace LiteFX::Rendering::Backends {
         DirectX12InputAssembler(DirectX12InputAssembler&&) noexcept;
 
         /// <inheritdoc />
-        DirectX12InputAssembler(const DirectX12InputAssembler&) = default;
+        DirectX12InputAssembler(const DirectX12InputAssembler&);
 
         /// <inheritdoc />
         DirectX12InputAssembler& operator=(DirectX12InputAssembler&&) noexcept;
@@ -1194,7 +1292,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="indexBufferLayout">The index buffer layout.</param>
         /// <param name="primitiveTopology">The primitive topology.</param>
         /// <returns>A shared pointer to the newly created input assembler instance.</returns>
-        static inline auto create(Enumerable<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList) {
+        static inline auto create(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList) {
             return SharedObject::create<DirectX12InputAssembler>(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
         }
 
