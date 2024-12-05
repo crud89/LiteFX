@@ -234,7 +234,7 @@ DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, 
     this->handle() = m_impl->initialize(*this);
 }
 
-DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device) noexcept :
+DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device) :
     ComResource<ID3D12RootSignature>(nullptr), m_impl(device)
 {
 }
@@ -291,7 +291,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12PipelineLayoutBuilder::DirectX12PipelineLayoutBuilder(const DirectX12Device& parent) :
-    PipelineLayoutBuilder(SharedPtr<DirectX12PipelineLayout>(new DirectX12PipelineLayout(parent))), m_impl(parent)
+    PipelineLayoutBuilder(std::allocate_shared<DirectX12PipelineLayout>(SharedAllocator<DirectX12PipelineLayout>{}, parent)), m_impl(parent)
 {
 }
 

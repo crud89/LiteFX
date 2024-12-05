@@ -16,7 +16,7 @@ namespace LiteFX::Rendering::Backends {
 	class VulkanImage : public virtual IVulkanImage, public Resource<VkImage>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanImageImpl);
 		friend class VulkanSwapChain::VulkanSwapChainImpl;
-		friend struct SharedObject::Allocator<VulkanImage>;
+		friend struct SharedAllocator<VulkanImage>;
 
 	private:
 		explicit VulkanImage(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr, const String& name = "");
@@ -97,7 +97,7 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class VulkanSampler : public virtual IVulkanSampler, public Resource<VkSampler>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanSamplerImpl);
-		friend struct SharedObject::Allocator<VulkanSampler>;
+		friend struct SharedAllocator<VulkanSampler>;
 
 	private:
 		/// <summary>

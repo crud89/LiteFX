@@ -32,7 +32,7 @@ void VulkanRasterizer::updateLineWidth(Float lineWidth) noexcept
 // ------------------------------------------------------------------------------------------------
 
 VulkanRasterizerBuilder::VulkanRasterizerBuilder() :
-    RasterizerBuilder(SharedPtr<VulkanRasterizer>(new VulkanRasterizer()))
+    RasterizerBuilder(std::allocate_shared<VulkanRasterizer>(SharedAllocator<VulkanRasterizer>{}))
 {
 }
 

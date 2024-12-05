@@ -95,7 +95,7 @@ private:
 // ------------------------------------------------------------------------------------------------
 
 VulkanInputAssemblerBuilder::VulkanInputAssemblerBuilder() :
-    InputAssemblerBuilder(SharedPtr<VulkanInputAssembler>(new VulkanInputAssembler())), m_impl()
+    InputAssemblerBuilder(std::allocate_shared<VulkanInputAssembler>(SharedAllocator<VulkanInputAssembler>{})), m_impl()
 {
 }
 

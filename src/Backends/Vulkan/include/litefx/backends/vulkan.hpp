@@ -578,7 +578,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanShaderProgram final : public ShaderProgram<VulkanShaderModule> {
         LITEFX_IMPLEMENTATION(VulkanShaderProgramImpl);
         LITEFX_BUILDER(VulkanShaderProgramBuilder);
-        friend struct SharedObject::Allocator<VulkanShaderProgram>;
+        friend struct SharedAllocator<VulkanShaderProgram>;
 
     private:
         /// <summary>
@@ -1016,6 +1016,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanPipelineLayout final : public PipelineLayout<VulkanDescriptorSetLayout, VulkanPushConstantsLayout>, public Resource<VkPipelineLayout> {
         LITEFX_IMPLEMENTATION(VulkanPipelineLayoutImpl);
         LITEFX_BUILDER(VulkanPipelineLayoutBuilder);
+        friend struct SharedAllocator<VulkanPipelineLayout>;
 
     public:
         /// <summary>
@@ -1074,6 +1075,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanInputAssembler final : public InputAssembler<VulkanVertexBufferLayout, VulkanIndexBufferLayout> {
         LITEFX_IMPLEMENTATION(VulkanInputAssemblerImpl);
         LITEFX_BUILDER(VulkanInputAssemblerBuilder);
+        friend struct SharedAllocator<VulkanInputAssembler>;
 
 	public:
 		/// <summary>
@@ -1125,6 +1127,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="VulkanRasterizerBuilder" />
     class LITEFX_VULKAN_API VulkanRasterizer final : public Rasterizer {
         LITEFX_BUILDER(VulkanRasterizerBuilder);
+        friend struct SharedAllocator<VulkanRasterizer>;
 
     public:
         /// <summary>
@@ -1212,7 +1215,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="VulkanQueue" />
     class LITEFX_VULKAN_API VulkanCommandBuffer final : public CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>, public Resource<VkCommandBuffer> {
         LITEFX_IMPLEMENTATION(VulkanCommandBufferImpl);
-        friend struct SharedObject::Allocator<VulkanCommandBuffer>;
+        friend struct SharedAllocator<VulkanCommandBuffer>;
 
     public:
         using base_type = CommandBuffer<VulkanCommandBuffer, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, VulkanBarrier, VulkanPipelineState, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>;
@@ -1459,7 +1462,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="VulkanCommandBuffer" />
     class LITEFX_VULKAN_API VulkanQueue final : public CommandQueue<VulkanCommandBuffer>, public Resource<VkQueue> {
         LITEFX_IMPLEMENTATION(VulkanQueueImpl);
-        friend struct SharedObject::Allocator<VulkanQueue>;
+        friend struct SharedAllocator<VulkanQueue>;
 
     public:
         using base_type = CommandQueue<VulkanCommandBuffer>;
@@ -1806,7 +1809,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="VulkanRenderPass" />
     class LITEFX_VULKAN_API VulkanFrameBuffer final : public FrameBuffer<IVulkanImage> {
         LITEFX_IMPLEMENTATION(VulkanFrameBufferImpl);
-        friend struct SharedObject::Allocator<VulkanFrameBuffer>;
+        friend struct SharedAllocator<VulkanFrameBuffer>;
 
     public:
         using FrameBuffer::addImage;
@@ -1945,7 +1948,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanRenderPass final : public RenderPass<VulkanQueue, VulkanFrameBuffer> {
         LITEFX_IMPLEMENTATION(VulkanRenderPassImpl);
         LITEFX_BUILDER(VulkanRenderPassBuilder);
-        friend struct SharedObject::Allocator<VulkanRenderPass>;
+        friend struct SharedAllocator<VulkanRenderPass>;
 
     public:
         using base_type = RenderPass<VulkanQueue, VulkanFrameBuffer>;
@@ -2245,7 +2248,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanGraphicsFactory final : public GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure> {
         LITEFX_IMPLEMENTATION(VulkanGraphicsFactoryImpl);
         friend class VulkanDevice;
-        friend struct SharedObject::Allocator<VulkanGraphicsFactory>;
+        friend struct SharedAllocator<VulkanGraphicsFactory>;
 
     public:
         using base_type = GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>;
@@ -2338,7 +2341,7 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     class LITEFX_VULKAN_API VulkanDevice final : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanRenderPipeline, VulkanComputePipeline, VulkanRayTracingPipeline, VulkanBarrier>, public Resource<VkDevice> {
         LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
-        friend struct SharedObject::Allocator<VulkanDevice>;
+        friend struct SharedAllocator<VulkanDevice>;
 
     private:
         /// <summary>

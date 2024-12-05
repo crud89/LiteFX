@@ -157,7 +157,7 @@ const VulkanPushConstantsLayout* VulkanPipelineLayout::pushConstants() const noe
 // ------------------------------------------------------------------------------------------------
 
 VulkanPipelineLayoutBuilder::VulkanPipelineLayoutBuilder(const VulkanDevice& parent) :
-    PipelineLayoutBuilder(SharedPtr<VulkanPipelineLayout>(new VulkanPipelineLayout(parent)))
+    PipelineLayoutBuilder(std::allocate_shared<VulkanPipelineLayout>(SharedAllocator<VulkanPipelineLayout>{}, parent))
 {
 }
 

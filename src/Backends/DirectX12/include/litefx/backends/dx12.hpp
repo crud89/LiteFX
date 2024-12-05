@@ -552,6 +552,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12ShaderProgram final : public ShaderProgram<DirectX12ShaderModule> {
         LITEFX_IMPLEMENTATION(DirectX12ShaderProgramImpl);
         LITEFX_BUILDER(DirectX12ShaderProgramBuilder);
+        friend struct SharedAllocator<DirectX12ShaderProgram>;
 
     private:
         /// <summary>
@@ -575,7 +576,9 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="device">The device this shader program should be compiled for and executed on.</param>
         /// <param name="modules">The modules of the shader program.</param>
         /// <returns>A pointer to the shader program.</returns>
-        static SharedPtr<DirectX12ShaderProgram> create(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules);
+        static inline auto create(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) -> SharedPtr<DirectX12ShaderProgram> {
+            return SharedObject::create<DirectX12ShaderProgram>(device, std::move(modules));
+        }
 
     public:
         /// <inheritdoc />
@@ -1058,6 +1061,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12PipelineLayout final : public PipelineLayout<DirectX12DescriptorSetLayout, DirectX12PushConstantsLayout>, public ComResource<ID3D12RootSignature> {
         LITEFX_IMPLEMENTATION(DirectX12PipelineLayoutImpl);
         LITEFX_BUILDER(DirectX12PipelineLayoutBuilder);
+        friend struct SharedAllocator<DirectX12PipelineLayout>;
 
     public:
         /// <summary>
@@ -1088,7 +1092,7 @@ namespace LiteFX::Rendering::Backends {
         /// Initializes a new DirectX 12 render pipeline layout.
         /// </summary>
         /// <param name="device">The parent device, the layout is created from.</param>
-        explicit DirectX12PipelineLayout(const DirectX12Device& device) noexcept;
+        explicit DirectX12PipelineLayout(const DirectX12Device& device);
 
     public:
         /// <summary>
@@ -1116,6 +1120,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12InputAssembler final : public InputAssembler<DirectX12VertexBufferLayout, DirectX12IndexBufferLayout> {
         LITEFX_IMPLEMENTATION(DirectX12InputAssemblerImpl);
         LITEFX_BUILDER(DirectX12InputAssemblerBuilder);
+        friend struct SharedAllocator<DirectX12InputAssembler>;
 
 	public:
 		/// <summary>
@@ -1167,6 +1172,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12RasterizerBuilder" />
     class LITEFX_DIRECTX12_API DirectX12Rasterizer final : public Rasterizer {
         LITEFX_BUILDER(DirectX12RasterizerBuilder);
+        friend struct SharedAllocator<DirectX12Rasterizer>;
 
     public:
         /// <summary>
@@ -1232,7 +1238,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12Queue" />
     class LITEFX_DIRECTX12_API DirectX12CommandBuffer final : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>, public ComResource<ID3D12GraphicsCommandList7> {
         LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
-        friend struct SharedObject::Allocator<DirectX12CommandBuffer>;
+        friend struct SharedAllocator<DirectX12CommandBuffer>;
 
     public:
         using base_type = CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>;
@@ -1473,7 +1479,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12CommandBuffer" />
     class LITEFX_DIRECTX12_API DirectX12Queue final : public CommandQueue<DirectX12CommandBuffer>, public ComResource<ID3D12CommandQueue> {
         LITEFX_IMPLEMENTATION(DirectX12QueueImpl);
-        friend struct SharedObject::Allocator<DirectX12Queue>;
+        friend struct SharedAllocator<DirectX12Queue>;
 
     public:
         using base_type = CommandQueue<DirectX12CommandBuffer>;
@@ -1801,7 +1807,7 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12RenderPass" />
     class LITEFX_DIRECTX12_API DirectX12FrameBuffer final : public FrameBuffer<IDirectX12Image> {
         LITEFX_IMPLEMENTATION(DirectX12FrameBufferImpl);
-        friend struct SharedObject::Allocator<DirectX12FrameBuffer>;
+        friend struct SharedAllocator<DirectX12FrameBuffer>;
 
     public:
         using FrameBuffer::addImage;
@@ -1940,7 +1946,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12RenderPass final : public RenderPass<DirectX12Queue, DirectX12FrameBuffer> {
         LITEFX_IMPLEMENTATION(DirectX12RenderPassImpl);
         LITEFX_BUILDER(DirectX12RenderPassBuilder);
-        friend struct SharedObject::Allocator<DirectX12RenderPass>;
+        friend struct SharedAllocator<DirectX12RenderPass>;
 
     public:
         using base_type = RenderPass<DirectX12Queue, DirectX12FrameBuffer>;
@@ -2258,7 +2264,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12GraphicsFactory final : public GraphicsFactory<DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure> {
         LITEFX_IMPLEMENTATION(DirectX12GraphicsFactoryImpl);
         friend class DirectX12Device;
-        friend struct SharedObject::Allocator<DirectX12GraphicsFactory>;
+        friend struct SharedAllocator<DirectX12GraphicsFactory>;
 
     public:
         using base_type = GraphicsFactory<DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>;
@@ -2351,7 +2357,7 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     class LITEFX_DIRECTX12_API DirectX12Device final : public GraphicsDevice<DirectX12GraphicsFactory, DirectX12Surface, DirectX12GraphicsAdapter, DirectX12SwapChain, DirectX12Queue, DirectX12RenderPass, DirectX12RenderPipeline, DirectX12ComputePipeline, DirectX12RayTracingPipeline, DirectX12Barrier>, public ComResource<ID3D12Device10> {
         LITEFX_IMPLEMENTATION(DirectX12DeviceImpl);
-        friend struct SharedObject::Allocator<DirectX12Device>;
+        friend struct SharedAllocator<DirectX12Device>;
 
     private:
         /// <summary>

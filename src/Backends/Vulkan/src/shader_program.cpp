@@ -399,7 +399,7 @@ SharedPtr<VulkanPipelineLayout> VulkanShaderProgram::reflectPipelineLayout() con
 // ------------------------------------------------------------------------------------------------
 
 VulkanShaderProgramBuilder::VulkanShaderProgramBuilder(const VulkanDevice& device) :
-    ShaderProgramBuilder(SharedPtr<VulkanShaderProgram>(new VulkanShaderProgram(device)))
+    ShaderProgramBuilder(std::allocate_shared<VulkanShaderProgram>(SharedAllocator<VulkanShaderProgram>{}, device))
 {
 }
 

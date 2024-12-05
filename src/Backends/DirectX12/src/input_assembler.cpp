@@ -98,7 +98,7 @@ private:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12InputAssemblerBuilder::DirectX12InputAssemblerBuilder() :
-    InputAssemblerBuilder(SharedPtr<DirectX12InputAssembler>(new DirectX12InputAssembler())), m_impl()
+    InputAssemblerBuilder(std::allocate_shared<DirectX12InputAssembler>(SharedAllocator<DirectX12InputAssembler>{})), m_impl()
 {
 }
 

@@ -535,11 +535,6 @@ DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device) no
 
 DirectX12ShaderProgram::~DirectX12ShaderProgram() noexcept = default;
 
-SharedPtr<DirectX12ShaderProgram> DirectX12ShaderProgram::create(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules)
-{
-    return SharedPtr<DirectX12ShaderProgram>(new DirectX12ShaderProgram(device, std::move(modules)));
-}
-
 Enumerable<const DirectX12ShaderModule*> DirectX12ShaderProgram::modules() const
 {
     return m_impl->m_modules | std::views::transform([](const UniquePtr<DirectX12ShaderModule>& shader) { return shader.get(); });
@@ -574,7 +569,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilder(const DirectX12Device& device) :
-    ShaderProgramBuilder(SharedPtr<DirectX12ShaderProgram>(new DirectX12ShaderProgram(device))), m_impl(device)
+    ShaderProgramBuilder(std::allocate_shared<DirectX12ShaderProgram>(SharedAllocator<DirectX12ShaderProgram>{}, device)), m_impl(device)
 {
 }
 

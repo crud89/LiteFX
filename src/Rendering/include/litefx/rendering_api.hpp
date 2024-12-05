@@ -3693,6 +3693,7 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API TimingEvent final : public SharedObject {
         LITEFX_IMPLEMENTATION(TimingEventImpl);
         friend class ISwapChain;
+        friend struct SharedAllocator<TimingEvent>;
 
     private:
         /// <summary>
@@ -8201,7 +8202,7 @@ namespace LiteFX::Rendering {
         /// <param name="name">The name of the timing event.</param>
         /// <returns>A pointer with shared ownership to the newly created timing event instance.</returns>
         [[nodiscard]] inline std::shared_ptr<TimingEvent> registerTimingEvent(StringView name = "") {
-            auto timingEvent = SharedPtr<TimingEvent>(new TimingEvent(*this, name));
+            auto timingEvent = std::allocate_shared<TimingEvent>(SharedAllocator<TimingEvent>{}, *this, name);
             this->addTimingEvent(timingEvent);
             return timingEvent;
         }
