@@ -118,7 +118,7 @@ private:
     UniquePtr<VulkanSwapChain> m_swapChain;
     Array<String> m_extensions;
 
-    const VulkanGraphicsAdapter& m_adapter;
+    SharedPtr<const VulkanGraphicsAdapter> m_adapter;
     UniquePtr<VulkanSurface> m_surface;
     SharedPtr<VulkanGraphicsFactory> m_factory;
 
@@ -128,7 +128,7 @@ private:
 
 public:
     VulkanDeviceImpl(const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const GraphicsDeviceFeatures& features, Span<String> extensions) :
-        m_adapter(adapter), m_surface(std::move(surface))
+        m_adapter(adapter.shared_from_this()), m_surface(std::move(surface))
     {
         if (m_surface == nullptr)
             throw ArgumentNotInitializedException("surface", "The surface must be initialized.");
@@ -191,7 +191,7 @@ private:
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 #ifndef NDEBUG
-        auto availableExtensions = m_adapter.getAvailableDeviceExtensions();
+        auto availableExtensions = m_adapter->getAvailableDeviceExtensions();
 
         // Required to set debug names.
         if (auto match = std::ranges::find_if(availableExtensions, [](const String& extension) { return extension == VK_EXT_DEBUG_MARKER_EXTENSION_NAME; }); match != availableExtensions.end())
@@ -204,10 +204,10 @@ public:
     {
         // Find an available command queues.
         uint32_t queueFamilies = 0;
-        ::vkGetPhysicalDeviceQueueFamilyProperties(m_adapter.handle(), &queueFamilies, nullptr);
+        ::vkGetPhysicalDeviceQueueFamilyProperties(m_adapter->handle(), &queueFamilies, nullptr);
 
         Array<VkQueueFamilyProperties> familyProperties(queueFamilies);
-        ::vkGetPhysicalDeviceQueueFamilyProperties(m_adapter.handle(), &queueFamilies, familyProperties.data());
+        ::vkGetPhysicalDeviceQueueFamilyProperties(m_adapter->handle(), &queueFamilies, familyProperties.data());
 
         auto families = familyProperties |
             std::views::transform([i = 0](const VkQueueFamilyProperties& familyProperty) mutable -> Tuple<int, UInt32, QueueType> {
@@ -241,7 +241,7 @@ public:
 
     VkDevice initialize(const GraphicsDeviceFeatures& features)
     {
-        if (!m_adapter.validateDeviceExtensions(m_extensions))
+        if (!m_adapter->validateDeviceExtensions(m_extensions))
             throw InvalidArgumentException("extensions", "Some required device extensions are not supported by the system.");
 
         auto const requiredExtensions = m_extensions | std::views::transform([](const auto& extension) { return extension.c_str(); }) | std::ranges::to<Array<const char*>>();
@@ -378,7 +378,7 @@ public:
 
         // Create the device.
         VkDevice device{};
-        raiseIfFailed(::vkCreateDevice(m_adapter.handle(), &createInfo, nullptr, &device), "Unable to create Vulkan device.");
+        raiseIfFailed(::vkCreateDevice(m_adapter->handle(), &createInfo, nullptr, &device), "Unable to create Vulkan device.");
 
         // Load extension methods.
 #ifndef NDEBUG
@@ -474,11 +474,6 @@ public:
         }
     }
 
-    void createSwapChain(const VulkanDevice& device, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
-    {
-        m_swapChain = makeUnique<VulkanSwapChain>(device, format, renderArea, backBuffers, enableVsync);
-    }
-
 public:
     SharedPtr<VulkanQueue> createQueue(const VulkanDevice& device, QueueType type, QueuePriority priority, const VkSurfaceKHR& surface = VK_NULL_HANDLE)
     {
@@ -491,7 +486,7 @@ public:
             {
                 // Check if presenting to the surface is supported.
                 VkBool32 canPresent = VK_FALSE;
-                ::vkGetPhysicalDeviceSurfaceSupportKHR(m_adapter.handle(), family.id(), surface, &canPresent);
+                ::vkGetPhysicalDeviceSurfaceSupportKHR(m_adapter->handle(), family.id(), surface, &canPresent);
 
                 result &= canPresent;
             }
@@ -532,7 +527,7 @@ VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphic
     this->handle() = m_impl->initialize(features);
     m_impl->initializeDefaultQueues(*this);
     m_impl->m_factory = VulkanGraphicsFactory::create(*this);
-    m_impl->createSwapChain(*this, format, renderArea, backBuffers, enableVsync);
+    m_impl->m_swapChain = UniquePtr<VulkanSwapChain>(new VulkanSwapChain(*this, format, renderArea, backBuffers, enableVsync));
 }
 
 VulkanDevice::~VulkanDevice() noexcept
@@ -654,7 +649,7 @@ const VulkanSurface& VulkanDevice::surface() const noexcept
 
 const VulkanGraphicsAdapter& VulkanDevice::adapter() const noexcept
 {
-    return m_impl->m_adapter;
+    return *m_impl->m_adapter;
 }
 
 const VulkanGraphicsFactory& VulkanDevice::factory() const noexcept
@@ -692,7 +687,7 @@ SharedPtr<VulkanFrameBuffer> VulkanDevice::makeFrameBuffer(StringView name, cons
 
 MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(Format format) const noexcept
 {
-    auto limits = m_impl->m_adapter.limits();
+    auto limits = m_impl->m_adapter->limits();
     VkSampleCountFlags sampleCounts = limits.framebufferColorSampleCounts;
 
     if (::hasDepth(format) && ::hasStencil(format))

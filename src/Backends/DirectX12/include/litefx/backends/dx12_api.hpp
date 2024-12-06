@@ -223,28 +223,40 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     class LITEFX_DIRECTX12_API DirectX12GraphicsAdapter final : public IGraphicsAdapter, public ComResource<IDXGIAdapter4> {
         LITEFX_IMPLEMENTATION(DirectX12GraphicsAdapterImpl);
+        friend struct SharedObject::Allocator<DirectX12GraphicsAdapter>;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a new DirectX12 graphics adapter.
         /// </summary>
         /// <param name="adapter">The DXGI adapter interface pointer.</param>
-        explicit DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter) noexcept;
+        explicit DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter);
 
         /// <inheritdoc />
-        DirectX12GraphicsAdapter(DirectX12GraphicsAdapter&&) noexcept;
+        DirectX12GraphicsAdapter(DirectX12GraphicsAdapter&&) noexcept = delete;
 
         /// <inheritdoc />
         DirectX12GraphicsAdapter(const DirectX12GraphicsAdapter&) = delete;
 
         /// <inheritdoc />
-        DirectX12GraphicsAdapter& operator=(DirectX12GraphicsAdapter&&) noexcept;
+        DirectX12GraphicsAdapter& operator=(DirectX12GraphicsAdapter&&) noexcept = delete;
 
         /// <inheritdoc />
         DirectX12GraphicsAdapter& operator=(const DirectX12GraphicsAdapter&) = delete;
 
+    public:
         /// <inheritdoc />
         ~DirectX12GraphicsAdapter() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates a new DirectX12 graphics adapter.
+        /// </summary>
+        /// <param name="adapter">The DXGI adapter interface pointer.</param>
+        /// <returns>A shared pointer to the graphics adapter instance.</returns>
+        static inline auto create(ComPtr<IDXGIAdapter4> adapter) {
+            return SharedObject::create<DirectX12GraphicsAdapter>(std::move(adapter));
+        }
 
     public:
         /// <inheritdoc />

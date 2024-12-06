@@ -47,7 +47,7 @@ private:
 
 public:
 	[[nodiscard]]
-	ComPtr<IDXGISwapChain4> initialize(const DirectX12SwapChain& parent, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
+	ComPtr<IDXGISwapChain4> initialize(const DirectX12SwapChain& parent, const DirectX12Backend& backend, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
 	{
 		// Check if the device is still valid.
 		auto device = m_device.lock();
@@ -61,7 +61,6 @@ public:
 		auto adapter = device->adapter().handle();
 		auto surface = device->surface().handle();
 		auto graphicsQueue = device->defaultQueue(QueueType::Graphics).handle();
-		const auto& backend = device->backend();
 
 		// Create the swap chain.
 		auto size = Size2d{ std::max<UInt32>(1, static_cast<UInt32>(renderArea.width())), std::max<UInt32>(1, static_cast<UInt32>(renderArea.height())) };
@@ -221,14 +220,12 @@ private:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12SwapChain::DirectX12SwapChain(const DirectX12Device& device, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync) :
+DirectX12SwapChain::DirectX12SwapChain(const DirectX12Device& device, const DirectX12Backend& backend, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync) :
 	ComResource<IDXGISwapChain4>(nullptr), m_impl(device)
 {
-	this->handle() = m_impl->initialize(*this, format, renderArea, backBuffers, enableVsync);
+	this->handle() = m_impl->initialize(*this, backend, format, renderArea, backBuffers, enableVsync);
 }
 
-DirectX12SwapChain::DirectX12SwapChain(DirectX12SwapChain&&) noexcept = default;
-DirectX12SwapChain& DirectX12SwapChain::operator=(DirectX12SwapChain&&) noexcept = default;
 DirectX12SwapChain::~DirectX12SwapChain() noexcept = default;
 
 bool DirectX12SwapChain::supportsVariableRefreshRate() const noexcept
@@ -274,6 +271,16 @@ UInt32 DirectX12SwapChain::resolveQueryId(SharedPtr<const TimingEvent> timingEve
 		return static_cast<UInt32>(std::distance(m_impl->m_timingEvents.begin(), match));
 
 	throw InvalidArgumentException("timingEvent", "The timing event is not registered on the swap chain.");
+}
+
+const IGraphicsDevice& DirectX12SwapChain::device() const
+{
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr)
+		throw RuntimeException("Unable to obtain device instance. The device has already been released.");
+
+	return *device;
 }
 
 Format DirectX12SwapChain::surfaceFormat() const noexcept

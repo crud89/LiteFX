@@ -867,7 +867,7 @@ namespace LiteFX::Rendering::Backends {
         LITEFX_IMPLEMENTATION(DirectX12DescriptorSetLayoutImpl);
         LITEFX_BUILDER(DirectX12DescriptorSetLayoutBuilder);
         friend class DirectX12PipelineLayout;
-        friend class SharedObject::Allocator<DirectX12DescriptorSetLayout>;
+        friend struct SharedObject::Allocator<DirectX12DescriptorSetLayout>;
 
     public:
         using base_type = DescriptorSetLayout<DirectX12DescriptorLayout, DirectX12DescriptorSet>;
@@ -2355,29 +2355,32 @@ namespace LiteFX::Rendering::Backends {
         LITEFX_IMPLEMENTATION(DirectX12SwapChainImpl);
         friend class DirectX12RenderPass;
         friend class DirectX12Image;
+        friend class DirectX12Device;
 
     public:
         using base_type = SwapChain<IDirectX12Image>;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a DirectX 12 swap chain.
         /// </summary>
         /// <param name="device">The device that owns the swap chain.</param>
+        /// <param name="backend">The backend, the swap chain is initialized on.</param>
         /// <param name="format">The initial surface format.</param>
         /// <param name="renderArea">The initial size of the render area.</param>
         /// <param name="enableVsync">`true` if vertical synchronization should be used, otherwise `false`.</param>
         /// <param name="buffers">The initial number of buffers.</param>
-        explicit DirectX12SwapChain(const DirectX12Device& device, Format surfaceFormat = Format::B8G8R8A8_SRGB, const Size2d& renderArea = { 800, 600 }, UInt32 buffers = 3, bool enableVsync = false); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        explicit DirectX12SwapChain(const DirectX12Device& device, const DirectX12Backend& backend, Format surfaceFormat = Format::B8G8R8A8_SRGB, const Size2d& renderArea = { 800, 600 }, UInt32 buffers = 3, bool enableVsync = false); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
+    public:
         /// <inheritdoc />
-        DirectX12SwapChain(DirectX12SwapChain&&) noexcept;
+        DirectX12SwapChain(DirectX12SwapChain&&) noexcept = delete;
 
         /// <inheritdoc />
         DirectX12SwapChain(const DirectX12SwapChain&) = delete;
 
         /// <inheritdoc />
-        DirectX12SwapChain& operator=(DirectX12SwapChain&&) noexcept;
+        DirectX12SwapChain& operator=(DirectX12SwapChain&&) noexcept = delete;
 
         /// <inheritdoc />
         DirectX12SwapChain& operator=(const DirectX12SwapChain&) = delete;
@@ -2412,6 +2415,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt32 resolveQueryId(SharedPtr<const TimingEvent> timingEvent) const override;
+
+        /// <inheritdoc />
+        const IGraphicsDevice& device() const override;
 
         /// <inheritdoc />
         Format surfaceFormat() const noexcept override;
@@ -2636,26 +2642,20 @@ namespace LiteFX::Rendering::Backends {
         // DirectX 12 Device interface.
     public:
         /// <summary>
-        /// Returns the backend from which the device got created.
-        /// </summary>
-        /// <returns>The backend from which the device got created.</returns>
-        virtual const DirectX12Backend& backend() const noexcept;
-
-        /// <summary>
         /// Returns the global descriptor heap.
         /// </summary>
         /// <remarks>
         /// The DirectX 12 device uses a global heap of descriptors and samplers in a ring-buffer fashion. The heap itself is managed by the device.
         /// </remarks>
         /// <returns>A pointer to the global descriptor heap.</returns>
-        virtual const ID3D12DescriptorHeap* globalBufferHeap() const noexcept;
+        const ID3D12DescriptorHeap* globalBufferHeap() const noexcept;
 
         /// <summary>
         /// Returns the global sampler heap.
         /// </summary>
         /// <returns>A pointer to the global sampler heap.</returns>
         /// <seealso cref="globalBufferHeap" />
-        virtual const ID3D12DescriptorHeap* globalSamplerHeap() const noexcept;
+        const ID3D12DescriptorHeap* globalSamplerHeap() const noexcept;
 
         /// <summary>
         /// Allocates a range of descriptors in the global descriptor heaps for the provided <paramref name="descriptorSet" />.
@@ -2663,7 +2663,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="descriptorSet">The descriptor set containing the descriptors to update.</param>
         /// <param name="bufferOffset">The offset of the descriptor range in the buffer heap.</param>
         /// <param name="samplerOffset">The offset of the descriptor range in the sampler heap.</param>
-        virtual void allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32& bufferOffset, UInt32& samplerOffset) const;
+        void allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32& bufferOffset, UInt32& samplerOffset) const;
 
         /// <summary>
         /// Releases a range of descriptors from the global descriptor heaps.
@@ -2674,7 +2674,7 @@ namespace LiteFX::Rendering::Backends {
         /// sets with unbounded arrays instead. Also avoid relying on creating and releasing pipeline layouts during runtime. Instead, it may be more efficient
         /// to write shaders that support multiple pipeline variations, that can be kept alive for the lifetime of the whole application.
         /// </remarks>
-        virtual void releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const;
+        void releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const;
 
         /// <summary>
         /// Updates a range of descriptors in the global buffer descriptor heap with the descriptors from <paramref name="descriptorSet" />.
@@ -2682,7 +2682,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="descriptorSet">The descriptor set to copy the descriptors from.</param>
         /// <param name="firstDescriptor">The index of the first descriptor to copy.</param>
         /// <param name="descriptors">The number of descriptors to copy.</param>
-        virtual void updateBufferDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 firstDescriptor, UInt32 descriptors) const noexcept;
+        void updateBufferDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 firstDescriptor, UInt32 descriptors) const noexcept;
 
         /// <summary>
         /// Updates a sampler descriptors in the global buffer descriptor heap with a descriptor from <paramref name="descriptorSet" />.
@@ -2690,7 +2690,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="descriptorSet">The descriptor set to copy the descriptors from.</param>
         /// <param name="firstDescriptor">The index of the first descriptor to copy.</param>
         /// <param name="descriptors">The number of descriptors to copy.</param>
-        virtual void updateSamplerDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 firstDescriptor, UInt32 descriptors) const noexcept;
+        void updateSamplerDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 firstDescriptor, UInt32 descriptors) const noexcept;
 
         /// <summary>
         /// Binds the descriptors of the descriptor set to the global descriptor heaps.
@@ -2702,13 +2702,13 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="commandBuffer">The command buffer to bind the descriptor set on.</param>
         /// <param name="descriptorSet">The descriptor set to bind.</param>
         /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
-        virtual void bindDescriptorSet(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept;
+        void bindDescriptorSet(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept;
 
         /// <summary>
         /// Binds the global descriptor heap.
         /// </summary>
         /// <param name="commandBuffer">The command buffer to issue the bind command on.</param>
-        virtual void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept;
+        void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept;
 
         /// <summary>
         /// Returns the compute pipeline that can be invoked to blit an image resource.
@@ -2718,7 +2718,7 @@ namespace LiteFX::Rendering::Backends {
         /// </remarks>
         /// <returns>The compute pipeline that can be invoked to blit an image resource.</returns>
         /// <seealso cref="DirectX12Texture::generateMipMaps" />
-        virtual DirectX12ComputePipeline& blitPipeline() const noexcept;
+        DirectX12ComputePipeline& blitPipeline() const noexcept;
 
         /// <summary>
         /// Returns the command signatures for indirect dispatch and draw calls.
@@ -2727,7 +2727,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="dispatchMeshSignature">The command signature used to execute indirect mesh shader dispatches.</param>
         /// <param name="drawSignature">The command signature used to execute indirect non-indexed draw calls.</param>
         /// <param name="drawIndexedSignature">The command signature used to execute indirect indexed draw calls.</param>
-        virtual void indirectDrawSignatures(ComPtr<ID3D12CommandSignature>& dispatchSignature, ComPtr<ID3D12CommandSignature>& dispatchMeshSignature, ComPtr<ID3D12CommandSignature>& drawSignature, ComPtr<ID3D12CommandSignature>& drawIndexedSignature) const noexcept;
+        void indirectDrawSignatures(ComPtr<ID3D12CommandSignature>& dispatchSignature, ComPtr<ID3D12CommandSignature>& dispatchMeshSignature, ComPtr<ID3D12CommandSignature>& drawSignature, ComPtr<ID3D12CommandSignature>& drawIndexedSignature) const noexcept;
 
         // GraphicsDevice interface.
     public:

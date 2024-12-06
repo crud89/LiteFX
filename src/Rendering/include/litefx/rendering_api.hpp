@@ -2612,7 +2612,7 @@ namespace LiteFX::Rendering {
     /// A graphics adapter can be seen as an actual physical device that can run graphics computations. Typically this resembles a GPU that is connected
     /// to the bus. However, it can also represent an emulated, virtual adapter, such as a software rasterizer.
     /// </remarks>
-    class LITEFX_RENDERING_API IGraphicsAdapter {
+    class LITEFX_RENDERING_API IGraphicsAdapter : public SharedObject {
     protected:
         IGraphicsAdapter() noexcept = default;
         IGraphicsAdapter(const IGraphicsAdapter&) = default;
@@ -2621,7 +2621,7 @@ namespace LiteFX::Rendering {
         IGraphicsAdapter& operator=(IGraphicsAdapter&&) noexcept = default;
 
     public:
-        virtual ~IGraphicsAdapter() noexcept = default;
+        ~IGraphicsAdapter() noexcept override= default;
 
     public:
         /// <summary>
@@ -3741,13 +3741,15 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The current time stamp of the event as a tick count.</returns>
         /// <seealso cref="ISwapChain::readTimingEvent" />
-        UInt64 readTimestamp() const noexcept;
+        /// <exception cref="RuntimeException">Thrown, if the parent device instance is already released.</exception>
+        UInt64 readTimestamp() const;
 
         /// <summary>
         /// Returns the query ID for the timing event.
         /// </summary>
         /// <returns>The query ID for the timing event.</returns>
         /// <seealso cref="ISwapChain::resolveQueryId" />
+        /// <exception cref="RuntimeException">Thrown, if the parent device instance is already released.</exception>
         UInt32 queryId() const;
     };
 
@@ -8250,6 +8252,13 @@ namespace LiteFX::Rendering {
         /// <returns>The query ID for the <paramref name="timingEvent" />.</returns>
         /// <seealso cref="TimingEvent::queryId" />
         virtual UInt32 resolveQueryId(SharedPtr<const TimingEvent> timingEvent) const = 0;
+
+        /// <summary>
+        /// Returns the swap chain's parent device instance.
+        /// </summary>
+        /// <returns>A reference of the swap chain's parent device instance.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the device is already released.</exception>
+        virtual const IGraphicsDevice& device() const  = 0;
 
     public:
         /// <summary>

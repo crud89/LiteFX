@@ -20,7 +20,7 @@ public:
     friend class VulkanBackend;
 
 private:
-    Array<UniquePtr<VulkanGraphicsAdapter>> m_adapters{ };
+    Array<SharedPtr<VulkanGraphicsAdapter>> m_adapters{ };
     Dictionary<String, UniquePtr<VulkanDevice>> m_devices;
     Array<String> m_extensions;
     Array<String> m_layers;
@@ -208,8 +208,8 @@ public:
         ::vkEnumeratePhysicalDevices(backend.handle(), &adapters, handles.data());
 
         m_adapters = handles | 
-            std::views::transform([](const auto& handle) { return makeUnique<VulkanGraphicsAdapter>(handle); }) |
-            std::ranges::to<Array<UniquePtr<VulkanGraphicsAdapter>>>();
+            std::views::transform([](const auto& handle) { return VulkanGraphicsAdapter::create(handle); }) |
+            std::ranges::to<Array<SharedPtr<VulkanGraphicsAdapter>>>();
     }
 };
 
@@ -262,7 +262,7 @@ void VulkanBackend::deactivate()
 
 Enumerable<const VulkanGraphicsAdapter*> VulkanBackend::listAdapters() const
 {
-    return m_impl->m_adapters | std::views::transform([](const UniquePtr<VulkanGraphicsAdapter>& adapter) { return adapter.get(); });
+    return m_impl->m_adapters | std::views::transform([](const auto& adapter) { return adapter.get(); });
 }
 
 const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& adapterId) const

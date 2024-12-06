@@ -1031,8 +1031,6 @@ VulkanSwapChain::VulkanSwapChain(const VulkanDevice& device, Format surfaceForma
 	m_impl->initialize(surfaceFormat, renderArea, buffers, enableVsync);
 }
 
-VulkanSwapChain::VulkanSwapChain(VulkanSwapChain&&) noexcept = default;
-VulkanSwapChain& VulkanSwapChain::operator=(VulkanSwapChain&&) noexcept = default;
 VulkanSwapChain::~VulkanSwapChain() noexcept = default;
 
 const VkQueryPool& VulkanSwapChain::timestampQueryPool() const noexcept
@@ -1079,6 +1077,16 @@ UInt32 VulkanSwapChain::resolveQueryId(SharedPtr<const TimingEvent> timingEvent)
 		return static_cast<UInt32>(std::distance(m_impl->m_timingEvents.begin(), match));
 
 	throw InvalidArgumentException("timingEvent", "The timing event is not registered on the swap chain.");
+}
+
+const IGraphicsDevice& VulkanSwapChain::device() const
+{
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr)
+		throw RuntimeException("Unable to obtain device instance. The device has already been released.");
+
+	return *device;
 }
 
 Format VulkanSwapChain::surfaceFormat() const noexcept

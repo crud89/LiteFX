@@ -13,8 +13,7 @@ public:
 	friend class DirectX12Device;
 
 private:
-	const DirectX12GraphicsAdapter& m_adapter;
-	const DirectX12Backend& m_backend;
+	SharedPtr<const DirectX12GraphicsAdapter> m_adapter;
 	DeviceState m_deviceState;
 	UniquePtr<DirectX12Surface> m_surface;
 	SharedPtr<DirectX12Queue> m_graphicsQueue{}, m_transferQueue{}, m_computeQueue{};
@@ -31,8 +30,8 @@ private:
 	ComPtr<ID3D12CommandSignature> m_dispatchSignature, m_drawSignature, m_drawIndexedSignature, m_dispatchMeshSignature;
 
 public:
-	DirectX12DeviceImpl(const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, const DirectX12Backend& backend, UInt32 globalBufferHeapSize, UInt32 globalSamplerHeapSize) :
-		m_adapter(adapter), m_backend(backend), m_surface(std::move(surface)), m_globalBufferHeapSize(globalBufferHeapSize), m_globalSamplerHeapSize(globalSamplerHeapSize)
+	DirectX12DeviceImpl(const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, UInt32 globalBufferHeapSize, UInt32 globalSamplerHeapSize) :
+		m_adapter(adapter.shared_from_this()), m_surface(std::move(surface)), m_globalBufferHeapSize(globalBufferHeapSize), m_globalSamplerHeapSize(globalSamplerHeapSize)
 	{
 		if (m_surface == nullptr)
 			throw ArgumentNotInitializedException("surface", "The surface must be initialized.");
@@ -119,7 +118,7 @@ public:
 		ComPtr<ID3D12Device10> device;
 
 		// Require feature level 12.1 and express optional features of higher feature levels as device features.
-		raiseIfFailed(::D3D12CreateDevice(m_adapter.handle().Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&device)), "Unable to create DirectX 12 device.");
+		raiseIfFailed(::D3D12CreateDevice(m_adapter->handle().Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&device)), "Unable to create DirectX 12 device.");
 		this->checkRequiredExtensions(device.Get(), features);
 
 #ifndef NDEBUG
@@ -195,11 +194,6 @@ public:
 		return device;
 	}
 
-	void createSwapChain(const DirectX12Device& device, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync)
-	{
-		m_swapChain = makeUnique<DirectX12SwapChain>(device, format, renderArea, backBuffers, enableVsync);
-	}
-
 	void createQueues(const DirectX12Device& device)
 	{
 		//m_graphicsQueue = this->createQueue(device, QueueType::Graphics, QueuePriority::Realtime);
@@ -269,7 +263,7 @@ DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX1
 }
 
 DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features, UInt32 globalBufferHeapSize, UInt32 globalSamplerHeapSize) :
-	ComResource<ID3D12Device10>(nullptr), m_impl(adapter, std::move(surface), backend, globalBufferHeapSize, globalSamplerHeapSize)
+	ComResource<ID3D12Device10>(nullptr), m_impl(adapter, std::move(surface), globalBufferHeapSize, globalSamplerHeapSize)
 {
 	LITEFX_DEBUG(DIRECTX12_LOG, "Creating DirectX 12 device {{ Surface: {0}, Adapter: {1} }}...", static_cast<void*>(&surface), adapter.deviceId());
 	LITEFX_DEBUG(DIRECTX12_LOG, "--------------------------------------------------------------------------");
@@ -285,18 +279,11 @@ DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX1
 	this->handle() = m_impl->initialize(features);
 	m_impl->createQueues(*this);
 	m_impl->m_factory = DirectX12GraphicsFactory::create(*this);
-	m_impl->createSwapChain(*this, format, renderArea, backBuffers, enableVsync);
+	m_impl->m_swapChain = UniquePtr<DirectX12SwapChain>(new DirectX12SwapChain (*this, backend, format, renderArea, backBuffers, enableVsync));
 	m_impl->createBlitPipeline(*this);
 }
 
-//DirectX12Device::DirectX12Device(DirectX12Device&&) noexcept = default;
-//DirectX12Device& DirectX12Device::operator=(DirectX12Device&&) noexcept = default;
 DirectX12Device::~DirectX12Device() noexcept = default;
-
-const DirectX12Backend& DirectX12Device::backend() const noexcept
-{
-	return m_impl->m_backend;
-}
 
 const ID3D12DescriptorHeap* DirectX12Device::globalBufferHeap() const noexcept
 {
@@ -548,7 +535,7 @@ const DirectX12Surface& DirectX12Device::surface() const noexcept
 
 const DirectX12GraphicsAdapter& DirectX12Device::adapter() const noexcept
 {
-	return m_impl->m_adapter;
+	return *m_impl->m_adapter;
 }
 
 const DirectX12GraphicsFactory& DirectX12Device::factory() const noexcept

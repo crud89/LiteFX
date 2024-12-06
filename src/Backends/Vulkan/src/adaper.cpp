@@ -95,8 +95,6 @@ VulkanGraphicsAdapter::VulkanGraphicsAdapter(VkPhysicalDevice adapter) :
 {
 }
 
-VulkanGraphicsAdapter::VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) noexcept = default;
-VulkanGraphicsAdapter& VulkanGraphicsAdapter::operator=(VulkanGraphicsAdapter&&) noexcept = default;
 VulkanGraphicsAdapter::~VulkanGraphicsAdapter() noexcept = default;
 
 String VulkanGraphicsAdapter::name() const

@@ -42,13 +42,11 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12GraphicsAdapter::DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter) noexcept :
+DirectX12GraphicsAdapter::DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter) :
     ComResource<IDXGIAdapter4>(std::move(adapter)), m_impl(*this)
 {
 }
 
-DirectX12GraphicsAdapter::DirectX12GraphicsAdapter(DirectX12GraphicsAdapter&&) noexcept = default;
-DirectX12GraphicsAdapter& DirectX12GraphicsAdapter::operator=(DirectX12GraphicsAdapter&&) noexcept = default;
 DirectX12GraphicsAdapter::~DirectX12GraphicsAdapter() noexcept = default;
 
 String DirectX12GraphicsAdapter::name() const

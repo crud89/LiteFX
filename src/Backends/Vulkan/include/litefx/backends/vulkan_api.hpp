@@ -210,28 +210,41 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     class LITEFX_VULKAN_API VulkanGraphicsAdapter final : public IGraphicsAdapter, public Resource<VkPhysicalDevice> {
         LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl);
+        friend struct SharedObject::Allocator<VulkanGraphicsAdapter>;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a graphics adapter instance with a physical device.
         /// </summary>
         /// <param name="adapter">The physical device to initialize the instance with.</param>
         explicit VulkanGraphicsAdapter(VkPhysicalDevice adapter);
 
+    private:
         /// <inheritdoc />
-        VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) noexcept;
+        VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
 
         /// <inheritdoc />
-        VulkanGraphicsAdapter& operator=(VulkanGraphicsAdapter&&) noexcept;
+        VulkanGraphicsAdapter& operator=(VulkanGraphicsAdapter&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanGraphicsAdapter& operator=(const VulkanGraphicsAdapter&) = delete;
 
+    public:
         /// <inheritdoc />
         ~VulkanGraphicsAdapter() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates a graphics adapter instance with a physical device.
+        /// </summary>
+        /// <param name="adapter">The physical device to initialize the instance with.</param>
+        /// <returns>A shared pointer to the newly created graphics adapter instance.</returns>
+        static inline auto create(VkPhysicalDevice adapter) {
+            return SharedObject::create<VulkanGraphicsAdapter>(adapter);
+        }
 
     public:
         /// <inheritdoc />

@@ -11,7 +11,7 @@ public:
     friend class DirectX12Backend;
 
 private:
-    Array<UniquePtr<DirectX12GraphicsAdapter>> m_adapters{ };
+    Array<SharedPtr<DirectX12GraphicsAdapter>> m_adapters{ };
     Dictionary<String, UniquePtr<DirectX12Device>> m_devices;
     ComPtr<ID3D12Debug> m_debugInterface;
 
@@ -45,7 +45,7 @@ public:
         {
             raiseIfFailed(backend.handle()->EnumWarpAdapter(IID_PPV_ARGS(&adapterInterface)), "Unable to iterate advanced software rasterizer adapters.");
             raiseIfFailed(adapterInterface.As(&adapterInstance), "The advanced software rasterizer adapter is not a valid IDXGIAdapter4 instance.");
-            m_adapters.push_back(makeUnique<DirectX12GraphicsAdapter>(adapterInstance));
+            m_adapters.push_back(DirectX12GraphicsAdapter::create(adapterInstance));
         }
         else
         {
@@ -59,7 +59,7 @@ public:
                     continue;
 
                 raiseIfFailed(adapterInterface.As(&adapterInstance), "The hardware adapter is not a valid IDXGIAdapter4 instance.");
-                m_adapters.push_back(makeUnique<DirectX12GraphicsAdapter>(adapterInstance));
+                m_adapters.push_back(DirectX12GraphicsAdapter::create(adapterInstance));
             }
         }
     }
@@ -102,7 +102,7 @@ void DirectX12Backend::deactivate()
 
 Enumerable<const DirectX12GraphicsAdapter*> DirectX12Backend::listAdapters() const
 {
-    return m_impl->m_adapters | std::views::transform([](const UniquePtr<DirectX12GraphicsAdapter>& adapter) { return adapter.get(); });
+    return m_impl->m_adapters | std::views::transform([](const auto& adapter) { return adapter.get(); });
 }
 
 const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UInt64>& adapterId) const

@@ -50,7 +50,7 @@ public:
     VulkanDescriptorSetLayoutImpl(const VulkanDevice& device, const Enumerable<VulkanDescriptorLayout>& descriptorLayouts, UInt32 space, ShaderStage stages) :
         m_stages(stages), m_space(space), m_device(device.weak_from_this())
     {
-        m_descriptorLayouts = std::move(descriptorLayouts) | std::ranges::to<Array<VulkanDescriptorLayout>>();
+        m_descriptorLayouts = descriptorLayouts | std::ranges::to<Array<VulkanDescriptorLayout>>();
     }
 
     VulkanDescriptorSetLayoutImpl(const VulkanDevice& device) :

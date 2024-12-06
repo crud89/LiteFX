@@ -858,7 +858,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanDescriptorSetLayout final : public DescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet>, public Resource<VkDescriptorSetLayout> {
         LITEFX_IMPLEMENTATION(VulkanDescriptorSetLayoutImpl);
         LITEFX_BUILDER(VulkanDescriptorSetLayoutBuilder);
-        friend class SharedObject::Allocator<VulkanDescriptorSetLayout>;
+        friend struct SharedObject::Allocator<VulkanDescriptorSetLayout>;
 
     public:
         using base_type = DescriptorSetLayout<VulkanDescriptorLayout, VulkanDescriptorSet>;
@@ -2349,11 +2349,12 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanSwapChain final : public SwapChain<IVulkanImage> {
         LITEFX_IMPLEMENTATION(VulkanSwapChainImpl);
         friend class VulkanImage;
+        friend class VulkanDevice;
 
     public:
         using base_type = SwapChain<IVulkanImage>;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a Vulkan swap chain.
         /// </summary>
@@ -2364,14 +2365,15 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="enableVsync">`true` if vertical synchronization should be used, otherwise `false`.</param>
         explicit VulkanSwapChain(const VulkanDevice& device, Format surfaceFormat = Format::B8G8R8A8_SRGB, const Size2d& renderArea = { 800, 600 }, UInt32 buffers = 3, bool enableVsync = false); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
+    public:
         /// <inheritdoc />
-        VulkanSwapChain(VulkanSwapChain&&) noexcept;
+        VulkanSwapChain(VulkanSwapChain&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanSwapChain(const VulkanSwapChain&) = delete;
 
         /// <inheritdoc />
-        VulkanSwapChain& operator=(VulkanSwapChain&&) noexcept;
+        VulkanSwapChain& operator=(VulkanSwapChain&&) noexcept = delete;
 
         /// <inheritdoc />
         VulkanSwapChain& operator=(const VulkanSwapChain&) = delete;
@@ -2400,6 +2402,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt32 resolveQueryId(SharedPtr<const TimingEvent> timingEvent) const override;
+
+        /// <inheritdoc />
+        const IGraphicsDevice& device() const override;
 
         /// <inheritdoc />
         Format surfaceFormat() const noexcept override;
