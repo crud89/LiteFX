@@ -233,7 +233,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="subscriber">A delegate for the event handler.</param>
 		/// <returns>`true`, if the event handler has been removed, `false` otherwise.</returns>
-		bool remove(delegate_type subscriber) noexcept {
+		bool remove(const delegate_type& subscriber) noexcept {
 			return this->remove(subscriber.token());
 		}
 
@@ -305,7 +305,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="subscriber">A delegate for the event handler.</param>
 		/// <returns>A unique token of the event handler.</returns>
-		event_token_type operator +=(function_type subscriber) {
+		event_token_type operator +=(const function_type& subscriber) {
 			return this->add(subscriber);
 		}
 
@@ -314,7 +314,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="subscriber">A delegate for the event handler.</param>
 		/// <returns>`true`, if the event handler has been removed, `false` otherwise.</returns>
-		bool operator -=(delegate_type subscriber) noexcept {
+		bool operator -=(const delegate_type& subscriber) noexcept {
 			return this->remove(subscriber);
 		}
 
