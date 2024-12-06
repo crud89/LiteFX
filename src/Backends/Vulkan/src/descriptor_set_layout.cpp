@@ -352,7 +352,7 @@ VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDevice& device)
 }
 
 VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDescriptorSetLayout& other) :
-    Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE), DescriptorSetLayout(other), m_impl(*other.device())
+    DescriptorSetLayout(other), Resource<VkDescriptorSetLayout>(VK_NULL_HANDLE), m_impl(*other.device())
 {
     m_impl->m_descriptorLayouts = other.m_impl->m_descriptorLayouts;
     m_impl->m_space = other.space();
@@ -493,21 +493,23 @@ Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMu
 
     // If the set contains an unbounded array, or there are no free sets left, we need to allocate anyway.
     Enumerable<UniquePtr<VulkanDescriptorSet>> descriptorSets = (m_impl->m_usesDescriptorIndexing || m_impl->m_freeDescriptorSets.empty() ?
-        [this, unboundedDescriptorsCount, &count]() -> std::generator<VkDescriptorSet> { co_yield std::ranges::elements_of(m_impl->tryAllocate(*this, count, unboundedDescriptorsCount) | std::views::as_rvalue); }() :
-        [this, unboundedDescriptorsCount, &count]() -> std::generator<VkDescriptorSet> {
-            UInt32 remainingAllocations = count;
-
+        [](SharedPtr<const VulkanDescriptorSetLayout> layout, UInt32 count, UInt32 unboundedDescriptorsCount) -> std::generator<VkDescriptorSet> { 
+            co_yield std::ranges::elements_of(layout->m_impl->tryAllocate(*layout, count, unboundedDescriptorsCount) | std::views::as_rvalue); 
+        }(this->shared_from_this(), count, unboundedDescriptorsCount) :
+        [](SharedPtr<const VulkanDescriptorSetLayout> layout, UInt32 count, UInt32 unboundedDescriptorsCount) -> std::generator<VkDescriptorSet> {
             // If there are free descriptor sets, use them first.
-            while (!m_impl->m_freeDescriptorSets.empty() && remainingAllocations --> 0) // Finally a good use for the "-->" operator!!!
+            auto& impl = layout->m_impl;
+
+            while (!impl->m_freeDescriptorSets.empty() && count --> 0) // Finally a good use for the "-->" operator!!!
             {
-                auto descriptorSet = m_impl->m_freeDescriptorSets.front();
-                m_impl->m_freeDescriptorSets.pop();
+                auto descriptorSet = impl->m_freeDescriptorSets.front();
+                impl->m_freeDescriptorSets.pop();
                 co_yield descriptorSet;
             }
 
             // Allocate the rest from a new descriptor pool and return them.
-            co_yield std::ranges::elements_of(m_impl->tryAllocate(*this, remainingAllocations, unboundedDescriptorsCount) | std::views::as_rvalue);
-        }()) | std::views::transform([this](auto handle) { return makeUnique<VulkanDescriptorSet>(*this, handle); }) | std::views::as_rvalue;
+            co_yield std::ranges::elements_of(impl->tryAllocate(*layout, count, unboundedDescriptorsCount) | std::views::as_rvalue);
+        }(this->shared_from_this(), count, unboundedDescriptorsCount)) | std::views::transform([this](auto handle) { return makeUnique<VulkanDescriptorSet>(*this, handle); }) | std::views::as_rvalue;
 
     // Apply the default bindings.
     for (const auto& [descriptorSet, bindingsPerDescriptor] : std::views::zip(descriptorSets | std::views::transform([](auto& set) { return set.get(); }), bindingsPerSet))
@@ -535,21 +537,23 @@ Enumerable<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocateMu
 
     // If the set contains an unbounded array, or there are no free sets left, we need to allocate anyway.
     Enumerable<UniquePtr<VulkanDescriptorSet>> descriptorSets = (m_impl->m_usesDescriptorIndexing || m_impl->m_freeDescriptorSets.empty() ?
-        [this, unboundedDescriptorsCount, &count]() -> std::generator<VkDescriptorSet> { co_yield std::ranges::elements_of(m_impl->tryAllocate(*this, count, unboundedDescriptorsCount) | std::views::as_rvalue); }() :
-        [this, unboundedDescriptorsCount, &count]() -> std::generator<VkDescriptorSet> {
-            UInt32 remainingAllocations = count;
-
+        [](SharedPtr<const VulkanDescriptorSetLayout> layout, UInt32 count, UInt32 unboundedDescriptorsCount) -> std::generator<VkDescriptorSet> { 
+            co_yield std::ranges::elements_of(layout->m_impl->tryAllocate(*layout, count, unboundedDescriptorsCount) | std::views::as_rvalue); 
+        }(this->shared_from_this(), count, unboundedDescriptorsCount) :
+        [](SharedPtr<const VulkanDescriptorSetLayout> layout, UInt32 count, UInt32 unboundedDescriptorsCount) -> std::generator<VkDescriptorSet> {
             // If there are free descriptor sets, use them first.
-            while (!m_impl->m_freeDescriptorSets.empty() && remainingAllocations --> 0) // Finally a good use for the "-->" operator!!!
+            auto& impl = layout->m_impl;
+
+            while (!impl->m_freeDescriptorSets.empty() && count --> 0) // Finally a good use for the "-->" operator!!!
             {
-                auto descriptorSet = m_impl->m_freeDescriptorSets.front();
-                m_impl->m_freeDescriptorSets.pop();
+                auto descriptorSet = impl->m_freeDescriptorSets.front();
+                impl->m_freeDescriptorSets.pop();
                 co_yield descriptorSet;
             }
 
             // Allocate the rest from a new descriptor pool and return them.
-            co_yield std::ranges::elements_of(m_impl->tryAllocate(*this, remainingAllocations, unboundedDescriptorsCount) | std::views::as_rvalue);
-        }()) | std::views::transform([this](auto handle) { return makeUnique<VulkanDescriptorSet>(*this, handle); }) | std::views::as_rvalue;
+            co_yield std::ranges::elements_of(impl->tryAllocate(*layout, count, unboundedDescriptorsCount) | std::views::as_rvalue);
+        }(this->shared_from_this(), count, unboundedDescriptorsCount)) | std::views::transform([this](auto handle) { return makeUnique<VulkanDescriptorSet>(*this, handle); }) | std::views::as_rvalue;
 
     // Apply the default bindings.
     for (UInt32 set{ 0 }; auto& descriptorSet : descriptorSets)

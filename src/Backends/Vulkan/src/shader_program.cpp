@@ -335,30 +335,31 @@ public:
         });
 
         // Create the descriptor set layouts.
-        auto descriptorSets = [&descriptorSetLayouts](SharedPtr<const VulkanDevice> device) -> std::generator<SharedPtr<VulkanDescriptorSetLayout>> {
+        auto descriptorSets = [](SharedPtr<const VulkanDevice> device, Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts) -> std::generator<SharedPtr<VulkanDescriptorSetLayout>> {
             for (auto it = descriptorSetLayouts.begin(); it != descriptorSetLayouts.end(); ++it)
             {
-                auto& descriptorSet = it->second;
+                auto space = it->second.space;
+                auto stage = it->second.stage;
 
                 // Create the descriptor layouts.
-                auto descriptorLayouts = [&descriptorSet]() -> std::generator<VulkanDescriptorLayout> {
+                auto descriptorLayouts = [](DescriptorSetInfo descriptorSet) -> std::generator<VulkanDescriptorLayout> {
                     for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor)
                         co_yield descriptor->type == DescriptorType::InputAttachment ?
                             VulkanDescriptorLayout { descriptor->type, descriptor->location, descriptor->inputAttachmentIndex} :
                             VulkanDescriptorLayout { descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements };
-                }();
+                }(std::move(it->second));
 
-                co_yield VulkanDescriptorSetLayout::create(*device, descriptorLayouts, descriptorSet.space, descriptorSet.stage);
+                co_yield VulkanDescriptorSetLayout::create(*device, descriptorLayouts, space, stage);
             }
-        }(device) | std::views::as_rvalue | std::ranges::to<Enumerable<SharedPtr<VulkanDescriptorSetLayout>>>();
+        }(device, std::move(descriptorSetLayouts)) | std::views::as_rvalue | std::ranges::to<Enumerable<SharedPtr<VulkanDescriptorSetLayout>>>();
 
         // Create the push constants layout.
-        auto pushConstants = [&pushConstantRanges]() -> std::generator<UniquePtr<VulkanPushConstantsRange>> {
+        auto overallSize = std::accumulate(pushConstantRanges.begin(), pushConstantRanges.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range.size; });
+        auto pushConstants = [](Array<PushConstantRangeInfo> pushConstantRanges) -> std::generator<UniquePtr<VulkanPushConstantsRange>> {
             for (auto it = pushConstantRanges.begin(); it != pushConstantRanges.end(); ++it)
                 co_yield makeUnique<VulkanPushConstantsRange>(it->stage, it->offset, it->size, 0, 0);   // No space or binding for Vulkan push constants.
-        }() | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<VulkanPushConstantsRange>>>();
+        }(std::move(pushConstantRanges)) | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<VulkanPushConstantsRange>>>();
 
-        auto overallSize = std::accumulate(pushConstantRanges.begin(), pushConstantRanges.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range.size; });
         auto pushConstantsLayout = makeUnique<VulkanPushConstantsLayout>(std::move(pushConstants), overallSize);
 
         // Return the pipeline layout.

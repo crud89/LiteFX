@@ -475,14 +475,14 @@ public:
             LITEFX_WARNING(DIRECTX12_LOG, "None of the provided shader modules exports a root signature. Descriptor sets will be acquired using reflection. Some features (such as root/push constants) are not supported.");
 
         // Create the descriptor set layouts.
-        // NOLINTBEGIN(cppcoreguidelines-avoid-reference-coroutine-parameters)
-        auto descriptorSets = [](SharedPtr<const DirectX12Device> device, const Dictionary<UInt32, DescriptorSetInfo>& descriptorSetLayouts) -> std::generator<SharedPtr<DirectX12DescriptorSetLayout>> {
+        auto descriptorSets = [](SharedPtr<const DirectX12Device> device, Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts) -> std::generator<SharedPtr<DirectX12DescriptorSetLayout>> {
             for (auto it = descriptorSetLayouts.begin(); it != descriptorSetLayouts.end(); ++it)
             {
-                auto& descriptorSet = it->second;
+                auto space = it->second.space;
+                auto stage = it->second.stage;
 
                 // Create the descriptor layouts.
-                auto descriptors = [](const DescriptorSetInfo& descriptorSet) -> std::generator<DirectX12DescriptorLayout> {
+                auto descriptors = [](DescriptorSetInfo descriptorSet) -> std::generator<DirectX12DescriptorLayout> {
                     for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor)
                     {
                         if (descriptor->staticSamplerState.has_value())
@@ -500,20 +500,19 @@ public:
                             co_yield { descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->local };
                         }
                     }
-                }(descriptorSet);
+                }(std::move(it->second));
 
-                co_yield DirectX12DescriptorSetLayout::create(*device.get(), descriptors, descriptorSet.space, descriptorSet.stage);
+                co_yield DirectX12DescriptorSetLayout::create(*device.get(), descriptors, space, stage);
             }
-        }(device, descriptorSetLayouts) | std::views::as_rvalue | std::ranges::to<Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>>();
+        }(device, std::move(descriptorSetLayouts)) | std::views::as_rvalue | std::ranges::to<Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>>();
 
         // Create the push constants layout.
-        auto pushConstants = [](const Array<PushConstantRangeInfo>& pushConstantRanges) -> std::generator<UniquePtr<DirectX12PushConstantsRange>> {
+        auto overallSize = std::accumulate(pushConstantRanges.begin(), pushConstantRanges.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range.size; });
+        auto pushConstants = [](Array<PushConstantRangeInfo> pushConstantRanges) -> std::generator<UniquePtr<DirectX12PushConstantsRange>> {
             for (auto range = pushConstantRanges.begin(); range != pushConstantRanges.end(); ++range)
                 co_yield makeUnique<DirectX12PushConstantsRange>(range->stage, range->offset, range->size, range->space, range->location);
-        }(pushConstantRanges) | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>();
-        // NOLINTEND(cppcoreguidelines-avoid-reference-coroutine-parameters)
+        }(std::move(pushConstantRanges)) | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>();
 
-        auto overallSize = std::accumulate(pushConstantRanges.begin(), pushConstantRanges.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range.size; });
         auto pushConstantsLayout = makeUnique<DirectX12PushConstantsLayout>(std::move(pushConstants), overallSize);
 
         // Return the pipeline layout.
