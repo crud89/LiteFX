@@ -1641,7 +1641,7 @@ namespace LiteFX::Rendering {
         const adapter_type* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override = 0;
 
         /// <inheritdoc />
-        virtual void registerDevice(String name, UniquePtr<device_type>&& device) = 0;
+        virtual void registerDevice(String name, SharedPtr<device_type>&& device) = 0;
 
         /// <summary>
         /// Creates a new graphics device.
@@ -1649,11 +1649,11 @@ namespace LiteFX::Rendering {
         /// <param name="_args">The arguments that are passed to the graphics device constructor.</param>
         /// <returns>A pointer of the created graphics device instance.</returns>
         template <typename TSelf, typename ...TArgs>
-        inline device_type* createDevice(this TSelf& self, String name, const adapter_type& adapter, UniquePtr<surface_type>&& surface, TArgs&&... _args) {
-            auto device = makeUnique<device_type>(self, adapter, std::move(surface), std::forward<TArgs>(_args)...);
-            auto devicePointer = device.get();
-            self.registerDevice(name, std::move(device));
-            return devicePointer;
+        inline device_type& createDevice(this TSelf& self, String name, const adapter_type& adapter, UniquePtr<surface_type>&& surface, TArgs&&... _args) {
+            auto devicePtr = device_type::create(self, adapter, std::move(surface), std::forward<TArgs>(_args)...);
+            auto& device = *devicePtr;
+            self.registerDevice(name, std::move(devicePtr));
+            return device;
         }
 
         /// <summary>

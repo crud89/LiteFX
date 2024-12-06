@@ -220,10 +220,10 @@ m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), stati
 We store the device in a variable `m_device`, which we define as a member variable of `SampleApp`, since we are going to make heavy use of it throughout the whole application.
 
 ```cxx
-UniquePtr<VulkanDevice> m_device;   // or UniquePtr<DirectX12Device>
+SharedPtr<VulkanDevice> m_device;
 ```
 
-Note how the `createDevice` method returns a `UniquePtr`. Receiving a unique pointer from any call transfers ownership to your application. This means, that from now on, you are responsible for managing the device lifetime and make sure that it gets released properly. We will do this later, when we talk about cleaning up. From now on, all member variables that should be stored are marked with the `m_` prefix and their declaration will not be explicitly mentioned, as long as it does only involve declaring a simple pointer or reference.
+From now on, all member variables that should be stored are marked with the `m_` prefix and their declaration will not be explicitly mentioned, as long as it does only involve declaring a simple pointer or reference.
 
 #### Creating a Render Pass
 

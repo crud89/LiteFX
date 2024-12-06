@@ -21,7 +21,7 @@ public:
 
 private:
     Array<SharedPtr<VulkanGraphicsAdapter>> m_adapters{ };
-    Dictionary<String, UniquePtr<VulkanDevice>> m_devices;
+    Dictionary<String, SharedPtr<VulkanDevice>> m_devices;
     Array<String> m_extensions;
     Array<String> m_layers;
 
@@ -273,7 +273,7 @@ const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& 
     return nullptr;
 }
 
-void VulkanBackend::registerDevice(String name, UniquePtr<VulkanDevice>&& device)
+void VulkanBackend::registerDevice(String name, SharedPtr<VulkanDevice>&& device)
 {
     if (m_impl->m_devices.contains(name))
         throw InvalidArgumentException("name", "The backend already contains a device with the name \"{0}\".", name);

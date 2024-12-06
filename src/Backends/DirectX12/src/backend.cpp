@@ -12,7 +12,7 @@ public:
 
 private:
     Array<SharedPtr<DirectX12GraphicsAdapter>> m_adapters{ };
-    Dictionary<String, UniquePtr<DirectX12Device>> m_devices;
+    Dictionary<String, SharedPtr<DirectX12Device>> m_devices;
     ComPtr<ID3D12Debug> m_debugInterface;
 
 public:
@@ -113,7 +113,7 @@ const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UIn
     return nullptr;
 }
 
-void DirectX12Backend::registerDevice(String name, UniquePtr<DirectX12Device>&& device)
+void DirectX12Backend::registerDevice(String name, SharedPtr<DirectX12Device>&& device)
 {
     if (m_impl->m_devices.contains(name)) [[unlikely]]
         throw InvalidArgumentException("name", "The backend already contains a device with the name \"{0}\".", name);
