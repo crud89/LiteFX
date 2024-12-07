@@ -1081,7 +1081,6 @@ namespace LiteFX::Rendering {
         }
 
         /// <inheritdoc />
-        [[deprecated("Consider using overload, that takes a set of constant ICommandBuffer pointers.")]]
         virtual UInt64 submit(Enumerable<SharedPtr<const command_buffer_type>> commandBuffers) const = 0;
 
     private:

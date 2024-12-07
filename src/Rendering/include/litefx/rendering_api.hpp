@@ -2318,7 +2318,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="renderPass">The render pass to add to the device state.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if another render pass with the same identifier has already been added.</exception>
-        void add(UniquePtr<IRenderPass>&& renderPass);
+        void add(SharedPtr<IRenderPass>&& renderPass);
 
         /// <summary>
         /// Adds a new render pass to the device state.
@@ -2326,14 +2326,14 @@ namespace LiteFX::Rendering {
         /// <param name="id">The identifier for the render pass.</param>
         /// <param name="renderPass">The render pass to add to the device state.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if another render pass with the same <paramref name="id" /> has already been added.</exception>
-        void add(const String& id, UniquePtr<IRenderPass>&& renderPass);
+        void add(const String& id, SharedPtr<IRenderPass>&& renderPass);
 
         /// <summary>
         /// Adds a new frame buffer to the device state and uses its name as identifier.
         /// </summary>
         /// <param name="frameBuffer">The render pass to add to the device state.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if another frame buffer with the same identifier has already been added.</exception>
-        void add(UniquePtr<IFrameBuffer>&& frameBuffer);
+        void add(SharedPtr<IFrameBuffer>&& frameBuffer);
 
         /// <summary>
         /// Adds a new frame buffer to the device state.
@@ -2341,7 +2341,7 @@ namespace LiteFX::Rendering {
         /// <param name="id">The identifier for the frame buffer.</param>
         /// <param name="renderPass">The frame buffer to add to the device state.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if another frame buffer with the same <paramref name="id" /> has already been added.</exception>
-        void add(const String& id, UniquePtr<IFrameBuffer>&& frameBuffer);
+        void add(const String& id, SharedPtr<IFrameBuffer>&& frameBuffer);
 
         /// <summary>
         /// Adds a new pipeline to the device state and uses its name as identifier.
@@ -2363,7 +2363,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="buffer">The buffer to add to the device state.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if another buffer with the same identifier has already been added.</exception>
-        void add(UniquePtr<IBuffer>&& buffer);
+        void add(SharedPtr<IBuffer>&& buffer);
 
         /// <summary>
         /// Adds a new buffer to the device state.
@@ -2371,14 +2371,14 @@ namespace LiteFX::Rendering {
         /// <param name="id">The identifier for the buffer.</param>
         /// <param name="buffer">The buffer to add to the device state.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if another buffer with the same <paramref name="id" /> has already been added.</exception>
-        void add(const String& id, UniquePtr<IBuffer>&& buffer);
+        void add(const String& id, SharedPtr<IBuffer>&& buffer);
 
         /// <summary>
         /// Adds a new vertex buffer to the device state and uses its name as identifier.
         /// </summary>
         /// <param name="vertexBuffer">The vertex buffer to add to the device state.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if another vertex buffer with the same identifier has already been added.</exception>
-        void add(UniquePtr<IVertexBuffer>&& vertexBuffer);
+        void add(SharedPtr<IVertexBuffer>&& vertexBuffer);
 
         /// <summary>
         /// Adds a new vertex buffer to the device state.
@@ -2386,14 +2386,14 @@ namespace LiteFX::Rendering {
         /// <param name="id">The identifier for the vertex buffer.</param>
         /// <param name="vertexBuffer">The vertex buffer to add to the device state.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if another vertex buffer with the same <paramref name="id" /> has already been added.</exception>
-        void add(const String& id, UniquePtr<IVertexBuffer>&& vertexBuffer);
+        void add(const String& id, SharedPtr<IVertexBuffer>&& vertexBuffer);
 
         /// <summary>
         /// Adds a new index buffer to the device state and uses its name as identifier.
         /// </summary>
         /// <param name="indexBuffer">The index buffer to add to the device state.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if another index buffer with the same identifier has already been added.</exception>
-        void add(UniquePtr<IIndexBuffer>&& indexBuffer);
+        void add(SharedPtr<IIndexBuffer>&& indexBuffer);
 
         /// <summary>
         /// Adds a new index buffer to the device state.
@@ -2401,14 +2401,14 @@ namespace LiteFX::Rendering {
         /// <param name="id">The identifier for the index buffer.</param>
         /// <param name="indexBuffer">The index buffer to add to the device state.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if another index buffer with the same <paramref name="id" /> has already been added.</exception>
-        void add(const String& id, UniquePtr<IIndexBuffer>&& indexBuffer);
+        void add(const String& id, SharedPtr<IIndexBuffer>&& indexBuffer);
 
         /// <summary>
         /// Adds a new image to the device state and uses its name as identifier.
         /// </summary>
         /// <param name="image">The image to add to the device state.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if another image with the same identifier has already been added.</exception>
-        void add(UniquePtr<IImage>&& image);
+        void add(SharedPtr<IImage>&& image);
 
         /// <summary>
         /// Adds a new image to the device state.
@@ -2416,14 +2416,14 @@ namespace LiteFX::Rendering {
         /// <param name="id">The identifier for the image.</param>
         /// <param name="image">The image to add to the device state.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if another image with the same <paramref name="id" /> has already been added.</exception>
-        void add(const String& id, UniquePtr<IImage>&& image);
+        void add(const String& id, SharedPtr<IImage>&& image);
 
         /// <summary>
         /// Adds a new sampler to the device state and uses its name as identifier.
         /// </summary>
         /// <param name="sampler">The sampler to add to the device state.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if another sampler with the same identifier has already been added.</exception>
-        void add(UniquePtr<ISampler>&& sampler);
+        void add(SharedPtr<ISampler>&& sampler);
 
         /// <summary>
         /// Adds a new sampler to the device state.
@@ -2431,7 +2431,7 @@ namespace LiteFX::Rendering {
         /// <param name="id">The identifier for the sampler.</param>
         /// <param name="sampler">The sampler to add to the device state.</param>
         /// <exception cref="InvalidArgumentException">Thrown, if another sampler with the same <paramref name="id" /> has already been added.</exception>
-        void add(const String& id, UniquePtr<ISampler>&& sampler);
+        void add(const String& id, SharedPtr<ISampler>&& sampler);
 
         /// <summary>
         /// Adds a new acceleration structure to the device state and uses its name as identifier.
@@ -8574,7 +8574,6 @@ namespace LiteFX::Rendering {
         /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
         /// <returns>The value of the fence, inserted after the command buffers.</returns>
         /// <seealso cref="waitFor" />
-        [[deprecated("Consider using overload, that takes a set of constant ICommandBuffer pointers.")]]
         inline UInt64 submit(Enumerable<SharedPtr<ICommandBuffer>> commandBuffers) const { // NOLINT(performance-unnecessary-value-param)
             return this->submitCommandBuffers(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const ICommandBuffer>>>());
         }
