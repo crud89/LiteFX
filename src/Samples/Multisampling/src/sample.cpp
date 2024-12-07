@@ -1,7 +1,7 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-enum DescriptorSets : UInt32
+enum DescriptorSets : UInt32 // NOLINT(performance-enum-size)
 {
     Constant = 0,                                       // All buffers that are immutable.
     PerFrame = 1,                                       // All buffers that are updated each frame.
@@ -17,6 +17,8 @@ const Array<Vertex> vertices =
 
 const Array<UInt16> indices = { 0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3 };
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
+
 struct CameraBuffer {
     glm::mat4 ViewProjection;
 } camera;
@@ -24,6 +26,8 @@ struct CameraBuffer {
 struct TransformBuffer {
     glm::mat4 World;
 } transform;
+
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 template<typename TRenderBackend> requires
     meta::implements<TRenderBackend, IRenderBackend>
@@ -57,7 +61,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     // Create the frame buffers for all back buffers.
     auto frameBuffers = std::views::iota(0u, device->swapChain().buffers()) |
         std::views::transform([&](UInt32 index) { return device->makeFrameBuffer(std::format("Frame Buffer {0}", index), device->swapChain().renderArea()); }) |
-        std::ranges::to<Array<UniquePtr<FrameBuffer>>>();
+        std::ranges::to<Array<SharedPtr<FrameBuffer>>>();
 
     // Create input assembler state.
     SharedPtr<InputAssembler> inputAssembler = device->buildInputAssembler()
@@ -191,7 +195,7 @@ void SampleApp::onInit()
     });
 
     // Create a callback for backend startup and shutdown.
-    auto startCallback = [this]<typename TBackend>(TBackend * backend) {
+    auto startCallback = [this]<typename TBackend>(TBackend* backend) {
         // Store the window handle.
         auto window = m_window.get();
 
@@ -220,7 +224,7 @@ void SampleApp::onInit()
         return true;
     };
 
-    auto stopCallback = []<typename TBackend>(TBackend * backend) {
+    auto stopCallback = []<typename TBackend>(TBackend* backend) {
         backend->releaseDevice("Default");
     };
 

@@ -414,7 +414,7 @@ namespace LiteFX {
 		/// Returns the name of the app.
 		/// </summary>
 		/// <returns>The name of the app.</returns>
-		virtual String name() const noexcept = 0;
+		virtual StringView name() const noexcept = 0;
 
 		/// <summary>
 		/// Returns the version of the app.

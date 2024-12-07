@@ -2866,7 +2866,7 @@ namespace LiteFX::Rendering::Backends {
         const VulkanGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override;
 
         /// <inheritdoc />
-        void registerDevice(String name, SharedPtr<VulkanDevice>&& device) override;
+        void registerDevice(const String& name, SharedPtr<VulkanDevice>&& device) override;
 
         /// <inheritdoc />
         void releaseDevice(const String& name) override;

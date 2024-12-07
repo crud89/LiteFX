@@ -4,7 +4,7 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-enum DescriptorSets : UInt32
+enum DescriptorSets : UInt32 // NOLINT(performance-enum-size)
 {
     Constant = 0,                                       // All buffers that are immutable.
     Samplers = 1,                                       // All samplers that are immutable.
@@ -21,6 +21,8 @@ const Array<Vertex> vertices =
 
 const Array<UInt16> indices = { 2, 1, 0, 3, 2, 0 };
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
+
 struct CameraBuffer {
     glm::mat4 ViewProjection;
 } camera;
@@ -28,6 +30,8 @@ struct CameraBuffer {
 struct TransformBuffer {
     glm::mat4 World;
 } transform;
+
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 template<typename TRenderBackend> requires
 meta::implements<TRenderBackend, IRenderBackend>
@@ -60,7 +64,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     // Create the frame buffers for all back buffers.
     auto frameBuffers = std::views::iota(0u, device->swapChain().buffers()) |
         std::views::transform([&](UInt32 index) { return device->makeFrameBuffer(std::format("Frame Buffer {0}", index), device->swapChain().renderArea()); }) |
-        std::ranges::to<Array<UniquePtr<FrameBuffer>>>();
+        std::ranges::to<Array<SharedPtr<FrameBuffer>>>();
 
     // Create input assembler state.
     SharedPtr<InputAssembler> inputAssembler = device->buildInputAssembler()
@@ -106,7 +110,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
 template<typename TDevice> requires
     meta::implements<TDevice, IGraphicsDevice>
-void loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampler>& sampler)
+void loadTexture(TDevice& device, SharedPtr<IImage>& texture, SharedPtr<ISampler>& sampler)
 {
     using TBarrier = typename TDevice::barrier_type;
 
@@ -179,8 +183,8 @@ UInt64 initBuffers(SampleApp& app, TDevice& device, SharedPtr<IInputAssembler> i
     app.updateCamera(*commandBuffer, *cameraBuffer);
 
     // Load the texture.
-    UniquePtr<IImage> texture;
-    UniquePtr<ISampler> sampler;
+    SharedPtr<IImage> texture;
+    SharedPtr<ISampler> sampler;
     ::loadTexture(device, texture, sampler);
 
     // Allocate the descriptor sets.
@@ -260,7 +264,7 @@ void SampleApp::onInit()
     });
 
     // Create a callback for backend startup and shutdown.
-    auto startCallback = [this]<typename TBackend>(TBackend * backend) {
+    auto startCallback = [this]<typename TBackend>(TBackend* backend) {
         // Store the window handle.
         auto window = m_window.get();
 
@@ -290,7 +294,7 @@ void SampleApp::onInit()
         return true;
     };
 
-    auto stopCallback = []<typename TBackend>(TBackend * backend) {
+    auto stopCallback = []<typename TBackend>(TBackend* backend) {
         backend->releaseDevice("Default");
     };
 

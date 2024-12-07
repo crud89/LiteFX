@@ -10,9 +10,9 @@
 #include <random>
 
 // Currently there's nine instances of two geometries.
-#define NUM_INSTANCES 9
+consteval const UInt32 NUM_INSTANCES = 9;
 
-enum class DescriptorSets : UInt32
+enum class DescriptorSets : UInt32 // NOLINT(performance-enum-size)
 {
     StaticData   = 0, // Camera and acceleration structures.
     Materials    = 1, // The bind-less material properties array.
@@ -56,6 +56,8 @@ const Array<UInt16> _indices = {
     20, 22, 21, 21, 22, 23  // Top
 };
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
+
 struct CameraBuffer {
     glm::mat4 ViewProjection;
     glm::mat4 InverseView;
@@ -66,6 +68,8 @@ struct CameraBuffer {
 struct MaterialData {
     glm::vec4 Color = { 0.1f, 0.1f, 0.1f, 1.0f };
 } materials[NUM_INSTANCES];
+
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 template<typename TRenderBackend> requires
     meta::implements<TRenderBackend, IRenderBackend>
@@ -98,7 +102,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     // Create the frame buffers for all back buffers.
     auto frameBuffers = std::views::iota(0u, device->swapChain().buffers()) |
         std::views::transform([&](UInt32 index) { return device->makeFrameBuffer(std::format("Frame Buffer {0}", index), device->swapChain().renderArea()); }) |
-        std::ranges::to<Array<UniquePtr<FrameBuffer>>>();
+        std::ranges::to<Array<SharedPtr<FrameBuffer>>>();
 
     // Create input assembler state for the geometry.
     SharedPtr<InputAssembler> inputAssembler = device->buildInputAssembler()
@@ -370,7 +374,7 @@ void SampleApp::onInit()
     });
 
     // Create a callback for backend startup and shutdown.
-    auto startCallback = [this]<typename TBackend>(TBackend * backend) {
+    auto startCallback = [this]<typename TBackend>(TBackend* backend) {
         // Store the window handle.
         auto window = m_window.get();
 
@@ -399,7 +403,7 @@ void SampleApp::onInit()
         return true;
     };
 
-    auto stopCallback = []<typename TBackend>(TBackend * backend) {
+    auto stopCallback = []<typename TBackend>(TBackend* backend) {
         backend->releaseDevice("Default");
     };
 

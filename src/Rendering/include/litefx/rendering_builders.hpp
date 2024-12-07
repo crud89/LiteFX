@@ -975,8 +975,7 @@ namespace LiteFX::Rendering {
         /// <param name="semanticIndex">The semantic index of the attribute.</param>
         template <typename TSelf>
         [[nodiscard]] constexpr auto withAttribute(this TSelf&& self, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf&& {
-            self.withAttribute({ static_cast<UInt32>(self.m_state.attributes.size()), offset, format, semantic, semanticIndex });
-            return std::forward<TSelf>(self);
+            return std::forward<TSelf>(self).withAttribute({ static_cast<UInt32>(self.m_state.attributes.size()), offset, format, semantic, semanticIndex });
         }
 
         /// <summary>
@@ -989,8 +988,7 @@ namespace LiteFX::Rendering {
         /// <param name="semanticIndex">The semantic index of the attribute.</param>
         template <typename TSelf>
         [[nodiscard]] constexpr auto withAttribute(this TSelf&& self, UInt32 location, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf&& {
-            self.withAttribute({ location, offset, format, semantic, semanticIndex });
-            return std::forward<TSelf>(self);
+            return std::forward<TSelf>(self).withAttribute({ location, offset, format, semantic, semanticIndex });
         }
     };
 
@@ -1509,7 +1507,7 @@ namespace LiteFX::Rendering {
         /// <param name="program">The program to add to the pipeline layout.</param>
         template <typename TSelf>
         constexpr auto shaderProgram(this TSelf&& self, SharedPtr<shader_program_type> program) -> TSelf&& {
-            self.m_state.shaderProgram = program;
+            self.m_state.shaderProgram = std::move(program);
             return std::forward<TSelf>(self);
         }
 
@@ -1519,7 +1517,7 @@ namespace LiteFX::Rendering {
         /// <param name="layout">The pipeline layout to initialize the render pipeline with.</param>
         template <typename TSelf>
         constexpr auto layout(this TSelf&& self, SharedPtr<pipeline_layout_type> layout) -> TSelf&& {
-            self.m_state.pipelineLayout = layout;
+            self.m_state.pipelineLayout = std::move(layout);
             return std::forward<TSelf>(self);
         }
 
@@ -1529,7 +1527,7 @@ namespace LiteFX::Rendering {
         /// <param name="rasterizer">The rasterizer state to initialize the render pipeline with.</param>
         template <typename TSelf>
         constexpr auto rasterizer(this TSelf&& self, SharedPtr<rasterizer_type> rasterizer) -> TSelf&& {
-            self.m_state.rasterizer = rasterizer;
+            self.m_state.rasterizer = std::move(rasterizer);
             return std::forward<TSelf>(self);
         }
 
@@ -1539,7 +1537,7 @@ namespace LiteFX::Rendering {
         /// <param name="inputAssembler">The input assembler state to initialize the render pipeline with.</param>
         template <typename TSelf>
         constexpr auto inputAssembler(this TSelf&& self, SharedPtr<input_assembler_type> inputAssembler) -> TSelf&& {
-            self.m_state.inputAssembler = inputAssembler;
+            self.m_state.inputAssembler = std::move(inputAssembler);
             return std::forward<TSelf>(self);
         }
 
@@ -1617,7 +1615,7 @@ namespace LiteFX::Rendering {
         /// <param name="program">The program to add to the pipeline layout.</param>
         template <typename TSelf>
         constexpr auto shaderProgram(this TSelf&& self, SharedPtr<shader_program_type> program) -> TSelf&& {
-            self.m_state.shaderProgram = program;
+            self.m_state.shaderProgram = std::move(program);
             return std::forward<TSelf>(self);
         }
 
@@ -1627,7 +1625,7 @@ namespace LiteFX::Rendering {
         /// <param name="layout">The pipeline layout to initialize the compute pipeline with.</param>
         template <typename TSelf>
         constexpr auto layout(this TSelf&& self, SharedPtr<pipeline_layout_type> layout) -> TSelf&& {
-            self.m_state.pipelineLayout = layout;
+            self.m_state.pipelineLayout = std::move(layout);
             return std::forward<TSelf>(self);
         }
     };
@@ -1688,7 +1686,7 @@ namespace LiteFX::Rendering {
         /// <param name="layout">The pipeline layout to initialize the ray-tracing pipeline with.</param>
         template <typename TSelf>
         constexpr auto layout(this TSelf&& self, SharedPtr<pipeline_layout_type> layout) -> TSelf&& {
-            self.m_state.pipelineLayout = layout;
+            self.m_state.pipelineLayout = std::move(layout);
             return std::forward<TSelf>(self);
         }
 

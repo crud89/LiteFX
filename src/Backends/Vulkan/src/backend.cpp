@@ -273,7 +273,7 @@ const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& 
     return nullptr;
 }
 
-void VulkanBackend::registerDevice(String name, SharedPtr<VulkanDevice>&& device)
+void VulkanBackend::registerDevice(const String& name, SharedPtr<VulkanDevice>&& device)
 {
     if (m_impl->m_devices.contains(name))
         throw InvalidArgumentException("name", "The backend already contains a device with the name \"{0}\".", name);

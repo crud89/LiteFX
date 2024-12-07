@@ -113,7 +113,7 @@ const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UIn
     return nullptr;
 }
 
-void DirectX12Backend::registerDevice(String name, SharedPtr<DirectX12Device>&& device)
+void DirectX12Backend::registerDevice(const String& name, SharedPtr<DirectX12Device>&& device)
 {
     if (m_impl->m_devices.contains(name)) [[unlikely]]
         throw InvalidArgumentException("name", "The backend already contains a device with the name \"{0}\".", name);

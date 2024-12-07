@@ -34,7 +34,7 @@ struct GlfwWindowDeleter {
 
 typedef UniquePtr<GLFWwindow, GlfwWindowDeleter> GlfwWindowPtr;
 
-#define NUM_WORKERS 9
+consteval const UInt32 NUM_WORKERS = 9;
 
 class SampleApp : public LiteFX::App {
 public:
