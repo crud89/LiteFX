@@ -1,7 +1,7 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-#define LIGHT_SOURCES 8
+constexpr UInt32 LIGHT_SOURCES = 8;
 
 enum DescriptorSets : UInt32 // NOLINT(performance-enum-size)
 {
@@ -47,6 +47,7 @@ const Array<UInt16> indices = {
 };
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 
 struct CameraBuffer {
     glm::mat4 ViewProjection;
@@ -57,12 +58,22 @@ struct TransformBuffer {
     glm::mat4 World;
 } transform;
 
-struct LightBuffer {
+struct LightBuffer { // NOLINT(cppcoreguidelines-avoid-c-arrays)
     glm::vec4 Position;
     glm::vec4 Color;
     glm::vec4 Properties;   // x: radius, y: intensity, w: enabled (if > 0.f)
-} lights[LIGHT_SOURCES];
+} lights[LIGHT_SOURCES] = {
+    { .Position = { -1.f, -1.f, -1.f, 1.f }, .Color = { 0.f, 0.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } },
+    { .Position = {  1.f, -1.f, -1.f, 1.f }, .Color = { 1.f, 1.f, 0.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } },
+    { .Position = { -1.f,  1.f, -1.f, 1.f }, .Color = { 0.f, 1.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } },
+    { .Position = {  1.f,  1.f, -1.f, 1.f }, .Color = { 1.f, 1.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } },
+    { .Position = { -1.f, -1.f,  1.f, 1.f }, .Color = { 0.f, 1.f, 0.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } },
+    { .Position = {  1.f, -1.f,  1.f, 1.f }, .Color = { 1.f, 0.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } },
+    { .Position = { -1.f,  1.f,  1.f, 1.f }, .Color = { 1.f, 0.f, 0.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } },
+    { .Position = {  1.f,  1.f,  1.f, 1.f }, .Color = { 0.f, 0.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } },
+};
 
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 template<typename TRenderBackend> requires
@@ -111,8 +122,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
 
     // Create a geometry render pass.
-    UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
-        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
+    SharedPtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
+        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f }) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
     // Map all render targets to the frame buffer.
@@ -163,7 +174,6 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     this->updateCamera(*commandBuffer, *cameraBuffer);
 
     // Allocate the lights buffer and the lights staging buffer.
-    this->initLights();
     auto lightsBuffer = m_device->factory().createBuffer("Lights", staticBindingLayout, 1, ResourceHeap::Resource, LIGHT_SOURCES);
     commandBuffer->transfer(lights | std::views::transform([](const LightBuffer& light) { return static_cast<const void*>(&light); }) | std::ranges::to<Array<const void*>>(), sizeof(LightBuffer), *lightsBuffer, 0);
 
@@ -193,25 +203,13 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     std::ranges::for_each(transformBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(std::format("Transform Bindings {0}", i++), std::move(binding)); });
 }
 
-void SampleApp::initLights()
-{
-    lights[0] = LightBuffer{ .Position = { -1.f, -1.f, -1.f, 1.f }, .Color = { 0.f, 0.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
-    lights[1] = LightBuffer{ .Position = {  1.f, -1.f, -1.f, 1.f }, .Color = { 1.f, 1.f, 0.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
-    lights[2] = LightBuffer{ .Position = { -1.f,  1.f, -1.f, 1.f }, .Color = { 0.f, 1.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
-    lights[3] = LightBuffer{ .Position = {  1.f,  1.f, -1.f, 1.f }, .Color = { 1.f, 1.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
-    lights[4] = LightBuffer{ .Position = { -1.f, -1.f,  1.f, 1.f }, .Color = { 0.f, 1.f, 0.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
-    lights[5] = LightBuffer{ .Position = {  1.f, -1.f,  1.f, 1.f }, .Color = { 1.f, 0.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
-    lights[6] = LightBuffer{ .Position = { -1.f,  1.f,  1.f, 1.f }, .Color = { 1.f, 0.f, 0.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
-    lights[7] = LightBuffer{ .Position = {  1.f,  1.f,  1.f, 1.f }, .Color = { 0.f, 0.f, 1.f, 1.f }, .Properties = { 5.f, 2.5f, 0.f, 1.f } };
-}
-
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
 {
     // Calculate the camera view/projection matrix.
     auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
-    camera.Position = glm::vec4(3.0f, 0.0f, 1.5f, 1.f);
+    camera.Position = glm::vec4(3.0f, 0.0f, 1.5f, 1.f); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     glm::mat4 view = glm::lookAt(glm::vec3(camera.Position), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
+    glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     camera.ViewProjection = projection * view;
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
@@ -256,7 +254,7 @@ void SampleApp::onInit()
         auto window = m_window.get();
 
         // Get the proper frame buffer size.
-        int width, height;
+        int width{}, height{};
         ::glfwGetFramebufferSize(window, &width, &height);
 
         // Create viewport and scissors.
@@ -271,7 +269,7 @@ void SampleApp::onInit()
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.
-        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3, false);
+        m_device = std::addressof(backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3, false));
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);
@@ -300,7 +298,7 @@ void SampleApp::onInit()
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 }
 
-void SampleApp::onResize(const void* /*sender*/, ResizeEventArgs e)
+void SampleApp::onResize(const void* /*sender*/, const ResizeEventArgs& e)
 {
     // In order to re-create the swap chain, we need to wait for all frames in flight to finish.
     m_device->wait();
@@ -350,7 +348,7 @@ void SampleApp::keyDown(int key, int /*scancode*/, int action, int /*mods*/)
             RectI clientRect, monitorRect;
             GLFWmonitor* currentMonitor = nullptr;
             const GLFWvidmode* currentVideoMode = nullptr;
-            int monitorCount;
+            int monitorCount{};
 
             ::glfwGetWindowPos(m_window.get(), &clientRect.x(), &clientRect.y());
             ::glfwGetWindowSize(m_window.get(), &clientRect.width(), &clientRect.height());
@@ -359,7 +357,7 @@ void SampleApp::keyDown(int key, int /*scancode*/, int action, int /*mods*/)
 
             for (int i(0); i < monitorCount; ++i)
             {
-                auto monitor = monitors[i];
+                auto monitor = monitors[i]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
                 auto mode = ::glfwGetVideoMode(monitor);
                 ::glfwGetMonitorPos(monitor, &monitorRect.x(), &monitorRect.y());
                 monitorRect.width() = mode->width;
@@ -414,7 +412,7 @@ void SampleApp::updateWindowTitle()
     auto frameTime = std::chrono::duration<float, std::chrono::milliseconds::period>(std::chrono::high_resolution_clock::now() - lastTime).count();
 
     std::stringstream title;
-    title << this->name() << " | " << "Backend: " << this->activeBackend(BackendType::Rendering)->name() << " | " << static_cast<UInt32>(1000.0f / frameTime) << " FPS";
+    title << this->name() << " | " << "Backend: " << this->activeBackend(BackendType::Rendering)->name() << " | " << static_cast<UInt32>(1000.0f / frameTime) << " FPS"; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
     ::glfwSetWindowTitle(m_window.get(), title.str().c_str());
     lastTime = std::chrono::high_resolution_clock::now();
@@ -458,7 +456,7 @@ void SampleApp::drawFrame()
     auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
     // Compute world transform and update the transform buffer.
-    transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     transformBuffer.map(static_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
     // Bind both descriptor sets to the pipeline.

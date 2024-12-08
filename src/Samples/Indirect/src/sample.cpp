@@ -4,7 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 
-consteval const UInt32 NUM_INSTANCES = 163840u;  // 10 * 128 * 128
+constexpr UInt32 NUM_INSTANCES = 163840u;  // 10 * 128 * 128
 
 enum DescriptorSets : UInt32 // NOLINT(performance-enum-size)
 {
@@ -24,8 +24,9 @@ const Array<Vertex> vertices =
 const Array<UInt16> indices = { 0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3 };
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
+// NOLINTBEGIN(cppcoreguidelines-avoid-c-arrays)
 
-struct alignas(16) CameraBuffer {
+struct alignas(16) CameraBuffer { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     glm::mat4 ViewProjection;
     glm::mat4 Projection;
     glm::vec4 Position;
@@ -35,10 +36,10 @@ struct alignas(16) CameraBuffer {
     float NearPlane;
     float FarPlane;
     glm::vec2 Padding;
-    glm::vec4 Frustum[6];
+    glm::vec4 Frustum[6]; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 } camera;
 
-struct alignas(16) ObjectBuffer {
+struct alignas(16) ObjectBuffer { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     glm::mat4 Transform;
     glm::vec4 Color;
     float BoundingRadius;
@@ -47,6 +48,7 @@ struct alignas(16) ObjectBuffer {
     int VertexOffset;
 } objects[NUM_INSTANCES];
 
+// NOLINTEND(cppcoreguidelines-avoid-c-arrays)
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 template<typename TRenderBackend> requires
@@ -71,8 +73,9 @@ static constexpr glm::vec4 normalizePlane(const glm::vec4& plane) {
 static inline void initializeObjects() {
     std::srand(static_cast<UInt32>(std::time(nullptr)));
 
-    for (UInt32 i{ 0 }; i < NUM_INSTANCES; ++i)
+    for (int i{ 0 }; i < static_cast<int>(NUM_INSTANCES); ++i)
     {
+        // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
         int x = i % 128;
         int y = (i / 128) % 128;
         int z = i / 16384;
@@ -81,15 +84,16 @@ static inline void initializeObjects() {
         auto position = glm::vec3(x - 64, y - 64, z - 5) * 2.0f;
         
         if (x == 64 && y == 64 && z == 5)
-            position.z -= 0.35f;
+            position.z -= 0.35f; // NOLINT(cppcoreguidelines-pro-type-union-access)
 
-        auto& instance = objects[i];
-        instance.Transform = glm::translate(glm::identity<glm::mat4>(), position) * glm::eulerAngleXYZ(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX);
-        instance.Color = glm::vec4(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, 1.0f);
+        auto& instance = objects[i]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+        instance.Transform = glm::translate(glm::identity<glm::mat4>(), position) * glm::eulerAngleXYZ(static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX);
+        instance.Color = glm::vec4(static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX, 1.0f);
         instance.BoundingRadius = glm::length(glm::vec3(0.5f, 0.5f, 0.5f));
         instance.FirstIndex = 0;
         instance.VertexOffset = 0;
         instance.IndexCount = 12;
+        // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
     }
 }
 
@@ -123,8 +127,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
 
     // Create a geometry render pass.
-    UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
-        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
+    SharedPtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
+        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f }) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
     // Map all render targets to the frame buffer.
@@ -175,7 +179,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
     auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
-    commandBuffer->transfer(asShared(std::move(stagedVertices)), *vertexBuffer, 0, 0, static_cast<UInt32>(vertices.size()));
+    commandBuffer->transfer(std::move(stagedVertices), *vertexBuffer, 0, 0, static_cast<UInt32>(vertices.size()));
 
     // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.
     auto stagedIndices = m_device->factory().createIndexBuffer(*m_inputAssembler->indexBufferLayout(), ResourceHeap::Staging, static_cast<UInt32>(indices.size()));
@@ -183,7 +187,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
 
     // Create the actual index buffer and transfer the staging buffer into it.
     auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, static_cast<UInt32>(indices.size()));
-    commandBuffer->transfer(asShared(std::move(stagedIndices)), *indexBuffer, 0, 0, static_cast<UInt32>(indices.size()));
+    commandBuffer->transfer(std::move(stagedIndices), *indexBuffer, 0, 0, static_cast<UInt32>(indices.size()));
 
     // Initialize the camera buffer.
     // NOTE: Since we bind the same resource to pipelines of different type (compute and graphics), we need two descriptor sets targeting the same buffers.
@@ -211,8 +215,8 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto objectsCullBinding = objectsCullBindingLayout.allocate({ { .resource = *objectsBuffer } });
     auto objectsGeometryBinding = objectsGeometryBindingLayout.allocate({ { .resource = *objectsBuffer } });
 
-    objectsStagingBuffer->map(objects, sizeof(ObjectBuffer) * NUM_INSTANCES);
-    commandBuffer->transfer(asShared(std::move(objectsStagingBuffer)), *objectsBuffer);
+    objectsStagingBuffer->map(objects, sizeof(ObjectBuffer) * NUM_INSTANCES); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
+    commandBuffer->transfer(std::move(objectsStagingBuffer), *objectsBuffer);
 
     // Create a buffer for recording the indirect draw calls.
     // 
@@ -252,17 +256,17 @@ void SampleApp::updateCamera(IBuffer& buffer, UInt32 backBuffer) const
     auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
     const float speed = 0.3f;
 
-    glm::vec3 position = { 0.0f, 0.0f, 0.35f };
+    glm::vec3 position = { 0.0f, 0.0f, 0.35f }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     glm::vec3 target   = { std::sinf(time * speed), std::cosf(time * speed), 0.0f };
     glm::vec3 forward  = glm::normalize(target - position);
     glm::vec3 right    = glm::normalize(glm::cross({ 0.0f, 0.0f, 1.0f }, forward));
     glm::vec3 up       = glm::normalize(glm::cross(forward, right));
-    const float nearPlane = 0.0001f, farPlane = 1000.0f;
+    const float nearPlane = 0.0001f, farPlane = 1000.0f; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
     // Calculate the camera view/projection matrix.
     auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
     glm::mat4 view = glm::lookAt(position, target, up);
-    glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, nearPlane, farPlane);
+    glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, nearPlane, farPlane); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     camera.ViewProjection = projection * view;
     camera.Projection = projection;
     camera.Position = glm::vec4(position, 1.0f);
@@ -273,6 +277,7 @@ void SampleApp::updateCamera(IBuffer& buffer, UInt32 backBuffer) const
     camera.FarPlane = farPlane;
     
     // Compute frustum side planes.
+    // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
     auto projectionTransposed = glm::transpose(camera.ViewProjection); // GLM uses column-major matrices, transpose lets us index rows.
     camera.Frustum[0] = ::normalizePlane(projectionTransposed[3] + projectionTransposed[0]);  // Left
     camera.Frustum[1] = ::normalizePlane(projectionTransposed[3] - projectionTransposed[0]);  // Right
@@ -280,6 +285,7 @@ void SampleApp::updateCamera(IBuffer& buffer, UInt32 backBuffer) const
     camera.Frustum[3] = ::normalizePlane(projectionTransposed[3] - projectionTransposed[1]);  // Top
     camera.Frustum[4] = ::normalizePlane(projectionTransposed[3] + projectionTransposed[2]);  // Near
     camera.Frustum[5] = ::normalizePlane(projectionTransposed[3] - projectionTransposed[2]);  // Far
+    // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
     buffer.map(static_cast<const void*>(&camera), sizeof(camera), backBuffer);
@@ -326,7 +332,7 @@ void SampleApp::onInit()
         auto window = m_window.get();
 
         // Get the proper frame buffer size.
-        int width, height;
+        int width{}, height{};
         ::glfwGetFramebufferSize(window, &width, &height);
 
         // Create viewport and scissors.
@@ -341,7 +347,7 @@ void SampleApp::onInit()
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.
-        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, Size2d(width, height), 3, false, GraphicsDeviceFeatures { .DrawIndirect = true });
+        m_device = std::addressof(backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, Size2d(width, height), 3, false, GraphicsDeviceFeatures { .DrawIndirect = true }));
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);
@@ -370,7 +376,7 @@ void SampleApp::onInit()
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 }
 
-void SampleApp::onResize(const void* /*sender*/, ResizeEventArgs e)
+void SampleApp::onResize(const void* /*sender*/, const ResizeEventArgs& e)
 {
     // In order to re-create the swap chain, we need to wait for all frames in flight to finish.
     m_device->wait();
@@ -414,7 +420,7 @@ void SampleApp::keyDown(int key, int /*scancode*/, int action, int /*mods*/)
             RectI clientRect, monitorRect;
             GLFWmonitor* currentMonitor = nullptr;
             const GLFWvidmode* currentVideoMode = nullptr;
-            int monitorCount;
+            int monitorCount{};
 
             ::glfwGetWindowPos(m_window.get(), &clientRect.x(), &clientRect.y());
             ::glfwGetWindowSize(m_window.get(), &clientRect.width(), &clientRect.height());
@@ -423,7 +429,7 @@ void SampleApp::keyDown(int key, int /*scancode*/, int action, int /*mods*/)
 
             for (int i(0); i < monitorCount; ++i)
             {
-                auto monitor = monitors[i];
+                auto monitor = monitors[i]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
                 auto mode = ::glfwGetVideoMode(monitor);
                 ::glfwGetMonitorPos(monitor, &monitorRect.x(), &monitorRect.y());
                 monitorRect.width() = mode->width;
@@ -468,7 +474,7 @@ void SampleApp::updateWindowTitle()
     auto frameTime = std::chrono::duration<float, std::chrono::milliseconds::period>(std::chrono::high_resolution_clock::now() - lastTime).count();
 
     std::stringstream title;
-    title << this->name() << " | " << "Backend: " << this->activeBackend(BackendType::Rendering)->name() << " | " << static_cast<UInt32>(1000.0f / frameTime) << " FPS";
+    title << this->name() << " | " << "Backend: " << this->activeBackend(BackendType::Rendering)->name() << " | " << static_cast<UInt32>(1000.0f / frameTime) << " FPS"; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
     ::glfwSetWindowTitle(m_window.get(), title.str().c_str());
     lastTime = std::chrono::high_resolution_clock::now();
@@ -520,7 +526,7 @@ void SampleApp::drawFrame()
     cullCommands->bind(indirectBindings);
 
     // Dispatch cull pass.
-    cullCommands->dispatch({ NUM_INSTANCES / 128, 1, 1 });
+    cullCommands->dispatch({ NUM_INSTANCES / 128, 1, 1 }); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
     // Submit the cull pass commands.
     queue.submit(cullCommands);

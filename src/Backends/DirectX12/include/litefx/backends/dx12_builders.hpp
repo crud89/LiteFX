@@ -22,7 +22,7 @@ namespace LiteFX::Rendering::Backends {
 		~DirectX12BarrierBuilder() noexcept override;
 
 		DirectX12BarrierBuilder(const DirectX12BarrierBuilder&) = delete;
-		DirectX12BarrierBuilder(DirectX12BarrierBuilder&&) noexcept = delete;
+		DirectX12BarrierBuilder(DirectX12BarrierBuilder&&) noexcept = default;
 		DirectX12BarrierBuilder& operator=(const DirectX12BarrierBuilder&) = delete;
 		DirectX12BarrierBuilder& operator=(DirectX12BarrierBuilder&&) noexcept = delete;
 

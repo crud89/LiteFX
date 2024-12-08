@@ -399,7 +399,7 @@ namespace LiteFX::Math {
 		constexpr Matrix(const glm::mat<mat_cols, mat_rows, scalar_type>& mat) noexcept {
 			for (int r { 0 }; r < mat_rows; ++r)
 				for (int c { 0 }; c < mat_cols; ++c)
-					m_elements[r * mat_cols + c] = mat[c][r];
+					m_elements[r * mat_cols + c] = mat[c][r]; // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
 		}
 
 		/// <summary>
@@ -409,7 +409,7 @@ namespace LiteFX::Math {
 		constexpr Matrix(glm::mat<mat_cols, mat_rows, scalar_type>&& mat) noexcept {
 			for (size_t r { 0 }; r < mat_rows; ++r)
 				for (size_t c { 0 }; c < mat_cols; ++c)
-					m_elements[r * mat_cols + c] = std::move(mat[c][r]);
+					m_elements[r * mat_cols + c] = std::move(mat[c][r]); // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
 		}
 
 		/// <summary>

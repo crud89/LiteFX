@@ -77,7 +77,7 @@ int main(const int argc, const char** argv) // NOLINT(bugprone-exception-escape)
 	DWORD consoleMode = 0;
 
 	if (console == INVALID_HANDLE_VALUE || !::GetConsoleMode(console, &consoleMode))
-		return ::GetLastError();
+		return static_cast<int>(::GetLastError());
 
 	::SetConsoleMode(console, consoleMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 #endif

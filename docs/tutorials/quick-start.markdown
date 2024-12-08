@@ -207,7 +207,7 @@ With the adapter, surface and frame buffer extent, we can go ahead to create our
 ```cxx
 int width, height;
 ::glfwGetFramebufferSize(m_window, &width, &height);
-m_device = backend->createDevice(*adapter, *surface, Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
+m_device = backend->createDevice(*adapter, *surface, Format::B8G8R8A8_SRGB, Size2d(width, height), 3).shared_from_this();
 ```
 
 While we are at it, we can also initialize the viewport and scissor rectangle here:

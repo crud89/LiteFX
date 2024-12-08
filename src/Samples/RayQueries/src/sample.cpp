@@ -10,7 +10,7 @@
 #include <random>
 
 // Currently there's nine instances of two geometries.
-consteval const UInt32 NUM_INSTANCES = 9;
+constexpr UInt32 NUM_INSTANCES = 9;
 
 enum class DescriptorSets : UInt32 // NOLINT(performance-enum-size)
 {
@@ -19,7 +19,7 @@ enum class DescriptorSets : UInt32 // NOLINT(performance-enum-size)
     Sampler      = 2  // Skybox sampler state.
 };
 
-const Array<Vertex> _vertices =
+const Array<Vertex> vertices =
 {
     { { -0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
     { {  0.5f,  0.5f, -0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f,  1.0f, 0.0f }, { 0.0f, 0.0f } },
@@ -47,7 +47,7 @@ const Array<Vertex> _vertices =
     { {  0.5f,  0.5f,  0.5f }, { 0.33f, 0.33f, 0.33f, 1.0f }, { 0.0f, 0.0f,  1.0f }, { 0.0f, 0.0f } }
 };
 
-const Array<UInt16> _indices = {
+const Array<UInt16> indices = {
     0, 1, 2, 1, 3, 2,       // Front
     4, 6, 5, 5, 6, 7,       // Back
     8, 9, 10, 9, 11, 10,    // Right
@@ -65,7 +65,7 @@ struct CameraBuffer {
     glm::vec2 ViewportSize;
 } camera;
 
-struct MaterialData {
+struct MaterialData { // NOLINT(cppcoreguidelines-avoid-c-arrays)
     glm::vec4 Color = { 0.1f, 0.1f, 0.1f, 1.0f };
 } materials[NUM_INSTANCES];
 
@@ -116,8 +116,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
 
     // Create a geometry render pass.
-    UniquePtr<RenderPass> renderPass = device->buildRenderPass("Deferred")
-        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
+    SharedPtr<RenderPass> renderPass = device->buildRenderPass("Deferred")
+        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f }) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
     // Map all render targets to the frame buffer.
@@ -154,12 +154,12 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto commandBuffer = m_device->defaultQueue(QueueType::Graphics).createCommandBuffer(true);
 
     // Create the vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(_vertices.size()), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
-    commandBuffer->transfer(_vertices.data(), static_cast<UInt32>(_vertices.size() * sizeof(::Vertex)), *vertexBuffer, 0, static_cast<UInt32>(_vertices.size()));
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
+    commandBuffer->transfer(vertices.data(), static_cast<UInt32>(vertices.size() * sizeof(::Vertex)), *vertexBuffer, 0, static_cast<UInt32>(vertices.size()));
 
     // Create the index buffer and transfer the staging buffer into it.
-    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, static_cast<UInt32>(_indices.size()), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
-    commandBuffer->transfer(_indices.data(), static_cast<UInt32>(_indices.size() * m_inputAssembler->indexBufferLayout()->elementSize()), *indexBuffer, 0, static_cast<UInt32>(_indices.size()));
+    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, static_cast<UInt32>(indices.size()), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
+    commandBuffer->transfer(indices.data(), static_cast<UInt32>(indices.size() * m_inputAssembler->indexBufferLayout()->elementSize()), *indexBuffer, 0, static_cast<UInt32>(indices.size()));
 
     // Before building the acceleration structures the GPU needs to wait for the transfer to finish.
     auto barrier = m_device->makeBarrier(PipelineStage::Transfer, PipelineStage::AccelerationStructureBuild);
@@ -169,46 +169,46 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
 
     // Pre-build acceleration structures. We start with 2 bottom-level acceleration structures (BLAS) for our simple geometry and a few top-level acceleration structures (TLAS) for the 
     // instances. The geometries share one vertex and index buffer.
-    auto vertices = asShared(std::move(vertexBuffer));
-    auto indices = asShared(std::move(indexBuffer));
     auto opaque = asShared(m_device->factory().createBottomLevelAccelerationStructure(AccelerationStructureFlags::AllowCompaction | AccelerationStructureFlags::MinimizeMemory));
-    opaque->withTriangleMesh({ vertices, indices, nullptr, GeometryFlags::Opaque });
+    opaque->withTriangleMesh({ vertexBuffer, indexBuffer, nullptr, GeometryFlags::Opaque });
 
     // Add an empty geometry, so that the geometry index of the second one will increase, causing it to get reflective (as the hit group changes). Not the most elegant solution, but works 
     // for demonstration purposes.
     auto reflective = asShared(m_device->factory().createBottomLevelAccelerationStructure(AccelerationStructureFlags::AllowCompaction | AccelerationStructureFlags::MinimizeMemory));
     auto dummyVertexBuffer = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, 1, ResourceUsage::AccelerationStructureBuildInput);
-    reflective->withTriangleMesh({ asShared(std::move(dummyVertexBuffer)), SharedPtr<IIndexBuffer>() });
-    reflective->withTriangleMesh({ vertices, indices, nullptr, GeometryFlags::Opaque });
+    reflective->withTriangleMesh({ std::move(dummyVertexBuffer), SharedPtr<IIndexBuffer>() });
+    reflective->withTriangleMesh({ vertexBuffer, indexBuffer, nullptr, GeometryFlags::Opaque });
 
     // Allocate a single buffer for all bottom-level acceleration structures.
     // NOTE: We can use the sizes as offsets here directly, as they are already properly aligned when requested from the device.
-    UInt64 opaqueSize, opaqueScratchSize, reflectiveSize, reflectiveScratchSize;
+    UInt64 opaqueSize{}, opaqueScratchSize{}, reflectiveSize{}, reflectiveScratchSize{};
     m_device->computeAccelerationStructureSizes(*opaque, opaqueSize, opaqueScratchSize);
     m_device->computeAccelerationStructureSizes(*reflective, reflectiveSize, reflectiveScratchSize);
-    auto blasBuffer = asShared(m_device->factory().createBuffer("BLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, opaqueSize + reflectiveSize, 1u, ResourceUsage::AllowWrite));
+    auto blasBuffer = m_device->factory().createBuffer("BLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, opaqueSize + reflectiveSize, 1u, ResourceUsage::AllowWrite);
 
     // Orient instances randomly.
     std::srand(static_cast<UInt32>(std::time(nullptr)));
 
+    // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
     auto tlas = m_device->factory().createTopLevelAccelerationStructure("TLAS", AccelerationStructureFlags::AllowCompaction | AccelerationStructureFlags::MinimizeMemory);
-    tlas->withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-3.0f, -3.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 0)
-        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-4.0f, 0.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 1)
-        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-3.0f, 3.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 2)
-        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(0.0f, -4.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 3)
-        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(0.0f, 4.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 4)
-        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(3.0f, -3.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 5)
-        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(4.0f, 0.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 6)
-        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(3.0f, 3.0f, 0.0f)) * glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX)), 7);
+    tlas->withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-3.0f, -3.0f, 0.0f)) * glm::eulerAngleXYX(static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX)), 0)
+        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-4.0f, 0.0f, 0.0f)) * glm::eulerAngleXYX(static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX)), 1)
+        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(-3.0f, 3.0f, 0.0f)) * glm::eulerAngleXYX(static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX)), 2)
+        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(0.0f, -4.0f, 0.0f)) * glm::eulerAngleXYX(static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX)), 3)
+        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(0.0f, 4.0f, 0.0f)) * glm::eulerAngleXYX(static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX)), 4)
+        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(3.0f, -3.0f, 0.0f)) * glm::eulerAngleXYX(static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX)), 5)
+        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(4.0f, 0.0f, 0.0f)) * glm::eulerAngleXYX(static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX)), 6)
+        .withInstance(opaque, glm::mat4x3(glm::translate(glm::identity<glm::mat4>(), glm::vec3(3.0f, 3.0f, 0.0f)) * glm::eulerAngleXYX(static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX)), 7);
 
     // Add the reflective instance.
-    tlas->withInstance(reflective, glm::mat4x3(glm::eulerAngleXYX(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(3.0f))), 8);
-
+    tlas->withInstance(reflective, glm::mat4x3(glm::eulerAngleXYX(static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX) * glm::scale(glm::identity<glm::mat4>(), glm::vec3(3.0f))), 8);
+    // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
+    // 
     // Create a scratch buffer.
-    UInt64 tlasSize, tlasScratchSize;
+    UInt64 tlasSize{}, tlasScratchSize{};
     m_device->computeAccelerationStructureSizes(*tlas, tlasSize, tlasScratchSize);
     auto scratchBufferSize = std::max(std::max(opaqueScratchSize, reflectiveScratchSize), tlasScratchSize);
-    auto scratchBuffer = asShared(m_device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, scratchBufferSize, 1, ResourceUsage::AllowWrite));
+    auto scratchBuffer = m_device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, scratchBufferSize, 1, ResourceUsage::AllowWrite);
 
     // Build the BLAS and the TLAS. We need to barrier in between both to prevent simultaneous scratch buffer writes.
     opaque->build(*commandBuffer, scratchBuffer, blasBuffer, 0, opaqueSize);
@@ -225,7 +225,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // NOTE: See textures sample for details. We're not creating mip maps here.
     using ImageDataPtr = UniquePtr<stbi_uc, decltype(&::stbi_image_free)>;
 
-    int width, height, channels;
+    int width{}, height{}, channels{};
     auto imageData = ImageDataPtr(::stbi_load("assets/rq_skybox.jpg", &width, &height, &channels, STBI_rgb_alpha), ::stbi_image_free);
 
     if (imageData == nullptr)
@@ -249,8 +249,8 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto samplerBindings = samplerBindingsLayout.allocate({ { .resource = *sampler } });
         
     // Setup random colors for each material. The last one (for the reflective object) can stay the default.
-    for (int i{ 0 }; i < NUM_INSTANCES - 1; ++i)
-        materials[i].Color = glm::vec4(std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, std::rand() / (float)RAND_MAX, 1.0f);
+    for (UInt32 i{ 0 }; i < NUM_INSTANCES - 1; ++i)
+        materials[i].Color = glm::vec4(static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX, static_cast<float>(std::rand()) / (float)RAND_MAX, 1.0f); // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
 
     // Bind the material data.
     auto& materialBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::Materials));
@@ -265,13 +265,15 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // Compact the acceleration structures and setup static bindings.
     {
         // Get compacted sizes to allocate enough memory in one single buffer.
+        // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
         auto opaqueCompactedSize = Math::align<UInt64>(opaque->size(), 256);
         auto reflectiveCompactedSize = Math::align<UInt64>(reflective->size(), 256);
         auto tlasCompactedSize = Math::align<UInt64>(tlas->size(), 256);
         auto overallSize = opaqueCompactedSize + reflectiveCompactedSize + tlasCompactedSize;
+        // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
         // Allocate one buffer for all acceleration structures and allocate them individually.
-        auto accelerationStructureBuffer = asShared(m_device->factory().createBuffer("Acceleration Structures", BufferType::AccelerationStructure, ResourceHeap::Resource, overallSize, 1u));
+        auto accelerationStructureBuffer = m_device->factory().createBuffer("Acceleration Structures", BufferType::AccelerationStructure, ResourceHeap::Resource, overallSize, 1u);
         auto compactedOpaque = m_device->factory().createBottomLevelAccelerationStructure("Opaque BLAS");
         auto compactedReflective = m_device->factory().createBottomLevelAccelerationStructure("Reflective BLAS");
         auto compactedTlas = m_device->factory().createTopLevelAccelerationStructure("TLAS");
@@ -318,6 +320,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
 
 void SampleApp::updateCamera(IBuffer& buffer) const
 {
+    // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
     // Store the initial time this method has been called first.
     static auto start = std::chrono::high_resolution_clock::now();
 
@@ -339,6 +342,7 @@ void SampleApp::updateCamera(IBuffer& buffer) const
 
     // Update the camera buffer.
     buffer.map(static_cast<const void*>(&camera), sizeof(camera));
+    // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 }
 
 void SampleApp::onStartup()
@@ -379,7 +383,7 @@ void SampleApp::onInit()
         auto window = m_window.get();
 
         // Get the proper frame buffer size.
-        int width, height;
+        int width{}, height{};
         ::glfwGetFramebufferSize(window, &width, &height);
 
         auto adapter = backend->findAdapter(m_adapterId);
@@ -394,7 +398,7 @@ void SampleApp::onInit()
         m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), static_cast<Float>(height)));
 
         // Create the device.
-        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, Size2d(width, height), 3, false, GraphicsDeviceFeatures { .RayQueries = true });
+        m_device = std::addressof(backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, Size2d(width, height), 3, false, GraphicsDeviceFeatures { .RayQueries = true }));
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);
@@ -423,7 +427,7 @@ void SampleApp::onInit()
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 }
 
-void SampleApp::onResize(const void* /*sender*/, ResizeEventArgs e)
+void SampleApp::onResize(const void* /*sender*/, const ResizeEventArgs& e)
 {
     // In order to re-create the swap chain, we need to wait for all frames in flight to finish.
     m_device->wait();
@@ -470,7 +474,7 @@ void SampleApp::keyDown(int key, int /*scancode*/, int action, int /*mods*/)
             RectI clientRect, monitorRect;
             GLFWmonitor* currentMonitor = nullptr;
             const GLFWvidmode* currentVideoMode = nullptr;
-            int monitorCount;
+            int monitorCount{};
 
             ::glfwGetWindowPos(m_window.get(), &clientRect.x(), &clientRect.y());
             ::glfwGetWindowSize(m_window.get(), &clientRect.width(), &clientRect.height());
@@ -479,7 +483,7 @@ void SampleApp::keyDown(int key, int /*scancode*/, int action, int /*mods*/)
 
             for (int i(0); i < monitorCount; ++i)
             {
-                auto monitor = monitors[i];
+                auto monitor = monitors[i]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
                 auto mode = ::glfwGetVideoMode(monitor);
                 ::glfwGetMonitorPos(monitor, &monitorRect.x(), &monitorRect.y());
                 monitorRect.width() = mode->width;
@@ -534,7 +538,7 @@ void SampleApp::updateWindowTitle()
     auto frameTime = std::chrono::duration<float, std::chrono::milliseconds::period>(std::chrono::high_resolution_clock::now() - lastTime).count();
 
     std::stringstream title;
-    title << this->name() << " | " << "Backend: " << this->activeBackend(BackendType::Rendering)->name() << " | " << static_cast<UInt32>(1000.0f / frameTime) << " FPS";
+    title << this->name() << " | " << "Backend: " << this->activeBackend(BackendType::Rendering)->name() << " | " << static_cast<UInt32>(1000.0f / frameTime) << " FPS"; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
     ::glfwSetWindowTitle(m_window.get(), title.str().c_str());
     lastTime = std::chrono::high_resolution_clock::now();

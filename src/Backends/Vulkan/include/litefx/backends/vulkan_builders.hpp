@@ -21,7 +21,7 @@ namespace LiteFX::Rendering::Backends {
 		explicit VulkanBarrierBuilder();
 		~VulkanBarrierBuilder() noexcept override;
 
-		VulkanBarrierBuilder(VulkanBarrierBuilder&&) noexcept = delete;
+		VulkanBarrierBuilder(VulkanBarrierBuilder&&) noexcept = default;
 		VulkanBarrierBuilder(const VulkanBarrierBuilder&) = delete;
 		VulkanBarrierBuilder& operator=(VulkanBarrierBuilder&&) noexcept = delete;
 		VulkanBarrierBuilder& operator=(const VulkanBarrierBuilder&) = delete;
