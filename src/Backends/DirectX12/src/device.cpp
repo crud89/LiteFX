@@ -44,20 +44,7 @@ public:
 	DirectX12DeviceImpl(const DirectX12DeviceImpl&) = delete;
 	DirectX12DeviceImpl& operator=(DirectX12DeviceImpl&&) noexcept = delete;
 	DirectX12DeviceImpl& operator=(const DirectX12DeviceImpl&) = delete;
-
-	~DirectX12DeviceImpl() noexcept
-	{
-		// Clear the device state.
-		m_deviceState.clear();
-
-		// Unregister the event queue.
-		if (m_eventQueue != nullptr && m_debugCallbackCookie != 0)
-			m_eventQueue->UnregisterMessageCallback(m_debugCallbackCookie);
-
-		// Release queues and swap chain.
-		m_swapChain = nullptr;
-		m_queues.clear();
-	}
+	~DirectX12DeviceImpl() noexcept = default;
 
 #ifndef NDEBUG
 private:
@@ -257,12 +244,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, GraphicsDeviceFeatures features) :
-	DirectX12Device(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-{
-}
-
-DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features, UInt32 globalBufferHeapSize, UInt32 globalSamplerHeapSize) :
+DirectX12Device::DirectX12Device(const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, UInt32 globalBufferHeapSize, UInt32 globalSamplerHeapSize) :
 	ComResource<ID3D12Device10>(nullptr), m_impl(adapter, std::move(surface), globalBufferHeapSize, globalSamplerHeapSize)
 {
 	LITEFX_DEBUG(DIRECTX12_LOG, "Creating DirectX 12 device {{ Surface: {0}, Adapter: {1} }}...", static_cast<void*>(&surface), adapter.deviceId());
@@ -275,15 +257,39 @@ DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX1
 	LITEFX_DEBUG(DIRECTX12_LOG, "Descriptor Heap Size: {0}", globalBufferHeapSize);
 	LITEFX_DEBUG(DIRECTX12_LOG, "Sampler Heap Size: {0}", globalSamplerHeapSize);
 	LITEFX_DEBUG(DIRECTX12_LOG, "--------------------------------------------------------------------------");
-
-	this->handle() = m_impl->initialize(features);
-	m_impl->createQueues(*this);
-	m_impl->m_factory = DirectX12GraphicsFactory::create(*this);
-	m_impl->m_swapChain = UniquePtr<DirectX12SwapChain>(new DirectX12SwapChain (*this, backend, format, renderArea, backBuffers, enableVsync));
-	m_impl->createBlitPipeline(*this);
 }
 
 DirectX12Device::~DirectX12Device() noexcept = default;
+
+SharedPtr<DirectX12Device> DirectX12Device::initialize(const DirectX12Backend& backend, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features)
+{
+	this->handle() = m_impl->initialize(features);
+	m_impl->createQueues(*this);
+	m_impl->m_factory = DirectX12GraphicsFactory::create(*this);
+	m_impl->m_swapChain = UniquePtr<DirectX12SwapChain>(new DirectX12SwapChain(*this, backend, format, renderArea, backBuffers, enableVsync));
+	m_impl->createBlitPipeline(*this);
+
+	return this->shared_from_this();
+}
+
+void DirectX12Device::release() noexcept
+{
+	// Clear the device state.
+	m_impl->m_deviceState.clear();
+
+	// Unregister the event queue.
+	if (m_impl->m_eventQueue != nullptr && m_impl->m_debugCallbackCookie != 0)
+		m_impl->m_eventQueue->UnregisterMessageCallback(m_impl->m_debugCallbackCookie);
+
+	m_impl->m_blitPipeline.reset();
+	m_impl->m_swapChain.reset();
+	m_impl->m_queues.clear();
+	m_impl->m_transferQueue.reset();
+	m_impl->m_computeQueue.reset();
+	m_impl->m_graphicsQueue.reset();
+	m_impl->m_surface.reset();
+	m_impl->m_factory.reset();
+}
 
 const ID3D12DescriptorHeap* DirectX12Device::globalBufferHeap() const noexcept
 {

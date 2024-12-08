@@ -454,19 +454,13 @@ public:
 	}
 
 public:
-	void initialize(Format format, const Size2d& renderArea, UInt32 buffers, bool vsync)
+	void initialize(const VulkanDevice& device, Format format, const Size2d& renderArea, UInt32 buffers, bool vsync)
 	{
-		// Check if the device is still valid.
-		auto device = m_device.lock();
-
-		if (device == nullptr) [[unlikely]]
-			throw RuntimeException("Cannot allocate swap chain from a released device instance.");
-
 		if (format == Format::Other || format == Format::None) [[unlikely]]
 			throw InvalidArgumentException("format", "The provided surface format it not a valid value.");
 
 		// Query the swap chain surface format.
-		auto surfaceFormats = this->getSurfaceFormats(device->adapter().handle(), device->surface().handle());
+		auto surfaceFormats = this->getSurfaceFormats(device.adapter().handle(), device.surface().handle());
 		Format selectedFormat{ Format::None };
 
 		if (auto match = std::ranges::find_if(surfaceFormats, [format](Format surfaceFormat) { return surfaceFormat == format; }); match != surfaceFormats.end()) [[likely]]
@@ -479,7 +473,7 @@ public:
 
 		// Get the number of images in the swap chain.
 		VkSurfaceCapabilitiesKHR deviceCaps;
-		::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device->adapter().handle(), device->surface().handle(), &deviceCaps);
+		::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.adapter().handle(), device.surface().handle(), &deviceCaps);
 		UInt32 images = std::clamp(buffers, deviceCaps.minImageCount, deviceCaps.maxImageCount);
 
 		[[unlikely]] if (images != buffers)
@@ -511,8 +505,8 @@ public:
 
 		// Query the DXGI adapter.
 		ComPtr<IDXGIAdapter1> adapter;
-		auto adapterId = device->adapter().uniqueId();
-		D3D::raiseIfFailed(factory->EnumAdapterByLuid(std::bit_cast<LUID>(&adapterId), IID_PPV_ARGS(&adapter)), "Unable to query adapter \"{0:#x}\".", adapterId);
+		auto adapterId = device.adapter().uniqueId();
+		D3D::raiseIfFailed(factory->EnumAdapterByLuid(std::bit_cast<LUID>(adapterId), IID_PPV_ARGS(&adapter)), "Unable to query adapter \"{0:#x}\".", adapterId);
 
 		// Create a D3D device.
 		D3D::raiseIfFailed(::D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_11_1, IID_PPV_ARGS(&m_d3dDevice)), "Unable to create D3D device.");
@@ -554,7 +548,7 @@ public:
 		D3D::raiseIfFailed(m_d3dDevice->CreateCommandQueue(&presentQueueDesc, IID_PPV_ARGS(&m_presentQueue)), "Unable to create present queue.");
 
 		// Create the swap chain instance.
-		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", static_cast<const void*>(device.get()), images, extent.width(), extent.height(), selectedFormat, vsync);
+		LITEFX_TRACE(VULKAN_LOG, "Creating swap chain for device {0} {{ Images: {1}, Extent: {2}x{3} Px, Format: {4}, VSync: {5} }}...", static_cast<const void*>(std::addressof(device)), images, extent.width(), extent.height(), selectedFormat, vsync);
 
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc {
 			.Width = static_cast<UInt32>(extent.width()),
@@ -571,12 +565,12 @@ public:
 		};
 
 		ComPtr<IDXGISwapChain1> swapChain;
-		auto hwnd = device->surface().windowHandle();
+		auto hwnd = device.surface().windowHandle();
 		D3D::raiseIfFailed(factory->CreateSwapChainForHwnd(m_presentQueue.Get(), hwnd, &swapChainDesc, nullptr, nullptr, &swapChain), "Unable to create interop swap chain.");
 		D3D::raiseIfFailed(swapChain.As(&m_swapChain), "The interop swap chain does not implement the IDXGISwapChain4 interface.");
 
 		// Initialize swap chain images.
-		this->createImages(selectedFormat, extent, images);
+		this->createImages(device, selectedFormat, extent, images);
 
 		// Disable Alt+Enter shortcut for fullscreen-toggle.
 		if (FAILED(factory->MakeWindowAssociation(hwnd, DXGI_MWA_NO_ALT_ENTER))) [[unlikely]]
@@ -593,12 +587,12 @@ public:
 		// Import the fence handle to signal it from Vulkan workloads.
 		VkImportSemaphoreWin32HandleInfoKHR fenceImportInfo = {
 			.sType = VK_STRUCTURE_TYPE_IMPORT_SEMAPHORE_WIN32_HANDLE_INFO_KHR,
-			.semaphore = device->defaultQueue(QueueType::Graphics).timelineSemaphore(),
+			.semaphore = device.defaultQueue(QueueType::Graphics).timelineSemaphore(),
 			.handleType = VK_EXTERNAL_SEMAPHORE_HANDLE_TYPE_D3D12_FENCE_BIT,
 			.handle = m_fenceHandle
 		};
 		
-		raiseIfFailed(importSemaphoreWin32HandleKHR(device->handle(), &fenceImportInfo), "Unable to import interop synchronization fence for swap chain.");
+		raiseIfFailed(importSemaphoreWin32HandleKHR(device.handle(), &fenceImportInfo), "Unable to import interop synchronization fence for swap chain.");
 
 		// Allocate command lists.
 		m_presentCommandAllocators.clear();
@@ -662,7 +656,7 @@ public:
 		D3D::raiseIfFailed(m_swapChain->ResizeBuffers(buffers, static_cast<UInt32>(extent.width()), static_cast<UInt32>(extent.height()), DX12::getFormat(format), m_supportsTearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0), "Unable to resize interop swap chain back buffers.");
 
 		// Initialize swap chain images.
-		this->createImages(selectedFormat, extent, images);
+		this->createImages(*device, selectedFormat, extent, images);
 
 		// Initialize the query pools.
 		if (m_timingQueryPools.size() != images)
@@ -687,14 +681,8 @@ public:
 		m_vsync = vsync;
 	}
 
-	void createImages(Format format, const Size2d& renderArea, UInt32 buffers)
+	void createImages(const VulkanDevice& device, Format format, const Size2d& renderArea, UInt32 buffers)
 	{
-		// Check if the device is still valid.
-		auto device = m_device.lock();
-
-		if (device == nullptr) [[unlikely]]
-			throw RuntimeException("Cannot create swap chain images from a released device instance.");
-
 		// NOTE: We maintain two sets of images: the swap chain back buffers and separate image resources that are shared and written to by the Vulkan renderer. During present
 		//       the `m_workloadFence` is waited upon before copying the shared images into the swap chain back buffers. While it is possible to share and write the back buffers
 		//       directly, they are not synchronized (even waiting for the workload fence before presenting is not enough). This causes back buffers to be written whilst they
@@ -703,7 +691,7 @@ public:
 		// Acquire the swap chain images.
 		m_presentImages.resize(buffers);
 		m_imageResources.resize(buffers);
-		std::ranges::generate(m_presentImages, [this, &renderArea, &format, device, i = 0]() mutable {
+		std::ranges::generate(m_presentImages, [&, i = 0]() mutable {
 			// Acquire a image resource for the back buffer and create a shared handle for it.
 			ComPtr<ID3D12Resource> resource;
 			HANDLE resourceHandle = nullptr;
@@ -750,13 +738,13 @@ public:
 
 			// Create the image.
 			VkImage backBuffer{};
-			raiseIfFailed(::vkCreateImage(device->handle(), &imageInfo, nullptr, &backBuffer), "Unable to create swap-chain image.");
+			raiseIfFailed(::vkCreateImage(device.handle(), &imageInfo, nullptr, &backBuffer), "Unable to create swap-chain image.");
 
 			// Get the memory requirements.
 			VkMemoryRequirements memoryRequirements{};
 			VkPhysicalDeviceMemoryProperties memoryProperties{};
-			::vkGetImageMemoryRequirements(device->handle(), backBuffer, &memoryRequirements);
-			::vkGetPhysicalDeviceMemoryProperties(device->adapter().handle(), &memoryProperties);
+			::vkGetImageMemoryRequirements(device.handle(), backBuffer, &memoryRequirements);
+			::vkGetPhysicalDeviceMemoryProperties(device.adapter().handle(), &memoryProperties);
 
 			// Find the a suitable memory type.
 			UInt32 memoryType{ std::numeric_limits<UInt32>::max() };
@@ -791,11 +779,11 @@ public:
 			};
 
 			VkDeviceMemory imageMemory{};
-			raiseIfFailed(::vkAllocateMemory(device->handle(), &allocationInfo, nullptr, &imageMemory), "Unable to allocate memory for imported interop swap chain buffer.");
-			raiseIfFailed(::vkBindImageMemory(device->handle(), backBuffer, imageMemory, 0), "Unable to bind back-buffer.");
+			raiseIfFailed(::vkAllocateMemory(device.handle(), &allocationInfo, nullptr, &imageMemory), "Unable to allocate memory for imported interop swap chain buffer.");
+			raiseIfFailed(::vkBindImageMemory(device.handle(), backBuffer, imageMemory, 0), "Unable to bind back-buffer.");
 
 			// Return the image instance.
-			m_imageResources[image].device = device->handle();
+			m_imageResources[image].device = device.handle();
 			m_imageResources[image].memory = imageMemory;
 			m_imageResources[image].handle = resourceHandle;
 			m_imageResources[image].image = std::move(resource);
@@ -1028,7 +1016,7 @@ private:
 VulkanSwapChain::VulkanSwapChain(const VulkanDevice& device, Format surfaceFormat, const Size2d& renderArea, UInt32 buffers, bool enableVsync) :
 	m_impl(device)
 {
-	m_impl->initialize(surfaceFormat, renderArea, buffers, enableVsync);
+	m_impl->initialize(device, surfaceFormat, renderArea, buffers, enableVsync);
 }
 
 VulkanSwapChain::~VulkanSwapChain() noexcept = default;

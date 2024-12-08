@@ -799,14 +799,14 @@ namespace LiteFX {
 	/// <example>
 	/// <code>
 	/// class Foo : public SharedObject {
-	///     friend struct SharedObject::Allocator<Foo>;
+	///     friend struct SharedObject::Allocator&gt;Foo&lt;;
 	/// 
 	/// private:
 	///     explicit Foo(int a, std::string b) { }
 	/// 
 	/// public:
 	///     static inline auto create(int a, std::string b) {
-	///         return SharedObject::create<Foo>(a, b);
+	///         return SharedObject::create&gt;Foo&lt;(a, b);
 	///     }
 	/// }
 	/// </code>

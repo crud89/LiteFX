@@ -18,10 +18,11 @@ private:
 	Array<SharedPtr<const IStateResource>> m_sharedResources;
 	const DirectX12PipelineState* m_lastPipeline = nullptr;
 	ComPtr<ID3D12CommandSignature> m_dispatchSignature, m_drawSignature, m_drawIndexedSignature, m_dispatchMeshSignature;
+	bool m_canBindDescriptorHeaps = false;
 
 public:
 	DirectX12CommandBufferImpl(const DirectX12Queue& queue) :
-		m_queue(queue.weak_from_this()), m_device(queue.device())
+		m_queue(queue.weak_from_this()), m_device(queue.device()), m_canBindDescriptorHeaps(queue.type() == QueueType::Compute || queue.type() == QueueType::Graphics)
 	{
 	}
 
@@ -79,23 +80,17 @@ public:
 		m_sharedResources.clear();
 	}
 
-	void bindDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer)
+	inline void bindDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer)
 	{
-		// Check if the queue is still valid.
-		auto queue = m_queue.lock();
+		if (m_canBindDescriptorHeaps)
+		{
+			auto device = m_device.lock();
 
-		if (queue == nullptr) [[unlikely]]
-			throw RuntimeException("Cannot bind descriptor heaps on a released command queue.");
-		
-		auto device = queue->device();
-		
-		if (device == nullptr) [[unlikely]]
-			throw RuntimeException("Cannot bind descriptor heaps on a released device instance.");
+			if (device == nullptr) [[unlikely]]
+				throw RuntimeException("Cannot bind descriptor heaps on a released device instance.");
 
-		if (queue->type() == QueueType::Compute || queue->type() == QueueType::Graphics)
 			device->bindGlobalDescriptorHeaps(commandBuffer);
-		else [[unlikely]]
-			throw RuntimeException("Unable to bind descriptors on a command queue that's not a compute or graphics queue.");
+		}
 	}
 
 	inline void buildAccelerationStructure(const DirectX12CommandBuffer& commandBuffer, DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset, bool update)

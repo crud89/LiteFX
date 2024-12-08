@@ -143,15 +143,6 @@ public:
     }
 
 private:
-    void release()
-    {
-        // Clear the device state.
-        m_deviceState.clear();
-
-        // This will also cause all queue instances to be automatically released (graphicsQueue, transferQueue, bufferQueue).
-        m_families.clear();
-    }
-
     void defineMandatoryExtensions(const GraphicsDeviceFeatures& features)
     {
         // NOTE: If an extension is not supported, update the graphics driver to the most recent one. You can lookup extension support for individual drivers here:
@@ -502,12 +493,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDevice::VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features, Span<String> extensions) :
-    VulkanDevice(backend, adapter, std::move(surface), Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features, extensions) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-{
-}
-
-VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features, Span<String> extensions) :
+VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features, Span<String> extensions) :
     Resource<VkDevice>(nullptr), m_impl(adapter, std::move(surface), features, extensions)
 {
     LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", static_cast<void*>(m_impl->m_surface.get()), adapter.deviceId(), Join(this->enabledExtensions(), ", "));
@@ -523,17 +509,30 @@ VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphic
 
     if (extensions.size() > 0)
         LITEFX_INFO(VULKAN_LOG, "Enabled validation layers: {0}", Join(extensions, ", "));
+}
 
+VulkanDevice::~VulkanDevice() noexcept = default;
+
+SharedPtr<VulkanDevice> VulkanDevice::initialize(Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features)
+{
     this->handle() = m_impl->initialize(features);
     m_impl->initializeDefaultQueues(*this);
     m_impl->m_factory = VulkanGraphicsFactory::create(*this);
     m_impl->m_swapChain = UniquePtr<VulkanSwapChain>(new VulkanSwapChain(*this, format, renderArea, backBuffers, enableVsync));
+
+    return this->shared_from_this();
 }
 
-VulkanDevice::~VulkanDevice() noexcept
+void VulkanDevice::release() noexcept 
 {
-    // Destroy the implementation.
-    m_impl->release();
+    m_impl->m_deviceState.clear();
+    m_impl->m_swapChain.reset();
+    m_impl->m_transferQueue.reset();
+    m_impl->m_computeQueue.reset();
+    m_impl->m_graphicsQueue.reset();
+    m_impl->m_families.clear();
+    m_impl->m_surface.reset();
+    m_impl->m_factory.reset();
 
     // Destroy the device.
     ::vkDestroyDevice(this->handle(), nullptr);

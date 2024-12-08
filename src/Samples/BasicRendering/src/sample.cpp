@@ -229,7 +229,7 @@ void SampleApp::onInit()
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
     // Register the Vulkan backend de-/initializer.
     this->onBackendStart<VulkanBackend>(startCallback);
-    //this->onBackendStop<VulkanBackend>(stopCallback);
+    this->onBackendStop<VulkanBackend>(stopCallback);
 #endif // LITEFX_BUILD_VULKAN_BACKEND
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
@@ -237,8 +237,8 @@ void SampleApp::onInit()
     DirectX12ShaderProgram::suppressMissingRootSignatureWarning();
 
     // Register the DirectX 12 backend de-/initializer.
-    //this->onBackendStart<DirectX12Backend>(startCallback);
-    //this->onBackendStop<DirectX12Backend>(stopCallback);
+    this->onBackendStart<DirectX12Backend>(startCallback);
+    this->onBackendStop<DirectX12Backend>(stopCallback);
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 }
 
@@ -352,12 +352,11 @@ void SampleApp::keyDown(int key, int /*scancode*/, int action, int /*mods*/)
 
 void SampleApp::updateWindowTitle()
 {
-    static const float MILLISECONDS = 1.0f / 1000.0f;
     static auto lastTime = std::chrono::high_resolution_clock::now();
     auto frameTime = std::chrono::duration<float, std::chrono::milliseconds::period>(std::chrono::high_resolution_clock::now() - lastTime).count();
 
     std::stringstream title;
-    title << this->name() << " | " << "Backend: " << this->activeBackend(BackendType::Rendering)->name() << " | " << static_cast<UInt32>(frameTime * MILLISECONDS) << " FPS";
+    title << this->name() << " | " << "Backend: " << this->activeBackend(BackendType::Rendering)->name() << " | " << static_cast<UInt32>(1000.0f / frameTime) << " FPS"; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
     ::glfwSetWindowTitle(m_window.get(), title.str().c_str());
     lastTime = std::chrono::high_resolution_clock::now();

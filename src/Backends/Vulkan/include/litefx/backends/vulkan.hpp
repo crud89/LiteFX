@@ -2548,6 +2548,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_VULKAN_API VulkanDevice final : public GraphicsDevice<VulkanGraphicsFactory, VulkanSurface, VulkanGraphicsAdapter, VulkanSwapChain, VulkanQueue, VulkanRenderPass, VulkanRenderPipeline, VulkanComputePipeline, VulkanRayTracingPipeline, VulkanBarrier>, public Resource<VkDevice> {
         LITEFX_IMPLEMENTATION(VulkanDeviceImpl);
         friend struct SharedObject::Allocator<VulkanDevice>;
+        friend class VulkanBackend;
 
     private:
         /// <summary>
@@ -2559,20 +2560,6 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="features">The features that should be supported by this device.</param>
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
         explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { });
-
-        /// <summary>
-        /// Creates a new device instance.
-        /// </summary>
-        /// <param name="backend">The backend from which the device is created.</param>
-        /// <param name="adapter">The adapter the device uses for drawing.</param>
-        /// <param name="surface">The surface, the device should draw to.</param>
-        /// <param name="format">The initial surface format, device uses for drawing.</param>
-        /// <param name="renderArea">The initial size of the render area.</param>
-        /// <param name="backBuffers">The initial number of back buffers.</param>
-        /// <param name="enableVsync">The initial setting for vertical synchronization.</param>
-        /// <param name="features">The features that should be supported by this device.</param>
-        /// <param name="extensions">The required extensions the device gets initialized with.</param>
-        explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = { }, Span<String> extensions = { });
 
     private:
         /// <inheritdoc />
@@ -2603,7 +2590,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
         /// <returns>A shared pointer to the new device instance.</returns>
         static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }) {
-            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions);
+            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions)->initialize(Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         }
 
         /// <summary>
@@ -2620,8 +2607,25 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
         /// <returns>A shared pointer to the new device instance.</returns>
         static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }) {
-            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), format, renderArea, backBuffers, enableVsync, features, extensions);
+            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions)->initialize(format, renderArea, backBuffers, enableVsync, features);
         }
+
+    private:
+        /// <summary>
+        /// Initializes the resources owned by the device.
+        /// </summary>
+        /// <param name="format">The initial surface format, device uses for drawing.</param>
+        /// <param name="renderArea">The initial size of the render area.</param>
+        /// <param name="backBuffers">The initial number of back buffers.</param>
+        /// <param name="enableVsync">The initial setting for vertical synchronization.</param>
+        /// <param name="features">The features that should be supported by this device.</param>
+        /// <returns>A shared pointer to the current device instance.</returns>
+        inline SharedPtr<VulkanDevice> initialize(Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = { });
+
+        /// <summary>
+        /// Releases the device state to prepare it for destruction.
+        /// </summary>
+        inline void release() noexcept;
 
         // Vulkan Device interface.
     private:

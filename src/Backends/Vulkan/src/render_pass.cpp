@@ -97,7 +97,7 @@ public:
 
         // TODO: If there is a present target, we need to check if the provided queue can actually present on the surface. Currently, 
         //       we simply check if the queue is the same as the swap chain queue (which is the default graphics queue).
-        if (m_presentTarget != nullptr && m_onDefaultGraphicsQueue) [[unlikely]]
+        if (m_presentTarget != nullptr && !m_onDefaultGraphicsQueue) [[unlikely]]
             throw InvalidArgumentException("renderTargets", "A render pass with a present target must be executed on the default graphics queue.");
 
         // Listen to swap chain resets in order to clear back buffer image views.
