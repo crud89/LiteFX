@@ -21,46 +21,74 @@ private:
 	UInt32 m_buffers { };
 	UInt32 m_currentImage { };
 	Array<SharedPtr<IVulkanImage>> m_presentImages { };
-	const VulkanDevice& m_device;
+	WeakPtr<const VulkanDevice> m_device;
+	SharedPtr<const VulkanQueue> m_presentQueue;
 	VkSwapchainKHR m_handle = VK_NULL_HANDLE;
-	VkFence m_waitForImage;
+	VkFence m_waitForImage{};
 	Array<VkSemaphore> m_waitForWorkload;
 
 	Array<SharedPtr<TimingEvent>> m_timingEvents;
 	Array<UInt64> m_timestamps;
 	Array<VkQueryPool> m_timingQueryPools;
-	VkQueryPool m_currentQueryPool;
+	VkQueryPool m_currentQueryPool{};
 	bool m_supportsTiming = false;
 	bool m_vsync = false;
 
 public:
 	VulkanSwapChainImpl(const VulkanDevice& device) :
-		m_device(device)
+		m_device(device.weak_from_this()), m_presentQueue(device.defaultQueue(QueueType::Graphics).shared_from_this())
 	{
-		m_supportsTiming = m_device.adapter().limits().timestampComputeAndGraphics;
+		m_supportsTiming = device.adapter().limits().timestampComputeAndGraphics;
 
 		if (!m_supportsTiming)
 			LITEFX_WARNING(VULKAN_LOG, "Timestamp queries are not supported and will be disabled. Reading timestamps will always return 0.");
 	}
+
+	VulkanSwapChainImpl(VulkanSwapChainImpl&&) noexcept = default;
+	VulkanSwapChainImpl(const VulkanSwapChainImpl&) = delete;
+	VulkanSwapChainImpl& operator=(VulkanSwapChainImpl&&) noexcept = default;
+	VulkanSwapChainImpl& operator=(const VulkanSwapChainImpl&) = delete;
 	
 	~VulkanSwapChainImpl()
 	{
-		// Release the existing query pools (needs to be done outside of cleanup in order to prevent unnecessary re-creation during resize).
-		if (!m_timingQueryPools.empty())
-			std::ranges::for_each(m_timingQueryPools, [this](auto& pool) { ::vkDestroyQueryPool(m_device.handle(), pool, nullptr); });
+		// Check if the device is still valid.
+		auto device = m_device.lock();
 
-		// Clean up the rest.
-		this->cleanup();
+		if (device == nullptr) [[unlikely]]
+			LITEFX_FATAL_ERROR(VULKAN_LOG, "Invalid attempt to release swap chain after parent device.");
+		else
+		{
+			// Release the existing query pools.
+			if (!m_timingQueryPools.empty())
+				std::ranges::for_each(m_timingQueryPools, [device](auto& pool) { ::vkDestroyQueryPool(device->handle(), pool, nullptr); });
+
+			// Release the image memory of the previously allocated images.
+			//std::ranges::for_each(m_presentImages, [device](const auto& image) { ::vkDestroyImage(device->handle(), std::as_const(*image).handle(), nullptr); });
+			m_presentImages.clear();
+
+			// Destroy the swap chain itself.
+			::vkDestroySwapchainKHR(device->handle(), m_handle, nullptr);
+
+			// Destroy the fences and semaphores used to wait for image acquisition.
+			::vkDestroyFence(device->handle(), m_waitForImage, nullptr);
+			std::ranges::for_each(m_waitForWorkload, [&](VkSemaphore semaphore) { ::vkDestroySemaphore(device->handle(), semaphore, nullptr); });
+
+			// Destroy state.
+			m_buffers = 0;
+			m_renderArea = {};
+			m_format = Format::None;
+			m_currentImage = 0;
+		}
 	}
 
 public:
-	void initialize(Format format, const Size2d& renderArea, UInt32 buffers, bool vsync)
+	void initialize(const VulkanDevice& device, Format format, const Size2d& renderArea, UInt32 buffers, bool vsync)
 	{
 		if (format == Format::Other || format == Format::None) [[unlikely]]
 			throw InvalidArgumentException("format", "The provided surface format it not a valid value.");
 
-		auto adapter = m_device.adapter().handle();
-		auto surface = m_device.surface().handle();
+		auto adapter = device.adapter().handle();
+		auto surface = device.surface().handle();
 
 		// Query the swap chain surface format.
 		auto surfaceFormats = this->getSurfaceFormats(adapter, surface);
@@ -114,29 +142,29 @@ public:
 			LITEFX_INFO(VULKAN_LOG, "The number of buffers has been adjusted from {0} to {1}.", buffers, images);
 
 		// Create the swap chain instance.
-		VkSwapchainKHR swapChain;
-		raiseIfFailed(::vkCreateSwapchainKHR(m_device.handle(), &createInfo, nullptr, &swapChain), "Swap chain could not be created.");
+		VkSwapchainKHR swapChain{};
+		raiseIfFailed(::vkCreateSwapchainKHR(device.handle(), &createInfo, nullptr, &swapChain), "Swap chain could not be created.");
 
 		// Initialize the fences used to wait for image access.
 		VkFenceCreateInfo fenceInfo { .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
-		raiseIfFailed(::vkCreateFence(m_device.handle(), &fenceInfo, nullptr, &m_waitForImage), "Unable to create image acquisition fence.");
+		raiseIfFailed(::vkCreateFence(device.handle(), &fenceInfo, nullptr, &m_waitForImage), "Unable to create image acquisition fence.");
 
 		// Initialize the semaphores used to wait for workload completion before present.
 		VkSemaphoreCreateInfo semaphoreInfo { .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
 		m_waitForWorkload.resize(images);
 		std::ranges::generate(m_waitForWorkload, [&]() {
-			VkSemaphore semaphore;
-			raiseIfFailed(::vkCreateSemaphore(m_device.handle(), &semaphoreInfo, nullptr, &semaphore), "Unable to workload synchronization semaphore.");
+			VkSemaphore semaphore{};
+			raiseIfFailed(::vkCreateSemaphore(device.handle(), &semaphoreInfo, nullptr, &semaphore), "Unable to workload synchronization semaphore.");
 			return semaphore;
 		});
 
 		// Create the swap chain images.
 		auto actualRenderArea = Size2d(static_cast<size_t>(createInfo.imageExtent.width), static_cast<size_t>(createInfo.imageExtent.height));
 		Array<VkImage> imageChain(images);
-		::vkGetSwapchainImagesKHR(m_device.handle(), swapChain, &images, imageChain.data());
+		::vkGetSwapchainImagesKHR(device.handle(), swapChain, &images, imageChain.data());
 
 		m_presentImages = imageChain |
-			std::views::transform([this, &actualRenderArea, &selectedFormat](const VkImage& image) { return makeUnique<VulkanImage>(m_device, image, Size3d{ actualRenderArea.width(), actualRenderArea.height(), 1 }, selectedFormat, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination); }) |
+			std::views::transform([&actualRenderArea, &selectedFormat](const VkImage& image) { return VulkanImage::create(image, Size3d{ actualRenderArea.width(), actualRenderArea.height(), 1 }, selectedFormat, ImageDimensions::DIM_2, 1, 1, MultiSamplingLevel::x1, ResourceUsage::TransferDestination); }) |
 			std::ranges::to<Array<SharedPtr<IVulkanImage>>>();
 
 		// Store state variables.
@@ -157,22 +185,28 @@ public:
 		if (timingEvents.empty())
 			return;
 
+		// Check if the device is still valid.
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot reset query pools on a released device instance.");
+
 		// Release the existing query pools.
 		if (!m_timingQueryPools.empty())
-			std::ranges::for_each(m_timingQueryPools, [this](auto& pool) { ::vkDestroyQueryPool(m_device.handle(), pool, nullptr); });
+			std::ranges::for_each(m_timingQueryPools, [&](auto& pool) { ::vkDestroyQueryPool(device->handle(), pool, nullptr); });
 
 		// Resize the query pools array and allocate a pool for each back buffer.
 		m_timingQueryPools.resize(m_buffers);
-		std::ranges::generate(m_timingQueryPools, [this, &timingEvents]() {
+		std::ranges::generate(m_timingQueryPools, [&]() {
 			VkQueryPoolCreateInfo poolInfo {
 				.sType = VK_STRUCTURE_TYPE_QUERY_POOL_CREATE_INFO,
 				.queryType = VkQueryType::VK_QUERY_TYPE_TIMESTAMP,
 				.queryCount = static_cast<UInt32>(timingEvents.size())
 			};
 
-			VkQueryPool pool;
-			raiseIfFailed(::vkCreateQueryPool(m_device.handle(), &poolInfo, nullptr, &pool), "Unable to allocate timestamp query pool.");
-			::vkResetQueryPool(m_device.handle(), pool, 0, timingEvents.size());
+			VkQueryPool pool{};
+			raiseIfFailed(::vkCreateQueryPool(device->handle(), &poolInfo, nullptr, &pool), "Unable to allocate timestamp query pool.");
+			::vkResetQueryPool(device->handle(), pool, 0, timingEvents.size());
 
 			return pool;
 		});
@@ -182,36 +216,44 @@ public:
 		m_timestamps.resize(timingEvents.size());
 	}
 
-	void reset(Format format, Size2d renderArea, UInt32 buffers, bool vsync)
+	void reset(Format format, const Size2d& renderArea, UInt32 buffers, bool vsync)
 	{
-		// Cleanup and re-initialize.
-		this->cleanup();
-		this->initialize(format, renderArea, buffers, vsync);
-	}
+		// Check if the device is still valid.
+		auto device = m_device.lock();
 
-	void cleanup()
-	{
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Unable to reset swap chain on a released device instance.");
+
 		// Destroy the swap chain itself.
-		::vkDestroySwapchainKHR(m_device.handle(), m_handle, nullptr);
+		::vkDestroySwapchainKHR(device->handle(), m_handle, nullptr);
 
 		// Destroy the fences and semaphores used to wait for image acquisition.
-		::vkDestroyFence(m_device.handle(), m_waitForImage, nullptr);
-		std::ranges::for_each(m_waitForWorkload, [&](VkSemaphore semaphore) { ::vkDestroySemaphore(m_device.handle(), semaphore, nullptr); });
+		::vkDestroyFence(device->handle(), m_waitForImage, nullptr);
+		std::ranges::for_each(m_waitForWorkload, [&](VkSemaphore semaphore) { ::vkDestroySemaphore(device->handle(), semaphore, nullptr); });
 
 		// Destroy state.
 		m_buffers = 0;
 		m_renderArea = {};
 		m_format = Format::None;
 		m_currentImage = 0;
+
+		// Reinitialize the swap chain.
+		this->initialize(*device, format, renderArea, buffers, vsync);
 	}
 
 	UInt32 swapBackBuffer()
 	{
+		// Check if the device is still valid.
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot swap back buffers on a released device instance.");
+
 		// Queue an image acquisition request, then wait for the fence and reset it for the next iteration. Note how this is similar to the DirectX behavior, where the swap call blocks until the 
 		// image is acquired and ready.
-		raiseIfFailed(::vkAcquireNextImageKHR(m_device.handle(), m_handle, UINT64_MAX, VK_NULL_HANDLE, m_waitForImage, &m_currentImage), "Unable to swap front buffer. Make sure that all previously acquired images are actually presented before acquiring another image.");
-		raiseIfFailed(::vkWaitForFences(m_device.handle(), 1, &m_waitForImage, VK_TRUE, UINT64_MAX), "Unable to wait for image acquisition.");
-		raiseIfFailed(::vkResetFences(m_device.handle(), 1, &m_waitForImage), "Unable to reset image acquisition fence.");
+		raiseIfFailed(::vkAcquireNextImageKHR(device->handle(), m_handle, UINT64_MAX, VK_NULL_HANDLE, m_waitForImage, &m_currentImage), "Unable to swap front buffer. Make sure that all previously acquired images are actually presented before acquiring another image.");
+		raiseIfFailed(::vkWaitForFences(device->handle(), 1, &m_waitForImage, VK_TRUE, UINT64_MAX), "Unable to wait for image acquisition.");
+		raiseIfFailed(::vkResetFences(device->handle(), 1, &m_waitForImage), "Unable to reset image acquisition fence.");
 
 		// Query the timing events.
 		// TODO: In rare situations, and only when using this swap chain implementation, the validation layers will complain about query pools not being reseted, when writing time stamps. I could
@@ -219,13 +261,13 @@ public:
 		if (m_supportsTiming && !m_timingEvents.empty()) [[likely]]
 		{
 			m_currentQueryPool = m_timingQueryPools[m_currentImage];
-			auto result = ::vkGetQueryPoolResults(m_device.handle(), m_currentQueryPool, 0, m_timestamps.size(), m_timestamps.size() * sizeof(UInt64), m_timestamps.data(), sizeof(UInt64), VK_QUERY_RESULT_64_BIT);
+			auto result = ::vkGetQueryPoolResults(device->handle(), m_currentQueryPool, 0, m_timestamps.size(), m_timestamps.size() * sizeof(UInt64), m_timestamps.data(), sizeof(UInt64), VK_QUERY_RESULT_64_BIT);
 		
 			if (result != VK_NOT_READY)	// Initial frames do not yet contain query results.
 				raiseIfFailed(result, "Unable to query timing events.");
 
 			// Reset the query pool.
-			::vkResetQueryPool(m_device.handle(), m_currentQueryPool, 0, m_timestamps.size());
+			::vkResetQueryPool(device->handle(), m_currentQueryPool, 0, m_timestamps.size());
 		}
 
 		return m_currentImage;
@@ -236,7 +278,6 @@ public:
 		// Draw the frame, if the result of the render pass it should be presented to the swap chain.
 		auto swapChains = std::array { m_handle };
 		const auto bufferIndex = m_currentImage;
-		const auto& queue = m_device.defaultQueue(QueueType::Graphics);
 
 		// Wait for the workload semaphore before performing the actual presentation.
 		auto workloadSemaphore = m_waitForWorkload[bufferIndex];
@@ -252,13 +293,13 @@ public:
 			.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
 			.pNext = &workloadFenceInfo,
 			.waitSemaphoreCount = 1,
-			.pWaitSemaphores = &queue.timelineSemaphore(),
+			.pWaitSemaphores = &m_presentQueue->timelineSemaphore(),
 			.pWaitDstStageMask = &synchronizationPoint,
 			.signalSemaphoreCount = 1,
 			.pSignalSemaphores = &workloadSemaphore
 		};
 
-		raiseIfFailed(::vkQueueSubmit(queue.handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit workload semaphore.");
+		raiseIfFailed(::vkQueueSubmit(m_presentQueue->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit workload semaphore.");
 
 		VkPresentInfoKHR presentInfo = {
 			.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -270,7 +311,7 @@ public:
 			.pResults = nullptr
 		};
 
-		raiseIfFailed(::vkQueuePresentKHR(queue.handle(), &presentInfo), "Unable to present swap chain.");
+		raiseIfFailed(::vkQueuePresentKHR(m_presentQueue->handle(), &presentInfo), "Unable to present swap chain.");
 	}
 
 	const VkQueryPool& currentTimestampQueryPool()
@@ -279,9 +320,9 @@ public:
 	}
 
 public:
-	Array<Format> getSurfaceFormats(const VkPhysicalDevice adapter, const VkSurfaceKHR surface) const noexcept
+	Array<Format> getSurfaceFormats(const VkPhysicalDevice adapter, const VkSurfaceKHR surface) const
 	{
-		uint32_t formats;
+		uint32_t formats{};
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, nullptr);
 
 		Array<VkSurfaceFormatKHR> availableFormats(formats);
@@ -290,9 +331,9 @@ public:
 		return availableFormats | std::views::transform([](const VkSurfaceFormatKHR& format) { return Vk::getFormat(format.format); }) | std::ranges::to<Array<Format>>();
 	}
 
-	VkColorSpaceKHR findColorSpace(const VkPhysicalDevice adapter, const VkSurfaceKHR surface, Format format) const noexcept
+	VkColorSpaceKHR findColorSpace(const VkPhysicalDevice adapter, const VkSurfaceKHR surface, Format format) const
 	{
-		uint32_t formats;
+		uint32_t formats{};
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, nullptr);
 
 		Array<VkSurfaceFormatKHR> availableFormats(formats);
