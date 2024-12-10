@@ -18,7 +18,6 @@
 
 #include <litefx/app.hpp>
 #include <litefx/math.hpp>
-#include <litefx/graphics.hpp>
 
 namespace LiteFX::Rendering {
     using namespace LiteFX;
