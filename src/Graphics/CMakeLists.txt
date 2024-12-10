@@ -10,8 +10,10 @@ MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 # Collect header & source files.
 SET(GRAPHICS_HEADERS
     "include/litefx/graphics_api.hpp"
-    "include/litefx/graphics_formatters.hpp"
     "include/litefx/graphics.hpp"
+    
+    "include/litefx/gfx/blit.hpp"
+    "include/litefx/gfx/vertex.hpp"
 )
 
 SET(GRAPHICS_SOURCES
@@ -20,10 +22,16 @@ SET(GRAPHICS_SOURCES
 
 # Add shared library project.
 ADD_LIBRARY(${PROJECT_NAME}
-    ${GRAPHICS_HEADERS}
     ${GRAPHICS_SOURCES}
 
     ".natvis"
+)
+
+TARGET_SOURCES(${PROJECT_NAME} PUBLIC
+    FILE_SET public_headers
+    TYPE HEADERS
+    BASE_DIRS "include/"
+    FILES ${GRAPHICS_HEADERS}
 )
 
 # Create source groups for better code organization.
@@ -68,7 +76,7 @@ INSTALL(TARGETS ${PROJECT_NAME} EXPORT EXPORT LiteFX
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBRARY_DIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINARY_DIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR}/litefx/
+    FILE_SET public_headers DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDE_DIR}
 )
 

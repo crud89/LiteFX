@@ -17,8 +17,3 @@
 #endif
 
 #include <litefx/core.h>
-
-namespace LiteFX::Graphics {
-	using namespace LiteFX;
-
-}
