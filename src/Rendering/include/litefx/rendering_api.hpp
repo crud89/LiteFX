@@ -759,6 +759,40 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Describes the topology of a mesh primitive.
+    /// </summary>
+    enum class PrimitiveTopology {
+        /// <summary>
+        /// A list of points where each vertex refers to an individual point.
+        /// </summary>
+        PointList = 0x00010001,
+
+        /// <summary>
+        /// A list of lines where each vertex pair refers to the start and end points of a line.
+        /// </summary>
+        /// <seealso cref="LineStrip" />
+        LineList = 0x00020001,
+
+        /// <summary>
+        /// A list of triangles, where each triplet of vertices refers to a whole triangle.
+        /// </summary>
+        /// <seealso cref="TriangleStrip" />
+        TriangleList = 0x00040001,
+
+        /// <summary>
+        /// A strip of lines where each vertex (except the first one) refers to the end point for the next line segment.
+        /// </summary>
+        /// <seealso cref="LineList" />
+        LineStrip = 0x00020002,
+        
+        /// <summary>
+        /// A strip of triangles, where each vertex (except the first two) refers to the third vertex of the next triangle segment.
+        /// </summary>
+        /// <seealso cref="TriangleList" />
+        TriangleStrip = 0x00040002
+    };
+
+    /// <summary>
     /// Describes the valid shader stages of a graphics pipeline.
     /// </summary>
     enum class ShaderStage : UInt32 {

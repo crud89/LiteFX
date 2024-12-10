@@ -21,12 +21,4 @@
 namespace LiteFX::Graphics {
 	using namespace LiteFX;
 
-	enum class PrimitiveTopology {
-		PointList = 0x00010001,
-		LineList = 0x00020001,
-		TriangleList = 0x00040001,
-		LineStrip = 0x00020002,
-		TriangleStrip = 0x00040002
-	};
-
 }
