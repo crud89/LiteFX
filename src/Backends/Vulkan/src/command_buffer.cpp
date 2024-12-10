@@ -347,64 +347,6 @@ UInt64 VulkanCommandBuffer::submit() const
 	return m_impl->m_queue.submit(this->shared_from_this());
 }
 
-void VulkanCommandBuffer::generateMipMaps(IVulkanImage& image) noexcept
-{
-	VulkanBarrier startBarrier(PipelineStage::None, PipelineStage::Transfer);
-	startBarrier.transition(image, ResourceAccess::None, ResourceAccess::TransferWrite, ImageLayout::Undefined, ImageLayout::CopyDestination);
-	this->barrier(startBarrier);
-
-	for (UInt32 layer(0); layer < image.layers(); ++layer)
-	{
-		Int32 mipWidth = static_cast<Int32>(image.extent().width());
-		Int32 mipHeight = static_cast<Int32>(image.extent().height());
-		Int32 mipDepth = static_cast<Int32>(image.extent().depth());
-
-		for (UInt32 level(1); level < image.levels(); ++level)
-		{
-			VulkanBarrier subBarrier(PipelineStage::Transfer, PipelineStage::Transfer);
-			subBarrier.transition(image, level - 1, 1, layer, 1, 0, ResourceAccess::TransferWrite, ResourceAccess::TransferRead, ImageLayout::CopySource);
-			this->barrier(subBarrier);
-
-			// Blit the image of the previous level into the current level.
-			VkImageBlit blit {
-				.srcSubresource = VkImageSubresourceLayers {
-					.aspectMask = image.aspectMask(),
-					.mipLevel = level - 1,
-					.baseArrayLayer = layer,
-					.layerCount = 1
-				},
-				.dstSubresource = VkImageSubresourceLayers {
-					.aspectMask = image.aspectMask(),
-					.mipLevel = level,
-					.baseArrayLayer = layer,
-					.layerCount = 1
-				}
-			};
-
-			blit.srcOffsets[0] = { 0, 0, 0 };
-			blit.srcOffsets[1] = { mipWidth, mipHeight, mipDepth };
-			blit.dstOffsets[0] = { 0, 0, 0 };
-			blit.dstOffsets[1] = { mipWidth > 1 ? mipWidth / 2 : 1, mipHeight > 1 ? mipHeight / 2 : 1, mipDepth > 1 ? mipDepth / 2 : 1 };
-
-			::vkCmdBlitImage(this->handle(), std::as_const(image).handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, std::as_const(image).handle(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
-
-			// Compute the new size.
-			mipWidth = std::max(mipWidth / 2, 1);
-			mipHeight = std::max(mipHeight / 2, 1);
-			mipDepth = std::max(mipDepth / 2, 1);
-		}
-
-		VulkanBarrier subBarrier(PipelineStage::Transfer, PipelineStage::Transfer);
-		subBarrier.transition(image, image.levels() - 1, 1, layer, 1, 0, ResourceAccess::TransferWrite, ResourceAccess::TransferRead, ImageLayout::CopySource);
-		subBarrier.transition(image, 0, 1, layer, 1, 0, ResourceAccess::TransferWrite, ResourceAccess::TransferRead, ImageLayout::CopySource);
-		this->barrier(subBarrier);
-	}
-
-	VulkanBarrier endBarrier(PipelineStage::Transfer, PipelineStage::All);
-	endBarrier.transition(image, ResourceAccess::TransferRead | ResourceAccess::TransferWrite, ResourceAccess::ShaderRead, ImageLayout::ShaderResource);
-	this->barrier(endBarrier);
-}
-
 UniquePtr<VulkanBarrier> VulkanCommandBuffer::makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept
 {
 	return m_impl->m_queue.device().makeBarrier(syncBefore, syncAfter);

@@ -991,7 +991,6 @@ namespace LiteFX::Rendering::Backends {
         using base_type::drawIndexedIndirect;
         using base_type::barrier;
         using base_type::transfer;
-        using base_type::generateMipMaps;
         using base_type::bind;
         using base_type::use;
         using base_type::pushConstants;
@@ -1067,9 +1066,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt64 submit() const override;
-
-        /// <inheritdoc />
-        void generateMipMaps(IVulkanImage& image) noexcept override;
 
         /// <inheritdoc />
         [[nodiscard]] UniquePtr<VulkanBarrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;

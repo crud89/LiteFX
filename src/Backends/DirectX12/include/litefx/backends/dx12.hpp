@@ -1008,7 +1008,6 @@ namespace LiteFX::Rendering::Backends {
         using base_type::drawIndexedIndirect;
         using base_type::barrier;
         using base_type::transfer;
-        using base_type::generateMipMaps;
         using base_type::bind;
         using base_type::use;
         using base_type::pushConstants;
@@ -1075,9 +1074,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt64 submit() const override;
-
-        /// <inheritdoc />
-        void generateMipMaps(IDirectX12Image& image) noexcept override;
 
         /// <inheritdoc />
         [[nodiscard]] UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
@@ -1997,16 +1993,6 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="commandBuffer">The command buffer to issue the bind command on.</param>
         virtual void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept;
-
-        /// <summary>
-        /// Returns the compute pipeline that can be invoked to blit an image resource.
-        /// </summary>
-        /// <remarks>
-        /// Blitting is used by <see cref="DirectX12Texture" /> to generate mip maps.
-        /// </remarks>
-        /// <returns>The compute pipeline that can be invoked to blit an image resource.</returns>
-        /// <seealso cref="DirectX12Texture::generateMipMaps" />
-        virtual DirectX12ComputePipeline& blitPipeline() const noexcept;
 
         /// <summary>
         /// Returns the command signatures for indirect dispatch and draw calls.

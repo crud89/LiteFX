@@ -490,7 +490,6 @@ namespace LiteFX::Rendering {
         using ICommandBuffer::drawIndexedIndirect;
         using ICommandBuffer::barrier;
         using ICommandBuffer::transfer;
-        using ICommandBuffer::generateMipMaps;
         using ICommandBuffer::bind;
         using ICommandBuffer::use;
         using ICommandBuffer::pushConstants;
@@ -522,9 +521,6 @@ namespace LiteFX::Rendering {
 
         /// <inheritdoc />
         virtual void barrier(const barrier_type& barrier) const noexcept = 0;
-
-        /// <inheritdoc />
-        virtual void generateMipMaps(image_type& image) noexcept = 0;
 
         /// <inheritdoc />
         virtual void transfer(const buffer_type& source, const buffer_type& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const = 0;
@@ -665,10 +661,6 @@ namespace LiteFX::Rendering {
 
         inline void cmdBarrier(const IBarrier& barrier) const noexcept override {
             this->barrier(dynamic_cast<const barrier_type&>(barrier));
-        }
-
-        inline void cmdGenerateMipMaps(IImage& image) noexcept override {
-            this->generateMipMaps(dynamic_cast<image_type&>(image));
         }
 
         inline void cmdTransfer(const IBuffer& source, const IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const override {

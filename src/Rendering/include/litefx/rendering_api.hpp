@@ -5981,23 +5981,6 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Uses the image at level *0* to generate mip-maps for the remaining levels.
-        /// </summary>
-        /// <remarks>
-        /// It is strongly advised, not to generate mip maps at runtime. Instead, prefer using a format that supports pre-computed mip maps. If you have to, prefer computing
-        /// mip maps in a pre-process.
-        /// 
-        /// Note that not all texture formats and sizes are supported for mip map generation and the result might not be satisfactory. For example, it is not possible to compute 
-        /// proper mip maps for pre-compressed formats. Textures should have power of two sizes in order to not appear under-sampled.
-        /// 
-        /// Note that generating mip maps might require the texture to be writable. You can transfer the texture into a non-writable resource afterwards to improve performance.
-        /// </remarks>
-        /// <param name="commandBuffer">The command buffer used to issue the transition and transfer operations.</param>
-        inline void generateMipMaps(IImage& image) noexcept {
-            this->cmdGenerateMipMaps(image);
-        }
-
-        /// <summary>
         /// Performs a buffer-to-buffer transfer from <paramref name="source" /> to <paramref name="target" />.
         /// </summary>
         /// <remarks>
@@ -6869,7 +6852,6 @@ namespace LiteFX::Rendering {
     private:
         virtual UniquePtr<IBarrier> getBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept = 0;
         virtual void cmdBarrier(const IBarrier& barrier) const noexcept = 0;
-        virtual void cmdGenerateMipMaps(IImage& image) noexcept = 0;
         virtual void cmdTransfer(const IBuffer& source, const IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const = 0;
         virtual void cmdTransfer(const IBuffer& source, const IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const = 0;
         virtual void cmdTransfer(const IImage& source, const IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const = 0;

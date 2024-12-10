@@ -1,6 +1,5 @@
 #include <litefx/backends/dx12.hpp>
 #include <litefx/backends/dx12_builders.hpp>
-#include <shader_resources.hpp>
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -20,7 +19,6 @@ private:
 	DirectX12Queue* m_graphicsQueue, * m_transferQueue, * m_computeQueue;
 	Array<UniquePtr<DirectX12Queue>> m_queues;
 	UniquePtr<DirectX12GraphicsFactory> m_factory;
-	UniquePtr<DirectX12ComputePipeline> m_blitPipeline;
 	ComPtr<ID3D12InfoQueue1> m_eventQueue;
 	UniquePtr<DirectX12SwapChain> m_swapChain;
 	DWORD m_debugCallbackCookie = 0;
@@ -217,43 +215,6 @@ public:
 		return result;
 	}
 
-	void createBlitPipeline()
-	{
-		try
-		{
-			// Allocate shader module.
-			Array<UniquePtr<DirectX12ShaderModule>> modules;
-			auto blitShader = LiteFX::Backends::DirectX12::Shaders::blit_dxi::open();
-			modules.push_back(std::move(makeUnique<DirectX12ShaderModule>(*m_parent, ShaderStage::Compute, blitShader, LiteFX::Backends::DirectX12::Shaders::blit_dxi::name(), "main")));
-			auto shaderProgram = DirectX12ShaderProgram::create(*m_parent, std::move(modules | std::views::as_rvalue));
-
-			// Allocate descriptor set layouts.
-			UniquePtr<DirectX12PushConstantsLayout> pushConstantsLayout = nullptr;
-			auto bufferLayouts = Enumerable<UniquePtr<DirectX12DescriptorLayout>>(
-				makeUnique<DirectX12DescriptorLayout>(DescriptorType::ConstantBuffer, 0, 16), 
-				makeUnique<DirectX12DescriptorLayout>(DescriptorType::Texture, 1, 0),
-				makeUnique<DirectX12DescriptorLayout>(DescriptorType::RWTexture, 2, 0)
-			);
-			auto samplerLayouts = Enumerable<UniquePtr<DirectX12DescriptorLayout>>(
-				makeUnique<DirectX12DescriptorLayout>(DescriptorType::Sampler, 0, 0) 
-			);
-			auto descriptorSetLayouts = Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>(
-				makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(bufferLayouts), 0, ShaderStage::Compute),
-				makeUnique<DirectX12DescriptorSetLayout>(*m_parent, std::move(samplerLayouts), 1, ShaderStage::Compute)
-			);
-			
-			// Create a pipeline layout.
-			auto pipelineLayout = makeShared<DirectX12PipelineLayout>(*m_parent, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
-
-			// Create the pipeline.
-			m_blitPipeline = makeUnique<DirectX12ComputePipeline>(*m_parent, pipelineLayout, shaderProgram, "Blit");
-		}
-		catch (const Exception& ex)
-		{
-			LITEFX_WARNING(DIRECTX12_LOG, "Unable to create blit pipeline. Blitting will not be available. Error: {0}", ex.what());
-		}	
-	}
-
 public:
 	Array<Format> getSurfaceFormats() const
 	{
@@ -297,7 +258,6 @@ DirectX12Device::DirectX12Device(const DirectX12Backend& backend, const DirectX1
 	m_impl->createQueues();
 	m_impl->createFactory();
 	m_impl->createSwapChain(format, renderArea, backBuffers, enableVsync);
-	m_impl->createBlitPipeline();
 }
 
 DirectX12Device::~DirectX12Device() noexcept = default;
@@ -463,11 +423,6 @@ void DirectX12Device::bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& co
 {
 	const std::array<ID3D12DescriptorHeap*, 2> globalHeaps{ m_impl->m_globalBufferHeap.Get(), m_impl->m_globalSamplerHeap.Get() };
 	commandBuffer.handle()->SetDescriptorHeaps(globalHeaps.size(), globalHeaps.data());
-}
-
-DirectX12ComputePipeline& DirectX12Device::blitPipeline() const noexcept
-{
-	return *m_impl->m_blitPipeline;
 }
 
 void DirectX12Device::indirectDrawSignatures(ComPtr<ID3D12CommandSignature>& dispatchSignature, ComPtr<ID3D12CommandSignature>& dispatchMeshSignature, ComPtr<ID3D12CommandSignature>& drawSignature, ComPtr<ID3D12CommandSignature>& drawIndexedSignature) const noexcept
