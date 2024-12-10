@@ -8734,4 +8734,11 @@ namespace LiteFX::Rendering {
     private:
         virtual Enumerable<const IGraphicsAdapter*> getAdapters() const = 0;
     };
+
+    /// <summary>
+    /// Concept that can be used to refer to render backend implementations.
+    /// </summary>
+    template <typename T>
+    concept render_backend = meta::implements<T, IRenderBackend>;
+
 }

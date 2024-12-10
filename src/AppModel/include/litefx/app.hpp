@@ -67,6 +67,12 @@ namespace LiteFX {
 	};
 
 	/// <summary>
+	/// Concept that can be used to refer to backend implementations.
+	/// </summary>
+	template <typename T>
+	concept backend = meta::implements<T, IBackend>;
+
+	/// <summary>
 	/// Base class for additional event arguments.
 	/// </summary>
 	/// <seealso cref="Event" />
