@@ -106,8 +106,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     std::ranges::for_each(frameBuffers, [device](auto& frameBuffer) { device->state().add(std::move(frameBuffer)); });
 }
 
-template<typename TDevice> requires
-    meta::implements<TDevice, IGraphicsDevice>
+template<render_backend TBackend, typename TDevice = TBackend::device_type>
 void loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampler>& sampler)
 {
     using TBarrier = typename TDevice::barrier_type;
@@ -136,7 +135,8 @@ void loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampler
     commandBuffer->transfer(imageData.get(), texture->size(0), *texture);
 
     // Generate the rest of the mip maps.
-    commandBuffer->generateMipMaps(*texture);
+    auto blitter = Blitter<TBackend>::create(device);
+    blitter->generateMipMaps(*texture, *commandBuffer);
 
     // Create a barrier to ensure the texture is readable.
     barrier = device.buildBarrier()
@@ -153,8 +153,7 @@ void loadTexture(TDevice& device, UniquePtr<IImage>& texture, UniquePtr<ISampler
     sampler = device.factory().createSampler("Sampler", FilterMode::Linear, FilterMode::Linear, BorderMode::Repeat, BorderMode::Repeat, BorderMode::Repeat, MipMapMode::Linear, 0.f, std::numeric_limits<Float>::max(), 0.f, 16.f);
 }
 
-template<typename TDevice> requires
-    meta::implements<TDevice, IGraphicsDevice>
+template<render_backend TBackend, typename TDevice = TBackend::device_type>
 UInt64 initBuffers(SampleApp& app, TDevice& device, SharedPtr<IInputAssembler> inputAssembler)
 {
     // Get a command buffer
@@ -284,7 +283,7 @@ void SampleApp::onInit()
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);
-        m_transferFence = ::initBuffers(*this, *device, m_inputAssembler);
+        m_transferFence = ::initBuffers<TBackend>(*this, *device, m_inputAssembler);
 
         return true;
     };

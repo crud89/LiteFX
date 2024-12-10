@@ -12,12 +12,13 @@ SET(GRAPHICS_HEADERS
     "include/litefx/graphics_api.hpp"
     "include/litefx/graphics.hpp"
     
-    "include/litefx/gfx/blit.hpp"
+    "include/litefx/gfx/blitter.hpp"
     "include/litefx/gfx/vertex.hpp"
 )
 
 SET(GRAPHICS_SOURCES
-    "src/vertex.cpp"
+    "src/blitter_vk.cpp"
+    "src/blitter_d3d12.cpp"
 )
 
 # Add shared library project.
@@ -58,8 +59,27 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} 
-    PUBLIC LiteFX.Core LiteFX.Logging LiteFX.Math
+    PUBLIC LiteFX.Core LiteFX.Logging LiteFX.Math LiteFX.Rendering
 )
+
+# Link supported backends.
+IF(LITEFX_BUILD_DIRECTX_12_BACKEND)
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC LiteFX.Backends.DirectX12)
+    
+    # Add shader modules.
+    ADD_SHADER_LIBRARY(${PROJECT_NAME}.Shaders SOURCE_FILE "shader_resources.hpp" NAMESPACE "LiteFX::Graphics::Shaders")
+    ADD_SHADER_MODULE(${PROJECT_NAME}.Blit SOURCE "shaders/blit.hlsl" LANGUAGE HLSL TYPE COMPUTE COMPILE_AS DXIL SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC LIBRARY ${PROJECT_NAME}.Shaders)
+    SET_TARGET_PROPERTIES(${PROJECT_NAME}.Shaders PROPERTIES FOLDER "SDK/Graphics/Shaders")
+    SET_TARGET_PROPERTIES(${PROJECT_NAME}.Blit PROPERTIES FOLDER "SDK/Graphics/Shaders")
+
+    TARGET_LINK_SHADER_LIBRARIES(${PROJECT_NAME} 
+        LIBRARIES ${PROJECT_NAME}.Shaders
+    )
+ENDIF(LITEFX_BUILD_DIRECTX_12_BACKEND)
+
+IF(LITEFX_BUILD_VULKAN_BACKEND)
+    TARGET_LINK_LIBRARIES(${PROJECT_NAME} PUBLIC LiteFX.Backends.Vulkan)
+ENDIF(LITEFX_BUILD_VULKAN_BACKEND)
 
 # Pre-define export specifier, to prevent dllimport/dllexport from being be emitted.
 IF(NOT BUILD_SHARED_LIBS)
