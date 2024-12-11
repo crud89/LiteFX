@@ -177,6 +177,7 @@
     },
     {
       "name": "windows-clangcl-x64-debug",
+      "hidden": true,
       "inherits": [
         "windows",
         "clangcl"
@@ -194,6 +195,7 @@
     },
     {
       "name": "windows-clangcl-x64-release",
+      "hidden": true,
       "inherits": [
         "windows",
         "clangcl"
