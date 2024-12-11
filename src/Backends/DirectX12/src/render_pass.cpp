@@ -122,7 +122,9 @@ public:
             m_secondaryCommandBuffers[interfacePointer] = std::views::iota(0u, m_secondaryCommandBufferCount) |
                 std::views::transform([&queue, &renderPass]([[maybe_unused]] UInt32 i) {
                     auto commandBuffer = queue.createCommandBuffer(false);
-#ifndef NDEBUG
+#ifdef NDEBUG
+                    (void)renderPass;
+#else
                     std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} Secondary Commands {1}", renderPass.name(), i)).c_str());
 #endif
                     return commandBuffer;
