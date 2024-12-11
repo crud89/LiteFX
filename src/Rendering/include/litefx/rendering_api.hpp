@@ -4552,7 +4552,7 @@ namespace LiteFX::Rendering {
     /// <seealso cref="TriangleMesh" />
     /// <seealso cref="AxisAlignedBoundingBox" />
     /// <seealso cref="ITopLevelAccelerationStructure" />
-    class LITEFX_RENDERING_API IBottomLevelAccelerationStructure : public IAccelerationStructure {
+    class LITEFX_RENDERING_API IBottomLevelAccelerationStructure : public virtual IAccelerationStructure {
     public:
         /// <summary>
         /// Represents a triangle mesh.
@@ -4834,7 +4834,7 @@ namespace LiteFX::Rendering {
     /// A structure that stores the instance data for a <see cref="IBottomLevelAccelerationStructure" />.
     /// </summary>
     /// <seealso cref="IBottomLevelAccelerationStructure" />
-    class LITEFX_RENDERING_API ITopLevelAccelerationStructure : public IAccelerationStructure {
+    class LITEFX_RENDERING_API ITopLevelAccelerationStructure : public virtual IAccelerationStructure {
     public:
 #pragma warning(push)
 #pragma warning(disable: 4324) // Structure was padded due to alignment specifier
