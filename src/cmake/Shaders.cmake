@@ -126,13 +126,12 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
     ADD_CUSTOM_TARGET(${target_name} 
       COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR}
       COMMENT "glslc: compiling hlsl shader '${shader_source}'..."
-      DEPENDS ${SHADER_SOURCES}
+      SOURCES ${SHADER_SOURCES}
     )
 
-    ADD_CUSTOM_COMMAND(TARGET ${target_name} 
+    ADD_CUSTOM_COMMAND(TARGET ${target_name} POST_BUILD
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMAND ${LITEFX_BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=bin -fshader-stage=${SHADER_STAGE} -DSPIRV -x hlsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
-      DEPENDS ${SHADER_SOURCES}
     )
 
     SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
@@ -185,13 +184,12 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       ADD_CUSTOM_TARGET(${target_name} 
         COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR}
         COMMENT "dxc: compiling hlsl shader '${shader_source}' (profile: ${SHADER_PROFILE}) to SPIR-V..."
-        DEPENDS ${SHADER_SOURCES}
+        SOURCES ${SHADER_SOURCES}
       )
 
-      ADD_CUSTOM_COMMAND(TARGET ${target_name} 
+      ADD_CUSTOM_COMMAND(TARGET ${target_name} POST_BUILD
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMAND ${LITEFX_BUILD_DXC_COMPILER} -spirv -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> ${compiler_options} -fspv-target-env=vulkan1.3 ${shader_source}
-        DEPENDS ${SHADER_SOURCES}
       )
     
       SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
@@ -206,13 +204,12 @@ FUNCTION(TARGET_HLSL_SHADERS target_name shader_source shader_model compile_as c
       ADD_CUSTOM_TARGET(${target_name} 
         COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR}
         COMMENT "dxc: compiling hlsl shader '${shader_source}' (profile: ${SHADER_PROFILE}) to DXIL..."
-        DEPENDS ${SHADER_SOURCES}
+        SOURCES ${SHADER_SOURCES}
       )
       
-      ADD_CUSTOM_COMMAND(TARGET ${target_name} 
+      ADD_CUSTOM_COMMAND(TARGET ${target_name} POST_BUILD
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         COMMAND ${LITEFX_BUILD_DXC_COMPILER} -T ${SHADER_PROFILE} -E main -Fo "${OUTPUT_DIR}/${out_name}${DXIL_DEFAULT_SUFFIX}" $<$<CONFIG:Debug,RelWithDebInfo>:-Zi> $<IF:$<CONFIG:Debug,RelWithDebInfo>,-Qembed_debug,-Qstrip_debug> ${compiler_options} ${shader_source} -Wno-ignored-attributes
-        DEPENDS ${SHADER_SOURCES}
       )
     
       SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
@@ -284,13 +281,12 @@ FUNCTION(TARGET_GLSL_SHADERS target_name shader_source compile_as compile_with s
     ADD_CUSTOM_TARGET(${target_name} 
       COMMENT "glslc: compiling glsl shader '${shader_source}'..."
       COMMAND ${CMAKE_COMMAND} -E make_directory ${OUTPUT_DIR}
-      DEPENDS ${SHADER_SOURCES}
+      SOURCES ${SHADER_SOURCES}
     )
 
-    ADD_CUSTOM_COMMAND(TARGET ${target_name} 
+    ADD_CUSTOM_COMMAND(TARGET ${target_name} POST_BUILD
       WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
       COMMAND ${LITEFX_BUILD_GLSLC_COMPILER} --target-env=vulkan1.3 -mfmt=bin -fshader-stage=${SHADER_STAGE} -DSPIRV -x glsl ${compiler_options} -c ${shader_source} -o "${OUTPUT_DIR}/${out_name}${SPIRV_DEFAULT_SUFFIX}" -MD
-      DEPENDS ${SHADER_SOURCES}
     )
     
     SET_TARGET_PROPERTIES(${target_name} PROPERTIES 
@@ -320,7 +316,7 @@ FUNCTION(ADD_SHADER_MODULE module_name)
 
   # If a library is specified, append the shader target it to the library target.
   IF(SHADER_LIBRARY)
-    ADD_DEPENDENCIES(${SHADER_LIBRARY} ${module_name})
+    ADD_DEPENDENCIES(${SHADER_LIBRARY} pcksl ${module_name})
     GET_TARGET_PROPERTY(SHADER_LIBRARY_NAMESPACE ${SHADER_LIBRARY} NAMESPACE)
     GET_TARGET_PROPERTY(SHADER_LIBRARY_DIR ${SHADER_LIBRARY} INTERFACE_INCLUDE_DIRECTORIES)
     GET_TARGET_PROPERTY(SHADER_LIBRARY_SOURCE ${SHADER_LIBRARY} OUTPUT_NAME)
@@ -328,9 +324,8 @@ FUNCTION(ADD_SHADER_MODULE module_name)
     GET_TARGET_PROPERTY(SHADER_PROGRAM_SUFFIX ${module_name} SUFFIX)
     GET_TARGET_PROPERTY(SHADER_PROGRAM_BINARY_DIR ${module_name} RUNTIME_OUTPUT_DIRECTORY)
 
-    ADD_CUSTOM_COMMAND(TARGET ${SHADER_LIBRARY}
+    ADD_CUSTOM_COMMAND(TARGET ${SHADER_LIBRARY} POST_BUILD
       COMMAND pcksl pack "\"${SHADER_LIBRARY_DIR}/${SHADER_LIBRARY_SOURCE}\"" "\"${SHADER_PROGRAM_BINARY_DIR}/${SHADER_PROGRAM_NAME}${SHADER_PROGRAM_SUFFIX}\"" ${SHADER_LIBRARY_NAMESPACE} "${SHADER_PROGRAM_NAME}${SHADER_PROGRAM_SUFFIX}"
-      DEPENDS pcksl ${module_name}
     )
   ENDIF(SHADER_LIBRARY)
 ENDFUNCTION(ADD_SHADER_MODULE module_name)
@@ -359,9 +354,8 @@ FUNCTION(ADD_SHADER_LIBRARY library_name)
     COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_BINARY_DIR}/shaders/"
   )
 
-  ADD_CUSTOM_COMMAND(TARGET ${library_name}
+  ADD_CUSTOM_COMMAND(TARGET ${library_name} POST_BUILD
     COMMAND pcksl init "${CMAKE_CURRENT_BINARY_DIR}/shaders/${SHADER_LIBRARY_SOURCE_FILE}"
-    DEPENDS pcksl
   )
 
   SET_TARGET_PROPERTIES(${library_name} PROPERTIES 
@@ -400,105 +394,84 @@ FILE(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/Auxiliary/pcksl.cxx" CONTENT [==[
 #include <vector>
 #include <cstdint>
 
-// NOLINTBEGIN(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
-// NOLINTBEGIN(performance-avoid-endl)
-
 int main(int argc, char* argv[]) {
     if (argc < 2)
         return -1;
 
-    try
-    {
-        std::string command(argv[1]);
+    std::string command(argv[1]);
 
-        if (command == "init")
-        { 
-            std::string sourceFile(argv[2]);
-            std::ofstream file(sourceFile);
-            file << "#pragma once" << std::endl << 
-                "#include <iostream>" << std::endl <<
-                "#include <array>" << std::endl <<
-                "#include <istream>" << std::endl <<
-                "#include <string>" << std::endl <<
-                "#include <streambuf>" << std::endl << std::endl;
+    if (command == "init")
+    { 
+        std::string sourceFile(argv[2]);
+        std::ofstream file(sourceFile);
+        file << "#pragma once" << std::endl << 
+            "#include <iostream>" << std::endl <<
+            "#include <array>" << std::endl <<
+            "#include <istream>" << std::endl <<
+            "#include <string>" << std::endl <<
+            "#include <streambuf>" << std::endl << std::endl;
             
-            file << "// NOLINTBEGIN" << std::endl;
-            file << "#ifndef _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
-            file << "struct _pcksl_mem_buf : public std::streambuf {" << std::endl;
-            file << "    _pcksl_mem_buf(char* begin, size_t size) { this->setg(begin, begin, begin + size); }" << std::endl;
-            file << "};" << std::endl << std::endl;
-            file << "struct _pcksl_mem_istream : private virtual _pcksl_mem_buf, public std::istream {" << std::endl;
-            file << "    explicit _pcksl_mem_istream(char* begin, size_t size) :" << std::endl;
-            file << "        _pcksl_mem_buf(begin, size), std::istream(static_cast<std::streambuf*>(this)) { }" << std::endl;
-            file << "};" << std::endl;
-            file << "#define _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
-            file << "#endif // !_LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl << std::endl;
-            file << "// NOLINTEND" << std::endl;
+        file << "#ifndef _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
+        file << "struct _pcksl_mem_buf : public std::streambuf {" << std::endl;
+        file << "    _pcksl_mem_buf(const char* begin, size_t size) { char* b = const_cast<char*>(begin); this->setg(b, b, b + size); }" << std::endl;
+        file << "};" << std::endl << std::endl;
+        file << "struct _pcksl_mem_istream : private virtual _pcksl_mem_buf, public std::istream {" << std::endl;
+        file << "    explicit _pcksl_mem_istream(const char* begin, size_t size) :" << std::endl;
+        file << "        _pcksl_mem_buf(begin, size), std::istream(static_cast<std::streambuf*>(this)) { }" << std::endl;
+        file << "};" << std::endl;
+        file << "#define _LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl;
+        file << "#endif // !_LITEFX_PCKSL_MEMBUF_DEFINED" << std::endl << std::endl;
 
-            file.close();
-        }
-        else if (command == "pack")
-        {
-            if (argc != 6)
-                return -1;
-
-            std::string sourceFile(argv[2]);
-            std::string resourceFile(argv[3]);
-            std::string ns(argv[4]);
-            std::string resourceName(argv[5]);
-            std::string name(argv[5]);
-            std::replace(resourceName.begin(), resourceName.end(), '.', '_');
-            std::replace(resourceName.begin(), resourceName.end(), ':', '_');
-
-            std::ifstream resource(resourceFile, std::ios::binary);
-            std::vector<uint8_t> buffer(std::istreambuf_iterator<char>(resource), { });
-
-            std::ofstream file(sourceFile, std::ios::app);
-            file << "namespace " << ns << " {" << std::endl;
-            file << "    // Shader source: " << resourceFile << "." << std::endl;
-            file << "    // NOLINTBEGIN" << std::endl;
-            file << "    class " << resourceName << " {" << std::endl;
-            file << "    public:" << std::endl;
-            file << "        " << resourceName << "() = delete;" << std::endl;
-            file << "        ~" << resourceName << "() = delete;" << std::endl;
-            file << "" << std::endl;
-            file << "        static const std::string name() { return \"" << name << "\"; }" << std::endl << std::endl;
-            file << "        static _pcksl_mem_istream open() {" << std::endl;
-            file << "            static std::array<uint8_t, " << buffer.size() << "> _data = {" << std::endl;
-            file << "                ";
-
-            for (const auto& v : buffer) 
-                file << "0x" << std::setfill('0') << std::setw(sizeof(v) * 2) << std::hex << +v << ", ";
-
-            file << std::endl;
-            file << "            };" << std::endl << std::endl;
-            file << "            // NOTE: reinterpret_cast should be safe here: https://eel.is/c++draft/basic.lval#11.3." << std::endl;
-            file << "            return ::_pcksl_mem_istream(reinterpret_cast<char*>(_data.data()), _data.size());" << std::endl; // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
-            file << "        }" << std::endl;
-            file << "    };" << std::endl;
-            file << "    // NOLINTEND" << std::endl;
-            file << "}" << std::endl << std::endl;
-
-            file.close();
-        }
-        else
-        {
-            return -1;
-        }
+        file.close();
     }
-    catch(...)
+    else if (command == "pack")
     {
-        return -2;
+        if (argc != 6)
+            return -1;
+
+        std::string sourceFile(argv[2]);
+        std::string resourceFile(argv[3]);
+        std::string ns(argv[4]);
+        std::string resourceName(argv[5]);
+        std::string name(argv[5]);
+        std::replace(resourceName.begin(), resourceName.end(), '.', '_');
+        std::replace(resourceName.begin(), resourceName.end(), ':', '_');
+
+        std::ifstream resource(resourceFile, std::ios::binary);
+        std::vector<uint8_t> buffer(std::istreambuf_iterator<char>(resource), { });
+
+        std::ofstream file(sourceFile, std::ios::app);
+        file << "namespace " << ns << " {" << std::endl;
+        file << "    // Shader source: " << resourceFile << "." << std::endl;
+        file << "    class " << resourceName << " {" << std::endl;
+        file << "    public:" << std::endl;
+        file << "        " << resourceName << "() = delete;" << std::endl;
+        file << "        ~" << resourceName << "() = delete;" << std::endl;
+        file << "" << std::endl;
+        file << "        static const std::string name() { return \"" << name << "\"; }" << std::endl << std::endl;
+        file << "        static _pcksl_mem_istream open() {" << std::endl;
+        file << "            static std::array<uint8_t, " << buffer.size() << "> _data = {" << std::endl;
+        file << "                ";
+
+        for (const auto& v : buffer) 
+            file << "0x" << std::setfill('0') << std::setw(sizeof(v) * 2) << std::hex << +v << ", ";
+
+        file << std::endl;
+        file << "            };" << std::endl << std::endl;
+        file << "            return ::_pcksl_mem_istream(reinterpret_cast<const char*>(_data.data()), _data.size());" << std::endl;
+        file << "        }" << std::endl;
+        file << "    };" << std::endl;
+        file << "}" << std::endl << std::endl;
+
+        file.close();
+    }
+    else
+    {
+        return -1;
     }
 
     return 0;
 }
-
-// NOLINTEND(performance-avoid-endl)
-// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
-// NOLINTEND(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-
 ]==])
 
 ADD_EXECUTABLE(pcksl "${CMAKE_BINARY_DIR}/Auxiliary/pcksl.cxx")
