@@ -25,7 +25,7 @@
       "cacheVariables": {
         "CMAKE_C_COMPILER": "clang-cl",
         "CMAKE_CXX_COMPILER": "clang-cl",
-        "CMAKE_CXX_CLANG_TIDY": "clang-tidy;--config-file=${sourceDir}/.clang-tidy;--extra-arg=/EHsc;--extra-arg=/std:c++latest"
+        "CMAKE_CXX_CLANG_TIDY": "clang-tidy;--config-file=${sourceDir}/.clang-tidy;--extra-arg=/EHsc"
       },
       "vendor": {
         "microsoft.com/VisualStudioSettings/CMake/1.0": {
