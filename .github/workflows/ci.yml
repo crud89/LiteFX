@@ -242,34 +242,25 @@ jobs:
           choco install opencppcoverage
           echo "C:\Program Files\OpenCppCoverage" >> $GITHUB_PATH
 
-      - name: Install LLVM and Clang
-        if: ${{ matrix.compiler == 'clang' }}
-        uses: KyleMayes/install-llvm-action@v2
-        with:
-          version: ${{ env.llvmVersion }}
+      - name: Update LLVM
+        if: ${{ matrix.compiler }} == 'clang'
+        run: choco upgrade llvm 
 
       - name: Setup build and test environment
         id: setup-environment
         shell: bash
         run: |
           echo "VCPKG_FEATURE_FLAGS=manifests" >> $env:GITHUB_ENV
+          echo "C:\msys64\ucrt64\bin" >> $GITHUB_PATH
           #echo "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime" >> $GITHUB_PATH  # Somehow does not get picked up by the MSVC development environment.
           cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
           cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
 
-      - name: Download Mesa3D driver
-        uses: robinraju/release-downloader@v1.10
+      - name: Restore Mesa3D
+        uses: actions/cache/restore@v4
         with:
-          repository: 'pal1000/mesa-dist-win'
-          tag: '${{ env.mesaDriverVersion }}'
-          fileName: 'mesa3d-${{ env.mesaDriverVersion }}-release-msvc.7z'
-          out-file-path: 'dep/mesa/'  # ${{ github.workspace }} is prefixed automatically.
-          extract: false  # 7zip is not supported by this extension, so we have to do it on our own later.
-          
-      - name: Decompress Mesa3D driver
-        working-directory: '${{ github.workspace }}/dep/mesa/'
-        run: |
-          7z x '${{ github.workspace }}/dep/mesa/mesa3d-${{ env.mesaDriverVersion }}-release-msvc.7z'
+          path: ${{ github.workspace }}/dep/mesa/
+          key: ${{ matrix.os }}-mesa3d-${{ env.mesaDriverVersion }}
 
       - name: Install and Test Mesa3D driver
         working-directory: '${{ github.workspace }}/dep/mesa/'
@@ -282,9 +273,6 @@ jobs:
           reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin32\VkLayer_khronos_validation.json' /t REG_DWORD /d 0 /f /reg:64
           C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkaninfo.exe --summary
 
-      - name: Retrieve latest CMake build
-        uses: lukka/get-cmake@latest
-
       - name: Restore or build vcpkg
         uses: lukka/run-vcpkg@v10
         with:
@@ -292,14 +280,11 @@ jobs:
           vcpkgJsonGlob: '${{ github.workspace }}/src/vcpkg.json'
 
       - name: Build Runtime and Tests
-        id: build-with-cmake
         uses: lukka/run-cmake@v10
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
           configurePreset: '${{ matrix.configuration }}'
           buildPreset: '${{ matrix.configuration }}'
-          #testPreset: '${{ matrix.configuration }}'
-          #testPresetAdditionalArgs: "[ '--output-on-failure', '--timeout', '10' ]"
 
       - name: Run tests
         working-directory: "${{ github.workspace }}/out/build/${{ matrix.configuration }}"
@@ -439,13 +424,11 @@ jobs:
           install_runtime: true
           cache: true
           stripdown: false
-
-      - name: Install LLVM and Clang
-        if: ${{ matrix.compiler == 'clang' }}
-        uses: KyleMayes/install-llvm-action@v2
-        with:
-          version: ${{ env.llvmVersion }}
           
+      - name: Update LLVM
+        if: ${{ matrix.compiler }} == 'clang'
+        run: choco upgrade llvm 
+        
       - name: Setup build and test environment
         id: setup-environment
         shell: bash
@@ -454,6 +437,7 @@ jobs:
           #echo "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime" >> $GITHUB_PATH  # Somehow does not get picked up by the MSVC development environment.
           cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
           cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
+          echo "C:\msys64\ucrt64\bin" >> $GITHUB_PATH
 
       - name: Retrieve latest CMake build
         uses: lukka/get-cmake@latest
@@ -464,13 +448,12 @@ jobs:
           vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
           vcpkgJsonGlob: '${{ github.workspace }}/src/vcpkg.json'
 
-      - name: Build Runtime and Tests
+      - name: Build Runtime and Samples
         id: build-with-cmake
         uses: lukka/run-cmake@v10
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
           configurePreset: '${{ matrix.configuration }}'
-          configurePresetAdditionalArgs: "['-DLITEFX_BUILD_EXAMPLES=ON']"
           buildPreset: '${{ matrix.configuration }}'
 
       - name: Collect code analysis results
