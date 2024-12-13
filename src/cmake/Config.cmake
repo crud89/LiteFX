@@ -23,7 +23,7 @@ ELSEIF(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL 
     # Explicitly disable the following warnings:
     # - Wextra-semi: Complains a lot about code in `generator.hpp`. Can be disabled after VS 17.13 release.
     # - Wlanguage-extension-token: Complains about usage of `IID_PPV_ARGS()`.
-    ADD_COMPILE_OPTIONS(-Wall -Wpedantic -Wno-extra-semi -Wno-language-extension-token $<$<CONFIG:Release,RelWithDebInfo>:-Werror>)
+    ADD_COMPILE_OPTIONS(-Wall -Wpedantic -Wno-extra-semi -Wno-language-extension-token -Wno-unknown-pragmas -Wno-gnu-zero-variadic-macro-arguments $<$<CONFIG:Release,RelWithDebInfo>:-Werror>)
 ENDIF(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 
 # For debug builds, append the "d" suffix.
