@@ -56,9 +56,9 @@
         "strategy": "external"
       },
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_BUILD_TYPE": "Debug",
         "LITEFX_BUILD_TESTS": "ON",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-rel",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
         "VCPKG_MANIFEST_FEATURES": "pix-support",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
@@ -138,9 +138,9 @@
         "strategy": "external"
       },
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_BUILD_TYPE": "Debug",
         "LITEFX_BUILD_TESTS": "ON",
-        "VCPKG_TARGET_TRIPLET": "x86-windows-rel",
+        "VCPKG_TARGET_TRIPLET": "x86-windows",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
     },
@@ -253,9 +253,9 @@
         "strategy": "external"
       },
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_BUILD_TYPE": "Debug",
         "LITEFX_BUILD_TESTS": "ON",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-rel",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
         "VCPKG_MANIFEST_FEATURES": "pix-support",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
