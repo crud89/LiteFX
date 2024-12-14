@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class RenderPassDependency::RenderPassDependencyImpl : public Implement<RenderPassDependency> {
+class RenderPassDependency::RenderPassDependencyImpl {
 public:
     friend class RenderPassDependency;
 
@@ -15,8 +15,8 @@ private:
     DescriptorBindingPoint m_descriptorBinding;
 
 public:
-    RenderPassDependencyImpl(RenderPassDependency* parent, const RenderTarget& renderTarget, const DescriptorBindingPoint& descriptorBinding) :
-        base(parent), m_renderTarget(renderTarget), m_descriptorBinding(descriptorBinding)
+    RenderPassDependencyImpl(RenderTarget renderTarget, DescriptorBindingPoint descriptorBinding) :
+        m_renderTarget(std::move(renderTarget)), m_descriptorBinding(descriptorBinding)
     {
     }
 };
@@ -26,7 +26,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 RenderPassDependency::RenderPassDependency(const RenderTarget& renderTarget, const DescriptorBindingPoint& descriptorBinding) noexcept :
-    m_impl(makePimpl<RenderPassDependencyImpl>(this, renderTarget, descriptorBinding))
+    m_impl(renderTarget, descriptorBinding)
 {
 }
 
@@ -35,31 +35,11 @@ RenderPassDependency::RenderPassDependency(const RenderTarget& renderTarget, UIn
 {
 }
 
-RenderPassDependency::RenderPassDependency(const RenderPassDependency& _other) noexcept :
-    m_impl(makePimpl<RenderPassDependencyImpl>(this, _other.renderTarget(), _other.binding()))
-{
-}
-
-RenderPassDependency::RenderPassDependency(RenderPassDependency&& _other) noexcept :
-    m_impl(makePimpl<RenderPassDependencyImpl>(this, std::move(_other.m_impl->m_renderTarget), std::move(_other.m_impl->m_descriptorBinding)))
-{
-}
-
+RenderPassDependency::RenderPassDependency(const RenderPassDependency& _other) = default;
+RenderPassDependency::RenderPassDependency(RenderPassDependency&& _other) noexcept = default;
+RenderPassDependency& RenderPassDependency::operator=(const RenderPassDependency& _other) = default;
+RenderPassDependency& RenderPassDependency::operator=(RenderPassDependency&& _other) noexcept = default;
 RenderPassDependency::~RenderPassDependency() noexcept = default;
-
-RenderPassDependency& RenderPassDependency::operator=(const RenderPassDependency& _other) noexcept
-{
-    m_impl->m_renderTarget = _other.renderTarget();
-    m_impl->m_descriptorBinding = _other.binding();
-    return *this;
-}
-
-RenderPassDependency& RenderPassDependency::operator=(RenderPassDependency&& _other) noexcept
-{
-    m_impl->m_renderTarget = std::move(_other.m_impl->m_renderTarget);
-    m_impl->m_descriptorBinding = std::move(_other.m_impl->m_descriptorBinding);
-    return *this;
-}
 
 const RenderTarget& RenderPassDependency::renderTarget() const noexcept 
 {

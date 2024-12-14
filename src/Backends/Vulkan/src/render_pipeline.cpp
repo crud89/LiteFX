@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanRenderPipeline::VulkanRenderPipelineImpl : public Implement<VulkanRenderPipeline> {
+class VulkanRenderPipeline::VulkanRenderPipelineImpl {
 public:
 	friend class VulkanRenderPipelineBuilder;
 	friend class VulkanRenderPipeline;
@@ -19,27 +19,36 @@ private:
 	SharedPtr<VulkanRasterizer> m_rasterizer;
 	bool m_alphaToCoverage{ false };
 	MultiSamplingLevel m_samples{ MultiSamplingLevel::x1 };
-	const VulkanRenderPass& m_renderPass;
-	UniquePtr<IVulkanSampler> m_inputAttachmentSampler;
+	SharedPtr<const VulkanRenderPass> m_renderPass;
+	SharedPtr<IVulkanSampler> m_inputAttachmentSampler;
 	Dictionary<const IFrameBuffer*, Array<UniquePtr<VulkanDescriptorSet>>> m_inputAttachmentBindings;
 	Dictionary<const IFrameBuffer*, size_t> m_frameBufferResizeTokens, m_frameBufferReleaseTokens;
 	mutable std::mutex m_usageMutex;
 
 
 public:
-	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass, bool alphaToCoverage, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer) :
-		base(parent), m_renderPass(renderPass), m_alphaToCoverage(alphaToCoverage), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer)
+	VulkanRenderPipelineImpl(const VulkanRenderPass& renderPass, bool alphaToCoverage, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanShaderProgram>& shaderProgram, const SharedPtr<VulkanInputAssembler>& inputAssembler, const SharedPtr<VulkanRasterizer>& rasterizer) :
+		m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_alphaToCoverage(alphaToCoverage), m_renderPass(renderPass.shared_from_this())
 	{
+		auto device = renderPass.device();
+
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
-			m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
+			m_inputAttachmentSampler = device->factory().createSampler();
 	}
 
-	VulkanRenderPipelineImpl(VulkanRenderPipeline* parent, const VulkanRenderPass& renderPass) :
-		base(parent), m_renderPass(renderPass)
+	VulkanRenderPipelineImpl(const VulkanRenderPass& renderPass) :
+		m_renderPass(renderPass.shared_from_this())
 	{
+		auto device = renderPass.device();
+
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
-			m_inputAttachmentSampler = m_renderPass.device().factory().createSampler();
+			m_inputAttachmentSampler = device->factory().createSampler();
 	}
+
+	VulkanRenderPipelineImpl(VulkanRenderPipelineImpl&&) noexcept = delete;
+	VulkanRenderPipelineImpl(const VulkanRenderPipelineImpl&) = delete;
+	VulkanRenderPipelineImpl& operator=(VulkanRenderPipelineImpl&&) noexcept = delete;
+	VulkanRenderPipelineImpl& operator=(const VulkanRenderPipelineImpl&) = delete;
 
 	~VulkanRenderPipelineImpl()
 	{
@@ -52,7 +61,7 @@ public:
 	}
 
 public:
-	VkPipeline initialize(MultiSamplingLevel samples)
+	VkPipeline initialize([[maybe_unused]] const VulkanRenderPipeline& parent, MultiSamplingLevel samples)
 	{
 		// Get the shader modules.
 		auto modules = m_program->modules();
@@ -72,7 +81,7 @@ public:
 		dynamicState.dynamicStateCount = static_cast<UInt32>(dynamicStates.size());
 
 		// Setup shader stages.
-		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", reinterpret_cast<void*>(m_program.get()), modules.size());
+		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", static_cast<void*>(m_program.get()), modules.size());
 
 		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
 			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
@@ -80,10 +89,10 @@ public:
 
 		// Setup the pipeline.
 		m_samples = samples;
-		auto pipeline = this->initializeGraphicsPipeline(dynamicState, shaderStages);
+		auto pipeline = this->initializeGraphicsPipeline(parent, dynamicState, shaderStages);
 
 #ifndef NDEBUG
-		m_renderPass.device().setDebugName(*reinterpret_cast<const UInt64*>(&pipeline), VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, m_parent->name());
+		m_renderPass->device()->setDebugName(pipeline, VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, parent.name());
 #endif
 
 		// Return the pipeline instance.
@@ -91,12 +100,9 @@ public:
 
 	}
 
-	VkPipeline initializeGraphicsPipeline(const VkPipelineDynamicStateCreateInfo& dynamicState, const LiteFX::Array<VkPipelineShaderStageCreateInfo>& shaderStages)
+	VkPipeline initializeGraphicsPipeline([[maybe_unused]] const VulkanRenderPipeline& parent, const VkPipelineDynamicStateCreateInfo& dynamicState, const LiteFX::Array<VkPipelineShaderStageCreateInfo>& shaderStages)
 	{
-		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline \"{1}\" for layout {0}...", reinterpret_cast<void*>(m_layout.get()), m_parent->name());
-
-		// Get the device.
-		const auto& device = m_renderPass.device();
+		LITEFX_TRACE(VULKAN_LOG, "Creating render pipeline \"{1}\" for layout {0}...", static_cast<void*>(m_layout.get()), parent.name());
 
 		// Setup rasterizer state.
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
@@ -139,7 +145,11 @@ public:
 			auto bufferAttributes = layout->attributes() | std::ranges::to<std::vector>();
 			auto bindingPoint = layout->binding();
 
+#ifdef NDEBUG
+			(void)l; // Required as [[maybe_unused]] is not supported in captures.
+#else
 			LITEFX_TRACE(VULKAN_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size: {3} bytes, Binding: {4} }}...", ++l, vertexLayouts.size(), bufferAttributes.size(), layout->elementSize(), bindingPoint);
+#endif
 
 			VkVertexInputBindingDescription binding = {};
 			binding.binding = bindingPoint;
@@ -147,8 +157,13 @@ public:
 			binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 			Array<VkVertexInputAttributeDescription> currentAttributes = bufferAttributes |
-				std::views::transform([&bufferAttributes, &bindingPoint, i = 0](const BufferAttribute* attribute) mutable {
-					LITEFX_TRACE(VULKAN_LOG, "\tAttribute {0}/{1}: {{ Location: {2}, Offset: {3}, Format: {4} }}", ++i, bufferAttributes.size(), attribute->location(), attribute->offset(), attribute->format());
+				std::views::transform([&bindingPoint, attributes = bufferAttributes.size(), i = 0] (const BufferAttribute* attribute) mutable {
+#ifdef NDEBUG
+					(void)attributes; // Required as [[maybe_unused]] is not supported in captures.
+					(void)i;
+#else
+					LITEFX_TRACE(VULKAN_LOG, "\tAttribute {0}/{1}: {{ Location: {2}, Offset: {3}, Format: {4} }}", ++i, attributes, attribute->location(), attribute->offset(), attribute->format());
+#endif
 
 					VkVertexInputAttributeDescription descriptor{};
 					descriptor.binding = bindingPoint;
@@ -183,8 +198,10 @@ public:
 		multisampling.alphaToOneEnable = VK_FALSE;
 
 		// Setup color blend state.
+		auto renderTargets = m_renderPass->renderTargets();
 		Array<VkPipelineColorBlendAttachmentState> colorBlendAttachments;
-		std::ranges::for_each(m_renderPass.renderTargets(), [&colorBlendAttachments](const RenderTarget& renderTarget) {
+
+		std::ranges::for_each(renderTargets, [&colorBlendAttachments](const RenderTarget& renderTarget) {
 			if (renderTarget.type() == RenderTargetType::DepthStencil)
 				return;
 
@@ -229,7 +246,6 @@ public:
 		depthStencilState.back.depthFailOp = Vk::getStencilOp(rasterizer.depthStencilState().stencilState().BackFace.DepthFailOp);
 
 		// Setup rendering info for dynamic render pass.
-		auto renderTargets = m_renderPass.renderTargets();
 		auto formats = renderTargets |
 			std::views::filter([](auto& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; }) |
 			std::views::transform([](auto& renderTarget) { return Vk::getFormat(renderTarget.format()); }) |
@@ -267,8 +283,8 @@ public:
 			.subpass = 0
 		};
 
-		VkPipeline pipeline;
-		raiseIfFailed(::vkCreateGraphicsPipelines(m_renderPass.device().handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
+		VkPipeline pipeline{};
+		raiseIfFailed(::vkCreateGraphicsPipelines(m_renderPass->device()->handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
 
 		return pipeline;
 	}
@@ -277,7 +293,7 @@ public:
 	{
 		// Find out how many descriptor sets there are within the input attachments and which descriptors are bound.
 		Dictionary<UInt32, Array<UInt32>> descriptorsPerSet;
-		std::ranges::for_each(m_renderPass.inputAttachments(), [&descriptorsPerSet](auto& dependency) { descriptorsPerSet[dependency.binding().Space].push_back(dependency.binding().Register); });
+		std::ranges::for_each(m_renderPass->inputAttachments(), [&descriptorsPerSet](auto& dependency) { descriptorsPerSet[dependency.binding().Space].push_back(dependency.binding().Register); });
 
 		// Validate the descriptor sets, so that no descriptors are bound twice all descriptor sets are fully bound.
 		for (auto& [set, descriptors] : descriptorsPerSet)
@@ -302,18 +318,20 @@ public:
 		}
 
 		// Don't forget the sampler.
-		if (m_renderPass.inputAttachmentSamplerBinding().has_value())
+		auto& inputAttachmentSamplerBinding = m_renderPass->inputAttachmentSamplerBinding();
+
+		if (inputAttachmentSamplerBinding.has_value())
 		{
-			auto& samplerBinding = m_renderPass.inputAttachmentSamplerBinding().value();
+			auto space = inputAttachmentSamplerBinding.value().Space;
 			auto layouts = m_layout->descriptorSets();
 
-			if (auto samplerSet = std::ranges::find_if(layouts, [&](auto set) { return set->space() == samplerBinding.Space; }); samplerSet != layouts.end())
+			if (auto samplerSet = std::ranges::find_if(layouts, [&](auto set) { return set->space() == space; }); samplerSet != layouts.end())
 			{
-				if (descriptorsPerSet.contains(samplerBinding.Space)) [[unlikely]]
+				if (descriptorsPerSet.contains(space)) [[unlikely]]
 					throw RuntimeException("The input attachment sampler is defined in a descriptor set that contains input attachment descriptors. Samplers must be defined within their own space.");
 
 				// Store the descriptor so it gets bound.
-				descriptorsPerSet[samplerBinding.Space].push_back(samplerBinding.Register);
+				descriptorsPerSet[space].push_back(inputAttachmentSamplerBinding.value().Register);
 			}
 		}
 
@@ -349,7 +367,7 @@ public:
 		auto& bindings = m_inputAttachmentBindings.at(interfacePointer);
 
 		// Iterate the dependencies and update the binding for each one.
-		std::ranges::for_each(m_renderPass.inputAttachments(), [&](auto& dependency) {
+		std::ranges::for_each(m_renderPass->inputAttachments(), [&](auto& dependency) {
 			for (auto& binding : bindings)
 			{
 				if (binding->layout().space() == dependency.binding().Space)
@@ -368,50 +386,56 @@ public:
 		});
 
 		// If there's a sampler, bind it too.
-		if (m_renderPass.inputAttachmentSamplerBinding().has_value())
+		auto& inputAttachmentSamplerBinding = m_renderPass->inputAttachmentSamplerBinding();
+
+		if (inputAttachmentSamplerBinding.has_value())
 		{
 			for (auto& binding : bindings)
 			{
-				if (binding->layout().space() == m_renderPass.inputAttachmentSamplerBinding().value().Space)
+				if (binding->layout().space() == inputAttachmentSamplerBinding.value().Space)
 				{
-					binding->update(m_renderPass.inputAttachmentSamplerBinding().value().Register, *m_inputAttachmentSampler);
+					binding->update(inputAttachmentSamplerBinding.value().Register, *m_inputAttachmentSampler);
 					break;
 				}
 			}
 		}
 	}
 
-	void bindInputAttachments(const VulkanCommandBuffer& commandBuffer)
+	void bindInputAttachments(const VulkanRenderPipeline& parent, const VulkanCommandBuffer& commandBuffer)
 	{
 		// If this is the first time, the current frame buffer is bound to the render pass, we need to allocate descriptors for it.
-		auto& frameBuffer = m_renderPass.activeFrameBuffer();
-		auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
+		auto frameBuffer = m_renderPass->activeFrameBuffer();
+
+		if (frameBuffer == nullptr)
+			throw RuntimeException("Cannot bind input attachments for inactive render pass.");
+
+		auto interfacePointer = static_cast<const IFrameBuffer*>(frameBuffer.get());
 
 		if (!m_inputAttachmentBindings.contains(interfacePointer))
 		{
 			// Allocate and update input attachment bindings.
-			this->initializeInputAttachmentBindings(frameBuffer);
-			this->updateInputAttachmentBindings(frameBuffer);
+			this->initializeInputAttachmentBindings(*frameBuffer);
+			this->updateInputAttachmentBindings(*frameBuffer);
 		}
 
 		// Bind the input attachment sets.
 		//commandBuffer.bind(m_inputAttachmentBindings.at(interfacePointer) | std::views::transform([](auto& set) { return set.get(); }));
 		auto descriptorSets = m_inputAttachmentBindings.at(interfacePointer) | std::views::transform([](auto& set) { return set.get(); }) | std::ranges::to<Array<const VulkanDescriptorSet*>>();
-		m_parent->bind(commandBuffer, descriptorSets);
+		parent.bind(commandBuffer, descriptorSets);
 	}
 
-	void onFrameBufferResize(const void* sender, IFrameBuffer::ResizeEventArgs args)
+	void onFrameBufferResize(const void* sender, const IFrameBuffer::ResizeEventArgs& /*args*/)
 	{
 		// Update the descriptors in the descriptor sets.
 		// NOTE: No slicing here, as the event is always triggered by the frame buffer instance.
-		auto frameBuffer = reinterpret_cast<const VulkanFrameBuffer*>(sender);
+		auto frameBuffer = static_cast<const VulkanFrameBuffer*>(sender);
 		this->updateInputAttachmentBindings(*frameBuffer);
 	}
 
-	void onFrameBufferRelease(const void* sender, IFrameBuffer::ReleasedEventArgs args)
+	void onFrameBufferRelease(const void* sender, const IFrameBuffer::ReleasedEventArgs& /*args*/)
 	{
 		// Get the frame buffer pointer.
-		auto interfacePointer = reinterpret_cast<const IFrameBuffer*>(sender);
+		auto interfacePointer = static_cast<const IFrameBuffer*>(sender);
 
 		// Release the descriptor sets.
 		m_inputAttachmentBindings.erase(interfacePointer);
@@ -426,25 +450,28 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, SharedPtr<VulkanShaderProgram> shaderProgram, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanInputAssembler> inputAssembler, SharedPtr<VulkanRasterizer> rasterizer, MultiSamplingLevel samples, bool enableAlphaToCoverage, const String& name) :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer)), VulkanPipelineState(VK_NULL_HANDLE)
+VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const SharedPtr<VulkanShaderProgram>& shaderProgram, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanInputAssembler>& inputAssembler, const SharedPtr<VulkanRasterizer>& rasterizer, MultiSamplingLevel samples, bool enableAlphaToCoverage, const String& name) :
+	VulkanPipelineState(VK_NULL_HANDLE), m_impl(renderPass, enableAlphaToCoverage, layout, shaderProgram, inputAssembler, rasterizer)
 {
-	this->handle() = m_impl->initialize(samples);
+	this->handle() = m_impl->initialize(*this, samples);
 
 	if (!name.empty())
 		this->name() = name;
 }
 
-VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const String& name) noexcept :
-	m_impl(makePimpl<VulkanRenderPipelineImpl>(this, renderPass)), VulkanPipelineState(VK_NULL_HANDLE)
+VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, const String& name) :
+	VulkanPipelineState(VK_NULL_HANDLE), m_impl(renderPass)
 {
 	if (!name.empty())
 		this->name() = name;
 }
+
+//VulkanRenderPipeline::VulkanRenderPipeline(VulkanRenderPipeline&&) noexcept = default;
+//VulkanRenderPipeline& VulkanRenderPipeline::operator=(VulkanRenderPipeline&&) noexcept = default;
 
 VulkanRenderPipeline::~VulkanRenderPipeline() noexcept
 {
-	::vkDestroyPipeline(m_impl->m_renderPass.device().handle(), this->handle(), nullptr);
+	::vkDestroyPipeline(m_impl->m_renderPass->device()->handle(), this->handle(), nullptr);
 }
 
 SharedPtr<const VulkanShaderProgram> VulkanRenderPipeline::program() const noexcept
@@ -483,13 +510,13 @@ void VulkanRenderPipeline::updateSamples(MultiSamplingLevel samples)
 	m_impl->m_inputAttachmentBindings.clear();
 
 	// Release current pipeline state.
-	::vkDestroyPipeline(m_impl->m_renderPass.device().handle(), this->handle(), nullptr);
+	::vkDestroyPipeline(m_impl->m_renderPass->device()->handle(), this->handle(), nullptr);
 
 	// Rebuild the pipeline.
-	this->handle() = m_impl->initialize(samples);
+	this->handle() = m_impl->initialize(*this, samples);
 }
 
-void VulkanRenderPipeline::use(const VulkanCommandBuffer& commandBuffer) const noexcept
+void VulkanRenderPipeline::use(const VulkanCommandBuffer& commandBuffer) const
 {
 	::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, this->handle());
 
@@ -501,10 +528,10 @@ void VulkanRenderPipeline::use(const VulkanCommandBuffer& commandBuffer) const n
 	std::lock_guard<std::mutex> lock(m_impl->m_usageMutex);
 
 	// Bind the input attachments and the input attachment sampler.
-	m_impl->bindInputAttachments(commandBuffer);
+	m_impl->bindInputAttachments(*this, commandBuffer);
 }
 
-void VulkanRenderPipeline::bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const noexcept
+void VulkanRenderPipeline::bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const
 {
 	// Filter out uninitialized sets.
 	auto sets = descriptorSets | std::views::filter([](auto set) { return set != nullptr; }) | std::ranges::to<Array<const VulkanDescriptorSet*>>();
@@ -548,11 +575,11 @@ VulkanRenderPipelineBuilder::~VulkanRenderPipelineBuilder() noexcept = default;
 void VulkanRenderPipelineBuilder::build()
 {
 	auto instance = this->instance();
-	instance->m_impl->m_layout = m_state.pipelineLayout;
-	instance->m_impl->m_program = m_state.shaderProgram;
-	instance->m_impl->m_inputAssembler = m_state.inputAssembler;
-	instance->m_impl->m_rasterizer = m_state.rasterizer;
-	instance->m_impl->m_alphaToCoverage = m_state.enableAlphaToCoverage;
-	instance->handle() = instance->m_impl->initialize(m_state.samples);
+	instance->m_impl->m_layout = this->state().pipelineLayout;
+	instance->m_impl->m_program = this->state().shaderProgram;
+	instance->m_impl->m_inputAssembler = this->state().inputAssembler;
+	instance->m_impl->m_rasterizer = this->state().rasterizer;
+	instance->m_impl->m_alphaToCoverage = this->state().enableAlphaToCoverage;
+	instance->handle() = instance->m_impl->initialize(*instance, this->state().samples);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

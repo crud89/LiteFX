@@ -6,21 +6,14 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12Backend::DirectX12BackendImpl : public Implement<DirectX12Backend> {
+class DirectX12Backend::DirectX12BackendImpl {
 public:
     friend class DirectX12Backend;
 
 private:
-    Array<UniquePtr<DirectX12GraphicsAdapter>> m_adapters{ };
-    Dictionary<String, UniquePtr<DirectX12Device>> m_devices;
+    Array<SharedPtr<DirectX12GraphicsAdapter>> m_adapters{ };
+    Dictionary<String, SharedPtr<DirectX12Device>> m_devices;
     ComPtr<ID3D12Debug> m_debugInterface;
-    const App& m_app;
-
-public:
-    DirectX12BackendImpl(DirectX12Backend* parent, const App& app) :
-        base(parent), m_app(app)
-    { 
-    }
 
 public:
     [[nodiscard]]
@@ -40,7 +33,7 @@ public:
         return factory;
     }
 
-    void loadAdapters(bool enableWarp = false)
+    void loadAdapters(const DirectX12Backend& backend, bool enableWarp = false)
     {
         ComPtr<IDXGIAdapter1> adapterInterface;
         ComPtr<IDXGIAdapter4> adapterInstance;
@@ -50,13 +43,13 @@ public:
 
         if (enableWarp)
         {
-            raiseIfFailed(m_parent->handle()->EnumWarpAdapter(IID_PPV_ARGS(&adapterInterface)), "Unable to iterate advanced software rasterizer adapters.");
+            raiseIfFailed(backend.handle()->EnumWarpAdapter(IID_PPV_ARGS(&adapterInterface)), "Unable to iterate advanced software rasterizer adapters.");
             raiseIfFailed(adapterInterface.As(&adapterInstance), "The advanced software rasterizer adapter is not a valid IDXGIAdapter4 instance.");
-            m_adapters.push_back(makeUnique<DirectX12GraphicsAdapter>(adapterInstance));
+            m_adapters.push_back(DirectX12GraphicsAdapter::create(adapterInstance));
         }
         else
         {
-            for (UInt32 i(0); m_parent->handle()->EnumAdapters1(i, &adapterInterface) != DXGI_ERROR_NOT_FOUND; ++i)
+            for (UInt32 i(0); backend.handle()->EnumAdapters1(i, &adapterInterface) != DXGI_ERROR_NOT_FOUND; ++i)
             {
                 DXGI_ADAPTER_DESC1 adapterDecriptor;
                 adapterInterface->GetDesc1(&adapterDecriptor);
@@ -66,7 +59,7 @@ public:
                     continue;
 
                 raiseIfFailed(adapterInterface.As(&adapterInstance), "The hardware adapter is not a valid IDXGIAdapter4 instance.");
-                m_adapters.push_back(makeUnique<DirectX12GraphicsAdapter>(adapterInstance));
+                m_adapters.push_back(DirectX12GraphicsAdapter::create(adapterInstance));
             }
         }
     }
@@ -76,13 +69,15 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Backend::DirectX12Backend(const App& app, bool useAdvancedSoftwareRasterizer) :
-    m_impl(makePimpl<DirectX12BackendImpl>(this, app)), ComResource<IDXGIFactory7>(nullptr)
+DirectX12Backend::DirectX12Backend(const App& /*app*/, bool useAdvancedSoftwareRasterizer) :
+    ComResource<IDXGIFactory7>(nullptr), m_impl()
 {
     this->handle() = m_impl->initialize();
-    m_impl->loadAdapters(useAdvancedSoftwareRasterizer);
+    m_impl->loadAdapters(*this, useAdvancedSoftwareRasterizer);
 }
 
+DirectX12Backend::DirectX12Backend(DirectX12Backend&&) noexcept = default;
+DirectX12Backend& DirectX12Backend::operator=(DirectX12Backend&&) noexcept = default;
 DirectX12Backend::~DirectX12Backend() noexcept = default;
 
 BackendType DirectX12Backend::type() const noexcept
@@ -90,9 +85,9 @@ BackendType DirectX12Backend::type() const noexcept
     return BackendType::Rendering;
 }
 
-String DirectX12Backend::name() const noexcept
+StringView DirectX12Backend::name() const noexcept
 {
-    return "DirectX 12";
+    return "DirectX 12"sv;
 }
 
 void DirectX12Backend::activate()
@@ -107,7 +102,7 @@ void DirectX12Backend::deactivate()
 
 Enumerable<const DirectX12GraphicsAdapter*> DirectX12Backend::listAdapters() const
 {
-    return m_impl->m_adapters | std::views::transform([](const UniquePtr<DirectX12GraphicsAdapter>& adapter) { return adapter.get(); });
+    return m_impl->m_adapters | std::views::transform([](const auto& adapter) { return adapter.get(); });
 }
 
 const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UInt64>& adapterId) const
@@ -118,7 +113,7 @@ const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UIn
     return nullptr;
 }
 
-void DirectX12Backend::registerDevice(String name, UniquePtr<DirectX12Device>&& device)
+void DirectX12Backend::registerDevice(const String& name, SharedPtr<DirectX12Device>&& device)
 {
     if (m_impl->m_devices.contains(name)) [[unlikely]]
         throw InvalidArgumentException("name", "The backend already contains a device with the name \"{0}\".", name);
@@ -137,6 +132,7 @@ void DirectX12Backend::releaseDevice(const String& name)
 
     auto device = m_impl->m_devices[name].get();
     device->wait();
+    device->release();
 
     m_impl->m_devices.erase(name);
 }
@@ -164,5 +160,5 @@ UniquePtr<DirectX12Surface> DirectX12Backend::createSurface(const HWND& hwnd) co
 
 void DirectX12Backend::enableAdvancedSoftwareRasterizer(bool enable)
 {
-    m_impl->loadAdapters(enable);
+    m_impl->loadAdapters(*this, enable);
 }

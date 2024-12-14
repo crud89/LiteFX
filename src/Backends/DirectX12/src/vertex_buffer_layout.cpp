@@ -7,21 +7,26 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12VertexBufferLayout::DirectX12VertexBufferLayoutImpl : public Implement<DirectX12VertexBufferLayout> {
+class DirectX12VertexBufferLayout::DirectX12VertexBufferLayoutImpl {
 public:
     friend class DirectX12VertexBufferLayoutBuilder;
     friend class DirectX12VertexBufferLayout;
 
 private:
-    Array<UniquePtr<BufferAttribute>> m_attributes;
+    Array<BufferAttribute> m_attributes{};
     size_t m_vertexSize;
     UInt32 m_binding;
-    BufferType m_bufferType{ BufferType::Vertex };
 
 public:
-    DirectX12VertexBufferLayoutImpl(DirectX12VertexBufferLayout* parent, size_t vertexSize, UInt32 binding) :
-        base(parent), m_vertexSize(vertexSize), m_binding(binding)
+    DirectX12VertexBufferLayoutImpl(size_t vertexSize, UInt32 binding) :
+        m_vertexSize(vertexSize), m_binding(binding)
     {
+    }
+
+    DirectX12VertexBufferLayoutImpl(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding) :
+        m_vertexSize(vertexSize), m_binding(binding)
+    {
+        m_attributes = attributes | std::ranges::to<Array<BufferAttribute>>();
     }
 };
 
@@ -30,10 +35,16 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(size_t vertexSize, UInt32 binding) :
-    m_impl(makePimpl<DirectX12VertexBufferLayoutImpl>(this, vertexSize, binding))
+    m_impl(vertexSize, binding)
 {
 }
 
+DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding) :
+    m_impl(vertexSize, attributes, binding)
+{
+}
+
+DirectX12VertexBufferLayout::DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&) = default;
 DirectX12VertexBufferLayout::~DirectX12VertexBufferLayout() noexcept = default;
 
 size_t DirectX12VertexBufferLayout::elementSize() const noexcept
@@ -48,12 +59,12 @@ UInt32 DirectX12VertexBufferLayout::binding() const noexcept
 
 BufferType DirectX12VertexBufferLayout::type() const noexcept
 {
-    return m_impl->m_bufferType;
+    return BufferType::Vertex;
 }
 
-Enumerable<const BufferAttribute*> DirectX12VertexBufferLayout::attributes() const noexcept
+Enumerable<const BufferAttribute*> DirectX12VertexBufferLayout::attributes() const
 {
-    return m_impl->m_attributes | std::views::transform([](const UniquePtr<BufferAttribute>& attribute) { return attribute.get(); });
+    return m_impl->m_attributes | std::views::transform([](const auto& attribute) { return std::addressof(attribute); });
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
@@ -63,6 +74,6 @@ Enumerable<const BufferAttribute*> DirectX12VertexBufferLayout::attributes() con
 
 void DirectX12VertexBufferLayoutBuilder::build()
 {
-    this->instance()->m_impl->m_attributes = std::move(m_state.attributes);
+    this->instance()->m_impl->m_attributes = std::move(this->state().attributes);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

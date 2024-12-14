@@ -5,13 +5,15 @@
 #include <pix3.h>
 #endif // defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
 
+#include <array>
+
 using namespace LiteFX::Rendering::Backends;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12RenderPass::DirectX12RenderPassImpl : public Implement<DirectX12RenderPass> {
+class DirectX12RenderPass::DirectX12RenderPassImpl {
 public:
     friend class DirectX12RenderPassBuilder;
     friend class DirectX12RenderPass;
@@ -25,17 +27,18 @@ private:
     Dictionary<const IFrameBuffer*, SharedPtr<DirectX12CommandBuffer>> m_endCommandBuffers;
     Dictionary<const IFrameBuffer*, Array<SharedPtr<DirectX12CommandBuffer>>> m_secondaryCommandBuffers;
     UInt32 m_secondaryCommandBufferCount = 0;
-    const DirectX12FrameBuffer* m_activeFrameBuffer = nullptr;
+    SharedPtr<const DirectX12FrameBuffer> m_activeFrameBuffer = nullptr;
     RenderPassContext m_activeContext;
     const RenderTarget* m_presentTarget = nullptr;
     const RenderTarget* m_depthStencilTarget = nullptr;
     Optional<DescriptorBindingPoint> m_inputAttachmentSamplerBinding{ };
-    const DirectX12Device& m_device;
-    const DirectX12Queue* m_queue;
+    WeakPtr<const DirectX12Device> m_device;
+    SharedPtr<const DirectX12Queue> m_queue;
+    bool m_onDefaultGraphicsQueue = false;
 
 public:
-    DirectX12RenderPassImpl(DirectX12RenderPass* parent, const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding, UInt32 secondaryCommandBuffers) :
-        base(parent), m_device(device), m_queue(&queue), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding), m_secondaryCommandBufferCount(secondaryCommandBuffers)
+    DirectX12RenderPassImpl(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding, UInt32 secondaryCommandBuffers) :
+        m_secondaryCommandBufferCount(secondaryCommandBuffers), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding), m_device(device.weak_from_this()), m_queue(queue.shared_from_this()), m_onDefaultGraphicsQueue(std::addressof(queue) == std::addressof(device.defaultQueue(QueueType::Graphics)))
     {
         this->mapRenderTargets(renderTargets);
         this->mapInputAttachments(inputAttachments);
@@ -44,10 +47,15 @@ public:
             LITEFX_WARNING(DIRECTX12_LOG, "Secondary command buffer count for this render pass is 0, which makes it prevents recording draw commands to this render pass.");
     }
 
-    DirectX12RenderPassImpl(DirectX12RenderPass* parent, const DirectX12Device& device) :
-        base(parent), m_device(device), m_queue(&device.defaultQueue(QueueType::Graphics))
+    DirectX12RenderPassImpl(const DirectX12Device& device) :
+        m_device(device.weak_from_this()), m_queue(device.defaultQueue(QueueType::Graphics).shared_from_this()), m_onDefaultGraphicsQueue(true)
     {
     }
+
+    DirectX12RenderPassImpl(DirectX12RenderPassImpl&&) noexcept = default;
+    DirectX12RenderPassImpl(const DirectX12RenderPassImpl&) = default;
+    DirectX12RenderPassImpl& operator=(DirectX12RenderPassImpl&&) noexcept = default;
+    DirectX12RenderPassImpl& operator=(const DirectX12RenderPassImpl&) = default;
 
     ~DirectX12RenderPassImpl() noexcept
     {
@@ -60,7 +68,7 @@ public:
     void mapRenderTargets(Span<RenderTarget> renderTargets)
     {
         m_renderTargets.assign(std::begin(renderTargets), std::end(renderTargets));
-        std::ranges::sort(m_renderTargets, [this](const auto& a, const auto& b) { return a.location() < b.location(); });
+        std::ranges::sort(m_renderTargets, [](const auto& a, const auto& b) { return a.location() < b.location(); });
 
         if (auto match = std::ranges::find_if(m_renderTargets, [](const RenderTarget& renderTarget) { return renderTarget.type() == RenderTargetType::Present; }); match != m_renderTargets.end())
             m_presentTarget = std::addressof(*match);
@@ -74,7 +82,7 @@ public:
 
         // TODO: If there is a present target, we need to check if the provided queue can actually present on the surface. Currently, 
         //       we simply check if the queue is the same as the swap chain queue (which is the default graphics queue).
-        if (m_presentTarget != nullptr && m_queue != std::addressof(m_device.defaultQueue(QueueType::Graphics))) [[unlikely]]
+        if (m_presentTarget != nullptr && !m_onDefaultGraphicsQueue) [[unlikely]]
             throw InvalidArgumentException("renderTargets", "A render pass with a present target must be executed on the default graphics queue.");
     }
 
@@ -83,7 +91,7 @@ public:
         m_inputAttachments.assign(std::begin(inputAttachments), std::end(inputAttachments));
     }
 
-    void registerFrameBuffer(const DirectX12FrameBuffer& frameBuffer)
+    void registerFrameBuffer([[maybe_unused]] const DirectX12RenderPass& renderPass, const DirectX12Queue& queue, const DirectX12FrameBuffer& frameBuffer)
     {
         // If the frame buffer is not yet registered, do so by listening for its release.
         auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
@@ -94,43 +102,45 @@ public:
 
             // Create begin command buffers.
             {
-                auto commandBuffer = m_queue->createCommandBuffer(false);
+                auto commandBuffer = queue.createCommandBuffer(false);
 #ifndef NDEBUG
-                std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} Begin Commands {1}", m_parent->name(), m_beginCommandBuffers.size())).c_str());
+                std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} Begin Commands {1}", renderPass.name(), m_beginCommandBuffers.size())).c_str());
 #endif
                 m_beginCommandBuffers[interfacePointer] = commandBuffer;
             }
 
             // Create end command buffers.
             {
-                auto commandBuffer = m_queue->createCommandBuffer(false);
+                auto commandBuffer = queue.createCommandBuffer(false);
 #ifndef NDEBUG
-                std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} End Commands {1}", m_parent->name(), m_endCommandBuffers.size())).c_str());
+                std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} End Commands {1}", renderPass.name(), m_endCommandBuffers.size())).c_str());
 #endif
                 m_endCommandBuffers[interfacePointer] = commandBuffer;
             }
 
             // Create secondary command buffers.
             m_secondaryCommandBuffers[interfacePointer] = std::views::iota(0u, m_secondaryCommandBufferCount) |
-                std::views::transform([this](UInt32 i) {
-                    auto commandBuffer = m_queue->createCommandBuffer(false);
-#ifndef NDEBUG
-                    std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} Secondary Commands {1}", m_parent->name(), i)).c_str());
+                std::views::transform([&queue, &renderPass]([[maybe_unused]] UInt32 i) {
+                    auto commandBuffer = queue.createCommandBuffer(false);
+#ifdef NDEBUG
+                    (void)renderPass;
+#else
+                    std::as_const(*commandBuffer).handle()->SetName(Widen(std::format("{0} Secondary Commands {1}", renderPass.name(), i)).c_str());
 #endif
                     return commandBuffer;
                 }) | std::ranges::to<Array<SharedPtr<DirectX12CommandBuffer>>>();
         }
 
         // Store the active frame buffer pointer.
-        m_activeFrameBuffer = &frameBuffer;
+        m_activeFrameBuffer = frameBuffer.shared_from_this();
     }
 
-    void onFrameBufferRelease(const void* sender, IFrameBuffer::ReleasedEventArgs args)
+    void onFrameBufferRelease(const void* sender, const IFrameBuffer::ReleasedEventArgs& /*args*/)
     {
         // Obtain the interface pointer and release all resources bound to the frame buffer.
-        auto interfacePointer = reinterpret_cast<const IFrameBuffer*>(sender);
+        auto interfacePointer = static_cast<const IFrameBuffer*>(sender);
 
-        if (static_cast<const IFrameBuffer*>(m_activeFrameBuffer) == interfacePointer) [[unlikely]]
+        if (static_cast<const IFrameBuffer*>(m_activeFrameBuffer.get()) == interfacePointer) [[unlikely]]
             throw RuntimeException("A frame buffer that is currently in use on a render pass cannot be released.");
 
         m_beginCommandBuffers.erase(interfacePointer);
@@ -146,11 +156,11 @@ public:
         std::get<0>(m_activeContext) = m_renderTargets |
             std::views::filter([](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; }) |
             std::views::transform([&frameBuffer](const RenderTarget& renderTarget) {
-                Float clearColor[4] = { renderTarget.clearValues().x(), renderTarget.clearValues().y(), renderTarget.clearValues().z(), renderTarget.clearValues().w() };
-                CD3DX12_CLEAR_VALUE clearValue{ DX12::getFormat(renderTarget.format()), clearColor };
+                auto clearColor = std::array { renderTarget.clearValues().x(), renderTarget.clearValues().y(), renderTarget.clearValues().z(), renderTarget.clearValues().w() };
+                CD3DX12_CLEAR_VALUE clearValue{ DX12::getFormat(renderTarget.format()), clearColor.data() };
 
                 D3D12_RENDER_PASS_BEGINNING_ACCESS beginAccess = renderTarget.clearBuffer() ?
-                    D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, { clearValue } } :
+                    D3D12_RENDER_PASS_BEGINNING_ACCESS{ .Type = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, .Clear = { clearValue } } :
                     D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE, { } };
                 
                 D3D12_RENDER_PASS_ENDING_ACCESS endAccess = renderTarget.isVolatile() ?
@@ -170,7 +180,7 @@ public:
             
             D3D12_RENDER_PASS_ENDING_ACCESS depthEndAccess, stencilEndAccess;
             D3D12_RENDER_PASS_BEGINNING_ACCESS depthBeginAccess = m_depthStencilTarget->clearBuffer() && ::hasDepth(m_depthStencilTarget->format()) ?
-                D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, { clearValue } } :
+                D3D12_RENDER_PASS_BEGINNING_ACCESS{ .Type = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, .Clear = { clearValue } } :
                 D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE, { } };
 
             depthEndAccess = m_depthStencilTarget->isVolatile() ?
@@ -178,7 +188,7 @@ public:
                 D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, { } };
 
             D3D12_RENDER_PASS_BEGINNING_ACCESS stencilBeginAccess = m_depthStencilTarget->clearStencil() && ::hasStencil(m_depthStencilTarget->format()) ?
-                D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, { clearValue } } :
+                D3D12_RENDER_PASS_BEGINNING_ACCESS{ .Type = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, .Clear = { clearValue } } :
                 D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE, { } };
             
             stencilEndAccess = m_depthStencilTarget->isVolatile() ?
@@ -222,7 +232,7 @@ DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const St
 }
 
 DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding, UInt32 secondaryCommandBuffers) :
-    m_impl(makePimpl<DirectX12RenderPassImpl>(this, device, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers))
+    m_impl(device, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers)
 {
 }
 
@@ -233,8 +243,8 @@ DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const St
         this->name() = name;
 }
 
-DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name) noexcept :
-    m_impl(makePimpl<DirectX12RenderPassImpl>(this, device))
+DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const String& name) :
+    m_impl(device)
 {
     if (!name.empty())
         this->name() = name;
@@ -242,17 +252,14 @@ DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const St
 
 DirectX12RenderPass::~DirectX12RenderPass() noexcept = default;
 
-const DirectX12Device& DirectX12RenderPass::device() const noexcept
+SharedPtr<const DirectX12Device> DirectX12RenderPass::device() const noexcept
 {
-    return m_impl->m_device;
+    return m_impl->m_device.lock();
 }
 
-const DirectX12FrameBuffer& DirectX12RenderPass::activeFrameBuffer() const
+SharedPtr<const DirectX12FrameBuffer> DirectX12RenderPass::activeFrameBuffer() const noexcept
 {
-    if (m_impl->m_activeFrameBuffer == nullptr) [[unlikely]]
-        throw RuntimeException("No frame buffer is active, since the render pass has not begun.");
-
-    return *m_impl->m_activeFrameBuffer;
+    return m_impl->m_activeFrameBuffer;
 }
 
 const DirectX12Queue& DirectX12RenderPass::commandQueue() const noexcept 
@@ -268,15 +275,15 @@ SharedPtr<const DirectX12CommandBuffer> DirectX12RenderPass::commandBuffer(UInt3
     if (index >= m_impl->m_secondaryCommandBufferCount) [[unlikely]]
         throw ArgumentOutOfRangeException("index", std::make_pair(0u, m_impl->m_secondaryCommandBufferCount), index, "The render pass only contains {0} command buffers, but an index of {1} has been provided.", m_impl->m_secondaryCommandBufferCount, index);
 
-    return m_impl->m_secondaryCommandBuffers[m_impl->m_activeFrameBuffer][index];
+    return m_impl->m_secondaryCommandBuffers.at(m_impl->m_activeFrameBuffer.get()).at(index);
 }
 
-Enumerable<SharedPtr<const DirectX12CommandBuffer>> DirectX12RenderPass::commandBuffers() const noexcept
+Enumerable<SharedPtr<const DirectX12CommandBuffer>> DirectX12RenderPass::commandBuffers() const
 {
     if (m_impl->m_secondaryCommandBufferCount == 0u || m_impl->m_activeFrameBuffer == nullptr)
         return { };
 
-    return m_impl->m_secondaryCommandBuffers[m_impl->m_activeFrameBuffer];
+    return m_impl->m_secondaryCommandBuffers.at(m_impl->m_activeFrameBuffer.get());
 }
 
 UInt32 DirectX12RenderPass::secondaryCommandBuffers() const noexcept
@@ -310,7 +317,7 @@ const Array<RenderPassDependency>& DirectX12RenderPass::inputAttachments() const
 const RenderPassDependency& DirectX12RenderPass::inputAttachment(UInt32 location) const 
 {
     if (location >= m_impl->m_inputAttachments.size()) [[unlikely]]
-        throw ArgumentOutOfRangeException("location", std::make_pair(0uz, m_impl->m_inputAttachments.size()), location, "The render pass does not contain an input attachment at location {0}.", location);
+        throw ArgumentOutOfRangeException("location", std::make_pair(0uz, m_impl->m_inputAttachments.size()), static_cast<size_t>(location), "The render pass does not contain an input attachment at location {0}.", location);
 
     return m_impl->m_inputAttachments[location];
 }
@@ -323,11 +330,11 @@ const Optional<DescriptorBindingPoint>& DirectX12RenderPass::inputAttachmentSamp
 void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer) const
 {
     // Only begin, if we are currently not running.
-    if (m_impl->m_activeFrameBuffer != nullptr)
+    if (m_impl->m_activeFrameBuffer != nullptr) [[unlikely]]
         throw RuntimeException("Unable to begin a render pass, that is already running. End the current pass first.");
 
     // Register the frame buffer.
-    m_impl->registerFrameBuffer(frameBuffer);
+    m_impl->registerFrameBuffer(*this, *m_impl->m_queue, frameBuffer);
 
     // Initialize the render pass context.
     auto& context = m_impl->renderTargetContext(frameBuffer);
@@ -364,12 +371,14 @@ void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer) const
         m_impl->m_queue->beginDebugRegion(std::format("{0} Render Pass", this->name()));
 
     // Begin a suspending render pass for the transition and a suspend-the-resume render pass on each command buffer of the frame buffer.
-    std::as_const(*beginCommandBuffer).handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
+    // NOLINTBEGIN(bugprone-unchecked-optional-access)
+    std::as_const(*beginCommandBuffer).handle()->BeginRenderPass(static_cast<UINT>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS);
     std::as_const(*beginCommandBuffer).handle()->EndRenderPass();
-    std::ranges::for_each(m_impl->getSecondaryCommandBuffers(frameBuffer), [&context](auto commandBuffer) { 
+    std::ranges::for_each(m_impl->getSecondaryCommandBuffers(frameBuffer), [&context](auto& commandBuffer) { 
         commandBuffer->begin(); 
-        std::as_const(*commandBuffer).handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS | D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
+        std::as_const(*commandBuffer).handle()->BeginRenderPass(static_cast<UINT>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_SUSPENDING_PASS | D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
     });
+    // NOLINTEND(bugprone-unchecked-optional-access)
 
     // Publish beginning event.
     this->beginning(this, { frameBuffer });
@@ -377,6 +386,12 @@ void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer) const
 
 UInt64 DirectX12RenderPass::end() const
 {
+    // Check if the device and the queue are still valid.
+    auto device = m_impl->m_device.lock();
+
+    if (device == nullptr) [[unlikely]]
+        throw RuntimeException("Cannot end render pass: the device instance has been released.");
+
     // Check if we are running.
     if (m_impl->m_activeFrameBuffer == nullptr)
         throw RuntimeException("Unable to end a render pass, that has not been begun. Start the render pass first.");
@@ -385,19 +400,19 @@ UInt64 DirectX12RenderPass::end() const
     this->ending(this, { });
 
     auto& frameBuffer = *m_impl->m_activeFrameBuffer;
-    const auto& swapChain = m_impl->m_device.swapChain();
+    const auto& swapChain = device->swapChain();
 
     // Resume and end the render pass.
     const auto& context = m_impl->m_activeContext;
     auto endCommandBuffer = m_impl->getEndCommandBuffer(frameBuffer);
-    std::ranges::for_each(m_impl->getSecondaryCommandBuffers(frameBuffer), [&context](auto commandBuffer) { std::as_const(*commandBuffer).handle()->EndRenderPass(); });
+    std::ranges::for_each(m_impl->getSecondaryCommandBuffers(frameBuffer), [](auto& commandBuffer) { std::as_const(*commandBuffer).handle()->EndRenderPass(); });
     endCommandBuffer->begin();
-    std::as_const(*endCommandBuffer).handle()->BeginRenderPass(std::get<0>(context).size(), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_RESUMING_PASS);
+    std::as_const(*endCommandBuffer).handle()->BeginRenderPass(static_cast<UInt32>(std::get<0>(context).size()), std::get<0>(context).data(), std::get<1>(context).has_value() ? &std::get<1>(context).value() : nullptr, D3D12_RENDER_PASS_FLAG_RESUMING_PASS); // NOLINT(bugprone-unchecked-optional-access)
     std::as_const(*endCommandBuffer).handle()->EndRenderPass();
 
     // If the present target is multi-sampled, we need to resolve it to the back buffer.
-    const auto& backBufferImage = m_impl->m_device.swapChain().image();
-    bool requiresResolve = this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1;
+    const auto& backBufferImage = swapChain.image();
+    bool requiresResolve{ this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1 };
 
     // Transition the present and depth/stencil views.
     // NOTE: Ending the render pass implicitly barriers with legacy resource state?!
@@ -440,10 +455,10 @@ UInt64 DirectX12RenderPass::end() const
         std::as_const(*endCommandBuffer).handle()->ResolveSubresource(backBufferImage.handle().Get(), 0, multiSampledImage.handle().Get(), 0, DX12::getFormat(multiSampledImage.format()));
 
         // Transition the present target back to the present state.
-        DirectX12Barrier presentBarrier(PipelineStage::Resolve, PipelineStage::Resolve);
-        presentBarrier.transition(backBufferImage, ResourceAccess::ResolveWrite, ResourceAccess::Common, ImageLayout::ResolveDestination, ImageLayout::Present);
-        presentBarrier.transition(multiSampledImage, ResourceAccess::ResolveRead, ResourceAccess::Common, ImageLayout::ResolveSource, ImageLayout::Common);
-        endCommandBuffer->barrier(presentBarrier);
+        DirectX12Barrier backBufferBarrier(PipelineStage::Resolve, PipelineStage::Resolve);
+        backBufferBarrier.transition(backBufferImage, ResourceAccess::ResolveWrite, ResourceAccess::Common, ImageLayout::ResolveDestination, ImageLayout::Present);
+        backBufferBarrier.transition(multiSampledImage, ResourceAccess::ResolveRead, ResourceAccess::Common, ImageLayout::ResolveSource, ImageLayout::Common);
+        endCommandBuffer->barrier(backBufferBarrier);
     }
     else if (this->hasPresentTarget())
     {
@@ -494,15 +509,15 @@ UInt64 DirectX12RenderPass::end() const
 // Builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const String& name) noexcept :
+DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, const String& name) :
     DirectX12RenderPassBuilder(device, 1, name)
 {
 }
 
-DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, const String& name) noexcept :
-    RenderPassBuilder(UniquePtr<DirectX12RenderPass>(new DirectX12RenderPass(device, name)))
+DirectX12RenderPassBuilder::DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, const String& name) :
+    RenderPassBuilder(DirectX12RenderPass::create(device, name))
 {
-    m_state.commandBufferCount = commandBuffers;
+    this->state().commandBufferCount = commandBuffers;
 }
 
 DirectX12RenderPassBuilder::~DirectX12RenderPassBuilder() noexcept = default;
@@ -511,17 +526,17 @@ void DirectX12RenderPassBuilder::build()
 {
     auto instance = this->instance();
 
-    if (m_state.commandQueue != nullptr)
-        instance->m_impl->m_queue = m_state.commandQueue;
+    if (this->state().commandQueue != nullptr)
+        instance->m_impl->m_queue = this->state().commandQueue;
 
-    instance->m_impl->mapRenderTargets(m_state.renderTargets);
-    instance->m_impl->mapInputAttachments(m_state.inputAttachments);
-    instance->m_impl->m_inputAttachmentSamplerBinding = m_state.inputAttachmentSamplerBinding;
-    instance->m_impl->m_secondaryCommandBufferCount = m_state.commandBufferCount;
+    instance->m_impl->mapRenderTargets(this->state().renderTargets);
+    instance->m_impl->mapInputAttachments(this->state().inputAttachments);
+    instance->m_impl->m_inputAttachmentSamplerBinding = this->state().inputAttachmentSamplerBinding;
+    instance->m_impl->m_secondaryCommandBufferCount = this->state().commandBufferCount;
 }
 
 RenderPassDependency DirectX12RenderPassBuilder::makeInputAttachment(DescriptorBindingPoint binding, const RenderTarget& renderTarget)
 {
-    return RenderPassDependency(renderTarget, binding);
+    return { renderTarget, binding };
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

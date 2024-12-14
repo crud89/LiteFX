@@ -6,7 +6,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12PushConstantsRange::DirectX12PushConstantsRangeImpl : public Implement<DirectX12PushConstantsRange> {
+class DirectX12PushConstantsRange::DirectX12PushConstantsRangeImpl {
 public:
     friend class DirectX12PushConstantsRange;
 
@@ -15,8 +15,8 @@ private:
     UInt32 m_offset, m_size, m_space, m_binding, m_rootParameterIndex{ 0 };
 
 public:
-    DirectX12PushConstantsRangeImpl(DirectX12PushConstantsRange* parent, ShaderStage shaderStage, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) :
-        base(parent), m_stage(shaderStage), m_offset(offset), m_size(size), m_space(space), m_binding(binding)
+    DirectX12PushConstantsRangeImpl(ShaderStage shaderStage, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) :
+        m_stage(shaderStage), m_offset(offset), m_size(size), m_space(space), m_binding(binding)
     {
         if (offset % 4 != 0)
             throw InvalidArgumentException("offset", "The push constants range offset must be a multiple of 4 bytes.");
@@ -34,10 +34,14 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12PushConstantsRange::DirectX12PushConstantsRange(ShaderStage shaderStage, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) :
-    m_impl(makePimpl<DirectX12PushConstantsRangeImpl>(this, shaderStage, offset, size, space, binding))
+    m_impl(shaderStage, offset, size, space, binding)
 {
 }
 
+DirectX12PushConstantsRange::DirectX12PushConstantsRange(DirectX12PushConstantsRange&&) noexcept = default;
+DirectX12PushConstantsRange::DirectX12PushConstantsRange(const DirectX12PushConstantsRange&) = default;
+DirectX12PushConstantsRange& DirectX12PushConstantsRange::operator=(DirectX12PushConstantsRange&&) noexcept = default;
+DirectX12PushConstantsRange& DirectX12PushConstantsRange::operator=(const DirectX12PushConstantsRange&) = default;
 DirectX12PushConstantsRange::~DirectX12PushConstantsRange() noexcept = default;
 
 UInt32 DirectX12PushConstantsRange::space() const noexcept

@@ -6,37 +6,30 @@ using namespace LiteFX::Rendering;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DeviceState::DeviceStateImpl : public Implement<DeviceState> {
+class DeviceState::DeviceStateImpl {
 public:
     friend class DeviceState;
 
 private:
-    Dictionary<String, UniquePtr<IRenderPass>> m_renderPasses;
-    Dictionary<String, UniquePtr<IFrameBuffer>> m_frameBuffers;
-    Dictionary<String, UniquePtr<IPipeline>> m_pipelines;
-    Dictionary<String, UniquePtr<IBuffer>> m_buffers;
-    Dictionary<String, UniquePtr<IVertexBuffer>> m_vertexBuffers;
-    Dictionary<String, UniquePtr<IIndexBuffer>> m_indexBuffers;
-    Dictionary<String, UniquePtr<IImage>> m_images;
-    Dictionary<String, UniquePtr<ISampler>> m_samplers;
-    Dictionary<String, UniquePtr<IAccelerationStructure>> m_accelerationStructures;
-    Dictionary<String, UniquePtr<IDescriptorSet>> m_descriptorSets;
-
-public:
-    DeviceStateImpl(DeviceState* parent) :
-        base(parent)
-    {
-    }
+    Dictionary<String, SharedPtr<IRenderPass>> m_renderPasses{};
+    Dictionary<String, SharedPtr<IFrameBuffer>> m_frameBuffers{};
+    Dictionary<String, UniquePtr<IPipeline>> m_pipelines{};
+    Dictionary<String, SharedPtr<IBuffer>> m_buffers{};
+    Dictionary<String, SharedPtr<IVertexBuffer>> m_vertexBuffers{};
+    Dictionary<String, SharedPtr<IIndexBuffer>> m_indexBuffers{};
+    Dictionary<String, SharedPtr<IImage>> m_images{};
+    Dictionary<String, SharedPtr<ISampler>> m_samplers{};
+    Dictionary<String, UniquePtr<IAccelerationStructure>> m_accelerationStructures{};
+    Dictionary<String, UniquePtr<IDescriptorSet>> m_descriptorSets{};
 };
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DeviceState::DeviceState() noexcept :
-    m_impl(makePimpl<DeviceStateImpl>(this))
-{
-}
+DeviceState::DeviceState() = default;
+DeviceState::DeviceState(DeviceState&& _other) noexcept = default;
+DeviceState& DeviceState::operator=(DeviceState&& _other) noexcept = default;
 
 DeviceState::~DeviceState() noexcept 
 {
@@ -103,12 +96,12 @@ void DeviceState::clear()
     m_impl->m_frameBuffers.clear();
 }
 
-void DeviceState::add(UniquePtr<IRenderPass>&& renderPass)
+void DeviceState::add(SharedPtr<IRenderPass>&& renderPass)
 {
     this->add(renderPass->name(), std::move(renderPass));
 }
 
-void DeviceState::add(const String& id, UniquePtr<IRenderPass>&& renderPass)
+void DeviceState::add(const String& id, SharedPtr<IRenderPass>&& renderPass)
 {
     if (renderPass == nullptr) [[unlikely]]
         throw InvalidArgumentException("renderPass", "The render pass must be initialized.");
@@ -119,12 +112,12 @@ void DeviceState::add(const String& id, UniquePtr<IRenderPass>&& renderPass)
     m_impl->m_renderPasses.insert(std::make_pair(id, std::move(renderPass)));
 }
 
-void DeviceState::add(UniquePtr<IFrameBuffer>&& frameBuffer)
+void DeviceState::add(SharedPtr<IFrameBuffer>&& frameBuffer)
 {
     this->add(frameBuffer->name(), std::move(frameBuffer));
 }
 
-void DeviceState::add(const String& id, UniquePtr<IFrameBuffer>&& frameBuffer)
+void DeviceState::add(const String& id, SharedPtr<IFrameBuffer>&& frameBuffer)
 {
     if (frameBuffer == nullptr) [[unlikely]]
         throw InvalidArgumentException("frameBuffer", "The frame buffer must be initialized.");
@@ -151,12 +144,12 @@ void DeviceState::add(const String& id, UniquePtr<IPipeline>&& pipeline)
     m_impl->m_pipelines.insert(std::make_pair(id, std::move(pipeline)));
 }
 
-void DeviceState::add(UniquePtr<IBuffer>&& buffer)
+void DeviceState::add(SharedPtr<IBuffer>&& buffer)
 {
     this->add(buffer->name(), std::move(buffer));
 }
 
-void DeviceState::add(const String& id, UniquePtr<IBuffer>&& buffer)
+void DeviceState::add(const String& id, SharedPtr<IBuffer>&& buffer)
 {
     if (buffer == nullptr) [[unlikely]]
         throw InvalidArgumentException("buffer", "The buffer must be initialized.");
@@ -167,12 +160,12 @@ void DeviceState::add(const String& id, UniquePtr<IBuffer>&& buffer)
     m_impl->m_buffers.insert(std::make_pair(id, std::move(buffer)));
 }
 
-void DeviceState::add(UniquePtr<IVertexBuffer>&& vertexBuffer)
+void DeviceState::add(SharedPtr<IVertexBuffer>&& vertexBuffer)
 {
     this->add(vertexBuffer->name(), std::move(vertexBuffer));
 }
 
-void DeviceState::add(const String& id, UniquePtr<IVertexBuffer>&& vertexBuffer)
+void DeviceState::add(const String& id, SharedPtr<IVertexBuffer>&& vertexBuffer)
 {
     if (vertexBuffer == nullptr) [[unlikely]]
         throw InvalidArgumentException("vertexBuffer", "The vertex buffer must be initialized.");
@@ -183,12 +176,12 @@ void DeviceState::add(const String& id, UniquePtr<IVertexBuffer>&& vertexBuffer)
     m_impl->m_vertexBuffers.insert(std::make_pair(id, std::move(vertexBuffer)));
 }
 
-void DeviceState::add(UniquePtr<IIndexBuffer>&& indexBuffer)
+void DeviceState::add(SharedPtr<IIndexBuffer>&& indexBuffer)
 {
     this->add(indexBuffer->name(), std::move(indexBuffer));
 }
 
-void DeviceState::add(const String& id, UniquePtr<IIndexBuffer>&& indexBuffer)
+void DeviceState::add(const String& id, SharedPtr<IIndexBuffer>&& indexBuffer)
 {
     if (indexBuffer == nullptr) [[unlikely]]
         throw InvalidArgumentException("indexBuffer", "The index buffer must be initialized.");
@@ -199,12 +192,12 @@ void DeviceState::add(const String& id, UniquePtr<IIndexBuffer>&& indexBuffer)
     m_impl->m_indexBuffers.insert(std::make_pair(id, std::move(indexBuffer)));
 }
 
-void DeviceState::add(UniquePtr<IImage>&& image)
+void DeviceState::add(SharedPtr<IImage>&& image)
 {
     this->add(image->name(), std::move(image));
 }
 
-void DeviceState::add(const String& id, UniquePtr<IImage>&& image)
+void DeviceState::add(const String& id, SharedPtr<IImage>&& image)
 {
     if (image == nullptr) [[unlikely]]
         throw InvalidArgumentException("image", "The image must be initialized.");
@@ -215,12 +208,12 @@ void DeviceState::add(const String& id, UniquePtr<IImage>&& image)
     m_impl->m_images.insert(std::make_pair(id, std::move(image)));
 }
 
-void DeviceState::add(UniquePtr<ISampler>&& sampler)
+void DeviceState::add(SharedPtr<ISampler>&& sampler)
 {
     this->add(sampler->name(), std::move(sampler));
 }
 
-void DeviceState::add(const String& id, UniquePtr<ISampler>&& sampler)
+void DeviceState::add(const String& id, SharedPtr<ISampler>&& sampler)
 {
     if (sampler == nullptr) [[unlikely]]
         throw InvalidArgumentException("sampler", "The sampler must be initialized.");

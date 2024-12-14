@@ -3,40 +3,48 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 extern PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelines;
 extern PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandles;
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanRayTracingPipeline::VulkanRayTracingPipelineImpl : public Implement<VulkanRayTracingPipeline> {
+class VulkanRayTracingPipeline::VulkanRayTracingPipelineImpl {
 public:
 	friend class VulkanRayTracingPipelineBuilder;
 	friend class VulkanRayTracingPipeline;
 
 private:
+	WeakPtr<const VulkanDevice> m_device;
 	SharedPtr<VulkanPipelineLayout> m_layout;
 	SharedPtr<const VulkanShaderProgram> m_program;
 	const ShaderRecordCollection m_shaderRecordCollection;
-	UInt32 m_maxRecursionDepth{ 10 }, m_maxPayloadSize{ 0 }, m_maxAttributeSize{ 32 };
-	const VulkanDevice& m_device;
+	UInt32 m_maxRecursionDepth{ 10 }, m_maxPayloadSize{ 0 }, m_maxAttributeSize{ 32 }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
 public:
-	VulkanRayTracingPipelineImpl(VulkanRayTracingPipeline* parent, const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, ShaderRecordCollection&& shaderRecords) :
-		base(parent), m_device(device), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords)), m_maxRecursionDepth(maxRecursionDepth), m_maxPayloadSize(maxPayloadSize), m_maxAttributeSize(maxAttributeSize)
+	VulkanRayTracingPipelineImpl(const VulkanDevice& device, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanShaderProgram>& shaderProgram, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, ShaderRecordCollection&& shaderRecords) :
+		m_device(device.weak_from_this()), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords)), m_maxRecursionDepth(maxRecursionDepth), m_maxPayloadSize(maxPayloadSize), m_maxAttributeSize(maxAttributeSize)
 	{
 	}
 
-	VulkanRayTracingPipelineImpl(VulkanRayTracingPipeline* parent, const VulkanDevice& device, ShaderRecordCollection&& shaderRecords) :
-		base(parent), m_device(device), m_shaderRecordCollection(std::move(shaderRecords))
+	VulkanRayTracingPipelineImpl(const VulkanDevice& device, ShaderRecordCollection&& shaderRecords) :
+		m_device(device.weak_from_this()), m_shaderRecordCollection(std::move(shaderRecords))
 	{
 		m_program = std::dynamic_pointer_cast<const VulkanShaderProgram>(m_shaderRecordCollection.program());
 	}
 
 public:
-	VkPipeline initialize()
+	VkPipeline initialize([[maybe_unused]] const VulkanRayTracingPipeline& parent)
 	{
+		// Check if the device is still valid.
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot create pipeline on a released device instance.");
+
 		if (m_program == nullptr) [[unlikely]]
 			throw ArgumentNotInitializedException("shaderProgram", "The shader program must be initialized.");
 		if (m_layout == nullptr) [[unlikely]]
@@ -44,12 +52,12 @@ public:
 		if (m_program != m_shaderRecordCollection.program()) [[unlikely]]
 			throw InvalidArgumentException("shaderRecords", "The ray tracing pipeline shader program must be the same as used to build the shader record collection.");
 
-		LITEFX_TRACE(VULKAN_LOG, "Creating ray-tracing pipeline (\"{1}\") for layout {0} (records: {2})...", reinterpret_cast<void*>(m_layout.get()), m_parent->name(), m_shaderRecordCollection.shaderRecords().size());
+		LITEFX_TRACE(VULKAN_LOG, "Creating ray-tracing pipeline (\"{1}\") for layout {0} (records: {2})...", static_cast<void*>(m_layout.get()), parent.name(), m_shaderRecordCollection.shaderRecords().size());
 	
 		// Validate shader stage usage.
 		auto modules = m_program->modules() | std::ranges::to<std::vector>();
+		//bool hasRayTracingShaders = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, module->type()); }) != modules.end();
 		bool hasComputeShaders    = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::Compute, module->type()); }) != modules.end();
-		bool hasRayTracingShaders = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, module->type()); }) != modules.end();
 		bool hasMeshShaders       = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::MeshPipeline, module->type()); }) != modules.end();
 		bool hasDirectShaders     = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RasterizationPipeline, module->type()); }) != modules.end();
 
@@ -60,7 +68,7 @@ public:
 		else if (hasMeshShaders) [[unlikely]]
 			throw InvalidArgumentException("shaderProgram", "The shader program contains a mesh shader, which is not supported in a ray-tracing pipeline");
 
-		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", reinterpret_cast<const void*>(m_program.get()), modules.size());
+		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", static_cast<const void*>(m_program.get()), modules.size());
 
 		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
 			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
@@ -82,20 +90,20 @@ public:
 			case ShaderRecordType::Miss:
 			case ShaderRecordType::Callable:
 				group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
-				group.generalShader = moduleIds.at(std::get<const IShaderModule*>(record->shaderGroup()));
+				group.generalShader = static_cast<UInt32>(moduleIds.at(std::get<const IShaderModule*>(record->shaderGroup())));
 				group.anyHitShader = group.closestHitShader = group.intersectionShader = VK_SHADER_UNUSED_KHR;
 				break;
 			case ShaderRecordType::Intersection:
 				group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_PROCEDURAL_HIT_GROUP_KHR;
-				group.intersectionShader = moduleIds.at(std::get<const IShaderModule*>(record->shaderGroup()));
+				group.intersectionShader = static_cast<UInt32>(moduleIds.at(std::get<const IShaderModule*>(record->shaderGroup())));
 				group.anyHitShader = group.closestHitShader = group.generalShader = VK_SHADER_UNUSED_KHR;
 				break;
 			case ShaderRecordType::HitGroup:
 			{
 				const auto& hitGroup = std::get<IShaderRecord::MeshGeometryHitGroup>(record->shaderGroup());
 				group.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
-				group.closestHitShader = hitGroup.ClosestHitShader != nullptr ? moduleIds.at(hitGroup.ClosestHitShader) : VK_SHADER_UNUSED_KHR;
-				group.anyHitShader = hitGroup.AnyHitShader != nullptr ? moduleIds.at(hitGroup.AnyHitShader) : VK_SHADER_UNUSED_KHR;
+				group.closestHitShader = hitGroup.ClosestHitShader != nullptr ? static_cast<UInt32>(moduleIds.at(hitGroup.ClosestHitShader)) : VK_SHADER_UNUSED_KHR;
+				group.anyHitShader = hitGroup.AnyHitShader != nullptr ? static_cast<UInt32>(moduleIds.at(hitGroup.AnyHitShader)) : VK_SHADER_UNUSED_KHR;
 				group.intersectionShader = group.generalShader = VK_SHADER_UNUSED_KHR;
 				break;
 			}
@@ -129,25 +137,31 @@ public:
 			.layout = std::as_const(*m_layout.get()).handle()
 		};
 
-		VkPipeline pipeline;
-		raiseIfFailed(::vkCreateRayTracingPipelines(m_device.handle(), VK_NULL_HANDLE, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
+		VkPipeline pipeline{};
+		raiseIfFailed(::vkCreateRayTracingPipelines(device->handle(), VK_NULL_HANDLE, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
 
 #ifndef NDEBUG
-		m_device.setDebugName(*reinterpret_cast<const UInt64*>(&pipeline), VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, m_parent->name());
+		device->setDebugName(pipeline, VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, parent.name());
 #endif
 
 		return pipeline;
 	}
 
-	UniquePtr<IVulkanBuffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups)
+	SharedPtr<IVulkanBuffer> allocateShaderBindingTable(const VulkanRayTracingPipeline& parent, ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups)
 	{
+		// Check if the device is still valid.
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot allocate shader binding table from a released device instance.");
+
 		// NOTE: It is assumed that the shader record collection did not change between pipeline creation and SBT allocation (hence its const-ness)!
 		offsets = { };
 		
 		// Get the physical device properties, as they dictate alignment rules.
 		VkPhysicalDeviceRayTracingPipelinePropertiesKHR rayTracingProperties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR };
 		VkPhysicalDeviceProperties2 deviceProperties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2, .pNext = &rayTracingProperties };
-		::vkGetPhysicalDeviceProperties2(m_device.adapter().handle(), &deviceProperties);
+		::vkGetPhysicalDeviceProperties2(device->adapter().handle(), &deviceProperties);
 
 		// Find the maximum payload size amongst the included shader records.
 		auto filterByGroupType = [groups](auto& record) -> bool {
@@ -189,7 +203,7 @@ public:
 
 		// Allocate a buffer for the shader binding table.
 		// NOTE: Updating the SBT to change shader-local data is currently unsupported. Instead, bind-less resources should be used.
-		auto result = m_device.factory().createBuffer(BufferType::ShaderBindingTable, ResourceHeap::Dynamic, recordSize, totalRecordCount, ResourceUsage::TransferSource);
+		auto result = device->factory().createBuffer(BufferType::ShaderBindingTable, ResourceHeap::Dynamic, recordSize, static_cast<UInt32>(totalRecordCount), ResourceUsage::TransferSource);
 
 		// Write each record group by group.
 		UInt32 record{ 0 };
@@ -246,11 +260,11 @@ public:
 				for (auto& currentRecord : filteredRecords)
 				{
 					// Get the shader group handle for the current record.
-					auto id = shaderRecordIds.at(currentRecord.get());
-					raiseIfFailed(::vkGetRayTracingShaderGroupHandles(m_device.handle(), m_parent->handle(), id, 1, rayTracingProperties.shaderGroupHandleSize, recordData.data()), "Unable to query shader record handle.");
+					auto id = static_cast<UInt32>(shaderRecordIds.at(currentRecord.get()));
+					raiseIfFailed(::vkGetRayTracingShaderGroupHandles(device->handle(), parent.handle(), id, 1, rayTracingProperties.shaderGroupHandleSize, recordData.data()), "Unable to query shader record handle.");
 
 					// Write the payload and map everything into the buffer.
-					std::memcpy(recordData.data() + rayTracingProperties.shaderGroupHandleSize, currentRecord->localData(), currentRecord->localDataSize());
+					std::memcpy(recordData.data() + rayTracingProperties.shaderGroupHandleSize, currentRecord->localData(), currentRecord->localDataSize()); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 					result->map(recordData.data(), recordSize, record++);
 				}
 
@@ -267,23 +281,32 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice& device, SharedPtr<VulkanPipelineLayout> layout, SharedPtr<VulkanShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, const String& name) :
-	m_impl(makePimpl<VulkanRayTracingPipelineImpl>(this, device, layout, shaderProgram, maxRecursionDepth, maxPayloadSize, maxAttributeSize, std::move(shaderRecords))), VulkanPipelineState(VK_NULL_HANDLE)
+VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice& device, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanShaderProgram>& shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, const String& name) :
+	VulkanPipelineState(VK_NULL_HANDLE), m_impl(device, layout, shaderProgram, maxRecursionDepth, maxPayloadSize, maxAttributeSize, std::move(shaderRecords))
 {
 	if (!name.empty())
 		this->name() = name;
 
-	this->handle() = m_impl->initialize();
+	this->handle() = m_impl->initialize(*this);
 }
 
 VulkanRayTracingPipeline::VulkanRayTracingPipeline(const VulkanDevice& device, ShaderRecordCollection&& shaderRecords) noexcept :
-	m_impl(makePimpl<VulkanRayTracingPipelineImpl>(this, device, std::move(shaderRecords))), VulkanPipelineState(VK_NULL_HANDLE)
+	VulkanPipelineState(VK_NULL_HANDLE), m_impl(device, std::move(shaderRecords))
 {
 }
 
+VulkanRayTracingPipeline::VulkanRayTracingPipeline(VulkanRayTracingPipeline&&) noexcept = default;
+VulkanRayTracingPipeline& VulkanRayTracingPipeline::operator=(VulkanRayTracingPipeline&&) noexcept = default;
+
 VulkanRayTracingPipeline::~VulkanRayTracingPipeline() noexcept
 {
-	::vkDestroyPipeline(m_impl->m_device.handle(), this->handle(), nullptr);
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		LITEFX_FATAL_ERROR(VULKAN_LOG, "Invalid attempt to release ray tracing pipeline after parent device.");
+	else
+		::vkDestroyPipeline(device->handle(), this->handle(), nullptr);
 }
 
 SharedPtr<const VulkanShaderProgram> VulkanRayTracingPipeline::program() const noexcept
@@ -316,17 +339,17 @@ UInt32 VulkanRayTracingPipeline::maxAttributeSize() const noexcept
 	return m_impl->m_maxAttributeSize;
 }
 
-UniquePtr<IVulkanBuffer> VulkanRayTracingPipeline::allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const noexcept
+SharedPtr<IVulkanBuffer> VulkanRayTracingPipeline::allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const
 {
-	return m_impl->allocateShaderBindingTable(offsets, groups);
+	return m_impl->allocateShaderBindingTable(*this, offsets, groups);
 }
 
-void VulkanRayTracingPipeline::use(const VulkanCommandBuffer& commandBuffer) const noexcept
+void VulkanRayTracingPipeline::use(const VulkanCommandBuffer& commandBuffer) const
 {
 	::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, this->handle());
 }
 
-void VulkanRayTracingPipeline::bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const noexcept
+void VulkanRayTracingPipeline::bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const
 {
 	// Filter out uninitialized sets.
 	auto sets = descriptorSets | std::views::filter([](auto set) { return set != nullptr; }) | std::ranges::to<Array<const VulkanDescriptorSet*>>();
@@ -370,10 +393,10 @@ VulkanRayTracingPipelineBuilder::~VulkanRayTracingPipelineBuilder() noexcept = d
 void VulkanRayTracingPipelineBuilder::build()
 {
 	auto instance = this->instance();
-	instance->m_impl->m_layout = m_state.pipelineLayout;
-	instance->m_impl->m_maxRecursionDepth = m_state.maxRecursionDepth;
-	instance->m_impl->m_maxPayloadSize = m_state.maxPayloadSize;
-	instance->m_impl->m_maxAttributeSize = m_state.maxAttributeSize;
-	instance->handle() = instance->m_impl->initialize();
+	instance->m_impl->m_layout = this->state().pipelineLayout;
+	instance->m_impl->m_maxRecursionDepth = this->state().maxRecursionDepth;
+	instance->m_impl->m_maxPayloadSize = this->state().maxPayloadSize;
+	instance->m_impl->m_maxAttributeSize = this->state().maxAttributeSize;
+	instance->handle() = instance->m_impl->initialize(*instance);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

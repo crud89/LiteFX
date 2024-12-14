@@ -19,7 +19,7 @@ An extensible, descriptive, modern computer graphics and rendering engine, writt
 The engine design follows an descriptive approach, which means that an application focuses on configuring what it needs and the engine then takes care of handling those requirements. To support this, the API also provides a fluent builder interface. Here is an example of how to easily setup a render pass graphics pipeline with a few lines of code:
 
 ```cxx
-UniquePtr<RenderPass> renderPass = device->buildRenderPass("Geometry")
+SharedPtr<RenderPass> renderPass = device->buildRenderPass("Geometry")
     .renderTarget(RenderTargetType::Present, Format::B8G8R8A8_UNORM, MultiSamplingLevel::x1, RenderTargetFlags::Clear, { 0.f, 0.f, 0.f, 1.f })
     .renderTarget(RenderTargetType::DepthStencil, Format::D32_SFLOAT, MultiSamplingLevel::x1, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 

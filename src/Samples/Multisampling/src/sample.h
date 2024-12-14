@@ -35,8 +35,8 @@ typedef UniquePtr<GLFWwindow, GlfwWindowDeleter> GlfwWindowPtr;
 
 class SampleApp : public LiteFX::App {
 public:
-	static String Name() noexcept { return "LiteFX Sample: Multisampling"; }
-	String name() const noexcept override { return Name(); }
+	static StringView Name() noexcept { return "LiteFX Sample: Multisampling"sv; }
+	StringView name() const noexcept override { return Name(); }
 
 	static AppVersion Version() noexcept { return AppVersion(1, 0, 0, 0); }
 	AppVersion version() const noexcept override { return Version(); }
@@ -70,7 +70,7 @@ private:
 	/// <summary>
 	/// Stores a pointer to the currently active device.
 	/// </summary>
-	IGraphicsDevice* m_device;
+	IGraphicsDevice* m_device{};
 
 	/// <summary>
 	/// Stores the fence created at application load time.
@@ -79,7 +79,7 @@ private:
 
 public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) : 
-		App(), m_window(std::move(window)), m_adapterId(adapterId), m_device(nullptr)
+		App(), m_window(std::move(window)), m_adapterId(adapterId)
 	{
 		this->initializing += std::bind(&SampleApp::onInit, this);
 		this->startup += std::bind(&SampleApp::onStartup, this);
@@ -103,7 +103,7 @@ private:
 	void onInit();
 	void onStartup();
 	void onShutdown();
-	void onResize(const void* sender, ResizeEventArgs e);
+	void onResize(const void* sender, const ResizeEventArgs& e);
 
 public:
 	void keyDown(int key, int scancode, int action, int mods);

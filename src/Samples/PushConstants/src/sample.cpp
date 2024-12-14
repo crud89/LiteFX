@@ -1,7 +1,7 @@
 #include "sample.h"
 #include <glm/gtc/matrix_transform.hpp>
 
-enum DescriptorSets : UInt32
+enum DescriptorSets : UInt32 // NOLINT(performance-enum-size)
 {
     Constant = 0,                                       // All buffers that are immutable.
     PerFrame = 1,                                       // All buffers that are updated each frame.
@@ -17,9 +17,13 @@ const Array<Vertex> vertices =
 
 const Array<UInt16> indices = { 0, 2, 1, 0, 1, 3, 0, 3, 2, 1, 2, 3 };
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
+
 struct CameraBuffer {
     glm::mat4 ViewProjection;
 } camera;
+
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 struct ObjectBuffer {
     glm::mat4 World;
@@ -73,10 +77,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 {
     using RenderPass = TRenderBackend::render_pass_type;
     using RenderPipeline = TRenderBackend::render_pipeline_type;
-    using PipelineLayout = TRenderBackend::pipeline_layout_type;
     using ShaderProgram = TRenderBackend::shader_program_type;
     using InputAssembler = TRenderBackend::input_assembler_type;
-    using Rasterizer = TRenderBackend::rasterizer_type;
     using FrameBuffer = TRenderBackend::frame_buffer_type;
 
     // Get the default device.
@@ -85,7 +87,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     // Create the frame buffers for all back buffers.
     auto frameBuffers = std::views::iota(0u, device->swapChain().buffers()) |
         std::views::transform([&](UInt32 index) { return device->makeFrameBuffer(std::format("Frame Buffer {0}", index), device->swapChain().renderArea()); }) |
-        std::ranges::to<Array<UniquePtr<FrameBuffer>>>();
+        std::ranges::to<Array<SharedPtr<FrameBuffer>>>();
 
     // Create input assembler state.
     SharedPtr<InputAssembler> inputAssembler = device->buildInputAssembler()
@@ -99,8 +101,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
 
     // Create a geometry render pass.
-    UniquePtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
-        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
+    SharedPtr<RenderPass> renderPass = device->buildRenderPass("Opaque")
+        .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f }) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
     // Map all render targets to the frame buffer.
@@ -129,18 +131,18 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     std::ranges::for_each(frameBuffers, [device](auto& frameBuffer) { device->state().add(std::move(frameBuffer)); });
 }
 
-void SampleApp::initBuffers(IRenderBackend* backend)
+void SampleApp::initBuffers(IRenderBackend* /*backend*/)
 {
     // Get a command buffer
     auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 
     // Create the vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, vertices.size());
-    commandBuffer->transfer(vertices.data(), vertices.size() * sizeof(::Vertex), *vertexBuffer, 0, vertices.size());
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
+    commandBuffer->transfer(vertices.data(), vertices.size() * sizeof(::Vertex), *vertexBuffer, 0, static_cast<UInt32>(vertices.size()));
 
     // Create the index buffer and transfer the staging buffer into it.
-    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, indices.size());
-    commandBuffer->transfer(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), *indexBuffer, 0, indices.size());
+    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, static_cast<UInt32>(indices.size()));
+    commandBuffer->transfer(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), *indexBuffer, 0, static_cast<UInt32>(indices.size()));
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
@@ -166,12 +168,12 @@ void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffe
 {
     // Calculate the camera view/projection matrix.
     auto aspectRatio = m_viewport->getRectangle().width() / m_viewport->getRectangle().height();
-    glm::mat4 view = glm::lookAt(glm::vec3(5.f, 5.f, 2.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f);
+    glm::mat4 view = glm::lookAt(glm::vec3(5.f, 5.f, 2.5f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    glm::mat4 projection = glm::perspective(glm::radians(60.0f), aspectRatio, 0.0001f, 1000.0f); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     camera.ViewProjection = projection * view;
 
     // Create a staging buffer and use to transfer the new uniform buffer to.
-    commandBuffer.transfer(reinterpret_cast<const void*>(&camera), sizeof(camera), buffer);
+    commandBuffer.transfer(static_cast<const void*>(&camera), sizeof(camera), buffer);
 }
 
 void SampleApp::onStartup() 
@@ -197,22 +199,22 @@ void SampleApp::onInit()
     ::glfwSetWindowUserPointer(m_window.get(), this);
 
     ::glfwSetFramebufferSizeCallback(m_window.get(), [](GLFWwindow* window, int width, int height) { 
-        auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
+        auto app = static_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
         app->resize(width, height); 
     });
 
     ::glfwSetKeyCallback(m_window.get(), [](GLFWwindow* window, int key, int scancode, int action, int mods) {
-        auto app = reinterpret_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
+        auto app = static_cast<SampleApp*>(::glfwGetWindowUserPointer(window));
         app->keyDown(key, scancode, action, mods);
     });
 
     // Create a callback for backend startup and shutdown.
-    auto startCallback = [this]<typename TBackend>(TBackend * backend) {
+    auto startCallback = [this]<typename TBackend>(TBackend* backend) {
         // Store the window handle.
         auto window = m_window.get();
 
         // Get the proper frame buffer size.
-        int width, height;
+        int width{}, height{};
         ::glfwGetFramebufferSize(window, &width, &height);
 
         // Create viewport and scissors.
@@ -227,7 +229,7 @@ void SampleApp::onInit()
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.
-        m_device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3, false);
+        m_device = std::addressof(backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3, false));
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);
@@ -236,7 +238,7 @@ void SampleApp::onInit()
         return true;
     };
 
-    auto stopCallback = []<typename TBackend>(TBackend * backend) {
+    auto stopCallback = []<typename TBackend>(TBackend* backend) {
         backend->releaseDevice("Default");
     };
 
@@ -253,7 +255,7 @@ void SampleApp::onInit()
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 }
 
-void SampleApp::onResize(const void* sender, ResizeEventArgs e)
+void SampleApp::onResize(const void* /*sender*/, const ResizeEventArgs& e)
 {
     // In order to re-create the swap chain, we need to wait for all frames in flight to finish.
     m_device->wait();
@@ -280,7 +282,7 @@ void SampleApp::onResize(const void* sender, ResizeEventArgs e)
     m_transferFence = commandBuffer->submit();
 }
 
-void SampleApp::keyDown(int key, int scancode, int action, int mods)
+void SampleApp::keyDown(int key, int /*scancode*/, int action, int /*mods*/)
 {
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
     if (key == GLFW_KEY_F9 && action == GLFW_PRESS)
@@ -303,7 +305,7 @@ void SampleApp::keyDown(int key, int scancode, int action, int mods)
             RectI clientRect, monitorRect;
             GLFWmonitor* currentMonitor = nullptr;
             const GLFWvidmode* currentVideoMode = nullptr;
-            int monitorCount;
+            int monitorCount{};
 
             ::glfwGetWindowPos(m_window.get(), &clientRect.x(), &clientRect.y());
             ::glfwGetWindowSize(m_window.get(), &clientRect.width(), &clientRect.height());
@@ -312,7 +314,7 @@ void SampleApp::keyDown(int key, int scancode, int action, int mods)
 
             for (int i(0); i < monitorCount; ++i)
             {
-                auto monitor = monitors[i];
+                auto monitor = monitors[i]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
                 auto mode = ::glfwGetVideoMode(monitor);
                 ::glfwGetMonitorPos(monitor, &monitorRect.x(), &monitorRect.y());
                 monitorRect.width() = mode->width;
@@ -367,7 +369,7 @@ void SampleApp::updateWindowTitle()
     auto frameTime = std::chrono::duration<float, std::chrono::milliseconds::period>(std::chrono::high_resolution_clock::now() - lastTime).count();
 
     std::stringstream title;
-    title << this->name() << " | " << "Backend: " << this->activeBackend(BackendType::Rendering)->name() << " | " << static_cast<UInt32>(1000.0f / frameTime) << " FPS";
+    title << this->name() << " | " << "Backend: " << this->activeBackend(BackendType::Rendering)->name() << " | " << static_cast<UInt32>(1000.0f / frameTime) << " FPS"; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
     ::glfwSetWindowTitle(m_window.get(), title.str().c_str());
     lastTime = std::chrono::high_resolution_clock::now();
@@ -416,11 +418,11 @@ void SampleApp::drawFrame()
     commandBuffer->bind(indexBuffer);
 
     // Draw 9 objects, each with a different color. The transform matrix and color is passed to the shader using push constants.
-    for (int i(0); i < 9; ++i)
+    for (int i(0); i < 9; ++i) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     {
         // Initialize the object buffer and push it to the command buffer.
         ObjectBuffer buffer{
-            .World = glm::translate(glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)), translations[i]),
+            .World = glm::translate(glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)), translations[i]), // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             .Color = colors[i]
         };
 

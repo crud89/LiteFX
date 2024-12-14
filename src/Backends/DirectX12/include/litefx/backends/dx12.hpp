@@ -5,6 +5,9 @@
 #include "dx12_api.hpp"
 #include "dx12_formatters.hpp"
 
+#pragma warning(push)
+#pragma warning(disable:4250) // Base class members are inherited via dominance.
+
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Math;
     using namespace LiteFX::Rendering;
@@ -18,22 +21,76 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12VertexBufferLayout final : public IVertexBufferLayout {
         LITEFX_IMPLEMENTATION(DirectX12VertexBufferLayoutImpl);
         LITEFX_BUILDER(DirectX12VertexBufferLayoutBuilder);
+        friend struct SharedObject::Allocator<DirectX12VertexBufferLayout>;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a new vertex buffer layout.
         /// </summary>
-        /// <param name="vertexSize">The size of a single vertex.</param>
+        /// <param name="vertexSize">The overall size of a single vertex.</param>
         /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
         explicit DirectX12VertexBufferLayout(size_t vertexSize, UInt32 binding = 0);
-        DirectX12VertexBufferLayout(DirectX12VertexBufferLayout&&) = delete;
-        DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&) = delete;
-        virtual ~DirectX12VertexBufferLayout() noexcept;
+
+        /// <summary>
+        /// Initializes a new vertex buffer layout.
+        /// </summary>
+        /// <param name="vertexSize">The overall size of a single vertex.</param>
+        /// <param name="attributes">The vertex attributes.</param>
+        /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
+        explicit DirectX12VertexBufferLayout(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding = 0);
+
+    private:
+        /// <inheritdoc />
+        DirectX12VertexBufferLayout(DirectX12VertexBufferLayout&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12VertexBufferLayout(const DirectX12VertexBufferLayout&);
+
+        /// <inheritdoc />
+        DirectX12VertexBufferLayout& operator=(DirectX12VertexBufferLayout&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12VertexBufferLayout& operator=(const DirectX12VertexBufferLayout&) = delete;
+
+    public:
+        /// <inheritdoc />
+        ~DirectX12VertexBufferLayout() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates a new vertex buffer layout.
+        /// </summary>
+        /// <param name="vertexSize">The overall size of a single vertex.</param>
+        /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
+        /// <returns>A shared pointer to the newly created vertex buffer layout.</returns>
+        static inline auto create(size_t vertexSize, UInt32 binding = 0) {
+            return SharedObject::create<DirectX12VertexBufferLayout>(vertexSize, binding);
+        }
+
+        /// <summary>
+        /// Creates a new vertex buffer layout.
+        /// </summary>
+        /// <param name="vertexSize">The overall size of a single vertex.</param>
+        /// <param name="attributes">The vertex attributes.</param>
+        /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
+        /// <returns>A shared pointer to the newly created vertex buffer layout.</returns>
+        static inline auto create(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding = 0) {
+            return SharedObject::create<DirectX12VertexBufferLayout>(vertexSize, attributes, binding);
+        }
+
+        /// <summary>
+        /// Creates a copy of a vertex buffer layout.
+        /// </summary>
+        /// <param name="other">The vertex buffer layout to copy.</param>
+        /// <returns>A shared pointer to the newly created vertex buffer layout.</returns>
+        static inline auto create(const DirectX12VertexBufferLayout& other) {
+            return SharedObject::create<DirectX12VertexBufferLayout>(other);
+        }
 
         // IVertexBufferLayout interface.
     public:
         /// <inheritdoc />
-        Enumerable<const BufferAttribute*> attributes() const noexcept override;
+        Enumerable<const BufferAttribute*> attributes() const override;
 
         // IBufferLayout interface.
     public:
@@ -54,16 +111,50 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12VertexBufferLayout" />
     class LITEFX_DIRECTX12_API DirectX12IndexBufferLayout final : public IIndexBufferLayout {
         LITEFX_IMPLEMENTATION(DirectX12IndexBufferLayoutImpl);
+        friend struct SharedObject::Allocator<DirectX12IndexBufferLayout>;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a new index buffer layout
         /// </summary>
         /// <param name="type">The type of the indices within the index buffer.</param>
         explicit DirectX12IndexBufferLayout(IndexType type);
-        DirectX12IndexBufferLayout(DirectX12IndexBufferLayout&&) = delete;
-        DirectX12IndexBufferLayout(const DirectX12IndexBufferLayout&) = delete;
-        virtual ~DirectX12IndexBufferLayout() noexcept;
+
+    private:
+        /// <inheritdoc />
+        DirectX12IndexBufferLayout(DirectX12IndexBufferLayout&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12IndexBufferLayout(const DirectX12IndexBufferLayout&);
+
+        /// <inheritdoc />
+        DirectX12IndexBufferLayout& operator=(DirectX12IndexBufferLayout&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12IndexBufferLayout& operator=(const DirectX12IndexBufferLayout&) = delete;
+
+    public:
+        /// <inheritdoc />
+        ~DirectX12IndexBufferLayout() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates a new index buffer layout
+        /// </summary>
+        /// <param name="type">The type of the indices within the index buffer.</param>
+        /// <returns>A shared pointer to the newly created index buffer layout instance.</returns>
+        static inline auto create(IndexType type) {
+            return SharedObject::create<DirectX12IndexBufferLayout>(type);
+        }
+
+        /// <summary>
+        /// Creates a copy of an index buffer layout.
+        /// </summary>
+        /// <param name="other">The index buffer layout to copy.</param>
+        /// <returns>A shared pointer to the newly created index buffer layout instance.</returns>
+        static inline auto create(const DirectX12IndexBufferLayout& other) {
+            return SharedObject::create<DirectX12IndexBufferLayout>(other);
+        }
 
         // IIndexBufferLayout interface.
     public:
@@ -90,8 +181,15 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="IDirectX12VertexBuffer" />
     /// <seealso cref="IDirectX12IndexBuffer" />
     class LITEFX_DIRECTX12_API IDirectX12Buffer : public virtual IBuffer, public virtual IResource<ComPtr<ID3D12Resource>> {
+    protected:
+        IDirectX12Buffer() noexcept = default;
+        IDirectX12Buffer(IDirectX12Buffer&&) noexcept = default;
+        IDirectX12Buffer(const IDirectX12Buffer&) = delete;
+        IDirectX12Buffer& operator=(IDirectX12Buffer&&) noexcept = default;
+        IDirectX12Buffer& operator=(const IDirectX12Buffer&) = delete;
+
     public:
-        virtual ~IDirectX12Buffer() noexcept = default;
+        ~IDirectX12Buffer() noexcept override = default;
     };
 
     /// <summary>
@@ -100,8 +198,15 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12VertexBufferLayout" />
     /// <seealso cref="IDirectX12Buffer" />
     class LITEFX_DIRECTX12_API IDirectX12VertexBuffer : public virtual VertexBuffer<DirectX12VertexBufferLayout>, public virtual IDirectX12Buffer {
+    protected:
+        IDirectX12VertexBuffer() noexcept = default;
+        IDirectX12VertexBuffer(IDirectX12VertexBuffer&&) noexcept = default;
+        IDirectX12VertexBuffer(const IDirectX12VertexBuffer&) = delete;
+        IDirectX12VertexBuffer& operator=(IDirectX12VertexBuffer&&) noexcept = default;
+        IDirectX12VertexBuffer& operator=(const IDirectX12VertexBuffer&) = delete;
+
     public:
-        virtual ~IDirectX12VertexBuffer() noexcept = default;
+        ~IDirectX12VertexBuffer() noexcept override = default;
 
     public:
         virtual const D3D12_VERTEX_BUFFER_VIEW& view() const noexcept = 0;
@@ -113,8 +218,15 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12IndexBufferLayout" />
     /// <seealso cref="IDirectX12Buffer" />
     class LITEFX_DIRECTX12_API IDirectX12IndexBuffer : public virtual IndexBuffer<DirectX12IndexBufferLayout>, public virtual IDirectX12Buffer {
+    protected:
+        IDirectX12IndexBuffer() noexcept = default;
+        IDirectX12IndexBuffer(IDirectX12IndexBuffer&&) noexcept = default;
+        IDirectX12IndexBuffer(const IDirectX12IndexBuffer&) = delete;
+        IDirectX12IndexBuffer& operator=(IDirectX12IndexBuffer&&) noexcept = default;
+        IDirectX12IndexBuffer& operator=(const IDirectX12IndexBuffer&) = delete;
+
     public:
-        virtual ~IDirectX12IndexBuffer() noexcept = default;
+        ~IDirectX12IndexBuffer() noexcept override = default;
 
     public:
         virtual const D3D12_INDEX_BUFFER_VIEW& view() const noexcept = 0;
@@ -128,8 +240,15 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12DescriptorSetLayout" />
     /// <seealso cref="IDirectX12Sampler" />
     class LITEFX_DIRECTX12_API IDirectX12Image : public virtual IImage, public virtual IResource<ComPtr<ID3D12Resource>> {
+    protected:
+        IDirectX12Image() noexcept = default;
+        IDirectX12Image(IDirectX12Image&&) noexcept = default;
+        IDirectX12Image(const IDirectX12Image&) = delete;
+        IDirectX12Image& operator=(IDirectX12Image&&) noexcept = default;
+        IDirectX12Image& operator=(const IDirectX12Image&) = delete;
+
     public:
-        virtual ~IDirectX12Image() noexcept = default;
+        ~IDirectX12Image() noexcept override = default;
     };
 
     /// <summary>
@@ -140,8 +259,15 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12DescriptorSetLayout" />
     /// <seealso cref="IDirectX12Image" />
     class LITEFX_DIRECTX12_API IDirectX12Sampler : public virtual ISampler {
+    protected:
+        IDirectX12Sampler() noexcept = default;
+        IDirectX12Sampler(IDirectX12Sampler&&) noexcept = default;
+        IDirectX12Sampler(const IDirectX12Sampler&) = delete;
+        IDirectX12Sampler& operator=(IDirectX12Sampler&&) noexcept = default;
+        IDirectX12Sampler& operator=(const IDirectX12Sampler&) = delete;
+
     public:
-        virtual ~IDirectX12Sampler() noexcept = default;
+        ~IDirectX12Sampler() noexcept override = default;
     };
 
     /// <summary>
@@ -151,8 +277,15 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12BottomLevelAccelerationStructure" />
     /// <seealso cref="DirectX12TopevelAccelerationStructure" />
     class LITEFX_DIRECTX12_API IDirectX12AccelerationStructure : public virtual IAccelerationStructure {
+    protected:
+        IDirectX12AccelerationStructure() noexcept = default;
+        IDirectX12AccelerationStructure(IDirectX12AccelerationStructure&&) noexcept = default;
+        IDirectX12AccelerationStructure(const IDirectX12AccelerationStructure&) = delete;
+        IDirectX12AccelerationStructure& operator=(IDirectX12AccelerationStructure&&) noexcept = default;
+        IDirectX12AccelerationStructure& operator=(const IDirectX12AccelerationStructure&) = delete;
+
     public:
-        virtual ~IDirectX12AccelerationStructure() noexcept = default;
+        ~IDirectX12AccelerationStructure() noexcept override = default;
     };
 
     /// <summary>
@@ -177,9 +310,21 @@ namespace LiteFX::Rendering::Backends {
         /// <exception cref="InvalidArgumentException">Thrown if the provided <paramref name="flags" /> contain an unsupported combination of flags.</exception>
         /// <seealso cref="AccelerationStructureFlags" />
         explicit DirectX12BottomLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None, StringView name = "");
+        
+        /// <inheritdoc />
+        DirectX12BottomLevelAccelerationStructure(DirectX12BottomLevelAccelerationStructure&&) noexcept;
+
+        /// <inheritdoc />
         DirectX12BottomLevelAccelerationStructure(const DirectX12BottomLevelAccelerationStructure&) = delete;
-        DirectX12BottomLevelAccelerationStructure(DirectX12BottomLevelAccelerationStructure&&) = delete;
-        virtual ~DirectX12BottomLevelAccelerationStructure() noexcept;
+
+        /// <inheritdoc />
+        DirectX12BottomLevelAccelerationStructure& operator=(DirectX12BottomLevelAccelerationStructure&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12BottomLevelAccelerationStructure& operator=(const DirectX12BottomLevelAccelerationStructure&) = delete;
+
+        /// <inheritdoc />
+        ~DirectX12BottomLevelAccelerationStructure() noexcept override;
 
         // IAccelerationStructure interface.
     public:
@@ -190,13 +335,13 @@ namespace LiteFX::Rendering::Backends {
         SharedPtr<const IDirectX12Buffer> buffer() const noexcept;
 
         /// <inheritdoc />
-        void build(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer = nullptr, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+        void build(const DirectX12CommandBuffer& commandBuffer, const SharedPtr<const IDirectX12Buffer>& scratchBuffer = nullptr, const SharedPtr<const IDirectX12Buffer>& buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
-        void update(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer = nullptr, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+        void update(const DirectX12CommandBuffer& commandBuffer, const SharedPtr<const IDirectX12Buffer>& scratchBuffer = nullptr, const SharedPtr<const IDirectX12Buffer>& buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
-        void copy(const DirectX12CommandBuffer& commandBuffer, DirectX12BottomLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
+        void copy(const DirectX12CommandBuffer& commandBuffer, DirectX12BottomLevelAccelerationStructure& destination, bool compress = false, const SharedPtr<const IDirectX12Buffer>& buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
 
         /// <inheritdoc />
         UInt64 offset() const noexcept override;
@@ -232,9 +377,9 @@ namespace LiteFX::Rendering::Backends {
 
     private:
         SharedPtr<const IBuffer> getBuffer() const noexcept override;
-        void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
-        void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
-        void doCopy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const override;
+        void doBuild(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize) override;
+        void doUpdate(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize) override;
+        void doCopy(const ICommandBuffer& commandBuffer, IBottomLevelAccelerationStructure& destination, bool compress, const SharedPtr<const IBuffer>& buffer, UInt64 offset, bool copyBuildInfo) const override;
     };
 
     /// <summary>
@@ -259,9 +404,21 @@ namespace LiteFX::Rendering::Backends {
         /// <exception cref="InvalidArgumentException">Thrown if the provided <paramref name="flags" /> contain an unsupported combination of flags.</exception>
         /// <seealso cref="AccelerationStructureFlags" />
         explicit DirectX12TopLevelAccelerationStructure(AccelerationStructureFlags flags = AccelerationStructureFlags::None, StringView name = "");
+
+        /// <inheritdoc />
+        DirectX12TopLevelAccelerationStructure(DirectX12TopLevelAccelerationStructure&&) noexcept;
+
+        /// <inheritdoc />
         DirectX12TopLevelAccelerationStructure(const DirectX12TopLevelAccelerationStructure&) = delete;
-        DirectX12TopLevelAccelerationStructure(DirectX12TopLevelAccelerationStructure&&) = delete;
-        virtual ~DirectX12TopLevelAccelerationStructure() noexcept;
+
+        /// <inheritdoc />
+        DirectX12TopLevelAccelerationStructure& operator=(DirectX12TopLevelAccelerationStructure&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12TopLevelAccelerationStructure& operator=(const DirectX12TopLevelAccelerationStructure&) = delete;
+
+        /// <inheritdoc />
+        ~DirectX12TopLevelAccelerationStructure() noexcept override;
 
         // IAccelerationStructure interface.
     public:
@@ -272,13 +429,13 @@ namespace LiteFX::Rendering::Backends {
         SharedPtr<const IDirectX12Buffer> buffer() const noexcept;
 
         /// <inheritdoc />
-        void build(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer = nullptr, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+        void build(const DirectX12CommandBuffer& commandBuffer, const SharedPtr<const IDirectX12Buffer>& scratchBuffer = nullptr, const SharedPtr<const IDirectX12Buffer>& buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
-        void update(const DirectX12CommandBuffer& commandBuffer, SharedPtr<const IDirectX12Buffer> scratchBuffer = nullptr, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
+        void update(const DirectX12CommandBuffer& commandBuffer, const SharedPtr<const IDirectX12Buffer>& scratchBuffer = nullptr, const SharedPtr<const IDirectX12Buffer>& buffer = nullptr, UInt64 offset = 0, UInt64 maxSize = 0);
 
         /// <inheritdoc />
-        void copy(const DirectX12CommandBuffer& commandBuffer, DirectX12TopLevelAccelerationStructure& destination, bool compress = false, SharedPtr<const IDirectX12Buffer> buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
+        void copy(const DirectX12CommandBuffer& commandBuffer, DirectX12TopLevelAccelerationStructure& destination, bool compress = false, const SharedPtr<const IDirectX12Buffer>& buffer = nullptr, UInt64 offset = 0, bool copyBuildInfo = true) const;
 
         /// <inheritdoc />
         UInt64 offset() const noexcept override;
@@ -305,9 +462,9 @@ namespace LiteFX::Rendering::Backends {
 
     private:
         SharedPtr<const IBuffer> getBuffer() const noexcept override;
-        void doBuild(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
-        void doUpdate(const ICommandBuffer& commandBuffer, SharedPtr<const IBuffer> scratchBuffer, SharedPtr<const IBuffer> buffer, UInt64 offset, UInt64 maxSize) override;
-        void doCopy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress, SharedPtr<const IBuffer> buffer, UInt64 offset, bool copyBuildInfo) const override;
+        void doBuild(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize) override;
+        void doUpdate(const ICommandBuffer& commandBuffer, const SharedPtr<const IBuffer>& scratchBuffer, const SharedPtr<const IBuffer>& buffer, UInt64 offset, UInt64 maxSize) override;
+        void doCopy(const ICommandBuffer& commandBuffer, ITopLevelAccelerationStructure& destination, bool compress, const SharedPtr<const IBuffer>& buffer, UInt64 offset, bool copyBuildInfo) const override;
     };
 
     /// <summary>
@@ -332,9 +489,21 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="syncBefore">The pipeline stage(s) all previous commands have to finish before the barrier is executed.</param>
         /// <param name="syncAfter">The pipeline stage(s) all subsequent commands are blocked at until the barrier is executed.</param>
         explicit DirectX12Barrier(PipelineStage syncBefore, PipelineStage syncAfter) noexcept;
-        DirectX12Barrier(const DirectX12Barrier&) = delete;
-        DirectX12Barrier(DirectX12Barrier&&) = delete;
-        virtual ~DirectX12Barrier() noexcept;
+
+        /// <inheritdoc />
+        DirectX12Barrier(DirectX12Barrier&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12Barrier(const DirectX12Barrier&);
+
+        /// <inheritdoc />
+        DirectX12Barrier& operator=(DirectX12Barrier&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12Barrier& operator=(const DirectX12Barrier&);
+
+        /// <inheritdoc />
+        ~DirectX12Barrier() noexcept override;
 
     private:
         explicit DirectX12Barrier() noexcept;
@@ -350,7 +519,7 @@ namespace LiteFX::Rendering::Backends {
         PipelineStage syncAfter() const noexcept override;
 
         /// <inheritdoc />
-        void wait(ResourceAccess accessBefore, ResourceAccess accessAfter) noexcept override;
+        void wait(ResourceAccess accessBefore, ResourceAccess accessAfter) override;
 
         /// <inheritdoc />
         void transition(const IDirectX12Buffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter) override;
@@ -376,7 +545,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="commandBuffer">The command buffer to add the barriers to.</param>
         /// <exception cref="RuntimeException">Thrown, if any of the contained barriers is a image barrier that targets a sub-resource range that does not share the same <see cref="ImageLayout" /> in all sub-resources.</exception>
-        void execute(const DirectX12CommandBuffer& commandBuffer) const noexcept;
+        void execute(const DirectX12CommandBuffer& commandBuffer) const;
     };
 
     /// <summary>
@@ -408,9 +577,21 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="entryPoint">The name of the module entry point.</param>
         /// <param name="shaderLocalDescriptor">The descriptor that binds shader-local data for ray-tracing shaders.</param>
         explicit DirectX12ShaderModule(const DirectX12Device& device, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint = "main", const Optional<DescriptorBindingPoint>& shaderLocalDescriptor = std::nullopt);
-        DirectX12ShaderModule(const DirectX12ShaderModule&) noexcept = delete;
-        DirectX12ShaderModule(DirectX12ShaderModule&&) noexcept = delete;
-        virtual ~DirectX12ShaderModule() noexcept;
+
+        /// <inheritdoc />
+        DirectX12ShaderModule(DirectX12ShaderModule&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12ShaderModule(const DirectX12ShaderModule&) = delete;
+
+        /// <inheritdoc />
+        DirectX12ShaderModule& operator=(DirectX12ShaderModule&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12ShaderModule& operator=(const DirectX12ShaderModule&) = delete;
+
+        /// <inheritdoc />
+        ~DirectX12ShaderModule() noexcept override;
 
         // IShaderModule interface.
     public:
@@ -435,6 +616,7 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12ShaderProgram final : public ShaderProgram<DirectX12ShaderModule> {
         LITEFX_IMPLEMENTATION(DirectX12ShaderProgramImpl);
         LITEFX_BUILDER(DirectX12ShaderProgramBuilder);
+        friend struct SharedObject::Allocator<DirectX12ShaderProgram>;
 
     private:
         /// <summary>
@@ -450,18 +632,47 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="device">The parent device of the shader program.</param>
         explicit DirectX12ShaderProgram(const DirectX12Device& device) noexcept;
 
-        // Factory method.
-    public:
-        static SharedPtr<DirectX12ShaderProgram> create(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules);
-
-    public:
+    private:
+        /// <inheritdoc />
         DirectX12ShaderProgram(DirectX12ShaderProgram&&) noexcept = delete;
-        DirectX12ShaderProgram(const DirectX12ShaderProgram&) noexcept = delete;
-        virtual ~DirectX12ShaderProgram() noexcept;
+
+        /// <inheritdoc />
+        DirectX12ShaderProgram(const DirectX12ShaderProgram&) = delete;
+
+        /// <inheritdoc />
+        DirectX12ShaderProgram& operator=(DirectX12ShaderProgram&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12ShaderProgram& operator=(const DirectX12ShaderProgram&) = delete;
 
     public:
         /// <inheritdoc />
-        Enumerable<const DirectX12ShaderModule*> modules() const noexcept override;
+        ~DirectX12ShaderProgram() noexcept override;
+
+        // Factory method.
+    public:
+        /// <summary>
+        /// Creates a new shader program instance.
+        /// </summary>
+        /// <param name="device">The device this shader program should be compiled for and executed on.</param>
+        /// <param name="modules">The modules of the shader program.</param>
+        /// <returns>A pointer to the shader program.</returns>
+        static inline auto create(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) -> SharedPtr<DirectX12ShaderProgram> {
+            return SharedObject::create<DirectX12ShaderProgram>(device, std::move(modules));
+        }
+
+    private:
+        /// <summary>
+        /// Creates a new shader program instance.
+        /// </summary>
+        /// <returns>A pointer to the shader program.</returns>
+        static inline auto create(const DirectX12Device& device) {
+            return SharedObject::create<DirectX12ShaderProgram>(device);
+        }
+
+    public:
+        /// <inheritdoc />
+        Enumerable<const DirectX12ShaderModule*> modules() const override;
 
         /// <inheritdoc />
         virtual SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout() const;
@@ -478,9 +689,9 @@ namespace LiteFX::Rendering::Backends {
         /// <remarks>
         /// When a shader program is asked to build a pipeline layout, it first checks if a root signature is provided within the shader bytecode. If no root signature could 
         /// be found, it falls back to using plain reflection to extract the descriptor sets. This has the drawback, that some features are not or only partially supported.
-        /// Most notably, it is not possible to reflect a pipeline layout that uses push constants this way. To ensure that you are not missing the root signature by accident,
-        /// the engine warns you when it encounters this situation. However, if you are only using plain descriptor sets, this can result in noise warnings that clutter the 
-        /// log. You can call this function to disable the warnings explicitly.
+        /// Most notably, it is not possible to reflect a pipeline layout that uses push/root constants this way. To ensure that you are not missing the root signature by 
+        /// accident, the engine warns you when it encounters this situation. However, if you are only using plain descriptor sets, this can result in noise warnings that 
+        /// clutter the log. You can call this function to disable the warnings explicitly.
         /// </remarks>
         /// <param name="disableWarning"><c>true</c> to stop issuing the warning or <c>false</c> to continue.</param>
         /// <seealso cref="reflectPipelineLayout" />
@@ -506,9 +717,21 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="bufferHeap">A CPU-visible descriptor heap that contains all buffer descriptors of the descriptor set.</param>
         /// <param name="samplerHeap">A CPU-visible descriptor heap that contains all sampler descriptors of the descriptor set.</param>
         explicit DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& bufferHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap);
-        DirectX12DescriptorSet(DirectX12DescriptorSet&&) = delete;
+
+        /// <inheritdoc />
+        DirectX12DescriptorSet(DirectX12DescriptorSet&&) noexcept = delete;
+        
+        /// <inheritdoc />
         DirectX12DescriptorSet(const DirectX12DescriptorSet&) = delete;
-        virtual ~DirectX12DescriptorSet() noexcept;
+        
+        /// <inheritdoc />
+        DirectX12DescriptorSet& operator=(DirectX12DescriptorSet&&) noexcept = delete;
+        
+        /// <inheritdoc />
+        DirectX12DescriptorSet& operator=(const DirectX12DescriptorSet&) = delete;
+        
+        /// <inheritdoc />
+        ~DirectX12DescriptorSet() noexcept override;
 
     public:
         /// <summary>
@@ -576,7 +799,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="elementSize">The size of the descriptor.</param>
         /// <param name="elementSize">The number of descriptors in the descriptor array.</param>
         /// <param name="local">Determines if the descriptor is part of the local or global root signature for ray-tracing shaders.</param>
-        explicit DirectX12DescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1, bool local = false);
+        DirectX12DescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1, bool local = false);
 
         /// <summary>
         /// Initializes a new DirectX 12 descriptor layout for a static sampler.
@@ -584,11 +807,22 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="staticSampler">The static sampler to initialize the state with.</param>
         /// <param name="binding">The binding point for the descriptor.</param>
         /// <param name="local">Determines if the descriptor is part of the local or global root signature for ray-tracing shaders.</param>
-        explicit DirectX12DescriptorLayout(UniquePtr<IDirectX12Sampler>&& staticSampler, UInt32 binding, bool local = false);
+        DirectX12DescriptorLayout(const IDirectX12Sampler& staticSampler, UInt32 binding, bool local = false);
+        
+        /// <inheritdoc />
+        DirectX12DescriptorLayout(DirectX12DescriptorLayout&&) noexcept;
 
-        DirectX12DescriptorLayout(DirectX12DescriptorLayout&&) = delete;
-        DirectX12DescriptorLayout(const DirectX12DescriptorLayout&) = delete;
-        virtual ~DirectX12DescriptorLayout() noexcept;
+        /// <inheritdoc />
+        DirectX12DescriptorLayout(const DirectX12DescriptorLayout&);
+
+        /// <inheritdoc />
+        DirectX12DescriptorLayout& operator=(DirectX12DescriptorLayout&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12DescriptorLayout& operator=(const DirectX12DescriptorLayout&);
+
+        /// <inheritdoc />
+        ~DirectX12DescriptorLayout() noexcept override;
 
         // DirectX 12 descriptor layout.
     public:
@@ -633,12 +867,13 @@ namespace LiteFX::Rendering::Backends {
         LITEFX_IMPLEMENTATION(DirectX12DescriptorSetLayoutImpl);
         LITEFX_BUILDER(DirectX12DescriptorSetLayoutBuilder);
         friend class DirectX12PipelineLayout;
+        friend struct SharedObject::Allocator<DirectX12DescriptorSetLayout>;
 
     public:
         using base_type = DescriptorSetLayout<DirectX12DescriptorLayout, DirectX12DescriptorSet>;
         using base_type::free;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a DirectX 12 descriptor set layout.
         /// </summary>
@@ -646,17 +881,62 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="descriptorLayouts">The descriptor layouts of the descriptors within the descriptor set.</param>
         /// <param name="space">The space or set id of the descriptor set.</param>
         /// <param name="stages">The shader stages, the descriptor sets are bound to.</param>
-        explicit DirectX12DescriptorSetLayout(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorLayout>>&& descriptorLayouts, UInt32 space, ShaderStage stages);
-        DirectX12DescriptorSetLayout(DirectX12DescriptorSetLayout&&) = delete;
-        DirectX12DescriptorSetLayout(const DirectX12DescriptorSetLayout&) = delete;
-        virtual ~DirectX12DescriptorSetLayout() noexcept;
+        explicit DirectX12DescriptorSetLayout(const DirectX12Device& device, const Enumerable<DirectX12DescriptorLayout>& descriptorLayouts, UInt32 space, ShaderStage stages);
 
-    private:
         /// <summary>
         /// Initializes a DirectX 12 descriptor set layout.
         /// </summary>
         /// <param name="device">The device, the descriptor set layout is created on.</param>
-        explicit DirectX12DescriptorSetLayout(const DirectX12Device& device) noexcept;
+        explicit DirectX12DescriptorSetLayout(const DirectX12Device& device);
+
+    private:
+        /// <inheritdoc />
+        DirectX12DescriptorSetLayout(DirectX12DescriptorSetLayout&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12DescriptorSetLayout(const DirectX12DescriptorSetLayout& other);
+
+        /// <inheritdoc />
+        DirectX12DescriptorSetLayout& operator=(DirectX12DescriptorSetLayout&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12DescriptorSetLayout& operator=(const DirectX12DescriptorSetLayout&) = delete;
+
+    public:
+        /// <inheritdoc />
+        ~DirectX12DescriptorSetLayout() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates a DirectX 12 descriptor set layout.
+        /// </summary>
+        /// <param name="device">The device, the descriptor set layout is created on.</param>
+        /// <param name="descriptorLayouts">The descriptor layouts of the descriptors within the descriptor set.</param>
+        /// <param name="space">The space or set id of the descriptor set.</param>
+        /// <param name="stages">The shader stages, the descriptor sets are bound to.</param>
+        /// <returns>Returns a shared pointer to the newly created descriptor set layout.</returns>
+        static inline auto create(const DirectX12Device& device, const Enumerable<DirectX12DescriptorLayout>& descriptorLayouts, UInt32 space, ShaderStage stages) {
+            return SharedObject::create<DirectX12DescriptorSetLayout>(device, descriptorLayouts, space, stages);
+        }
+
+        /// <summary>
+        /// Creates a copy of a DirectX 12 descriptor set layout.
+        /// </summary>
+        /// <param name="other">The descriptor set layout to copy.</param>
+        /// <returns>Returns a shared pointer to the newly created descriptor set layout.</returns>
+        static inline auto create(const DirectX12DescriptorSetLayout& other) {
+            return SharedObject::create<DirectX12DescriptorSetLayout>(other);
+        }
+
+    private:
+        /// <summary>
+        /// Creates a DirectX 12 descriptor set layout.
+        /// </summary>
+        /// <param name="device">The device, the descriptor set layout is created on.</param>
+        /// <returns>Returns a shared pointer to the newly created descriptor set layout.</returns>
+        static inline auto create(const DirectX12Device& device) {
+            return SharedObject::create<DirectX12DescriptorSetLayout>(device);
+        }
 
     public:
         /// <summary>
@@ -675,10 +955,10 @@ namespace LiteFX::Rendering::Backends {
         virtual UInt32 descriptorOffsetForBinding(UInt32 binding) const;
 
         /// <summary>
-        /// Returns the parent device.
+        /// Returns the parent device or `nullptr`, if it has been released.
         /// </summary>
-        /// <returns>A reference of the parent device.</returns>
-        virtual const DirectX12Device& device() const noexcept;
+        /// <returns>A pointer to the parent device or `nullptr`, if it has been released.</returns>
+        virtual SharedPtr<const DirectX12Device> device() const noexcept;
 
     protected:
         /// <summary>
@@ -698,7 +978,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        Enumerable<const DirectX12DescriptorLayout*> descriptors() const noexcept override;
+        Enumerable<const DirectX12DescriptorLayout*> descriptors() const override;
 
         /// <inheritdoc />
         const DirectX12DescriptorLayout& descriptor(UInt32 binding) const override;
@@ -750,7 +1030,7 @@ namespace LiteFX::Rendering::Backends {
         Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override;
 
         /// <inheritdoc />
-        void free(const DirectX12DescriptorSet& descriptorSet) const noexcept override;
+        void free(const DirectX12DescriptorSet& descriptorSet) const override;
     };
 
     /// <summary>
@@ -771,9 +1051,21 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="space">The space from which the push constants of the range will be accessible in the shader.</param>
         /// <param name="binding">The register from which the push constants of the range will be accessible in the shader.</param>
         explicit DirectX12PushConstantsRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding);
-        DirectX12PushConstantsRange(const DirectX12PushConstantsRange&) = delete;
-        DirectX12PushConstantsRange(DirectX12PushConstantsRange&&) = delete;
-        virtual ~DirectX12PushConstantsRange() noexcept;
+
+        /// <inheritdoc />
+        DirectX12PushConstantsRange(DirectX12PushConstantsRange&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12PushConstantsRange(const DirectX12PushConstantsRange&);
+
+        /// <inheritdoc />
+        DirectX12PushConstantsRange& operator=(DirectX12PushConstantsRange&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12PushConstantsRange& operator=(const DirectX12PushConstantsRange&);
+
+        /// <inheritdoc />
+        ~DirectX12PushConstantsRange() noexcept override;
 
     public:
         /// <inheritdoc />
@@ -829,9 +1121,21 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="ranges">The ranges contained by the layout.</param>
         /// <param name="size">The overall size (in bytes) of the push constants backing memory.</param>
         explicit DirectX12PushConstantsLayout(Enumerable<UniquePtr<DirectX12PushConstantsRange>>&& ranges, UInt32 size);
+
+        /// <inheritdoc />
+        DirectX12PushConstantsLayout(DirectX12PushConstantsLayout&&) noexcept;
+
+        /// <inheritdoc />
         DirectX12PushConstantsLayout(const DirectX12PushConstantsLayout&) = delete;
-        DirectX12PushConstantsLayout(DirectX12PushConstantsLayout&&) = delete;
-        virtual ~DirectX12PushConstantsLayout() noexcept;
+
+        /// <inheritdoc />
+        DirectX12PushConstantsLayout& operator=(DirectX12PushConstantsLayout&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12PushConstantsLayout& operator=(const DirectX12PushConstantsLayout&) = delete;
+
+        /// <inheritdoc />
+        ~DirectX12PushConstantsLayout() noexcept override;
 
     private:
         /// <summary>
@@ -848,14 +1152,14 @@ namespace LiteFX::Rendering::Backends {
         const DirectX12PushConstantsRange& range(ShaderStage stage) const override;
 
         /// <inheritdoc />
-        Enumerable<const DirectX12PushConstantsRange*> ranges() const noexcept override;
+        Enumerable<const DirectX12PushConstantsRange*> ranges() const override;
 
     protected:
         /// <summary>
         /// Returns an array of pointers to the push constant ranges of the layout.
         /// </summary>
         /// <returns>An array of pointers to the push constant ranges of the layout.</returns>
-        virtual Enumerable<DirectX12PushConstantsRange*> ranges() noexcept;
+        virtual Enumerable<DirectX12PushConstantsRange*> ranges();
     };
 
     /// <summary>
@@ -865,32 +1169,68 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12PipelineLayout final : public PipelineLayout<DirectX12DescriptorSetLayout, DirectX12PushConstantsLayout>, public ComResource<ID3D12RootSignature> {
         LITEFX_IMPLEMENTATION(DirectX12PipelineLayoutImpl);
         LITEFX_BUILDER(DirectX12PipelineLayoutBuilder);
-
-    public:
-        /// <summary>
-        /// Initializes a new DirectX 12 render pipeline layout.
-        /// </summary>
-        /// <param name="device">The parent device, the layout is created from.</param>
-        /// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
-        /// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
-        explicit DirectX12PipelineLayout(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout);
-        DirectX12PipelineLayout(DirectX12PipelineLayout&&) noexcept = delete;
-        DirectX12PipelineLayout(const DirectX12PipelineLayout&) noexcept = delete;
-        virtual ~DirectX12PipelineLayout() noexcept;
+        friend struct SharedObject::Allocator<DirectX12PipelineLayout>;
 
     private:
         /// <summary>
         /// Initializes a new DirectX 12 render pipeline layout.
         /// </summary>
         /// <param name="device">The parent device, the layout is created from.</param>
-        explicit DirectX12PipelineLayout(const DirectX12Device& device) noexcept;
+        /// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
+        /// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
+        explicit DirectX12PipelineLayout(const DirectX12Device& device, Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout);
+
+        /// <summary>
+        /// Initializes a new DirectX 12 render pipeline layout.
+        /// </summary>
+        /// <param name="device">The parent device, the layout is created from.</param>
+        explicit DirectX12PipelineLayout(const DirectX12Device& device);
+
+    private:
+        /// <inheritdoc />
+        DirectX12PipelineLayout(DirectX12PipelineLayout&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12PipelineLayout(const DirectX12PipelineLayout&) = delete;
+
+        /// <inheritdoc />
+        DirectX12PipelineLayout& operator=(DirectX12PipelineLayout&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12PipelineLayout& operator=(const DirectX12PipelineLayout&) = delete;
+
+    public:
+        /// <inheritdoc />
+        ~DirectX12PipelineLayout() noexcept override;
 
     public:
         /// <summary>
-        /// Returns a reference to the device that provides this layout.
+        /// Creates a new DirectX 12 render pipeline layout.
         /// </summary>
-        /// <returns>A reference to the layouts parent device.</returns>
-        virtual const DirectX12Device& device() const noexcept;
+        /// <param name="device">The parent device, the layout is created from.</param>
+        /// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
+        /// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
+        /// <returns>A shared pointer to the newly created pipeline layout instance.</returns>
+        static inline auto create(const DirectX12Device& device, Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) {
+            return SharedObject::create<DirectX12PipelineLayout>(device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
+        }
+
+    private:
+        /// <summary>
+        /// Creates a new DirectX 12 render pipeline layout.
+        /// </summary>
+        /// <param name="device">The parent device, the layout is created from.</param>
+        /// <returns>A shared pointer to the newly created pipeline layout instance.</returns>
+        static inline auto create(const DirectX12Device& device) {
+            return SharedObject::create<DirectX12PipelineLayout>(device);
+        }
+
+    public:
+        /// <summary>
+        /// Returns a pointer to the device that provides this layout or `nullptr` if the device is already released.
+        /// </summary>
+        /// <returns>A reference to the layouts parent device or `nullptr` if the device is already released.</returns>
+        virtual SharedPtr<const DirectX12Device> device() const noexcept;
 
         // PipelineLayout interface.
     public:
@@ -898,7 +1238,7 @@ namespace LiteFX::Rendering::Backends {
         const DirectX12DescriptorSetLayout& descriptorSet(UInt32 space) const override;
 
         /// <inheritdoc />
-        Enumerable<const DirectX12DescriptorSetLayout*> descriptorSets() const noexcept override;
+        Enumerable<const DirectX12DescriptorSetLayout*> descriptorSets() const override;
 
         /// <inheritdoc />
         const DirectX12PushConstantsLayout* pushConstants() const noexcept override;
@@ -911,28 +1251,72 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12InputAssembler final : public InputAssembler<DirectX12VertexBufferLayout, DirectX12IndexBufferLayout> {
         LITEFX_IMPLEMENTATION(DirectX12InputAssemblerImpl);
         LITEFX_BUILDER(DirectX12InputAssemblerBuilder);
+        friend struct SharedObject::Allocator<DirectX12InputAssembler>;
 
-	public:
+	private:
 		/// <summary>
 		/// Initializes a new DirectX 12 input assembler state.
 		/// </summary>
 		/// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
 		/// <param name="indexBufferLayout">The index buffer layout.</param>
 		/// <param name="primitiveTopology">The primitive topology.</param>
-		explicit DirectX12InputAssembler(Enumerable<UniquePtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, UniquePtr<DirectX12IndexBufferLayout>&& indexBufferLayout = nullptr, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList);
-		DirectX12InputAssembler(DirectX12InputAssembler&&) noexcept = delete;
-		DirectX12InputAssembler(const DirectX12InputAssembler&) noexcept = delete;
-		virtual ~DirectX12InputAssembler() noexcept;
+		explicit DirectX12InputAssembler(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList);
 
-    private:
         /// <summary>
         /// Initializes a new DirectX 12 input assembler state.
         /// </summary>
-        explicit DirectX12InputAssembler() noexcept;
+        explicit DirectX12InputAssembler();
+
+    private:
+        /// <inheritdoc />
+        DirectX12InputAssembler(DirectX12InputAssembler&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12InputAssembler(const DirectX12InputAssembler&);
+
+        /// <inheritdoc />
+        DirectX12InputAssembler& operator=(DirectX12InputAssembler&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12InputAssembler& operator=(const DirectX12InputAssembler&) = delete;
 
     public:
         /// <inheritdoc />
-        Enumerable<const DirectX12VertexBufferLayout*> vertexBufferLayouts() const noexcept override;
+        ~DirectX12InputAssembler() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates a new DirectX 12 input assembler state.
+        /// </summary>
+        /// <param name="vertexBufferLayouts">The vertex buffer layouts supported by the input assembler state. Each layout must have a unique binding.</param>
+        /// <param name="indexBufferLayout">The index buffer layout.</param>
+        /// <param name="primitiveTopology">The primitive topology.</param>
+        /// <returns>A shared pointer to the newly created input assembler instance.</returns>
+        static inline auto create(Enumerable<SharedPtr<DirectX12VertexBufferLayout>>&& vertexBufferLayouts, SharedPtr<DirectX12IndexBufferLayout>&& indexBufferLayout, PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList) {
+            return SharedObject::create<DirectX12InputAssembler>(std::move(vertexBufferLayouts), std::move(indexBufferLayout), primitiveTopology);
+        }
+
+        /// <summary>
+        /// Creates a new DirectX 12 input assembler state as a copy from another one.
+        /// </summary>
+        /// <param name="other">The input assembler state to copy.</param>
+        /// <returns>A shared pointer to the newly created input assembler instance.</returns>
+        static inline auto create(const DirectX12InputAssembler& other) {
+            return SharedObject::create<DirectX12InputAssembler>(other);
+        }
+
+    private:
+        /// <summary>
+        /// Creates a new DirectX 12 input assembler state.
+        /// </summary>
+        /// <returns>A shared pointer to the newly created input assembler instance.</returns>
+        static inline auto create() {
+            return SharedObject::create<DirectX12InputAssembler>();
+        }
+
+    public:
+        /// <inheritdoc />
+        Enumerable<const DirectX12VertexBufferLayout*> vertexBufferLayouts() const override;
 
 		/// <inheritdoc />
 		const DirectX12VertexBufferLayout* vertexBufferLayout(UInt32 binding) const override;
@@ -950,8 +1334,9 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12RasterizerBuilder" />
     class LITEFX_DIRECTX12_API DirectX12Rasterizer final : public Rasterizer {
         LITEFX_BUILDER(DirectX12RasterizerBuilder);
+        friend struct SharedObject::Allocator<DirectX12Rasterizer>;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a new DirectX 12 rasterizer state.
         /// </summary>
@@ -961,15 +1346,60 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="lineWidth">The line width used by the pipeline.</param>
         /// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
         explicit DirectX12Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
-        DirectX12Rasterizer(DirectX12Rasterizer&&) noexcept = delete;
-        DirectX12Rasterizer(const DirectX12Rasterizer&) noexcept = delete;
-        virtual ~DirectX12Rasterizer() noexcept;
-
-    private:
+        
         /// <summary>
         /// Initializes a new DirectX 12 rasterizer state.
         /// </summary>
         explicit DirectX12Rasterizer() noexcept;
+
+    private:        
+        /// <inheritdoc />
+        DirectX12Rasterizer(DirectX12Rasterizer&&) noexcept = delete;
+        
+        /// <inheritdoc />
+        DirectX12Rasterizer(const DirectX12Rasterizer&) = default;
+
+        /// <inheritdoc />
+        DirectX12Rasterizer& operator=(DirectX12Rasterizer&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12Rasterizer& operator=(const DirectX12Rasterizer&) = delete;
+
+    public:
+        /// <inheritdoc />
+        ~DirectX12Rasterizer() noexcept override = default;
+
+    public:
+        /// <summary>
+        /// Creates a new DirectX 12 rasterizer state.
+        /// </summary>
+        /// <param name="polygonMode">The polygon mode used by the pipeline.</param>
+        /// <param name="cullMode">The cull mode used by the pipeline.</param>
+        /// <param name="cullOrder">The cull order used by the pipeline.</param>
+        /// <param name="lineWidth">The line width used by the pipeline.</param>
+        /// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
+        /// <returns>A shared pointer to the newly created rasterizer instance.</returns>
+        static inline auto create(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) {
+            return SharedObject::create<DirectX12Rasterizer>(polygonMode, cullMode, cullOrder, lineWidth, depthStencilState);
+        }
+
+        /// <summary>
+        /// Creates a new DirectX 12 rasterizer state by copying an existing one.
+        /// </summary>
+        /// <param name="other">The rasterizer state to copy.</param>
+        /// <returns>A shared pointer to the newly created rasterizer instance.</returns>
+        static inline auto create(const DirectX12Rasterizer& other) {
+            return SharedObject::create<DirectX12Rasterizer>(other);
+        }
+
+    private:
+        /// <summary>
+        /// Creates a new DirectX 12 rasterizer state.
+        /// </summary>
+        /// <returns>A shared pointer to the newly created rasterizer instance.</returns>
+        static inline auto create() {
+            return SharedObject::create<DirectX12Rasterizer>();
+        }
     };
 
     /// <summary>
@@ -978,24 +1408,32 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12RenderPipeline" />
     /// <seealso cref="DirectX12ComputePipeline" />
     class LITEFX_DIRECTX12_API DirectX12PipelineState : public virtual Pipeline<DirectX12PipelineLayout, DirectX12ShaderProgram>, public ComResource<ID3D12PipelineState> {
-    public:
+    protected:
         using ComResource<ID3D12PipelineState>::ComResource;
-        virtual ~DirectX12PipelineState() noexcept = default;
+
+        DirectX12PipelineState(DirectX12PipelineState&&) noexcept = default;
+        DirectX12PipelineState(const DirectX12PipelineState&) = delete;
+        DirectX12PipelineState& operator=(DirectX12PipelineState&&) noexcept = default;
+        DirectX12PipelineState& operator=(const DirectX12PipelineState&) = delete;
+        
+    public:
+        ~DirectX12PipelineState() noexcept override = default;
 
     public:
         /// <summary>
         /// Sets the current pipeline state on the <paramref name="commandBuffer" />.
         /// </summary>
         /// <param name="commandBuffer">The command buffer to set the current pipeline state on.</param>
-        virtual void use(const DirectX12CommandBuffer& commandBuffer) const noexcept = 0;
+        virtual void use(const DirectX12CommandBuffer& commandBuffer) const = 0;
     };
 
     /// <summary>
     /// Records commands for a <see cref="DirectX12Queue" />
     /// </summary>
     /// <seealso cref="DirectX12Queue" />
-    class LITEFX_DIRECTX12_API DirectX12CommandBuffer final : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>, public ComResource<ID3D12GraphicsCommandList7>, public std::enable_shared_from_this<DirectX12CommandBuffer> {
+    class LITEFX_DIRECTX12_API DirectX12CommandBuffer final : public CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>, public ComResource<ID3D12GraphicsCommandList7> {
         LITEFX_IMPLEMENTATION(DirectX12CommandBufferImpl);
+        friend struct SharedObject::Allocator<DirectX12CommandBuffer>;
 
     public:
         using base_type = CommandBuffer<DirectX12CommandBuffer, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, DirectX12Barrier, DirectX12PipelineState, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>;
@@ -1025,10 +1463,22 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="primary"><c>true</c>, if the command buffer is a primary command buffer.</param>
         explicit DirectX12CommandBuffer(const DirectX12Queue& queue, bool begin = false, bool primary = true);
 
-    public:
+    private:
+        /// <inheritdoc />
+        DirectX12CommandBuffer(DirectX12CommandBuffer&&) noexcept = delete;
+
+        /// <inheritdoc />
         DirectX12CommandBuffer(const DirectX12CommandBuffer&) = delete;
-        DirectX12CommandBuffer(DirectX12CommandBuffer&&) = delete;
-        virtual ~DirectX12CommandBuffer() noexcept;
+
+        /// <inheritdoc />
+        DirectX12CommandBuffer& operator=(DirectX12CommandBuffer&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12CommandBuffer& operator=(const DirectX12CommandBuffer&) = delete;
+
+    public:
+        /// <inheritdoc />
+        ~DirectX12CommandBuffer() noexcept override;
 
     public:
         /// <summary>
@@ -1038,13 +1488,13 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="begin">If set to <c>true</c>, the command buffer automatically starts recording by calling <see cref="begin" />.</param>
         /// <param name="primary"><c>true</c>, if the command buffer is a primary command buffer.</param>
         static inline SharedPtr<DirectX12CommandBuffer> create(const DirectX12Queue& queue, bool begin = false, bool primary = true) {
-            return SharedPtr<DirectX12CommandBuffer>(new DirectX12CommandBuffer(queue, begin, primary));
+            return SharedObject::create<DirectX12CommandBuffer>(queue, begin, primary);
         }
 
         // CommandBuffer interface.
     public:
         /// <inheritdoc />
-        const ICommandQueue& queue() const noexcept override;
+        SharedPtr<const DirectX12Queue> queue() const noexcept;
 
         /// <inheritdoc />
         void begin() const override;
@@ -1056,16 +1506,16 @@ namespace LiteFX::Rendering::Backends {
         bool isSecondary() const noexcept override;
 
         /// <inheritdoc />
-        void setViewports(Span<const IViewport*> viewports) const noexcept override;
+        void setViewports(Span<const IViewport*> viewports) const override;
 
         /// <inheritdoc />
-        void setViewports(const IViewport* viewport) const noexcept override;
+        void setViewports(const IViewport* viewport) const override;
 
         /// <inheritdoc />
-        void setScissors(Span<const IScissor*> scissors) const noexcept override;
+        void setScissors(Span<const IScissor*> scissors) const override;
 
         /// <inheritdoc />
-        void setScissors(const IScissor* scissor) const noexcept override;
+        void setScissors(const IScissor* scissor) const override;
 
         /// <inheritdoc />
         void setBlendFactors(const Vector4f& blendFactors) const noexcept override;
@@ -1077,10 +1527,10 @@ namespace LiteFX::Rendering::Backends {
         UInt64 submit() const override;
 
         /// <inheritdoc />
-        void generateMipMaps(IDirectX12Image& image) noexcept override;
+        void generateMipMaps(IDirectX12Image& image) override;
 
         /// <inheritdoc />
-        [[nodiscard]] UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
+        [[nodiscard]] UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const override;
 
         /// <inheritdoc />
         void barrier(const DirectX12Barrier& barrier) const noexcept override;
@@ -1110,16 +1560,16 @@ namespace LiteFX::Rendering::Backends {
         void transfer(const IDirectX12Image& source, const IDirectX12Buffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
-        void transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Buffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
+        void transfer(const SharedPtr<const IDirectX12Buffer>& source, const IDirectX12Buffer& target, UInt32 sourceElement = 0, UInt32 targetElement = 0, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
-        void transfer(SharedPtr<const IDirectX12Buffer> source, const IDirectX12Image& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
+        void transfer(const SharedPtr<const IDirectX12Buffer>& source, const IDirectX12Image& target, UInt32 sourceElement = 0, UInt32 firstSubresource = 0, UInt32 elements = 1) const override;
 
         /// <inheritdoc />
-        void transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Image& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
+        void transfer(const SharedPtr<const IDirectX12Image>& source, const IDirectX12Image& target, UInt32 sourceSubresource = 0, UInt32 targetSubresource = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
-        void transfer(SharedPtr<const IDirectX12Image> source, const IDirectX12Buffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
+        void transfer(const SharedPtr<const IDirectX12Image>& source, const IDirectX12Buffer& target, UInt32 firstSubresource = 0, UInt32 targetElement = 0, UInt32 subresources = 1) const override;
 
         /// <inheritdoc />
         void use(const DirectX12PipelineState& pipeline) const noexcept override;
@@ -1131,10 +1581,10 @@ namespace LiteFX::Rendering::Backends {
         void bind(Span<const DirectX12DescriptorSet*> descriptorSets) const override;
 
         /// <inheritdoc />
-        void bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept override;
+        void bind(const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const override;
 
 		/// <inheritdoc />
-		void bind(Span<const DirectX12DescriptorSet*> descriptorSets, const DirectX12PipelineState& pipeline) const noexcept override;
+		void bind(Span<const DirectX12DescriptorSet*> descriptorSets, const DirectX12PipelineState& pipeline) const override;
 
         /// <inheritdoc />
         void bind(const IDirectX12VertexBuffer& buffer) const noexcept override;
@@ -1182,25 +1632,25 @@ namespace LiteFX::Rendering::Backends {
         void pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept override;
 
         /// <inheritdoc />
-        void writeTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
+        void writeTimingEvent(const SharedPtr<const TimingEvent>& timingEvent) const override;
 
         /// <inheritdoc />
-        void execute(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const override;
+        void execute(const SharedPtr<const DirectX12CommandBuffer>& commandBuffer) const override;
 
         /// <inheritdoc />
         void execute(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
+        void buildAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
 
         /// <inheritdoc />
-        void buildAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
+        void buildAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
 
         /// <inheritdoc />
-        void updateAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
+        void updateAccelerationStructure(DirectX12BottomLevelAccelerationStructure& blas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
 
         /// <inheritdoc />
-        void updateAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer> scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
+        void updateAccelerationStructure(DirectX12TopLevelAccelerationStructure& tlas, const SharedPtr<const IDirectX12Buffer>& scratchBuffer, const IDirectX12Buffer& buffer, UInt64 offset = 0) const override;
 
         /// <inheritdoc />
         void copyAccelerationStructure(const DirectX12BottomLevelAccelerationStructure& from, const DirectX12BottomLevelAccelerationStructure& to, bool compress = false) const noexcept override;
@@ -1212,6 +1662,10 @@ namespace LiteFX::Rendering::Backends {
         void traceRays(UInt32 width, UInt32 height, UInt32 depth, const ShaderBindingTableOffsets& offsets, const IDirectX12Buffer& rayGenerationShaderBindingTable, const IDirectX12Buffer* missShaderBindingTable, const IDirectX12Buffer* hitShaderBindingTable, const IDirectX12Buffer* callableShaderBindingTable) const noexcept override;
 
     private:
+        inline SharedPtr<const ICommandQueue> getQueue() const noexcept override {
+            return std::static_pointer_cast<const ICommandQueue>(this->queue());
+        }
+
         void releaseSharedState() const override;
     };
 
@@ -1221,12 +1675,13 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12CommandBuffer" />
     class LITEFX_DIRECTX12_API DirectX12Queue final : public CommandQueue<DirectX12CommandBuffer>, public ComResource<ID3D12CommandQueue> {
         LITEFX_IMPLEMENTATION(DirectX12QueueImpl);
+        friend struct SharedObject::Allocator<DirectX12Queue>;
 
     public:
         using base_type = CommandQueue<DirectX12CommandBuffer>;
         using base_type::submit;
 
-    public:
+    private:
         /// <summary>
         /// Initializes the DirectX 12 command queue.
         /// </summary>
@@ -1234,17 +1689,43 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="type">The type of the command queue.</param>
         /// <param name="priority">The priority, of which commands are issued on the device.</param>
         explicit DirectX12Queue(const DirectX12Device& device, QueueType type, QueuePriority priority);
+
+    private:
+        /// <inheritdoc />
+        DirectX12Queue(DirectX12Queue&&) noexcept = delete;
+
+        /// <inheritdoc />
         DirectX12Queue(const DirectX12Queue&) = delete;
-        DirectX12Queue(DirectX12Queue&&) = delete;
-        virtual ~DirectX12Queue() noexcept;
+
+        /// <inheritdoc />
+        DirectX12Queue& operator=(DirectX12Queue&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12Queue& operator=(const DirectX12Queue&) = delete;
+
+    public:
+        /// <inheritdoc />
+        ~DirectX12Queue() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates the DirectX 12 command queue.
+        /// </summary>
+        /// <param name="device">The device, commands get send to.</param>
+        /// <param name="type">The type of the command queue.</param>
+        /// <param name="priority">The priority, of which commands are issued on the device.</param>
+        /// <returns>A pointer to the command queue instance.</returns>
+        static inline SharedPtr<DirectX12Queue> create(const DirectX12Device& device, QueueType type, QueuePriority priority) {
+            return SharedObject::create<DirectX12Queue>(device, type, priority);
+        }
 
         // DirectX12Queue interface.
     public:
         /// <summary>
-        /// Returns a reference to the device that provides this queue.
+        /// Returns a pointer to the device that provides this queue or `nullptr`, if the device has already been released.
         /// </summary>
-        /// <returns>A reference to the queue's parent device.</returns>
-        virtual const DirectX12Device& device() const noexcept;
+        /// <returns>A reference to the queue's parent device or `nullptr`, if the device has already been released.</returns>
+        virtual SharedPtr<const DirectX12Device> device() const noexcept;
 
         // CommandQueue interface.
     public:
@@ -1257,13 +1738,13 @@ namespace LiteFX::Rendering::Backends {
 #if defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
     public:
         /// <inheritdoc />
-        void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
+        void beginDebugRegion(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept override;
 
         /// <inheritdoc />
         void endDebugRegion() const noexcept override;
 
         /// <inheritdoc />
-        void setDebugMarker(const String& label, const Vectors::ByteVector3& color = { 128_b, 128_b, 128_b }) const noexcept override;
+        void setDebugMarker(const String& label, const Vectors::ByteVector3& color = DEFAULT_DEBUG_COLOR) const noexcept override;
 #endif // defined(LITEFX_BUILD_SUPPORT_DEBUG_MARKERS) && defined(LITEFX_BUILD_WITH_PIX_RUNTIME)
 
     public:
@@ -1271,13 +1752,13 @@ namespace LiteFX::Rendering::Backends {
         SharedPtr<DirectX12CommandBuffer> createCommandBuffer(bool beginRecording = false, bool secondary = false) const override;
 
         /// <inheritdoc />
-        UInt64 submit(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const override;
+        UInt64 submit(const SharedPtr<const DirectX12CommandBuffer>& commandBuffer) const override;
 
         /// <inheritdoc />
-        UInt64 submit(const Enumerable<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers) const override;
+        UInt64 submit(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const override;
 
         /// <inheritdoc />
-        void waitFor(UInt64 fence) const noexcept override;
+        void waitFor(UInt64 fence) const override;
 
         /// <inheritdoc />
         void waitFor(const DirectX12Queue& queue, UInt64 fence) const noexcept;
@@ -1317,10 +1798,22 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="samples">The initial multi-sampling level of the render pipeline.</param>
         /// <param name="enableAlphaToCoverage">Whether or not to enable Alpha-to-Coverage multi-sampling.</param>
         /// <param name="name">The optional name of the render pipeline.</param>
-        explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, SharedPtr<DirectX12InputAssembler> inputAssembler, SharedPtr<DirectX12Rasterizer> rasterizer, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool enableAlphaToCoverage = false, const String& name = "");
+        explicit DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram, const SharedPtr<DirectX12InputAssembler>& inputAssembler, const SharedPtr<DirectX12Rasterizer>& rasterizer, MultiSamplingLevel samples = MultiSamplingLevel::x1, bool enableAlphaToCoverage = false, const String& name = "");
+
+        /// <inheritdoc />
         DirectX12RenderPipeline(DirectX12RenderPipeline&&) noexcept = delete;
-        DirectX12RenderPipeline(const DirectX12RenderPipeline&) noexcept = delete;
-        virtual ~DirectX12RenderPipeline() noexcept;
+        
+        /// <inheritdoc />
+        DirectX12RenderPipeline(const DirectX12RenderPipeline&) = delete;
+
+        /// <inheritdoc />
+        DirectX12RenderPipeline& operator=(DirectX12RenderPipeline&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12RenderPipeline& operator=(const DirectX12RenderPipeline&) = delete;
+
+        /// <inheritdoc />
+        ~DirectX12RenderPipeline() noexcept override;
 
     private:
         /// <summary>
@@ -1328,7 +1821,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="renderPass">The parent render pass.</param>
         /// <param name="name">The optional name of the render pipeline.</param>
-        DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const String& name = "") noexcept;
+        DirectX12RenderPipeline(const DirectX12RenderPass& renderPass, const String& name = "");
 
         // Pipeline interface.
     public:
@@ -1358,7 +1851,7 @@ namespace LiteFX::Rendering::Backends {
         // DirectX12PipelineState interface.
     public:
         /// <inheritdoc />
-        void use(const DirectX12CommandBuffer& commandBuffer) const noexcept override;
+        void use(const DirectX12CommandBuffer& commandBuffer) const override;
     };
 
     /// <summary>
@@ -1378,10 +1871,22 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="layout">The layout of the pipeline.</param>
         /// <param name="shaderProgram">The shader program used by this pipeline.</param>
         /// <param name="name">The optional debug name of the compute pipeline.</param>
-        explicit DirectX12ComputePipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, const String& name = "");
-        DirectX12ComputePipeline(DirectX12ComputePipeline&&) noexcept = delete;
-        DirectX12ComputePipeline(const DirectX12ComputePipeline&) noexcept = delete;
-        virtual ~DirectX12ComputePipeline() noexcept;
+        explicit DirectX12ComputePipeline(const DirectX12Device& device, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram, const String& name = "");
+
+        /// <inheritdoc />
+        DirectX12ComputePipeline(DirectX12ComputePipeline&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12ComputePipeline(const DirectX12ComputePipeline&) = delete;
+
+        /// <inheritdoc />
+        DirectX12ComputePipeline& operator=(DirectX12ComputePipeline&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12ComputePipeline& operator=(const DirectX12ComputePipeline&) = delete;
+
+        /// <inheritdoc />
+        ~DirectX12ComputePipeline() noexcept override;
 
     private:
         /// <summary>
@@ -1431,10 +1936,22 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="maxPayloadSize">The maximum size for ray payloads in the pipeline.</param>
         /// <param name="maxAttributeSize">The maximum size for ray attributes in the pipeline.</param>
         /// <param name="name">The optional debug name of the ray-tracing pipeline.</param>
-        explicit DirectX12RayTracingPipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth = 10, UInt32 maxPayloadSize = 0, UInt32 maxAttributeSize = 32, const String& name = "");
-        DirectX12RayTracingPipeline(DirectX12RayTracingPipeline&&) noexcept = delete;
-        DirectX12RayTracingPipeline(const DirectX12RayTracingPipeline&) noexcept = delete;
-        virtual ~DirectX12RayTracingPipeline() noexcept;
+        explicit DirectX12RayTracingPipeline(const DirectX12Device& device, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth = 10, UInt32 maxPayloadSize = 0, UInt32 maxAttributeSize = 32, const String& name = ""); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+
+        /// <inheritdoc />
+        DirectX12RayTracingPipeline(DirectX12RayTracingPipeline&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12RayTracingPipeline(const DirectX12RayTracingPipeline&) = delete;
+
+        /// <inheritdoc />
+        DirectX12RayTracingPipeline& operator=(DirectX12RayTracingPipeline&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12RayTracingPipeline& operator=(const DirectX12RayTracingPipeline&) = delete;
+
+        /// <inheritdoc />
+        ~DirectX12RayTracingPipeline() noexcept override;
 
     private:
         /// <summary>
@@ -1467,7 +1984,7 @@ namespace LiteFX::Rendering::Backends {
         UInt32 maxAttributeSize() const noexcept override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12Buffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups = ShaderBindingGroup::All) const noexcept override;
+        SharedPtr<IDirectX12Buffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups = ShaderBindingGroup::All) const override;
 
         // DirectX12PipelineState interface.
     public:
@@ -1487,11 +2004,38 @@ namespace LiteFX::Rendering::Backends {
     /// <seealso cref="DirectX12RenderPass" />
     class LITEFX_DIRECTX12_API DirectX12FrameBuffer final : public FrameBuffer<IDirectX12Image> {
         LITEFX_IMPLEMENTATION(DirectX12FrameBufferImpl);
+        friend struct SharedObject::Allocator<DirectX12FrameBuffer>;
 
     public:
         using FrameBuffer::addImage;
         using FrameBuffer::mapRenderTarget;
         using FrameBuffer::mapRenderTargets;
+
+    private:
+        /// <summary>
+        /// Initializes a DirectX 12 frame buffer.
+        /// </summary>
+        /// <param name="device">The device the frame buffer is allocated on.</param>
+        /// <param name="renderArea">The initial size of the render area.</param>
+        /// <param name="name">The name of the frame buffer.</param>
+        DirectX12FrameBuffer(const DirectX12Device& device, const Size2d& renderArea, StringView name = "");
+
+    private:
+        /// <inheritdoc />
+        DirectX12FrameBuffer(DirectX12FrameBuffer&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12FrameBuffer(const DirectX12FrameBuffer&) = delete;
+
+        /// <inheritdoc />
+        DirectX12FrameBuffer& operator=(DirectX12FrameBuffer&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12FrameBuffer& operator=(const DirectX12FrameBuffer&) = delete;
+
+    public:
+        /// <inheritdoc />
+        ~DirectX12FrameBuffer() noexcept override;
 
     public:
         /// <summary>
@@ -1500,10 +2044,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="device">The device the frame buffer is allocated on.</param>
         /// <param name="renderArea">The initial size of the render area.</param>
         /// <param name="name">The name of the frame buffer.</param>
-        DirectX12FrameBuffer(const DirectX12Device& device, const Size2d& renderArea, StringView name = "");
-        DirectX12FrameBuffer(const DirectX12FrameBuffer&) noexcept = delete;
-        DirectX12FrameBuffer(DirectX12FrameBuffer&&) noexcept = delete;
-        virtual ~DirectX12FrameBuffer() noexcept;
+        /// <returns>A pointer to the newly created frame buffer instance.</returns>
+        static inline SharedPtr<DirectX12FrameBuffer> create(const DirectX12Device& device, const Size2d& renderArea, StringView name = "") {
+            return SharedObject::create<DirectX12FrameBuffer>(device, renderArea, name);
+        }
 
         // DirectX 12 FrameBuffer
     public:
@@ -1552,7 +2096,7 @@ namespace LiteFX::Rendering::Backends {
         void unmapRenderTarget(const RenderTarget& renderTarget) noexcept override;
 
         /// <inheritdoc />
-        Enumerable<const IDirectX12Image*> images() const noexcept override;
+        Enumerable<const IDirectX12Image*> images() const override;
 
         /// <inheritdoc />
         inline const IDirectX12Image& operator[](UInt32 index) const override {
@@ -1600,11 +2144,12 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12RenderPass final : public RenderPass<DirectX12Queue, DirectX12FrameBuffer> {
         LITEFX_IMPLEMENTATION(DirectX12RenderPassImpl);
         LITEFX_BUILDER(DirectX12RenderPassBuilder);
+        friend struct SharedObject::Allocator<DirectX12RenderPass>;
 
     public:
         using base_type = RenderPass<DirectX12Queue, DirectX12FrameBuffer>;
 
-    public:
+    private:
         /// <summary>
         /// Creates and initializes a new DirectX 12 render pass instance that executes on the default graphics queue.
         /// </summary>
@@ -1653,21 +2198,105 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
         explicit DirectX12RenderPass(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u);
 
+    private:
+        /// <inheritdoc />
+        DirectX12RenderPass(DirectX12RenderPass&&) noexcept = delete;
+
+        /// <inheritdoc />
         DirectX12RenderPass(const DirectX12RenderPass&) = delete;
-        DirectX12RenderPass(DirectX12RenderPass&&) = delete;
-        virtual ~DirectX12RenderPass() noexcept;
+
+        /// <inheritdoc />
+        DirectX12RenderPass& operator=(DirectX12RenderPass&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12RenderPass& operator=(const DirectX12RenderPass&) = delete;
+
+    public:
+        /// <inheritdoc />
+        ~DirectX12RenderPass() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates and initializes a new DirectX 12 render pass instance that executes on the default graphics queue.
+        /// </summary>
+        /// <param name="device">The parent device instance.</param>
+        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
+        /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+        /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
+        /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <returns>A pointer to the newly created render pass instance.</returns>
+        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
+            return SharedObject::create<DirectX12RenderPass>(device, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
+        }
+
+        /// <summary>
+        /// Creates and initializes a new DirectX 12 render pass instance that executes on the default graphics queue.
+        /// </summary>
+        /// <param name="device">The parent device instance.</param>
+        /// <param name="name">The name of the render pass state resource.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
+        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+        /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+        /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
+        /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <returns>A pointer to the newly created render pass instance.</returns>
+        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, const String& name, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
+            return SharedObject::create<DirectX12RenderPass>(device, name, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
+        }
+
+        /// <summary>
+        /// Creates and initializes a new DirectX 12 render pass instance.
+        /// </summary>
+        /// <param name="device">The parent device instance.</param>
+        /// <param name="queue">The command queue to execute the render pass on.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
+        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+        /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+        /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
+        /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <returns>A pointer to the newly created render pass instance.</returns>
+        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
+            return SharedObject::create<DirectX12RenderPass>(device, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
+        }
+
+        /// <summary>
+        /// Creates and initializes a new DirectX 12 render pass instance.
+        /// </summary>
+        /// <param name="device">The parent device instance.</param>
+        /// <param name="name">The name of the render pass state resource.</param>
+        /// <param name="queue">The command queue to execute the render pass on.</param>
+        /// <param name="renderTargets">The render targets that are output by the render pass.</param>
+        /// <param name="commandBuffers">The number of command buffers in each frame buffer.</param>
+        /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
+        /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
+        /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <returns>A pointer to the newly created render pass instance.</returns>
+        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, const String& name, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
+            return SharedObject::create<DirectX12RenderPass>(device, name, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
+        }
 
     private:
         /// <summary>
         /// Creates an uninitialized DirectX 12 render pass instance.
         /// </summary>
+        /// <param name="device">The parent device of the render pass.</param>
+        /// <param name="name">The name of the render pass state resource.</param>
+        explicit DirectX12RenderPass(const DirectX12Device& device, const String& name = "");
+
+        /// <summary>
+        /// Creates an uninitialized DirectX 12 render pass instance.
+        /// </summary>
         /// <remarks>
-        /// This constructor is called by the <see cref="DirectX12RenderPassBuilder" /> in order to create a render pass instance without initializing it. The instance 
-        /// is only initialized after calling <see cref="DirectX12RenderPassBuilder::go" />.
+        /// This factory is called by the <see cref="DirectX12RenderPassBuilder" /> in order to create a render pass instance without initializing it. The instance is only initialized 
+        /// after calling <see cref="DirectX12RenderPassBuilder::go" />.
         /// </remarks>
         /// <param name="device">The parent device of the render pass.</param>
         /// <param name="name">The name of the render pass state resource.</param>
-        explicit DirectX12RenderPass(const DirectX12Device& device, const String& name = "") noexcept;
+        /// <returns>A pointer to the newly created render pass instance.</returns>
+        static inline SharedPtr<DirectX12RenderPass> create(const DirectX12Device& device, const String& name = "") {
+            return SharedObject::create<DirectX12RenderPass>(device, name);
+        }
 
         // DirectX 12 render pass.
     public:
@@ -1675,19 +2304,18 @@ namespace LiteFX::Rendering::Backends {
         /// Returns a reference to the device that provides this queue.
         /// </summary>
         /// <returns>A reference to the queue's parent device.</returns>
-        virtual const DirectX12Device& device() const noexcept;
+        virtual SharedPtr<const DirectX12Device> device() const noexcept;
 
         // RenderPass interface.
     public:
-
         /// <inheritdoc />
-        const DirectX12FrameBuffer& activeFrameBuffer() const override;
+        SharedPtr<const DirectX12FrameBuffer> activeFrameBuffer() const noexcept override;
 
         /// <inheritdoc />
         const DirectX12Queue& commandQueue() const noexcept override;
 
         /// <inheritdoc />
-        Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers() const noexcept override;
+        Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers() const override;
 
         /// <inheritdoc />
         SharedPtr<const DirectX12CommandBuffer> commandBuffer(UInt32 index) const override;
@@ -1726,23 +2354,39 @@ namespace LiteFX::Rendering::Backends {
     class LITEFX_DIRECTX12_API DirectX12SwapChain final : public SwapChain<IDirectX12Image>, public ComResource<IDXGISwapChain4> {
         LITEFX_IMPLEMENTATION(DirectX12SwapChainImpl);
         friend class DirectX12RenderPass;
+        friend class DirectX12Image;
+        friend class DirectX12Device;
 
     public:
         using base_type = SwapChain<IDirectX12Image>;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a DirectX 12 swap chain.
         /// </summary>
         /// <param name="device">The device that owns the swap chain.</param>
+        /// <param name="backend">The backend, the swap chain is initialized on.</param>
         /// <param name="format">The initial surface format.</param>
         /// <param name="renderArea">The initial size of the render area.</param>
         /// <param name="enableVsync">`true` if vertical synchronization should be used, otherwise `false`.</param>
         /// <param name="buffers">The initial number of buffers.</param>
-        explicit DirectX12SwapChain(const DirectX12Device& device, Format surfaceFormat = Format::B8G8R8A8_SRGB, const Size2d& renderArea = { 800, 600 }, UInt32 buffers = 3, bool enableVsync = false);
+        explicit DirectX12SwapChain(const DirectX12Device& device, const DirectX12Backend& backend, Format surfaceFormat = Format::B8G8R8A8_SRGB, const Size2d& renderArea = { 800, 600 }, UInt32 buffers = 3, bool enableVsync = false); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+
+    public:
+        /// <inheritdoc />
+        DirectX12SwapChain(DirectX12SwapChain&&) noexcept = delete;
+
+        /// <inheritdoc />
         DirectX12SwapChain(const DirectX12SwapChain&) = delete;
-        DirectX12SwapChain(DirectX12SwapChain&&) = delete;
-        virtual ~DirectX12SwapChain() noexcept;
+
+        /// <inheritdoc />
+        DirectX12SwapChain& operator=(DirectX12SwapChain&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12SwapChain& operator=(const DirectX12SwapChain&) = delete;
+
+        /// <inheritdoc />
+        ~DirectX12SwapChain() noexcept override;
 
         // DirectX 12 swap chain.
     public:
@@ -1761,7 +2405,7 @@ namespace LiteFX::Rendering::Backends {
         // SwapChain interface.
     public:
         /// <inheritdoc />
-        Enumerable<SharedPtr<TimingEvent>> timingEvents() const noexcept override;
+        Enumerable<SharedPtr<TimingEvent>> timingEvents() const override;
 
         /// <inheritdoc />
         SharedPtr<TimingEvent> timingEvent(UInt32 queryId) const override;
@@ -1771,6 +2415,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt32 resolveQueryId(SharedPtr<const TimingEvent> timingEvent) const override;
+
+        /// <inheritdoc />
+        const IGraphicsDevice& device() const override;
 
         /// <inheritdoc />
         Format surfaceFormat() const noexcept override;
@@ -1791,14 +2438,14 @@ namespace LiteFX::Rendering::Backends {
         const IDirectX12Image& image() const noexcept override;
 
         /// <inheritdoc />
-        Enumerable<IDirectX12Image*> images() const noexcept override;
+        Enumerable<IDirectX12Image*> images() const override;
 
         /// <inheritdoc />
         void present(UInt64 fence) const override;
 
     public:
         /// <inheritdoc />
-        Enumerable<Format> getSurfaceFormats() const noexcept override;
+        Enumerable<Format> getSurfaceFormats() const override;
 
         /// <inheritdoc />
         void addTimingEvent(SharedPtr<TimingEvent> timingEvent) override;
@@ -1821,6 +2468,8 @@ namespace LiteFX::Rendering::Backends {
     /// </remarks>
     class LITEFX_DIRECTX12_API DirectX12GraphicsFactory final : public GraphicsFactory<DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure> {
         LITEFX_IMPLEMENTATION(DirectX12GraphicsFactoryImpl);
+        friend class DirectX12Device;
+        friend struct SharedObject::Allocator<DirectX12GraphicsFactory>;
 
     public:
         using base_type = GraphicsFactory<DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>;
@@ -1832,52 +2481,75 @@ namespace LiteFX::Rendering::Backends {
         using base_type::createSampler;
         using base_type::createSamplers;
 
-    public:
+    private:
         /// <summary>
         /// Creates a new graphics factory.
         /// </summary>
         /// <param name="device">The device the factory should produce objects for.</param>
         explicit DirectX12GraphicsFactory(const DirectX12Device& device);
+
+    private:
+        /// <inheritdoc />
+        DirectX12GraphicsFactory(DirectX12GraphicsFactory&&) noexcept = delete;
+        
+        /// <inheritdoc />
         DirectX12GraphicsFactory(const DirectX12GraphicsFactory&) = delete;
-        DirectX12GraphicsFactory(DirectX12GraphicsFactory&&) = delete;
-        virtual ~DirectX12GraphicsFactory() noexcept;
+
+        /// <inheritdoc />
+        DirectX12GraphicsFactory& operator=(DirectX12GraphicsFactory&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12GraphicsFactory& operator=(const DirectX12GraphicsFactory&) = delete;
 
     public:
         /// <inheritdoc />
-        UniquePtr<IDirectX12Buffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
+        ~DirectX12GraphicsFactory() noexcept override;
+
+    private:
+        /// <summary>
+        /// Creates a new graphics factory.
+        /// </summary>
+        /// <param name="device">The device the factory should produce objects for.</param>
+        static inline SharedPtr<DirectX12GraphicsFactory> create(const DirectX12Device& device) {
+            return SharedObject::create<DirectX12GraphicsFactory>(device);
+        }
+
+    public:
+        /// <inheritdoc />
+        SharedPtr<IDirectX12Buffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12Buffer> createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IDirectX12Buffer> createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12VertexBuffer> createVertexBuffer(const DirectX12VertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IDirectX12VertexBuffer> createVertexBuffer(const DirectX12VertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12VertexBuffer> createVertexBuffer(const String& name, const DirectX12VertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IDirectX12VertexBuffer> createVertexBuffer(const String& name, const DirectX12VertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12IndexBuffer> createIndexBuffer(const DirectX12IndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IDirectX12IndexBuffer> createIndexBuffer(const DirectX12IndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12IndexBuffer> createIndexBuffer(const String& name, const DirectX12IndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IDirectX12IndexBuffer> createIndexBuffer(const String& name, const DirectX12IndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12Image> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IDirectX12Image> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12Image> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IDirectX12Image> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        Enumerable<UniquePtr<IDirectX12Image>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
+        Enumerable<SharedPtr<IDirectX12Image>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12Sampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
+        SharedPtr<IDirectX12Sampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
 
         /// <inheritdoc />
-        UniquePtr<IDirectX12Sampler> createSampler(const String& name, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
+        SharedPtr<IDirectX12Sampler> createSampler(const String& name, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
 
         /// <inheritdoc />
-        Enumerable<UniquePtr<IDirectX12Sampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
+        Enumerable<SharedPtr<IDirectX12Sampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
 
         /// <inheritdoc />
         UniquePtr<DirectX12BottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
@@ -1891,19 +2563,53 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     class LITEFX_DIRECTX12_API DirectX12Device final : public GraphicsDevice<DirectX12GraphicsFactory, DirectX12Surface, DirectX12GraphicsAdapter, DirectX12SwapChain, DirectX12Queue, DirectX12RenderPass, DirectX12RenderPipeline, DirectX12ComputePipeline, DirectX12RayTracingPipeline, DirectX12Barrier>, public ComResource<ID3D12Device10> {
         LITEFX_IMPLEMENTATION(DirectX12DeviceImpl);
+        friend struct SharedObject::Allocator<DirectX12Device>;
+        friend class DirectX12Backend;
 
-    public:
+    private:
         /// <summary>
         /// Creates a new device instance.
         /// </summary>
+        /// <param name="adapter">The adapter the device uses for drawing.</param>
+        /// <param name="surface">The surface, the device should draw to.</param>
+        /// <param name="globalBufferHeapSize">The size of the global heap for constant buffers, shader resources and images.</param>
+        /// <param name="globalSamplerHeapSize">The size of the global heap for samplers.</param>
+        explicit DirectX12Device(const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, UInt32 globalBufferHeapSize = D3D12_MAX_SHADER_VISIBLE_DESCRIPTOR_HEAP_SIZE_TIER_1, UInt32 globalSamplerHeapSize = D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE);
+
+    private:
+        /// <inheritdoc />
+        DirectX12Device(DirectX12Device&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12Device(const DirectX12Device&) = delete;
+
+        /// <inheritdoc />
+        DirectX12Device& operator=(DirectX12Device&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12Device& operator=(const DirectX12Device&) = delete;
+        
+    public:
+        /// <inheritdoc />
+        ~DirectX12Device() noexcept override;
+
+        // Factory methods.
+    public:
+        /// <summary>
+        /// Initializes the device instance.
+        /// </summary>
+        /// <param name="backend">The backend from which the device got created.</param>
         /// <param name="backend">The backend from which the device got created.</param>
         /// <param name="adapter">The adapter the device uses for drawing.</param>
         /// <param name="surface">The surface, the device should draw to.</param>
         /// <param name="features">The features that should be supported by this device.</param>
-        explicit DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, GraphicsDeviceFeatures features = {});
+        /// <returns>A shared pointer to the new device instance.</returns>
+        static inline SharedPtr<DirectX12Device> create(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, GraphicsDeviceFeatures features = {}) {
+            return SharedObject::create<DirectX12Device>(adapter, std::move(surface))->initialize(backend, Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        }
 
         /// <summary>
-        /// Creates a new device instance.
+        /// Initializes the device instance.
         /// </summary>
         /// <param name="backend">The backend from which the device got created.</param>
         /// <param name="adapter">The adapter the device uses for drawing.</param>
@@ -1915,20 +2621,31 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="features">The features that should be supported by this device.</param>
         /// <param name="globalBufferHeapSize">The size of the global heap for constant buffers, shader resources and images.</param>
         /// <param name="globalSamplerHeapSize">The size of the global heap for samplers.</param>
-        explicit DirectX12Device(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = {}, UInt32 globalBufferHeapSize = 524287, UInt32 globalSamplerHeapSize = 2048);
+        /// <returns>A shared pointer to the new device instance.</returns>
+        static inline SharedPtr<DirectX12Device> create(const DirectX12Backend& backend, const DirectX12GraphicsAdapter& adapter, UniquePtr<DirectX12Surface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = {}, UInt32 globalBufferHeapSize = D3D12_MAX_SHADER_VISIBLE_DESCRIPTOR_HEAP_SIZE_TIER_1, UInt32 globalSamplerHeapSize = D3D12_MAX_SHADER_VISIBLE_SAMPLER_HEAP_SIZE) {
+            return SharedObject::create<DirectX12Device>(adapter, std::move(surface), globalBufferHeapSize, globalSamplerHeapSize)->initialize(backend, format, renderArea, backBuffers, enableVsync, features);
+        }
 
-        DirectX12Device(const DirectX12Device&) = delete;
-        DirectX12Device(DirectX12Device&&) = delete;
-        virtual ~DirectX12Device() noexcept;
+    private:
+        /// <summary>
+        /// Initializes the resources owned by the device.
+        /// </summary>
+        /// <param name="backend">The backend from which the device got created.</param>
+        /// <param name="format">The initial surface format, device uses for drawing.</param>
+        /// <param name="renderArea">The initial size of the render area.</param>
+        /// <param name="backBuffers">The initial number of back buffers.</param>
+        /// <param name="enableVsync">The initial setting for vertical synchronization.</param>
+        /// <param name="features">The features that should be supported by this device.</param>
+        /// <returns>A shared pointer to the current device instance.</returns>
+        inline SharedPtr<DirectX12Device> initialize(const DirectX12Backend& backend, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features);
+
+        /// <summary>
+        /// Releases the device state to prepare it for destruction.
+        /// </summary>
+        inline void release() noexcept;
 
         // DirectX 12 Device interface.
     public:
-        /// <summary>
-        /// Returns the backend from which the device got created.
-        /// </summary>
-        /// <returns>The backend from which the device got created.</returns>
-        virtual const DirectX12Backend& backend() const noexcept;
-
         /// <summary>
         /// Returns the global descriptor heap.
         /// </summary>
@@ -1936,14 +2653,14 @@ namespace LiteFX::Rendering::Backends {
         /// The DirectX 12 device uses a global heap of descriptors and samplers in a ring-buffer fashion. The heap itself is managed by the device.
         /// </remarks>
         /// <returns>A pointer to the global descriptor heap.</returns>
-        virtual const ID3D12DescriptorHeap* globalBufferHeap() const noexcept;
+        const ID3D12DescriptorHeap* globalBufferHeap() const noexcept;
 
         /// <summary>
         /// Returns the global sampler heap.
         /// </summary>
         /// <returns>A pointer to the global sampler heap.</returns>
         /// <seealso cref="globalBufferHeap" />
-        virtual const ID3D12DescriptorHeap* globalSamplerHeap() const noexcept;
+        const ID3D12DescriptorHeap* globalSamplerHeap() const noexcept;
 
         /// <summary>
         /// Allocates a range of descriptors in the global descriptor heaps for the provided <paramref name="descriptorSet" />.
@@ -1951,7 +2668,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="descriptorSet">The descriptor set containing the descriptors to update.</param>
         /// <param name="bufferOffset">The offset of the descriptor range in the buffer heap.</param>
         /// <param name="samplerOffset">The offset of the descriptor range in the sampler heap.</param>
-        virtual void allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32& bufferOffset, UInt32& samplerOffset) const;
+        void allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32& bufferOffset, UInt32& samplerOffset) const;
 
         /// <summary>
         /// Releases a range of descriptors from the global descriptor heaps.
@@ -1962,7 +2679,7 @@ namespace LiteFX::Rendering::Backends {
         /// sets with unbounded arrays instead. Also avoid relying on creating and releasing pipeline layouts during runtime. Instead, it may be more efficient
         /// to write shaders that support multiple pipeline variations, that can be kept alive for the lifetime of the whole application.
         /// </remarks>
-        virtual void releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const noexcept;
+        void releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const;
 
         /// <summary>
         /// Updates a range of descriptors in the global buffer descriptor heap with the descriptors from <paramref name="descriptorSet" />.
@@ -1970,7 +2687,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="descriptorSet">The descriptor set to copy the descriptors from.</param>
         /// <param name="firstDescriptor">The index of the first descriptor to copy.</param>
         /// <param name="descriptors">The number of descriptors to copy.</param>
-        virtual void updateBufferDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 firstDescriptor, UInt32 descriptors) const noexcept;
+        void updateBufferDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 firstDescriptor, UInt32 descriptors) const noexcept;
 
         /// <summary>
         /// Updates a sampler descriptors in the global buffer descriptor heap with a descriptor from <paramref name="descriptorSet" />.
@@ -1978,7 +2695,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="descriptorSet">The descriptor set to copy the descriptors from.</param>
         /// <param name="firstDescriptor">The index of the first descriptor to copy.</param>
         /// <param name="descriptors">The number of descriptors to copy.</param>
-        virtual void updateSamplerDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 firstDescriptor, UInt32 descriptors) const noexcept;
+        void updateSamplerDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 firstDescriptor, UInt32 descriptors) const noexcept;
 
         /// <summary>
         /// Binds the descriptors of the descriptor set to the global descriptor heaps.
@@ -1990,13 +2707,13 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="commandBuffer">The command buffer to bind the descriptor set on.</param>
         /// <param name="descriptorSet">The descriptor set to bind.</param>
         /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
-        virtual void bindDescriptorSet(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept;
+        void bindDescriptorSet(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept;
 
         /// <summary>
         /// Binds the global descriptor heap.
         /// </summary>
         /// <param name="commandBuffer">The command buffer to issue the bind command on.</param>
-        virtual void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept;
+        void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept;
 
         /// <summary>
         /// Returns the compute pipeline that can be invoked to blit an image resource.
@@ -2006,7 +2723,7 @@ namespace LiteFX::Rendering::Backends {
         /// </remarks>
         /// <returns>The compute pipeline that can be invoked to blit an image resource.</returns>
         /// <seealso cref="DirectX12Texture::generateMipMaps" />
-        virtual DirectX12ComputePipeline& blitPipeline() const noexcept;
+        DirectX12ComputePipeline& blitPipeline() const noexcept;
 
         /// <summary>
         /// Returns the command signatures for indirect dispatch and draw calls.
@@ -2015,7 +2732,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="dispatchMeshSignature">The command signature used to execute indirect mesh shader dispatches.</param>
         /// <param name="drawSignature">The command signature used to execute indirect non-indexed draw calls.</param>
         /// <param name="drawIndexedSignature">The command signature used to execute indirect indexed draw calls.</param>
-        virtual void indirectDrawSignatures(ComPtr<ID3D12CommandSignature>& dispatchSignature, ComPtr<ID3D12CommandSignature>& dispatchMeshSignature, ComPtr<ID3D12CommandSignature>& drawSignature, ComPtr<ID3D12CommandSignature>& drawIndexedSignature) const noexcept;
+        void indirectDrawSignatures(ComPtr<ID3D12CommandSignature>& dispatchSignature, ComPtr<ID3D12CommandSignature>& dispatchMeshSignature, ComPtr<ID3D12CommandSignature>& drawSignature, ComPtr<ID3D12CommandSignature>& drawIndexedSignature) const noexcept;
 
         // GraphicsDevice interface.
     public:
@@ -2041,13 +2758,13 @@ namespace LiteFX::Rendering::Backends {
         const DirectX12Queue& defaultQueue(QueueType type) const override;
 
         /// <inheritdoc />
-        const DirectX12Queue* createQueue(QueueType type, QueuePriority priority) noexcept override;
+        SharedPtr<const DirectX12Queue> createQueue(QueueType type, QueuePriority priority) override;
 
         /// <inheritdoc />
-        [[nodiscard]] UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const noexcept override;
+        [[nodiscard]] UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const override;
 
         /// <inheritdoc />
-        [[nodiscard]] UniquePtr<DirectX12FrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const noexcept override;
+        [[nodiscard]] SharedPtr<DirectX12FrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const override;
 
         /// <inheritdoc />
         /// <seealso href="https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_standard_multisample_quality_levels" />
@@ -2113,9 +2830,21 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         explicit DirectX12Backend(const App& app, bool advancedSoftwareRasterizer = false);
-        DirectX12Backend(const DirectX12Backend&) noexcept = delete;
-        DirectX12Backend(DirectX12Backend&&) noexcept = delete;
-        virtual ~DirectX12Backend() noexcept;
+
+        /// <inheritdoc />
+        DirectX12Backend(DirectX12Backend&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12Backend(const DirectX12Backend&) = delete;
+
+        /// <inheritdoc />
+        DirectX12Backend& operator=(DirectX12Backend&&) noexcept;
+
+        /// <inheritdoc />
+        DirectX12Backend& operator=(const DirectX12Backend&) = delete;
+
+        /// <inheritdoc />
+        ~DirectX12Backend() noexcept override;
 
         // IBackend interface.
     public:
@@ -2123,7 +2852,7 @@ namespace LiteFX::Rendering::Backends {
         BackendType type() const noexcept override;
 
         /// <inheritdoc />
-        String name() const noexcept override;
+        StringView name() const noexcept override;
 
     protected:
         /// <inheritdoc />
@@ -2141,7 +2870,7 @@ namespace LiteFX::Rendering::Backends {
         const DirectX12GraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override;
 
         /// <inheritdoc />
-        void registerDevice(String name, UniquePtr<DirectX12Device>&& device) override;
+        void registerDevice(const String& name, SharedPtr<DirectX12Device>&& device) override;
 
         /// <inheritdoc />
         void releaseDevice(const String& name) override;
@@ -2172,3 +2901,5 @@ namespace LiteFX::Rendering::Backends {
     };
 
 }
+
+#pragma warning(pop)
