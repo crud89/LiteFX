@@ -1225,15 +1225,11 @@ namespace LiteFX::Rendering::Backends {
             return SharedObject::create<DirectX12PipelineLayout>(device);
         }
 
-    public:
-        /// <summary>
-        /// Returns a pointer to the device that provides this layout or `nullptr` if the device is already released.
-        /// </summary>
-        /// <returns>A reference to the layouts parent device or `nullptr` if the device is already released.</returns>
-        virtual SharedPtr<const DirectX12Device> device() const noexcept;
-
         // PipelineLayout interface.
     public:
+        /// <inheritdoc />
+        const DirectX12Device& device() const noexcept /*override*/;
+
         /// <inheritdoc />
         const DirectX12DescriptorSetLayout& descriptorSet(UInt32 space) const override;
 
@@ -2294,16 +2290,14 @@ namespace LiteFX::Rendering::Backends {
             return SharedObject::create<DirectX12RenderPass>(device, name);
         }
 
-        // DirectX 12 render pass.
-    public:
-        /// <summary>
-        /// Returns a reference to the device that provides this queue.
-        /// </summary>
-        /// <returns>A reference to the queue's parent device.</returns>
-        virtual SharedPtr<const DirectX12Device> device() const noexcept;
-
         // RenderPass interface.
     public:
+        /// <summary>
+        /// Returns a reference of the device that provides this queue.
+        /// </summary>
+        /// <returns>A reference of the queue's parent device.</returns>
+        const DirectX12Device& device() const noexcept /*override*/;
+
         /// <inheritdoc />
         SharedPtr<const DirectX12FrameBuffer> activeFrameBuffer() const noexcept override;
 

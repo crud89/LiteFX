@@ -32,13 +32,13 @@ private:
     const RenderTarget* m_presentTarget = nullptr;
     const RenderTarget* m_depthStencilTarget = nullptr;
     Optional<DescriptorBindingPoint> m_inputAttachmentSamplerBinding{ };
-    WeakPtr<const DirectX12Device> m_device;
+    SharedPtr<const DirectX12Device> m_device;
     SharedPtr<const DirectX12Queue> m_queue;
     bool m_onDefaultGraphicsQueue = false;
 
 public:
     DirectX12RenderPassImpl(const DirectX12Device& device, const DirectX12Queue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding, UInt32 secondaryCommandBuffers) :
-        m_secondaryCommandBufferCount(secondaryCommandBuffers), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding), m_device(device.weak_from_this()), m_queue(queue.shared_from_this()), m_onDefaultGraphicsQueue(std::addressof(queue) == std::addressof(device.defaultQueue(QueueType::Graphics)))
+        m_secondaryCommandBufferCount(secondaryCommandBuffers), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding), m_device(device.shared_from_this()), m_queue(queue.shared_from_this()), m_onDefaultGraphicsQueue(std::addressof(queue) == std::addressof(device.defaultQueue(QueueType::Graphics)))
     {
         this->mapRenderTargets(renderTargets);
         this->mapInputAttachments(inputAttachments);
@@ -48,7 +48,7 @@ public:
     }
 
     DirectX12RenderPassImpl(const DirectX12Device& device) :
-        m_device(device.weak_from_this()), m_queue(device.defaultQueue(QueueType::Graphics).shared_from_this()), m_onDefaultGraphicsQueue(true)
+        m_device(device.shared_from_this()), m_queue(device.defaultQueue(QueueType::Graphics).shared_from_this()), m_onDefaultGraphicsQueue(true)
     {
     }
 
@@ -252,9 +252,9 @@ DirectX12RenderPass::DirectX12RenderPass(const DirectX12Device& device, const St
 
 DirectX12RenderPass::~DirectX12RenderPass() noexcept = default;
 
-SharedPtr<const DirectX12Device> DirectX12RenderPass::device() const noexcept
+const DirectX12Device& DirectX12RenderPass::device() const noexcept
 {
-    return m_impl->m_device.lock();
+    return *m_impl->m_device;
 }
 
 SharedPtr<const DirectX12FrameBuffer> DirectX12RenderPass::activeFrameBuffer() const noexcept
@@ -386,12 +386,6 @@ void DirectX12RenderPass::begin(const DirectX12FrameBuffer& frameBuffer) const
 
 UInt64 DirectX12RenderPass::end() const
 {
-    // Check if the device and the queue are still valid.
-    auto device = m_impl->m_device.lock();
-
-    if (device == nullptr) [[unlikely]]
-        throw RuntimeException("Cannot end render pass: the device instance has been released.");
-
     // Check if we are running.
     if (m_impl->m_activeFrameBuffer == nullptr)
         throw RuntimeException("Unable to end a render pass, that has not been begun. Start the render pass first.");
@@ -400,7 +394,7 @@ UInt64 DirectX12RenderPass::end() const
     this->ending(this, { });
 
     auto& frameBuffer = *m_impl->m_activeFrameBuffer;
-    const auto& swapChain = device->swapChain();
+    const auto& swapChain = m_impl->m_device->swapChain();
 
     // Resume and end the render pass.
     const auto& context = m_impl->m_activeContext;

@@ -6348,6 +6348,12 @@ namespace LiteFX::Rendering {
         ~IPipelineLayout() noexcept override = default;
 
     public:
+        ///// <summary>
+        ///// Returns a reference to the parent device.
+        ///// </summary>
+        ///// <returns>A reference to the parent device.</returns>
+        //virtual const IGraphicsDevice& device() const noexcept;
+
         /// <summary>
         /// Returns the descriptor set layout for the descriptor set that is bound to the space provided by <paramref name="space" />.
         /// </summary>
@@ -8028,6 +8034,12 @@ namespace LiteFX::Rendering {
         mutable Event<EventArgs> ending;
 
     public:
+        ///// <summary>
+        ///// Returns a reference to the parent device.
+        ///// </summary>
+        ///// <returns>A reference to the parent device.</returns>
+        //virtual const IGraphicsDevice& device() const noexcept;
+
         /// <summary>
         /// Returns the current frame buffer from of the render pass.
         /// </summary>

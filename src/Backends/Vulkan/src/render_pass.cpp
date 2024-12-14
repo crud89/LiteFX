@@ -25,13 +25,13 @@ private:
     const RenderTarget* m_presentTarget = nullptr;
     const RenderTarget* m_depthStencilTarget = nullptr;
     Optional<DescriptorBindingPoint> m_inputAttachmentSamplerBinding{ };
-    WeakPtr<const VulkanDevice> m_device;
+    SharedPtr<const VulkanDevice> m_device;
     SharedPtr<const VulkanQueue> m_queue;
     bool m_onDefaultGraphicsQueue = false;
 
 public:
     VulkanRenderPassImpl(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding, UInt32 secondaryCommandBuffers) :
-        m_secondaryCommandBufferCount(secondaryCommandBuffers), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding), m_device(device.weak_from_this()), m_queue(queue.shared_from_this()), m_onDefaultGraphicsQueue(std::addressof(queue) == std::addressof(device.defaultQueue(QueueType::Graphics)))
+        m_secondaryCommandBufferCount(secondaryCommandBuffers), m_inputAttachmentSamplerBinding(inputAttachmentSamplerBinding), m_device(device.shared_from_this()), m_queue(queue.shared_from_this()), m_onDefaultGraphicsQueue(std::addressof(queue) == std::addressof(device.defaultQueue(QueueType::Graphics)))
     {
         this->mapRenderTargets(renderTargets);
         this->mapInputAttachments(inputAttachments);
@@ -41,7 +41,7 @@ public:
     }
 
     VulkanRenderPassImpl(const VulkanDevice& device) :
-        m_device(device.weak_from_this()), m_queue(device.defaultQueue(QueueType::Graphics).shared_from_this()), m_onDefaultGraphicsQueue(true)
+        m_device(device.shared_from_this()), m_queue(device.defaultQueue(QueueType::Graphics).shared_from_this()), m_onDefaultGraphicsQueue(true)
     {
     }
 
@@ -52,36 +52,22 @@ public:
 
     ~VulkanRenderPassImpl() noexcept
     {
-        // Check if the device is still valid.
-        auto device = m_device.lock();
+        // Stop listening to frame buffer events.
+        for (auto [frameBuffer, token] : m_frameBufferTokens)
+            frameBuffer->released -= token;
 
-        if (device == nullptr) [[unlikely]]
-            LITEFX_FATAL_ERROR(VULKAN_LOG, "Invalid attempt to release render pass after parent device.");
-        else
-        {
-            // Stop listening to frame buffer events.
-            for (auto [frameBuffer, token] : m_frameBufferTokens)
-                frameBuffer->released -= token;
+        // Stop listening to swap chain events.
+        for (auto token : m_swapChainTokens)
+            m_device->swapChain().reseted -= token;
 
-            // Stop listening to swap chain events.
-            for (auto token : m_swapChainTokens)
-                device->swapChain().reseted -= token;
-
-            // Release swap chain image views if there are any.
-            for (auto view : m_swapChainViews | std::views::values)
-                ::vkDestroyImageView(device->handle(), view, nullptr);
-        }
+        // Release swap chain image views if there are any.
+        for (auto view : m_swapChainViews | std::views::values)
+            ::vkDestroyImageView(m_device->handle(), view, nullptr);
     }
 
 public:
     void mapRenderTargets(Span<RenderTarget> renderTargets)
     {
-        // Check if the device is still valid.
-        auto device = m_device.lock();
-
-        if (device == nullptr) [[unlikely]]
-            throw RuntimeException("Cannot map render targets to render pass on a released device instance.");
-
         m_renderTargets.assign(std::begin(renderTargets), std::end(renderTargets));
         std::ranges::sort(m_renderTargets, [](const auto& a, const auto& b) { return a.location() < b.location(); });
 
@@ -102,7 +88,7 @@ public:
 
         // Listen to swap chain resets in order to clear back buffer image views.
         if (m_presentTarget != nullptr)
-            m_swapChainTokens.push_back(device->swapChain().reseted.add(std::bind(&VulkanRenderPassImpl::onSwapChainReset, this, std::placeholders::_1, std::placeholders::_2)));
+            m_swapChainTokens.push_back(m_device->swapChain().reseted.add(std::bind(&VulkanRenderPassImpl::onSwapChainReset, this, std::placeholders::_1, std::placeholders::_2)));
     }
 
     void mapInputAttachments(Span<RenderPassDependency> inputAttachments)
@@ -112,14 +98,6 @@ public:
 
     void registerFrameBuffer([[maybe_unused]] const VulkanRenderPass& renderPass, const VulkanQueue& queue, const VulkanFrameBuffer& frameBuffer)
     {
-#ifndef NDEBUG
-        // Check if the device is still valid.
-        auto device = m_device.lock();
-
-        if (device == nullptr) [[unlikely]]
-            throw RuntimeException("Cannot register frame buffer on a released device instance.");
-#endif
-
         // If the frame buffer is not yet registered, do so by listening for its release.
         auto interfacePointer = static_cast<const IFrameBuffer*>(&frameBuffer);
 
@@ -131,7 +109,7 @@ public:
             {
                 auto commandBuffer = queue.createCommandBuffer(false);
 #ifndef NDEBUG
-                device->setDebugName(std::as_const(*commandBuffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, 
+                m_device->setDebugName(std::as_const(*commandBuffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, 
                     std::format("{0} Primary Commands {1}", renderPass.name(), m_primaryCommandBuffers.size()).c_str());
 #endif
                 m_primaryCommandBuffers[interfacePointer] = commandBuffer;
@@ -142,7 +120,7 @@ public:
                 std::views::transform([&]([[maybe_unused]] UInt32 i) {
                     auto commandBuffer = queue.createCommandBuffer(false, true);
 #ifndef NDEBUG
-                    device->setDebugName(std::as_const(*commandBuffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, 
+                    m_device->setDebugName(std::as_const(*commandBuffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT, 
                         std::format("{0} Secondary Commands {1}", renderPass.name(), i).c_str());
 #endif
                     return commandBuffer;
@@ -170,29 +148,17 @@ public:
 
     void onSwapChainReset([[maybe_unused]] const void* sender, const ISwapChain::ResetEventArgs& /*args*/)
     {
-        // Check if the device is still valid.
-        auto device = m_device.lock();
-
-        if (device == nullptr) [[unlikely]]
-            throw RuntimeException("Cannot reset render pass on a released device instance.");
-
         // Release swap chain image views if there are any, so that they need to be re-created with the next context.
         for (auto view : m_swapChainViews | std::views::values)
-            ::vkDestroyImageView(device->handle(), view, nullptr);
+            ::vkDestroyImageView(m_device->handle(), view, nullptr);
 
         m_swapChainViews.clear();
     }
 
     Array<VkRenderingAttachmentInfo> colorTargetContext(const VulkanFrameBuffer& frameBuffer)
     {
-        // Check if the device is still valid.
-        auto device = m_device.lock();
-
-        if (device == nullptr) [[unlikely]]
-            throw RuntimeException("Cannot allocate render pass targets on a released device instance.");
-
         return m_renderTargets | std::views::filter([](const RenderTarget& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; }) |
-            std::views::transform([this, &frameBuffer, device](const RenderTarget& renderTarget) {
+            std::views::transform([this, &frameBuffer](const RenderTarget& renderTarget) {
                 // Create an attachment info.
                 VkRenderingAttachmentInfo attachmentInfo = {
                     .sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
@@ -226,12 +192,12 @@ public:
                         };
 
                         VkImageView imageView{};
-                        raiseIfFailed(::vkCreateImageView(device->handle(), &createInfo, nullptr, &imageView), "Unable to create image view for swap chain back buffer.");
+                        raiseIfFailed(::vkCreateImageView(m_device->handle(), &createInfo, nullptr, &imageView), "Unable to create image view for swap chain back buffer.");
                         return imageView;
                     };
 
                     // Create an image view if we don't already have one for the swap chain image.
-                    auto& backBuffer = device->swapChain().image();
+                    auto& backBuffer = m_device->swapChain().image();
 
                     if (!m_swapChainViews.contains(&backBuffer))
                         m_swapChainViews[&backBuffer] = getImageView(backBuffer);
@@ -321,9 +287,9 @@ VulkanRenderPass::VulkanRenderPass(const VulkanDevice& device, const String& nam
 
 VulkanRenderPass::~VulkanRenderPass() noexcept = default;
 
-SharedPtr<const VulkanDevice> VulkanRenderPass::device() const noexcept
+const VulkanDevice& VulkanRenderPass::device() const noexcept
 {
-    return m_impl->m_device.lock();
+    return *m_impl->m_device;
 }
 
 SharedPtr<const VulkanFrameBuffer> VulkanRenderPass::activeFrameBuffer() const noexcept
@@ -398,12 +364,6 @@ const Optional<DescriptorBindingPoint>& VulkanRenderPass::inputAttachmentSampler
 
 void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
 {
-    // Check if the device and the parent queue are still valid.
-    auto device = m_impl->m_device.lock();
-
-    if (device == nullptr) [[unlikely]]
-        throw RuntimeException("Cannot begin render pass on a released device instance.");
-
     // Only begin, if we are currently not running.
     if (m_impl->m_activeFrameBuffer != nullptr) [[unlikely]]
         throw RuntimeException("Unable to begin a render pass, that is already running. End the current pass first.");
@@ -447,7 +407,7 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
     });
 
     // If the present target is multi-sampled, transition the back buffer image into resolve state.
-    const auto& backBufferImage = device->swapChain().image();
+    const auto& backBufferImage = m_impl->m_device->swapChain().image();
     bool requiresResolve{ this->hasPresentTarget() && frameBuffer[*m_impl->m_presentTarget].samples() > MultiSamplingLevel::x1 };
 
     if (requiresResolve)
@@ -473,12 +433,6 @@ void VulkanRenderPass::begin(const VulkanFrameBuffer& frameBuffer) const
 
 UInt64 VulkanRenderPass::end() const
 {
-    // Check if the device is still valid.
-    auto device = m_impl->m_device.lock();
-
-    if (device == nullptr) [[unlikely]]
-        throw RuntimeException("Cannot end render pass on a released device instance.");
-
     // Check if we are running.
     if (m_impl->m_activeFrameBuffer == nullptr)
         throw RuntimeException("Unable to end a render pass, that has not been begun. Start the render pass first.");
@@ -488,7 +442,7 @@ UInt64 VulkanRenderPass::end() const
 
     // Get frame buffer and swap chain references.
     auto& frameBuffer = *m_impl->m_activeFrameBuffer;
-    const auto& swapChain = device->swapChain();
+    const auto& swapChain = m_impl->m_device->swapChain();
 
     // End secondary command buffers and end rendering.
     auto primaryCommandBuffer = m_impl->getPrimaryCommandBuffer(frameBuffer);

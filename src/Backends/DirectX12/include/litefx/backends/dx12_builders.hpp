@@ -46,8 +46,6 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	/// <seealso cref="DirectX12ShaderProgram" />
 	class LITEFX_DIRECTX12_API [[nodiscard]] DirectX12ShaderProgramBuilder final : public ShaderProgramBuilder<DirectX12ShaderProgram> {
-		LITEFX_IMPLEMENTATION(DirectX12ShaderProgramBuilderImpl);
-
 	public:
 		/// <summary>
 		/// Initializes a DirectX 12  shader program builder.

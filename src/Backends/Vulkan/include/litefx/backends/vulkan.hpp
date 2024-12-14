@@ -931,10 +931,10 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <summary>
-        /// Returns a pointer to the device, the pipeline layout has been created from or `nullptr`, if the device has already been released.
+        /// Returns a reference of the device, the pipeline layout has been created from.
         /// </summary>
-        /// <returns>A pointer to the device, the pipeline layout has been created from.</returns>
-        SharedPtr<const VulkanDevice> device() const noexcept;
+        /// <returns>A reference of the device, the pipeline layout has been created from.</returns>
+        const VulkanDevice& device() const noexcept;
 
     public:
         /// <inheritdoc />
@@ -1181,15 +1181,11 @@ namespace LiteFX::Rendering::Backends {
             return SharedObject::create<VulkanPipelineLayout>(device);
         }
 
-    public:
-        /// <summary>
-        /// Returns a pointer to the device that provides this layout or `nullptr`, if the device has already been released.
-        /// </summary>
-        /// <returns>A pointer to the layouts parent device.</returns>
-        SharedPtr<const VulkanDevice> device() const noexcept;
-
         // PipelineLayout interface.
     public:
+        /// <inheritdoc />
+        const VulkanDevice& device() const noexcept /*override*/;
+
         /// <inheritdoc />
         const VulkanDescriptorSetLayout& descriptorSet(UInt32 space) const override;
 
@@ -2289,16 +2285,14 @@ namespace LiteFX::Rendering::Backends {
             return SharedObject::create<VulkanRenderPass>(device, name);
         }
 
-        // Vulkan render pass interface.
-    public:
-        /// <summary>
-        /// Returns a pointer to the device that provides this queue or `nullptr`, if the device is already released.
-        /// </summary>
-        /// <returns>A pointer to the queue's parent device.</returns>
-        SharedPtr<const VulkanDevice> device() const noexcept;
-
         // RenderPass interface.
     public:
+        /// <summary>
+        /// Returns a reference of the device that provides this queue.
+        /// </summary>
+        /// <returns>A reference of the queue's parent device.</returns>
+        const VulkanDevice& device() const noexcept /*override*/;
+
         /// <inheritdoc />
         SharedPtr<const VulkanFrameBuffer> activeFrameBuffer() const noexcept override;
 

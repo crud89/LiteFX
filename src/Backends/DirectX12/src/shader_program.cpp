@@ -37,7 +37,7 @@ public:
 
 private:
     Array<UniquePtr<DirectX12ShaderModule>> m_modules;
-    WeakPtr<const DirectX12Device> m_device;
+    SharedPtr<const DirectX12Device> m_device;
 
 private:
     struct DescriptorInfo {
@@ -77,13 +77,13 @@ private:
 
 public:
     DirectX12ShaderProgramImpl(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) :
-        m_device(device.weak_from_this())
+        m_device(device.shared_from_this())
     {
         m_modules = std::move(modules) | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     DirectX12ShaderProgramImpl(const DirectX12Device& device) :
-        m_device(device.weak_from_this())
+        m_device(device.shared_from_this())
     {
     }
 
@@ -355,12 +355,6 @@ public:
 
     SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout()
     {
-        // Check if the device is still valid.
-        auto device = m_device.lock();
-
-        if (device == nullptr) [[unlikely]]
-            throw RuntimeException("Cannot create pipeline layout on a released device instance.");
-
         // First, filter the descriptor sets and push constant ranges.
         Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts;
         Array<PushConstantRangeInfo> pushConstantRanges;
@@ -502,9 +496,9 @@ public:
                     }
                 }(std::move(it->second));
 
-                co_yield DirectX12DescriptorSetLayout::create(*device.get(), descriptors, space, stage);
+                co_yield DirectX12DescriptorSetLayout::create(*device, descriptors, space, stage);
             }
-        }(device, std::move(descriptorSetLayouts)) | std::views::as_rvalue | std::ranges::to<Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>>();
+        }(m_device, std::move(descriptorSetLayouts)) | std::views::as_rvalue | std::ranges::to<Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>>();
 
         // Create the push constants layout.
         auto overallSize = std::accumulate(pushConstantRanges.begin(), pushConstantRanges.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range.size; });
@@ -516,7 +510,7 @@ public:
         auto pushConstantsLayout = makeUnique<DirectX12PushConstantsLayout>(std::move(pushConstants), overallSize);
 
         // Return the pipeline layout.
-        return DirectX12PipelineLayout::create(*device.get(), std::move(descriptorSets), std::move(pushConstantsLayout));
+        return DirectX12PipelineLayout::create(*m_device, std::move(descriptorSets), std::move(pushConstantsLayout));
     }
 };
 
@@ -554,29 +548,11 @@ SharedPtr<DirectX12PipelineLayout> DirectX12ShaderProgram::reflectPipelineLayout
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
-// Shader program builder implementation.
-// ------------------------------------------------------------------------------------------------
-
-class DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilderImpl {
-public:
-    friend class DirectX12ShaderProgramBuilder;
-
-private:
-    SharedPtr<const DirectX12Device> m_device;
-
-public:
-    DirectX12ShaderProgramBuilderImpl(const DirectX12Device& device) :
-        m_device(device.shared_from_this())
-    {
-    }
-};
-
-// ------------------------------------------------------------------------------------------------
 // Shader program builder shared interface.
 // ------------------------------------------------------------------------------------------------
 
 DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilder(const DirectX12Device& device) :
-    ShaderProgramBuilder(DirectX12ShaderProgram::create(device)), m_impl(device)
+    ShaderProgramBuilder(DirectX12ShaderProgram::create(device))
 {
 }
 
@@ -590,11 +566,11 @@ void DirectX12ShaderProgramBuilder::build()
 
 UniquePtr<DirectX12ShaderModule> DirectX12ShaderProgramBuilder::makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
-    return makeUnique<DirectX12ShaderModule>(*m_impl->m_device.get(), type, fileName, entryPoint, shaderLocalDescriptor);
+    return makeUnique<DirectX12ShaderModule>(*this->instance()->m_impl->m_device.get(), type, fileName, entryPoint, shaderLocalDescriptor);
 }
 
 UniquePtr<DirectX12ShaderModule> DirectX12ShaderProgramBuilder::makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
-    return makeUnique<DirectX12ShaderModule>(*m_impl->m_device.get(), type, stream, name, entryPoint, shaderLocalDescriptor);
+    return makeUnique<DirectX12ShaderModule>(*this->instance()->m_impl->m_device.get(), type, stream, name, entryPoint, shaderLocalDescriptor);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

@@ -13,31 +13,25 @@ public:
     friend class VulkanPipelineLayout;
 
 private:
-    WeakPtr<const VulkanDevice> m_device;
+    SharedPtr<const VulkanDevice> m_device;
     UniquePtr<VulkanPushConstantsLayout> m_pushConstantsLayout;
     Array<SharedPtr<VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
 
 public:
     VulkanPipelineLayoutImpl(const VulkanDevice& device, Enumerable<SharedPtr<VulkanDescriptorSetLayout>>&& descriptorLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
-        m_device(device.weak_from_this()), m_pushConstantsLayout(std::move(pushConstantsLayout))
+        m_device(device.shared_from_this()), m_pushConstantsLayout(std::move(pushConstantsLayout))
     {
         m_descriptorSetLayouts = std::move(descriptorLayouts) | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     VulkanPipelineLayoutImpl(const VulkanDevice& device) :
-        m_device(device.weak_from_this())
+        m_device(device.shared_from_this())
     {
     }
 
 public:
     VkPipelineLayout initialize([[maybe_unused]] const VulkanPipelineLayout& pipelineLayout)
     {
-        // Check if the device is still valid.
-        auto device = m_device.lock();
-
-        if (device == nullptr) [[unlikely]]
-            throw RuntimeException("Cannot create pipeline layout on a released device instance.");
-
         // Since Vulkan does not know spaces, descriptor sets are mapped to their indices based on the order they are defined. Hence we need to sort the descriptor set layouts accordingly.
         std::ranges::sort(m_descriptorSetLayouts, [](const SharedPtr<VulkanDescriptorSetLayout>& a, const SharedPtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
 
@@ -62,7 +56,7 @@ public:
         if (!emptySets.empty())
         {
             for (auto s : emptySets)
-                m_descriptorSetLayouts.push_back(VulkanDescriptorSetLayout::create(*device, { }, s, ShaderStage::Any)); // No descriptor can ever be allocated from an empty descriptor set.
+                m_descriptorSetLayouts.push_back(VulkanDescriptorSetLayout::create(*m_device, { }, s, ShaderStage::Any)); // No descriptor can ever be allocated from an empty descriptor set.
 
             // Re-order them.
             std::ranges::sort(m_descriptorSetLayouts, [](const SharedPtr<VulkanDescriptorSetLayout>& a, const SharedPtr<VulkanDescriptorSetLayout>& b) { return a->space() < b->space(); });
@@ -94,7 +88,7 @@ public:
         pipelineLayoutInfo.pPushConstantRanges = rangeHandles.data();
 
         VkPipelineLayout layout{};
-        raiseIfFailed(::vkCreatePipelineLayout(device->handle(), &pipelineLayoutInfo, nullptr, &layout), "Unable to create pipeline layout.");
+        raiseIfFailed(::vkCreatePipelineLayout(m_device->handle(), &pipelineLayoutInfo, nullptr, &layout), "Unable to create pipeline layout.");
         return layout;
     }
 };
@@ -116,18 +110,12 @@ VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device) noexcept 
 
 VulkanPipelineLayout::~VulkanPipelineLayout() noexcept
 {
-    // Check if the device is still valid.
-    auto device = m_impl->m_device.lock();
-
-    if (device == nullptr) [[unlikely]]
-        LITEFX_FATAL_ERROR(VULKAN_LOG, "Invalid attempt to release pipeline layout after parent device.");
-    else
-        ::vkDestroyPipelineLayout(device->handle(), this->handle(), nullptr);
+    ::vkDestroyPipelineLayout(m_impl->m_device->handle(), this->handle(), nullptr);
 }
 
-SharedPtr<const VulkanDevice> VulkanPipelineLayout::device() const noexcept
+const VulkanDevice& VulkanPipelineLayout::device() const noexcept
 {
-    return m_impl->m_device.lock();
+    return *m_impl->m_device;
 }
 
 const VulkanDescriptorSetLayout& VulkanPipelineLayout::descriptorSet(UInt32 space) const
