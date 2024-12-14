@@ -7,7 +7,7 @@ using namespace LiteFX::Logging;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class Log::LogImpl : public Implement<Log> {
+class Log::LogImpl {
 public:
     friend class Log;
 
@@ -15,8 +15,8 @@ private:
     String m_name;
 
 public:
-    LogImpl(Log* parent, const String& name) : 
-        base(parent), m_name(name) { }
+    LogImpl(String name) : 
+        m_name(std::move(name)) { }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 Log::Log(const String& name) :
-    m_impl(makePimpl<LogImpl>(this, name))
+    m_impl(name)
 {
 }
 

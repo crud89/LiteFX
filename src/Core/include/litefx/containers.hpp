@@ -25,6 +25,8 @@
 #include "string.hpp"
 #include "exceptions.hpp"
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 #ifndef LITEFX_DEFINE_FLAGS
 #  define LITEFX_DEFINE_FLAGS(T) \
 	constexpr T operator| (const T lhs, const T rhs) { using _base_t = std::underlying_type_t<T>; return static_cast<T>(static_cast<_base_t>(lhs) | static_cast<_base_t>(rhs)); } \
@@ -36,6 +38,8 @@
 #ifndef LITEFX_FLAG_IS_SET
 #  define LITEFX_FLAG_IS_SET(val, flag) static_cast<bool>((std::to_underlying(val) & std::to_underlying(flag)) == std::to_underlying(flag))
 #endif
+
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 namespace LiteFX {
 
@@ -179,7 +183,8 @@ namespace LiteFX {
 	/// <returns>A new shared pointer.</returns>
 	template <class T>
 	[[nodiscard]] constexpr SharedPtr<T> asShared(UniquePtr<T>&& ptr) {
-		return SharedPtr<T>(ptr.release());
+		SharedPtr<T> shared = std::move(ptr);
+		return shared;
 	}
 
 	/// <summary>
@@ -220,11 +225,11 @@ namespace LiteFX {
 		/// Creates a new `Enumerable` from an arbitrary input range or view.
 		/// </summary>
 		/// <param name="input">The input range or view that contains the elements the `Enumerable` is initialized with.</param>
-		constexpr Enumerable(std::ranges::input_range auto&& input) noexcept requires
-			std::convertible_to<std::ranges::range_value_t<decltype(input)>, T>
+		constexpr Enumerable(std::ranges::input_range auto&& input) requires
+			std::convertible_to<std::ranges::range_value_t<decltype(input)>, T> :
+			m_size(0)
 		{
 			auto it = m_elements.before_begin();
-			m_size = 0;
 
 			for (auto elem : input)
 			{
@@ -282,7 +287,7 @@ namespace LiteFX {
 		/// Note that this constructor can only be used of <typeparamref name="T" /> is movable.
 		/// </remarks>
 		/// <param name="_other">The `Enumerable` to take over.</param>
-		constexpr Enumerable(Enumerable<T>&& _other) = default;
+		constexpr Enumerable(Enumerable<T>&& _other) noexcept = default;
 
 		/// <summary>
 		/// Initializes the `Enumerable` by taking over <paramref name="_other" />.
@@ -292,7 +297,7 @@ namespace LiteFX {
 		/// </remarks>
 		/// <param name="_other">The `Enumerable` to take over.</param>
 		/// <returns>A reference of the `Enumerable` after the move.</returns>
-		constexpr Enumerable<T>& operator=(Enumerable<T>&& _other) = default;
+		constexpr Enumerable<T>& operator=(Enumerable<T>&& _other) noexcept = default;
 
 		/// <summary>
 		/// Initializes the `Enumerable` by copying <paramref name="_other" />.
@@ -312,6 +317,8 @@ namespace LiteFX {
 		/// <param name="_other">The `Enumerable` to copy.</param>
 		/// <returns>A reference of the `Enumerable` after the copy.</returns>
 		constexpr Enumerable<T>& operator=(const Enumerable<T>& _other) = default;
+
+		constexpr ~Enumerable() noexcept = default;
 
 	public:
 		/// <summary>
@@ -419,23 +426,33 @@ namespace LiteFX {
 	template <class pImpl>
 	class PimplPtr final {
 	private:
-		UniquePtr<pImpl> m_ptr;
+		/// <summary>
+		/// Stores the shared pointer to the implementation.
+		/// </summary>
+		SharedPtr<pImpl> m_ptr;
 
 	public:
 		/// <summary>
-		/// Initializes a new pointer to an uninitialized implementation instance.
+		/// Initializes a new pointer to an implementation instance.
 		/// </summary>
-		constexpr PimplPtr() noexcept = default;
+		constexpr PimplPtr() /*requires std::is_default_constructible_v<pImpl>*/ :
+			m_ptr(makeShared<pImpl>()) { }
+
+		/// <summary>
+		/// Initializes a new pointer of an implementation.
+		/// </summary>
+		/// <typeparam name="...TArgs">The types of the arguments passed to the implementation constructor.</typeparam>
+		/// <param name="...args">The arguments passed to the implementation constructor.</param>
+		template <typename... TArgs>
+		constexpr PimplPtr(TArgs&&... args) /*requires std::constructible_from<pImpl, TArgs...>*/ :
+			m_ptr(makeShared<pImpl>(std::forward<TArgs>(args)...)) { } // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 
 		/// <summary>
 		/// Initializes a new pointer to a copy of the implementation instance managed by <paramref name="src" />.
 		/// </summary>
-		/// <remarks>
-		/// Note that this will share ownership between this instance and <paramref name="src" />. Only use this method, if you <see cref="release" /> either
-		/// of both implementation pointers manually!
-		/// </remarks>
 		/// <param name="src">The source pointer to copy the implementation instance from.</param>
-		constexpr PimplPtr(const PimplPtr& src) noexcept : m_ptr(new pImpl(*src.m_ptr)) { }
+		constexpr PimplPtr(const PimplPtr& src) /*requires std::copy_constructible<pImpl>*/ : 
+			m_ptr(makeShared<pImpl>(*src.m_ptr)) { }
 
 		/// <summary>
 		/// Initializes a new pointer by taking over the implementation instance managed by <paramref name="src" />.
@@ -452,71 +469,42 @@ namespace LiteFX {
 		/// </remarks>
 		/// <param name="src">The source pointer to copy the implementation instance from.</param>
 		/// <returns>A new pointer to the provided implementation instance.</returns>
-		constexpr PimplPtr& operator= (const PimplPtr& src) noexcept { m_ptr.reset(new pImpl(*src.m_ptr)); return *this; }
+		constexpr PimplPtr& operator=(const PimplPtr& src) /*requires std::copy_constructible<pImpl>*/
+		{
+			if (&src != this)
+				m_ptr = makeShared<pImpl>(*src.m_ptr);
+
+			return *this; 
+		}
 
 		/// <summary>
 		/// Initializes a new pointer by taking over the implementation instance managed by <paramref name="src" />.
 		/// </summary>
 		/// <param name="src">The source pointer to take over.</param>
-		/// /// <returns>A new pointer to the provided implementation instance.</returns>
-		constexpr PimplPtr& operator= (PimplPtr&& src) noexcept = default;
+		/// <returns>A new pointer to the provided implementation instance.</returns>
+		constexpr PimplPtr& operator=(PimplPtr&& src) noexcept = default;
 
 		constexpr ~PimplPtr() noexcept = default;
-
-	private:
-		/// <summary>
-		/// Initializes a new pointer from the raw pointer provided with <paramref name="pimpl" />.
-		/// </summary>
-		/// <param name="pimpl">The raw pointer to take ownership over.</param>
-		constexpr PimplPtr(pImpl* pimpl) noexcept : m_ptr(pimpl) { }
-
-	public:
-		/// <summary>
-		/// Destroys the implementation instance managed by this pointer.
-		/// </summary>
-		constexpr void destroy() { m_ptr = nullptr; }
-
-		/// <summary>
-		/// Releases the implementation instance managed by this pointer and returns it.
-		/// </summary>
-		/// <returns>The pointer to the managed implementation instance.</returns>
-		constexpr pImpl* release() noexcept { m_ptr.release(); }
-
-		/// <summary>
-		/// Returns a pointer to the managed implementation instance.
-		/// </summary>
-		/// <returns>A pointer to the managed implementation instance.</returns>
-		constexpr pImpl* get() const noexcept { return m_ptr.get(); }
 
 	public:
 		/// <summary>
 		/// Returns a reference to the managed implementation instance.
 		/// </summary>
 		/// <returns>A reference to the managed implementation instance.</returns>
-		constexpr pImpl& operator* () const noexcept { return *m_ptr; }
+		constexpr pImpl& operator* () const noexcept { 
+			return *m_ptr; 
+		}
 
 		/// <summary>
 		/// Returns a pointer to the managed implementation instance.
 		/// </summary>
 		/// <returns>A pointer to the managed implementation instance.</returns>
-		constexpr pImpl* operator-> () const noexcept { return m_ptr.get(); }
-
-	public:
-		template <class T, class... Arg>
-		friend constexpr PimplPtr<T> makePimpl(Arg&&... arg);
+		constexpr pImpl* operator-> () const noexcept { 
+			return m_ptr.get(); 
+		}
 	};
 
-	/// <summary>
-	/// Creates a pointer to an implementation.
-	/// </summary>
-	/// <typeparam name="T">The type of the implementation class.</typeparam>
-	/// <typeparam name="...Arg">The variadic argument types forwarded to the implementation classes' constructor.</typeparam>
-	/// <param name="...arg">The arguments forwarded to the implementation classes' constructor.</param>
-	/// <returns>The pointer to the implementation class instance.</returns>
-	template <class T, class... Arg>
-	[[nodiscard]] constexpr PimplPtr<T> makePimpl(Arg&&... arg) {
-		return PimplPtr<T>(new T(std::forward<Arg>(arg)...));
-	}
+	// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 
 	/// <summary>
 	/// Declares the implementation for the public interface of a class.
@@ -528,37 +516,12 @@ namespace LiteFX {
 	/// <seealso cref="Implement" />
 #  define LITEFX_IMPLEMENTATION(impl) private: \
 	class impl; \
-	PimplPtr<impl> m_impl;
+	PimplPtr<impl> m_impl; \
+	friend class PimplPtr<impl>; \
+	friend class impl;
+
+	// NOLINTEND(cppcoreguidelines-macro-usage)
 #endif
-
-	/// <summary>
-	/// Base class for an implementation of a public interface class.
-	/// </summary>
-	/// <seealso cref="LITEFX_IMPLEMENTATION" />
-	/// <typeparam name="TInterface">The public interface class that should be implemented.</typeparam>
-	template <class TInterface>
-	class Implement {
-	public:
-		using interface_type = TInterface;
-		using base = Implement<interface_type>;
-
-	protected:
-		TInterface* m_parent{ nullptr };
-
-	public:
-		/// <summary>
-		/// Initializes the implementation instance.
-		/// </summary>
-		/// <param name="parent">The pointer to the parent public interface instance.</param>
-		constexpr Implement(TInterface* parent) : m_parent(parent) {
-			if (parent == nullptr)
-				throw std::runtime_error("Initializing an implementation requires the parent to be provided.");
-		}
-
-		Implement(Implement<TInterface>&&) = delete;
-		Implement(const Implement<TInterface>&) = delete;
-		constexpr virtual ~Implement() = default;
-	};
 
 	/// <summary>
 	/// Provides access to a resource managed by the class.
@@ -567,6 +530,13 @@ namespace LiteFX {
 	/// <typeparam name="THandle">The type of the resource.</typeparam>
 	template <class THandle>
 	class IResource {
+	protected:
+		IResource() noexcept = default;
+		IResource(const IResource&) = delete;
+		IResource(IResource&&) noexcept = default;
+		IResource& operator=(const IResource&) = delete;
+		IResource& operator=(IResource&&) noexcept = default;
+
 	public:
 		virtual ~IResource() noexcept = default;
 
@@ -602,12 +572,14 @@ namespace LiteFX {
 		/// Initializes the managed resource.
 		/// </summary>
 		/// <param name="handle">The managed resource handle.</param>
-		explicit Resource(const THandle handle) noexcept : m_handle(handle) { }
+		explicit Resource(THandle handle) noexcept : m_handle(std::move(handle)) { }
+		Resource(const Resource&) = delete;
+		Resource(Resource&&) noexcept = default;
+		Resource& operator=(const Resource&) = delete;
+		Resource& operator=(Resource&&) noexcept = default;
 
 	public:
-		Resource(const Resource&) = delete;
-		Resource(Resource&&) = delete;
-		virtual ~Resource() noexcept = default;
+		~Resource() noexcept override = default;
 
 	protected:
 		/// <inheritdoc />
@@ -685,7 +657,10 @@ namespace LiteFX {
 		/// <param name="_other">The instance of another builder object to take over.</param>
 		constexpr Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)) { }
 
-		constexpr Builder(const Builder&) = delete;
+		Builder(const Builder&) = delete;
+		auto operator=(const Builder&) = delete;
+		auto operator=(const Builder&&) noexcept = delete;
+
 		constexpr virtual ~Builder() noexcept = default;
 
 	protected:
@@ -704,7 +679,7 @@ namespace LiteFX {
 		/// builders. It is not possible to define a child builder without implementing the counter part in the parent builder.
 		/// </remarks>
 		template <typename TInstance>
-		void use(pointer_type&&) = delete;
+		void use(pointer_type&&) noexcept = delete;
 
 		/// <summary>
 		/// Calls <see cref="build" /> and returns the instance.
@@ -725,7 +700,7 @@ namespace LiteFX {
 	class Builder {
 	private:
 		TPointer m_instance;
-		TParent& m_parent;
+		TParent* m_parent;
 
 	public:
 		using instance_type = T;
@@ -743,7 +718,7 @@ namespace LiteFX {
 		/// Returns a reference of the parent builder.
 		/// </summary>
 		/// <returns>A reference of the parent builder.</returns>
-		constexpr const TParent& parent() const noexcept { return m_parent; }
+		constexpr const TParent& parent() const noexcept { return *m_parent; }
 
 	protected:
 		/// <summary>
@@ -758,15 +733,17 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="parent">The instance of the parent builder.</param>
 		/// <param name="instance">The instance of the object to build.</param>
-		constexpr explicit Builder(TParent& parent, TPointer&& instance) noexcept : m_parent(parent), m_instance(std::move(instance)) { }
+		constexpr explicit Builder(TParent& parent, TPointer&& instance) noexcept : m_instance(std::move(instance)), m_parent(&parent) { }
 		
 		/// <summary>
 		/// Initializes the builder instance by taking over another instance.
 		/// </summary>
 		/// <param name="_other">The instance of another builder object to take over.</param>
 		constexpr Builder(Builder&& _other) noexcept : m_instance(std::move(_other.m_instance)), m_parent(_other.m_parent) { }
-		
+
 		constexpr Builder(const Builder&) = delete;
+		auto operator=(const Builder&) = delete;
+		auto operator=(Builder&&) noexcept = delete;
 		constexpr virtual ~Builder() noexcept = default;
 
 	protected:
@@ -785,17 +762,19 @@ namespace LiteFX {
 		/// builders. It is not possible to define a child builder without implementing the counter part in the parent builder.
 		/// </remarks>
 		template <typename TInstance>
-		void use(pointer_type&&) = delete;
+		void use(pointer_type&&) noexcept = delete;
 
 		/// <summary>
 		/// First, calls <see cref="build" />, then `use` on the parent builder using the current object instance and finally returns the parent builder.
 		/// </summary>
 		[[nodiscard]] constexpr TParent& add() {
 			this->build();
-			m_parent.use(std::move(m_instance));
-			return m_parent;
+			m_parent->use(std::move(m_instance));
+			return *m_parent;
 		}
 	};
+
+	// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 
 #if !defined(LITEFX_BUILDER)
 #    define LITEFX_BUILDER(BuilderType) public: \
@@ -803,4 +782,98 @@ namespace LiteFX {
 		friend class BuilderType;
 #endif // !defined(LITEFX_BUILDER)
 
+	// NOLINTEND(cppcoreguidelines-macro-usage)
+
+	/// <summary>
+	/// Base class for an object that can be shared.
+	/// </summary>
+	/// <remarks>
+	/// This is an improved version of `std::enable_shared_from_this` that supports inheritance. When inheriting from this class, follow the same practices as you would for `std::enable_shared_from_this`: do 
+	/// not provide any public constructors; instead provide a private constructor and a publicly accessible static factory method, that returns a shared pointer.
+	/// 
+	/// Note that the above rule does not apply for objects that are stored within a <see cref="PimplPtr" />, as those are handled correctly by the pointer implementation.
+	/// 
+	/// You may want to create objects by creating a static factory method that calls the protected <see cref="SharedObject::create" /> method. This has the advantage of allocating a single memory block for 
+	/// both, the object and the shared pointers control block. To do this, make sure to declare friendship to <see cref="SharedAllocator" /> in your class, as shown in the example below.
+	/// </remarks>
+	/// <example>
+	/// <code>
+	/// class Foo : public SharedObject {
+	///     friend struct SharedObject::Allocator&gt;Foo&lt;;
+	/// 
+	/// private:
+	///     explicit Foo(int a, std::string b) { }
+	/// 
+	/// public:
+	///     static inline auto create(int a, std::string b) {
+	///         return SharedObject::create&gt;Foo&lt;(a, b);
+	///     }
+	/// }
+	/// </code>
+	/// </example>
+	/// <seealso href="https://en.cppreference.com/w/cpp/memory/enable_shared_from_this" />
+	class SharedObject : public std::enable_shared_from_this<SharedObject> {
+	protected:
+		/// <summary>
+		/// Initializes a new shared object.
+		/// </summary>
+		SharedObject() noexcept = default;
+		SharedObject(SharedObject&&) noexcept = default;
+		SharedObject(const SharedObject&) = default;
+		SharedObject& operator=(SharedObject&&) noexcept = default;
+		SharedObject& operator=(const SharedObject&) = default;
+
+	public:
+		/// <summary>
+		/// Destroys the shared object.
+		/// </summary>
+		virtual ~SharedObject() noexcept = default;
+
+	protected:
+		/// <summary>
+		/// An allocator used to allocate the shared object.
+		/// </summary>
+		/// <typeparam name="T">The type of the class that inherits from <see cref="SharedObject" />.</typeparam>
+		template <typename T>
+		struct Allocator : public std::allocator<T> {
+			template<typename TParent, typename... TArgs>
+			void construct(TParent* parent, TArgs&&... args) {
+				::new(static_cast<void*>(parent)) TParent(std::forward<TArgs>(args)...);
+			}
+		};
+
+		/// <summary>
+		/// Generic factory method used to create instances of the shared object.
+		/// </summary>
+		/// <typeparam name="T">The type of the class that inherits from <see cref="SharedObject" />.</typeparam>
+		/// <typeparam name="TArgs">The types of the arguments passed to the shared object's constructor.</typeparam>
+		/// <param name="args">The arguments that are forwarded to the shared object's constructor.</param>
+		/// <returns>A shared pointer of the shared object.</returns>
+		/// <seealso cref="Allocator" />
+		template <typename T, typename... TArgs>
+		static inline auto create(TArgs&&... args) -> SharedPtr<T> {
+			return std::allocate_shared<T>(Allocator<T>{}, std::forward<TArgs>(args)...);
+		}
+
+	public:
+		/// <summary>
+		/// Returns a shared pointer to the current object instance.
+		/// </summary>
+		template <typename TSelf>
+		auto inline shared_from_this(this TSelf&& self) noexcept
+		{
+			return std::static_pointer_cast<std::remove_reference_t<TSelf>>(
+				std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::shared_from_this());
+		}
+		
+		/// <summary>
+		/// Returns a weak pointer to the current object instance.
+		/// </summary>
+		template <typename TSelf>
+		auto inline weak_from_this(this TSelf&& self) noexcept -> WeakPtr<std::remove_reference_t<TSelf>>
+		{
+			return std::static_pointer_cast<std::remove_reference_t<TSelf>>(
+				std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::weak_from_this().lock());
+		}
+	};
 }

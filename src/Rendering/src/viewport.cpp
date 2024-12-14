@@ -6,17 +6,17 @@ using namespace LiteFX::Rendering;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class Viewport::ViewportImpl : public Implement<Viewport> {
+class Viewport::ViewportImpl {
 public:
     friend class Viewport;
 
 private:
-    RectF m_clientRect;
+    RectF m_clientRect{};
     Float m_minDepth{ 0.f }, m_maxDepth{ 1.f };
 
 public:
-    ViewportImpl(Viewport* parent, const RectF& clientRect, Float minDepth, Float maxDepth) :
-        base(parent), m_clientRect(clientRect), m_minDepth(minDepth), m_maxDepth(maxDepth)
+    ViewportImpl(RectF clientRect, Float minDepth, Float maxDepth) :
+        m_clientRect(std::move(clientRect)), m_minDepth(minDepth), m_maxDepth(maxDepth)
     {
     }
 };
@@ -25,8 +25,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-Viewport::Viewport(const RectF& rect, Float minDepth, Float maxDepth) :
-    m_impl(makePimpl<ViewportImpl>(this, rect, minDepth, maxDepth))
+Viewport::Viewport(const RectF& rect, Float minDepth, Float maxDepth) noexcept :
+    m_impl(rect, minDepth, maxDepth)
 {
 }
 

@@ -58,6 +58,8 @@
 #include <exception>
 #include <ranges>
 
+// NOLINTBEGIN
+
 namespace std {
 
     struct alignas(__STDCPP_DEFAULT_NEW_ALIGNMENT__) _Aligned_block {
@@ -516,5 +518,7 @@ namespace std {
     };
 
 }
+
+// NOLINTEND
 
 #endif // __has_include(<generator>)

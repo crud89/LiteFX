@@ -26,20 +26,20 @@ namespace LiteFX {
 	class App;
 	class AppBuilder;
 
-	enum class Platform {
-		None = 0x00000000,
-		Win32 = 0x00000001,
-		Other = 0x7FFFFFFF
+	enum class Platform : std::uint8_t {
+		None = 0x00,
+		Win32 = 0x01,
+		Other = 0xFF
 	};
 
-	enum class BackendType {
+	enum class BackendType : std::uint8_t {
 		Rendering = 0x01,
 		Other = 0xFF
 	};
 
 	constexpr std::array VALID_BACKEND_TYPES { BackendType::Rendering };
 
-	enum class BackendState {
+	enum class BackendState : std::uint8_t {
 		Inactive = 0x01,
 		Active = 0x02
 	};
@@ -59,10 +59,12 @@ namespace LiteFX {
 		/// <param name="patch">The patch number of the app.</param>
 		/// <param name="revision">The revision of the app.</param>
 		explicit AppVersion(int major = 1, int minor = 0, int patch = 0, int revision = 0) noexcept;
-		AppVersion(const AppVersion&) = delete;
-		AppVersion(AppVersion&&) = delete;
-
 		virtual ~AppVersion() noexcept;
+
+		AppVersion(const AppVersion& _other) = delete;
+		AppVersion(AppVersion&& _other) noexcept = delete;
+		AppVersion& operator=(const AppVersion&) = delete;
+		AppVersion& operator=(AppVersion&&) noexcept = delete;
 
 	public:
 		/// <summary>
@@ -117,13 +119,13 @@ namespace LiteFX {
 		/// Gets the identifier of the engine build.
 		/// </summary>
 		/// <returns>The identifier of the engine build.</returns>
-		String engineIdentifier() const noexcept;
+		StringView engineIdentifier() const noexcept;
 
 		/// <summary>
 		/// Gets the version string of the engine build.
 		/// </summary>
 		/// <returns>The version string of the engine build.</returns>
-		String engineVersion() const noexcept;
+		StringView engineVersion() const noexcept;
 	};
 
 }

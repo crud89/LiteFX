@@ -7,19 +7,19 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanShaderModule::VulkanShaderModuleImpl : public Implement<VulkanShaderModule> {
+class VulkanShaderModule::VulkanShaderModuleImpl {
 public:
 	friend class VulkanShaderModule;
 
 private:
+	WeakPtr<const VulkanDevice> m_device;
 	ShaderStage m_type;
 	String m_fileName, m_entryPoint, m_bytecode;
-	const VulkanDevice& m_device;
 	Optional<DescriptorBindingPoint> m_shaderLocalDescriptor;
 
 public:
-	VulkanShaderModuleImpl(VulkanShaderModule* parent, const VulkanDevice& device, ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
-		base(parent), m_device(device), m_fileName(fileName), m_entryPoint(entryPoint), m_type(type), m_shaderLocalDescriptor(shaderLocalDescriptor)
+	VulkanShaderModuleImpl(const VulkanDevice& device, ShaderStage type, String fileName, String entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
+		m_device(device.weak_from_this()), m_type(type), m_fileName(std::move(fileName)), m_entryPoint(std::move(entryPoint)), m_shaderLocalDescriptor(shaderLocalDescriptor)
 	{
 	}
 
@@ -36,7 +36,7 @@ private:
 
 	String readStreamContents(std::istream& stream)
 	{
-		return String(std::istreambuf_iterator<char>(stream), {});
+		return { std::istreambuf_iterator<char>(stream), {} };
 	}
 
 public:
@@ -50,20 +50,26 @@ public:
 		return this->initialize(this->readStreamContents(stream));
 	}
 
-	VkShaderModule initialize(String fileContents)
+	VkShaderModule initialize(const String& fileContents)
 	{
+		// Check if the device is still valid.
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot create shader module on a released device instance.");
+
 		VkShaderModuleCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 		createInfo.codeSize = fileContents.size();
-		createInfo.pCode = reinterpret_cast<const uint32_t*>(fileContents.c_str());
+		createInfo.pCode = std::bit_cast<const uint32_t*>(fileContents.c_str());
 
-		VkShaderModule module;
+		VkShaderModule module{};
 
-		if (::vkCreateShaderModule(m_device.handle(), &createInfo, nullptr, &module) != VK_SUCCESS)
+		if (::vkCreateShaderModule(device->handle(), &createInfo, nullptr, &module) != VK_SUCCESS)
 			throw std::runtime_error("Unable to compile shader file.");
 
 #ifndef NDEBUG
-		m_device.setDebugName(*reinterpret_cast<const UInt64*>(&module), VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT, std::format("{0}: {1}", m_fileName, m_entryPoint));
+		device->setDebugName(module, VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT, std::format("{0}: {1}", m_fileName, m_entryPoint));
 #endif
 
 		m_bytecode = fileContents;
@@ -76,20 +82,29 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanShaderModule::VulkanShaderModule(const VulkanDevice& device, ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
-	Resource<VkShaderModule>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanShaderModuleImpl>(this, device, type, fileName, entryPoint, shaderLocalDescriptor))
+	Resource<VkShaderModule>(VK_NULL_HANDLE), m_impl(device, type, fileName, entryPoint, shaderLocalDescriptor)
 {
 	this->handle() = m_impl->initialize();
 }
 
 VulkanShaderModule::VulkanShaderModule(const VulkanDevice& device, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
-	Resource<VkShaderModule>(VK_NULL_HANDLE), m_impl(makePimpl<VulkanShaderModuleImpl>(this, device, type, name, entryPoint, shaderLocalDescriptor))
+	Resource<VkShaderModule>(VK_NULL_HANDLE), m_impl(device, type, name, entryPoint, shaderLocalDescriptor)
 {
 	this->handle() = m_impl->initialize(stream);
 }
 
+VulkanShaderModule::VulkanShaderModule(VulkanShaderModule&&) noexcept = default;
+VulkanShaderModule& VulkanShaderModule::operator=(VulkanShaderModule&&) noexcept = default;
+
 VulkanShaderModule::~VulkanShaderModule() noexcept
 {
-	::vkDestroyShaderModule(m_impl->m_device.handle(), this->handle(), nullptr);
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		LITEFX_FATAL_ERROR(VULKAN_LOG, "Invalid attempt to release shader module after parent device.");
+	else
+		::vkDestroyShaderModule(device->handle(), this->handle(), nullptr);
 }
 
 ShaderStage VulkanShaderModule::type() const noexcept

@@ -1,21 +1,44 @@
 # Copyright (c) 2024 Carsten Rudolph
-name: Run Tests
+name: Pull Request Checks
 
+# Workflow triggers either manually or by creating or editing a comment on a pull request. When triggering manually, a pull request ID is required. Apart from that, a comment must 
+# be provided. When commenting on a PR, the comment is first checked to start with `Run:`. If this evaluates to true, the rest of the comment is checked to contain either of the
+# supported commands. Those are:
+#
+# - `tests`: runs tests
+# - `tidy`: runs static code analysis
+# - `checks`: runs everything of the above.
+#
+# Commands are restricted to be issued by maintainers or previous contributors.
+# Note that commands are case-sensitive. Also note that you could do wild shenanigans with this, like writing poems containing command keywords after the `Run:` string, but for the
+# sake of brevity please refrain from doing so! :-)
 on:
   issue_comment:
     types:
       - created
       - edited
+      
   workflow_dispatch:
     inputs:
       pullRequest:
         description: 'Pull Request ID'
         required: true
+      command:
+        description: 'Command'
+        required: true
+        default: 'checks' # Case sensitive. Must contain one or more of: 'checks', 'tests' or 'tidy'.
 
+# Environment variables control which version of dependent software to install.
 env:
   vulkanSdkVersion: '1.3.283.0'
   mesaDriverVersion: '24.1.1'
+  llvmVersion: '19'
 
+# The following jobs are contained in this workflow:
+# - First, the `verify-permissions` job is executed. It checks if the comment user is a contributer or maintainer and if the comment refers to a pull request. It then parses the 
+# command string. If permission is granted, the result is then passed to the subsequent jobs, which only execute if this job outputs their respective launch command.
+# - The `tests` job executes the tests.
+# - The `tidy` job executes static code analysis.
 jobs:
   verify:
     name: verify-permissions
@@ -23,8 +46,10 @@ jobs:
     permissions:
       issues: write
       pull-requests: write
-    if: "${{ (github.event_name == 'workflow_dispatch') || ( github.event_name == 'issue_comment' && github.event.issue.pull_request && contains(github.event.comment.body, 'Run: Tests') ) }}"
-
+    if: "${{ (github.event_name == 'workflow_dispatch') || ( github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, 'Run:') ) }}"
+    outputs:
+      commands: ${{ steps.parse-command.outputs.match }}
+      
     steps:
       - name: Check persmission
         uses: actions-cool/check-user-permission@v2
@@ -40,6 +65,27 @@ jobs:
           echo "::error Insufficient permission. Only existing contributers may trigger CI runs."
           exit 1
 
+      - name: Retrieve command
+        id: retrieve-command
+        shell: bash
+        run: |
+          if [[ '${{ github.event_name }}' == 'issue_comment' ]]
+          then
+            echo "command=${{ github.event.comment.body }}" >> $GITHUB_OUTPUT
+          else
+            echo "command=${{ github.event.inputs.command }}" >> $GITHUB_OUTPUT
+          fi
+            
+      - name: Parse command
+        id: parse-command
+        uses: thaitype/actions-switch-case@v1
+        with:
+          default: "none"
+          conditionals-with-values: |
+            ${{ contains(steps.retrieve-command.outputs.command, 'checks') }} => test, tidy
+            ${{ contains(steps.retrieve-command.outputs.command, 'tests') }} => test
+            ${{ contains(steps.retrieve-command.outputs.command, 'tidy') }} => tidy
+            
       - name: Confirm run
         uses: peter-evans/create-or-update-comment@v4
         if: ${{ github.event_name == 'issue_comment' }}
@@ -47,9 +93,70 @@ jobs:
           comment-id: ${{ github.event.comment.id }}
           reactions: 'rocket'
 
+  # ------------------------------------- Toolchain setup -------------------------------------
+  setup:
+    name: run-setup
+    needs: verify
+    if: ${{ contains(needs.verify.outputs.commands, 'test') || contains(needs.verify.outputs.commands, 'tidy') }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: true
+      matrix:
+        name: [ windows-latest ]
+        include:
+          - name: windows-latest
+            os: windows-latest
+          #- name: ubuntu-latest
+          #  os: ubuntu-latest
+      
+    steps:
+      - name: Setup Vulkan SDK 
+        uses: jakoch/install-vulkan-sdk-action@v1.0.4
+        with:
+          vulkan_version: ${{ env.vulkanSdkVersion }}
+          install_runtime: true
+          cache: true
+          stripdown: true
+          
+      - name: Lookup Mesa3D cache
+        uses: actions/cache@v4
+        id: lookup-mesa
+        with:
+          key: ${{ matrix.os }}-mesa3d-${{ env.mesaDriverVersion }}
+          path: ${{ github.workspace }}/dep/mesa/
+          lookup-only: true
+
+      - name: Download Mesa3D driver
+        uses: robinraju/release-downloader@v1.10
+        if: steps.lookup-mesa.outputs.cache-hit != 'true'
+        with:
+          repository: 'pal1000/mesa-dist-win'
+          tag: '${{ env.mesaDriverVersion }}'
+          fileName: 'mesa3d-${{ env.mesaDriverVersion }}-release-msvc.7z'
+          out-file-path: 'dep/mesa/'  # ${{ github.workspace }} is prefixed automatically.
+          extract: false  # 7zip is not supported by this extension, so we have to do it on our own later.
+          
+      - name: Decompress Mesa3D driver
+        working-directory: '${{ github.workspace }}/dep/mesa/'
+        if: steps.lookup-mesa.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          7z x '${{ github.workspace }}/dep/mesa/mesa3d-${{ env.mesaDriverVersion }}-release-msvc.7z'
+          rm '${{ github.workspace }}/dep/mesa/mesa3d-${{ env.mesaDriverVersion }}-release-msvc.7z'
+            
+      - name: Cache Mesa3D
+        uses: actions/cache/save@v4
+        if: steps.lookup-mesa.outputs.cache-hit != 'true'
+        with:
+          path: ${{ github.workspace }}/dep/mesa/
+          key: ${{ matrix.os }}-mesa3d-${{ env.mesaDriverVersion }}
+          
+  # ------------------------------------- Test job -------------------------------------
   test:
     name: run-tests
-    needs: verify
+    needs: [ verify, setup ]
+    if: ${{ contains(needs.verify.outputs.commands, 'test') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:
@@ -121,7 +228,7 @@ jobs:
           submodules: true
 
       - name: Setup Vulkan SDK 
-        uses: jakoch/install-vulkan-sdk-action@v1.0.0
+        uses: jakoch/install-vulkan-sdk-action@v1.0.4
         with:
           vulkan_version: ${{ env.vulkanSdkVersion }}
           install_runtime: true
@@ -135,34 +242,25 @@ jobs:
           choco install opencppcoverage
           echo "C:\Program Files\OpenCppCoverage" >> $GITHUB_PATH
 
-      - name: Install LLVM and Clang
-        if: ${{ matrix.compiler == 'clang' }}
-        uses: KyleMayes/install-llvm-action@v2
-        with:
-          version: "18"
+      - name: Update LLVM
+        if: ${{ matrix.compiler }} == 'clang'
+        run: choco upgrade llvm 
 
       - name: Setup build and test environment
         id: setup-environment
         shell: bash
         run: |
           echo "VCPKG_FEATURE_FLAGS=manifests" >> $env:GITHUB_ENV
+          echo "C:\msys64\ucrt64\bin" >> $GITHUB_PATH
           #echo "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime" >> $GITHUB_PATH  # Somehow does not get picked up by the MSVC development environment.
           cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
           cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
 
-      - name: Download Mesa3D driver
-        uses: robinraju/release-downloader@v1.10
+      - name: Restore Mesa3D
+        uses: actions/cache/restore@v4
         with:
-          repository: 'pal1000/mesa-dist-win'
-          tag: '${{ env.mesaDriverVersion }}'
-          fileName: 'mesa3d-${{ env.mesaDriverVersion }}-release-msvc.7z'
-          out-file-path: 'dep/mesa/'  # ${{ github.workspace }} is prefixed automatically.
-          extract: false  # 7zip is not supported by this extension, so we have to do it on our own later.
-          
-      - name: Decompress Mesa3D driver
-        working-directory: '${{ github.workspace }}/dep/mesa/'
-        run: |
-          7z x '${{ github.workspace }}/dep/mesa/mesa3d-${{ env.mesaDriverVersion }}-release-msvc.7z'
+          path: ${{ github.workspace }}/dep/mesa/
+          key: ${{ matrix.os }}-mesa3d-${{ env.mesaDriverVersion }}
 
       - name: Install and Test Mesa3D driver
         working-directory: '${{ github.workspace }}/dep/mesa/'
@@ -175,9 +273,6 @@ jobs:
           reg add "HKLM\SOFTWARE\WOW6432Node\Khronos\Vulkan\ExplicitLayers" /v 'C:\VulkanSDK\${{ env.vulkanSdkVersion }}\Bin32\VkLayer_khronos_validation.json' /t REG_DWORD /d 0 /f /reg:64
           C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkaninfo.exe --summary
 
-      - name: Retrieve latest CMake build
-        uses: lukka/get-cmake@latest
-
       - name: Restore or build vcpkg
         uses: lukka/run-vcpkg@v10
         with:
@@ -185,15 +280,11 @@ jobs:
           vcpkgJsonGlob: '${{ github.workspace }}/src/vcpkg.json'
 
       - name: Build Runtime and Tests
-        id: build-with-cmake
         uses: lukka/run-cmake@v10
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
           configurePreset: '${{ matrix.configuration }}'
-          configurePresetAdditionalArgs: "['-DLITEFX_BUILD_EXAMPLES=ON']"
           buildPreset: '${{ matrix.configuration }}'
-          #testPreset: '${{ matrix.configuration }}'
-          #testPresetAdditionalArgs: "[ '--output-on-failure', '--timeout', '10' ]"
 
       - name: Run tests
         working-directory: "${{ github.workspace }}/out/build/${{ matrix.configuration }}"
@@ -249,6 +340,135 @@ jobs:
         if: always()
         env:
           SUMMARY: ${{ steps.collect-test-results.outputs.summary }}
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          check_id: ${{ steps.create-checks.outputs.check_id }}
+          sha: ${{ env.HEAD_SHA }}
+          conclusion: ${{ job.status }}
+          output: |
+            { "summary": ${{ toJSON(env.SUMMARY) }} }
+            
+  # ------------------------------------- Static code analysis -------------------------------------
+  tidy:
+    name: run-tidy
+    needs: [ verify, setup ]
+    if: ${{ contains(needs.verify.outputs.commands, 'tidy') }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [ windows-latest-clang ]
+        include:
+          - name: windows-latest-clang
+            os: windows-latest
+            compiler: clang
+            triplet: x64-windows
+            configuration: windows-clangcl-x64-release
+            architecture: x64
+
+    steps:
+      - name: Retrieve PR info
+        id: retrieve-pr-from-issue-comment
+        uses: actions/github-script@v3
+        if: ${{ github.event_name == 'issue_comment' }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            console.log('Retrieving HEAD REF for PR #${{ github.event.issue.number }}')
+            const pull_request = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ github.event.issue.number }}
+            })
+            console.log('HEAD SHA = ' + pull_request.data.head.sha + ', REF = ' + pull_request.data.head.ref)
+            core.exportVariable('HEAD_SHA', pull_request.data.head.sha)
+            core.exportVariable('HEAD_REF', pull_request.data.head.ref)
+
+      - name: Retrieve PR info
+        id: retrieve-pr-from-workflow-dispatch
+        uses: actions/github-script@v3
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            console.log('Retrieving HEAD REF for PR #${{ github.event.inputs.pullRequest }}')
+            const pull_request = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ github.event.inputs.pullRequest }}
+            })
+            console.log('HEAD SHA = ' + pull_request.data.head.sha + ', REF = ' + pull_request.data.head.ref)
+            core.exportVariable('HEAD_SHA', pull_request.data.head.sha)
+            core.exportVariable('HEAD_REF', pull_request.data.head.ref)
+            
+      - name: Create checks
+        uses: LouisBrunner/checks-action@v2.0.0
+        id: create-checks
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: run-tidy (${{ matrix.name }})
+          sha: ${{ env.HEAD_SHA }}
+          status: in_progress
+    
+      - name: Checking out sources
+        uses: actions/checkout@master
+        with:
+          ref: ${{ env.HEAD_SHA }}
+          submodules: true
+
+      - name: Setup Vulkan SDK 
+        uses: jakoch/install-vulkan-sdk-action@v1.0.4
+        with:
+          vulkan_version: ${{ env.vulkanSdkVersion }}
+          install_runtime: true
+          cache: true
+          stripdown: false
+          
+      - name: Update LLVM
+        if: ${{ matrix.compiler }} == 'clang'
+        run: choco upgrade llvm 
+        
+      - name: Setup build and test environment
+        id: setup-environment
+        shell: bash
+        run: |
+          echo "VCPKG_FEATURE_FLAGS=manifests" >> $env:GITHUB_ENV
+          #echo "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime" >> $GITHUB_PATH  # Somehow does not get picked up by the MSVC development environment.
+          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
+          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
+          echo "C:\msys64\ucrt64\bin" >> $GITHUB_PATH
+
+      - name: Retrieve latest CMake build
+        uses: lukka/get-cmake@latest
+
+      - name: Restore or build vcpkg
+        uses: lukka/run-vcpkg@v10
+        with:
+          vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
+          vcpkgJsonGlob: '${{ github.workspace }}/src/vcpkg.json'
+
+      - name: Build Runtime and Samples
+        id: build-with-cmake
+        uses: lukka/run-cmake@v10
+        with:
+          cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
+          configurePreset: '${{ matrix.configuration }}'
+          buildPreset: '${{ matrix.configuration }}'
+
+      - name: Collect code analysis results
+        id: collect-tidy-results
+        if: always()
+        shell: bash
+        working-directory: "${{ github.workspace }}/out/build/${{ matrix.configuration }}"
+        run: |
+          echo "summary<<EOF"$'\n'"# Code Analysis Results 🧪"$'\n```\n'"${{ steps.build-with-cmake.outputs.stdout }}"$'\n```'$'\n'EOF >> "$GITHUB_OUTPUT"
+          
+      - name: Update checks
+        uses: LouisBrunner/checks-action@v2.0.0
+        if: always()
+        env:
+          SUMMARY: ${{ steps.collect-tidy-results.outputs.summary }}
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           check_id: ${{ steps.create-checks.outputs.check_id }}

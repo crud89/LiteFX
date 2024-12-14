@@ -10,33 +10,38 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12Queue::DirectX12QueueImpl : public Implement<DirectX12Queue> {
+class DirectX12Queue::DirectX12QueueImpl {
 public:
 	friend class DirectX12Queue;
 
 private:
+	WeakPtr<const DirectX12Device> m_device;
 	QueueType m_type;
 	QueuePriority m_priority;
 	ComPtr<ID3D12Fence> m_fence;
 	UInt64 m_fenceValue{ 0 };
 	mutable std::mutex m_mutex;
-	const DirectX12Device& m_device;
 	Array<Tuple<UInt64, SharedPtr<const DirectX12CommandBuffer>>> m_submittedCommandBuffers;
 
 public:
-	DirectX12QueueImpl(DirectX12Queue* parent, const DirectX12Device& device, QueueType type, QueuePriority priority) :
-		base(parent), m_device(device), m_type(type), m_priority(priority)
+	DirectX12QueueImpl(const DirectX12Device& device, QueueType type, QueuePriority priority) :
+		m_device(device.weak_from_this()), m_type(type), m_priority(priority)
 	{
 	}
 
-	~DirectX12QueueImpl() 
+	DirectX12QueueImpl(const DirectX12QueueImpl&) = delete;
+	DirectX12QueueImpl(DirectX12QueueImpl&&) noexcept = delete;
+	DirectX12QueueImpl& operator=(const DirectX12QueueImpl&) = delete;
+	DirectX12QueueImpl& operator=(DirectX12QueueImpl&&) noexcept = delete;
+
+	~DirectX12QueueImpl()
 	{
 		m_submittedCommandBuffers.clear();
 	}
 
 public:
 	[[nodiscard]]
-	ComPtr<ID3D12CommandQueue> initialize()
+	ComPtr<ID3D12CommandQueue> initialize(const DirectX12Device& device)
 	{
 		ComPtr<ID3D12CommandQueue> commandQueue;
 
@@ -71,20 +76,20 @@ public:
 			break;
 		}
 
-		raiseIfFailed(m_device.handle()->CreateCommandQueue(&desc, IID_PPV_ARGS(&commandQueue)), "Unable to create command queue of type {0} with priority {1}.", m_type, m_priority);
-		raiseIfFailed(m_device.handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)), "Unable to create command buffer synchronization fence.");
+		raiseIfFailed(device.handle()->CreateCommandQueue(&desc, IID_PPV_ARGS(&commandQueue)), "Unable to create command queue of type {0} with priority {1}.", m_type, m_priority);
+		raiseIfFailed(device.handle()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)), "Unable to create command buffer synchronization fence.");
 
 		return commandQueue;
 	}
 
-	void releaseCommandBuffers(UInt64 beforeFence)
+	void releaseCommandBuffers(const DirectX12Queue& queue, UInt64 beforeFence)
 	{
 		// Release all shared command buffers until this point.
-		const auto [from, to] = std::ranges::remove_if(m_submittedCommandBuffers, [this, &beforeFence](auto& pair) {
+		const auto [from, to] = std::ranges::remove_if(m_submittedCommandBuffers, [&queue, &beforeFence](auto& pair) {
 			if (std::get<0>(pair) > beforeFence)
 				return false;
 
-			this->m_parent->releaseSharedState(*std::get<1>(pair));
+			queue.releaseSharedState(*std::get<1>(pair));
 			return true;
 		});
 
@@ -97,16 +102,18 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12Queue::DirectX12Queue(const DirectX12Device& device, QueueType type, QueuePriority priority) :
-	ComResource<ID3D12CommandQueue>(nullptr), m_impl(makePimpl<DirectX12QueueImpl>(this, device, type, priority))
+	ComResource<ID3D12CommandQueue>(nullptr), m_impl(device, type, priority)
 {
-	this->handle() = m_impl->initialize();
+	this->handle() = m_impl->initialize(device);
 }
 
+//DirectX12Queue::DirectX12Queue(DirectX12Queue&&) noexcept = default;
+//DirectX12Queue& DirectX12Queue::operator=(DirectX12Queue&&) noexcept = default;
 DirectX12Queue::~DirectX12Queue() noexcept = default;
 
-const DirectX12Device& DirectX12Queue::device() const noexcept
+SharedPtr<const DirectX12Device> DirectX12Queue::device() const noexcept
 {
-	return m_impl->m_device;
+	return m_impl->m_device.lock();
 }
 
 QueueType DirectX12Queue::type() const noexcept
@@ -141,7 +148,7 @@ SharedPtr<DirectX12CommandBuffer> DirectX12Queue::createCommandBuffer(bool begin
 	return DirectX12CommandBuffer::create(*this, beginRecording, !secondary);
 }
 
-UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuffer) const
+UInt64 DirectX12Queue::submit(const SharedPtr<const DirectX12CommandBuffer>& commandBuffer) const
 {
 	if (commandBuffer == nullptr)
 		throw InvalidArgumentException("commandBuffer", "The command buffer must be initialized.");
@@ -156,7 +163,7 @@ UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuf
 
 	// Remove all previously submitted command buffers, that have already finished.
 	auto completedValue = m_impl->m_fence->GetCompletedValue();
-	m_impl->releaseCommandBuffers(completedValue);
+	m_impl->releaseCommandBuffers(*this, completedValue);
 
 	// End the command buffer.
 	commandBuffer->end();
@@ -170,14 +177,14 @@ UInt64 DirectX12Queue::submit(SharedPtr<const DirectX12CommandBuffer> commandBuf
 	raiseIfFailed(this->handle()->Signal(m_impl->m_fence.Get(), fence), "Unable to add fence signal to command buffer.");
 
 	// Add the command buffer to the submitted command buffers list.
-	m_impl->m_submittedCommandBuffers.push_back({ fence, commandBuffer });
+	m_impl->m_submittedCommandBuffers.emplace_back(fence, commandBuffer);
 
 	// Fire end event.
 	this->submitted(this, { fence });
 	return fence;
 }
 
-UInt64 DirectX12Queue::submit(const Enumerable<SharedPtr<const DirectX12CommandBuffer>>& commandBuffers) const
+UInt64 DirectX12Queue::submit(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const
 {
 	if (!std::ranges::all_of(commandBuffers, [](const auto& buffer) { return buffer != nullptr; }))
 		throw InvalidArgumentException("commandBuffers", "At least one command buffer is not initialized.");
@@ -195,15 +202,15 @@ UInt64 DirectX12Queue::submit(const Enumerable<SharedPtr<const DirectX12CommandB
 
 	// Remove all previously submitted command buffers, that have already finished.
 	auto completedValue = m_impl->m_fence->GetCompletedValue();
-	m_impl->releaseCommandBuffers(completedValue);
+	m_impl->releaseCommandBuffers(*this, completedValue);
 
 	// End and submit the command buffers.
-	auto handles = [&commandBuffers]() -> std::generator<ID3D12CommandList*> {
-		for (auto buffer = commandBuffers.begin(); buffer != commandBuffers.end(); ++buffer) {
-			(*buffer)->end();
-			co_yield (*buffer)->handle().Get();
-		}
-	}() | std::ranges::to<Array<ID3D12CommandList*>>();
+	for (auto buffer = commandBuffers.begin(); buffer != commandBuffers.end(); ++buffer)
+		(*buffer)->end();
+
+	auto handles = commandBuffers 
+		| std::views::transform([](const SharedPtr<const DirectX12CommandBuffer>& buffer) { return buffer->handle().Get(); })
+		| std::ranges::to<Array<ID3D12CommandList*>>();
 
 	this->handle()->ExecuteCommandLists(static_cast<UInt32>(handles.size()), handles.data());
 
@@ -212,14 +219,14 @@ UInt64 DirectX12Queue::submit(const Enumerable<SharedPtr<const DirectX12CommandB
 	raiseIfFailed(this->handle()->Signal(m_impl->m_fence.Get(), fence), "Unable to add fence signal to command buffer.");
 
 	// Add the command buffers to the submitted command buffers list.
-	std::ranges::for_each(commandBuffers, [this, &fence](auto& buffer) { m_impl->m_submittedCommandBuffers.push_back({ fence, buffer }); });
+	std::ranges::for_each(commandBuffers, [this, &fence](auto& buffer) { m_impl->m_submittedCommandBuffers.emplace_back(fence, buffer); });
 
 	// Fire end event.
 	this->submitted(this, { fence });
 	return fence;
 }
 
-void DirectX12Queue::waitFor(UInt64 fence) const noexcept
+void DirectX12Queue::waitFor(UInt64 fence) const
 {
 	auto completedValue = m_impl->m_fence->GetCompletedValue();
 
@@ -235,7 +242,7 @@ void DirectX12Queue::waitFor(UInt64 fence) const noexcept
 		raiseIfFailed(hr, "Unable to register fence completion event.");
 	}
 
-	m_impl->releaseCommandBuffers(fence);
+	m_impl->releaseCommandBuffers(*this, fence);
 }
 
 void DirectX12Queue::waitFor(const DirectX12Queue& queue, UInt64 fence) const noexcept

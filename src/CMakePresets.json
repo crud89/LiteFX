@@ -178,6 +178,38 @@
       }
     },
     {
+      "name": "windows-clangcl-x64-debug",
+      "inherits": [
+        "windows",
+        "clangcl"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
+      }
+    },
+    {
+      "name": "windows-clangcl-x64-release",
+      "inherits": [
+        "windows",
+        "clangcl"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      }
+    },
+    {
       "name": "windows-clang-x64-debug",
       "inherits": [
         "windows",
@@ -225,6 +257,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "LITEFX_BUILD_TESTS": "ON",
+        "LITEFX_BUILD_EXAMPLES": "OFF",
         "VCPKG_TARGET_TRIPLET": "x64-windows",
         "VCPKG_MANIFEST_FEATURES": "pix-support",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
@@ -318,6 +351,14 @@
     {
       "name": "windows-clang-x64-debug-static",
       "configurePreset": "windows-clang-x64-debug-static"
+    },
+    {
+      "name": "windows-clangcl-x64-debug",
+      "configurePreset": "windows-clangcl-x64-debug"
+    },
+    {
+      "name": "windows-clangcl-x64-release",
+      "configurePreset": "windows-clangcl-x64-release"
     }
   ],
   "testPresets": [

@@ -16,7 +16,6 @@ SET(RENDERING_HEADERS
 )
 
 SET(RENDERING_SOURCES
-    "src/convert.cpp"
     "src/buffer_attribute.cpp"
     "src/depth_stencil_state.cpp"
     "src/rasterizer.cpp"

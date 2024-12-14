@@ -6,7 +6,7 @@ using namespace LiteFX;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class AppVersion::AppVersionImpl : public Implement<AppVersion> {
+class AppVersion::AppVersionImpl {
 public:
 	friend class AppVersion;
 
@@ -14,10 +14,16 @@ private:
 	int m_major, m_minor, m_patch, m_revision;
 
 public:
-	AppVersionImpl(AppVersion* parent, int major, int minor, int patch, int revision) : 
-		base(parent), m_major(major), m_minor(minor), m_patch(patch), m_revision(revision) 
+	AppVersionImpl(int major, int minor, int patch, int revision) noexcept : 
+		m_major(major), m_minor(minor), m_patch(patch), m_revision(revision) 
 	{
 	}
+
+	AppVersionImpl(const AppVersionImpl&) = default;
+	AppVersionImpl(AppVersionImpl&&) noexcept = default;
+	AppVersionImpl& operator=(const AppVersionImpl&) = default;
+	AppVersionImpl& operator=(AppVersionImpl&&) noexcept = default;
+	~AppVersionImpl() noexcept = default;
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -25,7 +31,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 AppVersion::AppVersion(int major, int minor, int patch, int revision) noexcept :
-	m_impl(makePimpl<AppVersionImpl>(this, major, minor, patch, revision))
+	m_impl(major, minor, patch, revision)
 {
 }
 
@@ -71,12 +77,12 @@ int AppVersion::engineStatus() const noexcept
 	return LITEFX_STATUS;
 }
 
-String AppVersion::engineIdentifier() const noexcept
+StringView AppVersion::engineIdentifier() const noexcept
 {
 	return LITEFX_ENGINE_ID;
 }
 
-String AppVersion::engineVersion() const noexcept
+StringView AppVersion::engineVersion() const noexcept
 {
 	return LITEFX_VERSION;
 }

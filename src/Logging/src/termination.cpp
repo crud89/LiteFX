@@ -47,7 +47,7 @@ void termination_sink::flush_()
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class TerminationSink::TerminationSinkImpl : public Implement<TerminationSink> {
+class TerminationSink::TerminationSinkImpl {
 public:
     friend class TerminationSink;
 
@@ -57,8 +57,8 @@ private:
     SharedPtr<termination_sink> m_sink;
 
 public:
-    TerminationSinkImpl(TerminationSink* parent, const LogLevel& level, int status) :
-        base(parent), m_level(level), m_sink(makeShared<termination_sink>(status))
+    TerminationSinkImpl(const LogLevel& level, int status) :
+        m_level(level), m_sink(makeShared<termination_sink>(status))
     {
         m_sink->set_level(static_cast<spdlog::level::level_enum>(level));
     }
@@ -69,7 +69,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 TerminationSink::TerminationSink(const LogLevel& level, int status) :
-    m_impl(makePimpl<TerminationSinkImpl>(this, level, status))
+    m_impl(level, status)
 {
 }
 
