@@ -10,6 +10,7 @@
 #include <CLI/CLI.hpp>
 #include <iostream>
 #include <filesystem>
+#include <print>
 
 #ifdef LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER
 #include <shlobj.h>
@@ -38,7 +39,11 @@ bool loadPixCapturer()
 		return false;
 
 	auto pixPath = pixInstallationPath / newestVersionFound / L"WinPixGpuCapturer.dll";
-	std::wcout << "Found PIX: " << pixPath.c_str() << std::endl;
+#ifdef __cpp_lib_format_path 
+	std::println("Found PIX: {0}", pixPath);
+#else
+	std::println("Found PIX: {0}", pixPath.string());
+#endif
 	::LoadLibraryW(pixPath.c_str());
 
 	return true;
@@ -55,7 +60,7 @@ bool loadRenderDocApi()
 	if (renderDocModule != 0)
 	{
 		pRENDERDOC_GetAPI RENDERDOC_GetAPI = (pRENDERDOC_GetAPI)::GetProcAddress(renderDocModule, "RENDERDOC_GetAPI");
-		int result = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_5_0, reinterpret_cast<void**>(&::renderDoc));
+		int result = RENDERDOC_GetAPI(eRENDERDOC_API_Version_1_5_0, static_cast<void**>(&::renderDoc));
 
 		return result == 1;
 	}
@@ -64,7 +69,7 @@ bool loadRenderDocApi()
 }
 #endif // LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER
 
-int main(const int argc, const char** argv)
+int main(const int argc, const char** argv) // NOLINT(bugprone-exception-escape)
 {
 #ifdef WIN32
 	// Enable console colors.
@@ -72,47 +77,47 @@ int main(const int argc, const char** argv)
 	DWORD consoleMode = 0;
 
 	if (console == INVALID_HANDLE_VALUE || !::GetConsoleMode(console, &consoleMode))
-		return ::GetLastError();
+		return static_cast<int>(::GetLastError());
 
 	::SetConsoleMode(console, consoleMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 #endif
 
 	// Parse the command line parameters.
-	const String appName = SampleApp::Name();
+	const String appName{ SampleApp::Name() };
 
-	CLI::App app{ "Demonstrates multi-threaded command buffer recording.", appName };
+	CLI::App commandLine{ "Demonstrates multi-threaded command buffer recording.", appName };
 	
 	Optional<UInt32> adapterId;
-	app.add_option("-a,--adapter", adapterId)->take_first();
-	auto validationLayers = app.add_option("-l,--vk-validation-layers")->take_all();
+	commandLine.add_option("-a,--adapter", adapterId)->take_first();
+	auto validationLayers = commandLine.add_option("-l,--vk-validation-layers")->take_all();
 
 #ifdef LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER
 	bool loadPix{ false };
-	app.add_option("--dx-load-pix", loadPix)->take_first();
+	commandLine.add_option("--dx-load-pix", loadPix)->take_first();
 #endif // LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER
 
 #ifdef LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER
 	bool loadRenderDoc{ false };
-	app.add_option("--load-render-doc", loadRenderDoc)->take_first();
+	commandLine.add_option("--load-render-doc", loadRenderDoc)->take_first();
 #endif // LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER
 
 	try
 	{
-		app.parse(argc, argv);
+		commandLine.parse(argc, argv);
 	}
 	catch (const CLI::ParseError& ex)
 	{
-		return app.exit(ex);
+		return commandLine.exit(ex);
 	}
 
 #ifdef LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER
 	if (loadPix && !loadPixCapturer())
-		std::cout << "No PIX distribution found. Make sure you have installed PIX for Windows." << std::endl;
+		std::println("No PIX distribution found. Make sure you have installed PIX for Windows.");
 #endif // LITEFX_BUILD_EXAMPLES_DX12_PIX_LOADER
 
 #ifdef LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER
 	if (loadRenderDoc && !loadRenderDocApi())
-		std::cout << "RenderDoc API could not be loaded. Make sure you have version 1.5 or higher installed on your system." << std::endl;
+		std::println("RenderDoc API could not be loaded. Make sure you have version 1.5 or higher installed on your system.");
 #endif // LITEFX_BUILD_EXAMPLES_RENDERDOC_LOADER
 
 	// Turn the validation layers into a list.
@@ -129,7 +134,7 @@ int main(const int argc, const char** argv)
 	::glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	::glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-	auto window = GlfwWindowPtr(::glfwCreateWindow(800, 600, appName.c_str(), nullptr, nullptr));
+	auto window = GlfwWindowPtr(::glfwCreateWindow(800, 600, appName.c_str(), nullptr, nullptr)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
 	// Get the required Vulkan extensions from glfw.
 	uint32_t extensions = 0;
@@ -137,7 +142,7 @@ int main(const int argc, const char** argv)
 	Array<String> requiredExtensions;
 
 	for (uint32_t i(0); i < extensions; ++i)
-		requiredExtensions.push_back(String(extensionNames[i]));
+		requiredExtensions.emplace_back(extensionNames[i]); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
 	// Create the app.
 	try 
@@ -157,7 +162,7 @@ int main(const int argc, const char** argv)
 	}
 	catch (const LiteFX::Exception& ex)
 	{
-		std::cerr << "\033[3;41;37mUnhandled exception: " << ex.what() << '\n' << "at: " << ex.trace() << "\033[0m" << std::endl;
+		std::cerr << "\033[3;41;37mUnhandled exception: " << ex.what() << '\n' << "at: " << ex.trace() << "\033[0m\n";
 
 		return EXIT_FAILURE;
 	}

@@ -7,39 +7,43 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12ComputePipeline::DirectX12ComputePipelineImpl : public Implement<DirectX12ComputePipeline> {
+class DirectX12ComputePipeline::DirectX12ComputePipelineImpl {
 public:
 	friend class DirectX12ComputePipelineBuilder;
 	friend class DirectX12ComputePipeline;
 
 private:
+	WeakPtr<const DirectX12Device> m_device;
 	SharedPtr<DirectX12PipelineLayout> m_layout;
 	SharedPtr<DirectX12ShaderProgram> m_program;
-	const DirectX12Device& m_device;
 
 public:
-	DirectX12ComputePipelineImpl(DirectX12ComputePipeline* parent, const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram) :
-		base(parent), m_device(device), m_layout(layout), m_program(shaderProgram)
+	DirectX12ComputePipelineImpl(const DirectX12Device& device, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram) :
+		m_device(device.weak_from_this()), m_layout(layout), m_program(shaderProgram)
 	{
 	}
 
-	DirectX12ComputePipelineImpl(DirectX12ComputePipeline* parent, const DirectX12Device& device) :
-		base(parent), m_device(device)
+	DirectX12ComputePipelineImpl(const DirectX12Device& device) :
+		m_device(device.weak_from_this())
 	{
 	}
 
 public:
-	ComPtr<ID3D12PipelineState> initialize()
+	ComPtr<ID3D12PipelineState> initialize([[maybe_unused]] const DirectX12ComputePipeline& pipeline)
 	{
 		// Define the pipeline state.
 		D3D12_COMPUTE_PIPELINE_STATE_DESC pipelineStateDescription = {};
 
 		// Setup shader stages.
 		auto modules = m_program->modules();
-		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", reinterpret_cast<void*>(m_program.get()), modules.size());
+		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", static_cast<void*>(m_program.get()), modules.size());
 
 		std::ranges::for_each(modules, [&, i = 0](const DirectX12ShaderModule* shaderModule) mutable {
+#ifdef NDEBUG
+			(void)i; // Required as [[maybe_unused]] is not supported in captures.
+#else
 			LITEFX_TRACE(DIRECTX12_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", ++i, modules.size(), shaderModule->fileName(), shaderModule->type(), shaderModule->entryPoint());
+#endif
 
 			switch (shaderModule->type())
 			{
@@ -55,15 +59,22 @@ public:
 		// Create a pipeline state description.
 		pipelineStateDescription.pRootSignature = std::as_const(*m_layout).handle().Get();
 
-		// Create the pipeline state instance.
-		ComPtr<ID3D12PipelineState> pipelineState;
-		raiseIfFailed(m_device.handle()->CreateComputePipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create compute pipeline state.");
+		if (auto device = m_device.lock()) [[likely]]
+		{
+			// Create the pipeline state instance.
+			ComPtr<ID3D12PipelineState> pipelineState;
+			raiseIfFailed(device->handle()->CreateComputePipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create compute pipeline state.");
 
 #ifndef NDEBUG
-		pipelineState->SetName(Widen(m_parent->name()).c_str());
+			pipelineState->SetName(Widen(pipeline.name()).c_str());
 #endif
 
-		return pipelineState;
+			return pipelineState;
+		}
+		else
+		{
+			throw RuntimeException("Cannot create compute pipeline from release device instance.");
+		}
 	}
 };
 
@@ -71,20 +82,22 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12ComputePipeline::DirectX12ComputePipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, const String& name) :
-	m_impl(makePimpl<DirectX12ComputePipelineImpl>(this, device, layout, shaderProgram)), DirectX12PipelineState(nullptr)
+DirectX12ComputePipeline::DirectX12ComputePipeline(const DirectX12Device& device, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram, const String& name) :
+	DirectX12PipelineState(nullptr), m_impl(device, layout, shaderProgram)
 {
 	if (!name.empty())
 		this->name() = name;
 
-	this->handle() = m_impl->initialize();
+	this->handle() = m_impl->initialize(*this);
 }
 
 DirectX12ComputePipeline::DirectX12ComputePipeline(const DirectX12Device& device) noexcept :
-	m_impl(makePimpl<DirectX12ComputePipelineImpl>(this, device)), DirectX12PipelineState(nullptr)
+	DirectX12PipelineState(nullptr), m_impl(device)
 {
 }
 
+DirectX12ComputePipeline::DirectX12ComputePipeline(DirectX12ComputePipeline&&) noexcept = default;
+DirectX12ComputePipeline& DirectX12ComputePipeline::operator=(DirectX12ComputePipeline&&) noexcept = default;
 DirectX12ComputePipeline::~DirectX12ComputePipeline() noexcept = default;
 
 SharedPtr<const DirectX12ShaderProgram> DirectX12ComputePipeline::program() const noexcept
@@ -119,8 +132,8 @@ DirectX12ComputePipelineBuilder::~DirectX12ComputePipelineBuilder() noexcept = d
 void DirectX12ComputePipelineBuilder::build()
 {
 	auto instance = this->instance();
-	instance->m_impl->m_layout = m_state.pipelineLayout;
-	instance->m_impl->m_program = m_state.shaderProgram;
-	instance->handle() = instance->m_impl->initialize();
+	instance->m_impl->m_layout = this->state().pipelineLayout;
+	instance->m_impl->m_program = this->state().shaderProgram;
+	instance->handle() = instance->m_impl->initialize(*instance);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

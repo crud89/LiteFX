@@ -6,18 +6,20 @@ using namespace LiteFX::Rendering;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class BufferAttribute::BufferAttributeImpl : public Implement<BufferAttribute> {
+class BufferAttribute::BufferAttributeImpl {
 public:
     friend class BufferAttribute;
 
 private:
-    UInt32 m_location, m_offset, m_semanticIndex;
-    BufferFormat m_format;
-    AttributeSemantic m_semantic;
+    UInt32 m_location{ 0 }, m_offset{ 0 }, m_semanticIndex{ 0 };
+    BufferFormat m_format{ BufferFormat::None };
+    AttributeSemantic m_semantic{ AttributeSemantic::Unknown };
 
 public:
-    BufferAttributeImpl(BufferAttribute* parent, UInt32 location, UInt32 offset, BufferFormat format, AttributeSemantic semantic, UInt32 semanticIndex) :
-        base(parent), m_location(location), m_offset(offset), m_format(format), m_semantic(semantic), m_semanticIndex(semanticIndex) 
+    BufferAttributeImpl() noexcept = default;
+
+    BufferAttributeImpl(UInt32 location, UInt32 offset, BufferFormat format, AttributeSemantic semantic, UInt32 semanticIndex) noexcept :
+        m_location(location), m_offset(offset), m_semanticIndex(semanticIndex), m_format(format), m_semantic(semantic)
     {
     }
 };
@@ -26,27 +28,20 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-BufferAttribute::BufferAttribute() :
-    m_impl(makePimpl<BufferAttributeImpl>(this, 0, 0, BufferFormat::None, AttributeSemantic::Unknown, 0))
+BufferAttribute::BufferAttribute() noexcept :
+    m_impl()
 {
 }
 
-BufferAttribute::BufferAttribute(UInt32 location, UInt32 offset, BufferFormat format, AttributeSemantic semantic, UInt32 semanticIndex) :
-    m_impl(makePimpl<BufferAttributeImpl>(this, location, offset, format, semantic, semanticIndex))
+BufferAttribute::BufferAttribute(UInt32 location, UInt32 offset, BufferFormat format, AttributeSemantic semantic, UInt32 semanticIndex) noexcept :
+    m_impl(location, offset, format, semantic, semanticIndex)
 {
 }
 
-BufferAttribute::BufferAttribute(const BufferAttribute& _other) :
-    m_impl(makePimpl<BufferAttributeImpl>(this, _other.location(), _other.offset(), _other.format(), _other.semantic(), _other.semanticIndex()))
-{
-}
-
-BufferAttribute::BufferAttribute(BufferAttribute&& _other) noexcept :
-    m_impl(std::move(_other.m_impl))
-{
-    m_impl->m_parent = this;
-}
-
+BufferAttribute::BufferAttribute(const BufferAttribute& _other) = default;
+BufferAttribute::BufferAttribute(BufferAttribute&& _other) noexcept = default;
+BufferAttribute& BufferAttribute::operator=(const BufferAttribute& _other) = default;
+BufferAttribute& BufferAttribute::operator=(BufferAttribute&& _other) noexcept = default;
 BufferAttribute::~BufferAttribute() noexcept = default;
 
 UInt32 BufferAttribute::location() const noexcept

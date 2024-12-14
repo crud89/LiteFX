@@ -1,9 +1,0 @@
-{
-  "name": "directx-agility-sdk",
-  "version": "1.614.0",
-  "description": "The DirectX 12 Agility SDK allows developers to adopt the newest DirectX 12 graphics features faster than ever before.",
-  "homepage": "https://devblogs.microsoft.com/directx/directx12agility/",
-  "documentation": "https://devblogs.microsoft.com/directx/gettingstarted-dx12agility/",
-  "license": null,
-  "supports": "windows & !uwp & !staticcrt"
-}

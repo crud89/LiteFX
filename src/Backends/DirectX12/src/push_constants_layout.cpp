@@ -7,7 +7,7 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12PushConstantsLayout::DirectX12PushConstantsLayoutImpl : public Implement<DirectX12PushConstantsLayout> {
+class DirectX12PushConstantsLayout::DirectX12PushConstantsLayoutImpl {
 public:
     friend class DirectX12PushConstantsLayoutBuilder;
     friend class DirectX12PushConstantsLayout;
@@ -18,21 +18,20 @@ private:
     UInt32 m_size;
 
 public:
-    DirectX12PushConstantsLayoutImpl(DirectX12PushConstantsLayout* parent, UInt32 size) :
-        base(parent), m_size(size)
+    DirectX12PushConstantsLayoutImpl(UInt32 size) :
+        m_size(size % 4 == 0 ? (size + 4 - 1) & ~(size - 1) : size)
     {
-        // Align the size to 4 bytes.
-        m_size = size % 4 == 0 ? (size + 4 - 1) & ~(size - 1) : size;
+        constexpr UInt32 MAX_GUARANTEED_RANGE_SIZE = 128;
 
         // Issue a warning, if the size is too large.
-        if (m_size > 128)
+        if (m_size > MAX_GUARANTEED_RANGE_SIZE)
             LITEFX_WARNING(DIRECTX12_LOG, "The push constant layout backing memory is defined with a size greater than 128 bytes. Blocks larger than 128 bytes are not forbidden, but also not guaranteed to be supported on all hardware.");
     }
 
 private:
     void setRanges(Enumerable<UniquePtr<DirectX12PushConstantsRange>>&& ranges)
     {
-        m_rangePointers = ranges | std::views::as_rvalue | std::ranges::to<std::vector>();
+        m_rangePointers = std::move(ranges) | std::views::as_rvalue | std::ranges::to<std::vector>();
 
         std::ranges::for_each(m_rangePointers, [this](const UniquePtr<DirectX12PushConstantsRange>& range) {
             if (m_ranges.contains(static_cast<ShaderStage>(range->stage())))
@@ -48,16 +47,18 @@ private:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(Enumerable<UniquePtr<DirectX12PushConstantsRange>>&& ranges, UInt32 size) :
-    m_impl(makePimpl<DirectX12PushConstantsLayoutImpl>(this, size))
+    m_impl(size)
 {
     m_impl->setRanges(std::move(ranges));
 }
 
 DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(UInt32 size) :
-    m_impl(makePimpl<DirectX12PushConstantsLayoutImpl>(this, size))
+    m_impl(size)
 {
 }
 
+DirectX12PushConstantsLayout::DirectX12PushConstantsLayout(DirectX12PushConstantsLayout&&) noexcept = default;
+DirectX12PushConstantsLayout& DirectX12PushConstantsLayout::operator=(DirectX12PushConstantsLayout&&) noexcept = default;
 DirectX12PushConstantsLayout::~DirectX12PushConstantsLayout() noexcept = default;
 
 UInt32 DirectX12PushConstantsLayout::size() const noexcept
@@ -78,12 +79,12 @@ const DirectX12PushConstantsRange& DirectX12PushConstantsLayout::range(ShaderSta
     return *m_impl->m_ranges[stage];
 }
 
-Enumerable<const DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() const noexcept
+Enumerable<const DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() const
 {
     return m_impl->m_rangePointers | std::views::transform([](const UniquePtr<DirectX12PushConstantsRange>& range) { return range.get(); });
 }
 
-Enumerable<DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() noexcept
+Enumerable<DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges()
 {
     return m_impl->m_rangePointers | std::views::transform([](UniquePtr<DirectX12PushConstantsRange>& range) { return range.get(); });
 }
@@ -102,7 +103,7 @@ DirectX12PushConstantsLayoutBuilder::~DirectX12PushConstantsLayoutBuilder() noex
 
 void DirectX12PushConstantsLayoutBuilder::build()
 {
-    this->instance()->m_impl->setRanges(std::move(m_state.ranges | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>()));
+    this->instance()->m_impl->setRanges(this->state().ranges | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>());
 }
 
 UniquePtr<DirectX12PushConstantsRange> DirectX12PushConstantsLayoutBuilder::makeRange(ShaderStage shaderStages, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding)

@@ -19,9 +19,12 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a DirectX 12 barrier builder.
 		/// </summary>
 		explicit DirectX12BarrierBuilder();
+		~DirectX12BarrierBuilder() noexcept override;
+
 		DirectX12BarrierBuilder(const DirectX12BarrierBuilder&) = delete;
-		DirectX12BarrierBuilder(DirectX12BarrierBuilder&&) = default;
-		virtual ~DirectX12BarrierBuilder() noexcept;
+		DirectX12BarrierBuilder(DirectX12BarrierBuilder&&) noexcept = default;
+		DirectX12BarrierBuilder& operator=(const DirectX12BarrierBuilder&) = delete;
+		DirectX12BarrierBuilder& operator=(DirectX12BarrierBuilder&&) noexcept = delete;
 
 		// BarrierBuilder interface.
 	public:
@@ -51,9 +54,12 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="device">The parent device that hosts the shader program.</param>
 		explicit DirectX12ShaderProgramBuilder(const DirectX12Device& device);
+		~DirectX12ShaderProgramBuilder() noexcept override;
+
 		DirectX12ShaderProgramBuilder(const DirectX12ShaderProgramBuilder&) = delete;
-		DirectX12ShaderProgramBuilder(DirectX12ShaderProgramBuilder&&) = delete;
-		virtual ~DirectX12ShaderProgramBuilder() noexcept;
+		DirectX12ShaderProgramBuilder(DirectX12ShaderProgramBuilder&&) noexcept = delete;
+		auto operator=(const DirectX12ShaderProgramBuilder&) = delete;
+		auto operator=(DirectX12ShaderProgramBuilder&&) noexcept = delete;
 
 		// Builder interface.
 	protected:
@@ -78,10 +84,13 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a DirectX 12 input assembler builder.
 		/// </summary>
-		explicit DirectX12RasterizerBuilder() noexcept;
-		DirectX12RasterizerBuilder(const DirectX12RasterizerBuilder&) noexcept = delete;
+		explicit DirectX12RasterizerBuilder();
+		~DirectX12RasterizerBuilder() noexcept override;
+
+		DirectX12RasterizerBuilder(const DirectX12RasterizerBuilder&) = delete;
 		DirectX12RasterizerBuilder(DirectX12RasterizerBuilder&&) noexcept = delete;
-		virtual ~DirectX12RasterizerBuilder() noexcept;
+		auto operator=(const DirectX12RasterizerBuilder&) = delete;
+		auto operator=(DirectX12RasterizerBuilder&&) noexcept = delete;
 
 		// Builder interface.
 	protected:
@@ -100,10 +109,13 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Initializes a DirectX 12 input assembler builder.
 		/// </summary>
-		explicit DirectX12InputAssemblerBuilder() noexcept;
-		DirectX12InputAssemblerBuilder(const DirectX12InputAssemblerBuilder&) noexcept = delete;
+		explicit DirectX12InputAssemblerBuilder();
+		~DirectX12InputAssemblerBuilder() noexcept override;
+
+		DirectX12InputAssemblerBuilder(const DirectX12InputAssemblerBuilder&) = delete;
 		DirectX12InputAssemblerBuilder(DirectX12InputAssemblerBuilder&&) noexcept = delete;
-		virtual ~DirectX12InputAssemblerBuilder() noexcept;
+		auto operator=(const DirectX12InputAssemblerBuilder&) = delete;
+		auto operator=(DirectX12InputAssemblerBuilder&&) noexcept = delete;
 
 		// Builder interface.
 	protected:
@@ -124,7 +136,7 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="type">The type of the index buffer.</param>
 		template <typename TSelf>
 		inline auto indexType(this TSelf&& self, IndexType type) -> TSelf&& {
-			self.use(makeUnique<DirectX12IndexBufferLayout>(type));
+			self.use(DirectX12IndexBufferLayout::create(type));
 			return std::forward<TSelf>(self);
 		}
 	};
@@ -159,9 +171,12 @@ namespace LiteFX::Rendering::Backends {
 		/// Initializes a new DirectX 12 pipeline layout builder.
 		/// </summary>
 		DirectX12PipelineLayoutBuilder(const DirectX12Device& device);
-		DirectX12PipelineLayoutBuilder(DirectX12PipelineLayoutBuilder&&) = delete;
+		~DirectX12PipelineLayoutBuilder() noexcept override;
+
+		DirectX12PipelineLayoutBuilder(DirectX12PipelineLayoutBuilder&&) noexcept = delete;
 		DirectX12PipelineLayoutBuilder(const DirectX12PipelineLayoutBuilder&) = delete;
-		virtual ~DirectX12PipelineLayoutBuilder() noexcept;
+		auto operator=(DirectX12PipelineLayoutBuilder&&) noexcept = delete;
+		auto operator=(const DirectX12PipelineLayoutBuilder&) = delete;
 
 		// Builder interface.
 	protected:
@@ -187,8 +202,8 @@ namespace LiteFX::Rendering::Backends {
 		/// <summary>
 		/// Returns the device, the builder has been initialized with.
 		/// </summary>
-		/// <returns>A reference of the device, the builder has been initialized with.</returns>
-		const DirectX12Device& device() const noexcept;
+		/// <returns>A pointer to the device, the builder has been initialized with.</returns>
+		SharedPtr<const DirectX12Device> device() const noexcept;
 	};
 
 	/// <summary>
@@ -206,9 +221,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="space">The space the descriptor set is bound to.</param>
 		/// <param name="stages">The shader stages, the descriptor set is accessible from.</param>
 		explicit DirectX12DescriptorSetLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 space = 0, ShaderStage stages = ShaderStage::Any);
+		~DirectX12DescriptorSetLayoutBuilder() noexcept override;
+
 		DirectX12DescriptorSetLayoutBuilder(const DirectX12DescriptorSetLayoutBuilder&) = delete;
-		DirectX12DescriptorSetLayoutBuilder(DirectX12DescriptorSetLayoutBuilder&&) = delete;
-		virtual ~DirectX12DescriptorSetLayoutBuilder() noexcept;
+		DirectX12DescriptorSetLayoutBuilder(DirectX12DescriptorSetLayoutBuilder&&) noexcept = delete;
+		auto operator=(const DirectX12DescriptorSetLayoutBuilder&) = delete;
+		auto operator=(DirectX12DescriptorSetLayoutBuilder&&) noexcept = delete;
 
 		// Builder interface.
 	protected:
@@ -218,10 +236,10 @@ namespace LiteFX::Rendering::Backends {
 		// DescriptorSetLayoutBuilder interface.
 	protected:
 		/// <inheritdoc />
-		UniquePtr<DirectX12DescriptorLayout> makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors) override;
+		DirectX12DescriptorLayout makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors) override;
 
 		/// <inheritdoc />
-		UniquePtr<DirectX12DescriptorLayout> makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) override;
+		DirectX12DescriptorLayout makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) override;
 	};
 
 	/// <summary>
@@ -236,9 +254,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="parent">The parent pipeline layout builder.</param>
 		/// <param name="size">The size of the push constants backing memory.</param>
 		explicit DirectX12PushConstantsLayoutBuilder(DirectX12PipelineLayoutBuilder& parent, UInt32 size);
+		~DirectX12PushConstantsLayoutBuilder() noexcept override;
+
 		DirectX12PushConstantsLayoutBuilder(const DirectX12PushConstantsLayoutBuilder&) = delete;
-		DirectX12PushConstantsLayoutBuilder(DirectX12PushConstantsLayoutBuilder&&) = delete;
-		virtual ~DirectX12PushConstantsLayoutBuilder() noexcept;
+		DirectX12PushConstantsLayoutBuilder(DirectX12PushConstantsLayoutBuilder&&) noexcept = delete;
+		auto operator=(const DirectX12PushConstantsLayoutBuilder&) = delete;
+		auto operator=(DirectX12PushConstantsLayoutBuilder&&) noexcept = delete;
 
 		// Builder interface.
 	protected:
@@ -263,9 +284,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="renderPass">The parent render pass.</param>
 		/// <param name="name">A debug name for the render pipeline.</param>
 		explicit DirectX12RenderPipelineBuilder(const DirectX12RenderPass& renderPass, const String& name = "");
-		DirectX12RenderPipelineBuilder(DirectX12RenderPipelineBuilder&&) = delete;
+		~DirectX12RenderPipelineBuilder() noexcept override;
+
+		DirectX12RenderPipelineBuilder(DirectX12RenderPipelineBuilder&&) noexcept = delete;
 		DirectX12RenderPipelineBuilder(const DirectX12RenderPipelineBuilder&) = delete;
-		virtual ~DirectX12RenderPipelineBuilder() noexcept;
+		auto operator=(DirectX12RenderPipelineBuilder&&) noexcept = delete;
+		auto operator=(const DirectX12RenderPipelineBuilder&) = delete;
 
 		// Builder interface.
 	public:
@@ -285,9 +309,12 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="device">The parent device</param>
 		/// <param name="name">A debug name for the compute pipeline.</param>
 		explicit DirectX12ComputePipelineBuilder(const DirectX12Device& device, const String& name = "");
-		DirectX12ComputePipelineBuilder(DirectX12ComputePipelineBuilder&&) = delete;
+		~DirectX12ComputePipelineBuilder() noexcept override;
+
+		DirectX12ComputePipelineBuilder(DirectX12ComputePipelineBuilder&&) noexcept = delete;
 		DirectX12ComputePipelineBuilder(const DirectX12ComputePipelineBuilder&) = delete;
-		virtual ~DirectX12ComputePipelineBuilder() noexcept;
+		auto operator=(DirectX12ComputePipelineBuilder&&) noexcept = delete;
+		auto operator=(const DirectX12ComputePipelineBuilder&) = delete;
 
 		// Builder interface.
 	public:
@@ -308,9 +335,12 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="shaderRecords">The shader record collection that is used to build the shader binding table for the pipeline.</param>
 		/// <param name="name">A debug name for the ray-tracing pipeline.</param>
 		explicit DirectX12RayTracingPipelineBuilder(const DirectX12Device& device, ShaderRecordCollection&& shaderRecords, const String& name = "");
-		DirectX12RayTracingPipelineBuilder(DirectX12RayTracingPipelineBuilder&&) = delete;
+		~DirectX12RayTracingPipelineBuilder() noexcept override;
+
+		DirectX12RayTracingPipelineBuilder(DirectX12RayTracingPipelineBuilder&&) noexcept = delete;
 		DirectX12RayTracingPipelineBuilder(const DirectX12RayTracingPipelineBuilder&) = delete;
-		virtual ~DirectX12RayTracingPipelineBuilder() noexcept;
+		auto operator=(DirectX12RayTracingPipelineBuilder&&) noexcept = delete;
+		auto operator=(const DirectX12RayTracingPipelineBuilder&) = delete;
 
 		// Builder interface.
 	public:
@@ -329,7 +359,7 @@ namespace LiteFX::Rendering::Backends {
 		/// </summary>
 		/// <param name="device">The parent device</param>
 		/// <param name="name">A debug name for the render pass.</param>
-		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const String& name = "") noexcept;
+		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, const String& name = "");
 
 		/// <summary>
 		/// Initializes a DirectX 12 render pass builder.
@@ -337,11 +367,14 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="device">The parent device</param>
 		/// <param name="commandBuffers">The number of command buffers to initialize.</param>
 		/// <param name="name">A debug name for the render pass.</param>
-		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, const String& name = "") noexcept;
+		explicit DirectX12RenderPassBuilder(const DirectX12Device& device, UInt32 commandBuffers, const String& name = "");
 
-		DirectX12RenderPassBuilder(const DirectX12RenderPassBuilder&) noexcept = delete;
+		~DirectX12RenderPassBuilder() noexcept override;
+
+		DirectX12RenderPassBuilder(const DirectX12RenderPassBuilder&) = delete;
 		DirectX12RenderPassBuilder(DirectX12RenderPassBuilder&&) noexcept = delete;
-		virtual ~DirectX12RenderPassBuilder() noexcept;
+		auto operator=(const DirectX12RenderPassBuilder&) = delete;
+		auto operator=(DirectX12RenderPassBuilder&&) noexcept = delete;
 
 		// Builder interface.
 	protected:

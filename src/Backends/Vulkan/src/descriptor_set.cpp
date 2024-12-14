@@ -5,18 +5,18 @@ using namespace LiteFX::Rendering::Backends;
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
-class VulkanDescriptorSet::VulkanDescriptorSetImpl : public Implement<VulkanDescriptorSet> {
+class VulkanDescriptorSet::VulkanDescriptorSetImpl {
 public:
     friend class VulkanDescriptorSet;
 
 private:
-    Dictionary<UInt32, VkBufferView> m_bufferViews;
-    Dictionary<UInt32, VkImageView> m_imageViews;
-    const VulkanDescriptorSetLayout& m_layout;
+    Dictionary<UInt32, VkBufferView> m_bufferViews{};
+    Dictionary<UInt32, VkImageView> m_imageViews{};
+    SharedPtr<const VulkanDescriptorSetLayout> m_layout;
 
 public:
-    VulkanDescriptorSetImpl(VulkanDescriptorSet* parent, const VulkanDescriptorSetLayout& layout) :
-        base(parent), m_layout(layout)
+    VulkanDescriptorSetImpl(const VulkanDescriptorSetLayout& layout) :
+        m_layout(layout.shared_from_this())
     {
     }
 };
@@ -26,7 +26,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, VkDescriptorSet descriptorSet) :
-    m_impl(makePimpl<VulkanDescriptorSetImpl>(this, layout)), Resource<VkDescriptorSet>(descriptorSet)
+    Resource<VkDescriptorSet>(descriptorSet), m_impl(layout)
 {
     if (descriptorSet == VK_NULL_HANDLE)
         throw ArgumentNotInitializedException("descriptorSet", "The descriptor set handle must be initialized.");
@@ -34,29 +34,36 @@ VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout
 
 VulkanDescriptorSet::~VulkanDescriptorSet() noexcept
 {
-    for (auto& bufferView : m_impl->m_bufferViews)
-        ::vkDestroyBufferView(m_impl->m_layout.device().handle(), bufferView.second, nullptr);
+    auto device = m_impl->m_layout->device();
 
-    for (auto& imageView : m_impl->m_imageViews)
-        ::vkDestroyImageView(m_impl->m_layout.device().handle(), imageView.second, nullptr);
+    if (device == nullptr) [[unlikely]]
+        LITEFX_FATAL_ERROR(VULKAN_LOG, "Invalid attempt to release descriptor set after the parent device instance has been released.");
+    else
+    {
+        for (auto& bufferView : m_impl->m_bufferViews)
+            ::vkDestroyBufferView(device->handle(), bufferView.second, nullptr);
 
-    m_impl->m_layout.free(*this);
+        for (auto& imageView : m_impl->m_imageViews)
+            ::vkDestroyImageView(device->handle(), imageView.second, nullptr);
+    }
+
+    m_impl->m_layout->free(*this);
 }
 
 const VulkanDescriptorSetLayout& VulkanDescriptorSet::layout() const noexcept
 {
-    return m_impl->m_layout;
+    return *m_impl->m_layout;
 }
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const
 {
     // Find the descriptor.
-    auto descriptors = m_impl->m_layout.descriptors();
+    auto descriptors = m_impl->m_layout->descriptors();
     auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
 
     if (match == descriptors.end()) [[unlikely]]
     {
-        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
         return;
     }
     
@@ -125,8 +132,8 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
             .range = buffer.alignedElementSize() * elementCount
         };
 
-        VkBufferView bufferView;
-        raiseIfFailed(::vkCreateBufferView(m_impl->m_layout.device().handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
+        VkBufferView bufferView{};
+        raiseIfFailed(::vkCreateBufferView(m_impl->m_layout->device()->handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
         m_impl->m_bufferViews[binding] = bufferView;
 
         descriptorWrite.pTexelBufferView = &bufferView;
@@ -146,8 +153,8 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
             .range = buffer.alignedElementSize() * elementCount
         };
 
-        VkBufferView bufferView;
-        raiseIfFailed(::vkCreateBufferView(m_impl->m_layout.device().handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
+        VkBufferView bufferView{};
+        raiseIfFailed(::vkCreateBufferView(m_impl->m_layout->device()->handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
         m_impl->m_bufferViews[binding] = bufferView;
 
         descriptorWrite.pTexelBufferView = &bufferView;
@@ -160,23 +167,23 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
     // Remove the buffer view, if there is one bound to the current descriptor.
     if (m_impl->m_bufferViews.contains(binding))
     {
-        ::vkDestroyBufferView(m_impl->m_layout.device().handle(), m_impl->m_bufferViews[binding], nullptr);
+        ::vkDestroyBufferView(m_impl->m_layout->device()->handle(), m_impl->m_bufferViews[binding], nullptr);
         m_impl->m_bufferViews.erase(binding);
     }
 
     // Update the descriptor set.
-    ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
+    ::vkUpdateDescriptorSets(m_impl->m_layout->device()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
 {
     // Find the descriptor.
-    auto descriptors = m_impl->m_layout.descriptors();
+    auto descriptors = m_impl->m_layout->descriptors();
     auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
 
     if (match == descriptors.end()) [[unlikely]]
     {
-        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
         return;
     }
     
@@ -212,7 +219,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
     // Remove the image view, if there is one bound to the current descriptor.
     if (m_impl->m_imageViews.contains(binding))
     {
-        ::vkDestroyImageView(m_impl->m_layout.device().handle(), m_impl->m_imageViews[binding], nullptr);
+        ::vkDestroyImageView(m_impl->m_layout->device()->handle(), m_impl->m_imageViews[binding], nullptr);
         m_impl->m_imageViews.erase(binding);
     }
     
@@ -252,23 +259,23 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
             imageViewDesc.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
     }
 
-    VkImageView imageView;
-    raiseIfFailed(::vkCreateImageView(m_impl->m_layout.device().handle(), &imageViewDesc, nullptr, &imageView), "Unable to create image view.");
+    VkImageView imageView{};
+    raiseIfFailed(::vkCreateImageView(m_impl->m_layout->device()->handle(), &imageViewDesc, nullptr, &imageView), "Unable to create image view.");
     m_impl->m_imageViews[binding] = imageView;
     imageInfo.imageView = imageView;
 
-    ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
+    ::vkUpdateDescriptorSets(m_impl->m_layout->device()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, UInt32 descriptor) const
 {
     // Find the descriptor.
-    auto descriptors = m_impl->m_layout.descriptors();
+    auto descriptors = m_impl->m_layout->descriptors();
     auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
 
     if (match == descriptors.end()) [[unlikely]]
     {
-        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
         return;
     }
     
@@ -289,18 +296,18 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, 
     descriptorWrite.descriptorCount = 1;
     descriptorWrite.pImageInfo = &imageInfo;
 
-    ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
+    ::vkUpdateDescriptorSets(m_impl->m_layout->device()->handle(), 1, &descriptorWrite, 0, nullptr);
 }
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStructure& accelerationStructure, UInt32 descriptor) const
 {
     // Find the descriptor.
-    auto descriptors = m_impl->m_layout.descriptors();
+    auto descriptors = m_impl->m_layout->descriptors();
     auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
 
     if (match == descriptors.end()) [[unlikely]]
     {
-        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout.space(), binding);
+        LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
         return;
     }
     
@@ -328,5 +335,5 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStruct
         .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
     };
 
-    ::vkUpdateDescriptorSets(m_impl->m_layout.device().handle(), 1, &descriptorWrite, 0, nullptr);
+    ::vkUpdateDescriptorSets(m_impl->m_layout->device()->handle(), 1, &descriptorWrite, 0, nullptr);
 }

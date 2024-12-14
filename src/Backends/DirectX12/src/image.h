@@ -4,6 +4,9 @@
 #include <litefx/backends/dx12.hpp>
 #include "buffer.h"
 
+#pragma warning(push)
+#pragma warning(disable:4250) // Base class members are inherited via dominance.
+
 namespace LiteFX::Rendering::Backends {
 	using namespace LiteFX::Rendering;
 
@@ -12,12 +15,18 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class DirectX12Image : public virtual IDirectX12Image, public ComResource<ID3D12Resource>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(DirectX12ImageImpl);
+		friend class DirectX12SwapChain::DirectX12SwapChainImpl; // Allows swap chain to wrap back buffer images.
+		friend struct SharedObject::Allocator<DirectX12Image>;
 
-	public:
+	private:
 		explicit DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr, const String& name = "");
-		DirectX12Image(DirectX12Image&&) = delete;
+		
+	public:
+		DirectX12Image(DirectX12Image&&) noexcept = delete;
 		DirectX12Image(const DirectX12Image&) = delete;
-		virtual ~DirectX12Image() noexcept;
+		DirectX12Image& operator=(DirectX12Image&&) noexcept = delete;
+		DirectX12Image& operator=(const DirectX12Image&) = delete;
+		~DirectX12Image() noexcept override;
 
 		// IDeviceMemory interface.
 	public:
@@ -73,9 +82,14 @@ namespace LiteFX::Rendering::Backends {
 		virtual AllocatorPtr allocator() const noexcept;
 		virtual const D3D12MA::Allocation* allocationInfo() const noexcept;
 
+	private:
+		static inline auto create(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const AllocatorPtr& allocator = nullptr, AllocationPtr&& allocation = nullptr, const String& name = "") {
+			return SharedObject::create<DirectX12Image>(device, std::move(image), extent, format, dimension, levels, layers, samples, usage, allocator, std::move(allocation), name);
+		}
+
 	public:
-		static UniquePtr<DirectX12Image> allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
-		static UniquePtr<DirectX12Image> allocate(const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
+		static SharedPtr<DirectX12Image> allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
+		static SharedPtr<DirectX12Image> allocate(const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
 	};
 
 	/// <summary>
@@ -83,12 +97,12 @@ namespace LiteFX::Rendering::Backends {
 	/// </summary>
 	class DirectX12Sampler : public virtual IDirectX12Sampler, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(DirectX12SamplerImpl);
+		friend struct SharedObject::Allocator<DirectX12Sampler>;
 
-	public:
+	private:
 		/// <summary>
 		/// Initializes a new sampler instance.
 		/// </summary>
-		/// <param name="device"></param>
 		/// <param name="magFilter"></param>
 		/// <param name="minFilter"></param>
 		/// <param name="borderU"></param>
@@ -99,10 +113,15 @@ namespace LiteFX::Rendering::Backends {
 		/// <param name="maxLod"></param>
 		/// <param name="minLod"></param>
 		/// <param name="anisotropy"></param>
-		explicit DirectX12Sampler(const DirectX12Device& device, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float minLod = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float anisotropy = 0.f, const String& name = "");
-		DirectX12Sampler(DirectX12Sampler&&) = delete;
+		explicit DirectX12Sampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float minLod = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float anisotropy = 0.f, const String& name = "");
+		
+		DirectX12Sampler(DirectX12Sampler&&) noexcept = delete;
 		DirectX12Sampler(const DirectX12Sampler&) = delete;
-		virtual ~DirectX12Sampler() noexcept;
+		auto operator=(DirectX12Sampler&&) noexcept = delete;
+		auto operator=(const DirectX12Sampler&) = delete;
+
+	public:
+		~DirectX12Sampler() noexcept override;
 
 		// ISampler interface.
 	public:
@@ -135,5 +154,16 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		Float getMinLOD() const noexcept override;
+
+	public:
+		static inline SharedPtr<DirectX12Sampler> copy(const IDirectX12Sampler& sampler) {
+			return SharedObject::create<DirectX12Sampler>(sampler.getMagnifyingFilter(), sampler.getMinifyingFilter(), sampler.getBorderModeU(), sampler.getBorderModeV(), sampler.getBorderModeW(), sampler.getMipMapMode(), sampler.getMipMapBias(), sampler.getMinLOD(), sampler.getMaxLOD(), sampler.getAnisotropy(), sampler.name());
+		}
+
+		static inline SharedPtr<DirectX12Sampler> allocate(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float minLod = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float anisotropy = 0.f, const String& name = "") {
+			return SharedObject::create<DirectX12Sampler>(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
+		}
 	};
 }
+
+#pragma warning(pop)

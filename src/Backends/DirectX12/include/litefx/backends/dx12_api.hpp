@@ -35,16 +35,14 @@
 #include <wrl.h>
 using namespace Microsoft::WRL;
 
-#include <litefx/config.h>
 #include <litefx/rendering.hpp>
-
 #include "dx12_formatters.hpp"
 
 namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Math;
     using namespace LiteFX::Rendering;
 
-    constexpr char DIRECTX12_LOG[] = "Backend::DirectX12";
+    constexpr StringView DIRECTX12_LOG = "Backend::DirectX12"sv;
 
     // Forward declarations.
     class DirectX12VertexBufferLayout;
@@ -225,20 +223,44 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     class LITEFX_DIRECTX12_API DirectX12GraphicsAdapter final : public IGraphicsAdapter, public ComResource<IDXGIAdapter4> {
         LITEFX_IMPLEMENTATION(DirectX12GraphicsAdapterImpl);
+        friend struct SharedObject::Allocator<DirectX12GraphicsAdapter>;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a new DirectX12 graphics adapter.
         /// </summary>
         /// <param name="adapter">The DXGI adapter interface pointer.</param>
         explicit DirectX12GraphicsAdapter(ComPtr<IDXGIAdapter4> adapter);
+
+        /// <inheritdoc />
+        DirectX12GraphicsAdapter(DirectX12GraphicsAdapter&&) noexcept = delete;
+
+        /// <inheritdoc />
         DirectX12GraphicsAdapter(const DirectX12GraphicsAdapter&) = delete;
-        DirectX12GraphicsAdapter(DirectX12GraphicsAdapter&&) = delete;
-        virtual ~DirectX12GraphicsAdapter() noexcept;
+
+        /// <inheritdoc />
+        DirectX12GraphicsAdapter& operator=(DirectX12GraphicsAdapter&&) noexcept = delete;
+
+        /// <inheritdoc />
+        DirectX12GraphicsAdapter& operator=(const DirectX12GraphicsAdapter&) = delete;
 
     public:
         /// <inheritdoc />
-        String name() const noexcept override;
+        ~DirectX12GraphicsAdapter() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates a new DirectX12 graphics adapter.
+        /// </summary>
+        /// <param name="adapter">The DXGI adapter interface pointer.</param>
+        /// <returns>A shared pointer to the graphics adapter instance.</returns>
+        static inline auto create(ComPtr<IDXGIAdapter4> adapter) {
+            return SharedObject::create<DirectX12GraphicsAdapter>(std::move(adapter));
+        }
+
+    public:
+        /// <inheritdoc />
+        String name() const override;
 
         /// <inheritdoc />
         UInt64 uniqueId() const noexcept override;
@@ -272,9 +294,21 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="hwnd">The window handle.</param>
         explicit DirectX12Surface(const HWND& hwnd) noexcept;
+
+        /// <inheritdoc />
         DirectX12Surface(const DirectX12Surface&) = delete;
-        DirectX12Surface(DirectX12Surface&&) = delete;
-        virtual ~DirectX12Surface() noexcept;
+        
+        /// <inheritdoc />
+        DirectX12Surface(DirectX12Surface&&) noexcept = default;
+        
+        /// <inheritdoc />
+        DirectX12Surface& operator=(const DirectX12Surface&) = delete;
+        
+        /// <inheritdoc />
+        DirectX12Surface& operator=(DirectX12Surface&&) noexcept = default;
+
+        /// <inheritdoc />
+        ~DirectX12Surface() noexcept override;
     };
 
     /// <summary>
@@ -282,24 +316,24 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     class LITEFX_DIRECTX12_API DX12PlatformException : public RuntimeException {
     private:
-        _com_error m_error;
         HRESULT m_code;
+        _com_error m_error;
 
     public:
         /// <summary>
         /// Initializes a new exception.
         /// </summary>
         /// <param name="result">The error code returned by the operation.</param>
-        explicit DX12PlatformException(HRESULT result) noexcept :
-            m_code(result), m_error(result), RuntimeException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), _com_error(result).ErrorMessage()) { }
+        explicit DX12PlatformException(HRESULT result) :
+            RuntimeException("{1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), _com_error(result).ErrorMessage()), m_code(result), m_error(result) { }
 
         /// <summary>
         /// Initializes a new exception.
         /// </summary>
         /// <param name="result">The error code returned by the operation.</param>
         /// <param name="message">The error message.</param>
-        explicit DX12PlatformException(HRESULT result, StringView message) noexcept :
-            m_code(result), m_error(result), RuntimeException("{2} {1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), _com_error(result).ErrorMessage(), message) { }
+        explicit DX12PlatformException(HRESULT result, StringView message) :
+            RuntimeException("{2} {1} (HRESULT 0x{0:08X})", static_cast<unsigned>(result), _com_error(result).ErrorMessage(), message), m_code(result), m_error(result) { }
 
         /// <summary>
         /// Initializes a new exception.
@@ -308,15 +342,23 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="result">The error code returned by the operation.</param>
         /// <param name="args">The arguments passed to the error message format string.</param>
         template <typename ...TArgs>
-        explicit DX12PlatformException(HRESULT result, StringView format, TArgs&&... args) noexcept :
-            DX12PlatformException(result, std::vformat(format, std::make_format_args(args...))) { }
+        explicit DX12PlatformException(HRESULT result, std::format_string<TArgs...> format, TArgs&&... args) :
+            DX12PlatformException(result, std::format(format, std::forward<TArgs>(args)...)) { }
 
+        /// <inheritdoc />
+        DX12PlatformException(DX12PlatformException&&) noexcept = default;
+
+        /// <inheritdoc />
         DX12PlatformException(const DX12PlatformException&) = default;
-        DX12PlatformException(DX12PlatformException&&) = default;
-        virtual ~DX12PlatformException() noexcept = default;
 
+        /// <inheritdoc />
+        DX12PlatformException& operator=(DX12PlatformException&&) noexcept = default;
+        
+        /// <inheritdoc />
         DX12PlatformException& operator=(const DX12PlatformException&) = default;
-        DX12PlatformException& operator=(DX12PlatformException&&) = default;
+        
+        /// <inheritdoc />
+        ~DX12PlatformException() noexcept override = default;
 
     public:
         /// <summary>
@@ -343,12 +385,9 @@ namespace LiteFX::Rendering::Backends {
     /// <param name="message">The format string for the error message.</param>
     /// <param name="args">The arguments passed to the error message format string.</param>
     template <typename ...TArgs>
-    static inline void raiseIfFailed(HRESULT hr, StringView message, TArgs&&... args) {
+    static inline void raiseIfFailed(HRESULT hr, std::format_string<TArgs...> message, TArgs&&... args) {
         if (SUCCEEDED(hr)) [[likely]]
             return;
-
-        if (message.empty())
-            throw DX12PlatformException(hr, message);
         else
             throw DX12PlatformException(hr, message, std::forward<TArgs>(args)...);
     }

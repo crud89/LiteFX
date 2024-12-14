@@ -6,18 +6,16 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl : public Implement<VulkanIndexBufferLayout> {
+class VulkanIndexBufferLayout::VulkanIndexBufferLayoutImpl {
 public:
     friend class VulkanIndexBufferLayout;
 
 private:
     IndexType m_indexType;
-    UInt32 m_binding{ 0 };
-    BufferType m_bufferType{ BufferType::Index };
 
 public:
-    VulkanIndexBufferLayoutImpl(VulkanIndexBufferLayout* parent, IndexType type) : 
-        base(parent), m_indexType(type)
+    VulkanIndexBufferLayoutImpl(IndexType type) : 
+        m_indexType(type)
     {
     }
 };
@@ -27,25 +25,26 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanIndexBufferLayout::VulkanIndexBufferLayout(IndexType type) :
-    m_impl(makePimpl<VulkanIndexBufferLayoutImpl>(this, type))
+    m_impl(type)
 {
 }
 
+VulkanIndexBufferLayout::VulkanIndexBufferLayout(const VulkanIndexBufferLayout&) = default;
 VulkanIndexBufferLayout::~VulkanIndexBufferLayout() noexcept = default;
 
 size_t VulkanIndexBufferLayout::elementSize() const noexcept
 {
-    return static_cast<UInt32>(m_impl->m_indexType) >> 3;
+    return std::to_underlying(m_impl->m_indexType) >> 3;
 }
 
 UInt32 VulkanIndexBufferLayout::binding() const noexcept
 {
-    return m_impl->m_binding;
+    return 0u;
 }
 
 BufferType VulkanIndexBufferLayout::type() const noexcept
 {
-    return m_impl->m_bufferType;
+    return BufferType::Index;
 }
 
 IndexType VulkanIndexBufferLayout::indexType() const noexcept

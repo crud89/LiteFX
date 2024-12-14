@@ -58,7 +58,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "LITEFX_BUILD_TESTS": "ON",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-rel",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
         "VCPKG_MANIFEST_FEATURES": "pix-support",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
@@ -140,7 +140,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "LITEFX_BUILD_TESTS": "ON",
-        "VCPKG_TARGET_TRIPLET": "x86-windows-rel",
+        "VCPKG_TARGET_TRIPLET": "x86-windows",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
     },
@@ -173,6 +173,38 @@
         "CMAKE_BUILD_TYPE": "Release",
         "BUILD_SHARED_LIBS": "OFF",
         "VCPKG_TARGET_TRIPLET": "x86-windows-static-rel"
+      }
+    },
+    {
+      "name": "windows-clangcl-x64-debug",
+      "inherits": [
+        "windows",
+        "clangcl"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
+      }
+    },
+    {
+      "name": "windows-clangcl-x64-release",
+      "inherits": [
+        "windows",
+        "clangcl"
+      ],
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
       }
     },
     {
@@ -223,7 +255,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "LITEFX_BUILD_TESTS": "ON",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-rel",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
         "VCPKG_MANIFEST_FEATURES": "pix-support",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
@@ -305,7 +337,8 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "LITEFX_BUILD_TESTS": "ON",
-        "VCPKG_TARGET_TRIPLET": "x64-linux-rel",
+        "LITEFX_BUILD_EXAMPLES": "OFF",
+        "VCPKG_TARGET_TRIPLET": "x64-linux",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
     },
@@ -417,6 +450,14 @@
     {
       "name": "linux-gcc-x64-debug-static",
       "configurePreset": "linux-gcc-x64-debug-static"
+    },
+    {
+      "name": "windows-clangcl-x64-debug",
+      "configurePreset": "windows-clangcl-x64-debug"
+    },
+    {
+      "name": "windows-clangcl-x64-release",
+      "configurePreset": "windows-clangcl-x64-release"
     }
   ],
   "testPresets": [

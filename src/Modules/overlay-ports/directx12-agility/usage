@@ -1,0 +1,5 @@
+The DirectX 12 Agility SDK package provides CMake targets:
+
+    find_package(directx-headers CONFIG REQUIRED)
+    find_package(directx12-agility CONFIG REQUIRED)
+    target_link_libraries(main PRIVATE Microsoft::DirectX-Headers Microsoft::DirectX-Guids Microsoft::DirectX12-Agility)

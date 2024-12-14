@@ -789,12 +789,12 @@ namespace LiteFX::Math {
 		Size4d() noexcept;
 		Size4d(size_t v) noexcept;
 		Size4d(size_t w, size_t h, size_t d, size_t a) noexcept;
-		Size4d(const Size4d&) noexcept;
+		Size4d(const Size4d&);
 		Size4d(Size4d&&) noexcept;
-		//virtual ~Size4d() noexcept = default;
+		~Size4d() noexcept = default;
 
 	public:
-		Size4d& operator=(const Size4d& _other) noexcept;
+		Size4d& operator=(const Size4d& _other);
 		Size4d& operator=(Size4d&& _other) noexcept;
 		Size4d operator/(size_t s) noexcept;
 		Size4d& operator/=(size_t s) noexcept;
@@ -821,12 +821,12 @@ namespace LiteFX::Math {
 		Size3d() noexcept;
 		Size3d(size_t v) noexcept;
 		Size3d(size_t w, size_t h, size_t d) noexcept;
-		Size3d(const Size3d&) noexcept;
+		Size3d(const Size3d&);
 		Size3d(Size3d&&) noexcept;
-		//virtual ~Size3d() noexcept = default;
+		~Size3d() noexcept = default;
 
 	public:
-		Size3d& operator=(const Size3d& _other) noexcept;
+		Size3d& operator=(const Size3d& _other);
 		Size3d& operator=(Size3d&& _other) noexcept;
 		operator Size4d() const noexcept;
 		Size3d operator/(size_t s) noexcept;
@@ -852,12 +852,12 @@ namespace LiteFX::Math {
 		Size2d() noexcept;
 		Size2d(size_t v) noexcept;
 		Size2d(size_t w, size_t h) noexcept;
-		Size2d(const Size2d&) noexcept;
+		Size2d(const Size2d&);
 		Size2d(Size2d&&) noexcept;
-		//virtual ~Size2d() noexcept = default;
+		~Size2d() noexcept = default;
 
 	public:
-		Size2d& operator=(const Size2d& _other) noexcept;
+		Size2d& operator=(const Size2d& _other);
 		Size2d& operator=(Size2d&& _other) noexcept;
 		operator Size3d() const noexcept;
 		operator Size4d() const noexcept;
@@ -884,12 +884,12 @@ namespace LiteFX::Math {
 		Rect() noexcept;
 		Rect(const Vector<size_t, 2>& pos, size_t w, size_t h) noexcept;
 		Rect(size_t x, size_t y, size_t w, size_t h) noexcept;
-		Rect(const Rect&) noexcept;
+		Rect(const Rect&);
 		Rect(Rect&&) noexcept;
-		//virtual ~Rect() noexcept = default;
+		~Rect() noexcept = default;
 
 	public:
-		Rect& operator=(const Rect& _other) noexcept;
+		Rect& operator=(const Rect& _other);
 		Rect& operator=(Rect&& _other) noexcept;
 
 	public:
@@ -906,12 +906,12 @@ namespace LiteFX::Math {
 		RectI() noexcept;
 		RectI(const Vector<Int32, 2>& pos, Int32 w, Int32 h) noexcept;
 		RectI(Int32 x, Int32 y, Int32 w, Int32 h) noexcept;
-		RectI(const RectI&) noexcept;
+		RectI(const RectI&);
 		RectI(RectI&&) noexcept;
-		//virtual ~RectI() noexcept = default;
+		~RectI() noexcept = default;
 
 	public:
-		RectI& operator=(const RectI& _other) noexcept;
+		RectI& operator=(const RectI& _other);
 		RectI& operator=(RectI&& _other) noexcept;
 
 	public:
@@ -928,12 +928,12 @@ namespace LiteFX::Math {
 		RectF() noexcept;
 		RectF(const Vector<Float, 2>& pos, Float w, Float h) noexcept;
 		RectF(Float x, Float y, Float w, Float h) noexcept;
-		RectF(const RectF&) noexcept;
+		RectF(const RectF&);
 		RectF(RectF&&) noexcept;
-		//virtual ~RectF() noexcept = default;
+		~RectF() noexcept = default;
 
 	public:
-		RectF& operator=(const RectF& _other) noexcept;
+		RectF& operator=(const RectF& _other);
 		RectF& operator=(RectF&& _other) noexcept;
 
 	public:

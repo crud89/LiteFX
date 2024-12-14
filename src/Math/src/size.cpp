@@ -13,16 +13,16 @@ Size2d::Size2d(size_t w, size_t h) noexcept : Vector<scalar_type, vec_size>() {
     this->y() = h;
 }
 
-Size2d::Size2d(const Size2d& _other) noexcept : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>>(_other)) {}
-Size2d::Size2d(Size2d&& _other) noexcept : Vector<scalar_type, vec_size>(std::move(static_cast<Vector<scalar_type, vec_size>>(_other))) {}
+Size2d::Size2d(const Size2d& _other) : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>>(_other)) {}
+Size2d::Size2d(Size2d&& _other) noexcept : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>&&>(_other)) {}
 
-Size2d& Size2d::operator=(const Size2d& _other) noexcept {
+Size2d& Size2d::operator=(const Size2d& _other) {
     Vector<scalar_type, vec_size>::operator=(static_cast<Vector<scalar_type, vec_size>>(_other));
     return *this;
 }
 
 Size2d& Size2d::operator=(Size2d&& _other) noexcept {
-    Vector<scalar_type, vec_size>::operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
+    Vector<scalar_type, vec_size>::operator=(static_cast<Vector<scalar_type, vec_size>&&>(_other));
     return *this;
 }
 
@@ -54,16 +54,16 @@ Size3d::Size3d(size_t w, size_t h, size_t d) noexcept : Vector<scalar_type, vec_
     this->z() = d;
 }
 
-Size3d::Size3d(const Size3d& _other) noexcept : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>>(_other)) {}
-Size3d::Size3d(Size3d&& _other) noexcept : Vector<scalar_type, vec_size>(std::move(static_cast<Vector<scalar_type, vec_size>>(_other))) {}
+Size3d::Size3d(const Size3d& _other) : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>>(_other)) {}
+Size3d::Size3d(Size3d&& _other) noexcept : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>&&>(_other)) {}
 
-Size3d& Size3d::operator=(const Size3d& _other) noexcept {
+Size3d& Size3d::operator=(const Size3d& _other) {
     Vector<scalar_type, vec_size>::operator=(static_cast<Vector<scalar_type, vec_size>>(_other));
     return *this;
 }
 
 Size3d& Size3d::operator=(Size3d&& _other) noexcept {
-    Vector<scalar_type, vec_size>::operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
+    Vector<scalar_type, vec_size>::operator=(static_cast<Vector<scalar_type, vec_size>&&>(_other));
     return *this;
 }
 
@@ -96,16 +96,16 @@ Size4d::Size4d(size_t w, size_t h, size_t d, size_t a) noexcept : Vector<scalar_
     this->w() = a;
 }
 
-Size4d::Size4d(const Size4d& _other) noexcept : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>>(_other)) {}
-Size4d::Size4d(Size4d&& _other) noexcept : Vector<scalar_type, vec_size>(std::move(static_cast<Vector<scalar_type, vec_size>>(_other))) {}
+Size4d::Size4d(const Size4d& _other) : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>>(_other)) {}
+Size4d::Size4d(Size4d&& _other) noexcept : Vector<scalar_type, vec_size>(static_cast<Vector<scalar_type, vec_size>&&>(_other)) {}
 
-Size4d& Size4d::operator=(const Size4d& _other) noexcept {
+Size4d& Size4d::operator=(const Size4d& _other) {
     Vector<scalar_type, vec_size>::operator=(static_cast<Vector<scalar_type, vec_size>>(_other));
     return *this;
 }
 
 Size4d& Size4d::operator=(Size4d&& _other) noexcept {
-    Vector<scalar_type, vec_size>::operator=(std::move(static_cast<Vector<scalar_type, vec_size>>(_other)));
+    Vector<scalar_type, vec_size>::operator=(static_cast<Vector<scalar_type, vec_size>&&>(_other));
     return *this;
 }
 

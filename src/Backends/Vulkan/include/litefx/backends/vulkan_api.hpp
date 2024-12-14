@@ -20,7 +20,6 @@
 #  define VK_USE_PLATFORM_WIN32_KHR
 #endif
 
-#include <litefx/config.h>
 #include <litefx/rendering.hpp>
 #include <vulkan/vulkan.h>
 #include "vulkan_formatters.hpp"
@@ -29,7 +28,7 @@ namespace LiteFX::Rendering::Backends {
     using namespace LiteFX::Math;
     using namespace LiteFX::Rendering;
 
-    constexpr char VULKAN_LOG[] = "Backend::Vulkan";
+    constexpr StringView VULKAN_LOG = "Backend::Vulkan"sv;
 
 	// Forward declarations.
     class VulkanVertexBufferLayout;
@@ -209,20 +208,45 @@ namespace LiteFX::Rendering::Backends {
     /// </summary>
     class LITEFX_VULKAN_API VulkanGraphicsAdapter final : public IGraphicsAdapter, public Resource<VkPhysicalDevice> {
         LITEFX_IMPLEMENTATION(VulkanGraphicsAdapterImpl);
+        friend struct SharedObject::Allocator<VulkanGraphicsAdapter>;
 
-    public:
+    private:
         /// <summary>
         /// Initializes a graphics adapter instance with a physical device.
         /// </summary>
         /// <param name="adapter">The physical device to initialize the instance with.</param>
         explicit VulkanGraphicsAdapter(VkPhysicalDevice adapter);
+
+    private:
+        /// <inheritdoc />
+        VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) noexcept = delete;
+
+        /// <inheritdoc />
         VulkanGraphicsAdapter(const VulkanGraphicsAdapter&) = delete;
-        VulkanGraphicsAdapter(VulkanGraphicsAdapter&&) = delete;
-        virtual ~VulkanGraphicsAdapter() noexcept;
+
+        /// <inheritdoc />
+        VulkanGraphicsAdapter& operator=(VulkanGraphicsAdapter&&) noexcept = delete;
+
+        /// <inheritdoc />
+        VulkanGraphicsAdapter& operator=(const VulkanGraphicsAdapter&) = delete;
 
     public:
         /// <inheritdoc />
-        String name() const noexcept override;
+        ~VulkanGraphicsAdapter() noexcept override;
+
+    public:
+        /// <summary>
+        /// Creates a graphics adapter instance with a physical device.
+        /// </summary>
+        /// <param name="adapter">The physical device to initialize the instance with.</param>
+        /// <returns>A shared pointer to the newly created graphics adapter instance.</returns>
+        static inline auto create(VkPhysicalDevice adapter) {
+            return SharedObject::create<VulkanGraphicsAdapter>(adapter);
+        }
+
+    public:
+        /// <inheritdoc />
+        String name() const override;
 
         /// <inheritdoc />
         UInt64 uniqueId() const noexcept override;
@@ -257,28 +281,28 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <returns><c>true</c>, if all elements of <paramref cref="extensions" /> are contained by the a list of available extensions.</returns>
         /// <seealso cref="getAvailableDeviceExtensions" />
-        bool validateDeviceExtensions(Span<const String> extensions) const noexcept;
+        bool validateDeviceExtensions(Span<const String> extensions) const;
 
         /// <summary>
         /// Returns a list of available extensions.
         /// </summary>
         /// <returns>A list of available extensions.</returns>
         /// <seealso cref="validateDeviceExtensions" />
-        Enumerable<String> getAvailableDeviceExtensions() const noexcept;
+        Enumerable<String> getAvailableDeviceExtensions() const;
 
         /// <summary>
         /// Returns <c>true</c>, if all elements of <paramref cref="validationLayers" /> are contained by the a list of available validation layers.
         /// </summary>
         /// <returns><c>true</c>, if all elements of <paramref cref="validationLayers" /> are contained by the a list of available validation layers.</returns>
         /// <seealso cref="getDeviceValidationLayers" />
-        bool validateDeviceLayers(const Span<const String> validationLayers) const noexcept;
+        bool validateDeviceLayers(const Span<const String> validationLayers) const;
 
         /// <summary>
         /// Returns a list of available validation layers.
         /// </summary>
         /// <returns>A list of available validation layers.</returns>
         /// <seealso cref="validateDeviceLayers" />
-        Enumerable<String> deviceValidationLayers() const noexcept;
+        Enumerable<String> deviceValidationLayers() const;
     };
 
     /// <summary>
@@ -305,9 +329,21 @@ namespace LiteFX::Rendering::Backends {
         VulkanSurface(const VkSurfaceKHR& surface, const VkInstance& instance);
 #endif // VK_USE_PLATFORM_WIN32_KHR
 
+
+        /// <inheritdoc />
+        VulkanSurface(VulkanSurface&&) noexcept;
+
+        /// <inheritdoc />
         VulkanSurface(const VulkanSurface&) = delete;
-        VulkanSurface(VulkanSurface&&) = delete;
-        virtual ~VulkanSurface() noexcept;
+
+        /// <inheritdoc />
+        VulkanSurface& operator=(VulkanSurface&&) noexcept;
+
+        /// <inheritdoc />
+        VulkanSurface& operator=(const VulkanSurface&) = delete;
+
+        /// <inheritdoc />
+        ~VulkanSurface() noexcept override;
 
     public:
         /// <summary>
@@ -322,7 +358,7 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <returns>The window handle of the surface.</returns>
         /// <seealso cref="createSurface" />
-        const HWND windowHandle() const noexcept;
+        HWND windowHandle() const noexcept;
 #endif // VK_USE_PLATFORM_WIN32_KHR
     };
 
@@ -338,16 +374,16 @@ namespace LiteFX::Rendering::Backends {
         /// Initializes a new exception.
         /// </summary>
         /// <param name="result">The error code returned by the operation.</param>
-        explicit VulkanPlatformException(VkResult result) noexcept :
-            m_code(result), RuntimeException("Operation returned {0}.", result) { }
+        explicit VulkanPlatformException(VkResult result) :
+            RuntimeException("Operation returned {0}.", result), m_code(result) { }
 
         /// <summary>
         /// Initializes a new exception.
         /// </summary>
         /// <param name="result">The error code returned by the operation.</param>
         /// <param name="message">The error message.</param>
-        explicit VulkanPlatformException(VkResult result, StringView message) noexcept :
-            m_code(result), RuntimeException("{1} Operation returned {0}.", result, message) { }
+        explicit VulkanPlatformException(VkResult result, StringView message) :
+            RuntimeException("{1} Operation returned {0}.", result, message), m_code(result) { }
 
         /// <summary>
         /// Initializes a new exception.
@@ -356,15 +392,23 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="result">The error code returned by the operation.</param>
         /// <param name="args">The arguments passed to the error message format string.</param>
         template <typename ...TArgs>
-        explicit VulkanPlatformException(VkResult result, StringView format, TArgs&&... args) noexcept :
-            VulkanPlatformException(std::vformat(format, std::make_format_args(args...)), result) { }
+        explicit VulkanPlatformException(VkResult result, StringView format, TArgs&&... args) :
+            VulkanPlatformException(result, std::format(format, std::forward<TArgs>(args)...)) { }
 
+        /// <inheritdoc />
+        VulkanPlatformException(VulkanPlatformException&&) noexcept = default;
+
+        /// <inheritdoc />
         VulkanPlatformException(const VulkanPlatformException&) = default;
-        VulkanPlatformException(VulkanPlatformException&&) = default;
-        virtual ~VulkanPlatformException() noexcept = default;
 
+        /// <inheritdoc />
+        VulkanPlatformException& operator=(VulkanPlatformException&&) noexcept = default;
+
+        /// <inheritdoc />
         VulkanPlatformException& operator=(const VulkanPlatformException&) = default;
-        VulkanPlatformException& operator=(VulkanPlatformException&&) = default;
+
+        /// <inheritdoc />
+        ~VulkanPlatformException() noexcept override = default;
 
     public:
         /// <summary>
@@ -386,9 +430,6 @@ namespace LiteFX::Rendering::Backends {
     static inline void raiseIfFailed(VkResult result, StringView message, TArgs&&... args) {
         if (result == VK_SUCCESS) [[likely]]
             return;
-
-        if (message.empty())
-            throw VulkanPlatformException(result, message);
         else
             throw VulkanPlatformException(result, message, std::forward<TArgs>(args)...);
     }

@@ -14,6 +14,7 @@ struct LocalDescriptorBindingPoint {
 	}
 };
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 template <>
 struct std::hash<LocalDescriptorBindingPoint> {
 	std::size_t operator()(const LocalDescriptorBindingPoint& p) const noexcept {
@@ -24,6 +25,7 @@ struct std::hash<LocalDescriptorBindingPoint> {
 		return res;
 	}
 };
+// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
 constexpr auto HitGroupNameTemplate = L"HitGroup_{0}"sv;
 
@@ -31,39 +33,45 @@ constexpr auto HitGroupNameTemplate = L"HitGroup_{0}"sv;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12RayTracingPipeline::DirectX12RayTracingPipelineImpl : public Implement<DirectX12RayTracingPipeline> {
+class DirectX12RayTracingPipeline::DirectX12RayTracingPipelineImpl {
 public:
 	friend class DirectX12RayTracingPipelineBuilder;
 	friend class DirectX12RayTracingPipeline;
 
 private:
+	WeakPtr<const DirectX12Device> m_device;
 	SharedPtr<DirectX12PipelineLayout> m_layout;
 	SharedPtr<const DirectX12ShaderProgram> m_program;
 	const ShaderRecordCollection m_shaderRecordCollection;
-	UInt32 m_maxRecursionDepth { 10 }, m_maxPayloadSize{ 0 }, m_maxAttributeSize{ 32 };;
-	const DirectX12Device& m_device;
+	UInt32 m_maxRecursionDepth { 10 }, m_maxPayloadSize{ 0 }, m_maxAttributeSize{ 32 }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 	ComPtr<ID3D12StateObject> m_pipelineState;
 
 public:
-	DirectX12RayTracingPipelineImpl(DirectX12RayTracingPipeline* parent, const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, ShaderRecordCollection&& shaderRecords) :
-		base(parent), m_device(device), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords)), m_maxRecursionDepth(maxRecursionDepth), m_maxPayloadSize(maxPayloadSize), m_maxAttributeSize(maxAttributeSize)
+	DirectX12RayTracingPipelineImpl(const DirectX12Device& device, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, ShaderRecordCollection&& shaderRecords) :
+		m_device(device.weak_from_this()), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords)), m_maxRecursionDepth(maxRecursionDepth), m_maxPayloadSize(maxPayloadSize), m_maxAttributeSize(maxAttributeSize)
 	{
 		if (maxRecursionDepth > D3D12_RAYTRACING_MAX_DECLARABLE_TRACE_RECURSION_DEPTH) [[unlikely]]
-			throw ArgumentOutOfRangeException("maxRecursionDepth", std::make_pair(0u, static_cast<UInt32>(D3D12_RAYTRACING_MAX_DECLARABLE_TRACE_RECURSION_DEPTH)), maxRecursionDepth, "The specified ray tracing recursion depth too large.");
+			throw ArgumentOutOfRangeException("maxRecursionDepth", std::make_pair(0_ui32, static_cast<UInt32>(D3D12_RAYTRACING_MAX_DECLARABLE_TRACE_RECURSION_DEPTH)), maxRecursionDepth, "The specified ray tracing recursion depth too large.");
 
 		if (maxAttributeSize > D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES) [[unlikely]]
-			throw ArgumentOutOfRangeException("maxAttributeSize", std::make_pair(0u, static_cast<UInt32>(D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES)), maxAttributeSize, "The specified ray attribute size was too large.");
+			throw ArgumentOutOfRangeException("maxAttributeSize", std::make_pair(0_ui32, static_cast<UInt32>(D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES)), maxAttributeSize, "The specified ray attribute size was too large.");
 	}
 
-	DirectX12RayTracingPipelineImpl(DirectX12RayTracingPipeline* parent, const DirectX12Device& device, ShaderRecordCollection&& shaderRecords) :
-		base(parent), m_device(device), m_shaderRecordCollection(std::move(shaderRecords))
+	DirectX12RayTracingPipelineImpl(const DirectX12Device& device, ShaderRecordCollection&& shaderRecords) :
+		m_device(device.weak_from_this()), m_shaderRecordCollection(std::move(shaderRecords))
 	{
 		m_program = std::dynamic_pointer_cast<const DirectX12ShaderProgram>(m_shaderRecordCollection.program());
 	}
 
 public:
-	void initialize()
+	void initialize([[maybe_unused]] const DirectX12RayTracingPipeline& pipeline)
 	{
+		// Check if the device is still valid.
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot create ray tracing pipeline on a released device instance.");
+
 		if (m_program == nullptr) [[unlikely]]
 			throw ArgumentNotInitializedException("shaderProgram", "The shader program must be initialized.");
 		if (m_layout == nullptr) [[unlikely]]
@@ -71,12 +79,12 @@ public:
 		if (m_program != m_shaderRecordCollection.program()) [[unlikely]]
 			throw InvalidArgumentException("shaderRecords", "The ray tracing pipeline shader program must be the same as used to build the shader record collection.");
 
-		LITEFX_TRACE(DIRECTX12_LOG, "Creating ray-tracing pipeline (\"{1}\") for layout {0} (records: {2})...", reinterpret_cast<void*>(m_layout.get()), m_parent->name(), m_shaderRecordCollection.shaderRecords().size());
+		LITEFX_TRACE(DIRECTX12_LOG, "Creating ray-tracing pipeline (\"{1}\") for layout {0} (records: {2})...", static_cast<void*>(m_layout.get()), pipeline.name(), m_shaderRecordCollection.shaderRecords().size());
 		
 		// Validate shader stage usage.
 		auto modules = m_program->modules();
+		//bool hasRayTracingShaders = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, module->type()); }) != modules.end();
 		bool hasComputeShaders    = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::Compute, module->type()); }) != modules.end();
-		bool hasRayTracingShaders = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, module->type()); }) != modules.end();
 		bool hasMeshShaders       = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::MeshPipeline, module->type()); }) != modules.end();
 		bool hasDirectShaders     = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RasterizationPipeline, module->type()); }) != modules.end();
 		
@@ -87,7 +95,7 @@ public:
 		else if (hasMeshShaders) [[unlikely]]
 			throw InvalidArgumentException("shaderProgram", "The shader program contains a mesh shader, which is not supported in a ray-tracing pipeline");
 		
-		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", reinterpret_cast<const void*>(m_program.get()), modules.size());
+		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", static_cast<const void*>(m_program.get()), modules.size());
 
 		// Start by describing the shader modules individually.
 		struct ShaderModuleSubobjectData {
@@ -229,7 +237,7 @@ public:
 				{
 				case D3D12_DESCRIPTOR_RANGE_TYPE_CBV:
 					//rootParameter.InitAsConstantBufferView(binding.BindingPoint.Register, binding.BindingPoint.Space);
-					rootParameter.InitAsConstants(descriptor.elementSize() / 4, binding.BindingPoint.Register, binding.BindingPoint.Space);
+					rootParameter.InitAsConstants(static_cast<UINT>(descriptor.elementSize() / 4), binding.BindingPoint.Register, binding.BindingPoint.Space);
 					break;
 				case D3D12_DESCRIPTOR_RANGE_TYPE_SRV:
 					// NOTE: SRVs and UAVs must be passed as GPU-virtual addresses to the shader-local data.
@@ -251,13 +259,13 @@ public:
 				HRESULT hr = ::D3D12SerializeVersionedRootSignature(&rootSignatureDesc, &signature, &error);
 
 				if (error != nullptr)
-					errorString = String(reinterpret_cast<TCHAR*>(error->GetBufferPointer()), error->GetBufferSize());
+					errorString = String(static_cast<TCHAR*>(error->GetBufferPointer()), error->GetBufferSize());
 
 				raiseIfFailed(hr, "Unable to serialize shader-local root signature: {0}", errorString);
 
 				// Create the root signature.
 				ComPtr<ID3D12RootSignature> rootSignature;
-				raiseIfFailed(m_device.handle()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for shader-local payload.");
+				raiseIfFailed(device->handle()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for shader-local payload.");
 
 				// Add the root signature to the binding associations set.
 				rootSignatures[binding].RootSignature = rootSignature;
@@ -349,18 +357,24 @@ public:
 		};
 
 		// Create the pipeline.
-		ComPtr<ID3D12StateObject> pipeline;
-		raiseIfFailed(m_device.handle()->CreateStateObject(&pipelineDesc, IID_PPV_ARGS(&pipeline)), "Unable to create ray tracing pipeline state.");
+		ComPtr<ID3D12StateObject> pipelineState;
+		raiseIfFailed(device->handle()->CreateStateObject(&pipelineDesc, IID_PPV_ARGS(&pipelineState)), "Unable to create ray tracing pipeline state.");
 
 #ifndef NDEBUG
-		pipeline->SetName(Widen(m_parent->name()).c_str());
+		pipelineState->SetName(Widen(pipeline.name()).c_str());
 #endif
 
-		m_pipelineState = pipeline;
+		m_pipelineState = pipelineState;
 	}
 
-	UniquePtr<IDirectX12Buffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups)
+	SharedPtr<IDirectX12Buffer> allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups)
 	{
+		// Check if the device is still valid.
+		auto device = m_device.lock();
+
+		if (device == nullptr) [[unlikely]]
+			throw RuntimeException("Cannot allocate shader binding table on a released device instance.");
+
 		// Query the interface used to obtain the shader identifiers.
 		ComPtr<ID3D12StateObjectProperties> stateProperties;
 		raiseIfFailed(m_pipelineState.As(&stateProperties), "Unable to query ray tracing pipeline state properties.");
@@ -403,10 +417,10 @@ public:
 
 		// Allocate a buffer for the shader binding table.
 		// NOTE: Updating the SBT to change shader-local data is currently unsupported. Instead, bind-less resources should be used.
-		auto result = m_device.factory().createBuffer(BufferType::ShaderBindingTable, ResourceHeap::Dynamic, recordSize, totalRecordCount, ResourceUsage::TransferSource);
+		auto result = device->factory().createBuffer(BufferType::ShaderBindingTable, ResourceHeap::Dynamic, recordSize, static_cast<UInt32>(totalRecordCount), ResourceUsage::TransferSource);
 
 		// Write each record group by group.
-		UInt32 record{ 0 }, hitGroupId{ 0 };
+		UInt32 record{ 0 };
 		Array<Byte> recordData(recordSize, 0x00);
 
 		// Write each shader binding group that should be included.
@@ -483,7 +497,7 @@ public:
 					std::memcpy(recordData.data(), getRecordIdentifier(currentRecord), D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
 
 					// Write the payload and map everything into the buffer.
-					std::memcpy(recordData.data() + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, currentRecord->localData(), currentRecord->localDataSize());
+					std::memcpy(recordData.data() + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, currentRecord->localData(), currentRecord->localDataSize()); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 					result->map(recordData.data(), recordSize, record++);
 				}
 
@@ -500,20 +514,22 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(const DirectX12Device& device, SharedPtr<DirectX12PipelineLayout> layout, SharedPtr<DirectX12ShaderProgram> shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, const String& name) :
-	m_impl(makePimpl<DirectX12RayTracingPipelineImpl>(this, device, layout, shaderProgram, maxRecursionDepth, maxPayloadSize, maxAttributeSize, std::move(shaderRecords))), DirectX12PipelineState(nullptr)
+DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(const DirectX12Device& device, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram, ShaderRecordCollection&& shaderRecords, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, const String& name) :
+	DirectX12PipelineState(nullptr), m_impl(device, layout, shaderProgram, maxRecursionDepth, maxPayloadSize, maxAttributeSize, std::move(shaderRecords))
 {
 	if (!name.empty())
 		this->name() = name;
 
-	m_impl->initialize();
+	m_impl->initialize(*this);
 }
 
 DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(const DirectX12Device& device, ShaderRecordCollection&& shaderRecords) noexcept :
-	m_impl(makePimpl<DirectX12RayTracingPipelineImpl>(this, device, std::move(shaderRecords))), DirectX12PipelineState(nullptr)
+	DirectX12PipelineState(nullptr), m_impl(device, std::move(shaderRecords))
 {
 }
 
+DirectX12RayTracingPipeline::DirectX12RayTracingPipeline(DirectX12RayTracingPipeline&&) noexcept = default;
+DirectX12RayTracingPipeline& DirectX12RayTracingPipeline::operator=(DirectX12RayTracingPipeline&&) noexcept = default;
 DirectX12RayTracingPipeline::~DirectX12RayTracingPipeline() noexcept = default;
 
 SharedPtr<const DirectX12ShaderProgram> DirectX12RayTracingPipeline::program() const noexcept
@@ -551,7 +567,7 @@ ComPtr<ID3D12StateObject> DirectX12RayTracingPipeline::stateObject() const noexc
 	return m_impl->m_pipelineState;
 }
 
-UniquePtr<IDirectX12Buffer> DirectX12RayTracingPipeline::allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const noexcept
+SharedPtr<IDirectX12Buffer> DirectX12RayTracingPipeline::allocateShaderBindingTable(ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups) const
 {
 	return m_impl->allocateShaderBindingTable(offsets, groups);
 }
@@ -578,10 +594,10 @@ DirectX12RayTracingPipelineBuilder::~DirectX12RayTracingPipelineBuilder() noexce
 void DirectX12RayTracingPipelineBuilder::build()
 {
 	auto instance = this->instance();
-	instance->m_impl->m_layout = m_state.pipelineLayout;
-	instance->m_impl->m_maxRecursionDepth = m_state.maxRecursionDepth;
-	instance->m_impl->m_maxPayloadSize = m_state.maxPayloadSize;
-	instance->m_impl->m_maxAttributeSize = m_state.maxAttributeSize;
-	instance->m_impl->initialize();
+	instance->m_impl->m_layout = this->state().pipelineLayout;
+	instance->m_impl->m_maxRecursionDepth = this->state().maxRecursionDepth;
+	instance->m_impl->m_maxPayloadSize = this->state().maxPayloadSize;
+	instance->m_impl->m_maxAttributeSize = this->state().maxAttributeSize;
+	instance->m_impl->initialize(*instance);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
