@@ -28,8 +28,9 @@ namespace LiteFX::Graphics {
     /// </remarks>
     /// <typeparam name="TBackend">The type of render backend that implements the blitter.</typeparam>
     template <render_backend TBackend>
-    class Blitter /*: public LiteFX::SharedObject*/ {
+    class LITEFX_GRAPHICS_API Blitter : public LiteFX::SharedObject {
         LITEFX_IMPLEMENTATION(BlitImpl);
+        friend struct SharedObject::Allocator<Blitter>;
 
     private:
         /// <summary>
@@ -50,8 +51,9 @@ namespace LiteFX::Graphics {
         /// <inheritdoc />
         Blitter& operator=(Blitter&&) noexcept = delete;
 
+    public:
         /// <inheritdoc />
-        ~Blitter() noexcept /*override*/;
+        ~Blitter() noexcept override = default;
 
     public:
         /// <summary>
@@ -60,8 +62,7 @@ namespace LiteFX::Graphics {
         /// <param name="device">The device to allocate resources from.</param>
         /// <returns>A shared pointer to the newly created blitter instance.</returns>
         static inline auto create(const TBackend::device_type& device) {
-            //return SharedObject::create<Blitter<TBackend>>(device);
-            throw;
+            return SharedObject::create<Blitter<TBackend>>(device);
         }
 
     public:
@@ -70,11 +71,15 @@ namespace LiteFX::Graphics {
     };
 
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
+#ifndef LiteFX_Graphics_EXPORTS
     template class LITEFX_GRAPHICS_API Blitter<Backends::VulkanBackend>;
+#endif // !LiteFX_Graphics_EXPORTS
 #endif // LITEFX_BUILD_VULKAN_BACKEND
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
+#ifndef LiteFX_Graphics_EXPORTS
     template class LITEFX_GRAPHICS_API Blitter<Backends::DirectX12Backend>;
+#endif // !LiteFX_Graphics_EXPORTS
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 }

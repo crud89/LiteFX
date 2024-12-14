@@ -36,28 +36,21 @@ public:
 		auto shaderProgram = DirectX12ShaderProgram::create(device, std::move(modules | std::views::as_rvalue));
 
 		// Allocate descriptor set layouts.
+		// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 		UniquePtr<DirectX12PushConstantsLayout> pushConstantsLayout = nullptr;
-		auto bufferLayouts = Enumerable<UniquePtr<DirectX12DescriptorLayout>>(
-			makeUnique<DirectX12DescriptorLayout>(DescriptorType::ConstantBuffer, 0, 16),
-			makeUnique<DirectX12DescriptorLayout>(DescriptorType::Texture, 1, 0),
-			makeUnique<DirectX12DescriptorLayout>(DescriptorType::RWTexture, 2, 0)
-		);
-		auto samplerLayouts = Enumerable<UniquePtr<DirectX12DescriptorLayout>>(
-			makeUnique<DirectX12DescriptorLayout>(DescriptorType::Sampler, 0, 0)
-		);
-		auto descriptorSetLayouts = Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>(
-			makeUnique<DirectX12DescriptorSetLayout>(device, std::move(bufferLayouts), 0, ShaderStage::Compute),
-			makeUnique<DirectX12DescriptorSetLayout>(device, std::move(samplerLayouts), 1, ShaderStage::Compute)
-		);
+		auto bufferLayouts = Enumerable<DirectX12DescriptorLayout>(DirectX12DescriptorLayout{ DescriptorType::ConstantBuffer, 0, 16 }, DirectX12DescriptorLayout{ DescriptorType::Texture, 1, 0 }, DirectX12DescriptorLayout{ DescriptorType::RWTexture, 2, 0 });
+		auto samplerLayouts = Enumerable<DirectX12DescriptorLayout>(DirectX12DescriptorLayout{ DescriptorType::Sampler, 0, 0 });
+		auto descriptorSetLayouts = Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>(DirectX12DescriptorSetLayout::create(device, bufferLayouts, 0, ShaderStage::Compute), DirectX12DescriptorSetLayout::create(device, samplerLayouts, 1, ShaderStage::Compute));
+		// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
 		// Create a pipeline layout.
-		auto pipelineLayout = makeShared<DirectX12PipelineLayout>(device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
+		auto pipelineLayout = DirectX12PipelineLayout::create(device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
 
 		// Create the pipeline.
 		m_pipeline = makeUnique<DirectX12ComputePipeline>(device, pipelineLayout, shaderProgram, "Blit");
 
 		// Create the sampler state.
-		auto sampler = device.factory().createSampler(FilterMode::Linear, FilterMode::Linear, BorderMode::ClampToEdge, BorderMode::ClampToEdge, BorderMode::ClampToEdge);
+		m_sampler = device.factory().createSampler(FilterMode::Linear, FilterMode::Linear, BorderMode::ClampToEdge, BorderMode::ClampToEdge, BorderMode::ClampToEdge);
 	}
 };
 
@@ -70,8 +63,6 @@ Blitter<DirectX12Backend>::Blitter(const DirectX12Device& device) :
 {
 	m_impl->initialize(device);
 }
-
-Blitter<DirectX12Backend>::~Blitter() noexcept = default;
 
 void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX12CommandBuffer& commandBuffer)
 {
@@ -127,7 +118,7 @@ void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX1
 	commandBuffer.barrier(startBarrier);
 	auto resource = resourceBindings.begin();
 
-	for (int l(0); l < image.layers(); ++l, ++resource)
+	for (UInt32 l(0); l < image.layers(); ++l, ++resource)
 	{
 		auto size = image.extent();
 
@@ -144,7 +135,7 @@ void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX1
 
 			// Dispatch the pipeline.
 			commandBuffer.bind(*(*resource), pipeline);
-			commandBuffer.dispatch({ std::max<UInt32>(size.width() / 8, 1), std::max<UInt32>(size.height() / 8, 1), 1 });
+			commandBuffer.dispatch({ std::max<UInt32>(static_cast<UInt32>(size.width()) / 8, 1), std::max<UInt32>(static_cast<UInt32>(size.height()) / 8, 1), 1 });
 
 			// Wait for all writes.
 			DirectX12Barrier subBarrier(PipelineStage::Compute, PipelineStage::Compute);
@@ -159,5 +150,11 @@ void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX1
 		commandBuffer.barrier(endBarrier);
 	}
 }
+
+// ------------------------------------------------------------------------------------------------
+// Export definition.
+// ------------------------------------------------------------------------------------------------
+
+template class LITEFX_GRAPHICS_API Blitter<Backends::DirectX12Backend>;
 
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND

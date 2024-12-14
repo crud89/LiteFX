@@ -27,8 +27,6 @@ Blitter<VulkanBackend>::Blitter(const VulkanDevice& /*device*/) :
 {
 }
 
-Blitter<VulkanBackend>::~Blitter() noexcept = default;
-
 void Blitter<VulkanBackend>::generateMipMaps(IVulkanImage& image, VulkanCommandBuffer& commandBuffer)
 {
 	VulkanBarrier startBarrier(PipelineStage::None, PipelineStage::Transfer);
@@ -86,5 +84,11 @@ void Blitter<VulkanBackend>::generateMipMaps(IVulkanImage& image, VulkanCommandB
 	endBarrier.transition(image, ResourceAccess::TransferRead | ResourceAccess::TransferWrite, ResourceAccess::ShaderRead, ImageLayout::ShaderResource);
 	commandBuffer.barrier(endBarrier);
 }
+
+// ------------------------------------------------------------------------------------------------
+// Export definition.
+// ------------------------------------------------------------------------------------------------
+
+template class LITEFX_GRAPHICS_API Blitter<Backends::VulkanBackend>;
 
 #endif // LITEFX_BUILD_VULKAN_BACKEND

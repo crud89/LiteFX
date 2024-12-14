@@ -7,25 +7,25 @@ using namespace LiteFX::Rendering::Backends;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12PipelineLayout::DirectX12PipelineLayoutImpl : public Implement<DirectX12PipelineLayout> {
+class DirectX12PipelineLayout::DirectX12PipelineLayoutImpl {
 public:
     friend class DirectX12PipelineLayoutBuilder;
     friend class DirectX12PipelineLayout;
 
 private:
-    UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout;
-    Array<UniquePtr<DirectX12DescriptorSetLayout>> m_descriptorSetLayouts;
-    const DirectX12Device& m_device;
+    UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout{};
+    Array<SharedPtr<DirectX12DescriptorSetLayout>> m_descriptorSetLayouts{};
+    WeakPtr<const DirectX12Device> m_device;
 
 public:
-    DirectX12PipelineLayoutImpl(DirectX12PipelineLayout* parent, const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
-        base(parent), m_pushConstantsLayout(std::move(pushConstantsLayout)), m_device(device)
+    DirectX12PipelineLayoutImpl(const DirectX12Device& device, Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>&& descriptorLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
+        m_pushConstantsLayout(std::move(pushConstantsLayout)), m_device(device.weak_from_this())
     {
-        m_descriptorSetLayouts = descriptorLayouts | std::views::as_rvalue | std::ranges::to<std::vector>();
+        m_descriptorSetLayouts = std::move(descriptorLayouts) | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
-    DirectX12PipelineLayoutImpl(DirectX12PipelineLayout* parent, const DirectX12Device& device) :
-        base(parent), m_device(device)
+    DirectX12PipelineLayoutImpl(const DirectX12Device& device) :
+        m_device(device.weak_from_this())
     {
     }
 
@@ -58,12 +58,18 @@ private:
     }
 
 public:
-    ComPtr<ID3D12RootSignature> initialize()
+    ComPtr<ID3D12RootSignature> initialize([[maybe_unused]] const DirectX12PipelineLayout& pipelineLayout)
     {
-        // Sort and check if there are duplicate space indices.
-        std::ranges::sort(m_descriptorSetLayouts, [](const UniquePtr<DirectX12DescriptorSetLayout>& a, const UniquePtr<DirectX12DescriptorSetLayout>& b) { return a->space() < b->space(); });
+        // Check if the device is still valid.
+        auto device = m_device.lock();
 
-        for (Tuple<UInt32, UInt32> spaces : m_descriptorSetLayouts | std::views::transform([](const UniquePtr<DirectX12DescriptorSetLayout>& layout) { return layout->space(); }) | std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
+        if (device == nullptr) [[unlikely]]
+            throw RuntimeException("Cannot build pipeline layout from a released device instance.");
+
+        // Sort and check if there are duplicate space indices.
+        std::ranges::sort(m_descriptorSetLayouts, [](const SharedPtr<DirectX12DescriptorSetLayout>& a, const SharedPtr<DirectX12DescriptorSetLayout>& b) { return a->space() < b->space(); });
+
+        for (Tuple<UInt32, UInt32> spaces : m_descriptorSetLayouts | std::views::transform([](const SharedPtr<DirectX12DescriptorSetLayout>& layout) { return layout->space(); }) | std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
         {
             auto [a, b] = spaces;
 
@@ -79,7 +85,7 @@ public:
         bool hasInputAttachmentSampler = false;
         UInt32 rootParameterIndex{ 0 };
 
-        LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", reinterpret_cast<void*>(m_parent), m_descriptorSetLayouts.size(), m_pushConstantsLayout == nullptr ? 0 : m_pushConstantsLayout->ranges().size());
+        LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", static_cast<const void*>(&pipelineLayout), m_descriptorSetLayouts.size(), m_pushConstantsLayout == nullptr ? 0 : m_pushConstantsLayout->ranges().size());
 
         if (m_pushConstantsLayout != nullptr)
         {
@@ -106,7 +112,7 @@ public:
             });
         }
 
-        std::ranges::for_each(m_descriptorSetLayouts, [&](const UniquePtr<DirectX12DescriptorSetLayout>& layout) {
+        std::ranges::for_each(m_descriptorSetLayouts, [&](const SharedPtr<DirectX12DescriptorSetLayout>& layout) {
             // Parse the shader stage descriptor.
             D3D12_SHADER_VISIBILITY shaderStages = D3D12_SHADER_VISIBILITY_ALL;
             auto stages = layout->shaderStages();
@@ -185,7 +191,7 @@ public:
             if (!rangeSet.empty())
             {
                 CD3DX12_ROOT_PARAMETER1 rootParameter = {};
-                rootParameter.InitAsDescriptorTable(rangeSet.size(), rangeSet.data(), static_cast<D3D12_SHADER_VISIBILITY>(shaderStages));
+                rootParameter.InitAsDescriptorTable(static_cast<UINT>(rangeSet.size()), rangeSet.data(), static_cast<D3D12_SHADER_VISIBILITY>(shaderStages));
                 descriptorRanges.push_back(std::move(rangeSet));
 
                 // Store the range set.
@@ -206,13 +212,13 @@ public:
         HRESULT hr = ::D3D12SerializeVersionedRootSignature(&rootSignatureDesc, &signature, &error);
         
         if (error != nullptr)
-            errorString = String(reinterpret_cast<TCHAR*>(error->GetBufferPointer()), error->GetBufferSize());
+            errorString = String(static_cast<TCHAR*>(error->GetBufferPointer()), error->GetBufferSize());
         
         raiseIfFailed(hr, "Unable to serialize root signature to create pipeline layout: {0}", errorString);
 
         // Create the root signature.
         ComPtr<ID3D12RootSignature> rootSignature;
-        raiseIfFailed(m_device.handle()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for pipeline layout.");
+        raiseIfFailed(device->handle()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for pipeline layout.");
 
         return rootSignature;
     }
@@ -222,35 +228,35 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
-    ComResource<ID3D12RootSignature>(nullptr), m_impl(makePimpl<DirectX12PipelineLayoutImpl>(this, device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout)))
+DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
+    ComResource<ID3D12RootSignature>(nullptr), m_impl(device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout))
 {
-    this->handle() = m_impl->initialize();
+    this->handle() = m_impl->initialize(*this);
 }
 
-DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device) noexcept :
-    ComResource<ID3D12RootSignature>(nullptr), m_impl(makePimpl<DirectX12PipelineLayoutImpl>(this, device))
+DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device) :
+    ComResource<ID3D12RootSignature>(nullptr), m_impl(device)
 {
 }
 
 DirectX12PipelineLayout::~DirectX12PipelineLayout() noexcept = default;
 
-const DirectX12Device& DirectX12PipelineLayout::device() const noexcept
+SharedPtr<const DirectX12Device> DirectX12PipelineLayout::device() const noexcept
 {
-    return m_impl->m_device;
+    return m_impl->m_device.lock();
 }
 
 const DirectX12DescriptorSetLayout& DirectX12PipelineLayout::descriptorSet(UInt32 space) const
 {
-    if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](const UniquePtr<DirectX12DescriptorSetLayout>& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
+    if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](const SharedPtr<DirectX12DescriptorSetLayout>& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
         return *match->get();
 
     throw ArgumentOutOfRangeException("space", "No descriptor set layout uses the provided space {0}.", space);
 }
 
-Enumerable<const DirectX12DescriptorSetLayout*> DirectX12PipelineLayout::descriptorSets() const noexcept
+Enumerable<const DirectX12DescriptorSetLayout*> DirectX12PipelineLayout::descriptorSets() const
 {
-    return m_impl->m_descriptorSetLayouts | std::views::transform([](const UniquePtr<DirectX12DescriptorSetLayout>& layout) { return layout.get(); });
+    return m_impl->m_descriptorSetLayouts | std::views::transform([](const SharedPtr<DirectX12DescriptorSetLayout>& layout) { return layout.get(); });
 }
 
 const DirectX12PushConstantsLayout* DirectX12PipelineLayout::pushConstants() const noexcept
@@ -263,17 +269,17 @@ const DirectX12PushConstantsLayout* DirectX12PipelineLayout::pushConstants() con
 // Pipeline layout builder implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12PipelineLayoutBuilder::DirectX12PipelineLayoutBuilderImpl : public Implement<DirectX12PipelineLayoutBuilder> {
+class DirectX12PipelineLayoutBuilder::DirectX12PipelineLayoutBuilderImpl {
 public:
     friend class DirectX12PipelineLayoutBuilder;
     friend class DirectX12PipelineLayout;
 
 private:
-    const DirectX12Device& m_device;
+    SharedPtr<const DirectX12Device> m_device;
 
 public:
-    DirectX12PipelineLayoutBuilderImpl(DirectX12PipelineLayoutBuilder* parent, const DirectX12Device& device) :
-        base(parent), m_device(device)
+    DirectX12PipelineLayoutBuilderImpl(const DirectX12Device& device) :
+        m_device(device.shared_from_this())
     {
     }
 };
@@ -283,7 +289,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12PipelineLayoutBuilder::DirectX12PipelineLayoutBuilder(const DirectX12Device& parent) :
-    m_impl(makePimpl<DirectX12PipelineLayoutBuilderImpl>(this, parent)), PipelineLayoutBuilder(SharedPtr<DirectX12PipelineLayout>(new DirectX12PipelineLayout(parent)))
+    PipelineLayoutBuilder(DirectX12PipelineLayout::create(parent)), m_impl(parent)
 {
 }
 
@@ -292,9 +298,9 @@ DirectX12PipelineLayoutBuilder::~DirectX12PipelineLayoutBuilder() noexcept = def
 void DirectX12PipelineLayoutBuilder::build()
 {
     auto instance = this->instance();
-    instance->m_impl->m_descriptorSetLayouts = std::move(m_state.descriptorSetLayouts);
-    instance->m_impl->m_pushConstantsLayout = std::move(m_state.pushConstantsLayout);
-    instance->handle() = instance->m_impl->initialize();
+    instance->m_impl->m_descriptorSetLayouts = std::move(this->state().descriptorSetLayouts);
+    instance->m_impl->m_pushConstantsLayout = std::move(this->state().pushConstantsLayout);
+    instance->handle() = instance->m_impl->initialize(*instance);
 }
 
 DirectX12DescriptorSetLayoutBuilder DirectX12PipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages)
@@ -307,7 +313,7 @@ DirectX12PushConstantsLayoutBuilder DirectX12PipelineLayoutBuilder::pushConstant
     return DirectX12PushConstantsLayoutBuilder(*this, size);
 }
 
-const DirectX12Device& DirectX12PipelineLayoutBuilder::device() const noexcept
+SharedPtr<const DirectX12Device> DirectX12PipelineLayoutBuilder::device() const noexcept
 {
     return m_impl->m_device;
 }

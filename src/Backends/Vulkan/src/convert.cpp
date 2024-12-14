@@ -965,7 +965,7 @@ VkBlendFactor LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getBlendFactor(
 	case BlendFactor::ConstantAlpha: return VK_BLEND_FACTOR_CONSTANT_ALPHA;
 	case BlendFactor::OneMinusConstantAlpha: return VK_BLEND_FACTOR_ONE_MINUS_CONSTANT_ALPHA;
 	case BlendFactor::SourceAlphaSaturate: return VK_BLEND_FACTOR_SRC_ALPHA_SATURATE;
-	case BlendFactor::Source1Color: return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
+	case BlendFactor::Source1Color: return VK_BLEND_FACTOR_SRC1_COLOR;
 	case BlendFactor::OneMinusSource1Color: return VK_BLEND_FACTOR_ONE_MINUS_SRC1_COLOR;
 	case BlendFactor::Source1Alpha: return VK_BLEND_FACTOR_SRC1_ALPHA;
 	case BlendFactor::OneMinusSource1Alpha: return VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA;
@@ -1111,16 +1111,17 @@ VkImageLayout LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getImageLayout(
 	case ImageLayout::ReadWrite: return VK_IMAGE_LAYOUT_GENERAL;
 	case ImageLayout::CopySource: return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 	case ImageLayout::CopyDestination: return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-	case ImageLayout::RenderTarget: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	case ImageLayout::DepthRead: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 	case ImageLayout::DepthWrite: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+	case ImageLayout::RenderTarget:
+	case ImageLayout::ResolveSource:
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND // Images from interop swap chain must not be transitioned into present state.
-	case ImageLayout::Present: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-#else
+	case ImageLayout::Present:
+#endif
+	case ImageLayout::ResolveDestination: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+#ifndef LITEFX_BUILD_DIRECTX_12_BACKEND
 	case ImageLayout::Present: return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 #endif
-	case ImageLayout::ResolveSource: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-	case ImageLayout::ResolveDestination: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 	case ImageLayout::Undefined: return VK_IMAGE_LAYOUT_UNDEFINED;
 	default: throw InvalidArgumentException("imageLayout", "Unsupported image layout.");
 	}

@@ -1,0 +1,60 @@
+get_filename_component(_dx12_root "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(_dx12_root "${_dx12_root}" PATH)
+get_filename_component(_dx12_root "${_dx12_root}" PATH)
+
+if (EXISTS "${_dx12_root}/bin/D3D12Core.dll")
+
+    find_library(D3D12_LIB NAMES d3d12)
+
+    if("${D3D12_LIB}" STREQUAL "D3D12_LIB-NOTFOUND")
+        message(FATAL_ERROR "D3D12.LIB import library from the Windows SDK is required")
+    endif()
+
+    add_library(Microsoft::DirectX12-Core SHARED IMPORTED)
+    set_target_properties(Microsoft::DirectX12-Core PROPERTIES
+       IMPORTED_LOCATION_RELEASE            "${_dx12_root}/bin/D3D12Core.dll"
+       IMPORTED_LOCATION_DEBUG              "${_dx12_root}/debug/bin/D3D12Core.dll"
+       IMPORTED_IMPLIB                      "${D3D12_LIB}"
+       IMPORTED_CONFIGURATIONS              "Debug;Release"
+       IMPORTED_LINK_INTERFACE_LANGUAGES    "C")
+
+    add_library(Microsoft::DirectX12-Layers SHARED IMPORTED)
+    set_target_properties(Microsoft::DirectX12-Layers PROPERTIES
+        IMPORTED_LOCATION_RELEASE            "${_dx12_root}/debug/bin/d3d12SDKLayers.dll"
+        IMPORTED_LOCATION_DEBUG              "${_dx12_root}/debug/bin/d3d12SDKLayers.dll"
+        IMPORTED_IMPLIB                      "${D3D12_LIB}"
+        IMPORTED_CONFIGURATIONS              "Debug;Release"
+        IMPORTED_LINK_INTERFACE_LANGUAGES    "C")
+
+    # ... because for some reason the build system refuses to copy the DLLs over (probably since they are already available in 
+    # a system directory and it does not take into account, that they are different).
+    if (NOT TARGET dxagilitysdkbinaries)
+        add_custom_target(dxagilitysdkbinaries
+            COMMENT "Copy DirectX Agility SDK binaries..."
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/d3d12/"
+        )
+        add_custom_command(TARGET dxagilitysdkbinaries POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_PROPERTY:Microsoft::DirectX12-Core,IMPORTED_LOCATION_RELEASE>" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/d3d12/"
+        )
+        add_custom_command(TARGET dxagilitysdkbinaries POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_PROPERTY:Microsoft::DirectX12-Layers,IMPORTED_LOCATION_DEBUG>" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/d3d12/"
+        )
+
+        install(FILES "$<TARGET_PROPERTY:Microsoft::DirectX12-Core,IMPORTED_LOCATION_RELEASE>" "$<TARGET_PROPERTY:Microsoft::DirectX12-Layers,IMPORTED_LOCATION_DEBUG>" DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/d3d12/")
+    endif()
+
+    add_dependencies(Microsoft::DirectX12-Core dxagilitysdkbinaries)
+
+    add_library(Microsoft::DirectX12-Agility INTERFACE IMPORTED)
+    set_target_properties(Microsoft::DirectX12-Agility PROPERTIES
+        INTERFACE_LINK_LIBRARIES "Microsoft::DirectX12-Core;Microsoft::DirectX12-Layers")
+
+    set(directx12-agility_FOUND TRUE)
+
+else()
+
+    set(directx12-agility_FOUND FALSE)
+
+endif()
+
+unset(_dx12_root)

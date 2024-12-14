@@ -207,7 +207,7 @@ With the adapter, surface and frame buffer extent, we can go ahead to create our
 ```cxx
 int width, height;
 ::glfwGetFramebufferSize(m_window, &width, &height);
-m_device = backend->createDevice(*adapter, *surface, Format::B8G8R8A8_SRGB, Size2d(width, height), 3);
+m_device = backend->createDevice(*adapter, *surface, Format::B8G8R8A8_SRGB, Size2d(width, height), 3).shared_from_this();
 ```
 
 While we are at it, we can also initialize the viewport and scissor rectangle here:
@@ -220,10 +220,10 @@ m_scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(width), stati
 We store the device in a variable `m_device`, which we define as a member variable of `SampleApp`, since we are going to make heavy use of it throughout the whole application.
 
 ```cxx
-UniquePtr<VulkanDevice> m_device;   // or UniquePtr<DirectX12Device>
+SharedPtr<VulkanDevice> m_device;
 ```
 
-Note how the `createDevice` method returns a `UniquePtr`. Receiving a unique pointer from any call transfers ownership to your application. This means, that from now on, you are responsible for managing the device lifetime and make sure that it gets released properly. We will do this later, when we talk about cleaning up. From now on, all member variables that should be stored are marked with the `m_` prefix and their declaration will not be explicitly mentioned, as long as it does only involve declaring a simple pointer or reference.
+From now on, all member variables that should be stored are marked with the `m_` prefix and their declaration will not be explicitly mentioned, as long as it does only involve declaring a simple pointer or reference.
 
 #### Creating a Render Pass
 
@@ -509,7 +509,7 @@ camera.ViewProjection = projection * view;
 In the last line, we pre-multiply the view/projection matrix and store it in the camera buffer, which we can now transfer to the GPU:
 
 ```cxx
-m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
+m_cameraStagingBuffer->map(static_cast<const void*>(&camera), sizeof(camera));
 commandBuffer->transfer(*m_cameraStagingBuffer, *m_cameraBuffer);
 ```
 
@@ -598,7 +598,7 @@ auto now = std::chrono::high_resolution_clock::now();
 auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
 transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-m_transformBuffer->map(reinterpret_cast<const void*>(&transform), sizeof(transform), backBuffer);
+m_transformBuffer->map(static_cast<const void*>(&transform), sizeof(transform), backBuffer);
 ```
 
 Before we can record the draw call, we need to make sure, the shader sees the right resources by binding all descriptor sets:
@@ -682,7 +682,7 @@ projection[1][1] *= -1.f;   // Fix GLM clip coordinate scaling.
 camera.ViewProjection = projection * view;
 
 auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
-m_cameraStagingBuffer->map(reinterpret_cast<const void*>(&camera), sizeof(camera));
+m_cameraStagingBuffer->map(static_cast<const void*>(&camera), sizeof(camera));
 commandBuffer->transfer(*m_cameraStagingBuffer, *m_cameraBuffer);
 commandBuffer->end(true, true);
 ```

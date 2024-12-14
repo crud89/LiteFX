@@ -23,7 +23,7 @@
 namespace LiteFX::Logging {
     using namespace LiteFX;
 
-    enum class LogLevel {
+    enum class LogLevel : std::uint8_t {
         Trace = SPDLOG_LEVEL_TRACE,
         Debug = SPDLOG_LEVEL_DEBUG,
         Info = SPDLOG_LEVEL_INFO,
@@ -35,7 +35,16 @@ namespace LiteFX::Logging {
     };
 
     class LITEFX_LOGGING_API ISink {
+    protected:
+        ISink() noexcept = default;
+        ISink(const ISink&) = default;
+        ISink(ISink&&) noexcept = default;
+        ISink& operator=(const ISink&) = default;
+        ISink& operator=(ISink&&) noexcept = default;
+
     public:
+        virtual ~ISink() noexcept = default;
+
         /// <summary>
         /// Gets the minimum log level for messages to get written to the log.
         /// </summary>
@@ -61,9 +70,12 @@ namespace LiteFX::Logging {
 
     public:
         ConsoleSink(LogLevel level = LogLevel::Info, const String& pattern = "%+");
+        ~ConsoleSink() noexcept override;
+
         ConsoleSink(const ConsoleSink&) = delete;
-        ConsoleSink(ConsoleSink&&) = delete;
-        virtual ~ConsoleSink() noexcept;
+        ConsoleSink(ConsoleSink&&) noexcept = delete;
+        auto operator=(const ConsoleSink&) = delete;
+        auto operator=(ConsoleSink&&) noexcept = delete;
 
     public:
         /// <inheritdoc />
@@ -84,9 +96,12 @@ namespace LiteFX::Logging {
 
     public:
         RollingFileSink(const String& fileName, LogLevel level = LogLevel::Info, const String& pattern = "%+", bool truncate = false, int maxFiles = 0);
+        ~RollingFileSink() noexcept override;
+
         RollingFileSink(const RollingFileSink&) = delete;
-        RollingFileSink(RollingFileSink&&) = delete;
-        virtual ~RollingFileSink() noexcept;
+        RollingFileSink(RollingFileSink&&) noexcept = delete;
+        auto operator=(const RollingFileSink&) = delete;
+        auto operator=(RollingFileSink&&) noexcept = delete;
 
     public:
         /// <inheritdoc />
@@ -113,9 +128,12 @@ namespace LiteFX::Logging {
 
     public:
         Log(const String& name);
-        Log(Log&&) = delete;
-        Log(const Log&) = delete;
         virtual ~Log() noexcept;
+
+        Log(Log&&) noexcept = delete;
+        Log(const Log&) = delete;
+        auto operator=(Log&&) noexcept = delete;
+        auto operator=(const Log&) = delete;
 
     public:
         /// <summary>
@@ -133,14 +151,14 @@ namespace LiteFX::Logging {
         }
 
         template<typename ...TArgs>
-        inline void trace(std::format_string<TArgs...> format, TArgs&&... args) {
+        inline void trace([[maybe_unused]] std::format_string<TArgs...> format, [[maybe_unused]] TArgs&&... args) {
 #ifndef NDEBUG
             this->log(LogLevel::Trace, format, std::forward<TArgs>(args)...);
 #endif
         }
 
         template<typename ...TArgs>
-        inline void debug(std::format_string<TArgs...> format, TArgs&&... args) {
+        inline void debug([[maybe_unused]] std::format_string<TArgs...> format, [[maybe_unused]] TArgs&&... args) {
 #ifndef NDEBUG
             this->log(LogLevel::Debug, format, std::forward<TArgs>(args)...);
 #endif
@@ -168,16 +186,16 @@ namespace LiteFX::Logging {
     };
 
     class LITEFX_LOGGING_API Logger {
-        LITEFX_IMPLEMENTATION(LoggerImpl);
-
-    public:
-        Logger(Logger&&) = delete;
-        Logger(const Logger&) = delete;
-        Logger& operator=(const Logger&) = delete;
-        virtual ~Logger() noexcept;
-
     private:
         Logger() noexcept;
+
+    public:
+        virtual ~Logger() noexcept;
+
+        Logger(Logger&&) noexcept = delete;
+        Logger(const Logger&) = delete;
+        auto operator=(const Logger&) = delete;
+        auto operator=(Logger&&) noexcept = delete;
 
     public:
         // TODO: Cache logs by name and return them, instead of re-creating them with each call.
@@ -187,8 +205,9 @@ namespace LiteFX::Logging {
 
 }
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
+
 #ifndef NDEBUG
-#define LITEFX_DETAILS_LOG_HELPER(...) __VA_ARGS__
 #define LITEFX_TRACE(log, format, ...) LiteFX::Logging::Logger::get(log).trace(format, ##__VA_ARGS__)
 #define LITEFX_DEBUG(log, format, ...) LiteFX::Logging::Logger::get(log).debug(format, ##__VA_ARGS__)
 #else
@@ -200,3 +219,5 @@ namespace LiteFX::Logging {
 #define LITEFX_WARNING(log, format, ...) LiteFX::Logging::Logger::get(log).warning(format, ##__VA_ARGS__)
 #define LITEFX_ERROR(log, format, ...) LiteFX::Logging::Logger::get(log).error(format, ##__VA_ARGS__)
 #define LITEFX_FATAL_ERROR(log, format, ...) LiteFX::Logging::Logger::get(log).fatal(format, ##__VA_ARGS__)
+
+// NOLINTEND(cppcoreguidelines-macro-usage)

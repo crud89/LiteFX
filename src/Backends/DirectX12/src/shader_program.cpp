@@ -12,10 +12,10 @@ using namespace LiteFX::Rendering::Backends;
 
 consteval UInt32 FOUR_CC(char ch0, char ch1, char ch2, char ch3) 
 {
-    return static_cast<UInt32>((Byte)ch0) | static_cast<UInt32>((Byte)ch1) << 8 | static_cast<UInt32>((Byte)ch2) << 16 | static_cast<UInt32>((Byte)ch3) << 24;
+    return static_cast<UInt32>((Byte)ch0) | static_cast<UInt32>((Byte)ch1) << 8 | static_cast<UInt32>((Byte)ch2) << 16 | static_cast<UInt32>((Byte)ch3) << 24; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 }
 
-static bool SUPPRESS_MISSING_ROOT_SIGNATURE_WARNING = false;
+static bool SUPPRESS_MISSING_ROOT_SIGNATURE_WARNING = false; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
 
 constexpr BorderMode DECODE_BORDER_MODE(D3D12_TEXTURE_ADDRESS_MODE addressMode) noexcept
 {
@@ -30,14 +30,14 @@ constexpr BorderMode DECODE_BORDER_MODE(D3D12_TEXTURE_ADDRESS_MODE addressMode) 
     }
 }
 
-class DirectX12ShaderProgram::DirectX12ShaderProgramImpl : public Implement<DirectX12ShaderProgram> {
+class DirectX12ShaderProgram::DirectX12ShaderProgramImpl {
 public:
     friend class DirectX12ShaderProgramBuilder;
     friend class DirectX12ShaderProgram;
 
 private:
     Array<UniquePtr<DirectX12ShaderModule>> m_modules;
-    const DirectX12Device& m_device;
+    WeakPtr<const DirectX12Device> m_device;
 
 private:
     struct DescriptorInfo {
@@ -61,29 +61,29 @@ private:
 
     struct DescriptorSetInfo {
     public:
-        UInt32 space;
-        ShaderStage stage;
-        Array<DescriptorInfo> descriptors;
+        UInt32 space{ 0 };
+        ShaderStage stage{ ShaderStage::Other };
+        Array<DescriptorInfo> descriptors{};
     };
 
     struct PushConstantRangeInfo {
     public:
-        ShaderStage stage;
-        UInt32 offset;
-        UInt32 size;
-        UInt32 location;
-        UInt32 space;
+        ShaderStage stage{ ShaderStage::Other };
+        UInt32 offset{ 0 };
+        UInt32 size{ 0 };
+        UInt32 location{ 0 };
+        UInt32 space{ 0 };
     };
 
 public:
-    DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent, const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) :
-        base(parent), m_device(device)
+    DirectX12ShaderProgramImpl(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) :
+        m_device(device.weak_from_this())
     {
-        m_modules = modules | std::views::as_rvalue | std::ranges::to<std::vector>();
+        m_modules = std::move(modules) | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
-    DirectX12ShaderProgramImpl(DirectX12ShaderProgram* parent, const DirectX12Device& device) :
-        base(parent), m_device(device)
+    DirectX12ShaderProgramImpl(const DirectX12Device& device) :
+        m_device(device.weak_from_this())
     {
     }
 
@@ -139,7 +139,7 @@ public:
         {
             if (containsGraphicsGroup || containsMeshGroup || containsFragmentGroup) [[unlikely]]
                 throw InvalidArgumentException("modules", "If a shader program contains ray-tracing shaders, it must only contain ray-tracing shaders.");
-            if (containsRaytracingGroup && shaders[ShaderStage::RayGeneration] != 1) [[unlikely]]
+            if (shaders[ShaderStage::RayGeneration] != 1) [[unlikely]]
                 throw InvalidArgumentException("modules", "If ray-tracing shaders are present, there must also be exactly one ray generation shader.");
                 
             return;
@@ -178,8 +178,9 @@ public:
             throw InvalidArgumentException("modules", "A shader program that contains only a fragment/pixel shader is not valid.");
     }
 
-    void reflectRootSignature(ComPtr<ID3D12RootSignatureDeserializer> deserializer, Dictionary<UInt32, DescriptorSetInfo>& descriptorSetLayouts, Array<PushConstantRangeInfo>& pushConstantRanges)
+    void reflectRootSignature(const ComPtr<ID3D12RootSignatureDeserializer>& deserializer, Dictionary<UInt32, DescriptorSetInfo>& descriptorSetLayouts, Array<PushConstantRangeInfo>& pushConstantRanges)
     {
+        // NOLINTBEGIN(cppcoreguidelines-pro-type-union-access)
         // Collect the shader stages.
         ShaderStage stages{ };
         std::ranges::for_each(m_modules, [&stages](const auto& shaderModule) { stages = stages | shaderModule->type(); });
@@ -188,9 +189,9 @@ public:
         auto description = deserializer->GetRootSignatureDesc();
 
         // Iterate the static samplers.
-        for (int i(0); i < description->NumStaticSamplers; ++i)
+        for (UInt32 i(0); i < description->NumStaticSamplers; ++i)
         {
-            auto staticSampler = description->pStaticSamplers[i];
+            auto staticSampler = description->pStaticSamplers[i]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
             // If the descriptor space 
             if (!descriptorSetLayouts.contains(staticSampler.RegisterSpace)) [[unlikely]]
@@ -209,9 +210,9 @@ public:
         // Iterate the root parameters.
         UInt32 pushConstantOffset = 0;
 
-        for (int i(0); i < description->NumParameters; ++i)
+        for (UInt32 i(0); i < description->NumParameters; ++i)
         {
-            auto rootParameter = description->pParameters[i];
+            auto rootParameter = description->pParameters[i]; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
             // Check if there's a descriptor set for the space.
             if (!descriptorSetLayouts.contains(rootParameter.Descriptor.RegisterSpace)) [[unlikely]]
@@ -271,13 +272,15 @@ public:
                 throw InvalidArgumentException("modules", "The shader modules root signature exposes an unknown root parameter type {1} for parameter {0}.", i, rootParameter.ParameterType);
             }
         }
+
+        // NOLINTEND(cppcoreguidelines-pro-type-union-access)
     }
 
     template <typename TReflection>
     DescriptorInfo getReflectionDescriptorDesc(D3D12_SHADER_INPUT_BIND_DESC inputDesc, TReflection* shaderReflection)
     {
         // First, create a description of the descriptor.
-        DescriptorType type;
+        DescriptorType type{ };
         UInt32 elementSize = 0;
 
         switch (inputDesc.Type)
@@ -345,13 +348,19 @@ public:
 
         // Unbounded arrays have a bind count of -1.
         if (inputDesc.BindCount == 0)
-            descriptor.elements = -1;
+            descriptor.elements = std::numeric_limits<UInt32>::max();
 
         return descriptor;
     }
 
     SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout()
     {
+        // Check if the device is still valid.
+        auto device = m_device.lock();
+
+        if (device == nullptr) [[unlikely]]
+            throw RuntimeException("Cannot create pipeline layout on a released device instance.");
+
         // First, filter the descriptor sets and push constant ranges.
         Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts;
         Array<PushConstantRangeInfo> pushConstantRanges;
@@ -389,7 +398,7 @@ public:
             if (LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, shaderModule->type()))
             {
                 // Verify reflection and get the actual shader reflection interface.
-                UINT32 shaderIdx;
+                UINT32 shaderIdx{ 0 };
                 ComPtr<ID3D12LibraryReflection> shaderReflection;
                 raiseIfFailed(reflection->FindFirstPartKind(FOUR_CC('D', 'X', 'I', 'L'), &shaderIdx), "The shader module does not contain a valid DXIL shader.");
                 raiseIfFailed(reflection->GetPartReflection(shaderIdx, IID_PPV_ARGS(&shaderReflection)), "Unable to query shader reflection from DXIL module.");
@@ -399,13 +408,13 @@ public:
                 raiseIfFailed(shaderReflection->GetDesc(&shaderInfo), "Unable to acquire meta-data from shader module.");
                 
                 // Parse each function in the module.
-                for (int f(0); f < shaderInfo.FunctionCount; ++f)
+                for (UInt32 f(0); f < shaderInfo.FunctionCount; ++f)
                 {
                     D3D12_FUNCTION_DESC functionDesc;
-                    auto functionReflection = shaderReflection->GetFunctionByIndex(f);
+                    auto functionReflection = shaderReflection->GetFunctionByIndex(static_cast<INT>(f));
                     functionReflection->GetDesc(&functionDesc);
 
-                    for (int i(0); i < functionDesc.BoundResources; ++i)
+                    for (UInt32 i(0); i < functionDesc.BoundResources; ++i)
                     {
                         // Get the bound resource description.
                         D3D12_SHADER_INPUT_BIND_DESC inputDesc;
@@ -420,7 +429,7 @@ public:
             else
             {
                 // Verify reflection and get the actual shader reflection interface.
-                UINT32 shaderIdx;
+                UINT32 shaderIdx{ 0 };
                 ComPtr<ID3D12ShaderReflection> shaderReflection;
                 raiseIfFailed(reflection->FindFirstPartKind(FOUR_CC('D', 'X', 'I', 'L'), &shaderIdx), "The shader module does not contain a valid DXIL shader.");
                 raiseIfFailed(reflection->GetPartReflection(shaderIdx, IID_PPV_ARGS(&shaderReflection)), "Unable to query shader reflection from DXIL module.");
@@ -430,7 +439,7 @@ public:
                 raiseIfFailed(shaderReflection->GetDesc(&shaderInfo), "Unable to acquire meta-data from shader module.");
 
                 // Iterate the bound resources to extract the descriptor sets.
-                for (int i(0); i < shaderInfo.BoundResources; ++i)
+                for (UInt32 i(0); i < shaderInfo.BoundResources; ++i)
                 {
                     // Get the bound resource description.
                     D3D12_SHADER_INPUT_BIND_DESC inputDesc;
@@ -466,39 +475,48 @@ public:
             LITEFX_WARNING(DIRECTX12_LOG, "None of the provided shader modules exports a root signature. Descriptor sets will be acquired using reflection. Some features (such as root/push constants) are not supported.");
 
         // Create the descriptor set layouts.
-        auto descriptorSets = [this, &descriptorSetLayouts]() -> std::generator<UniquePtr<DirectX12DescriptorSetLayout>> {
+        auto descriptorSets = [](SharedPtr<const DirectX12Device> device, Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts) -> std::generator<SharedPtr<DirectX12DescriptorSetLayout>> {
             for (auto it = descriptorSetLayouts.begin(); it != descriptorSetLayouts.end(); ++it)
             {
-                auto& descriptorSet = it->second;
+                auto space = it->second.space;
+                auto stage = it->second.stage;
 
                 // Create the descriptor layouts.
-                auto descriptors = [this, &descriptorSet]() -> std::generator<UniquePtr<DirectX12DescriptorLayout>> {
+                auto descriptors = [](DescriptorSetInfo descriptorSet) -> std::generator<DirectX12DescriptorLayout> {
                     for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor)
-                        co_yield descriptor->staticSamplerState.has_value() ?
-                            makeUnique<DirectX12DescriptorLayout>(makeUnique<DirectX12Sampler>(m_device,
+                    {
+                        if (descriptor->staticSamplerState.has_value())
+                        {
+                            auto sampler = DirectX12Sampler::allocate(
                                 D3D12_DECODE_MAG_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
                                 D3D12_DECODE_MIN_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
                                 DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressU), DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressV), DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressW),
                                 D3D12_DECODE_MIP_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? MipMapMode::Nearest : MipMapMode::Linear,
-                                descriptor->staticSamplerState->MipLODBias, descriptor->staticSamplerState->MinLOD, descriptor->staticSamplerState->MaxLOD, static_cast<Float>(descriptor->staticSamplerState->MaxAnisotropy)), descriptor->location) :
-                            makeUnique<DirectX12DescriptorLayout>(descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->local);
-                }() | std::views::as_rvalue;
+                                descriptor->staticSamplerState->MipLODBias, descriptor->staticSamplerState->MinLOD, descriptor->staticSamplerState->MaxLOD, static_cast<Float>(descriptor->staticSamplerState->MaxAnisotropy));
+                            co_yield { *sampler, descriptor->location };
+                        }
+                        else
+                        {
+                            co_yield { descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->local };
+                        }
+                    }
+                }(std::move(it->second));
 
-                co_yield makeUnique<DirectX12DescriptorSetLayout>(m_device, std::move(descriptors), descriptorSet.space, descriptorSet.stage);
+                co_yield DirectX12DescriptorSetLayout::create(*device.get(), descriptors, space, stage);
             }
-        }() | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12DescriptorSetLayout>>>();
+        }(device, std::move(descriptorSetLayouts)) | std::views::as_rvalue | std::ranges::to<Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>>();
 
         // Create the push constants layout.
-        auto pushConstants = [&pushConstantRanges]() -> std::generator<UniquePtr<DirectX12PushConstantsRange>> {
+        auto overallSize = std::accumulate(pushConstantRanges.begin(), pushConstantRanges.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range.size; });
+        auto pushConstants = [](Array<PushConstantRangeInfo> pushConstantRanges) -> std::generator<UniquePtr<DirectX12PushConstantsRange>> {
             for (auto range = pushConstantRanges.begin(); range != pushConstantRanges.end(); ++range)
                 co_yield makeUnique<DirectX12PushConstantsRange>(range->stage, range->offset, range->size, range->space, range->location);
-        }() | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>();
+        }(std::move(pushConstantRanges)) | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>();
 
-        auto overallSize = std::accumulate(pushConstantRanges.begin(), pushConstantRanges.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range.size; });
         auto pushConstantsLayout = makeUnique<DirectX12PushConstantsLayout>(std::move(pushConstants), overallSize);
 
         // Return the pipeline layout.
-        return makeShared<DirectX12PipelineLayout>(m_device, std::move(descriptorSets), std::move(pushConstantsLayout));
+        return DirectX12PipelineLayout::create(*device.get(), std::move(descriptorSets), std::move(pushConstantsLayout));
     }
 };
 
@@ -512,24 +530,19 @@ void DirectX12ShaderProgram::suppressMissingRootSignatureWarning(bool disableWar
 // ------------------------------------------------------------------------------------------------
 
 DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) :
-    m_impl(makePimpl<DirectX12ShaderProgramImpl>(this, device, std::move(modules)))
+    m_impl(device, std::move(modules))
 {
     m_impl->validate();
 }
 
 DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device) noexcept :
-    m_impl(makePimpl<DirectX12ShaderProgramImpl>(this, device))
+    m_impl(device)
 {
 }
 
 DirectX12ShaderProgram::~DirectX12ShaderProgram() noexcept = default;
 
-SharedPtr<DirectX12ShaderProgram> DirectX12ShaderProgram::create(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules)
-{
-    return SharedPtr<DirectX12ShaderProgram>(new DirectX12ShaderProgram(device, std::move(modules)));
-}
-
-Enumerable<const DirectX12ShaderModule*> DirectX12ShaderProgram::modules() const noexcept
+Enumerable<const DirectX12ShaderModule*> DirectX12ShaderProgram::modules() const
 {
     return m_impl->m_modules | std::views::transform([](const UniquePtr<DirectX12ShaderModule>& shader) { return shader.get(); });
 }
@@ -544,16 +557,16 @@ SharedPtr<DirectX12PipelineLayout> DirectX12ShaderProgram::reflectPipelineLayout
 // Shader program builder implementation.
 // ------------------------------------------------------------------------------------------------
 
-class DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilderImpl : public Implement<DirectX12ShaderProgramBuilder> {
+class DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilderImpl {
 public:
     friend class DirectX12ShaderProgramBuilder;
 
 private:
-    const DirectX12Device& m_device;
+    SharedPtr<const DirectX12Device> m_device;
 
 public:
-    DirectX12ShaderProgramBuilderImpl(DirectX12ShaderProgramBuilder* parent, const DirectX12Device& device) :
-        base(parent), m_device(device)
+    DirectX12ShaderProgramBuilderImpl(const DirectX12Device& device) :
+        m_device(device.shared_from_this())
     {
     }
 };
@@ -563,7 +576,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 DirectX12ShaderProgramBuilder::DirectX12ShaderProgramBuilder(const DirectX12Device& device) :
-    m_impl(makePimpl<DirectX12ShaderProgramBuilderImpl>(this, device)), ShaderProgramBuilder(SharedPtr<DirectX12ShaderProgram>(new DirectX12ShaderProgram(device)))
+    ShaderProgramBuilder(DirectX12ShaderProgram::create(device)), m_impl(device)
 {
 }
 
@@ -571,17 +584,17 @@ DirectX12ShaderProgramBuilder::~DirectX12ShaderProgramBuilder() noexcept = defau
 
 void DirectX12ShaderProgramBuilder::build()
 {
-    this->instance()->m_impl->m_modules = std::move(m_state.modules);
+    this->instance()->m_impl->m_modules = std::move(this->state().modules);
     this->instance()->m_impl->validate();
 }
 
 UniquePtr<DirectX12ShaderModule> DirectX12ShaderProgramBuilder::makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
-    return makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, fileName, entryPoint, shaderLocalDescriptor);
+    return makeUnique<DirectX12ShaderModule>(*m_impl->m_device.get(), type, fileName, entryPoint, shaderLocalDescriptor);
 }
 
 UniquePtr<DirectX12ShaderModule> DirectX12ShaderProgramBuilder::makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
-    return makeUnique<DirectX12ShaderModule>(m_impl->m_device, type, stream, name, entryPoint, shaderLocalDescriptor);
+    return makeUnique<DirectX12ShaderModule>(*m_impl->m_device.get(), type, stream, name, entryPoint, shaderLocalDescriptor);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)

@@ -6,35 +6,45 @@ using namespace LiteFX;
 // Implementation.
 // ------------------------------------------------------------------------------------------------
 
-class App::AppImpl : public Implement<App> {
+class App::AppImpl {
 public:
 	friend class App;
 
 private:
-	Dictionary<std::type_index, UniquePtr<IBackend>> m_backends;
-	std::multimap<std::type_index, const std::function<bool()>> m_startCallbacks;
-	std::multimap<std::type_index, const std::function<void()>> m_stopCallbacks;
+	Dictionary<std::type_index, UniquePtr<IBackend>> m_backends{};
+	std::multimap<std::type_index, const std::function<bool()>> m_startCallbacks{};
+	std::multimap<std::type_index, const std::function<void()>> m_stopCallbacks{};
 
-public:
-	AppImpl(App* parent) : 
-		base(parent) 
+private:
+	IBackend* findBackend(std::type_index type) const
 	{
-	}
+		return m_backends.contains(type) ? m_backends.at(type).get() : nullptr;
+	};
 };
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-App::App() : 
-	m_impl(makePimpl<AppImpl>(this)) 
+App::App() :
+	m_impl() 
 {
 }
 
 App::~App() noexcept
 {
 	for (auto& backend : m_impl->m_backends | std::views::filter([](const auto& b) { return b.second->state() == BackendState::Active; }))
-		this->stopBackend(backend.first);
+	{
+		try
+		{
+			this->stopBackend(backend.first);
+		}
+		catch (...)
+		{
+			// Drop the exception, as there's nothing we can do anymore at this point (not even log, as the application name is no longer provided by the parent class).
+			continue;
+		}
+	}
 }
 
 Platform App::platform() const noexcept
@@ -53,17 +63,17 @@ const IBackend* App::operator[](std::type_index type) const
 
 const IBackend* App::getBackend(std::type_index type) const
 {
-	return m_impl->m_backends.contains(type) ? m_impl->m_backends[type].get() : nullptr;
+	return m_impl->findBackend(type);
 }
 
 IBackend* App::getBackend(std::type_index type)
 {
-	return m_impl->m_backends.contains(type) ? m_impl->m_backends[type].get() : nullptr;
+	return m_impl->findBackend(type);
 }
 
 void App::startBackend(std::type_index type) const
 {
-	auto backend = const_cast<IBackend*>(this->getBackend(type));
+	auto backend = m_impl->findBackend(type);
 
 	if (backend == nullptr)
 		throw InvalidArgumentException("type", "No backend of type {0} has been registered.", type.name());
@@ -90,7 +100,7 @@ void App::startBackend(std::type_index type) const
 
 void App::stopBackend(std::type_index type) const
 {
-	auto backend = const_cast<IBackend*>(this->getBackend(type));
+	auto backend = m_impl->findBackend(type);
 
 	if (backend == nullptr)
 		throw InvalidArgumentException("type", "No backend of type {0} has been registered.", type.name());
@@ -117,6 +127,9 @@ void App::stopActiveBackends(BackendType type) const
 		this->stopBackend(backend.first);
 }
 
+// The following methods return at the first match (if any), so the subsequent matches are unreachable. However there is no place for `std::unreachable` in this pattern, so we simply drop the warning.
+#pragma warning(push)
+#pragma warning(disable:4702)
 IBackend* App::activeBackend(BackendType type) const
 {
 	for (auto& backend : m_impl->m_backends | std::views::filter([type](const auto& b) { return b.second->type() == type && b.second->state() == BackendState::Active; }))
@@ -132,6 +145,7 @@ std::type_index App::activeBackendType(BackendType type) const
 	
 	return typeid(std::nullptr_t);
 }
+#pragma warning(pop)
 
 void App::registerStartCallback(std::type_index type, const std::function<bool()>& callback)
 {
@@ -143,7 +157,7 @@ void App::registerStopCallback(std::type_index type, const std::function<void()>
 	m_impl->m_stopCallbacks.insert(std::make_pair(type, callback));
 }
 
-Enumerable<const IBackend*> App::getBackends(const BackendType type) const noexcept
+Enumerable<const IBackend*> App::getBackends(const BackendType type) const
 {
 	return m_impl->m_backends |
 		std::views::transform([](const auto& backend) { return backend.second.get(); }) |

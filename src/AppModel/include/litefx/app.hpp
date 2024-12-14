@@ -21,6 +21,13 @@ namespace LiteFX {
 	private:
 		BackendState m_state = BackendState::Inactive;
 
+	protected:
+		IBackend() noexcept = default;
+		IBackend(const IBackend&) = default;
+		IBackend(IBackend&&) noexcept = default;
+		IBackend& operator=(const IBackend&) = default;
+		IBackend& operator=(IBackend&&) noexcept = default;
+
 	public:
 		virtual ~IBackend() noexcept = default;
 
@@ -43,7 +50,7 @@ namespace LiteFX {
 		/// Gets the name of the backend.
 		/// </summary>
 		/// <returns>The name of the backend.</returns>
-		virtual String name() const noexcept = 0;
+		virtual StringView name() const noexcept = 0;
 
 	protected:
 		/// <summary>
@@ -79,13 +86,12 @@ namespace LiteFX {
 	class LITEFX_APPMODEL_API EventArgs {
 	public:
 		EventArgs() = default;
-		EventArgs(const EventArgs&) = default;
-		EventArgs(EventArgs&&) = default;
-		virtual ~EventArgs() noexcept = default;
 
-	public:
+		EventArgs(const EventArgs&) = default;
+		EventArgs(EventArgs&&) noexcept = default;
 		EventArgs& operator=(const EventArgs&) = default;
-		EventArgs& operator=(EventArgs&&) = default;
+		EventArgs& operator=(EventArgs&&) noexcept = default;
+		virtual ~EventArgs() noexcept = default;
 	};
 
 	/// <summary>
@@ -99,7 +105,7 @@ namespace LiteFX {
 	/// <typeparam name="TResult">The result of the delegate function.</typeparam>
 	/// <typeparam name="...TArgs">The arguments of the delegate function.</typeparam>
 	template <typename TResult, typename... TArgs>
-	class Delegate {
+	class Delegate final {
 	public:
 		using function_type = std::function<TResult(TArgs...)>;
 		using token_type = size_t;
@@ -114,7 +120,8 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="fn">The delegate function.</param>
 		/// <param name="t">The unique token of the delegate within the parent event.</param>
-		inline Delegate(function_type fn, token_type t) noexcept : m_target(fn), m_token(t) { }
+		inline Delegate(function_type fn, token_type t) noexcept : 
+			m_target(std::move(fn)), m_token(t) { }
 
 	public:
 		/// <summary>
@@ -123,7 +130,7 @@ namespace LiteFX {
 		/// <param name="...args">The arguments passed to the function.</param>
 		/// <returns>The result of the delegate function call.</returns>
 		inline TResult invoke(TArgs... args) const {
-			return m_target(args...);
+			return m_target(std::move(args)...);
 		}
 
 		/// <summary>
@@ -141,7 +148,7 @@ namespace LiteFX {
 		/// <param name="...args">The arguments passed to the function.</param>
 		/// <returns>The result of the delegate function call.</returns>
 		inline TResult operator()(TArgs... args) const {
-			return this->invoke(args...);
+			return this->invoke(std::move(args)...);
 		}
 	};
 
@@ -158,7 +165,7 @@ namespace LiteFX {
 	/// <typeparam name="TEventArgs">The type of the additional event arguments.</typeparam>
 	/// <seealso cref="EventArgs" />
 	template <typename TEventArgs>
-	class Event {
+	class Event final {
 	public:
 		using event_args_type = TEventArgs;
 		using delegate_type = Delegate<void, const void*, TEventArgs>;
@@ -166,15 +173,53 @@ namespace LiteFX {
 		using event_token_type = typename delegate_type::token_type;
 
 	private:
-		Array<delegate_type> m_subscribers;
+		Array<delegate_type> m_subscribers{};
 
 	public:
 		/// <summary>
 		/// Initializes a new event.
 		/// </summary>
-		Event() = default;
-		Event(const Event&) = delete;
-		Event(Event&&) = delete;
+		constexpr Event() = default;
+
+		/// <summary>
+		/// Creates a copy of a event.
+		/// </summary>
+		/// <remarks>
+		/// This constructor is implemented in order to support copying of types that contain events. Subscribers are not copied!
+		/// </remarks>
+		/// <param name="_other">The event instance to copy.</param>
+		constexpr Event([[maybe_unused]] const Event& _other) { }
+
+		/// <summary>
+		/// Takes over another instance of a event.
+		/// </summary>
+		/// <param name="_other">The event instance to take over.</param>
+		constexpr Event(Event&& _other) noexcept = default;
+
+		/// <summary>
+		/// Assigns a event by copying it.
+		/// </summary>
+		/// <remarks>
+		/// This operator is implemented in order to support copying of types that contain events. Subscribers are not copied and previous subscriptions are cleared!
+		/// </remarks>
+		/// <param name="_other">The event instance to copy.</param>
+		/// <returns>A reference to the current event instance.</returns>
+		constexpr Event& operator=([[maybe_unused]] const Event& _other) {
+			m_subscribers.clear();
+			return *this;
+		}
+
+		/// <summary>
+		/// Assigns a event by taking it over.
+		/// </summary>
+		/// <param name="_other">The event to take over.</param>
+		/// <returns>A reference to the current event instance.</returns>
+		constexpr Event& operator=(Event&& _other) noexcept = default;
+
+		/// <summary>
+		/// Releases the event instance.
+		/// </summary>
+		constexpr ~Event() noexcept = default;
 
 	public:
 		/// <summary>
@@ -182,7 +227,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="subscriber">A delegate for the event handler.</param>
 		/// <returns>A unique token of the event handler.</returns>
-		event_token_type add(function_type subscriber) noexcept {
+		event_token_type add(const function_type& subscriber) {
 			const auto match = std::max_element(m_subscribers.begin(), m_subscribers.end(), [](const auto& lhs, const auto& rhs) { return lhs.token() < rhs.token(); });
 			event_token_type token = match == m_subscribers.end() ? 0 : match->token() + 1;
 			m_subscribers.emplace_back(subscriber, token);
@@ -194,7 +239,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="subscriber">A delegate for the event handler.</param>
 		/// <returns>`true`, if the event handler has been removed, `false` otherwise.</returns>
-		bool remove(delegate_type subscriber) noexcept {
+		bool remove(const delegate_type& subscriber) noexcept {
 			return this->remove(subscriber.token());
 		}
 
@@ -225,7 +270,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="sender">The source of the event.</param>
 		/// <param name="args">The additional event arguments.</param>
-		void invoke(const void* sender, TEventArgs args) const {
+		void invoke(const void* sender, const TEventArgs& args) const {
 			for (const auto& handler : m_subscribers)
 				handler(sender, args);
 		}
@@ -266,7 +311,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="subscriber">A delegate for the event handler.</param>
 		/// <returns>A unique token of the event handler.</returns>
-		event_token_type operator +=(function_type subscriber) {
+		event_token_type operator +=(const function_type& subscriber) {
 			return this->add(subscriber);
 		}
 
@@ -275,7 +320,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="subscriber">A delegate for the event handler.</param>
 		/// <returns>`true`, if the event handler has been removed, `false` otherwise.</returns>
-		bool operator -=(delegate_type subscriber) noexcept {
+		bool operator -=(const delegate_type& subscriber) noexcept {
 			return this->remove(subscriber);
 		}
 
@@ -293,7 +338,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="sender">The source of the event.</param>
 		/// <param name="args">The additional event arguments.</param>
-		void operator ()(const void* sender, TEventArgs args) const {
+		void operator ()(const void* sender, const TEventArgs& args) const {
 			this->invoke(sender, args);
 		}
 
@@ -322,14 +367,14 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="width">The old window width.</param>
 		/// <param name="height">The old window height.</param>
-		ResizeEventArgs(int width, int height) : m_width(width), m_height(height) { }
+		ResizeEventArgs(int width, int height) noexcept : m_width(width), m_height(height) { }
 		ResizeEventArgs(const ResizeEventArgs&) = default;
-		ResizeEventArgs(ResizeEventArgs&&) = default;
-		virtual ~ResizeEventArgs() = default;
+		ResizeEventArgs(ResizeEventArgs&&) noexcept = default;
+		~ResizeEventArgs() noexcept override = default;
 
 	public:
 		ResizeEventArgs& operator=(const ResizeEventArgs&) = default;
-		ResizeEventArgs& operator=(ResizeEventArgs&&) = default;
+		ResizeEventArgs& operator=(ResizeEventArgs&&) noexcept = default;
 
 	public:
 		/// <summary>
@@ -364,7 +409,9 @@ namespace LiteFX {
 		/// </summary>
 		App();
 		App(const App&) = delete;
-		App(App&&) = delete;
+		App(App&&) noexcept = delete;
+		auto operator=(const App&) = delete;
+		auto operator=(App&&) noexcept = delete;
 
 		virtual ~App() noexcept;
 
@@ -373,7 +420,7 @@ namespace LiteFX {
 		/// Returns the name of the app.
 		/// </summary>
 		/// <returns>The name of the app.</returns>
-		virtual String name() const noexcept = 0;
+		virtual StringView name() const noexcept = 0;
 
 		/// <summary>
 		/// Returns the version of the app.
@@ -392,21 +439,21 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="type">The type index of the requested backend.</param>
 		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
-		virtual const IBackend* operator[](std::type_index type) const;
+		const IBackend* operator[](std::type_index type) const;
 
 		/// <summary>
 		/// Returns the registered backend instance for a type index.
 		/// </summary>
 		/// <param name="type">The type index of the requested backend.</param>
 		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
-		virtual const IBackend* getBackend(std::type_index type) const;
+		const IBackend* getBackend(std::type_index type) const;
 
 		/// <summary>
 		/// Returns all registered backend instances of a backend type.
 		/// </summary>
 		/// <param name="type">The backend type of the requested backends.</param>
 		/// <returns>All registered instances of <paramref name="type" />.</returns>
-		virtual Enumerable<const IBackend*> getBackends(const BackendType type) const noexcept;
+		Enumerable<const IBackend*> getBackends(const BackendType type) const;
 
 	protected:
 		/// <summary>
@@ -414,7 +461,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="type">The type index of the requested backend.</param>
 		/// <returns>The registered backend instance for a type index, or <c>nullptr</c>, if the app has no backend of the provided type.</returns>
-		virtual IBackend* getBackend(std::type_index type);
+		IBackend* getBackend(std::type_index type);
 
 		/// <summary>
 		/// Returns the registered backend instance for a type index.
@@ -437,7 +484,7 @@ namespace LiteFX {
 		/// <param name="type">The type index of the backend to start.</param>
 		/// <seealso cref="Backend" />
 		/// <seealso cref="onBackendStart" />
-		virtual void startBackend(std::type_index type) const;
+		void startBackend(std::type_index type) const;
 
 		/// <summary>
 		/// Stops a backend.
@@ -448,28 +495,28 @@ namespace LiteFX {
 		/// <param name="type">The type index of the backend to start.</param>
 		/// <seealso cref="Backend" />
 		/// <seealso cref="onBackendStop" />
-		virtual void stopBackend(std::type_index type) const;
+		void stopBackend(std::type_index type) const;
 
 		/// <summary>
 		/// Stops the active backend of <paramref name="type" />.
 		/// </summary>
 		/// <param name="type">The backend type for which the active backend should be stopped.</param>
 		/// <seealso cref="stopBackend" />
-		virtual void stopActiveBackends(BackendType type) const;
+		void stopActiveBackends(BackendType type) const;
 
 		/// <summary>
 		/// Returns the active backend of the provided backend <paramref name="type" />.
 		/// </summary>
 		/// <param name="type">The type of the backend.</param>
 		/// <returns>The active backend of the provided backend type, or <c>std::nullptr</c>, if no backend is active.</returns>
-		virtual IBackend* activeBackend(BackendType type) const;
+		IBackend* activeBackend(BackendType type) const;
 
 		/// <summary>
 		/// Returns the type index of the active backend of the provided backend <paramref name="type" />.
 		/// </summary>
 		/// <param name="type">The type of the backend.</param>
 		/// <returns>Type index of the active backend of the provided backend type, or the type index of <c>std::nullptr_t</c>, if no backend is active.</returns>
-		virtual std::type_index activeBackendType(BackendType type) const;
+		std::type_index activeBackendType(BackendType type) const;
 
 	private:
 		/// <summary>
@@ -490,12 +537,12 @@ namespace LiteFX {
 		/// <summary>
 		/// Invoked, if a backend has been started.
 		/// </summary>
-		mutable Event<const IBackend*> backendStarted;
+		mutable Event<const IBackend*> backendStarted; // NOLINT
 
 		/// <summary>
 		/// Invoked, if a backend has been stopped.
 		/// </summary>
-		mutable Event<const IBackend*> backendStopped;
+		mutable Event<const IBackend*> backendStopped; // NOLINT
 
 		/// <summary>
 		/// Sets a callback that is called, if a backend is started.
@@ -592,17 +639,17 @@ namespace LiteFX {
 		/// <summary>
 		/// Invoked, if the application has been started.
 		/// </summary>
-		mutable Event<EventArgs> startup;
+		mutable Event<EventArgs> startup; // NOLINT
 
 		/// <summary>
 		/// Invoked during initialization.
 		/// </summary>
-		mutable Event<EventArgs> initializing;
+		mutable Event<EventArgs> initializing; // NOLINT
 
 		/// <summary>
 		/// Invoked, if the application has is shutting down.
 		/// </summary>
-		mutable Event<EventArgs> shutdown;
+		mutable Event<EventArgs> shutdown; // NOLINT
 
 		/// <summary>
 		/// Adds a backend to the app.
@@ -620,7 +667,7 @@ namespace LiteFX {
 		/// <summary>
 		/// Invoked, if the app window or context gets resized.
 		/// </summary>
-		mutable Event<ResizeEventArgs> resized;
+		mutable Event<ResizeEventArgs> resized; // NOLINT
 
 		/// <summary>
 		/// Called, if the application window resizes.
@@ -675,4 +722,5 @@ namespace LiteFX {
 	{
 		return AppBuilder(makeUnique<TApp>(std::forward<TArgs>(_args)...));
 	}
+
 }

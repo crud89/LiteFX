@@ -32,28 +32,10 @@
 
 	<!-- LiteFX::PimplPtr -->
 	<Type Name="LiteFX::PimplPtr&lt;*&gt;">
-		<DisplayString>PimplPtr&lt;{ "$T1",sb }&gt; { *m_ptr._Mypair._Myval2 }</DisplayString>
+		<DisplayString>PimplPtr&lt;{ "$T1",sb }&gt; { *m_ptr._Ptr }</DisplayString>
 		
 		<Expand>
-			<ExpandedItem>m_ptr._Mypair._Myval2</ExpandedItem>
-		</Expand>
-	</Type>
-	
-	<!-- LiteFX::Implement -->
-	<Type Name="LiteFX::Implement&lt;*&gt;" Inheritable="false">
-		<DisplayString>Implement&lt;{ "$T1",sb }&gt;</DisplayString>
-		
-		<Expand>
-			<Item Name="Parent">m_parent</Item>
-		</Expand>
-	</Type>
-	
-	<!-- LiteFX::Resource -->
-	<Type Name="LiteFX::Resource&lt;*&gt;" Inheritable="false">
-		<DisplayString>IResource&lt;{ "$T1",sb }&gt;</DisplayString>
-		
-		<Expand>
-			<Item Name="Handle">m_handle,handle</Item>
+			<ExpandedItem>m_ptr._Ptr</ExpandedItem>
 		</Expand>
 	</Type>
 </AutoVisualizer>
