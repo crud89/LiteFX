@@ -31,19 +31,15 @@ public:
 	DirectX12RenderPipelineImpl(const DirectX12RenderPass& renderPass, bool alphaToCoverage, const SharedPtr<DirectX12PipelineLayout>& layout, const SharedPtr<DirectX12ShaderProgram>& shaderProgram, const SharedPtr<DirectX12InputAssembler>& inputAssembler, const SharedPtr<DirectX12Rasterizer>& rasterizer) :
 		m_renderPass(renderPass.shared_from_this()), m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_alphaToCoverage(alphaToCoverage)
 	{
-		auto device = renderPass.device();
-
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
-			m_inputAttachmentSampler = device->factory().createSampler();
+			m_inputAttachmentSampler = renderPass.device().factory().createSampler();
 	}
 
 	DirectX12RenderPipelineImpl(const DirectX12RenderPass& renderPass) :
 		m_renderPass(renderPass.shared_from_this())
 	{
-		auto device = renderPass.device();
-
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
-			m_inputAttachmentSampler = device->factory().createSampler();
+			m_inputAttachmentSampler = renderPass.device().factory().createSampler();
 	}
 
 	~DirectX12RenderPipelineImpl() noexcept
@@ -264,7 +260,7 @@ public:
 
 		// Create the pipeline state instance.
 		ComPtr<ID3D12PipelineState> pipelineState;
-		raiseIfFailed(m_renderPass->device()->handle()->CreatePipelineState(&pipelineDesc, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
+		raiseIfFailed(m_renderPass->device().handle()->CreatePipelineState(&pipelineDesc, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
 		
 #ifndef NDEBUG
 		pipelineState->SetName(Widen(pipeline.name()).c_str());
@@ -331,7 +327,7 @@ public:
 
 		// Create the pipeline state instance.
 		ComPtr<ID3D12PipelineState> pipelineState;
-		raiseIfFailed(m_renderPass->device()->handle()->CreateGraphicsPipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
+		raiseIfFailed(m_renderPass->device().handle()->CreateGraphicsPipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
 		
 #ifndef NDEBUG
 		pipelineState->SetName(Widen(pipeline.name()).c_str());

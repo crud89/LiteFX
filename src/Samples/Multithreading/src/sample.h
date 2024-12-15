@@ -2,6 +2,7 @@
 
 #define LITEFX_AUTO_IMPORT_BACKEND_HEADERS
 #include <litefx/litefx.h>
+#include <litefx/graphics.hpp>
 
 #if (defined _WIN32 || defined WINCE)
 #  define GLFW_EXPOSE_NATIVE_WIN32
@@ -23,6 +24,7 @@ extern RENDERDOC_API_1_5_0* renderDoc;
 using namespace LiteFX;
 using namespace LiteFX::Rendering;
 using namespace LiteFX::Rendering::Backends;
+using namespace LiteFX::Graphics;
 
 struct GlfwWindowDeleter {
 	void operator()(GLFWwindow* ptr) noexcept {

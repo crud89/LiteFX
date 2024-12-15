@@ -11,14 +11,13 @@ public:
 	friend class DirectX12ShaderModule;
 
 private:
-	WeakPtr<const DirectX12Device> m_device;
 	ShaderStage m_type;
 	String m_fileName, m_entryPoint;
 	Optional<DescriptorBindingPoint> m_shaderLocalDescriptor;
 
 public:
-	DirectX12ShaderModuleImpl(const DirectX12Device& device, ShaderStage type, String fileName, String entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
-		m_device(device.weak_from_this()), m_type(type), m_fileName(std::move(fileName)), m_entryPoint(std::move(entryPoint)), m_shaderLocalDescriptor(shaderLocalDescriptor)
+	DirectX12ShaderModuleImpl(ShaderStage type, String fileName, String entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
+		m_type(type), m_fileName(std::move(fileName)), m_entryPoint(std::move(entryPoint)), m_shaderLocalDescriptor(shaderLocalDescriptor)
 	{
 	}
 
@@ -55,14 +54,14 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12ShaderModule::DirectX12ShaderModule(const DirectX12Device& device, ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
-	ComResource<IDxcBlob>(nullptr), m_impl(device, type, fileName, entryPoint, shaderLocalDescriptor)
+DirectX12ShaderModule::DirectX12ShaderModule(const DirectX12Device& /*device*/, ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
+	ComResource<IDxcBlob>(nullptr), m_impl(type, fileName, entryPoint, shaderLocalDescriptor)
 {
 	this->handle() = m_impl->initialize();
 }
 
-DirectX12ShaderModule::DirectX12ShaderModule(const DirectX12Device& device, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
-	ComResource<IDxcBlob>(nullptr), m_impl(device, type, name, entryPoint, shaderLocalDescriptor)
+DirectX12ShaderModule::DirectX12ShaderModule(const DirectX12Device& /*device*/, ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
+	ComResource<IDxcBlob>(nullptr), m_impl(type, name, entryPoint, shaderLocalDescriptor)
 {
 	this->handle() = m_impl->initialize(stream);
 }

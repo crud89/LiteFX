@@ -12,14 +12,14 @@ public:
 	friend class VulkanShaderModule;
 
 private:
-	WeakPtr<const VulkanDevice> m_device;
+	SharedPtr<const VulkanDevice> m_device;
 	ShaderStage m_type;
 	String m_fileName, m_entryPoint, m_bytecode;
 	Optional<DescriptorBindingPoint> m_shaderLocalDescriptor;
 
 public:
 	VulkanShaderModuleImpl(const VulkanDevice& device, ShaderStage type, String fileName, String entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor) :
-		m_device(device.weak_from_this()), m_type(type), m_fileName(std::move(fileName)), m_entryPoint(std::move(entryPoint)), m_shaderLocalDescriptor(shaderLocalDescriptor)
+		m_device(device.shared_from_this()), m_type(type), m_fileName(std::move(fileName)), m_entryPoint(std::move(entryPoint)), m_shaderLocalDescriptor(shaderLocalDescriptor)
 	{
 	}
 
@@ -52,12 +52,6 @@ public:
 
 	VkShaderModule initialize(const String& fileContents)
 	{
-		// Check if the device is still valid.
-		auto device = m_device.lock();
-
-		if (device == nullptr) [[unlikely]]
-			throw RuntimeException("Cannot create shader module on a released device instance.");
-
 		VkShaderModuleCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 		createInfo.codeSize = fileContents.size();
@@ -65,11 +59,11 @@ public:
 
 		VkShaderModule module{};
 
-		if (::vkCreateShaderModule(device->handle(), &createInfo, nullptr, &module) != VK_SUCCESS)
+		if (::vkCreateShaderModule(m_device->handle(), &createInfo, nullptr, &module) != VK_SUCCESS)
 			throw std::runtime_error("Unable to compile shader file.");
 
 #ifndef NDEBUG
-		device->setDebugName(module, VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT, std::format("{0}: {1}", m_fileName, m_entryPoint));
+		m_device->setDebugName(module, VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT, std::format("{0}: {1}", m_fileName, m_entryPoint));
 #endif
 
 		m_bytecode = fileContents;
@@ -98,13 +92,7 @@ VulkanShaderModule& VulkanShaderModule::operator=(VulkanShaderModule&&) noexcept
 
 VulkanShaderModule::~VulkanShaderModule() noexcept
 {
-	// Check if the device is still valid.
-	auto device = m_impl->m_device.lock();
-
-	if (device == nullptr) [[unlikely]]
-		LITEFX_FATAL_ERROR(VULKAN_LOG, "Invalid attempt to release shader module after parent device.");
-	else
-		::vkDestroyShaderModule(device->handle(), this->handle(), nullptr);
+	::vkDestroyShaderModule(m_impl->m_device->handle(), this->handle(), nullptr);
 }
 
 ShaderStage VulkanShaderModule::type() const noexcept

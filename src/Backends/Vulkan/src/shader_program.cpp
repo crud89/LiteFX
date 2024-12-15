@@ -56,7 +56,7 @@ public:
 
 private:
     Array<UniquePtr<VulkanShaderModule>> m_modules;
-    WeakPtr<const VulkanDevice> m_device;
+    SharedPtr<const VulkanDevice> m_device;
 
 private:
     struct DescriptorInfo {
@@ -93,13 +93,13 @@ private:
 
 public:
     VulkanShaderProgramImpl(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules) :
-        m_device(device.weak_from_this())
+        m_device(device.shared_from_this())
     {
         m_modules = std::move(modules) | std::views::as_rvalue | std::ranges::to<std::vector>();
     }
 
     VulkanShaderProgramImpl(const VulkanDevice& device) :
-        m_device(device.weak_from_this())
+        m_device(device.shared_from_this())
     {
     }
 
@@ -196,18 +196,12 @@ public:
 
     SharedPtr<VulkanPipelineLayout> reflectPipelineLayout()
     {
-        // Check if the device is still valid.
-        auto device = m_device.lock();
-
-        if (device == nullptr) [[unlikely]]
-            throw RuntimeException("Cannot create pipeline layout from a released device instance.");
-
         // First, filter the descriptor sets and push constant ranges.
         Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts;
         Array<PushConstantRangeInfo> pushConstantRanges;
 
         // Extract reflection data from all shader modules.
-        std::ranges::for_each(m_modules, [&descriptorSetLayouts, &pushConstantRanges, device](UniquePtr<VulkanShaderModule>& shaderModule) {
+        std::ranges::for_each(m_modules, [&](UniquePtr<VulkanShaderModule>& shaderModule) {
             // Read the file and initialize a reflection module.
             auto bytecode = shaderModule->bytecode();
             spv_reflect::ShaderModule reflection(bytecode.size(), bytecode.c_str());
@@ -351,7 +345,7 @@ public:
 
                 co_yield VulkanDescriptorSetLayout::create(*device, descriptorLayouts, space, stage);
             }
-        }(device, std::move(descriptorSetLayouts)) | std::views::as_rvalue | std::ranges::to<Enumerable<SharedPtr<VulkanDescriptorSetLayout>>>();
+        }(m_device, std::move(descriptorSetLayouts)) | std::views::as_rvalue | std::ranges::to<Enumerable<SharedPtr<VulkanDescriptorSetLayout>>>();
 
         // Create the push constants layout.
         auto overallSize = std::accumulate(pushConstantRanges.begin(), pushConstantRanges.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range.size; });
@@ -363,7 +357,7 @@ public:
         auto pushConstantsLayout = makeUnique<VulkanPushConstantsLayout>(std::move(pushConstants), overallSize);
 
         // Return the pipeline layout.
-        return VulkanPipelineLayout::create(*device, std::move(descriptorSets), std::move(pushConstantsLayout));
+        return VulkanPipelineLayout::create(*m_device, std::move(descriptorSets), std::move(pushConstantsLayout));
     }
 };
 
@@ -414,23 +408,11 @@ void VulkanShaderProgramBuilder::build()
 
 UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, const String& fileName, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
-    // Check if the device is still valid.
-    auto device = this->instance()->m_impl->m_device.lock();
-
-    if (device == nullptr) [[unlikely]]
-        throw RuntimeException("Cannot allocate shader module from a released device instance.");
-
-    return makeUnique<VulkanShaderModule>(*device, type, fileName, entryPoint, shaderLocalDescriptor);
+    return makeUnique<VulkanShaderModule>(*this->instance()->m_impl->m_device, type, fileName, entryPoint, shaderLocalDescriptor);
 }
 
 UniquePtr<VulkanShaderModule> VulkanShaderProgramBuilder::makeShaderModule(ShaderStage type, std::istream& stream, const String& name, const String& entryPoint, const Optional<DescriptorBindingPoint>& shaderLocalDescriptor)
 {
-    // Check if the device is still valid.
-    auto device = this->instance()->m_impl->m_device.lock();
-
-    if (device == nullptr) [[unlikely]]
-        throw RuntimeException("Cannot allocate shader module from a released device instance.");
-
-    return makeUnique<VulkanShaderModule>(*device, type, stream, name, entryPoint, shaderLocalDescriptor);
+    return makeUnique<VulkanShaderModule>(*this->instance()->m_impl->m_device, type, stream, name, entryPoint, shaderLocalDescriptor);
 }
 #endif // defined(LITEFX_BUILD_DEFINE_BUILDERS)
