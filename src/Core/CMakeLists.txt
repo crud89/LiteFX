@@ -14,7 +14,6 @@ CONFIGURE_FILE("core.tmpl" "${CMAKE_CURRENT_BINARY_DIR}/include/litefx/core.h")
 # Collect header & source files.
 SET(CORE_HEADERS
     "include/litefx/containers.hpp"
-    "include/litefx/generator.hpp"
     "include/litefx/string.hpp"
     "include/litefx/traits.hpp"
     "include/litefx/exceptions.hpp"
