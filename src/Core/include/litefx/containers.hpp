@@ -196,6 +196,30 @@ namespace LiteFX {
 	template <typename T, typename TVal = void>
 	using Generator = std::generator<T, TVal>;
 
+	/// <summary>
+	/// Yields a series of elements of type <typeparamref name="T" /> from a range <paramref name="rng" />.
+	/// </summary>
+	/// <typeparam name="T">The type to of the elements to yield from the range. Must be convertible from the type of the range values.</typeparam>
+	/// <typeparam name="TRng">The type of the range to yield from. Must be an input range.</typeparam>
+	/// <param name="rng">The range to yield from.</param>
+	/// <returns>An intermediate container for the elements yielded from the range.</returns>
+	template <typename T, std::ranges::input_range TRng>
+	inline Generator<T> yield(TRng&& rng) noexcept requires
+		std::convertible_to<std::ranges::range_value_t<TRng>, T>
+	{
+		co_yield std::ranges::elements_of(rng | std::views::as_rvalue);
+	}
+
+	/// <summary>
+	/// Yields a series of elements from a range <paramref name="rng" />.
+	/// </summary>
+	/// <param name="rng">The range to yield from.</param>
+	/// <returns>An intermediate container for the elements yielded from the range.</returns>
+	inline auto yield(std::ranges::input_range auto&& rng) noexcept
+	{
+		return yield<std::ranges::range_value_t<decltype(rng)>>(rng);
+	}
+
 #if (defined(BUILD_LITEFX_PIMPL) && BUILD_LITEFX_PIMPL) || (!defined(BUILD_LITEFX_PIMPL)) && !defined(LITEFX_IMPLEMENTATION)
 	/// <summary>
 	/// A smart pointer that manages an implementation instance for a public interface class.
