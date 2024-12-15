@@ -159,7 +159,7 @@ void loadTexture(TDevice& device, SharedPtr<typename TDevice::image_type>& textu
 }
 
 template<render_backend TBackend, typename TDevice = TBackend::device_type>
-UInt64 initBuffers(SampleApp& app, TDevice& device, SharedPtr<IInputAssembler> inputAssembler)
+UInt64 initBuffers(SampleApp& app, TDevice& device, const SharedPtr<IInputAssembler>& inputAssembler)
 {
     using image_type = TDevice::image_type;
     using sampler_type = TDevice::sampler_type;

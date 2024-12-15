@@ -30,10 +30,10 @@ public:
 	void initialize(const DirectX12Device& device)
 	{
 		// Allocate shader module.
-		Array<UniquePtr<DirectX12ShaderModule>> modules;
 		auto blitShader = LiteFX::Graphics::Shaders::blit_dxi::open();
-		modules.push_back(std::move(makeUnique<DirectX12ShaderModule>(device, ShaderStage::Compute, blitShader, LiteFX::Graphics::Shaders::blit_dxi::name(), "main")));
-		auto shaderProgram = DirectX12ShaderProgram::create(device, std::move(modules | std::views::as_rvalue));
+		Array<UniquePtr<DirectX12ShaderModule>> modules;
+		modules.push_back(makeUnique<DirectX12ShaderModule>(device, ShaderStage::Compute, blitShader, LiteFX::Graphics::Shaders::blit_dxi::name(), "main"));
+		auto shaderProgram = DirectX12ShaderProgram::create(device, modules | std::views::as_rvalue);
 
 		// Allocate descriptor set layouts.
 		// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
@@ -58,12 +58,14 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
+template <>
 Blitter<DirectX12Backend>::Blitter(const DirectX12Device& device) :
 	m_impl(device)
 {
 	m_impl->initialize(device);
 }
 
+template <>
 void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX12CommandBuffer& commandBuffer)
 {
 	auto device = m_impl->m_device.lock();
@@ -81,7 +83,7 @@ void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX1
 	// Create the array of parameter data.
 	Array<Parameters> parametersData(image.levels());
 
-	std::ranges::generate(parametersData, [this, &image, i = 0]() mutable {
+	std::ranges::generate(parametersData, [&image, i = 0]() mutable {
 		auto level = i++;
 
 		return Parameters{
@@ -92,7 +94,7 @@ void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX1
 	});
 
 	auto parametersBlock = parametersData |
-		std::views::transform([](const Parameters& parameters) { return reinterpret_cast<const void*>(&parameters); }) |
+		std::views::transform([](const Parameters& parameters) { return static_cast<const void*>(&parameters); }) |
 		std::ranges::to<Array<const void*>>();
 
 	// Set the active pipeline state.
@@ -135,7 +137,7 @@ void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX1
 
 			// Dispatch the pipeline.
 			commandBuffer.bind(*(*resource), pipeline);
-			commandBuffer.dispatch({ std::max<UInt32>(static_cast<UInt32>(size.width()) / 8, 1), std::max<UInt32>(static_cast<UInt32>(size.height()) / 8, 1), 1 });
+			commandBuffer.dispatch({ std::max<UInt32>(static_cast<UInt32>(size.width()) / 8, 1), std::max<UInt32>(static_cast<UInt32>(size.height()) / 8, 1), 1 }); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
 			// Wait for all writes.
 			DirectX12Barrier subBarrier(PipelineStage::Compute, PipelineStage::Compute);
@@ -155,6 +157,6 @@ void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX1
 // Export definition.
 // ------------------------------------------------------------------------------------------------
 
-template class LITEFX_GRAPHICS_API Blitter<Backends::DirectX12Backend>;
+template class LITEFX_GRAPHICS_API LiteFX::Graphics::Blitter<Backends::DirectX12Backend>;
 
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND

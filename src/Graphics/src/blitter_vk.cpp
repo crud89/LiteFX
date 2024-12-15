@@ -22,11 +22,13 @@ private:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
+template <>
 Blitter<VulkanBackend>::Blitter(const VulkanDevice& /*device*/) :
 	m_impl()
 {
 }
 
+template <>
 void Blitter<VulkanBackend>::generateMipMaps(IVulkanImage& image, VulkanCommandBuffer& commandBuffer)
 {
 	VulkanBarrier startBarrier(PipelineStage::None, PipelineStage::Transfer);
@@ -89,6 +91,6 @@ void Blitter<VulkanBackend>::generateMipMaps(IVulkanImage& image, VulkanCommandB
 // Export definition.
 // ------------------------------------------------------------------------------------------------
 
-template class LITEFX_GRAPHICS_API Blitter<Backends::VulkanBackend>;
+template class LITEFX_GRAPHICS_API LiteFX::Graphics::Blitter<Backends::VulkanBackend>;
 
 #endif // LITEFX_BUILD_VULKAN_BACKEND
