@@ -189,10 +189,10 @@ void App::run()
 	// Start the first registered rendering backend for each backend type.
 	for (BackendType type : VALID_BACKEND_TYPES)
 	{
-		auto backends = this->getBackends(type);
+		auto firstMatch = *this->getBackends(type).begin();
 
-		if (!backends.empty())
-			this->startBackend(backends.front()->typeId());
+		if (firstMatch != nullptr)
+			this->startBackend(firstMatch->typeId());
 	}
 
 	// Fire startup event.
