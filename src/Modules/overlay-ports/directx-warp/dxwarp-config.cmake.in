@@ -1,0 +1,24 @@
+get_filename_component(_dxwarp_root "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(_dxwarp_root "${_dxwarp_root}" PATH)
+get_filename_component(_dxwarp_root "${_dxwarp_root}" PATH)
+
+set(_dxwarp_root_lib "${_dxwarp_root}/bin/d3d10warp.dll")
+
+if (EXISTS "${_dxwarp_root_lib}")
+  add_custom_target(dxwarp 
+    COMMENT "Copy DirectX WARP binaries..."
+  )
+  add_custom_command(TARGET dxwarp POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different "${_dxwarp_root_lib}" "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+  )
+  set_target_properties(dxwarp PROPERTIES IMPORTED_LOCATION "${_dxwarp_root_lib}")
+  
+  install(FILES "${_dxwarp_root_lib}" DESTINATION "${CMAKE_INSTALL_BINARY_DIR}")
+
+  set(dxwarp_FOUND TRUE)
+else()
+  set(dxwarp_FOUND FALSE)
+endif()
+
+unset(_dxwarp_root_lib)
+unset(_dxwarp_root)

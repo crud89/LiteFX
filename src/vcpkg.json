@@ -22,7 +22,8 @@
     "vulkan-memory-allocator",
     "d3d12-memory-allocator",
     "directx12-agility",
-    "directx-dxc"
+    "directx-dxc",
+    "directx-warp"
   ],
   "features": {
     "pix-support": {
