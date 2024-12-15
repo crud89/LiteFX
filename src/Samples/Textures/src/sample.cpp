@@ -108,9 +108,8 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     std::ranges::for_each(frameBuffers, [device](auto& frameBuffer) { device->state().add(std::move(frameBuffer)); });
 }
 
-template<typename TDevice> requires
-    meta::implements<TDevice, IGraphicsDevice>
-void loadTexture(TDevice& device, SharedPtr<IImage>& texture, SharedPtr<ISampler>& sampler)
+template<render_backend TBackend, typename TDevice = TBackend::device_type>
+void loadTexture(TDevice& device, SharedPtr<typename TDevice::image_type>& texture, SharedPtr<typename TDevice::sampler_type>& sampler)
 {
     using TBarrier = typename TDevice::barrier_type;
 
@@ -138,7 +137,8 @@ void loadTexture(TDevice& device, SharedPtr<IImage>& texture, SharedPtr<ISampler
     commandBuffer->transfer(imageData.get(), texture->size(0), *texture);
 
     // Generate the rest of the mip maps.
-    commandBuffer->generateMipMaps(*texture);
+    auto blitter = Blitter<TBackend>::create(device);
+    blitter->generateMipMaps(*texture, *commandBuffer);
 
     // Create a barrier to ensure the texture is readable.
     barrier = device.buildBarrier()
@@ -158,10 +158,12 @@ void loadTexture(TDevice& device, SharedPtr<IImage>& texture, SharedPtr<ISampler
     device.defaultQueue(QueueType::Graphics).waitFor(transferFence);
 }
 
-template<typename TDevice> requires
-    meta::implements<TDevice, IGraphicsDevice>
+template<render_backend TBackend, typename TDevice = TBackend::device_type>
 UInt64 initBuffers(SampleApp& app, TDevice& device, const SharedPtr<IInputAssembler>& inputAssembler)
 {
+    using image_type = TDevice::image_type;
+    using sampler_type = TDevice::sampler_type;
+
     // Get a command buffer
     auto commandBuffer = device.defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 
@@ -183,9 +185,9 @@ UInt64 initBuffers(SampleApp& app, TDevice& device, const SharedPtr<IInputAssemb
     app.updateCamera(*commandBuffer, *cameraBuffer);
 
     // Load the texture.
-    SharedPtr<IImage> texture;
-    SharedPtr<ISampler> sampler;
-    ::loadTexture(device, texture, sampler);
+    SharedPtr<image_type> texture;
+    SharedPtr<sampler_type> sampler;
+    ::loadTexture<TBackend>(device, texture, sampler);
 
     // Allocate the descriptor sets.
     auto staticBindings = staticBindingLayout.allocate({ { 0, *cameraBuffer }, { 1, *texture } });
@@ -289,7 +291,7 @@ void SampleApp::onInit()
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);
-        m_transferFence = ::initBuffers(*this, device, m_inputAssembler);
+        m_transferFence = ::initBuffers<TBackend>(*this, device, m_inputAssembler);
 
         return true;
     };

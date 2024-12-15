@@ -317,6 +317,22 @@ struct LITEFX_RENDERING_API std::formatter<IndexType> : std::formatter<std::stri
 };
 
 template <>
+struct LITEFX_RENDERING_API std::formatter<LiteFX::Rendering::PrimitiveTopology> : std::formatter<std::string_view> {
+	auto format(LiteFX::Rendering::PrimitiveTopology t, std::format_context& ctx) const {
+		string_view name = "Invalid";
+		switch (t) {
+		using enum PrimitiveTopology;
+		case PointList: name = "PointList"; break;
+		case LineList: name = "LineList"; break;
+		case TriangleList: name = "TriangleList"; break;
+		case LineStrip: name = "LineStrip"; break;
+		case TriangleStrip: name = "TriangleStrip"; break;
+		}
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
 struct LITEFX_RENDERING_API std::formatter<ShaderStage> : std::formatter<std::string_view> {
 	auto format(ShaderStage t, std::format_context& ctx) const {
 		Array<String> names;

@@ -18,7 +18,6 @@
 
 #include <litefx/app.hpp>
 #include <litefx/math.hpp>
-#include <litefx/graphics.hpp>
 
 namespace LiteFX::Rendering {
     using namespace LiteFX;
@@ -758,6 +757,40 @@ namespace LiteFX::Rendering {
         /// Indices are stored as 4 byte unsigned integers.
         /// </summary>
         UInt32 = 0x00000020
+    };
+
+    /// <summary>
+    /// Describes the topology of a mesh primitive.
+    /// </summary>
+    enum class PrimitiveTopology {
+        /// <summary>
+        /// A list of points where each vertex refers to an individual point.
+        /// </summary>
+        PointList = 0x00010001,
+
+        /// <summary>
+        /// A list of lines where each vertex pair refers to the start and end points of a line.
+        /// </summary>
+        /// <seealso cref="LineStrip" />
+        LineList = 0x00020001,
+
+        /// <summary>
+        /// A list of triangles, where each triplet of vertices refers to a whole triangle.
+        /// </summary>
+        /// <seealso cref="TriangleStrip" />
+        TriangleList = 0x00040001,
+
+        /// <summary>
+        /// A strip of lines where each vertex (except the first one) refers to the end point for the next line segment.
+        /// </summary>
+        /// <seealso cref="LineList" />
+        LineStrip = 0x00020002,
+        
+        /// <summary>
+        /// A strip of triangles, where each vertex (except the first two) refers to the third vertex of the next triangle segment.
+        /// </summary>
+        /// <seealso cref="TriangleList" />
+        TriangleStrip = 0x00040002
     };
 
     /// <summary>
@@ -6315,6 +6348,12 @@ namespace LiteFX::Rendering {
         ~IPipelineLayout() noexcept override = default;
 
     public:
+        ///// <summary>
+        ///// Returns a reference to the parent device.
+        ///// </summary>
+        ///// <returns>A reference to the parent device.</returns>
+        //virtual const IGraphicsDevice& device() const noexcept;
+
         /// <summary>
         /// Returns the descriptor set layout for the descriptor set that is bound to the space provided by <paramref name="space" />.
         /// </summary>
@@ -6499,23 +6538,6 @@ namespace LiteFX::Rendering {
         /// <param name="barrier">The barrier containing the transitions to perform.</param>
         inline void barrier(const IBarrier& barrier) const noexcept {
             this->cmdBarrier(barrier);
-        }
-
-        /// <summary>
-        /// Uses the image at level *0* to generate mip-maps for the remaining levels.
-        /// </summary>
-        /// <remarks>
-        /// It is strongly advised, not to generate mip maps at runtime. Instead, prefer using a format that supports pre-computed mip maps. If you have to, prefer computing
-        /// mip maps in a pre-process.
-        /// 
-        /// Note that not all texture formats and sizes are supported for mip map generation and the result might not be satisfactory. For example, it is not possible to compute 
-        /// proper mip maps for pre-compressed formats. Textures should have power of two sizes in order to not appear under-sampled.
-        /// 
-        /// Note that generating mip maps might require the texture to be writable. You can transfer the texture into a non-writable resource afterwards to improve performance.
-        /// </remarks>
-        /// <param name="commandBuffer">The command buffer used to issue the transition and transfer operations.</param>
-        inline void generateMipMaps(IImage& image) {
-            this->cmdGenerateMipMaps(image);
         }
 
         /// <summary>
@@ -7391,7 +7413,6 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<const ICommandQueue> getQueue() const noexcept = 0;
         virtual UniquePtr<IBarrier> getBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const = 0;
         virtual void cmdBarrier(const IBarrier& barrier) const noexcept = 0;
-        virtual void cmdGenerateMipMaps(IImage& image) = 0;
         virtual void cmdTransfer(const IBuffer& source, const IBuffer& target, UInt32 sourceElement, UInt32 targetElement, UInt32 elements) const = 0;
         virtual void cmdTransfer(const IBuffer& source, const IImage& target, UInt32 sourceElement, UInt32 firstSubresource, UInt32 elements) const = 0;
         virtual void cmdTransfer(const IImage& source, const IImage& target, UInt32 sourceSubresource, UInt32 targetSubresource, UInt32 subresources) const = 0;
@@ -8013,6 +8034,12 @@ namespace LiteFX::Rendering {
         mutable Event<EventArgs> ending;
 
     public:
+        ///// <summary>
+        ///// Returns a reference to the parent device.
+        ///// </summary>
+        ///// <returns>A reference to the parent device.</returns>
+        //virtual const IGraphicsDevice& device() const noexcept;
+
         /// <summary>
         /// Returns the current frame buffer from of the render pass.
         /// </summary>
@@ -9336,5 +9363,11 @@ namespace LiteFX::Rendering {
     private:
         virtual Enumerable<const IGraphicsAdapter*> getAdapters() const = 0;
     };
+
+    /// <summary>
+    /// Concept that can be used to refer to render backend implementations.
+    /// </summary>
+    template <typename T>
+    concept render_backend = meta::implements<T, IRenderBackend>;
 
 }
