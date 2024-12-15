@@ -18,7 +18,7 @@ public:
 	friend class VulkanRayTracingPipeline;
 
 private:
-	WeakPtr<const VulkanDevice> m_device;
+	SharedPtr<const VulkanDevice> m_device;
 	SharedPtr<VulkanPipelineLayout> m_layout;
 	SharedPtr<const VulkanShaderProgram> m_program;
 	const ShaderRecordCollection m_shaderRecordCollection;
@@ -26,12 +26,12 @@ private:
 
 public:
 	VulkanRayTracingPipelineImpl(const VulkanDevice& device, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanShaderProgram>& shaderProgram, UInt32 maxRecursionDepth, UInt32 maxPayloadSize, UInt32 maxAttributeSize, ShaderRecordCollection&& shaderRecords) :
-		m_device(device.weak_from_this()), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords)), m_maxRecursionDepth(maxRecursionDepth), m_maxPayloadSize(maxPayloadSize), m_maxAttributeSize(maxAttributeSize)
+		m_device(device.shared_from_this()), m_layout(layout), m_program(shaderProgram), m_shaderRecordCollection(std::move(shaderRecords)), m_maxRecursionDepth(maxRecursionDepth), m_maxPayloadSize(maxPayloadSize), m_maxAttributeSize(maxAttributeSize)
 	{
 	}
 
 	VulkanRayTracingPipelineImpl(const VulkanDevice& device, ShaderRecordCollection&& shaderRecords) :
-		m_device(device.weak_from_this()), m_shaderRecordCollection(std::move(shaderRecords))
+		m_device(device.shared_from_this()), m_shaderRecordCollection(std::move(shaderRecords))
 	{
 		m_program = std::dynamic_pointer_cast<const VulkanShaderProgram>(m_shaderRecordCollection.program());
 	}
@@ -39,12 +39,6 @@ public:
 public:
 	VkPipeline initialize([[maybe_unused]] const VulkanRayTracingPipeline& parent)
 	{
-		// Check if the device is still valid.
-		auto device = m_device.lock();
-
-		if (device == nullptr) [[unlikely]]
-			throw RuntimeException("Cannot create pipeline on a released device instance.");
-
 		if (m_program == nullptr) [[unlikely]]
 			throw ArgumentNotInitializedException("shaderProgram", "The shader program must be initialized.");
 		if (m_layout == nullptr) [[unlikely]]
@@ -138,10 +132,10 @@ public:
 		};
 
 		VkPipeline pipeline{};
-		raiseIfFailed(::vkCreateRayTracingPipelines(device->handle(), VK_NULL_HANDLE, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
+		raiseIfFailed(::vkCreateRayTracingPipelines(m_device->handle(), VK_NULL_HANDLE, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
 
 #ifndef NDEBUG
-		device->setDebugName(pipeline, VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, parent.name());
+		m_device->setDebugName(pipeline, VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, parent.name());
 #endif
 
 		return pipeline;
@@ -149,19 +143,13 @@ public:
 
 	SharedPtr<IVulkanBuffer> allocateShaderBindingTable(const VulkanRayTracingPipeline& parent, ShaderBindingTableOffsets& offsets, ShaderBindingGroup groups)
 	{
-		// Check if the device is still valid.
-		auto device = m_device.lock();
-
-		if (device == nullptr) [[unlikely]]
-			throw RuntimeException("Cannot allocate shader binding table from a released device instance.");
-
 		// NOTE: It is assumed that the shader record collection did not change between pipeline creation and SBT allocation (hence its const-ness)!
 		offsets = { };
 		
 		// Get the physical device properties, as they dictate alignment rules.
 		VkPhysicalDeviceRayTracingPipelinePropertiesKHR rayTracingProperties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_PROPERTIES_KHR };
 		VkPhysicalDeviceProperties2 deviceProperties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2, .pNext = &rayTracingProperties };
-		::vkGetPhysicalDeviceProperties2(device->adapter().handle(), &deviceProperties);
+		::vkGetPhysicalDeviceProperties2(m_device->adapter().handle(), &deviceProperties);
 
 		// Find the maximum payload size amongst the included shader records.
 		auto filterByGroupType = [groups](auto& record) -> bool {
@@ -203,7 +191,7 @@ public:
 
 		// Allocate a buffer for the shader binding table.
 		// NOTE: Updating the SBT to change shader-local data is currently unsupported. Instead, bind-less resources should be used.
-		auto result = device->factory().createBuffer(BufferType::ShaderBindingTable, ResourceHeap::Dynamic, recordSize, static_cast<UInt32>(totalRecordCount), ResourceUsage::TransferSource);
+		auto result = m_device->factory().createBuffer(BufferType::ShaderBindingTable, ResourceHeap::Dynamic, recordSize, static_cast<UInt32>(totalRecordCount), ResourceUsage::TransferSource);
 
 		// Write each record group by group.
 		UInt32 record{ 0 };
@@ -261,7 +249,7 @@ public:
 				{
 					// Get the shader group handle for the current record.
 					auto id = static_cast<UInt32>(shaderRecordIds.at(currentRecord.get()));
-					raiseIfFailed(::vkGetRayTracingShaderGroupHandles(device->handle(), parent.handle(), id, 1, rayTracingProperties.shaderGroupHandleSize, recordData.data()), "Unable to query shader record handle.");
+					raiseIfFailed(::vkGetRayTracingShaderGroupHandles(m_device->handle(), parent.handle(), id, 1, rayTracingProperties.shaderGroupHandleSize, recordData.data()), "Unable to query shader record handle.");
 
 					// Write the payload and map everything into the buffer.
 					std::memcpy(recordData.data() + rayTracingProperties.shaderGroupHandleSize, currentRecord->localData(), currentRecord->localDataSize()); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -300,13 +288,7 @@ VulkanRayTracingPipeline& VulkanRayTracingPipeline::operator=(VulkanRayTracingPi
 
 VulkanRayTracingPipeline::~VulkanRayTracingPipeline() noexcept
 {
-	// Check if the device is still valid.
-	auto device = m_impl->m_device.lock();
-
-	if (device == nullptr) [[unlikely]]
-		LITEFX_FATAL_ERROR(VULKAN_LOG, "Invalid attempt to release ray tracing pipeline after parent device.");
-	else
-		::vkDestroyPipeline(device->handle(), this->handle(), nullptr);
+	::vkDestroyPipeline(m_impl->m_device->handle(), this->handle(), nullptr);
 }
 
 SharedPtr<const VulkanShaderProgram> VulkanRayTracingPipeline::program() const noexcept

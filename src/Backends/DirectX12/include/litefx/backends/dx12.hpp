@@ -1225,15 +1225,11 @@ namespace LiteFX::Rendering::Backends {
             return SharedObject::create<DirectX12PipelineLayout>(device);
         }
 
-    public:
-        /// <summary>
-        /// Returns a pointer to the device that provides this layout or `nullptr` if the device is already released.
-        /// </summary>
-        /// <returns>A reference to the layouts parent device or `nullptr` if the device is already released.</returns>
-        virtual SharedPtr<const DirectX12Device> device() const noexcept;
-
         // PipelineLayout interface.
     public:
+        /// <inheritdoc />
+        const DirectX12Device& device() const noexcept /*override*/;
+
         /// <inheritdoc />
         const DirectX12DescriptorSetLayout& descriptorSet(UInt32 space) const override;
 
@@ -1446,7 +1442,6 @@ namespace LiteFX::Rendering::Backends {
         using base_type::drawIndexedIndirect;
         using base_type::barrier;
         using base_type::transfer;
-        using base_type::generateMipMaps;
         using base_type::bind;
         using base_type::use;
         using base_type::pushConstants;
@@ -1525,9 +1520,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt64 submit() const override;
-
-        /// <inheritdoc />
-        void generateMipMaps(IDirectX12Image& image) override;
 
         /// <inheritdoc />
         [[nodiscard]] UniquePtr<DirectX12Barrier> makeBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const override;
@@ -2298,16 +2290,14 @@ namespace LiteFX::Rendering::Backends {
             return SharedObject::create<DirectX12RenderPass>(device, name);
         }
 
-        // DirectX 12 render pass.
-    public:
-        /// <summary>
-        /// Returns a reference to the device that provides this queue.
-        /// </summary>
-        /// <returns>A reference to the queue's parent device.</returns>
-        virtual SharedPtr<const DirectX12Device> device() const noexcept;
-
         // RenderPass interface.
     public:
+        /// <summary>
+        /// Returns a reference of the device that provides this queue.
+        /// </summary>
+        /// <returns>A reference of the queue's parent device.</returns>
+        const DirectX12Device& device() const noexcept /*override*/;
+
         /// <inheritdoc />
         SharedPtr<const DirectX12FrameBuffer> activeFrameBuffer() const noexcept override;
 
@@ -2714,16 +2704,6 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="commandBuffer">The command buffer to issue the bind command on.</param>
         void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept;
-
-        /// <summary>
-        /// Returns the compute pipeline that can be invoked to blit an image resource.
-        /// </summary>
-        /// <remarks>
-        /// Blitting is used by <see cref="DirectX12Texture" /> to generate mip maps.
-        /// </remarks>
-        /// <returns>The compute pipeline that can be invoked to blit an image resource.</returns>
-        /// <seealso cref="DirectX12Texture::generateMipMaps" />
-        DirectX12ComputePipeline& blitPipeline() const noexcept;
 
         /// <summary>
         /// Returns the command signatures for indirect dispatch and draw calls.

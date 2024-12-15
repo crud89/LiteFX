@@ -30,19 +30,15 @@ public:
 	VulkanRenderPipelineImpl(const VulkanRenderPass& renderPass, bool alphaToCoverage, const SharedPtr<VulkanPipelineLayout>& layout, const SharedPtr<VulkanShaderProgram>& shaderProgram, const SharedPtr<VulkanInputAssembler>& inputAssembler, const SharedPtr<VulkanRasterizer>& rasterizer) :
 		m_layout(layout), m_program(shaderProgram), m_inputAssembler(inputAssembler), m_rasterizer(rasterizer), m_alphaToCoverage(alphaToCoverage), m_renderPass(renderPass.shared_from_this())
 	{
-		auto device = renderPass.device();
-
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
-			m_inputAttachmentSampler = device->factory().createSampler();
+			m_inputAttachmentSampler = renderPass.device().factory().createSampler();
 	}
 
 	VulkanRenderPipelineImpl(const VulkanRenderPass& renderPass) :
 		m_renderPass(renderPass.shared_from_this())
 	{
-		auto device = renderPass.device();
-
 		if (renderPass.inputAttachmentSamplerBinding().has_value())
-			m_inputAttachmentSampler = device->factory().createSampler();
+			m_inputAttachmentSampler = renderPass.device().factory().createSampler();
 	}
 
 	VulkanRenderPipelineImpl(VulkanRenderPipelineImpl&&) noexcept = delete;
@@ -92,7 +88,7 @@ public:
 		auto pipeline = this->initializeGraphicsPipeline(parent, dynamicState, shaderStages);
 
 #ifndef NDEBUG
-		m_renderPass->device()->setDebugName(pipeline, VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, parent.name());
+		m_renderPass->device().setDebugName(pipeline, VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT, parent.name());
 #endif
 
 		// Return the pipeline instance.
@@ -284,7 +280,7 @@ public:
 		};
 
 		VkPipeline pipeline{};
-		raiseIfFailed(::vkCreateGraphicsPipelines(m_renderPass->device()->handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
+		raiseIfFailed(::vkCreateGraphicsPipelines(m_renderPass->device().handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create render pipeline.");
 
 		return pipeline;
 	}
@@ -471,7 +467,7 @@ VulkanRenderPipeline::VulkanRenderPipeline(const VulkanRenderPass& renderPass, c
 
 VulkanRenderPipeline::~VulkanRenderPipeline() noexcept
 {
-	::vkDestroyPipeline(m_impl->m_renderPass->device()->handle(), this->handle(), nullptr);
+	::vkDestroyPipeline(m_impl->m_renderPass->device().handle(), this->handle(), nullptr);
 }
 
 SharedPtr<const VulkanShaderProgram> VulkanRenderPipeline::program() const noexcept
@@ -510,7 +506,7 @@ void VulkanRenderPipeline::updateSamples(MultiSamplingLevel samples)
 	m_impl->m_inputAttachmentBindings.clear();
 
 	// Release current pipeline state.
-	::vkDestroyPipeline(m_impl->m_renderPass->device()->handle(), this->handle(), nullptr);
+	::vkDestroyPipeline(m_impl->m_renderPass->device().handle(), this->handle(), nullptr);
 
 	// Rebuild the pipeline.
 	this->handle() = m_impl->initialize(*this, samples);
