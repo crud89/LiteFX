@@ -21,6 +21,10 @@
 #include <mutex>
 #include <generator>
 
+#ifdef __cpp_lib_mdspan
+#include <mdspan>
+#endif
+
 #include "traits.hpp"
 #include "string.hpp"
 #include "exceptions.hpp"
