@@ -356,7 +356,7 @@ public:
 
 			for (auto& descriptor : layout.descriptors())
 			{
-				if (std::ranges::find(descriptors, descriptor->binding()) == descriptors.end()) [[unlikely]]
+				if (std::ranges::find(descriptors, descriptor.binding()) == descriptors.end()) [[unlikely]]
 				{
 					LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} is not fully mapped by the provided input attachments for the render pass.", set);
 					break;

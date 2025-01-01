@@ -872,6 +872,7 @@ namespace LiteFX::Rendering::Backends {
     public:
         using base_type = DescriptorSetLayout<DirectX12DescriptorLayout, DirectX12DescriptorSet>;
         using base_type::free;
+        using base_type::allocate;
 
     private:
         /// <summary>
@@ -978,7 +979,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        Enumerable<const DirectX12DescriptorLayout*> descriptors() const override;
+        const Array<DirectX12DescriptorLayout>& descriptors() const noexcept override;
 
         /// <inheritdoc />
         const DirectX12DescriptorLayout& descriptor(UInt32 binding) const override;
@@ -1012,22 +1013,24 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        UniquePtr<DirectX12DescriptorSet> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const override;
+        UniquePtr<DirectX12DescriptorSet> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const override;
 
         /// <inheritdoc />
-        UniquePtr<DirectX12DescriptorSet> allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const override;
+        UniquePtr<DirectX12DescriptorSet> allocate(UInt32 descriptors, Span<DescriptorBinding> bindings) const override;
 
         /// <inheritdoc />
-        Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override;
+        UniquePtr<DirectX12DescriptorSet> allocate(UInt32 descriptors, Generator<DescriptorBinding> bindings) const override;
 
         /// <inheritdoc />
-        Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override;
+        Generator<UniquePtr<DirectX12DescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const override;
+
+#ifdef __cpp_lib_mdspan
+        /// <inheritdoc />
+        Generator<UniquePtr<DirectX12DescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const override;
+#endif
 
         /// <inheritdoc />
-        Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override;
-
-        /// <inheritdoc />
-        Enumerable<UniquePtr<DirectX12DescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override;
+        Generator<UniquePtr<DirectX12DescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const override;
 
         /// <inheritdoc />
         void free(const DirectX12DescriptorSet& descriptorSet) const override;

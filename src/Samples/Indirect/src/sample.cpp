@@ -196,16 +196,16 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto& cameraCullBindingLayout = cullPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
     auto& cameraGeometryBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
     auto cameraBuffer = m_device->factory().createBuffer("Camera Buffer", cameraGeometryBindingLayout, 0, ResourceHeap::Dynamic, 3);
-    auto cameraCullBindings = cameraCullBindingLayout.allocateMultiple(3, {
+    auto cameraCullBindings = cameraCullBindingLayout.allocate(3, {
         { { .resource = *cameraBuffer, .firstElement = 0, .elements = 1 } },
         { { .resource = *cameraBuffer, .firstElement = 1, .elements = 1 } },
         { { .resource = *cameraBuffer, .firstElement = 2, .elements = 1 } }
-    });
-    auto cameraGeometryBindings = cameraGeometryBindingLayout.allocateMultiple(3, {
+    }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
+    auto cameraGeometryBindings = cameraGeometryBindingLayout.allocate(3, {
         { { .resource = *cameraBuffer, .firstElement = 0, .elements = 1 } },
         { { .resource = *cameraBuffer, .firstElement = 1, .elements = 1 } },
         { { .resource = *cameraBuffer, .firstElement = 2, .elements = 1 } }
-    });
+    }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 
     // Next, we create the objects buffer.
     auto& objectsCullBindingLayout = cullPipeline.layout()->descriptorSet(DescriptorSets::Constant);
@@ -225,11 +225,11 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto& indirectBindingLayout = cullPipeline.layout()->descriptorSet(DescriptorSets::Indirect);
     auto indirectCounterBuffer = m_device->factory().createBuffer("Indirect Counter", BufferType::Indirect, ResourceHeap::Resource, sizeof(UInt32), 4, ResourceUsage::Default | ResourceUsage::AllowWrite);
     auto indirectCommandsBuffer = m_device->factory().createBuffer("Indirect Commands", BufferType::Indirect, ResourceHeap::Resource, sizeof(IndirectIndexedBatch) * NUM_INSTANCES, 3, ResourceUsage::AllowWrite);
-    auto indirectBindings = indirectBindingLayout.allocateMultiple(3, {
+    auto indirectBindings = indirectBindingLayout.allocate(3, {
         { { .resource = *indirectCounterBuffer, .firstElement = 0, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 0, .elements = 1 } },
         { { .resource = *indirectCounterBuffer, .firstElement = 1, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 1, .elements = 1 } },
         { { .resource = *indirectCounterBuffer, .firstElement = 2, .elements = 1 }, { .resource = *indirectCommandsBuffer, .firstElement = 2, .elements = 1 } }
-    });
+    }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 
     // End and submit the command buffer.
     m_transferFence = commandBuffer->submit();

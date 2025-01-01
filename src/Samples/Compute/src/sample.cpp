@@ -145,20 +145,20 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
     auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, ResourceHeap::Dynamic, 3);
-    auto transformBindings = transformBindingLayout.allocateMultiple(3, {
+    auto transformBindings = transformBindingLayout.allocate(3, {
         { { .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
         { { .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
         { { .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
-    });
+    }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 
     // Allocate bindings for the post-processing pass.
     auto& postPipeline = m_device->state().pipeline("Post");
     auto& postInputLayout = postPipeline.layout()->descriptorSet(0);
-    auto postBindings = postInputLayout.allocateMultiple(3, {
+    auto postBindings = postInputLayout.allocate(3, {
         { { .resource = m_device->state().frameBuffer("Frame Buffer 0").resolveImage("Color Target"_hash) } },
         { { .resource = m_device->state().frameBuffer("Frame Buffer 1").resolveImage("Color Target"_hash) } },
         { { .resource = m_device->state().frameBuffer("Frame Buffer 2").resolveImage("Color Target"_hash) } }
-    });
+    }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
     
     // Add everything to the state.
     m_device->state().add(std::move(vertexBuffer));

@@ -231,47 +231,95 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const descriptor_layout_type*> descriptors() const = 0;
+        virtual const Array<descriptor_layout_type>& descriptors() const noexcept = 0;
 
         /// <inheritdoc />
         const descriptor_layout_type& descriptor(UInt32 binding) const override = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<descriptor_set_type> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const = 0;
+        virtual inline UniquePtr<descriptor_set_type> allocate(std::initializer_list<DescriptorBinding> bindings = { }) const {
+            return this->allocate(0, bindings);
+        }
 
         /// <inheritdoc />
-        virtual UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const = 0;
+        virtual inline UniquePtr<descriptor_set_type> allocate(Span<DescriptorBinding> bindings) const {
+            return this->allocate(0, bindings);
+        }
 
         /// <inheritdoc />
-        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const = 0;
+        virtual inline UniquePtr<descriptor_set_type> allocate(Generator<DescriptorBinding> bindings) const {
+            return this->allocate(0, std::move(bindings));
+        }
 
         /// <inheritdoc />
-        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
+        virtual UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const = 0;
+        virtual UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, Span<DescriptorBinding> bindings) const = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
+        virtual UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, Generator<DescriptorBinding> bindings) const = 0;
+
+        /// <inheritdoc />
+        virtual inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
+            return this->allocate(descriptorSets, 0, bindings);
+        }
+
+#ifdef __cpp_lib_mdspan
+        /// <inheritdoc />
+        virtual inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
+            return this->allocate(descriptorSets, 0, bindings);
+        }
+#endif
+
+        /// <inheritdoc />
+        virtual inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::function<Generator<DescriptorBinding>(UInt32)> bindings) const {
+            return this->allocate(descriptorSets, 0, std::move(bindings));
+        }
+
+        /// <inheritdoc />
+        virtual Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const = 0;
+
+#ifdef __cpp_lib_mdspan
+        /// <inheritdoc />
+        virtual Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const = 0;
+#endif
+
+        /// <inheritdoc />
+        virtual Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
 
         /// <inheritdoc />
         virtual void free(const descriptor_set_type& descriptorSet) const = 0;
 
     private:
-        inline Enumerable<const IDescriptorLayout*> getDescriptors() const override {
-            return this->descriptors();
+        inline Array<const IDescriptorLayout*> getDescriptors() const noexcept override {
+            return this->descriptors() | std::views::transform([](auto& layout) -> const IDescriptorLayout* { return &layout; }) | std::ranges::to<Array<const IDescriptorLayout*>>();
         }
 
-        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const override {
+        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const override {
             return this->allocate(descriptors, bindings);
         }
 
-        inline Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override {
-            return this->allocateMultiple(descriptorSets, descriptors, bindings) | std::views::as_rvalue;
+        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Span<DescriptorBinding> bindings) const override {
+            return this->allocate(descriptors, bindings);
         }
 
-        inline Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override {
-            return this->allocateMultiple(descriptorSets, descriptors, bindingFactory) | std::views::as_rvalue;
+        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Generator<DescriptorBinding> bindings) const override {
+            return this->allocate(descriptors, std::move(bindings));
+        }
+
+        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings) const override {
+            co_yield std::ranges::elements_of(this->allocate(descriptorSets, descriptors, bindings) | std::views::transform([](auto set) -> UniquePtr<IDescriptorSet> { return set; }));
+        }
+
+#ifdef __cpp_lib_mdspan
+        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const override {
+            co_yield std::ranges::elements_of(this->allocate(descriptorSets, descriptors, bindings) | std::views::transform([](auto set) -> UniquePtr<IDescriptorSet> { return set; }));
+        }
+#endif
+
+        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const override {
+            co_yield std::ranges::elements_of(this->allocate(descriptorSets, descriptors, std::move(bindingFactory)) | std::views::transform([](auto set) -> UniquePtr<IDescriptorSet> { return set; }));
         }
 
         inline void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const override {

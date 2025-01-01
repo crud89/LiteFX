@@ -92,7 +92,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
 
     // Find the descriptor.
     auto descriptors = m_impl->m_layout->descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
+    auto match = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
 
     if (match == descriptors.end()) [[unlikely]]
     {
@@ -100,7 +100,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
         return;
     }
 
-    const auto& descriptorLayout = *(*match);
+    auto& descriptorLayout = *match;
     auto device = m_impl->m_layout->device();
     auto offset = m_impl->m_layout->descriptorOffsetForBinding(binding) + firstDescriptor;
     auto descriptorSize = device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
@@ -236,7 +236,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
     // TODO: Add LOD lower bound (for clamping) as parameter?
     // Find the descriptor.
     auto descriptors = m_impl->m_layout->descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
+    auto match = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
 
     if (match == descriptors.end()) [[unlikely]]
     {
@@ -244,8 +244,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
         return;
     }
 
-    const auto& descriptorLayout = *(*match);
-
+    auto& descriptorLayout = *match;
     auto offset = m_impl->m_layout->descriptorOffsetForBinding(binding);
     auto device = m_impl->m_layout->device();
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset + descriptor), device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
@@ -413,7 +412,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sam
 {
     // Find the descriptor.
     auto descriptors = m_impl->m_layout->descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
+    auto match = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
 
     if (match == descriptors.end()) [[unlikely]]
     {
@@ -446,7 +445,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Acceleration
 {
     // Find the descriptor.
     auto descriptors = m_impl->m_layout->descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](const DirectX12DescriptorLayout* layout) { return layout->binding() == binding; });
+    auto match = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
 
     if (match == descriptors.end()) [[unlikely]]
     {
@@ -454,7 +453,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Acceleration
         return;
     }
 
-    const auto& layout = *(*match);
+    auto& layout = *match;
 
     if (layout.descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor.", binding);

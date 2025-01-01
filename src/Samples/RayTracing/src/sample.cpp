@@ -252,9 +252,9 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto& swapChain = m_device->swapChain();
     auto backBuffers = m_device->factory().createTexture("Back Buffers", swapChain.surfaceFormat(), swapChain.renderArea(), ImageDimensions::DIM_2, 1u, swapChain.buffers(), MultiSamplingLevel::x1, ResourceUsage::AllowWrite | ResourceUsage::TransferSource);
     auto& outputBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::FrameBuffer));
-    auto outputBindings = outputBindingsLayout.allocateMultiple(swapChain.buffers(), [&backBuffers](UInt32 set) -> Enumerable<DescriptorBinding> {
-        return { DescriptorBinding { .resource = *backBuffers, .firstElement = set, .elements = 1 } };
-    });
+    auto outputBindings = outputBindingsLayout.allocate(swapChain.buffers(), [&backBuffers](UInt32 set) -> Generator<DescriptorBinding> {
+        co_yield { .resource = *backBuffers, .firstElement = set, .elements = 1 };
+    }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 
     // Setup random colors for each material. The last one (for the reflective object) can stay the default.
     for (UInt32 i{ 0 }; i < NUM_INSTANCES - 1; ++i)
