@@ -90,7 +90,7 @@ namespace LiteFX::Rendering::Backends {
         // IVertexBufferLayout interface.
     public:
         /// <inheritdoc />
-        Enumerable<const BufferAttribute*> attributes() const override;
+        const Array<BufferAttribute>& attributes() const override;
 
         // IBufferLayout interface.
     public:

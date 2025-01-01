@@ -109,14 +109,14 @@ public:
 			LITEFX_TRACE(DIRECTX12_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size: {3} bytes, Binding: {4} }}...", ++l, vertexLayouts.size(), bufferAttributes.size(), layout->elementSize(), bindingPoint);
 #endif
 
-			std::ranges::for_each(bufferAttributes, [&](const BufferAttribute* attribute) {
+			std::ranges::for_each(bufferAttributes, [&](auto& attribute) {
 				D3D12_INPUT_ELEMENT_DESC elementDescriptor = {};
-				elementDescriptor.SemanticName = DX12::getSemanticName(attribute->semantic());
-				elementDescriptor.SemanticIndex = attribute->semanticIndex();
-				elementDescriptor.Format = DX12::getFormat(attribute->format());
+				elementDescriptor.SemanticName = DX12::getSemanticName(attribute.semantic());
+				elementDescriptor.SemanticIndex = attribute.semanticIndex();
+				elementDescriptor.Format = DX12::getFormat(attribute.format());
 				elementDescriptor.InputSlot = bindingPoint;
 				elementDescriptor.InputSlotClass = D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
-				elementDescriptor.AlignedByteOffset = attribute->offset();	// TODO: May not include packing, but packing is required - need to test this!
+				elementDescriptor.AlignedByteOffset = attribute.offset();	// TODO: May not include packing, but packing is required - need to test this!
 				elementDescriptor.InstanceDataStepRate = 0;
 
 				inputLayoutElements.push_back(elementDescriptor);

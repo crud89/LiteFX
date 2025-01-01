@@ -50,12 +50,12 @@ public:
             {
                 // Find the position attribute.
                 auto attributes = mesh.VertexBuffer->layout().attributes();
-                auto positionAttribute = std::ranges::find_if(attributes, [](const BufferAttribute* attribute) { return attribute->semantic() == AttributeSemantic::Position; });
+                auto positionAttribute = std::ranges::find_if(attributes, [](auto& attribute) { return attribute.semantic() == AttributeSemantic::Position; });
 
                 if (positionAttribute == attributes.end()) [[unlikely]]
                     throw RuntimeException("A vertex buffer must contain a position attribute to be used in a bottom-level acceleration structure.");
 
-                if ((*positionAttribute)->offset() != 0) [[unlikely]]
+                if (positionAttribute->offset() != 0) [[unlikely]]
                     throw RuntimeException("The position attribute must not have a non-zero offset in the vertex buffer layout.");
 
                 co_yield D3D12_RAYTRACING_GEOMETRY_DESC {
@@ -64,7 +64,7 @@ public:
                     .Triangles = D3D12_RAYTRACING_GEOMETRY_TRIANGLES_DESC {
                         .Transform3x4 = mesh.TransformBuffer == nullptr ? 0 : mesh.TransformBuffer->virtualAddress(),
                         .IndexFormat = mesh.IndexBuffer == nullptr ? DXGI_FORMAT_UNKNOWN : (mesh.IndexBuffer->layout().indexType() == IndexType::UInt16 ? DXGI_FORMAT_R16_UINT : DXGI_FORMAT_R32_UINT),
-                        .VertexFormat = DX12::getFormat((*positionAttribute)->format()),
+                        .VertexFormat = DX12::getFormat(positionAttribute->format()),
                         .IndexCount = mesh.IndexBuffer == nullptr ? 0 : mesh.IndexBuffer->elements(),
                         .VertexCount = mesh.VertexBuffer->elements(),
                         .IndexBuffer = mesh.IndexBuffer == nullptr ? 0 : mesh.IndexBuffer->virtualAddress(),

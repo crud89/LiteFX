@@ -153,19 +153,19 @@ public:
 			binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 			Array<VkVertexInputAttributeDescription> currentAttributes = bufferAttributes |
-				std::views::transform([&bindingPoint, attributes = bufferAttributes.size(), i = 0] (const BufferAttribute* attribute) mutable {
+				std::views::transform([&bindingPoint, attributes = bufferAttributes.size(), i = 0] (auto& attribute) mutable {
 #ifdef NDEBUG
 					(void)attributes; // Required as [[maybe_unused]] is not supported in captures.
 					(void)i;
 #else
-					LITEFX_TRACE(VULKAN_LOG, "\tAttribute {0}/{1}: {{ Location: {2}, Offset: {3}, Format: {4} }}", ++i, attributes, attribute->location(), attribute->offset(), attribute->format());
+					LITEFX_TRACE(VULKAN_LOG, "\tAttribute {0}/{1}: {{ Location: {2}, Offset: {3}, Format: {4} }}", ++i, attributes, attribute.location(), attribute.offset(), attribute.format());
 #endif
 
 					VkVertexInputAttributeDescription descriptor{};
 					descriptor.binding = bindingPoint;
-					descriptor.location = attribute->location();
-					descriptor.offset = attribute->offset();
-					descriptor.format = Vk::getFormat(attribute->format());
+					descriptor.location = attribute.location();
+					descriptor.offset = attribute.offset();
+					descriptor.format = Vk::getFormat(attribute.format());
 
 					return descriptor;
 				}) | std::ranges::to<Array<VkVertexInputAttributeDescription>>();

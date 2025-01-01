@@ -57,12 +57,12 @@ public:
             {
                 // Find the position attribute.
                 auto attributes = mesh.VertexBuffer->layout().attributes();
-                auto positionAttribute = std::ranges::find_if(attributes, [](const BufferAttribute* attribute) { return attribute->semantic() == AttributeSemantic::Position; });
+                auto positionAttribute = std::ranges::find_if(attributes, [](auto& attribute) { return attribute.semantic() == AttributeSemantic::Position; });
 
                 if (positionAttribute == attributes.end()) [[unlikely]]
                     throw RuntimeException("A vertex buffer must contain a position attribute to be used in a bottom-level acceleration structure.");
 
-                if ((*positionAttribute)->offset() != 0) [[unlikely]]
+                if (positionAttribute->offset() != 0) [[unlikely]]
                     throw RuntimeException("The position attribute must not have a non-zero offset in the vertex buffer layout.");
 
                 UInt32 primitiveCount = mesh.IndexBuffer == nullptr ? mesh.VertexBuffer->elements() / 3 : mesh.IndexBuffer->elements() / 3;
@@ -73,7 +73,7 @@ public:
                     .geometry = {
                         .triangles = {
                             .sType = VK_STRUCTURE_TYPE_ACCELERATION_STRUCTURE_GEOMETRY_TRIANGLES_DATA_KHR,
-                            .vertexFormat = Vk::getFormat((*positionAttribute)->format()),
+                            .vertexFormat = Vk::getFormat(positionAttribute->format()),
                             .vertexData = {
                                 .deviceAddress = mesh.VertexBuffer->virtualAddress(),
                             },
