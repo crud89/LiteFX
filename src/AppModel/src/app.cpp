@@ -157,11 +157,11 @@ void App::registerStopCallback(std::type_index type, const std::function<void()>
 	m_impl->m_stopCallbacks.insert(std::make_pair(type, callback));
 }
 
-Generator<const IBackend*> App::getBackends(const BackendType type) const
+Enumerable<const IBackend> App::getBackends(const BackendType type) const
 {
-	co_yield std::ranges::elements_of(m_impl->m_backends |
-		std::views::transform([](const auto& backend) { return backend.second.get(); }) |
-		std::views::filter([type](const auto backend) { return backend->type() == type; }));
+	return m_impl->m_backends |
+		std::views::transform([](const auto& backend) -> const IBackend& { return *backend.second.get(); }) |
+		std::views::filter([type](const auto& backend) { return backend.type() == type; });
 }
 
 void App::use(UniquePtr<IBackend>&& backend)
@@ -189,10 +189,10 @@ void App::run()
 	// Start the first registered rendering backend for each backend type.
 	for (BackendType type : VALID_BACKEND_TYPES)
 	{
-		auto firstMatch = *this->getBackends(type).begin();
+		auto backends = this->getBackends(type);
 
-		if (firstMatch != nullptr)
-			this->startBackend(firstMatch->typeId());
+		if (!backends.empty())
+			this->startBackend(this->getBackends(type).begin()->typeId());
 	}
 
 	// Fire startup event.

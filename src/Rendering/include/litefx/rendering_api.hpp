@@ -5419,7 +5419,7 @@ namespace LiteFX::Rendering {
         /// Returns the layouts of the descriptors within the descriptor set.
         /// </summary>
         /// <returns>The layouts of the descriptors within the descriptor set.</returns>
-        inline Array<const IDescriptorLayout*> descriptors() const noexcept {
+        inline Enumerable<const IDescriptorLayout> descriptors() const noexcept {
             return this->getDescriptors();
         }
 
@@ -5627,7 +5627,7 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        virtual Array<const IDescriptorLayout*> getDescriptors() const noexcept = 0;
+        virtual Enumerable<const IDescriptorLayout> getDescriptors() const noexcept = 0;
         virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const = 0;
         virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Span<DescriptorBinding> bindings) const = 0;
         virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Generator<DescriptorBinding> bindings) const = 0;

@@ -292,8 +292,8 @@ namespace LiteFX::Rendering {
         virtual void free(const descriptor_set_type& descriptorSet) const = 0;
 
     private:
-        inline Array<const IDescriptorLayout*> getDescriptors() const noexcept override {
-            return this->descriptors() | std::views::transform([](auto& layout) -> const IDescriptorLayout* { return &layout; }) | std::ranges::to<Array<const IDescriptorLayout*>>();
+        inline Enumerable<const IDescriptorLayout> getDescriptors() const noexcept override {
+            return this->descriptors();
         }
 
         inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const override {
