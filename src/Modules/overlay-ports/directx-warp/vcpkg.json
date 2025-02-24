@@ -1,0 +1,9 @@
+{
+  "name": "directx-warp",
+  "version": "1.0.11",
+  "description": "WARP is a high speed, fully conformant software rasterizer.",
+  "homepage": "https://learn.microsoft.com/en-us/windows/win32/direct3darticles/directx-warp",
+  "documentation": "https://learn.microsoft.com/en-us/windows/win32/direct3darticles/directx-warp",
+  "license": null,
+  "supports": "windows & !uwp & !staticcrt"
+}
