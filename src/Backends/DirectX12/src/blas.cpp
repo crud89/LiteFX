@@ -191,10 +191,10 @@ void DirectX12BottomLevelAccelerationStructure::build(const DirectX12CommandBuff
     if (scratchBuffer != nullptr && scratchBuffer->size() < requiredScratchMemory)
         throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer does not contain enough memory to build the acceleration structure (contained memory: {0} bytes, required memory: {1} bytes).", scratchBuffer->size(), requiredScratchMemory);
     else if (scratchBuffer == nullptr)
-        scratch = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
+        scratch = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, static_cast<size_t>(requiredScratchMemory), 1, ResourceUsage::AllowWrite);
 
     if (buffer == nullptr)
-        memory = m_impl->m_buffer && m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
+        memory = m_impl->m_buffer && m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, static_cast<size_t>(requiredMemory), 1, ResourceUsage::AllowWrite);
     else if (maxSize < requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("maxSize", std::make_pair(0_ui64, maxSize), requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
@@ -236,10 +236,10 @@ void DirectX12BottomLevelAccelerationStructure::update(const DirectX12CommandBuf
     if (scratchBuffer != nullptr && scratchBuffer->size() < requiredScratchMemory)
         throw InvalidArgumentException("scratchBuffer", "The provided scratch buffer does not contain enough memory to update the acceleration structure (contained memory: {0} bytes, required memory: {1} bytes).", scratchBuffer->size(), requiredScratchMemory);
     else if (scratchBuffer == nullptr)
-        scratch = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, requiredScratchMemory, 1, ResourceUsage::AllowWrite);
+        scratch = device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, static_cast<size_t>(requiredScratchMemory), 1, ResourceUsage::AllowWrite);
 
     if (buffer == nullptr)
-        memory = m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
+        memory = m_impl->m_buffer->size() >= requiredMemory ? m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, static_cast<size_t>(requiredMemory), 1, ResourceUsage::AllowWrite);
     else if (maxSize < requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("maxSize", std::make_pair(0_ui64, maxSize), requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
@@ -277,7 +277,7 @@ void DirectX12BottomLevelAccelerationStructure::copy(const DirectX12CommandBuffe
 
     // Validate the input arguments.
     if (buffer == nullptr)
-        memory = destination.m_impl->m_buffer->size() >= requiredMemory ? destination.m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
+        memory = destination.m_impl->m_buffer->size() >= requiredMemory ? destination.m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, static_cast<size_t>(requiredMemory), 1, ResourceUsage::AllowWrite);
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("buffer", std::make_pair<UInt64, UInt64>(0u, buffer->size()), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
 

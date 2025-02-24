@@ -386,7 +386,7 @@ public:
 		auto localDataSize = std::ranges::max(m_shaderRecordCollection.shaderRecords() | std::views::filter(filterByGroupType) | std::views::transform([](auto& record) { return record->localDataSize(); }));
 
 		// Compute the record size by aligning the handle and payload sizes.
-		auto recordSize = Math::align<UInt64>(D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES + localDataSize, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
+		auto recordSize = Math::align<size_t>(D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES + static_cast<size_t>(localDataSize), D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
 
 		// Insert empty records at the end of each table so that the table start offsets align with D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT.
 		Dictionary<ShaderBindingGroup, UInt32> alignmentRecords;
@@ -485,7 +485,7 @@ public:
 					std::memcpy(recordData.data(), getRecordIdentifier(currentRecord), D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
 
 					// Write the payload and map everything into the buffer.
-					std::memcpy(recordData.data() + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, currentRecord->localData(), currentRecord->localDataSize()); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+					std::memcpy(recordData.data() + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, currentRecord->localData(), static_cast<size_t>(currentRecord->localDataSize())); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 					result->map(recordData.data(), recordSize, record++);
 				}
 

@@ -184,7 +184,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     UInt64 opaqueSize{}, opaqueScratchSize{}, reflectiveSize{}, reflectiveScratchSize{};
     m_device->computeAccelerationStructureSizes(*opaque, opaqueSize, opaqueScratchSize);
     m_device->computeAccelerationStructureSizes(*reflective, reflectiveSize, reflectiveScratchSize);
-    auto blasBuffer = m_device->factory().createBuffer("BLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, opaqueSize + reflectiveSize, 1u, ResourceUsage::AllowWrite);
+    auto blasBuffer = m_device->factory().createBuffer("BLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, static_cast<size_t>(opaqueSize + reflectiveSize), 1u, ResourceUsage::AllowWrite);
 
     // Orient instances randomly.
     std::srand(static_cast<UInt32>(std::time(nullptr)));
@@ -207,7 +207,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // Create a scratch buffer.
     UInt64 tlasSize{}, tlasScratchSize{};
     m_device->computeAccelerationStructureSizes(*tlas, tlasSize, tlasScratchSize);
-    auto scratchBufferSize = std::max(std::max(opaqueScratchSize, reflectiveScratchSize), tlasScratchSize);
+    auto scratchBufferSize = static_cast<size_t>(std::max(std::max(opaqueScratchSize, reflectiveScratchSize), tlasScratchSize));
     auto scratchBuffer = m_device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, scratchBufferSize, 1, ResourceUsage::AllowWrite);
 
     // Build the BLAS and the TLAS. We need to barrier in between both to prevent simultaneous scratch buffer writes.
@@ -269,7 +269,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
         auto opaqueCompactedSize = Math::align<UInt64>(opaque->size(), 256);
         auto reflectiveCompactedSize = Math::align<UInt64>(reflective->size(), 256);
         auto tlasCompactedSize = Math::align<UInt64>(tlas->size(), 256);
-        auto overallSize = opaqueCompactedSize + reflectiveCompactedSize + tlasCompactedSize;
+        auto overallSize = static_cast<size_t>(opaqueCompactedSize + reflectiveCompactedSize + tlasCompactedSize);
         // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
         // Allocate one buffer for all acceleration structures and allocate them individually.

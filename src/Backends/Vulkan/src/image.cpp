@@ -64,7 +64,7 @@ UInt32 VulkanImage::elements() const noexcept
 size_t VulkanImage::size() const noexcept
 {
 	if (m_impl->m_allocationInfo) [[likely]]
-		return m_impl->m_allocationInfo->GetSize();
+		return static_cast<size_t>(m_impl->m_allocationInfo->GetSize());
 	else
 	{
 		size_t pixelSize{ 0 };
@@ -104,7 +104,7 @@ size_t VulkanImage::elementSize() const noexcept
 size_t VulkanImage::elementAlignment() const noexcept
 {
 	if (m_impl->m_allocationInfo) [[likely]]
-		return m_impl->m_allocationInfo->GetAlignment();
+		return static_cast<size_t>(m_impl->m_allocationInfo->GetAlignment());
 	else
 		return 0;	// Not sure about the alignment. Probably need to query from device limits.
 }
