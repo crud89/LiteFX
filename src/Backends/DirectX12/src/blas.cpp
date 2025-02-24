@@ -198,7 +198,7 @@ void DirectX12BottomLevelAccelerationStructure::build(const DirectX12CommandBuff
     else if (maxSize < requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("maxSize", std::make_pair(0_ui64, maxSize), requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
-        throw ArgumentOutOfRangeException("buffer", std::make_pair(0uz, buffer->size()), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
+        throw ArgumentOutOfRangeException("buffer", std::make_pair<UInt64, UInt64>(0u, buffer->size()), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
 
     // Perform the build.
     commandBuffer.buildAccelerationStructure(*this, scratch, *memory, offset);
@@ -243,7 +243,7 @@ void DirectX12BottomLevelAccelerationStructure::update(const DirectX12CommandBuf
     else if (maxSize < requiredMemory) [[unlikely]]
         throw ArgumentOutOfRangeException("maxSize", std::make_pair(0_ui64, maxSize), requiredMemory, "The maximum available size is not sufficient to contain the acceleration structure.");
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
-        throw ArgumentOutOfRangeException("buffer", std::make_pair(0uz, buffer->size()), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
+        throw ArgumentOutOfRangeException("buffer", std::make_pair<UInt64, UInt64>(0u, buffer->size()), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
 
     // Perform the update.
     commandBuffer.updateAccelerationStructure(*this, scratch, *memory, offset);
@@ -279,7 +279,7 @@ void DirectX12BottomLevelAccelerationStructure::copy(const DirectX12CommandBuffe
     if (buffer == nullptr)
         memory = destination.m_impl->m_buffer->size() >= requiredMemory ? destination.m_impl->m_buffer : device->factory().createBuffer(BufferType::AccelerationStructure, ResourceHeap::Resource, requiredMemory, 1, ResourceUsage::AllowWrite);
     else if (buffer->size() < offset + requiredMemory) [[unlikely]]
-        throw ArgumentOutOfRangeException("buffer", std::make_pair(0uz, buffer->size()), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
+        throw ArgumentOutOfRangeException("buffer", std::make_pair<UInt64, UInt64>(0u, buffer->size()), offset + requiredMemory, "The buffer does not contain enough memory after offset {0} to fully contain the acceleration structure.", offset);
 
     // Store the buffer and the offset.
     destination.m_impl->m_offset = offset;
