@@ -160,14 +160,14 @@ SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
 #ifndef NDEBUG
-	auto buffer = VulkanBuffer::allocate(name, type, elements, elementSize, alignment, usage, *device, m_impl->m_allocator, bufferInfo, allocInfo);
+	auto buffer = VulkanBuffer::allocate(name, type, elements, elementSize, static_cast<size_t>(alignment), usage, *device, m_impl->m_allocator, bufferInfo, allocInfo);
 
 	if (!name.empty())
 		device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
 
 	return buffer;
 #else
-	return VulkanBuffer::allocate(name, type, elements, elementSize, alignment, usage, *device, m_impl->m_allocator, bufferInfo, allocInfo);
+	return VulkanBuffer::allocate(name, type, elements, elementSize, static_cast<size_t>(alignment), usage, *device, m_impl->m_allocator, bufferInfo, allocInfo);
 #endif
 }
 
