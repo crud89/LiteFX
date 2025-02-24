@@ -2626,10 +2626,10 @@ namespace LiteFX::Rendering::Backends {
         /// This function sets the debug name for an object to make it easier to identify when using an external debugger. This function will do nothing
         /// in release mode or if the device extension VK_EXT_debug_marker is not available.
         /// </remarks>
-        /// <param name="objectHandle">The handle of the object casted to an integer.</param>
         /// <param name="objectType">The type of the object.</param>
+        /// <param name="objectHandle">The handle of the object casted to an integer.</param>
         /// <param name="name">The debug name of the object.</param>
-        void setDebugName(UInt64 objectHandle, VkDebugReportObjectTypeEXT objectType, StringView name) const noexcept;
+        void setDebugName(VkDebugReportObjectTypeEXT objectType, UInt64 objectHandle, StringView name) const noexcept;
 
     public:
         /// <summary>
@@ -2651,7 +2651,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="name">The debug name of the object.</param>
         template <typename THandle>
         inline void setDebugName(THandle objectHandle, VkDebugReportObjectTypeEXT objectType, StringView name) const noexcept {
-            this->setDebugName(std::bit_cast<UInt64>(objectHandle), objectType, name);
+            this->setDebugName(objectType, Vk::handleAddress(objectHandle), name); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
         }
 
         /// <summary>

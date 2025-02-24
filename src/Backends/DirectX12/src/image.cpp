@@ -74,7 +74,7 @@ size_t DirectX12Image::size() const noexcept
 	}
 
 	if (m_impl->m_allocation) [[likely]]
-		return m_impl->m_allocation->GetSize();
+		return static_cast<size_t>(m_impl->m_allocation->GetSize());
 	else
 	{
 		auto elementSize = pixelSize * m_impl->m_extent.width() * m_impl->m_extent.height() * m_impl->m_extent.depth() * m_impl->m_layers;

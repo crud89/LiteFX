@@ -201,6 +201,27 @@ namespace LiteFX::Rendering::Backends {
         /// 
         /// </summary>
         VkImageLayout LITEFX_VULKAN_API getImageLayout(ImageLayout imageLayout);
+
+        /// <summary>
+        /// Returns the address of a dispatchable handle.
+        /// </summary>
+        /// <typeparam name="THandle">The type of the handle.</typeparam>
+        /// <param name="handle">The handle to convert.</param>
+        /// <returns>The address of the handle.</returns>
+        template <typename THandle>
+        constexpr UInt64 handleAddress(const THandle handle) noexcept {
+            return reinterpret_cast<std::uintptr_t>(handle); // NOLINT(cppcoreguidelines-pro-type-reinterpret-cast)
+        }
+
+        /// <summary>
+        /// Returns the address of a non-dispatchable handle.
+        /// </summary>
+        /// <param name="handle">The handle to convert.</param>
+        /// <returns>The address of the handle.</returns>
+        template <>
+        constexpr UInt64 handleAddress(const UInt64 handle) noexcept {
+            return handle;
+        }
     }
 
     /// <summary>
