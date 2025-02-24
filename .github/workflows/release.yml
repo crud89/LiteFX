@@ -79,7 +79,7 @@ jobs:
           buildPreset: '${{ matrix.profile }}-debug'
           
       - name: Upload build artifacts (Debug)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: LiteFX-${{ matrix.triplet }}-build-dbg
@@ -99,7 +99,7 @@ jobs:
           buildPreset: '${{ matrix.profile }}-release'
 
       - name: Upload build artifacts (Release)
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: failure()
         with:
           name: LiteFX-${{ matrix.triplet }}-build-rel
@@ -119,7 +119,7 @@ jobs:
           recursive: true
 
       - name: Upload install artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: LiteFX-${{ matrix.triplet }}-install
           path: '${{ github.workspace }}/out/install/${{ matrix.profile }}-release'
