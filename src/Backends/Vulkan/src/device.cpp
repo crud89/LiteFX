@@ -543,7 +543,7 @@ Span<const String> VulkanDevice::enabledExtensions() const noexcept
     return m_impl->m_extensions;
 }
 
-void VulkanDevice::setDebugName([[maybe_unused]] UInt64 handle, [[maybe_unused]] VkDebugReportObjectTypeEXT type, [[maybe_unused]] StringView name) const noexcept
+void VulkanDevice::setDebugName([[maybe_unused]] VkDebugReportObjectTypeEXT type, [[maybe_unused]] UInt64 handle, [[maybe_unused]] StringView name) const noexcept
 {
 #ifndef NDEBUG
     if (m_impl->debugMarkerSetObjectName != nullptr)

@@ -48,7 +48,7 @@ VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, si
 VulkanBuffer::~VulkanBuffer() noexcept
 {
 	::vmaDestroyBuffer(m_impl->m_allocator, this->handle(), m_impl->m_allocation);
-	LITEFX_TRACE(VULKAN_LOG, "Destroyed buffer {0}", static_cast<void*>(this->handle()));
+	LITEFX_TRACE(VULKAN_LOG, "Destroyed buffer {0}", Vk::handleAddress(this->handle()));
 }
 
 BufferType VulkanBuffer::type() const noexcept
@@ -154,7 +154,7 @@ SharedPtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, BufferType t
 	VmaAllocation allocation{};
 
 	raiseIfFailed(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate buffer.");
-	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(buffer)) : name, type, elements, elementSize, elements * elementSize, usage);
+	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", Vk::handleAddress(buffer)) : name, type, elements, elementSize, elements * elementSize, usage);
 
 	return SharedObject::create<VulkanBuffer>(buffer, type, elements, elementSize, alignment, usage, device, allocator, allocation, name);
 }
@@ -204,7 +204,7 @@ SharedPtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const String& name, 
 	VmaAllocation allocation{};
 
 	raiseIfFailed(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate vertex buffer.");
-	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(buffer)) : name, BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements, usage);
+	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", Vk::handleAddress(buffer)) : name, BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements, usage);
 
 	return SharedObject::create<VulkanVertexBuffer>(buffer, layout, elements, usage, device, allocator, allocation, name);
 }
@@ -254,7 +254,7 @@ SharedPtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const String& name, co
 	VmaAllocation allocation{};
 
 	raiseIfFailed(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate index buffer.");
-	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(buffer)) : name, BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements, usage);
+	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", Vk::handleAddress(buffer)) : name, BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements, usage);
 
 	return SharedObject::create<VulkanIndexBuffer>(buffer, layout, elements, usage, device, allocator, allocation, name);
 }
