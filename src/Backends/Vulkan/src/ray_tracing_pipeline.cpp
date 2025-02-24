@@ -191,11 +191,11 @@ public:
 
 		// Allocate a buffer for the shader binding table.
 		// NOTE: Updating the SBT to change shader-local data is currently unsupported. Instead, bind-less resources should be used.
-		auto result = m_device->factory().createBuffer(BufferType::ShaderBindingTable, ResourceHeap::Dynamic, recordSize, static_cast<UInt32>(totalRecordCount), ResourceUsage::TransferSource);
+		auto result = m_device->factory().createBuffer(BufferType::ShaderBindingTable, ResourceHeap::Dynamic, static_cast<size_t>(recordSize), static_cast<UInt32>(totalRecordCount), ResourceUsage::TransferSource);
 
 		// Write each record group by group.
 		UInt32 record{ 0 };
-		Array<Byte> recordData(recordSize, 0x00);
+		Array<Byte> recordData(static_cast<size_t>(recordSize), 0x00);
 
 		// Write each shader binding group that should be included.
 		for (auto group : { ShaderBindingGroup::RayGeneration, ShaderBindingGroup::Miss, ShaderBindingGroup::Callable, ShaderBindingGroup::HitGroup })
@@ -252,8 +252,8 @@ public:
 					raiseIfFailed(::vkGetRayTracingShaderGroupHandles(m_device->handle(), parent.handle(), id, 1, rayTracingProperties.shaderGroupHandleSize, recordData.data()), "Unable to query shader record handle.");
 
 					// Write the payload and map everything into the buffer.
-					std::memcpy(recordData.data() + rayTracingProperties.shaderGroupHandleSize, currentRecord->localData(), currentRecord->localDataSize()); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-					result->map(recordData.data(), recordSize, record++);
+					std::memcpy(recordData.data() + rayTracingProperties.shaderGroupHandleSize, currentRecord->localData(), static_cast<size_t>(currentRecord->localDataSize())); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+					result->map(recordData.data(), static_cast<size_t>(recordSize), record++);
 				}
 
 				// Increment record counter to address for empty records required to comply with alignment rules.

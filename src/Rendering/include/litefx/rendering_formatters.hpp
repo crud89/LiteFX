@@ -26,7 +26,7 @@ struct LITEFX_RENDERING_API std::formatter<QueueType> : std::formatter<std::stri
 
 		if (t == QueueType::None)
 			names.emplace_back("None");
-		else if(t == QueueType::Other)
+		else if(LITEFX_FLAG_IS_SET(t, QueueType::Other))
 			names.emplace_back("Other");
 		else 
 		{
