@@ -244,7 +244,9 @@ jobs:
 
       - name: Update LLVM
         if: ${{ matrix.compiler }} == 'clang'
-        run: choco upgrade llvm 
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+            version: ${{ llvmVersion }}
 
       - name: Setup build and test environment
         id: setup-environment
@@ -427,7 +429,9 @@ jobs:
           
       - name: Update LLVM
         if: ${{ matrix.compiler }} == 'clang'
-        run: choco upgrade llvm 
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+            version: ${{ llvmVersion }}
         
       - name: Setup build and test environment
         id: setup-environment
