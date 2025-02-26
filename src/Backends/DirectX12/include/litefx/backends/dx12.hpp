@@ -672,7 +672,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        Enumerable<const DirectX12ShaderModule*> modules() const override;
+        Enumerable<const DirectX12ShaderModule> modules() const override;
 
         /// <inheritdoc />
         virtual SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout() const;
@@ -1155,14 +1155,14 @@ namespace LiteFX::Rendering::Backends {
         const DirectX12PushConstantsRange& range(ShaderStage stage) const override;
 
         /// <inheritdoc />
-        Enumerable<const DirectX12PushConstantsRange*> ranges() const override;
+        const Array<UniquePtr<DirectX12PushConstantsRange>>& ranges() const override;
 
     protected:
         /// <summary>
         /// Returns an array of pointers to the push constant ranges of the layout.
         /// </summary>
         /// <returns>An array of pointers to the push constant ranges of the layout.</returns>
-        virtual Enumerable<DirectX12PushConstantsRange*> ranges();
+        virtual Array<UniquePtr<DirectX12PushConstantsRange>>& ranges();
     };
 
     /// <summary>

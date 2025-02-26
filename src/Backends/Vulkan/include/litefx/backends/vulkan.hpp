@@ -698,7 +698,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        Enumerable<const VulkanShaderModule*> modules() const override;
+        Enumerable<const VulkanShaderModule> modules() const override;
 
         /// <inheritdoc />
         virtual SharedPtr<VulkanPipelineLayout> reflectPipelineLayout() const;
@@ -1118,7 +1118,7 @@ namespace LiteFX::Rendering::Backends {
         const VulkanPushConstantsRange& range(ShaderStage stage) const override;
 
         /// <inheritdoc />
-        Enumerable<const VulkanPushConstantsRange*> ranges() const override;
+        const Array<UniquePtr<VulkanPushConstantsRange>>& ranges() const override;
     };
 
     /// <summary>

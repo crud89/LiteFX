@@ -536,9 +536,9 @@ DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device) no
 
 DirectX12ShaderProgram::~DirectX12ShaderProgram() noexcept = default;
 
-Enumerable<const DirectX12ShaderModule*> DirectX12ShaderProgram::modules() const
+Enumerable<const DirectX12ShaderModule> DirectX12ShaderProgram::modules() const
 {
-    return m_impl->m_modules | std::views::transform([](const UniquePtr<DirectX12ShaderModule>& shader) { return shader.get(); });
+    return m_impl->m_modules | std::views::transform([](const auto& shader) -> const DirectX12ShaderModule& { return *shader; });
 }
 
 SharedPtr<DirectX12PipelineLayout> DirectX12ShaderProgram::reflectPipelineLayout() const

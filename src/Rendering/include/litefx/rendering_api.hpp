@@ -5723,12 +5723,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>All push constant ranges.</returns>
         /// <seealso cref="range" />
-        inline Enumerable<const IPushConstantsRange*> ranges() const {
+        inline Enumerable<const IPushConstantsRange> ranges() const {
             return this->getRanges();
         }
 
     private:
-        virtual Enumerable<const IPushConstantsRange*> getRanges() const = 0;
+        virtual Enumerable<const IPushConstantsRange> getRanges() const = 0;
     };
 
     /// <summary>
@@ -6304,8 +6304,8 @@ namespace LiteFX::Rendering {
         inline const IShaderModule* operator[](StringView name) const {
             auto modules = this->getModules();
 
-            if (auto match = std::ranges::find_if(modules, [name](auto module) { return module->fileName().compare(name) == 0; }); match != modules.end())
-                return *match;
+            if (auto match = std::ranges::find_if(modules, [name](auto& module) { return module.fileName().compare(name) == 0; }); match != modules.end())
+                return std::addressof(*match);
 
             return nullptr;
         }
@@ -6317,7 +6317,7 @@ namespace LiteFX::Rendering {
         /// <returns>`true`, if the program contains a shader module with the provided name or file name and `false` otherwise.</returns>
         inline bool contains(StringView name) const {
             auto modules = this->getModules();
-            return std::ranges::find_if(modules, [name](auto module) { return module->fileName().compare(name) == 0; }) != modules.end();
+            return std::ranges::find_if(modules, [name](const auto& module) { return module.fileName().compare(name) == 0; }) != modules.end();
         };
 
         /// <summary>
@@ -6327,14 +6327,14 @@ namespace LiteFX::Rendering {
         /// <returns>`true`, if the program contains the provided shader module and `false` otherwise.</returns>
         inline bool contains(const IShaderModule& module) const {
             auto modules = this->getModules();
-            return std::ranges::find_if(modules, [&module](auto m) { return m == &module; }) != modules.end();
+            return std::ranges::find_if(modules, [&module](const auto& m) { return std::addressof(m) == std::addressof(module); }) != modules.end();
         };
 
         /// <summary>
         /// Returns the modules, the shader program is build from.
         /// </summary>
         /// <returns>The modules, the shader program is build from.</returns>
-        inline Enumerable<const IShaderModule*> modules() const {
+        inline Enumerable<const IShaderModule> modules() const {
             return this->getModules();
         }
 
@@ -6375,7 +6375,7 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        virtual Enumerable<const IShaderModule*> getModules() const = 0;
+        virtual Enumerable<const IShaderModule> getModules() const = 0;
         virtual SharedPtr<IPipelineLayout> parsePipelineLayout() const = 0;
     };
 
@@ -8633,22 +8633,6 @@ namespace LiteFX::Rendering {
         /// <seealso cref="waitFor" />
         inline UInt64 submit(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const {
             return this->submitCommandBuffers(std::move(commandBuffers));
-        }
-
-        /// <summary>
-        /// Submits a set of command buffers with shared ownership and inserts a fence to wait for them.
-        /// </summary>
-        /// <remarks>
-        /// By calling this method, the queue takes shared ownership over the <paramref name="commandBuffers" /> until the fence is passed. The reference will be released
-        /// during a <see cref="waitFor" />, if the awaited fence is inserted after the associated one.
-        /// 
-        /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
-        /// </remarks>
-        /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
-        /// <returns>The value of the fence, inserted after the command buffers.</returns>
-        /// <seealso cref="waitFor" />
-        inline UInt64 submit(Enumerable<SharedPtr<ICommandBuffer>> commandBuffers) const { // NOLINT(performance-unnecessary-value-param)
-            return this->submitCommandBuffers(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const ICommandBuffer>>>());
         }
 
         /// <summary>

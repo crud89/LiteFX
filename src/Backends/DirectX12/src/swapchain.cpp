@@ -338,12 +338,14 @@ Enumerable<Format> DirectX12SwapChain::getSurfaceFormats() const
 	// NOTE: Those formats are actually the only ones that are supported for flip-model swap chains, which is currently the only 
 	//       supported swap effect. If other swap effects are used, this function may require redesign. For more information see: 
 	//       https://docs.microsoft.com/en-us/windows/win32/api/dxgi1_2/ns-dxgi1_2-dxgi_swap_chain_desc1#remarks.
-	return Enumerable<Format> {
+	static auto formats = std::array {
 		DX12::getFormat(DXGI_FORMAT_R16G16B16A16_FLOAT),
 		DX12::getFormat(DXGI_FORMAT_R10G10B10A2_UNORM),
 		DX12::getFormat(DXGI_FORMAT_B8G8R8A8_UNORM),
 		DX12::getFormat(DXGI_FORMAT_R8G8B8A8_UNORM)
 	};
+
+	return formats;
 }
 
 void DirectX12SwapChain::addTimingEvent(SharedPtr<TimingEvent> timingEvent)

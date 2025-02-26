@@ -230,12 +230,20 @@ namespace LiteFX {
 	}
 
 	/// <summary>
+	/// Evaluates if a type <typeparamref name="TCovariant" /> behaves covariant to a value type <typeparamref name="TValue" />.
+	/// </summary>
+	/// <typeparam name="TValue">The type of the value.</typeparam>
+	/// <typeparam name="TCovariant">The covariant type to check against <typeparamref name="TValue" />.</typeparam>
+	template <typename TValue, typename TCovariant>
+	concept is_covariant = std::is_assignable_v<TCovariant&, TValue> || std::derived_from<std::remove_pointer_t<TValue>, std::remove_pointer_t<TCovariant>>;
+
+	/// <summary>
 	/// Evaluates, if an iterator of type <typeparamref name="TIterator" /> iterates values that are covariant to <typeparamref name="TValue" />.
 	/// </summary>
 	/// <typeparam name="TIterator">The iterator to evaluate.</typeparam>
 	/// <typeparam name="TValue">The type that the iterated values should be covariant to.</typeparam>
 	template <typename TIterator, typename TValue>
-	concept covariant_forward_iterator = std::forward_iterator<TIterator> && std::derived_from<std::remove_pointer_t<typename TIterator::value_type>, std::remove_pointer_t<TValue>>;
+	concept covariant_forward_iterator = std::forward_iterator<TIterator> && is_covariant<typename std::iterator_traits<TIterator>::value_type, std::remove_pointer_t<TValue>>;
 
 	/// <summary>
 	/// Wraps an iterator and returns covariants of type <typeparamref name="T" /> of the iterated value.
@@ -299,7 +307,7 @@ namespace LiteFX {
 			inline ~wrapped_iterator() noexcept override = default;
 
 			inline reference operator*() const override {
-				return _it.operator*();
+				return *_it;
 			};
 
 			inline pointer operator->() override {

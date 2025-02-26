@@ -79,14 +79,14 @@ const DirectX12PushConstantsRange& DirectX12PushConstantsLayout::range(ShaderSta
     return *m_impl->m_ranges[stage];
 }
 
-Enumerable<const DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges() const
+const Array<UniquePtr<DirectX12PushConstantsRange>>& DirectX12PushConstantsLayout::ranges() const
 {
-    return m_impl->m_rangePointers | std::views::transform([](const UniquePtr<DirectX12PushConstantsRange>& range) { return range.get(); });
+    return m_impl->m_rangePointers;
 }
 
-Enumerable<DirectX12PushConstantsRange*> DirectX12PushConstantsLayout::ranges()
+Array<UniquePtr<DirectX12PushConstantsRange>>& DirectX12PushConstantsLayout::ranges()
 {
-    return m_impl->m_rangePointers | std::views::transform([](UniquePtr<DirectX12PushConstantsRange>& range) { return range.get(); });
+    return m_impl->m_rangePointers;
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

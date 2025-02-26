@@ -378,9 +378,9 @@ VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device) :
 
 VulkanShaderProgram::~VulkanShaderProgram() noexcept = default;
 
-Enumerable<const VulkanShaderModule*> VulkanShaderProgram::modules() const
+Enumerable<const VulkanShaderModule> VulkanShaderProgram::modules() const
 {
-    return m_impl->m_modules | std::views::transform([](const UniquePtr<VulkanShaderModule>& shader) { return shader.get(); });
+    return m_impl->m_modules | std::views::transform([](const auto& shader) -> const VulkanShaderModule& { return *shader; });
 }
 
 SharedPtr<VulkanPipelineLayout> VulkanShaderProgram::reflectPipelineLayout() const

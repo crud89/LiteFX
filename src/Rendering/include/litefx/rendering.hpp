@@ -368,11 +368,11 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const push_constants_range_type*> ranges() const = 0;
+        virtual const Array<UniquePtr<push_constants_range_type>>& ranges() const = 0;
 
     private:
-        inline Enumerable<const IPushConstantsRange*> getRanges() const override {
-            return this->ranges();
+        inline Enumerable<const IPushConstantsRange> getRanges() const override {
+            return this->ranges() | std::views::transform([](auto& ptr) -> const IPushConstantsRange& { return *ptr; });
         }
     };
 
@@ -399,10 +399,10 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const shader_module_type*> modules() const = 0;
+        virtual Enumerable<const shader_module_type> modules() const = 0;
 
     private:
-        inline Enumerable<const IShaderModule*> getModules() const override {
+        inline Enumerable<const IShaderModule> getModules() const override {
             return this->modules();
         }
     };
@@ -1372,7 +1372,7 @@ namespace LiteFX::Rendering {
         }
 
         inline Enumerable<SharedPtr<IImage>> getTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage) const override {
-            return this->createTextures(elements, format, size, dimension, layers, levels, samples, usage) | std::views::as_rvalue;
+            return this->createTextures(elements, format, size, dimension, layers, levels, samples, usage);
         }
         
         inline SharedPtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {
@@ -1384,7 +1384,7 @@ namespace LiteFX::Rendering {
         }
         
         inline Enumerable<SharedPtr<ISampler>> getSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {
-            return this->createSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy) | std::views::as_rvalue;
+            return this->createSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
         inline UniquePtr<IBottomLevelAccelerationStructure> getBlas(StringView name, AccelerationStructureFlags flags) const override {
