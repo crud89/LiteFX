@@ -35,10 +35,12 @@ public:
 		D3D12_COMPUTE_PIPELINE_STATE_DESC pipelineStateDescription = {};
 
 		// Setup shader stages.
-		auto modules = m_program->modules() | std::ranges::to<std::vector>();
+		auto& modules = m_program->modules();
 		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", static_cast<void*>(m_program.get()), modules.size());
 
-		std::ranges::for_each(modules, [&, i = 0](const auto& shaderModule) mutable {
+		std::ranges::for_each(modules, [&, i = 0](const auto& module) mutable {
+			const auto& shaderModule = *module;
+
 #ifdef NDEBUG
 			(void)i; // Required as [[maybe_unused]] is not supported in captures.
 #else

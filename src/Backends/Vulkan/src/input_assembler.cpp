@@ -26,7 +26,7 @@ public:
         m_indexBufferLayout = std::move(indexBufferLayout);
         auto layouts = std::move(vertexBufferLayouts);
 
-        for (auto& vertexBufferLayout : layouts)
+        for (auto vertexBufferLayout : layouts)
             if (vertexBufferLayout == nullptr) [[unlikely]]
                 throw ArgumentNotInitializedException("vertexBufferLayouts", "One of the provided vertex buffer layouts is not initialized.");
             else if (m_vertexBufferLayouts.contains(vertexBufferLayout->binding())) [[unlikely]]
@@ -50,15 +50,15 @@ VulkanInputAssembler::VulkanInputAssembler() = default;
 VulkanInputAssembler::VulkanInputAssembler(const VulkanInputAssembler&) = default;
 VulkanInputAssembler::~VulkanInputAssembler() noexcept = default;
 
-Enumerable<const VulkanVertexBufferLayout*> VulkanInputAssembler::vertexBufferLayouts() const
+Enumerable<const VulkanVertexBufferLayout&> VulkanInputAssembler::vertexBufferLayouts() const
 {
-    return m_impl->m_vertexBufferLayouts | std::views::transform([](const auto& pair) { return pair.second.get(); });
+    return m_impl->m_vertexBufferLayouts | std::views::transform([](const auto& pair) -> const VulkanVertexBufferLayout& { return *pair.second; });
 }
 
-const VulkanVertexBufferLayout* VulkanInputAssembler::vertexBufferLayout(UInt32 binding) const
+const VulkanVertexBufferLayout& VulkanInputAssembler::vertexBufferLayout(UInt32 binding) const
 {
     if (m_impl->m_vertexBufferLayouts.contains(binding)) [[likely]]
-        return m_impl->m_vertexBufferLayouts[binding].get();
+        return *m_impl->m_vertexBufferLayouts[binding];
 
     throw InvalidArgumentException("binding", "No vertex buffer layout is bound to binding point {0}.", binding);
 }

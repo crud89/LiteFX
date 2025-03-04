@@ -49,7 +49,7 @@ public:
 		LITEFX_TRACE(VULKAN_LOG, "Creating ray-tracing pipeline (\"{1}\") for layout {0} (records: {2})...", static_cast<void*>(m_layout.get()), parent.name(), m_shaderRecordCollection.shaderRecords().size());
 	
 		// Validate shader stage usage.
-		auto modules = m_program->modules() | std::ranges::to<std::vector>();
+		auto& modules = m_program->modules();
 		//bool hasRayTracingShaders = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, module->type()); }) != modules.end();
 		bool hasComputeShaders    = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::Compute, module->type()); }) != modules.end();
 		bool hasMeshShaders       = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::MeshPipeline, module->type()); }) != modules.end();
@@ -64,15 +64,15 @@ public:
 
 		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", static_cast<const void*>(m_program.get()), modules.size());
 
-		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
-			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
-			std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
+		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules 
+			| std::views::transform([](const auto& shaderModule) { return shaderModule->shaderStageDefinition(); }) 
+			| std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
 
 		// Associate each shader module with an index for faster lookup when building the shader binding table (SBT).
-		auto moduleIds = modules | 
-			std::views::enumerate | 
-			std::views::transform([](const auto& tuple) { return std::make_tuple(static_cast<const IShaderModule*>(std::get<1>(tuple)), std::get<0>(tuple)); }) | 
-			std::ranges::to<std::map>();
+		auto moduleIds = modules 
+			| std::views::enumerate 
+			| std::views::transform([](const auto& tuple) -> std::pair<const IShaderModule*, std::ptrdiff_t> { return { std::get<1>(tuple).get(), std::get<0>(tuple)}; })
+			| std::ranges::to<std::map>();
 
 		// Create an array of shader group records.
 		auto shaderGroups = m_shaderRecordCollection.shaderRecords() | std::views::transform([&moduleIds](auto& record) {

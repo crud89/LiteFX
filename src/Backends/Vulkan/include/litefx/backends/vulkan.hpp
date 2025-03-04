@@ -698,7 +698,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        Enumerable<const VulkanShaderModule> modules() const override;
+        const Array<UniquePtr<const VulkanShaderModule>>& modules() const noexcept override;
 
         /// <inheritdoc />
         virtual SharedPtr<VulkanPipelineLayout> reflectPipelineLayout() const;
@@ -1170,7 +1170,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
         /// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
         /// <returns>A shared pointer to the newly created pipeline layout instance.</returns>
-        static inline auto create(const VulkanDevice& device, Enumerable<SharedPtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) {
+        static inline auto create(const VulkanDevice& device, Enumerable<SharedPtr<VulkanDescriptorSetLayout>> descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) {
             return SharedObject::create<VulkanPipelineLayout>(device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
         }
 
@@ -1193,7 +1193,7 @@ namespace LiteFX::Rendering::Backends {
         const VulkanDescriptorSetLayout& descriptorSet(UInt32 space) const override;
 
         /// <inheritdoc />
-        Enumerable<const VulkanDescriptorSetLayout*> descriptorSets() const override;
+        const Array<SharedPtr<const VulkanDescriptorSetLayout>>& descriptorSets() const override;
 
         /// <inheritdoc />
         const VulkanPushConstantsLayout* pushConstants() const noexcept override;
@@ -1271,10 +1271,10 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        Enumerable<const VulkanVertexBufferLayout*> vertexBufferLayouts() const override;
+        Enumerable<const VulkanVertexBufferLayout&> vertexBufferLayouts() const override;
 
 		/// <inheritdoc />
-		const VulkanVertexBufferLayout* vertexBufferLayout(UInt32 binding) const override;
+		const VulkanVertexBufferLayout& vertexBufferLayout(UInt32 binding) const override;
 
 		/// <inheritdoc />
 		const VulkanIndexBufferLayout* indexBufferLayout() const noexcept override;
@@ -2094,7 +2094,7 @@ namespace LiteFX::Rendering::Backends {
         void unmapRenderTarget(const RenderTarget& renderTarget) noexcept override;
 
         /// <inheritdoc />
-        Enumerable<const IVulkanImage*> images() const override;
+        const Array<SharedPtr<const IVulkanImage>>& images() const override;
 
         /// <inheritdoc />
         inline const IVulkanImage& operator[](UInt32 index) const override {
@@ -2385,10 +2385,10 @@ namespace LiteFX::Rendering::Backends {
         // SwapChain interface.
     public:
         /// <inheritdoc />
-        Enumerable<SharedPtr<TimingEvent>> timingEvents() const override;
+        const Array<SharedPtr<const TimingEvent>>& timingEvents() const override;
 
         /// <inheritdoc />
-        SharedPtr<TimingEvent> timingEvent(UInt32 queryId) const override;
+        SharedPtr<const TimingEvent> timingEvent(UInt32 queryId) const override;
 
         /// <inheritdoc />
         UInt64 readTimingEvent(SharedPtr<const TimingEvent> timingEvent) const override;
@@ -2418,7 +2418,7 @@ namespace LiteFX::Rendering::Backends {
         const IVulkanImage& image() const noexcept override;
 
         /// <inheritdoc />
-        Enumerable<IVulkanImage*> images() const override;
+        const Array<SharedPtr<IVulkanImage>>& images() const noexcept override;
 
         /// <inheritdoc />
         void present(UInt64 fence) const override;
@@ -2428,7 +2428,7 @@ namespace LiteFX::Rendering::Backends {
         Enumerable<Format> getSurfaceFormats() const override;
 
         /// <inheritdoc />
-        void addTimingEvent(SharedPtr<TimingEvent> timingEvent) override;
+        void addTimingEvent(SharedPtr<const TimingEvent> timingEvent) override;
 
         /// <inheritdoc />
         void reset(Format surfaceFormat, const Size2d& renderArea, UInt32 buffers, bool enableVsync = false) override;
@@ -2517,7 +2517,7 @@ namespace LiteFX::Rendering::Backends {
         SharedPtr<IVulkanImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
-        Enumerable<SharedPtr<IVulkanImage>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
+        Generator<SharedPtr<IVulkanImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
 
         /// <inheritdoc />
         SharedPtr<IVulkanSampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
@@ -2526,7 +2526,7 @@ namespace LiteFX::Rendering::Backends {
         SharedPtr<IVulkanSampler> createSampler(const String& name, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
 
         /// <inheritdoc />
-        Enumerable<SharedPtr<IVulkanSampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
+        Generator<SharedPtr<IVulkanSampler>> createSamplers(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
 
         /// <inheritdoc />
         UniquePtr<VulkanBottomLevelAccelerationStructure> createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
@@ -2857,10 +2857,10 @@ namespace LiteFX::Rendering::Backends {
         // RenderBackend interface.
     public:
         /// <inheritdoc />
-        Enumerable<const VulkanGraphicsAdapter*> listAdapters() const override;
+        const Array<SharedPtr<const VulkanGraphicsAdapter>>& adapters() const override;
 
         /// <inheritdoc />
-        const VulkanGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override;
+        const VulkanGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const noexcept override;
 
         /// <inheritdoc />
         void registerDevice(const String& name, SharedPtr<VulkanDevice>&& device) override;

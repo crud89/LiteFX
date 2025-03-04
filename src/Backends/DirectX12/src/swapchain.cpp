@@ -22,7 +22,7 @@ private:
 	bool m_vsync{ false };
 	WeakPtr<const DirectX12Device> m_device;
 
-	Array<SharedPtr<TimingEvent>> m_timingEvents;
+	Array<SharedPtr<const TimingEvent>> m_timingEvents;
 	Array<UInt64> m_timestamps;
 	Array<ComPtr<ID3D12QueryHeap>> m_timingQueryHeaps;
 	Array<SharedPtr<IDirectX12Buffer>> m_timingQueryReadbackBuffers;
@@ -145,7 +145,7 @@ public:
 			this->resetQueryHeaps(m_timingEvents);
 	}
 
-	void resetQueryHeaps(const Array<SharedPtr<TimingEvent>>& timingEvents)
+	void resetQueryHeaps(const Array<SharedPtr<const TimingEvent>>& timingEvents)
 	{
 		// No events - no pools.
 		if (timingEvents.empty())
@@ -238,12 +238,12 @@ ID3D12QueryHeap* DirectX12SwapChain::timestampQueryHeap() const noexcept
 	return m_impl->m_timingQueryHeaps[m_impl->m_currentImage].Get();
 }
 
-Enumerable<SharedPtr<TimingEvent>> DirectX12SwapChain::timingEvents() const
+const Array<SharedPtr<const TimingEvent>>& DirectX12SwapChain::timingEvents() const
 {
 	return m_impl->m_timingEvents;
 }
 
-SharedPtr<TimingEvent> DirectX12SwapChain::timingEvent(UInt32 queryId) const
+SharedPtr<const TimingEvent> DirectX12SwapChain::timingEvent(UInt32 queryId) const
 {
 	if (queryId >= m_impl->m_timingEvents.size())
 		throw ArgumentOutOfRangeException("queryId", std::make_pair(0uz, m_impl->m_timingEvents.size()), static_cast<size_t>(queryId), "No timing event has been registered for query ID {0}.", queryId);
@@ -316,9 +316,9 @@ const IDirectX12Image& DirectX12SwapChain::image() const noexcept
 	return *m_impl->m_presentImages[m_impl->m_currentImage];
 }
 
-Enumerable<IDirectX12Image*> DirectX12SwapChain::images() const
+const Array<SharedPtr<IDirectX12Image>>& DirectX12SwapChain::images() const noexcept
 {
-	return m_impl->m_presentImages | std::views::transform([](SharedPtr<IDirectX12Image>& image) { return image.get(); });
+	return m_impl->m_presentImages;
 }
 
 void DirectX12SwapChain::present(UInt64 fence) const
@@ -348,7 +348,7 @@ Enumerable<Format> DirectX12SwapChain::getSurfaceFormats() const
 	return formats;
 }
 
-void DirectX12SwapChain::addTimingEvent(SharedPtr<TimingEvent> timingEvent)
+void DirectX12SwapChain::addTimingEvent(SharedPtr<const TimingEvent> timingEvent)
 {
 	if (timingEvent == nullptr) [[unlikely]]
 		throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");

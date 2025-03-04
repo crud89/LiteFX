@@ -11,7 +11,7 @@ public:
     friend class DirectX12Backend;
 
 private:
-    Array<SharedPtr<DirectX12GraphicsAdapter>> m_adapters{ };
+    Array<SharedPtr<const DirectX12GraphicsAdapter>> m_adapters{ };
     Dictionary<String, SharedPtr<DirectX12Device>> m_devices;
     ComPtr<ID3D12Debug> m_debugInterface;
 
@@ -100,12 +100,12 @@ void DirectX12Backend::deactivate()
     this->state() = BackendState::Inactive;
 }
 
-Enumerable<const DirectX12GraphicsAdapter*> DirectX12Backend::listAdapters() const
+const Array<SharedPtr<const DirectX12GraphicsAdapter>>& DirectX12Backend::adapters() const
 {
-    return m_impl->m_adapters | std::views::transform([](const auto& adapter) { return adapter.get(); });
+    return m_impl->m_adapters;
 }
 
-const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UInt64>& adapterId) const
+const DirectX12GraphicsAdapter* DirectX12Backend::findAdapter(const Optional<UInt64>& adapterId) const noexcept
 {
     if (auto match = std::ranges::find_if(m_impl->m_adapters, [&adapterId](const auto& adapter) { return !adapterId.has_value() || adapter->uniqueId() == adapterId; }); match != m_impl->m_adapters.end()) [[likely]]
         return match->get();

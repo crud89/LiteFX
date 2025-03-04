@@ -5419,7 +5419,7 @@ namespace LiteFX::Rendering {
         /// Returns the layouts of the descriptors within the descriptor set.
         /// </summary>
         /// <returns>The layouts of the descriptors within the descriptor set.</returns>
-        inline Enumerable<const IDescriptorLayout> descriptors() const noexcept {
+        inline Enumerable<const IDescriptorLayout&> descriptors() const noexcept {
             return this->getDescriptors();
         }
 
@@ -5627,7 +5627,7 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        virtual Enumerable<const IDescriptorLayout> getDescriptors() const noexcept = 0;
+        virtual Enumerable<const IDescriptorLayout&> getDescriptors() const noexcept = 0;
         virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const = 0;
         virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Span<DescriptorBinding> bindings) const = 0;
         virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Generator<DescriptorBinding> bindings) const = 0;
@@ -5723,12 +5723,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>All push constant ranges.</returns>
         /// <seealso cref="range" />
-        inline Enumerable<const IPushConstantsRange> ranges() const {
+        inline Enumerable<const IPushConstantsRange&> ranges() const {
             return this->getRanges();
         }
 
     private:
-        virtual Enumerable<const IPushConstantsRange> getRanges() const = 0;
+        virtual Enumerable<const IPushConstantsRange&> getRanges() const = 0;
     };
 
     /// <summary>
@@ -6334,7 +6334,7 @@ namespace LiteFX::Rendering {
         /// Returns the modules, the shader program is build from.
         /// </summary>
         /// <returns>The modules, the shader program is build from.</returns>
-        inline Enumerable<const IShaderModule> modules() const {
+        inline Enumerable<const IShaderModule&> modules() const {
             return this->getModules();
         }
 
@@ -6375,7 +6375,7 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        virtual Enumerable<const IShaderModule> getModules() const = 0;
+        virtual Enumerable<const IShaderModule&> getModules() const = 0;
         virtual SharedPtr<IPipelineLayout> parsePipelineLayout() const = 0;
     };
 
@@ -6411,7 +6411,7 @@ namespace LiteFX::Rendering {
         /// Returns all descriptor set layouts, the pipeline has been initialized with.
         /// </summary>
         /// <returns>All descriptor set layouts, the pipeline has been initialized with.</returns>
-        inline Enumerable<const IDescriptorSetLayout*> descriptorSets() const {
+        inline Enumerable<SharedPtr<const IDescriptorSetLayout>> descriptorSets() const {
             return this->getDescriptorSets();
         }
 
@@ -6422,7 +6422,7 @@ namespace LiteFX::Rendering {
         virtual const IPushConstantsLayout* pushConstants() const noexcept = 0;
 
     private:
-        virtual Enumerable<const IDescriptorSetLayout*> getDescriptorSets() const = 0;
+        virtual Enumerable<SharedPtr<const IDescriptorSetLayout>> getDescriptorSets() const = 0;
     };
 
     /// <summary>
@@ -6444,7 +6444,7 @@ namespace LiteFX::Rendering {
         /// Returns all vertex buffer layouts of the input assembly.
         /// </summary>
         /// <returns>All vertex buffer layouts of the input assembly.</returns>
-        inline Enumerable<const IVertexBufferLayout*> vertexBufferLayouts() const {
+        inline Enumerable<const IVertexBufferLayout&> vertexBufferLayouts() const {
             return this->getVertexBufferLayouts();
         }
 
@@ -6454,7 +6454,7 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The binding point of the vertex buffer layout.</param>
         /// <returns>The vertex buffer layout for binding provided with <paramref name="binding" />.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if no vertex buffer layout is bound to <paramref name="binding" />.</exception>
-        virtual const IVertexBufferLayout* vertexBufferLayout(UInt32 binding) const = 0;
+        virtual const IVertexBufferLayout& vertexBufferLayout(UInt32 binding) const = 0;
 
         /// <summary>
         /// Returns a pointer to the index buffer layout, or `nullptr` if the input assembler does not handle indices.
@@ -6469,7 +6469,7 @@ namespace LiteFX::Rendering {
         virtual PrimitiveTopology topology() const noexcept = 0;
 
     private:
-        virtual Enumerable<const IVertexBufferLayout*> getVertexBufferLayouts() const = 0;
+        virtual Enumerable<const IVertexBufferLayout&> getVertexBufferLayouts() const = 0;
     };
 
     /// <summary>
@@ -7849,7 +7849,7 @@ namespace LiteFX::Rendering {
         /// Returns all images contained by the frame buffer.
         /// </summary>
         /// <returns>A set of pointers to the images contained by the frame buffer.</returns>
-        inline Enumerable<const IImage*> images() const {
+        inline Enumerable<const IImage&> images() const {
             return this->getImages();
         }
 
@@ -8021,7 +8021,7 @@ namespace LiteFX::Rendering {
         virtual void resize(const Size2d& renderArea) = 0;
 
     private:
-        virtual Enumerable<const IImage*> getImages() const = 0;
+        virtual Enumerable<const IImage&> getImages() const = 0;
     };
 
     /// <summary>
@@ -8287,7 +8287,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="name">The name of the timing event.</param>
         /// <returns>A pointer with shared ownership to the newly created timing event instance.</returns>
-        [[nodiscard]] inline std::shared_ptr<TimingEvent> registerTimingEvent(StringView name = "") {
+        [[nodiscard]] inline SharedPtr<const TimingEvent> registerTimingEvent(StringView name = "") {
             auto timingEvent = TimingEvent::create(*this, name);
             this->addTimingEvent(timingEvent);
             return timingEvent;
@@ -8297,14 +8297,14 @@ namespace LiteFX::Rendering {
         /// Returns all registered timing events.
         /// </summary>
         /// <returns>An array, containing all registered timing events.</returns>
-        virtual Enumerable<SharedPtr<TimingEvent>> timingEvents() const = 0;
+        virtual const Array<SharedPtr<const TimingEvent>>& timingEvents() const = 0;
 
         /// <summary>
         /// Returns the timing event registered for <paramref name="queryId" />.
         /// </summary>
         /// <param name="queryId">The query ID of the timing event.</param>
         /// <returns>The timing event registered for <paramref name="queryId" />.</returns>
-        virtual SharedPtr<TimingEvent> timingEvent(UInt32 queryId) const = 0;
+        virtual SharedPtr<const TimingEvent> timingEvent(UInt32 queryId) const = 0;
 
         /// <summary>
         /// Reads the current time stamp value (in ticks) of a timing event.
@@ -8375,7 +8375,7 @@ namespace LiteFX::Rendering {
         /// Returns an array of the swap chain present images.
         /// </summary>
         /// <returns>Returns an array of the swap chain present images.</returns>
-        inline Enumerable<IImage*> images() const {
+        inline Enumerable<IImage&> images() const {
             return this->getImages();
         };
 
@@ -8436,8 +8436,8 @@ namespace LiteFX::Rendering {
         [[nodiscard]] virtual UInt32 swapBackBuffer() const = 0;
 
     private:
-        virtual Enumerable<IImage*> getImages() const = 0;
-        virtual void addTimingEvent(SharedPtr<TimingEvent> timingEvent) = 0;
+        virtual Enumerable<IImage&> getImages() const = 0;
+        virtual void addTimingEvent(SharedPtr<const TimingEvent> timingEvent) = 0;
     };
 
     /// <summary>
@@ -8453,11 +8453,9 @@ namespace LiteFX::Rendering {
             Array<SharedPtr<const ICommandBuffer>> m_commandBuffers;
 
         public:
-            QueueSubmittingEventArgs(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) :
-                EventArgs() 
-            {
-                m_commandBuffers = commandBuffers | std::ranges::to<Array<SharedPtr<const ICommandBuffer>>>();
-            }
+            QueueSubmittingEventArgs(Array<SharedPtr<const ICommandBuffer>>&& commandBuffers) :
+                EventArgs(), m_commandBuffers(std::move(commandBuffers)) { }
+
             QueueSubmittingEventArgs(const QueueSubmittingEventArgs&) = default;
             QueueSubmittingEventArgs(QueueSubmittingEventArgs&&) noexcept = default;
             QueueSubmittingEventArgs& operator=(const QueueSubmittingEventArgs&) = default;
@@ -8908,7 +8906,7 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Creates a texture, based on the <paramref name="layout" />.
+        /// Creates a texture.
         /// </summary>
         /// <remarks>
         /// A texture in LiteFX is always backed by GPU-only visible memory and thus can only be transferred to/from. Thus you typically have to create a buffer using 
@@ -8928,7 +8926,7 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Creates a texture, based on the <paramref name="layout" />.
+        /// Creates a texture.
         /// </summary>
         /// <remarks>
         /// A texture in LiteFX is always backed by GPU-only visible memory and thus can only be transferred to/from. Thus you typically have to create a buffer using 
@@ -8949,24 +8947,22 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Creates an array of textures, based on the <paramref name="layout" />.
+        /// Creates a series of textures.
         /// </summary>
-        /// <param name="layout">The layout of the textures.</param>
-        /// <param name="elements">The number of textures to create.</param>
         /// <param name="format">The format of the texture images.</param>
         /// <param name="size">The dimensions of the textures.</param>
         /// <param name="layers">The number of layers (slices) in this texture.</param>
         /// <param name="levels">The number of mip map levels of the textures.</param>
         /// <param name="samples">The number of samples, the textures should be sampled with.</param>
         /// <param name="usage">The intended usage for the buffer.</param>
-        /// <returns>An array of texture instances.</returns>
+        /// <returns>A generator for texture instances.</returns>
         /// <seealso cref="createTexture" />
-        inline Enumerable<SharedPtr<IImage>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getTextures(elements, format, size, dimension, layers, levels, samples, usage);
+        inline Generator<SharedPtr<IImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const {
+            return this->getTextures(format, size, dimension, layers, levels, samples, usage);
         }
 
         /// <summary>
-        /// Creates a texture sampler, based on the <paramref name="layout" />.
+        /// Creates a texture sampler.
         /// </summary>
         /// <param name="magFilter">The filter operation used for magnifying.</param>
         /// <param name="minFilter">The filter operation used for minifying.</param>
@@ -8985,7 +8981,7 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Creates a texture sampler, based on the <paramref name="layout" />.
+        /// Creates a texture sampler.
         /// </summary>
         /// <param name="name">The name of the sampler.</param>
         /// <param name="magFilter">The filter operation used for magnifying.</param>
@@ -9005,9 +9001,8 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Creates an array of texture samplers, based on the <paramref name="layout" />.
+        /// Creates a series of texture samplers.
         /// </summary>
-        /// <param name="elements">The number of samplers to create.</param>
         /// <param name="magFilter">The filter operation used for magnifying.</param>
         /// <param name="minFilter">The filter operation used for minifying.</param>
         /// <param name="borderU">The border mode along the U-axis.</param>
@@ -9018,10 +9013,10 @@ namespace LiteFX::Rendering {
         /// <param name="maxLod">The maximum level of detail value.</param>
         /// <param name="minLod">The minimum level of detail value.</param>
         /// <param name="anisotropy">The level of anisotropic filtering.</param>
-        /// <returns>An array of sampler instances.</returns>
+        /// <returns>A generator for sampler instances.</returns>
         /// <seealso cref="createSampler" />
-        inline Enumerable<SharedPtr<ISampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const {
-            return this->getSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+        inline Generator<SharedPtr<ISampler>> createSamplers(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const {
+            return this->getSamplers(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
         /// <summary>
@@ -9087,10 +9082,10 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
         virtual SharedPtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
         virtual SharedPtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
-        virtual Enumerable<SharedPtr<IImage>> getTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
+        virtual Generator<SharedPtr<IImage>> getTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
         virtual SharedPtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
         virtual SharedPtr<ISampler> getSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
-        virtual Enumerable<SharedPtr<ISampler>> getSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
+        virtual Generator<SharedPtr<ISampler>> getSamplers(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
         virtual UniquePtr<IBottomLevelAccelerationStructure> getBlas(StringView name, AccelerationStructureFlags flags) const = 0;
         virtual UniquePtr<ITopLevelAccelerationStructure> getTlas(StringView name, AccelerationStructureFlags flags) const = 0;
     };
@@ -9341,7 +9336,7 @@ namespace LiteFX::Rendering {
         /// Lists all available graphics adapters.
         /// </summary>
         /// <returns>An array of pointers to all available graphics adapters.</returns>
-        inline Enumerable<const IGraphicsAdapter*> listAdapters() const {
+        inline Enumerable<SharedPtr<const IGraphicsAdapter>> listAdapters() const {
             return this->getAdapters();
         }
 
@@ -9356,7 +9351,7 @@ namespace LiteFX::Rendering {
         /// <param name="adapterId">The unique ID of the adapter, or <c>std::nullopt</c> to find the default adapter.</param>
         /// <returns>A pointer to a graphics adapter, or <c>nullptr</c>, if no adapter could be found.</returns>
         /// <seealso cref="IGraphicsAdapter" />
-        virtual const IGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const = 0;
+        virtual const IGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const noexcept = 0;
 
         /// <summary>
         /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
@@ -9391,7 +9386,7 @@ namespace LiteFX::Rendering {
         };
 
     private:
-        virtual Enumerable<const IGraphicsAdapter*> getAdapters() const = 0;
+        virtual Enumerable<SharedPtr<const IGraphicsAdapter>> getAdapters() const = 0;
     };
 
     /// <summary>

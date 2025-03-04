@@ -64,8 +64,8 @@ public:
 		m_samples = samples;
 
 		// Check if there are mesh shaders in the program.
-		auto modules = m_program->modules();
-		bool hasMeshShaders = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::Mesh | ShaderStage::Task, module.type()); }) != modules.end();
+		auto& modules = m_program->modules();
+		bool hasMeshShaders = std::ranges::find_if(modules, [](const auto& m) { return LITEFX_FLAG_IS_SET(ShaderStage::Mesh | ShaderStage::Task, m->type()); }) != modules.end();
 
 		// Setup rasterizer state.
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
@@ -97,16 +97,17 @@ public:
 		LITEFX_TRACE(DIRECTX12_LOG, "Input assembler state: {{ PrimitiveTopology: {0} }}", m_inputAssembler->topology());
 		D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType = DX12::getPrimitiveTopologyType(m_inputAssembler->topology());
 
-		auto vertexLayouts = m_inputAssembler->vertexBufferLayouts();
-
-		std::ranges::for_each(m_inputAssembler->vertexBufferLayouts(), [&, l = 0](const DirectX12VertexBufferLayout* layout) mutable {
-			auto bufferAttributes = layout->attributes();
-			auto bindingPoint = layout->binding();
+#ifndef NDEBUG
+		size_t vertexLayouts = std::ranges::distance(m_inputAssembler->vertexBufferLayouts());
+#endif
+		std::ranges::for_each(m_inputAssembler->vertexBufferLayouts(), [&, l = 0](const DirectX12VertexBufferLayout& layout) mutable {
+			auto bufferAttributes = layout.attributes();
+			auto bindingPoint = layout.binding();
 
 #ifdef NDEBUG
 			(void)l; // Required as [[maybe_unused]] is not supported in captures.
 #else
-			LITEFX_TRACE(DIRECTX12_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size: {3} bytes, Binding: {4} }}...", ++l, vertexLayouts.size(), bufferAttributes.size(), layout->elementSize(), bindingPoint);
+			LITEFX_TRACE(DIRECTX12_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size: {3} bytes, Binding: {4} }}...", ++l, vertexLayouts, bufferAttributes.size(), layout.elementSize(), bindingPoint);
 #endif
 
 			std::ranges::for_each(bufferAttributes, [&](auto& attribute) {
@@ -223,29 +224,33 @@ public:
 		std::memcpy(&pipelineStateDescription.RTVFormats, renderTargetFormats.data(), renderTargetFormats.size() * sizeof(DXGI_FORMAT));
 
 		// Setup shader stages.
-		auto modules = m_program->modules() | std::ranges::to<std::vector>();
+		auto& modules = m_program->modules();
 		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", static_cast<void*>(m_program.get()), modules.size());
 
-		std::ranges::for_each(modules, [&, i = 0](const auto& shaderModule) mutable {
+		std::ranges::for_each(modules, [&, i = 0](const auto& module) mutable {
+			const auto& shaderModule = *module;
+
 #ifdef NDEBUG
 			(void)i; // Required as [[maybe_unused]] is not supported in captures.
 #else
 			LITEFX_TRACE(DIRECTX12_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", ++i, modules.size(), shaderModule.fileName(), shaderModule.type(), shaderModule.entryPoint());
 #endif
 
+			const auto& handle = shaderModule.handle();
+
 			switch (shaderModule.type())
 			{
 			case ShaderStage::Fragment:
-				pipelineStateDescription.PS.pShaderBytecode = shaderModule.handle()->GetBufferPointer();
-				pipelineStateDescription.PS.BytecodeLength = shaderModule.handle()->GetBufferSize();
+				pipelineStateDescription.PS.pShaderBytecode = handle->GetBufferPointer();
+				pipelineStateDescription.PS.BytecodeLength = handle->GetBufferSize();
 				break;
 			case ShaderStage::Task:
-				pipelineStateDescription.AS.pShaderBytecode = shaderModule.handle()->GetBufferPointer();
-				pipelineStateDescription.AS.BytecodeLength = shaderModule.handle()->GetBufferSize();
+				pipelineStateDescription.AS.pShaderBytecode = handle->GetBufferPointer();
+				pipelineStateDescription.AS.BytecodeLength = handle->GetBufferSize();
 				break;
 			case ShaderStage::Mesh:
-				pipelineStateDescription.MS.pShaderBytecode = shaderModule.handle()->GetBufferPointer();
-				pipelineStateDescription.MS.BytecodeLength = shaderModule.handle()->GetBufferSize();
+				pipelineStateDescription.MS.pShaderBytecode = handle->GetBufferPointer();
+				pipelineStateDescription.MS.BytecodeLength = handle->GetBufferSize();
 				break;
 			default:
 				throw InvalidArgumentException("shaderProgram", "Trying to bind shader to unsupported shader stage '{0}'.", shaderModule.type());
@@ -288,40 +293,44 @@ public:
 		std::memcpy(&pipelineStateDescription.RTVFormats, renderTargetFormats.data(), renderTargetFormats.size() * sizeof(DXGI_FORMAT));
 		
 		// Setup shader stages.
-		auto modules = m_program->modules();
+		auto& modules = m_program->modules();
 		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", static_cast<void*>(m_program.get()), modules.size());
 
-		std::ranges::for_each(modules, [&, i = 0](const DirectX12ShaderModule* shaderModule) mutable {
+		std::ranges::for_each(modules, [&, i = 0](const auto& module) mutable {
+			const auto& shaderModule = *module;
+
 #ifdef NDEBUG
 			(void)i; // Required as [[maybe_unused]] is not supported in captures.
 #else
-			LITEFX_TRACE(DIRECTX12_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", ++i, modules.size(), shaderModule->fileName(), shaderModule->type(), shaderModule->entryPoint());
+			LITEFX_TRACE(DIRECTX12_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", ++i, modules.size(), shaderModule.fileName(), shaderModule.type(), shaderModule.entryPoint());
 #endif
 
-			switch (shaderModule->type())
+			const auto& handle = shaderModule.handle();
+
+			switch (shaderModule.type())
 			{
 			case ShaderStage::Vertex:
-				pipelineStateDescription.VS.pShaderBytecode = shaderModule->handle()->GetBufferPointer();
-				pipelineStateDescription.VS.BytecodeLength = shaderModule->handle()->GetBufferSize();
+				pipelineStateDescription.VS.pShaderBytecode = handle->GetBufferPointer();
+				pipelineStateDescription.VS.BytecodeLength = handle->GetBufferSize();
 				break;
 			case ShaderStage::TessellationControl:		// aka. Hull Shader
-				pipelineStateDescription.HS.pShaderBytecode = shaderModule->handle()->GetBufferPointer();
-				pipelineStateDescription.HS.BytecodeLength = shaderModule->handle()->GetBufferSize();
+				pipelineStateDescription.HS.pShaderBytecode = handle->GetBufferPointer();
+				pipelineStateDescription.HS.BytecodeLength = handle->GetBufferSize();
 				break;
 			case ShaderStage::TessellationEvaluation:	// aka. Domain Shader
-				pipelineStateDescription.DS.pShaderBytecode = shaderModule->handle()->GetBufferPointer();
-				pipelineStateDescription.DS.BytecodeLength = shaderModule->handle()->GetBufferSize();
+				pipelineStateDescription.DS.pShaderBytecode = handle->GetBufferPointer();
+				pipelineStateDescription.DS.BytecodeLength = handle->GetBufferSize();
 				break;
 			case ShaderStage::Geometry:
-				pipelineStateDescription.GS.pShaderBytecode = shaderModule->handle()->GetBufferPointer();
-				pipelineStateDescription.GS.BytecodeLength = shaderModule->handle()->GetBufferSize();
+				pipelineStateDescription.GS.pShaderBytecode = handle->GetBufferPointer();
+				pipelineStateDescription.GS.BytecodeLength = handle->GetBufferSize();
 				break;
 			case ShaderStage::Fragment:
-				pipelineStateDescription.PS.pShaderBytecode = shaderModule->handle()->GetBufferPointer();
-				pipelineStateDescription.PS.BytecodeLength = shaderModule->handle()->GetBufferSize();
+				pipelineStateDescription.PS.pShaderBytecode = handle->GetBufferPointer();
+				pipelineStateDescription.PS.BytecodeLength = handle->GetBufferSize();
 				break;
 			default:
-				throw InvalidArgumentException("shaderProgram", "Trying to bind shader to unsupported shader stage '{0}'.", shaderModule->type());
+				throw InvalidArgumentException("shaderProgram", "Trying to bind shader to unsupported shader stage '{0}'.", shaderModule.type());
 			}
 		});
 

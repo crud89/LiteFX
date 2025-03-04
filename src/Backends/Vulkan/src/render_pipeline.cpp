@@ -60,7 +60,7 @@ public:
 	VkPipeline initialize([[maybe_unused]] const VulkanRenderPipeline& parent, MultiSamplingLevel samples)
 	{
 		// Get the shader modules.
-		auto modules = m_program->modules();
+		auto& modules = m_program->modules();
 
 		// Setup dynamic state.
 		Array<VkDynamicState> dynamicStates { 
@@ -79,9 +79,9 @@ public:
 		// Setup shader stages.
 		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", static_cast<void*>(m_program.get()), modules.size());
 
-		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
-			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
-			std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
+		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules 
+			| std::views::transform([](const auto& shaderModule) { return shaderModule->shaderStageDefinition(); }) 
+			| std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
 
 		// Setup the pipeline.
 		m_samples = samples;
@@ -134,22 +134,24 @@ public:
 		inputAssembly.topology = Vk::getPrimitiveTopology(m_inputAssembler->topology());
 		inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-		// Parse vertex input descriptors.
-		auto vertexLayouts = m_inputAssembler->vertexBufferLayouts();
+#ifndef NDEBUG
+		auto vertexLayouts = std::ranges::distance(m_inputAssembler->vertexBufferLayouts());
+#endif
 
-		std::ranges::for_each(vertexLayouts, [&, l = 0](const IVertexBufferLayout* layout) mutable {
-			auto bufferAttributes = layout->attributes() | std::ranges::to<std::vector>();
-			auto bindingPoint = layout->binding();
+// Parse vertex input descriptors.
+		std::ranges::for_each(m_inputAssembler->vertexBufferLayouts(), [&, l = 0](const auto& layout) mutable {
+			auto bufferAttributes = layout.attributes() | std::ranges::to<std::vector>();
+			auto bindingPoint = layout.binding();
 
 #ifdef NDEBUG
 			(void)l; // Required as [[maybe_unused]] is not supported in captures.
 #else
-			LITEFX_TRACE(VULKAN_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size: {3} bytes, Binding: {4} }}...", ++l, vertexLayouts.size(), bufferAttributes.size(), layout->elementSize(), bindingPoint);
+			LITEFX_TRACE(VULKAN_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size: {3} bytes, Binding: {4} }}...", ++l, vertexLayouts, bufferAttributes.size(), layout.elementSize(), bindingPoint);
 #endif
 
 			VkVertexInputBindingDescription binding = {};
 			binding.binding = bindingPoint;
-			binding.stride = static_cast<UInt32>(layout->elementSize());
+			binding.stride = static_cast<UInt32>(layout.elementSize());
 			binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 			Array<VkVertexInputAttributeDescription> currentAttributes = bufferAttributes |

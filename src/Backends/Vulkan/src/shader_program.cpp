@@ -55,7 +55,7 @@ public:
     friend class VulkanShaderProgram;
 
 private:
-    Array<UniquePtr<VulkanShaderModule>> m_modules;
+    Array<UniquePtr<const VulkanShaderModule>> m_modules;
     SharedPtr<const VulkanDevice> m_device;
 
 private:
@@ -92,7 +92,7 @@ private:
     };
 
 public:
-    VulkanShaderProgramImpl(const VulkanDevice& device, Enumerable<UniquePtr<VulkanShaderModule>>&& modules) :
+    VulkanShaderProgramImpl(const VulkanDevice& device, Enumerable<UniquePtr<const VulkanShaderModule>>&& modules) :
         m_device(device.shared_from_this())
     {
         m_modules = std::move(modules) | std::views::as_rvalue | std::ranges::to<std::vector>();
@@ -201,7 +201,7 @@ public:
         Array<PushConstantRangeInfo> pushConstantRanges;
 
         // Extract reflection data from all shader modules.
-        std::ranges::for_each(m_modules, [&](UniquePtr<VulkanShaderModule>& shaderModule) {
+        std::ranges::for_each(m_modules, [&](auto& shaderModule) {
             // Read the file and initialize a reflection module.
             auto bytecode = shaderModule->bytecode();
             spv_reflect::ShaderModule reflection(bytecode.size(), bytecode.c_str());
@@ -330,8 +330,7 @@ public:
 
         // Create the descriptor set layouts.
         auto descriptorSets = [](SharedPtr<const VulkanDevice> device, Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts) -> std::generator<SharedPtr<VulkanDescriptorSetLayout>> {
-            for (auto it = descriptorSetLayouts.begin(); it != descriptorSetLayouts.end(); ++it)
-            {
+            for (auto it = descriptorSetLayouts.begin(); it != descriptorSetLayouts.end(); ++it) {
                 auto space = it->second.space;
                 auto stage = it->second.stage;
 
@@ -341,20 +340,20 @@ public:
                         co_yield descriptor->type == DescriptorType::InputAttachment ?
                             VulkanDescriptorLayout { descriptor->type, descriptor->location, descriptor->inputAttachmentIndex} :
                             VulkanDescriptorLayout { descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements };
-                }(std::move(it->second));
+                }(std::move(it->second)) | std::ranges::to<Array<VulkanDescriptorLayout>>();
 
                 co_yield VulkanDescriptorSetLayout::create(*device, descriptorLayouts, space, stage);
             }
-        }(m_device, std::move(descriptorSetLayouts)) | std::views::as_rvalue | std::ranges::to<Enumerable<SharedPtr<VulkanDescriptorSetLayout>>>();
+        }(m_device, std::move(descriptorSetLayouts)) | std::ranges::to<Array<SharedPtr<VulkanDescriptorSetLayout>>>();
 
         // Create the push constants layout.
         auto overallSize = std::accumulate(pushConstantRanges.begin(), pushConstantRanges.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range.size; });
         auto pushConstants = [](Array<PushConstantRangeInfo> pushConstantRanges) -> std::generator<UniquePtr<VulkanPushConstantsRange>> {
             for (auto it = pushConstantRanges.begin(); it != pushConstantRanges.end(); ++it)
                 co_yield makeUnique<VulkanPushConstantsRange>(it->stage, it->offset, it->size, 0, 0);   // No space or binding for Vulkan push constants.
-        }(std::move(pushConstantRanges)) | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<VulkanPushConstantsRange>>>();
+        }(std::move(pushConstantRanges)) | std::ranges::to<Array<UniquePtr<VulkanPushConstantsRange>>>();
 
-        auto pushConstantsLayout = makeUnique<VulkanPushConstantsLayout>(std::move(pushConstants), overallSize);
+        auto pushConstantsLayout = makeUnique<VulkanPushConstantsLayout>(std::move(pushConstants | std::views::as_rvalue), overallSize);
 
         // Return the pipeline layout.
         return VulkanPipelineLayout::create(*m_device, std::move(descriptorSets), std::move(pushConstantsLayout));
@@ -378,9 +377,9 @@ VulkanShaderProgram::VulkanShaderProgram(const VulkanDevice& device) :
 
 VulkanShaderProgram::~VulkanShaderProgram() noexcept = default;
 
-Enumerable<const VulkanShaderModule> VulkanShaderProgram::modules() const
+const Array<UniquePtr<const VulkanShaderModule>>& VulkanShaderProgram::modules() const noexcept
 {
-    return m_impl->m_modules | std::views::transform([](const auto& shader) -> const VulkanShaderModule& { return *shader; });
+    return m_impl->m_modules;
 }
 
 SharedPtr<VulkanPipelineLayout> VulkanShaderProgram::reflectPipelineLayout() const
@@ -402,7 +401,10 @@ VulkanShaderProgramBuilder::~VulkanShaderProgramBuilder() noexcept = default;
 
 void VulkanShaderProgramBuilder::build()
 {
-    this->instance()->m_impl->m_modules = std::move(this->state().modules);
+    this->instance()->m_impl->m_modules = this->state().modules
+        | std::views::as_rvalue
+        | std::views::transform([](auto&& module) -> UniquePtr<const VulkanShaderModule> { return std::move(module); })
+        | std::ranges::to<std::vector>();
     this->instance()->m_impl->validate();
 }
 

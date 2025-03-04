@@ -36,7 +36,7 @@ public:
     friend class DirectX12ShaderProgram;
 
 private:
-    Array<UniquePtr<DirectX12ShaderModule>> m_modules;
+    Array<UniquePtr<const DirectX12ShaderModule>> m_modules;
     SharedPtr<const DirectX12Device> m_device;
 
 private:
@@ -76,7 +76,7 @@ private:
     };
 
 public:
-    DirectX12ShaderProgramImpl(const DirectX12Device& device, Enumerable<UniquePtr<DirectX12ShaderModule>>&& modules) :
+    DirectX12ShaderProgramImpl(const DirectX12Device& device, Enumerable<UniquePtr<const DirectX12ShaderModule>>&& modules) :
         m_device(device.shared_from_this())
     {
         m_modules = std::move(modules) | std::views::as_rvalue | std::ranges::to<std::vector>();
@@ -360,7 +360,7 @@ public:
         Array<PushConstantRangeInfo> pushConstantRanges;
 
         // Extract reflection data from all shader modules.
-        std::ranges::for_each(m_modules, [this, &descriptorSetLayouts](UniquePtr<DirectX12ShaderModule>& shaderModule) {
+        std::ranges::for_each(m_modules, [this, &descriptorSetLayouts](auto& shaderModule) {
             // Load the shader reflection.
             ComPtr<IDxcContainerReflection> reflection;
             raiseIfFailed(::DxcCreateInstance(CLSID_DxcContainerReflection, IID_PPV_ARGS(&reflection)), "Unable to access DirectX shader reflection.");
@@ -494,20 +494,20 @@ public:
                             co_yield { descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->local };
                         }
                     }
-                }(std::move(it->second));
+                }(std::move(it->second)) | std::ranges::to<Array<DirectX12DescriptorLayout>>();
 
                 co_yield DirectX12DescriptorSetLayout::create(*device, descriptors, space, stage);
             }
-        }(m_device, std::move(descriptorSetLayouts)) | std::views::as_rvalue | std::ranges::to<Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>>();
+        }(m_device, std::move(descriptorSetLayouts)) | std::ranges::to<Array<SharedPtr<DirectX12DescriptorSetLayout>>>();
 
         // Create the push constants layout.
         auto overallSize = std::accumulate(pushConstantRanges.begin(), pushConstantRanges.end(), 0, [](UInt32 currentSize, const auto& range) { return currentSize + range.size; });
         auto pushConstants = [](Array<PushConstantRangeInfo> pushConstantRanges) -> std::generator<UniquePtr<DirectX12PushConstantsRange>> {
             for (auto range = pushConstantRanges.begin(); range != pushConstantRanges.end(); ++range)
                 co_yield makeUnique<DirectX12PushConstantsRange>(range->stage, range->offset, range->size, range->space, range->location);
-        }(std::move(pushConstantRanges)) | std::views::as_rvalue | std::ranges::to<Enumerable<UniquePtr<DirectX12PushConstantsRange>>>();
+        }(std::move(pushConstantRanges)) | std::ranges::to<Array<UniquePtr<DirectX12PushConstantsRange>>>();
 
-        auto pushConstantsLayout = makeUnique<DirectX12PushConstantsLayout>(std::move(pushConstants), overallSize);
+        auto pushConstantsLayout = makeUnique<DirectX12PushConstantsLayout>(std::move(pushConstants | std::views::as_rvalue), overallSize);
 
         // Return the pipeline layout.
         return DirectX12PipelineLayout::create(*m_device, std::move(descriptorSets), std::move(pushConstantsLayout));
@@ -536,9 +536,9 @@ DirectX12ShaderProgram::DirectX12ShaderProgram(const DirectX12Device& device) no
 
 DirectX12ShaderProgram::~DirectX12ShaderProgram() noexcept = default;
 
-Enumerable<const DirectX12ShaderModule> DirectX12ShaderProgram::modules() const
+const Array<UniquePtr<const DirectX12ShaderModule>>& DirectX12ShaderProgram::modules() const noexcept
 {
-    return m_impl->m_modules | std::views::transform([](const auto& shader) -> const DirectX12ShaderModule& { return *shader; });
+    return m_impl->m_modules;
 }
 
 SharedPtr<DirectX12PipelineLayout> DirectX12ShaderProgram::reflectPipelineLayout() const
@@ -560,7 +560,10 @@ DirectX12ShaderProgramBuilder::~DirectX12ShaderProgramBuilder() noexcept = defau
 
 void DirectX12ShaderProgramBuilder::build()
 {
-    this->instance()->m_impl->m_modules = std::move(this->state().modules);
+    this->instance()->m_impl->m_modules = this->state().modules 
+        | std::views::as_rvalue 
+        | std::views::transform([](auto&& module) -> UniquePtr<const DirectX12ShaderModule> { return std::move(module); }) 
+        | std::ranges::to<std::vector>();
     this->instance()->m_impl->validate();
 }
 

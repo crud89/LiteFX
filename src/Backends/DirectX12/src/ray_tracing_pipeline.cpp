@@ -76,7 +76,7 @@ public:
 		LITEFX_TRACE(DIRECTX12_LOG, "Creating ray-tracing pipeline (\"{1}\") for layout {0} (records: {2})...", static_cast<void*>(m_layout.get()), pipeline.name(), m_shaderRecordCollection.shaderRecords().size());
 		
 		// Validate shader stage usage.
-		auto modules = m_program->modules();
+		auto& modules = m_program->modules();
 		//bool hasRayTracingShaders = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::RayTracingPipeline, module->type()); }) != modules.end();
 		bool hasComputeShaders    = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::Compute, module->type()); }) != modules.end();
 		bool hasMeshShaders       = std::ranges::find_if(modules, [](const auto& module) { return LITEFX_FLAG_IS_SET(ShaderStage::MeshPipeline, module->type()); }) != modules.end();
@@ -101,18 +101,20 @@ public:
 			const IShaderModule* Module;
 		};
 
-		auto shaderModuleSubobjects = m_program->modules() | std::views::transform([](auto module) {
+		auto shaderModuleSubobjects = modules | std::views::transform([](const auto& m) {
 			ShaderModuleSubobjectData data = {
-				.Name = Widen(module->fileName()),
-				.EntryPoint = Widen(module->entryPoint()),
-				.Type = module->type(),
-				.Module = module
+				.Name = Widen(m->fileName()),
+				.EntryPoint = Widen(m->entryPoint()),
+				.Type = m->type(),
+				.Module = m.get()
 			};
+
+			const auto& handle = std::as_const(*m).handle();
 
 			data.LibraryDesc = {
 				.DXILLibrary = {
-					.pShaderBytecode = module->handle()->GetBufferPointer(),
-					.BytecodeLength = module->handle()->GetBufferSize()
+					.pShaderBytecode = handle->GetBufferPointer(),
+					.BytecodeLength = handle->GetBufferSize()
 				}
 			};
 

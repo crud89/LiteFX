@@ -230,12 +230,13 @@ namespace LiteFX {
 	}
 
 	/// <summary>
-	/// Evaluates if a type <typeparamref name="TCovariant" /> behaves covariant to a value type <typeparamref name="TValue" />.
+	/// Evaluates if a type <typeparamref name="TCovariant" /> behaves covariant to a value type <typeparamref name="TValue" />. In this context, covariance is expressed as the type
+	/// <typeparamref name="TCovariant" /> can be assigned a value of type <typeparamref name="TValue" /> or can be constructed from a value of <typeparamref name="TValue" />.
 	/// </summary>
 	/// <typeparam name="TValue">The type of the value.</typeparam>
 	/// <typeparam name="TCovariant">The covariant type to check against <typeparamref name="TValue" />.</typeparam>
 	template <typename TValue, typename TCovariant>
-	concept is_covariant = std::is_assignable_v<TCovariant&, TValue> || std::derived_from<std::remove_pointer_t<TValue>, std::remove_pointer_t<TCovariant>>;
+	concept is_covariant = std::is_assignable_v<TCovariant, TValue> || std::is_constructible_v<TCovariant, TValue>;
 
 	/// <summary>
 	/// Evaluates, if an iterator of type <typeparamref name="TIterator" /> iterates values that are covariant to <typeparamref name="TValue" />.
@@ -243,7 +244,7 @@ namespace LiteFX {
 	/// <typeparam name="TIterator">The iterator to evaluate.</typeparam>
 	/// <typeparam name="TValue">The type that the iterated values should be covariant to.</typeparam>
 	template <typename TIterator, typename TValue>
-	concept covariant_forward_iterator = std::forward_iterator<TIterator> && is_covariant<typename std::iterator_traits<TIterator>::value_type, std::remove_pointer_t<TValue>>;
+	concept covariant_forward_iterator = std::forward_iterator<TIterator> && is_covariant<decltype(*std::declval<TIterator>()), TValue>;
 
 	/// <summary>
 	/// Wraps an iterator and returns covariants of type <typeparamref name="T" /> of the iterated value.
@@ -261,7 +262,7 @@ namespace LiteFX {
 		/// <summary>
 		/// The type of the value that is iterated.
 		/// </summary>
-		using value_type = T;
+		using value_type = std::remove_cvref_t<T>;
 
 		/// <summary>
 		/// The category of the iterator.
@@ -276,19 +277,13 @@ namespace LiteFX {
 		/// <summary>
 		/// The type of a pointer returned by the iterator.
 		/// </summary>
-		using pointer = T*;
-
-		/// <summary>
-		/// The type of a reference returned by the iterator.
-		/// </summary>
-		using reference = T&;
+		using pointer = std::remove_reference_t<T>*;
 
 	private:
 		struct iterator_base {
 			virtual ~iterator_base() noexcept = default;
 
-			virtual reference operator*() const = 0;
-			virtual pointer operator->() = 0;
+			virtual T operator*() const = 0;
 			virtual iterator_base& operator++() = 0;
 			virtual std::unique_ptr<iterator_base> operator++(int) = 0;
 			virtual bool operator==(const iterator_base& _other) const noexcept = 0;
@@ -296,7 +291,7 @@ namespace LiteFX {
 		};
 
 		template <covariant_forward_iterator<T> TIterator>
-		struct wrapped_iterator : public iterator_base {
+		struct wrapped_iterator final : public iterator_base {
 			TIterator _it;
 
 			inline wrapped_iterator(TIterator it) :
@@ -306,13 +301,9 @@ namespace LiteFX {
 
 			inline ~wrapped_iterator() noexcept override = default;
 
-			inline reference operator*() const override {
+			inline T operator*() const override {
 				return *_it;
 			};
-
-			inline pointer operator->() override {
-				return &this->operator*();
-			}
 
 			inline iterator_base& operator++() override {
 				++_it;
@@ -333,20 +324,25 @@ namespace LiteFX {
 			}
 		};
 
-		std::shared_ptr<iterator_base> _iterator{ nullptr }; // NOTE: Starting with C++26 there may be a way to express this with a value-semantic unique_ptr.
+		std::unique_ptr<iterator_base> _iterator{ nullptr }; // NOTE: Starting with C++26 there may be a way to express this with a value-semantic unique_ptr.
 		std::type_index _iterator_type{ typeid(iterator_base) };
+
+	private:
+		CovariantIterator(std::unique_ptr<iterator_base>&& iterator, std::type_index iterator_type) :
+			_iterator(std::move(iterator)), _iterator_type(std::move(iterator_type)) 
+		{ }
 
 	public:
 		/// <summary>
-		/// Initializes a new iterator instance.
+		/// Initializes a new iterator instance. Always throws a <see cref="RuntimeException" />.
 		/// </summary>
 		/// <remarks>
 		/// This constructor is only defined to satisfy the `std::ranges::range` constraint for ranges that return this iterator. Attempting to default-initialize a `CovariantInterator`
-		/// will result in a compile-time error.
+		/// will result in a runtime error.
 		/// </remarks>
 		explicit CovariantIterator() {
 			// Calling this constructor is not supported. It is only publicly available, to make sure the iterator is `std::semiregular`, which is implicitly required by the `std::ranges::range` concept.
-			static_assert(false, "Default-initializing `CovariantIterator` is not supported!");
+			throw RuntimeException("Default-initializing `CovariantIterator` is not supported!");
 		}
 
 		/// <summary>
@@ -395,16 +391,19 @@ namespace LiteFX {
 		/// Returns a reference of the value at the current iterator position.
 		/// </summary>
 		/// <returns>A reference of the value at the current iterator position.</returns>
-		inline reference operator*() const {
+		inline T operator*() const {
 			return _iterator->operator*();
 		}
 
 		/// <summary>
 		/// Returns a pointer to the value at the current iterator position.
 		/// </summary>
+		/// <remarks>
+		/// This operator is only available, if the iterated type is a lvalue reference.
+		/// </remarks>
 		/// <returns>A pointer to the value at the current iterator position.</returns>
-		inline pointer operator->() {
-			return _iterator->operator->();
+		inline pointer operator->() requires std::is_lvalue_reference_v<T> {
+			return &this->operator*();
 		}
 
 		/// <summary>
@@ -442,7 +441,10 @@ namespace LiteFX {
 	/// </summary>
 	/// <remarks>
 	/// An `Enumerable` is intended to be used as a covariant input range for interfaces that want to expose a range of elements that are also interfaces for the stored elements of the actual 
-	/// range. In the following example, the interface `IContainer` returns an `Enumerable&lt;IContained&gt;` from a class `Container`, where the contained elements are of type `Contained`. 
+	/// range. In the context of an `Enumerable`, *covariance* refers to the type <typeparamref name="T" /> either being assignable or constructible from the underlying range value type. This
+	/// allows not only derived types (in a stricter definition that the C++ language standard uses), but also unrelated types, such as smart pointers to be used in a covariant fashion.
+	/// 
+	/// In the following example, the interface `IContainer` returns an `Enumerable&lt;IContained&gt;` from a class `Container`, where the contained elements are of type `Contained`. 
 	/// 
 	/// <example>
 	/// class IContained { };
@@ -450,7 +452,7 @@ namespace LiteFX {
 	/// 
 	/// class IContainer {
 	/// public:
-	///		virtual Enumerable<const IContained> elements() const noexcept = 0;
+	///		virtual Enumerable<const IContained&> elements() const noexcept = 0;
 	/// };
 	/// 
 	/// class Container : public IContainer {
@@ -458,13 +460,14 @@ namespace LiteFX {
 	///		std::vector<Contained> _elements;
 	/// 
 	/// public:
-	///		Enumerable<const IContained> elements() const noexcept override {
+	///		Enumerable<const IContained&> elements() const noexcept override {
 	///			return _elements;
 	///		}
 	/// };
 	/// </example>
 	/// 
-	/// As `Contained` is derived from `IContained`, they are covariant. Using `Enumeable` in `IContainer` allows to iterate the interface instances without knowing their type when declaring the
+	/// As `Contained` is derived from `IContained`, they are covariant in terms of the language. In the context of `Enumerable`, they are covariant, because a `const IContained&amp;` can be 
+	/// constructed from a `const Contained&amp;`. This way, using `Enumeable` in `IContainer` allows to iterate the interface instances without knowing their type when declaring the 
 	/// interface. The covariance relation only applies to the elements of the range, not the range itself. In the example above, `std::vector&lt;Contained&gt;` is not covariant to 
 	/// `Enumerable&lt;const IContained&gt;`, as the two types are not related. This is important as `Enumerable` has a slight performance impact compared to returning a reference of the underlying 
 	/// range directly, both in terms of memory (it stores type information about the original iterators) as well as runtime (it requires a virtual call for iterator increments, dereferencing and 
@@ -474,12 +477,12 @@ namespace LiteFX {
 	/// <example>
 	/// class IContainer {
 	/// public:
-	///		inline Enumerable<const IContained> elements() const noexcept {
+	///		inline Enumerable<const IContained&> elements() const noexcept {
 	///			return this->getElements();
 	///		}
 	/// 
 	/// private:
-	///		virtual Enumerable<const IContained> getElements() const noexcept = 0;
+	///		virtual Enumerable<const IContained&> getElements() const noexcept = 0;
 	/// };
 	/// 
 	/// class Container : public IContainer {
@@ -492,8 +495,8 @@ namespace LiteFX {
 	///		}
 	/// 
 	/// private:
-	///		Enumerable<const IContained> getElements() const noexcept override {
-	///			return this->elements();
+	///		Enumerable<const IContained&> getElements() const noexcept override {
+	///			return _elements;
 	///		}
 	/// };
 	/// </example>
@@ -515,10 +518,13 @@ namespace LiteFX {
 	///		//return std::vector<Foo>(3);
 	/// }
 	/// 
-	/// Enumerable<Foo> filteredFoos(const std::vector<Foo>& foos) {
+	/// Enumerable<Foo&> filteredFoos(const std::vector<Foo>& foos) {
 	///		return foos | std::views::drop(1) | std::views::take(2);
 	/// }
 	/// </example>
+	/// 
+	/// Keep in mind that the type parameter <typeparamref name="T" /> dictates what an iterator returns from the `Enumerable`, i.e. if an lvalue or (p)rvalue should be returned and wheather or not
+	/// a copy is created accordingly.
 	/// </remarks>
 	/// <typeparam name="T">The type of the values returned by the enumerable.</typeparam>
 	/// <seealso cref="CovariantIterator" />
@@ -528,17 +534,17 @@ namespace LiteFX {
 		/// <summary>
 		/// The type of the value that is contained by the `Enumerable`.
 		/// </summary>
-		using value_type = T;
+		using value_type = std::remove_cvref_t<T>;
 
 		/// <summary>
 		/// The type of a pointer returned by the `Enumerable`.
 		/// </summary>
-		using pointer = T*;
+		using pointer = std::remove_reference_t<T>*;
 
 		/// <summary>
 		/// The type of a reference returned by the `Enumerable`.
 		/// </summary>
-		using reference = T&;
+		using reference = std::remove_reference_t<T>&;
 
 		/// <summary>
 		/// The type of the iterator used to iterate the elements of the `Enumerable`.
@@ -548,7 +554,7 @@ namespace LiteFX {
 		/// <summary>
 		/// The type of the iterator used to iterate constant elements of the `Enumerable`.
 		/// </summary>
-		using const_iterator = CovariantIterator<const T>;
+		using const_iterator = CovariantIterator<const std::remove_const_t<T>>;
 
 	private:
 		struct range_holder_base {
@@ -561,7 +567,7 @@ namespace LiteFX {
 		};
 
 		template <std::ranges::viewable_range TRange>
-		struct range_holder : public range_holder_base {
+		struct range_holder final : public range_holder_base {
 			TRange _stored_range;
 
 			inline range_holder(TRange&& range) :
@@ -591,17 +597,25 @@ namespace LiteFX {
 		std::shared_ptr<range_holder_base> _range{ };
 
 	public:
-		Enumerable() = delete;
+		/// <summary>
+		/// Creates an enumerable over an empty range.
+		/// </summary>
+		inline Enumerable() :
+			Enumerable(std::array<T, 0> { })
+		{ }
 
 		/// <summary>
 		/// Creates a new `Enumerable` instance from an underlying range.
 		/// </summary>
 		/// <typeparam name="TRange">The type of the underlying range.</typeparam>
 		/// <param name="range">A reference of the underlying range.</param>
-		template <std::ranges::viewable_range TRange>
-		inline Enumerable(TRange&& range) requires std::derived_from<std::remove_pointer_t<std::ranges::range_value_t<decltype(range)>>, std::remove_pointer_t<T>> :
-			_range(std::make_shared<range_holder<std::ranges::views::all_t<decltype(range)>>>(std::forward<TRange>(range)))
-		{ }
+		template <typename TRange>
+		inline Enumerable(TRange&& range) {
+			// NOTE: Concept evaluation may fail here, if we provide some other enumerable, in which case the evaluated type may be not complete yet, which is why have to
+			//       do a static assert here instead of providing the concept in the template.
+			static_assert(std::ranges::viewable_range<TRange>, "The source range does not satisfy std::ranges::viewable_range!");
+			_range = std::make_shared<range_holder<std::ranges::views::all_t<decltype(range)>>>(std::forward<TRange>(range));
+		}
 
 		/// <summary>
 		/// Returns an iterator pointing to the start of the underlying range.

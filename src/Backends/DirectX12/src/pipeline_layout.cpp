@@ -14,16 +14,10 @@ public:
 
 private:
     UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout{};
-    Array<SharedPtr<DirectX12DescriptorSetLayout>> m_descriptorSetLayouts{};
+    Array<SharedPtr<const DirectX12DescriptorSetLayout>> m_descriptorSetLayouts{};
     SharedPtr<const DirectX12Device> m_device;
 
 public:
-    DirectX12PipelineLayoutImpl(const DirectX12Device& device, Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>&& descriptorLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
-        m_pushConstantsLayout(std::move(pushConstantsLayout)), m_device(device.shared_from_this())
-    {
-        m_descriptorSetLayouts = std::move(descriptorLayouts) | std::views::as_rvalue | std::ranges::to<std::vector>();
-    }
-
     DirectX12PipelineLayoutImpl(const DirectX12Device& device) :
         m_device(device.shared_from_this())
     {
@@ -58,12 +52,17 @@ private:
     }
 
 public:
-    ComPtr<ID3D12RootSignature> initialize([[maybe_unused]] const DirectX12PipelineLayout& pipelineLayout)
+    ComPtr<ID3D12RootSignature> initialize([[maybe_unused]] const DirectX12PipelineLayout& pipelineLayout, Array<SharedPtr<DirectX12DescriptorSetLayout>> descriptorLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout)
     {
-        // Sort and check if there are duplicate space indices.
-        std::ranges::sort(m_descriptorSetLayouts, [](const SharedPtr<DirectX12DescriptorSetLayout>& a, const SharedPtr<DirectX12DescriptorSetLayout>& b) { return a->space() < b->space(); });
+        if (std::ranges::any_of(descriptorLayouts, [](const auto& layout) { return layout == nullptr; })) [[unlikely]]
+            throw ArgumentNotInitializedException("descriptorLayouts", "At least one of the provided descriptor layouts is not initialized.");
 
-        for (Tuple<UInt32, UInt32> spaces : m_descriptorSetLayouts | std::views::transform([](const SharedPtr<DirectX12DescriptorSetLayout>& layout) { return layout->space(); }) | std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
+        // Sort and check if there are duplicate space indices.
+        std::ranges::sort(descriptorLayouts, [](const auto& a, const auto& b) { return a->space() < b->space(); });
+
+        for (Tuple<UInt32, UInt32> spaces : descriptorLayouts |
+            std::views::transform([](const auto& layout) { return layout->space(); }) | 
+            std::views::adjacent_transform<2>([](UInt32 a, UInt32 b) { return std::make_tuple(a, b); }))
         {
             auto [a, b] = spaces;
 
@@ -79,11 +78,12 @@ public:
         bool hasInputAttachmentSampler = false;
         UInt32 rootParameterIndex{ 0 };
 
-        LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", static_cast<const void*>(&pipelineLayout), m_descriptorSetLayouts.size(), m_pushConstantsLayout == nullptr ? 0 : m_pushConstantsLayout->ranges().size());
+        LITEFX_TRACE(DIRECTX12_LOG, "Creating render pipeline layout {0} {{ Descriptor Sets: {1}, Push Constant Ranges: {2} }}...", 
+            static_cast<const void*>(&pipelineLayout), descriptorLayouts.size(), pushConstantsLayout == nullptr ? 0 : pushConstantsLayout->ranges().size());
 
-        if (m_pushConstantsLayout != nullptr)
+        if (pushConstantsLayout != nullptr)
         {
-            std::ranges::for_each(m_pushConstantsLayout->ranges(), [&](DirectX12PushConstantsRange* range) {
+            std::ranges::for_each(pushConstantsLayout->ranges(), [&](const auto& range) {
                 CD3DX12_ROOT_PARAMETER1 rootParameter = {};
 
                 switch (range->stage())
@@ -106,7 +106,7 @@ public:
             });
         }
 
-        std::ranges::for_each(m_descriptorSetLayouts, [&](const SharedPtr<DirectX12DescriptorSetLayout>& layout) {
+        std::ranges::for_each(descriptorLayouts, [&](const SharedPtr<DirectX12DescriptorSetLayout>& layout) {
             // Parse the shader stage descriptor.
             D3D12_SHADER_VISIBILITY shaderStages = D3D12_SHADER_VISIBILITY_ALL;
             auto stages = layout->shaderStages();
@@ -214,6 +214,10 @@ public:
         ComPtr<ID3D12RootSignature> rootSignature;
         raiseIfFailed(m_device->handle()->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature)), "Unable to create root signature for pipeline layout.");
 
+        // Store the layouts.
+        m_pushConstantsLayout = std::move(pushConstantsLayout);
+        m_descriptorSetLayouts.append_range(std::move(descriptorLayouts));
+
         return rootSignature;
     }
 };
@@ -222,10 +226,10 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
-    ComResource<ID3D12RootSignature>(nullptr), m_impl(device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout))
+DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, Enumerable<SharedPtr<DirectX12DescriptorSetLayout>> descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
+    ComResource<ID3D12RootSignature>(nullptr), m_impl(device)
 {
-    this->handle() = m_impl->initialize(*this);
+    this->handle() = m_impl->initialize(*this, descriptorSetLayouts | std::ranges::to<std::vector>(), std::move(pushConstantsLayout));
 }
 
 DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device) :
@@ -242,15 +246,15 @@ const DirectX12Device& DirectX12PipelineLayout::device() const noexcept
 
 const DirectX12DescriptorSetLayout& DirectX12PipelineLayout::descriptorSet(UInt32 space) const
 {
-    if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](const SharedPtr<DirectX12DescriptorSetLayout>& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
+    if (auto match = std::ranges::find_if(m_impl->m_descriptorSetLayouts, [&space](const auto& layout) { return layout->space() == space; }); match != m_impl->m_descriptorSetLayouts.end())
         return *match->get();
 
     throw ArgumentOutOfRangeException("space", "No descriptor set layout uses the provided space {0}.", space);
 }
 
-Enumerable<const DirectX12DescriptorSetLayout*> DirectX12PipelineLayout::descriptorSets() const
+const Array<SharedPtr<const DirectX12DescriptorSetLayout>>& DirectX12PipelineLayout::descriptorSets() const
 {
-    return m_impl->m_descriptorSetLayouts | std::views::transform([](const SharedPtr<DirectX12DescriptorSetLayout>& layout) { return layout.get(); });
+    return m_impl->m_descriptorSetLayouts;
 }
 
 const DirectX12PushConstantsLayout* DirectX12PipelineLayout::pushConstants() const noexcept
@@ -292,9 +296,7 @@ DirectX12PipelineLayoutBuilder::~DirectX12PipelineLayoutBuilder() noexcept = def
 void DirectX12PipelineLayoutBuilder::build()
 {
     auto instance = this->instance();
-    instance->m_impl->m_descriptorSetLayouts = std::move(this->state().descriptorSetLayouts);
-    instance->m_impl->m_pushConstantsLayout = std::move(this->state().pushConstantsLayout);
-    instance->handle() = instance->m_impl->initialize(*instance);
+    instance->handle() = instance->m_impl->initialize(*instance, std::move(this->state().descriptorSetLayouts), std::move(this->state().pushConstantsLayout));
 }
 
 DirectX12DescriptorSetLayoutBuilder DirectX12PipelineLayoutBuilder::descriptorSet(UInt32 space, ShaderStage stages)
