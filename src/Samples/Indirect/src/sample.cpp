@@ -174,11 +174,11 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // Create the staging buffer.
     // NOTE: The mapping works, because vertex and index buffers have an alignment of 0, so we can treat the whole buffer as a single element the size of the 
     //       whole buffer.
-    auto stagedVertices = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Staging, static_cast<UInt32>(vertices.size()));
+    auto stagedVertices = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Staging, static_cast<UInt32>(vertices.size()));
     stagedVertices->map(vertices.data(), static_cast<UInt32>(vertices.size() * sizeof(::Vertex)), 0);
 
     // Create the actual vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
     commandBuffer->transfer(std::move(stagedVertices), *vertexBuffer, 0, 0, static_cast<UInt32>(vertices.size()));
 
     // Create the staging buffer for the indices. For infos about the mapping see the note about the vertex buffer mapping above.

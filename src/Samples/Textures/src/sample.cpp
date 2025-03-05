@@ -168,7 +168,7 @@ UInt64 initBuffers(SampleApp& app, TDevice& device, const SharedPtr<IInputAssemb
     auto commandBuffer = device.defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 
     // Create the vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = device.factory().createVertexBuffer("Vertex Buffer", *inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
+    auto vertexBuffer = device.factory().createVertexBuffer("Vertex Buffer", inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
     commandBuffer->transfer(vertices.data(), vertices.size() * sizeof(::Vertex), *vertexBuffer, 0, static_cast<UInt32>(vertices.size()));
 
     // Create the index buffer and transfer the staging buffer into it.

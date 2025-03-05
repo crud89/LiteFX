@@ -111,7 +111,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 
     // Create the vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
     commandBuffer->transfer(vertices.data(), vertices.size() * sizeof(::Vertex), *vertexBuffer, 0, static_cast<UInt32>(vertices.size()));
 
     // Create the index buffer and transfer the staging buffer into it.
