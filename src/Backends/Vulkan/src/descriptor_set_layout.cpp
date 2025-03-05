@@ -156,7 +156,7 @@ public:
             // If the descriptor is an unbounded runtime array, disable validation warnings about partially bound elements.
             if (binding.descriptorCount != std::numeric_limits<UInt32>::max())
             {
-                bindingFlags.push_back({ VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT });
+                bindingFlags.push_back({ VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT });
 
                 // Track remaining descriptors towards limit.
                 switch (binding.descriptorType)
@@ -187,7 +187,7 @@ public:
             }
             else
             {
-                bindingFlags.push_back({ VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT });
+                bindingFlags.push_back({ VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT });
                 m_usesDescriptorIndexing = true;
 
                 switch (binding.descriptorType)
@@ -217,6 +217,10 @@ public:
                 }
             }
 
+            // Allow update after binding for all buffers except constant/uniform buffers.
+            if (type != DescriptorType::ConstantBuffer)
+                bindingFlags.back() |= VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT;
+
             bindings.push_back(binding);
         });
 
@@ -245,7 +249,7 @@ public:
         return layout;
     }
 
-    void reserve(UInt32 descriptorSets)
+    VkDescriptorPool reserve(UInt32 descriptorSets)
     {
         LITEFX_TRACE(VULKAN_LOG, "Allocating descriptor pool with {5} sets {{ Uniforms: {0}, Storages: {1}, Images: {2}, Samplers: {3}, Input attachments: {4} }}...", m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]].descriptorCount, descriptorSets);
 
@@ -254,16 +258,19 @@ public:
             std::views::filter([](const VkDescriptorPoolSize& poolSize) { return poolSize.descriptorCount > 0; }) |
             std::ranges::to<std::vector>();
 
-        VkDescriptorPoolCreateInfo poolInfo{};
-        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.poolSizeCount = static_cast<UInt32>(poolSizes.size());
-        poolInfo.pPoolSizes = poolSizes.data();
-        poolInfo.maxSets = descriptorSets;
-        poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;
+        VkDescriptorPoolCreateInfo poolInfo {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
+            .flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT,
+            .maxSets = descriptorSets,
+            .poolSizeCount = static_cast<UInt32>(poolSizes.size()),
+            .pPoolSizes = poolSizes.data()
+        };
 
         VkDescriptorPool descriptorPool{};
         raiseIfFailed(::vkCreateDescriptorPool(m_device->handle(), &poolInfo, nullptr, &descriptorPool), "Unable to create buffer pool.");
         m_descriptorPools.push_back(descriptorPool);
+
+        return descriptorPool;
     }
 
 private:
@@ -281,7 +288,7 @@ private:
             throw RuntimeException("Cannot allocate descriptor set from empty layout.");
 
         // Start by reserving enough space for all descriptor sets.
-        this->reserve(descriptorSets);
+        auto pool = this->reserve(descriptorSets);
 
         // Allocate the descriptor sets.
         Array<VkDescriptorSetLayout> layouts(descriptorSets, layout.handle());
@@ -289,7 +296,7 @@ private:
         VkDescriptorSetVariableDescriptorCountAllocateInfo variableCountInfo;
         VkDescriptorSetAllocateInfo descriptorSetInfo = {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO,
-            .descriptorPool = m_descriptorPools.back(),
+            .descriptorPool = pool,
             .descriptorSetCount = descriptorSets,
             .pSetLayouts = layouts.data()
         };
