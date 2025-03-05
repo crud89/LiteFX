@@ -276,8 +276,15 @@ public:
             .rayTracingPipelineTraceRaysIndirect2 = features.RayQueries
         };
 
+        VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR,
+            .pNext = &rayTracingMaintenanceFeatures,
+            .accelerationStructure = features.RayTracing || features.RayQueries,
+            .descriptorBindingAccelerationStructureUpdateAfterBind = features.RayTracing || features.RayQueries
+        };
+
         if (features.RayQueries || features.RayTracing)
-            lastFeature = &rayTracingMaintenanceFeatures;
+            lastFeature = &accelerationStructureFeatures;
 
         VkPhysicalDeviceRayTracingPipelineFeaturesKHR rayTracingPipelineFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR,
@@ -285,15 +292,8 @@ public:
             .rayTracingPipeline = features.RayTracing
         };
 
-        VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationStructureFeatures = {
-            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR,
-            .pNext = &rayTracingPipelineFeatures,
-            .accelerationStructure = features.RayTracing || features.RayQueries,
-            .descriptorBindingAccelerationStructureUpdateAfterBind = features.RayTracing || features.RayQueries
-        };
-
         if (features.RayTracing)
-            lastFeature = &accelerationStructureFeatures;
+            lastFeature = &rayTracingPipelineFeatures;
 
         // Enable task and mesh shaders.
         VkPhysicalDeviceMeshShaderFeaturesEXT meshShaderFeatures = {
