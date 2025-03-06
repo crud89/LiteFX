@@ -9,8 +9,13 @@ DEFINE_TEST("enumerable_should_store_trivial_types" FOLDER "Tests/Core" EXECUTAB
 	DEPENDENCIES LiteFX.Core
 )
 
-DEFINE_TEST("enumerable_should_store_reference_wrappers" FOLDER "Tests/Core" EXECUTABLE_NAME "core_references" 
+DEFINE_TEST("enumerable_should_store_references" FOLDER "Tests/Core" EXECUTABLE_NAME "core_references" 
 	SOURCES "common.h" "references.cpp"
+	DEPENDENCIES LiteFX.Core
+)
+
+DEFINE_TEST("enumerable_should_wrap_return_values" FOLDER "Tests/Core" EXECUTABLE_NAME "core_returns" 
+	SOURCES "common.h" "return_values.cpp"
 	DEPENDENCIES LiteFX.Core
 )
 

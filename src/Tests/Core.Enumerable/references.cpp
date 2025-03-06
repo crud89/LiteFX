@@ -1,32 +1,68 @@
 #include "common.h"
 
-int main(int argc, char* argv[])
+int main(int /*argc*/, char* /*argv*/[])
 {
-	Array<Test> tests{ Test{ 1, "First" }, Test{ 2, "Second" }, Test{ 3, "Third" } };
+    std::vector<Bar> bars;
+    //bars.reserve(4);
+    bars.emplace_back(1);
+    bars.emplace_back(2);
+    bars.emplace_back(3);
+    bars.emplace_back(4);
 
-	int i = 1;
-	for (auto& test : tests)
-		if (test.index != i++)
-			return -1;
+    Enumerable<const Base&> enm = bars |
+        std::views::transform([](const auto& bar) -> const Base& { return bar; }) |
+        std::views::filter([](const auto& base) { return base.index() % 2 == 0; });
 
-	Enumerable<Ref<Test>> testRefs = tests | std::views::transform([](auto& test) -> Ref<Test> { return test; });
-	i = 1;
-	for (auto& test : testRefs)
-		if (test.get().index != i++)
-			return -2;
+    try
+    {
+        std::ranges::for_each(enm, [i = 2](const auto& base) mutable {
+            if (i != base.index())
+                throw;
+            else
+                i += 2;
+        });
+    }
+    catch (...)
+    {
+        return -1;
+    }
 
-	Enumerable<Ref<Test>> reversedRefs = tests | std::views::transform([](auto& test) -> Ref<Test> { return test; }) | std::views::reverse;
-	i = 3;
-	for (auto& test : reversedRefs)
-		if (test.get().index != i--)
-			return -3;
+    if (auto match = std::ranges::find_if(enm, [](const auto& base) { return base.index() == 2; }); match != enm.end())
+    {
+        if (match->index() != 2) // Incorrect match.
+            return -2;
+    }
+    else
+    {
+        // No match.
+        return -3;
+    }
 
-	tests.front().index = 4;
-	tests.back().index = 6;
+    for (int i = 2; const auto & base : enm)
+        if (base.index() != i)
+            return -4;
+        else
+            i += 2;
 
-	if (testRefs.front().get().index != 4)
-		return -4;
+    auto bars2 = bars;
 
-	if (reversedRefs.front().get().index != 6)
-		return -5;
+    enm = std::move(bars2) |
+        std::views::transform([](const auto& bar) -> const Base& { return bar; }) |
+        std::views::filter([](const auto& base) { return base.index() % 2 == 1; });
+
+    try
+    {
+        std::ranges::for_each(enm, [i = 1](const auto& base) mutable {
+            if (i != base.index())
+                throw;
+            else
+                i += 2;
+        });
+    }
+    catch (...)
+    {
+        return -5;
+    }
+
+    return 0;
 }
