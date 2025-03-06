@@ -246,7 +246,7 @@ jobs:
         if: ${{ matrix.compiler }} == 'clang'
         uses: KyleMayes/install-llvm-action@v2
         with:
-            version: ${{ llvmVersion }}
+          version: ${{ env.llvmVersion }}
 
       - name: Setup build and test environment
         id: setup-environment
@@ -431,7 +431,7 @@ jobs:
         if: ${{ matrix.compiler }} == 'clang'
         uses: KyleMayes/install-llvm-action@v2
         with:
-            version: ${{ llvmVersion }}
+          version: ${{ env.llvmVersion }}
         
       - name: Setup build and test environment
         id: setup-environment
