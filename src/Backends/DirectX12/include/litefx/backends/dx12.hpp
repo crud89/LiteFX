@@ -2627,12 +2627,12 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="enableVsync">The initial setting for vertical synchronization.</param>
         /// <param name="features">The features that should be supported by this device.</param>
         /// <returns>A shared pointer to the current device instance.</returns>
-        inline SharedPtr<DirectX12Device> initialize(const DirectX12Backend& backend, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features);
+        SharedPtr<DirectX12Device> initialize(const DirectX12Backend& backend, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features);
 
         /// <summary>
         /// Releases the device state to prepare it for destruction.
         /// </summary>
-        inline void release() noexcept;
+        void release() noexcept;
 
         // DirectX 12 Device interface.
     public:

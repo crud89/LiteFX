@@ -2610,12 +2610,12 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="enableVsync">The initial setting for vertical synchronization.</param>
         /// <param name="features">The features that should be supported by this device.</param>
         /// <returns>A shared pointer to the current device instance.</returns>
-        inline SharedPtr<VulkanDevice> initialize(Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = { });
+        SharedPtr<VulkanDevice> initialize(Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = { });
 
         /// <summary>
         /// Releases the device state to prepare it for destruction.
         /// </summary>
-        inline void release() noexcept;
+        void release() noexcept;
 
         // Vulkan Device interface.
     private:
