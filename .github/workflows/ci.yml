@@ -244,7 +244,7 @@ jobs:
 
       - name: Update LLVM
         if: ${{ matrix.compiler }} == 'clang'
-        uses: KyleMayes/install-llvm-action@v2
+        uses: KyleMayes/install-llvm-action@v2.0.6
         with:
           version: ${{ env.llvmVersion }}
 
@@ -429,7 +429,7 @@ jobs:
           
       - name: Update LLVM
         if: ${{ matrix.compiler }} == 'clang'
-        uses: KyleMayes/install-llvm-action@v2
+        uses: KyleMayes/install-llvm-action@v2.0.6
         with:
           version: ${{ env.llvmVersion }}
         
