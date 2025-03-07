@@ -39,7 +39,9 @@ public:
 		// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 		auto bufferLayouts = Array<DirectX12DescriptorLayout>{ DirectX12DescriptorLayout{ DescriptorType::ConstantBuffer, 0, 16 }, DirectX12DescriptorLayout{ DescriptorType::Texture, 1, 0 }, DirectX12DescriptorLayout{ DescriptorType::RWTexture, 2, 0 } };
 		auto samplerLayouts = Array<DirectX12DescriptorLayout>{ DirectX12DescriptorLayout{ DescriptorType::Sampler, 0, 0 } };
-		auto descriptorSetLayouts = Array<SharedPtr<DirectX12DescriptorSetLayout>>{ DirectX12DescriptorSetLayout::create(device, bufferLayouts, 0, ShaderStage::Compute), DirectX12DescriptorSetLayout::create(device, samplerLayouts, 1, ShaderStage::Compute) };
+		Array<SharedPtr<DirectX12DescriptorSetLayout>> descriptorSetLayouts;
+		descriptorSetLayouts.push_back(DirectX12DescriptorSetLayout::create(device, bufferLayouts, 0, ShaderStage::Compute));
+		descriptorSetLayouts.push_back(DirectX12DescriptorSetLayout::create(device, samplerLayouts, 1, ShaderStage::Compute));
 		// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
 		// Create a pipeline layout.

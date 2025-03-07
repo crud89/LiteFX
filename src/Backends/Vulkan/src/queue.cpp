@@ -246,7 +246,7 @@ UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> comm
 
 	// Begin event.
 	this->submitting(this, { commandBuffers 
-		| std::views::transform([](auto buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); }) 
+		| std::views::transform([](const SharedPtr<const VulkanCommandBuffer>& buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); })
 		| std::ranges::to<Array<SharedPtr<const ICommandBuffer>>>() });
 
 	// Remove all previously submitted command buffers, that have already finished.
@@ -255,7 +255,7 @@ UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> comm
 	m_impl->releaseCommandBuffers(*this, completedValue);
 
 	// End the command buffer.
-	auto commandBufferInfos = commandBuffers | std::views::transform([](auto buffer) {
+	auto commandBufferInfos = commandBuffers | std::views::transform([](const SharedPtr<const VulkanCommandBuffer>& buffer) {
 		buffer->end();
 
 		return VkCommandBufferSubmitInfo {
@@ -286,7 +286,7 @@ UInt64 VulkanQueue::submit(Enumerable<SharedPtr<const VulkanCommandBuffer>> comm
 	raiseIfFailed(::vkQueueSubmit2(this->handle(), 1, &submitInfo, VK_NULL_HANDLE), "Unable to submit command buffer to queue.");
 
 	// Add the command buffers to the submitted command buffers list.
-	std::ranges::for_each(commandBuffers, [this, &fence](auto buffer) { m_impl->m_submittedCommandBuffers.emplace_back(fence, buffer); });
+	std::ranges::for_each(commandBuffers, [this, &fence](const SharedPtr<const VulkanCommandBuffer>& buffer) { m_impl->m_submittedCommandBuffers.emplace_back(fence, buffer); });
 
 	// Fire end event.
 	this->submitted(this, { fence });

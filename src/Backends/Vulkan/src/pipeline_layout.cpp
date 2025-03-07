@@ -107,7 +107,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, Enumerable<SharedPtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
+VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, const Enumerable<SharedPtr<VulkanDescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
     Resource<VkPipelineLayout>(VK_NULL_HANDLE), m_impl(device)
 {
     this->handle() = m_impl->initialize(*this, descriptorSetLayouts | std::ranges::to<std::vector>(), std::move(pushConstantsLayout));

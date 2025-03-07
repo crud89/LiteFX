@@ -590,7 +590,7 @@ void DirectX12CommandBuffer::execute(const SharedPtr<const DirectX12CommandBuffe
 
 void DirectX12CommandBuffer::execute(Enumerable<SharedPtr<const DirectX12CommandBuffer>> commandBuffers) const
 {
-	std::ranges::for_each(commandBuffers, [this](auto bundle) { this->handle()->ExecuteBundle(bundle->handle().Get()); });
+	std::ranges::for_each(commandBuffers, [this](const SharedPtr<const DirectX12CommandBuffer>& bundle) { this->handle()->ExecuteBundle(bundle->handle().Get()); });
 }
 
 void DirectX12CommandBuffer::releaseSharedState() const

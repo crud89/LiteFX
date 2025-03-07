@@ -916,7 +916,7 @@ namespace LiteFX::Rendering {
         }
         
         inline void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const override {
-            return this->execute(commandBuffers | std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }));
+            return this->execute(commandBuffers | std::views::transform([](const SharedPtr<const ICommandBuffer>& buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }));
         }
 
         void cmdBuildAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
@@ -1129,7 +1129,7 @@ namespace LiteFX::Rendering {
 
         inline UInt64 submitCommandBuffers(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const override {
             return this->submit(Enumerable<SharedPtr<const command_buffer_type>> { 
-                commandBuffers | std::views::transform([](auto buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) 
+                commandBuffers | std::views::transform([](const SharedPtr<const ICommandBuffer>& buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) 
             });
         }
     };
@@ -1371,7 +1371,7 @@ namespace LiteFX::Rendering {
         inline Generator<SharedPtr<IImage>> getTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage) const override {
             return [](Generator<SharedPtr<TImage>> gen) -> Generator<SharedPtr<IImage>> {
                 for (auto texture : gen)
-                    co_yield texture;
+                    co_yield std::move(texture);
             }(this->createTextures(format, size, dimension, layers, levels, samples, usage));
         }
         
@@ -1386,7 +1386,7 @@ namespace LiteFX::Rendering {
         inline Generator<SharedPtr<ISampler>> getSamplers(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {
             return [](Generator<SharedPtr<TSampler>> gen) -> Generator<SharedPtr<ISampler>> {
                 for (auto sampler : gen)
-                    co_yield sampler;
+                    co_yield std::move(sampler);
             }(this->createSamplers(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy));
         }
 

@@ -196,7 +196,7 @@ UInt64 DirectX12Queue::submit(Enumerable<SharedPtr<const DirectX12CommandBuffer>
 
 	// Begin event.
 	this->submitting(this, { commandBuffers 
-		| std::views::transform([](auto buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); }) 
+		| std::views::transform([](const SharedPtr<const DirectX12CommandBuffer>& buffer) { return std::static_pointer_cast<const ICommandBuffer>(buffer); }) 
 		| std::ranges::to<Array<SharedPtr<const ICommandBuffer>>>() });
 
 	// Remove all previously submitted command buffers, that have already finished.
@@ -218,7 +218,7 @@ UInt64 DirectX12Queue::submit(Enumerable<SharedPtr<const DirectX12CommandBuffer>
 	raiseIfFailed(this->handle()->Signal(m_impl->m_fence.Get(), fence), "Unable to add fence signal to command buffer.");
 
 	// Add the command buffers to the submitted command buffers list.
-	std::ranges::for_each(commandBuffers, [this, &fence](auto buffer) { m_impl->m_submittedCommandBuffers.emplace_back(fence, buffer); });
+	std::ranges::for_each(commandBuffers, [this, &fence](const SharedPtr<const DirectX12CommandBuffer>& buffer) { m_impl->m_submittedCommandBuffers.emplace_back(fence, buffer); });
 
 	// Fire end event.
 	this->submitted(this, { fence });

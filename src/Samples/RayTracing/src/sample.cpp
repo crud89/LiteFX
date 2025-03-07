@@ -252,7 +252,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto& swapChain = m_device->swapChain();
     auto backBuffers = m_device->factory().createTexture("Back Buffers", swapChain.surfaceFormat(), swapChain.renderArea(), ImageDimensions::DIM_2, 1u, swapChain.buffers(), MultiSamplingLevel::x1, ResourceUsage::AllowWrite | ResourceUsage::TransferSource);
     auto& outputBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::FrameBuffer));
-    auto outputBindings = outputBindingsLayout.allocate(swapChain.buffers(), [&backBuffers](UInt32 set) -> Generator<DescriptorBinding> {
+    auto outputBindings = outputBindingsLayout.allocate(swapChain.buffers(), [backBuffers](UInt32 set) -> Generator<DescriptorBinding> { // NOLINT(cppcoreguidelines-avoid-capturing-lambda-coroutines)
         co_yield { .resource = *backBuffers, .firstElement = set, .elements = 1 };
     }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 

@@ -353,7 +353,7 @@ public:
                 co_yield makeUnique<VulkanPushConstantsRange>(it->stage, it->offset, it->size, 0, 0);   // No space or binding for Vulkan push constants.
         }(std::move(pushConstantRanges)) | std::ranges::to<Array<UniquePtr<VulkanPushConstantsRange>>>();
 
-        auto pushConstantsLayout = makeUnique<VulkanPushConstantsLayout>(std::move(pushConstants | std::views::as_rvalue), overallSize);
+        auto pushConstantsLayout = makeUnique<VulkanPushConstantsLayout>(pushConstants | std::views::as_rvalue, overallSize);
 
         // Return the pipeline layout.
         return VulkanPipelineLayout::create(*m_device, std::move(descriptorSets), std::move(pushConstantsLayout));
@@ -403,7 +403,7 @@ void VulkanShaderProgramBuilder::build()
 {
     this->instance()->m_impl->m_modules = this->state().modules
         | std::views::as_rvalue
-        | std::views::transform([](auto&& module) -> UniquePtr<const VulkanShaderModule> { return std::move(module); })
+        | std::views::transform([](auto&& module) -> UniquePtr<const VulkanShaderModule> { return std::forward<decltype(module)>(module); })
         | std::ranges::to<std::vector>();
     this->instance()->m_impl->validate();
 }

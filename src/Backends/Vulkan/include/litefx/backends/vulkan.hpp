@@ -1137,7 +1137,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="device">The parent device, the layout is created from.</param>
         /// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
         /// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
-        explicit VulkanPipelineLayout(const VulkanDevice& device, Enumerable<SharedPtr<VulkanDescriptorSetLayout>>&& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout);
+        explicit VulkanPipelineLayout(const VulkanDevice& device, const Enumerable<SharedPtr<VulkanDescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout);
 
         /// <summary>
         /// Initializes a new Vulkan render pipeline layout.
@@ -1170,8 +1170,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
         /// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
         /// <returns>A shared pointer to the newly created pipeline layout instance.</returns>
-        static inline auto create(const VulkanDevice& device, Enumerable<SharedPtr<VulkanDescriptorSetLayout>> descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) {
-            return SharedObject::create<VulkanPipelineLayout>(device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
+        static inline auto create(const VulkanDevice& device, const Enumerable<SharedPtr<VulkanDescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) {
+            return SharedObject::create<VulkanPipelineLayout>(device, descriptorSetLayouts, std::move(pushConstantsLayout));
         }
 
     private:

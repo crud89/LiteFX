@@ -323,7 +323,7 @@ public:
 			auto space = inputAttachmentSamplerBinding.value().Space;
 			auto layouts = m_layout->descriptorSets();
 
-			if (auto samplerSet = std::ranges::find_if(layouts, [&](auto set) { return set->space() == space; }); samplerSet != layouts.end())
+			if (auto samplerSet = std::ranges::find_if(layouts, [&](const SharedPtr<const VulkanDescriptorSetLayout>& set) { return set->space() == space; }); samplerSet != layouts.end())
 			{
 				if (descriptorsPerSet.contains(space)) [[unlikely]]
 					throw RuntimeException("The input attachment sampler is defined in a descriptor set that contains input attachment descriptors. Samplers must be defined within their own space.");

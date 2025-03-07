@@ -507,7 +507,7 @@ public:
                 co_yield makeUnique<DirectX12PushConstantsRange>(range->stage, range->offset, range->size, range->space, range->location);
         }(std::move(pushConstantRanges)) | std::ranges::to<Array<UniquePtr<DirectX12PushConstantsRange>>>();
 
-        auto pushConstantsLayout = makeUnique<DirectX12PushConstantsLayout>(std::move(pushConstants | std::views::as_rvalue), overallSize);
+        auto pushConstantsLayout = makeUnique<DirectX12PushConstantsLayout>(pushConstants | std::views::as_rvalue, overallSize);
 
         // Return the pipeline layout.
         return DirectX12PipelineLayout::create(*m_device, std::move(descriptorSets), std::move(pushConstantsLayout));
@@ -562,7 +562,7 @@ void DirectX12ShaderProgramBuilder::build()
 {
     this->instance()->m_impl->m_modules = this->state().modules 
         | std::views::as_rvalue 
-        | std::views::transform([](auto&& module) -> UniquePtr<const DirectX12ShaderModule> { return std::move(module); }) 
+        | std::views::transform([](auto&& module) -> UniquePtr<const DirectX12ShaderModule> { return std::forward<decltype(module)>(module); })
         | std::ranges::to<std::vector>();
     this->instance()->m_impl->validate();
 }

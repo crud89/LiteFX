@@ -206,30 +206,6 @@ namespace LiteFX {
 	using Generator = std::generator<T, TVal>;
 
 	/// <summary>
-	/// Yields a series of elements of type <typeparamref name="T" /> from a range <paramref name="rng" />.
-	/// </summary>
-	/// <typeparam name="T">The type to of the elements to yield from the range. Must be convertible from the type of the range values.</typeparam>
-	/// <typeparam name="TRng">The type of the range to yield from. Must be an input range.</typeparam>
-	/// <param name="rng">The range to yield from.</param>
-	/// <returns>An intermediate container for the elements yielded from the range.</returns>
-	template <typename T, std::ranges::input_range TRng>
-	inline Generator<T> yield(TRng&& rng) noexcept requires
-		std::convertible_to<std::ranges::range_value_t<TRng>, T>
-	{
-		co_yield std::ranges::elements_of(rng | std::views::as_rvalue);
-	}
-
-	/// <summary>
-	/// Yields a series of elements from a range <paramref name="rng" />.
-	/// </summary>
-	/// <param name="rng">The range to yield from.</param>
-	/// <returns>An intermediate container for the elements yielded from the range.</returns>
-	inline auto yield(std::ranges::input_range auto&& rng) noexcept
-	{
-		return yield<std::ranges::range_value_t<decltype(rng)>>(rng);
-	}
-
-	/// <summary>
 	/// Evaluates if a type <typeparamref name="TCovariant" /> behaves covariant to a value type <typeparamref name="TValue" />. In this context, covariance is expressed as the type
 	/// <typeparamref name="TCovariant" /> can be assigned a value of type <typeparamref name="TValue" /> or can be constructed from a value of <typeparamref name="TValue" />.
 	/// </summary>
@@ -281,6 +257,14 @@ namespace LiteFX {
 
 	private:
 		struct iterator_base {
+		protected:
+			iterator_base() = default;
+			iterator_base(iterator_base&&) noexcept = default;
+			iterator_base(const iterator_base&) = default;
+			iterator_base& operator=(iterator_base&&) noexcept = default;
+			iterator_base& operator=(const iterator_base&) = default;
+
+		public:
 			virtual ~iterator_base() noexcept = default;
 
 			virtual T operator*() const = 0;
@@ -292,12 +276,20 @@ namespace LiteFX {
 
 		template <covariant_forward_iterator<T> TIterator>
 		struct wrapped_iterator final : public iterator_base {
+		private:
 			TIterator _it;
 
+		private:
+			wrapped_iterator() = delete;
+			wrapped_iterator(wrapped_iterator&&) noexcept = default;
+			wrapped_iterator(const wrapped_iterator&) = delete;
+			wrapped_iterator& operator=(wrapped_iterator&&) noexcept = default;
+			wrapped_iterator& operator=(const wrapped_iterator&) = delete;
+
+		public:
 			inline wrapped_iterator(TIterator it) :
 				_it(std::move(it))
-			{
-			}
+			{ }
 
 			inline ~wrapped_iterator() noexcept override = default;
 
@@ -329,7 +321,7 @@ namespace LiteFX {
 
 	private:
 		CovariantIterator(std::unique_ptr<iterator_base>&& iterator, std::type_index iterator_type) :
-			_iterator(std::move(iterator)), _iterator_type(std::move(iterator_type)) 
+			_iterator(std::move(iterator)), _iterator_type(iterator_type) 
 		{ }
 
 	public:
@@ -351,7 +343,7 @@ namespace LiteFX {
 		/// <typeparam name="TIterator">The type of the iterator that returns the value instances.</typeparam>
 		/// <param name="it">The iterator to wrap within the iterator instance.</param>
 		template <typename TIterator>
-		inline CovariantIterator(TIterator it) :
+		inline CovariantIterator(const TIterator& it) :
 			_iterator(std::make_unique<wrapped_iterator<TIterator>>(it)), _iterator_type(typeid(TIterator))
 		{ }
 
@@ -386,6 +378,11 @@ namespace LiteFX {
 		/// <param name="_other">The iterator instance to take over.</param>
 		/// <returns>A reference to the current iterator instance.</returns>
 		inline CovariantIterator& operator=(CovariantIterator&& _other) = default;
+
+		/// <summary>
+		/// Releases the iterator.
+		/// </summary>
+		~CovariantIterator() noexcept = default;
 
 		/// <summary>
 		/// Returns a reference of the value at the current iterator position.
@@ -558,6 +555,14 @@ namespace LiteFX {
 
 	private:
 		struct range_holder_base {
+		protected:
+			range_holder_base() = default;
+			range_holder_base(range_holder_base&&) noexcept = delete;
+			range_holder_base(const range_holder_base&) = delete;
+			range_holder_base& operator=(range_holder_base&&) noexcept = delete;
+			range_holder_base& operator=(const range_holder_base&) = delete;
+
+		public:
 			virtual ~range_holder_base() noexcept = default;
 
 			virtual iterator begin() = 0;
@@ -568,12 +573,20 @@ namespace LiteFX {
 
 		template <std::ranges::viewable_range TRange>
 		struct range_holder final : public range_holder_base {
+		private:
 			TRange _stored_range;
 
+		private:
+			range_holder() = default;
+			range_holder(range_holder&&) noexcept = default;
+			range_holder(const range_holder&) = delete;
+			range_holder& operator=(range_holder&&) noexcept = default;
+			range_holder& operator=(const range_holder&) = delete;
+
+		public:
 			inline range_holder(TRange&& range) :
-				_stored_range(std::forward<TRange>(range))
-			{
-			}
+				_stored_range(std::move(range))
+			{ }
 
 			inline ~range_holder() noexcept override = default;
 
@@ -604,17 +617,24 @@ namespace LiteFX {
 			Enumerable(std::array<T, 0> { })
 		{ }
 
+		inline Enumerable(const Enumerable& range) = default;
+		inline Enumerable(Enumerable&& range) noexcept = default;
+		inline Enumerable& operator=(const Enumerable& range) = default;
+		inline Enumerable& operator=(Enumerable&& range) noexcept = default;
+		~Enumerable() noexcept = default;
+
 		/// <summary>
 		/// Creates a new `Enumerable` instance from an underlying range.
 		/// </summary>
 		/// <typeparam name="TRange">The type of the underlying range.</typeparam>
+		/// <typeparam name="enabled">Disables the constructor, if <typeparamref name="TRange" /> is equal to the current type, in which case the move constructor should be called.</typeparam>
 		/// <param name="range">A reference of the underlying range.</param>
-		template <typename TRange>
+		template <typename TRange, typename enabled = std::enable_if_t<!std::is_same_v<TRange, Enumerable>>>
 		inline Enumerable(TRange&& range) {
 			// NOTE: Concept evaluation may fail here, if we provide some other enumerable, in which case the evaluated type may be not complete yet, which is why have to
 			//       do a static assert here instead of providing the concept in the template.
 			static_assert(std::ranges::viewable_range<TRange>, "The source range does not satisfy std::ranges::viewable_range!");
-			_range = std::make_shared<range_holder<std::ranges::views::all_t<decltype(range)>>>(std::forward<TRange>(range));
+			_range = std::make_shared<range_holder<std::ranges::views::all_t<decltype(range)>>>(std::forward<TRange>(range)); // NOLINT(cppcoreguidelines-prefer-member-initializer)
 		}
 
 		/// <summary>

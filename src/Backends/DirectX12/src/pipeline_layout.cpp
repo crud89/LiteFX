@@ -226,7 +226,7 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, Enumerable<SharedPtr<DirectX12DescriptorSetLayout>> descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
+DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, const Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
     ComResource<ID3D12RootSignature>(nullptr), m_impl(device)
 {
     this->handle() = m_impl->initialize(*this, descriptorSetLayouts | std::ranges::to<std::vector>(), std::move(pushConstantsLayout));

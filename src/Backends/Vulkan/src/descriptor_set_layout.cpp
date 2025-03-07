@@ -327,7 +327,7 @@ private:
 
 public:
     template <typename TDescriptorBindings>
-    inline auto allocate(SharedPtr<const VulkanDescriptorSetLayout> layout, UInt32 descriptors, TDescriptorBindings bindings)
+    inline auto allocate(SharedPtr<const VulkanDescriptorSetLayout> layout, UInt32 descriptors, TDescriptorBindings bindings) // NOLINT(performance-unnecessary-value-param)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -363,22 +363,30 @@ public:
 
     inline Generator<VkDescriptorSet> allocate(SharedPtr<const VulkanDescriptorSetLayout> layout, UInt32 descriptorSets, UInt32 unboundedDescriptorArraySize)
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
+        Array<VkDescriptorSet> handles;
 
-        if (m_usesDescriptorIndexing || m_freeDescriptorSets.empty())
-            co_yield std::ranges::elements_of(layout->m_impl->tryAllocate(*layout, descriptorSets, unboundedDescriptorArraySize) | std::views::as_rvalue);
-        else
         {
-            while (!m_freeDescriptorSets.empty() && descriptorSets --> 0) // Finally a good use for the "-->" operator!!!
-            {
-                auto descriptorSet = m_freeDescriptorSets.front();
-                m_freeDescriptorSets.pop();
-                co_yield descriptorSet;
-            }
+            std::lock_guard<std::mutex> lock(m_mutex);
 
-            // Allocate the rest from a new descriptor pool and return them.
-            co_yield std::ranges::elements_of(layout->m_impl->tryAllocate(*layout, descriptorSets, unboundedDescriptorArraySize) | std::views::as_rvalue);
+            if (m_usesDescriptorIndexing || m_freeDescriptorSets.empty())
+            {
+                handles = layout->m_impl->tryAllocate(*layout, descriptorSets, unboundedDescriptorArraySize);
+            }
+            else
+            {
+                while (!m_freeDescriptorSets.empty() && descriptorSets --> 0) // Finally a good use for the "-->" operator!!!
+                {
+                    auto descriptorSet = m_freeDescriptorSets.front();
+                    m_freeDescriptorSets.pop();
+                    handles.push_back(descriptorSet);
+                }
+
+                // Allocate the rest from a new descriptor pool and return them.
+                handles.append_range(layout->m_impl->tryAllocate(*layout, descriptorSets, unboundedDescriptorArraySize));
+            }
         }
+
+        co_yield std::ranges::elements_of(handles | std::views::as_rvalue);
     }
 };
 

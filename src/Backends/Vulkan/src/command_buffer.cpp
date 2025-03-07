@@ -718,7 +718,7 @@ void VulkanCommandBuffer::execute(const SharedPtr<const VulkanCommandBuffer>& co
 void VulkanCommandBuffer::execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const
 {
 	auto secondaryHandles = commandBuffers 
-		| std::views::transform([](auto commandBuffer) { return commandBuffer->handle(); }) 
+		| std::views::transform([](const SharedPtr<const VulkanCommandBuffer>& commandBuffer) { return commandBuffer->handle(); })
 		| std::ranges::to<Array<VkCommandBuffer>>();
 
 	::vkCmdExecuteCommands(this->handle(), static_cast<UInt32>(secondaryHandles.size()), secondaryHandles.data());
