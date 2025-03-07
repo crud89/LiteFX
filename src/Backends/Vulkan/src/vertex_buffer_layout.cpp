@@ -62,9 +62,9 @@ BufferType VulkanVertexBufferLayout::type() const noexcept
     return BufferType::Vertex;
 }
 
-Enumerable<const BufferAttribute*> VulkanVertexBufferLayout::attributes() const
+const Array<BufferAttribute>& VulkanVertexBufferLayout::attributes() const
 {
-    return m_impl->m_attributes | std::views::transform([](const auto& attribute) { return std::addressof(attribute); });
+    return m_impl->m_attributes;
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

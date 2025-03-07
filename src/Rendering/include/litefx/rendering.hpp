@@ -231,47 +231,95 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const descriptor_layout_type*> descriptors() const = 0;
+        virtual const Array<descriptor_layout_type>& descriptors() const noexcept = 0;
 
         /// <inheritdoc />
         const descriptor_layout_type& descriptor(UInt32 binding) const override = 0;
 
         /// <inheritdoc />
-        virtual UniquePtr<descriptor_set_type> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const = 0;
+        virtual inline UniquePtr<descriptor_set_type> allocate(std::initializer_list<DescriptorBinding> bindings = { }) const {
+            return this->allocate(0, bindings);
+        }
 
         /// <inheritdoc />
-        virtual UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const = 0;
+        virtual inline UniquePtr<descriptor_set_type> allocate(Span<DescriptorBinding> bindings) const {
+            return this->allocate(0, bindings);
+        }
 
         /// <inheritdoc />
-        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const = 0;
+        virtual inline UniquePtr<descriptor_set_type> allocate(Generator<DescriptorBinding> bindings) const {
+            return this->allocate(0, std::move(bindings));
+        }
 
         /// <inheritdoc />
-        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
+        virtual UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const = 0;
+        virtual UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, Span<DescriptorBinding> bindings) const = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<UniquePtr<descriptor_set_type>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
+        virtual UniquePtr<descriptor_set_type> allocate(UInt32 descriptors, Generator<DescriptorBinding> bindings) const = 0;
+
+        /// <inheritdoc />
+        virtual inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
+            return this->allocate(descriptorSets, 0, bindings);
+        }
+
+#ifdef __cpp_lib_mdspan
+        /// <inheritdoc />
+        virtual inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
+            return this->allocate(descriptorSets, 0, bindings);
+        }
+#endif
+
+        /// <inheritdoc />
+        virtual inline Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, std::function<Generator<DescriptorBinding>(UInt32)> bindings) const {
+            return this->allocate(descriptorSets, 0, std::move(bindings));
+        }
+
+        /// <inheritdoc />
+        virtual Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const = 0;
+
+#ifdef __cpp_lib_mdspan
+        /// <inheritdoc />
+        virtual Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const = 0;
+#endif
+
+        /// <inheritdoc />
+        virtual Generator<UniquePtr<descriptor_set_type>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
 
         /// <inheritdoc />
         virtual void free(const descriptor_set_type& descriptorSet) const = 0;
 
     private:
-        inline Enumerable<const IDescriptorLayout*> getDescriptors() const override {
+        inline Enumerable<const IDescriptorLayout&> getDescriptors() const noexcept override {
             return this->descriptors();
         }
 
-        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const override {
+        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const override {
             return this->allocate(descriptors, bindings);
         }
 
-        inline Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const override {
-            return this->allocateMultiple(descriptorSets, descriptors, bindings) | std::views::as_rvalue;
+        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Span<DescriptorBinding> bindings) const override {
+            return this->allocate(descriptors, bindings);
         }
 
-        inline Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const override {
-            return this->allocateMultiple(descriptorSets, descriptors, bindingFactory) | std::views::as_rvalue;
+        inline UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Generator<DescriptorBinding> bindings) const override {
+            return this->allocate(descriptors, std::move(bindings));
+        }
+
+        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings) const override {
+            co_yield std::ranges::elements_of(this->allocate(descriptorSets, descriptors, bindings) | std::views::transform([](auto set) -> UniquePtr<IDescriptorSet> { return set; }));
+        }
+
+#ifdef __cpp_lib_mdspan
+        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const override {
+            co_yield std::ranges::elements_of(this->allocate(descriptorSets, descriptors, bindings) | std::views::transform([](auto set) -> UniquePtr<IDescriptorSet> { return set; }));
+        }
+#endif
+
+        inline Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const override {
+            co_yield std::ranges::elements_of(this->allocate(descriptorSets, descriptors, std::move(bindingFactory)) | std::views::transform([](auto set) -> UniquePtr<IDescriptorSet> { return set; }));
         }
 
         inline void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const override {
@@ -320,11 +368,11 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const push_constants_range_type*> ranges() const = 0;
+        virtual const Array<UniquePtr<push_constants_range_type>>& ranges() const = 0;
 
     private:
-        inline Enumerable<const IPushConstantsRange*> getRanges() const override {
-            return this->ranges();
+        inline Enumerable<const IPushConstantsRange&> getRanges() const override {
+            return this->ranges() | std::views::transform([](auto& ptr) -> const IPushConstantsRange& { return *ptr; });
         }
     };
 
@@ -351,11 +399,11 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const shader_module_type*> modules() const = 0;
+        virtual const Array<UniquePtr<const shader_module_type>>& modules() const noexcept = 0;
 
     private:
-        inline Enumerable<const IShaderModule*> getModules() const override {
-            return this->modules();
+        inline Enumerable<const IShaderModule&> getModules() const override {
+            return this->modules() | std::views::transform([](const auto& m) -> const IShaderModule& { return *m; });
         }
     };
     
@@ -387,13 +435,13 @@ namespace LiteFX::Rendering {
         const descriptor_set_layout_type& descriptorSet(UInt32 space) const override = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<const descriptor_set_layout_type*> descriptorSets() const = 0;
+        virtual const Array<SharedPtr<const descriptor_set_layout_type>>& descriptorSets() const = 0;
 
         /// <inheritdoc />
         const push_constants_layout_type* pushConstants() const noexcept override = 0;
 
     private:
-        inline Enumerable<const IDescriptorSetLayout*> getDescriptorSets() const override {
+        inline Enumerable<SharedPtr<const IDescriptorSetLayout>> getDescriptorSets() const override {
             return this->descriptorSets();
         }
     };
@@ -472,16 +520,16 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const vertex_buffer_layout_type*> vertexBufferLayouts() const = 0;
+        virtual Enumerable<const vertex_buffer_layout_type&> vertexBufferLayouts() const = 0;
 
         /// <inheritdoc />
-        const vertex_buffer_layout_type* vertexBufferLayout(UInt32 binding) const override = 0;
+        const vertex_buffer_layout_type& vertexBufferLayout(UInt32 binding) const override = 0;
 
         /// <inheritdoc />
         const index_buffer_layout_type* indexBufferLayout() const noexcept override = 0;
 
     private:
-        inline Enumerable<const IVertexBufferLayout*> getVertexBufferLayouts() const override {
+        inline Enumerable<const IVertexBufferLayout&> getVertexBufferLayouts() const override {
             return this->vertexBufferLayouts();
         }
     };
@@ -868,7 +916,7 @@ namespace LiteFX::Rendering {
         }
         
         inline void cmdExecute(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const override {
-            return this->execute(commandBuffers | std::views::transform([](auto& buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }));
+            return this->execute(commandBuffers | std::views::transform([](const SharedPtr<const ICommandBuffer>& buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }));
         }
 
         void cmdBuildAccelerationStructure(IBottomLevelAccelerationStructure& blas, const SharedPtr<const IBuffer>& scratchBuffer, const IBuffer& buffer, UInt64 offset) const override {
@@ -1025,11 +1073,11 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const image_type*> images() const = 0;
+        virtual const Array<SharedPtr<const image_type>>& images() const = 0;
 
     private:
-        inline Enumerable<const IImage*> getImages() const override {
-            return this->images();
+        inline Enumerable<const IImage&> getImages() const override {
+            return this->images() | std::views::transform([](auto& image) -> const IImage& { return *image; });
         }
     };
 
@@ -1068,11 +1116,6 @@ namespace LiteFX::Rendering {
         virtual UInt64 submit(const SharedPtr<const command_buffer_type>& commandBuffer) const = 0;
 
         /// <inheritdoc />
-        virtual inline UInt64 submit(Enumerable<SharedPtr<command_buffer_type>> commandBuffers) const { // NOLINT(performance-unnecessary-value-param)
-            return this->submit(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const command_buffer_type>>>());
-        }
-
-        /// <inheritdoc />
         virtual UInt64 submit(Enumerable<SharedPtr<const command_buffer_type>> commandBuffers) const = 0;
 
     private:
@@ -1085,7 +1128,9 @@ namespace LiteFX::Rendering {
         }
 
         inline UInt64 submitCommandBuffers(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const override {
-            return this->submit(commandBuffers | std::views::transform([](auto& buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) | std::ranges::to<Enumerable<SharedPtr<const command_buffer_type>>>());
+            return this->submit(Enumerable<SharedPtr<const command_buffer_type>> { 
+                commandBuffers | std::views::transform([](const SharedPtr<const ICommandBuffer>& buffer) { return std::dynamic_pointer_cast<const command_buffer_type>(buffer); }) 
+            });
         }
     };
 
@@ -1178,11 +1223,11 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<image_interface_type*> images() const = 0;
+        virtual const Array<SharedPtr<image_interface_type>>& images() const noexcept = 0;
 
     private:
-        inline Enumerable<IImage*> getImages() const override {
-            return this->images();
+        inline Enumerable<IImage&> getImages() const override {
+            return this->images() | std::views::transform([](auto& image) -> IImage& { return *image; });
         }
     };
 
@@ -1263,7 +1308,7 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<TImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<SharedPtr<TImage>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const = 0;
+        virtual Generator<SharedPtr<TImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const = 0;
 
         /// <inheritdoc />
         virtual SharedPtr<TSampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const = 0;
@@ -1272,7 +1317,7 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<TSampler> createSampler(const String& name, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const = 0;
 
         /// <inheritdoc />
-        virtual Enumerable<SharedPtr<TSampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const = 0;
+        virtual Generator<SharedPtr<TSampler>> createSamplers(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const = 0;
 
         /// <inheritdoc />
         inline UniquePtr<TBLAS> createBottomLevelAccelerationStructure(AccelerationStructureFlags flags) const {
@@ -1323,8 +1368,11 @@ namespace LiteFX::Rendering {
             return this->createTexture(name, format, size, dimension, levels, layers, samples, usage);
         }
 
-        inline Enumerable<SharedPtr<IImage>> getTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage) const override {
-            return this->createTextures(elements, format, size, dimension, layers, levels, samples, usage) | std::views::as_rvalue;
+        inline Generator<SharedPtr<IImage>> getTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage) const override {
+            return [](Generator<SharedPtr<TImage>> gen) -> Generator<SharedPtr<IImage>> {
+                for (auto texture : gen)
+                    co_yield std::move(texture);
+            }(this->createTextures(format, size, dimension, layers, levels, samples, usage));
         }
         
         inline SharedPtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {
@@ -1335,8 +1383,11 @@ namespace LiteFX::Rendering {
             return this->createSampler(name, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
         
-        inline Enumerable<SharedPtr<ISampler>> getSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {
-            return this->createSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy) | std::views::as_rvalue;
+        inline Generator<SharedPtr<ISampler>> getSamplers(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {
+            return [](Generator<SharedPtr<TSampler>> gen) -> Generator<SharedPtr<ISampler>> {
+                for (auto sampler : gen)
+                    co_yield std::move(sampler);
+            }(this->createSamplers(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy));
         }
 
         inline UniquePtr<IBottomLevelAccelerationStructure> getBlas(StringView name, AccelerationStructureFlags flags) const override {
@@ -1626,10 +1677,10 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual Enumerable<const adapter_type*> listAdapters() const = 0;
+        virtual const Array<SharedPtr<const adapter_type>>& adapters() const = 0;
 
         /// <inheritdoc />
-        const adapter_type* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const override = 0;
+        const adapter_type* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const noexcept override = 0;
 
         /// <inheritdoc />
         virtual void registerDevice(const String& name, SharedPtr<device_type>&& device) = 0;
@@ -1671,8 +1722,8 @@ namespace LiteFX::Rendering {
 
         // IRenderBackend interface
     private:
-        inline Enumerable<const IGraphicsAdapter*> getAdapters() const override {
-            return this->listAdapters();
+        inline Enumerable<SharedPtr<const IGraphicsAdapter>> getAdapters() const override {
+            return this->adapters();
         }
     };
 }

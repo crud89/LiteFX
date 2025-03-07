@@ -54,7 +54,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
 {
     // Find the descriptor.
     auto descriptors = m_impl->m_layout->descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
+    auto match = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
 
     if (match == descriptors.end()) [[unlikely]]
     {
@@ -62,7 +62,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
         return;
     }
     
-    const auto& descriptorLayout = *(*match);
+    auto& descriptorLayout = *match;
 
     VkWriteDescriptorSet descriptorWrite{ };
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -174,7 +174,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
 {
     // Find the descriptor.
     auto descriptors = m_impl->m_layout->descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
+    auto match = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
 
     if (match == descriptors.end()) [[unlikely]]
     {
@@ -182,7 +182,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
         return;
     }
     
-    const auto& layout = *(*match);
+    const auto& layout = *match;
 
     VkDescriptorImageInfo imageInfo{ };
     VkWriteDescriptorSet descriptorWrite{ };
@@ -266,7 +266,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, 
 {
     // Find the descriptor.
     auto descriptors = m_impl->m_layout->descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
+    auto match = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
 
     if (match == descriptors.end()) [[unlikely]]
     {
@@ -274,7 +274,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, 
         return;
     }
     
-    const auto& layout = *(*match);
+    const auto& layout = *match;
 
     if (layout.descriptorType() != DescriptorType::Sampler) [[unlikely]]
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a sampler descriptor.", binding);
@@ -298,7 +298,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStruct
 {
     // Find the descriptor.
     auto descriptors = m_impl->m_layout->descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](const VulkanDescriptorLayout* layout) { return layout->binding() == binding; });
+    auto match = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
 
     if (match == descriptors.end()) [[unlikely]]
     {
@@ -306,7 +306,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStruct
         return;
     }
     
-    const auto& layout = *(*match);
+    const auto& layout = *match;
 
     if (layout.descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor.", binding);

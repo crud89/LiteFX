@@ -330,7 +330,9 @@ public:
 		Array<VkSurfaceFormatKHR> availableFormats(formats);
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, availableFormats.data());
 
-		return availableFormats | std::views::transform([](const VkSurfaceFormatKHR& format) { return Vk::getFormat(format.format); }) | std::ranges::to<Array<Format>>();
+		return availableFormats 
+			| std::views::transform([](const VkSurfaceFormatKHR& format) { return Vk::getFormat(format.format); }) 
+			| std::ranges::to<Array<Format>>();
 	}
 
 	VkColorSpaceKHR findColorSpace(const VkPhysicalDevice adapter, const VkSurfaceKHR surface, Format format) const
@@ -429,7 +431,7 @@ private:
 	bool m_vsync = false;
 	HANDLE m_fenceHandle{};
 
-	Array<SharedPtr<TimingEvent>> m_timingEvents;
+	Array<SharedPtr<const TimingEvent>> m_timingEvents;
 	Array<UInt64> m_timestamps;
 	Array<VkQueryPool> m_timingQueryPools;
 	bool m_supportsTiming = false;
@@ -841,7 +843,7 @@ public:
 		m_currentImage = 0;
 	}
 
-	void resetQueryPools(const Array<SharedPtr<TimingEvent>>& timingEvents)
+	void resetQueryPools(const Array<SharedPtr<const TimingEvent>>& timingEvents)
 	{
 		// No events - no pools.
 		if (timingEvents.empty())
@@ -992,7 +994,7 @@ public:
 	}
 
 public:
-	Enumerable<Format> getSurfaceFormats(const VkPhysicalDevice adapter, const VkSurfaceKHR surface) const
+	Array<Format> getSurfaceFormats(const VkPhysicalDevice adapter, const VkSurfaceKHR surface) const
 	{
 		uint32_t formats{};
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, nullptr);
@@ -1000,7 +1002,9 @@ public:
 		Array<VkSurfaceFormatKHR> availableFormats(formats);
 		::vkGetPhysicalDeviceSurfaceFormatsKHR(adapter, surface, &formats, availableFormats.data());
 
-		return availableFormats | std::views::transform([](const VkSurfaceFormatKHR& format) { return Vk::getFormat(format.format); });
+		return availableFormats 
+			| std::views::transform([](const VkSurfaceFormatKHR& format) { return Vk::getFormat(format.format); })
+			| std::ranges::to<Array<Format>>();
 	}
 
 	VkColorSpaceKHR findColorSpace(const VkPhysicalDevice adapter, const VkSurfaceKHR surface, Format format) const
@@ -1071,12 +1075,12 @@ const VkQueryPool& VulkanSwapChain::timestampQueryPool() const noexcept
 	return m_impl->currentTimestampQueryPool();
 }
 
-Enumerable<SharedPtr<TimingEvent>> VulkanSwapChain::timingEvents() const
+const Array<SharedPtr<const TimingEvent>>& VulkanSwapChain::timingEvents() const
 {
 	return m_impl->m_timingEvents;
 }
 
-SharedPtr<TimingEvent> VulkanSwapChain::timingEvent(UInt32 queryId) const
+SharedPtr<const TimingEvent> VulkanSwapChain::timingEvent(UInt32 queryId) const
 {
 	if (queryId >= m_impl->m_timingEvents.size())
 		throw ArgumentOutOfRangeException("queryId", std::make_pair(0uz, m_impl->m_timingEvents.size()), static_cast<size_t>(queryId), "No timing event has been registered for query ID {0}.", queryId);
@@ -1155,9 +1159,9 @@ const IVulkanImage& VulkanSwapChain::image() const noexcept
 	return *m_impl->m_presentImages[m_impl->m_currentImage];
 }
 
-Enumerable<IVulkanImage*> VulkanSwapChain::images() const
+const Array<SharedPtr<IVulkanImage>>& VulkanSwapChain::images() const noexcept
 {
-	return m_impl->m_presentImages | std::views::transform([](SharedPtr<IVulkanImage>& image) { return image.get(); });
+	return m_impl->m_presentImages;
 }
 
 void VulkanSwapChain::present(UInt64 fence) const 
@@ -1176,7 +1180,7 @@ Enumerable<Format> VulkanSwapChain::getSurfaceFormats() const
 	return m_impl->getSurfaceFormats(device->adapter().handle(), device->surface().handle());
 }
 
-void VulkanSwapChain::addTimingEvent(SharedPtr<TimingEvent> timingEvent)
+void VulkanSwapChain::addTimingEvent(SharedPtr<const TimingEvent> timingEvent)
 {
 	if (timingEvent == nullptr) [[unlikely]]
 		throw ArgumentNotInitializedException("timingEvent", "The timing event must be initialized.");

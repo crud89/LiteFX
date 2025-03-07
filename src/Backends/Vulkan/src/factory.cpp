@@ -384,12 +384,12 @@ SharedPtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 #endif
 }
 
-Enumerable<SharedPtr<IVulkanImage>> VulkanGraphicsFactory::createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
+Generator<SharedPtr<IVulkanImage>> VulkanGraphicsFactory::createTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
 {
-	return [](SharedPtr<const VulkanGraphicsFactory> factory, UInt32 elements, Format format, Size3d size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) -> std::generator<SharedPtr<IVulkanImage>> {
-		for (UInt32 i = 0; i < elements; ++i)
+	return [](SharedPtr<const VulkanGraphicsFactory> factory, Format format, Size3d size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) -> Generator<SharedPtr<IVulkanImage>> {
+		for (;;)
 			co_yield factory->createTexture(format, size, dimension, levels, layers, samples, usage);
-	}(this->shared_from_this(), elements, format, size, dimension, levels, layers, samples, usage) | std::views::as_rvalue;
+	}(this->shared_from_this(), format, size, dimension, levels, layers, samples, usage);
 }
 
 SharedPtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
@@ -423,12 +423,12 @@ SharedPtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(const String& nam
 #endif
 }
 
-Enumerable<SharedPtr<IVulkanSampler>> VulkanGraphicsFactory::createSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
+Generator<SharedPtr<IVulkanSampler>> VulkanGraphicsFactory::createSamplers(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
 {
-	return [](SharedPtr<const VulkanGraphicsFactory> factory, UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) -> std::generator<SharedPtr<IVulkanSampler>> {
-		for (UInt32 i = 0; i < elements; ++i)
+	return [](SharedPtr<const VulkanGraphicsFactory> factory, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) -> Generator<SharedPtr<IVulkanSampler>> {
+		for (;;)
 			co_yield factory->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
-	}(this->shared_from_this(), elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy) | std::views::as_rvalue;
+	}(this->shared_from_this(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
 }
 
 UniquePtr<VulkanBottomLevelAccelerationStructure> VulkanGraphicsFactory::createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const

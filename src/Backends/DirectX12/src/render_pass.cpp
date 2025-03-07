@@ -281,9 +281,14 @@ SharedPtr<const DirectX12CommandBuffer> DirectX12RenderPass::commandBuffer(UInt3
 Enumerable<SharedPtr<const DirectX12CommandBuffer>> DirectX12RenderPass::commandBuffers() const
 {
     if (m_impl->m_secondaryCommandBufferCount == 0u || m_impl->m_activeFrameBuffer == nullptr)
-        return { };
-
-    return m_impl->m_secondaryCommandBuffers.at(m_impl->m_activeFrameBuffer.get());
+    {
+        static const Array<SharedPtr<const DirectX12CommandBuffer>> _empty { };
+        return _empty;
+    }
+    else
+    {
+        return m_impl->m_secondaryCommandBuffers.at(m_impl->m_activeFrameBuffer.get());
+    }
 }
 
 UInt32 DirectX12RenderPass::secondaryCommandBuffers() const noexcept

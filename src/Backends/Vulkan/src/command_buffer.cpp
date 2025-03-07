@@ -691,7 +691,9 @@ void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer& batchBuffer, 
 
 void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept
 {
-	std::ranges::for_each(layout.ranges(), [this, &layout, &memory](const VulkanPushConstantsRange* range) { ::vkCmdPushConstants(this->handle(), layout.pipelineLayout().handle(), static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), range->offset(), range->size(), memory); });
+	std::ranges::for_each(layout.ranges(), [this, &layout, &memory](const auto& range) { 
+		::vkCmdPushConstants(this->handle(), layout.pipelineLayout().handle(), static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), range->offset(), range->size(), memory); 
+	});
 }
 
 void VulkanCommandBuffer::writeTimingEvent(const SharedPtr<const TimingEvent>& timingEvent) const
@@ -715,9 +717,9 @@ void VulkanCommandBuffer::execute(const SharedPtr<const VulkanCommandBuffer>& co
 
 void VulkanCommandBuffer::execute(Enumerable<SharedPtr<const VulkanCommandBuffer>> commandBuffers) const
 {
-	auto secondaryHandles = commandBuffers | 
-		std::views::transform([](auto& commandBuffer) { return commandBuffer->handle(); }) | 
-		std::ranges::to<Array<VkCommandBuffer>>();
+	auto secondaryHandles = commandBuffers 
+		| std::views::transform([](const SharedPtr<const VulkanCommandBuffer>& commandBuffer) { return commandBuffer->handle(); })
+		| std::ranges::to<Array<VkCommandBuffer>>();
 
 	::vkCmdExecuteCommands(this->handle(), static_cast<UInt32>(secondaryHandles.size()), secondaryHandles.data());
 }

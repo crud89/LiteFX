@@ -453,7 +453,7 @@ namespace LiteFX {
 		/// </summary>
 		/// <param name="type">The backend type of the requested backends.</param>
 		/// <returns>All registered instances of <paramref name="type" />.</returns>
-		Enumerable<const IBackend*> getBackends(const BackendType type) const;
+		Enumerable<const IBackend&> getBackends(const BackendType type) const;
 
 	protected:
 		/// <summary>

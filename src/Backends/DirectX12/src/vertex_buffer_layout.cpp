@@ -62,9 +62,9 @@ BufferType DirectX12VertexBufferLayout::type() const noexcept
     return BufferType::Vertex;
 }
 
-Enumerable<const BufferAttribute*> DirectX12VertexBufferLayout::attributes() const
+const Array<BufferAttribute>& DirectX12VertexBufferLayout::attributes() const
 {
-    return m_impl->m_attributes | std::views::transform([](const auto& attribute) { return std::addressof(attribute); });
+    return m_impl->m_attributes;
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

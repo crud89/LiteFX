@@ -37,14 +37,15 @@ public:
 
 		// Allocate descriptor set layouts.
 		// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
-		UniquePtr<DirectX12PushConstantsLayout> pushConstantsLayout = nullptr;
-		auto bufferLayouts = Enumerable<DirectX12DescriptorLayout>(DirectX12DescriptorLayout{ DescriptorType::ConstantBuffer, 0, 16 }, DirectX12DescriptorLayout{ DescriptorType::Texture, 1, 0 }, DirectX12DescriptorLayout{ DescriptorType::RWTexture, 2, 0 });
-		auto samplerLayouts = Enumerable<DirectX12DescriptorLayout>(DirectX12DescriptorLayout{ DescriptorType::Sampler, 0, 0 });
-		auto descriptorSetLayouts = Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>(DirectX12DescriptorSetLayout::create(device, bufferLayouts, 0, ShaderStage::Compute), DirectX12DescriptorSetLayout::create(device, samplerLayouts, 1, ShaderStage::Compute));
+		auto bufferLayouts = Array<DirectX12DescriptorLayout>{ DirectX12DescriptorLayout{ DescriptorType::ConstantBuffer, 0, 16 }, DirectX12DescriptorLayout{ DescriptorType::Texture, 1, 0 }, DirectX12DescriptorLayout{ DescriptorType::RWTexture, 2, 0 } };
+		auto samplerLayouts = Array<DirectX12DescriptorLayout>{ DirectX12DescriptorLayout{ DescriptorType::Sampler, 0, 0 } };
+		Array<SharedPtr<DirectX12DescriptorSetLayout>> descriptorSetLayouts;
+		descriptorSetLayouts.push_back(DirectX12DescriptorSetLayout::create(device, bufferLayouts, 0, ShaderStage::Compute));
+		descriptorSetLayouts.push_back(DirectX12DescriptorSetLayout::create(device, samplerLayouts, 1, ShaderStage::Compute));
 		// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
 		// Create a pipeline layout.
-		auto pipelineLayout = DirectX12PipelineLayout::create(device, std::move(descriptorSetLayouts), std::move(pushConstantsLayout));
+		auto pipelineLayout = DirectX12PipelineLayout::create(device, descriptorSetLayouts, nullptr);
 
 		// Create the pipeline.
 		m_pipeline = makeUnique<DirectX12ComputePipeline>(device, pipelineLayout, shaderProgram, "Blit");
@@ -103,7 +104,7 @@ void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX1
 
 	// Create and bind the parameters.
 	const auto& resourceBindingsLayout = pipeline.layout()->descriptorSet(0);
-	auto resourceBindings = resourceBindingsLayout.allocateMultiple(image.levels() * image.layers());
+	auto resourceBindings = resourceBindingsLayout.allocate(image.levels() * image.layers());
 	const auto& parametersLayout = resourceBindingsLayout.descriptor(0);
 	auto parameters = device->factory().createBuffer(parametersLayout.type(), ResourceHeap::Dynamic, parametersLayout.elementSize(), image.levels());
 	parameters->map(parametersBlock, sizeof(Parameters));

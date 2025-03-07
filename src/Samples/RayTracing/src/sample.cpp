@@ -149,7 +149,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto commandBuffer = m_device->defaultQueue(QueueType::Graphics).createCommandBuffer(true);
 
     // Create the vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
     commandBuffer->transfer(vertices.data(), static_cast<UInt32>(vertices.size() * sizeof(::Vertex)), *vertexBuffer, 0, static_cast<UInt32>(vertices.size()));
 
     // Create the index buffer and transfer the staging buffer into it.
@@ -170,7 +170,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // Add an empty geometry, so that the geometry index of the second one will increase, causing it to get reflective (as the hit group changes). Not the most elegant solution, but works 
     // for demonstration purposes.
     auto reflective = asShared(m_device->factory().createBottomLevelAccelerationStructure(AccelerationStructureFlags::AllowCompaction | AccelerationStructureFlags::MinimizeMemory));
-    auto dummyVertexBuffer = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, 1, ResourceUsage::AccelerationStructureBuildInput);
+    auto dummyVertexBuffer = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, 1, ResourceUsage::AccelerationStructureBuildInput);
     reflective->withTriangleMesh({ std::move(dummyVertexBuffer), SharedPtr<IIndexBuffer>() });
     reflective->withTriangleMesh({ vertexBuffer, indexBuffer, nullptr, GeometryFlags::Opaque });
 
@@ -252,9 +252,9 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto& swapChain = m_device->swapChain();
     auto backBuffers = m_device->factory().createTexture("Back Buffers", swapChain.surfaceFormat(), swapChain.renderArea(), ImageDimensions::DIM_2, 1u, swapChain.buffers(), MultiSamplingLevel::x1, ResourceUsage::AllowWrite | ResourceUsage::TransferSource);
     auto& outputBindingsLayout = geometryPipeline.layout()->descriptorSet(std::to_underlying(DescriptorSets::FrameBuffer));
-    auto outputBindings = outputBindingsLayout.allocateMultiple(swapChain.buffers(), [&backBuffers](UInt32 set) -> Enumerable<DescriptorBinding> {
-        return { DescriptorBinding { .resource = *backBuffers, .firstElement = set, .elements = 1 } };
-    });
+    auto outputBindings = outputBindingsLayout.allocate(swapChain.buffers(), [backBuffers](UInt32 set) -> Generator<DescriptorBinding> { // NOLINT(cppcoreguidelines-avoid-capturing-lambda-coroutines)
+        co_yield { .resource = *backBuffers, .firstElement = set, .elements = 1 };
+    }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 
     // Setup random colors for each material. The last one (for the reflective object) can stay the default.
     for (UInt32 i{ 0 }; i < NUM_INSTANCES - 1; ++i)

@@ -123,7 +123,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 
     // Create the vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
     commandBuffer->transfer(vertices.data(), vertices.size() * sizeof(::Vertex), *vertexBuffer, 0, static_cast<UInt32>(vertices.size()));
 
     // Create the index buffer and transfer the staging buffer into it.
@@ -147,9 +147,9 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // Create a transform buffer array for each worker and bind it to one of the descriptor sets.
     Array<SharedPtr<IBuffer>> transformBuffers(NUM_WORKERS);
     std::ranges::generate(transformBuffers, [&, i = 0]() mutable { return m_device->factory().createBuffer(std::format("Transform {0}", i++), transformBindingLayout, 0, ResourceHeap::Dynamic, 3); });
-    auto transformBindings = transformBindingLayout.allocateMultiple(3 * NUM_WORKERS, [&transformBuffers](UInt32 set) -> Enumerable<DescriptorBinding> { 
-        return { { .binding = 0, .resource = *transformBuffers[set % NUM_WORKERS], .firstElement = set / NUM_WORKERS, .elements = 1 } }; 
-    });
+    auto transformBindings = transformBindingLayout.allocate(3 * NUM_WORKERS, [transformBuffers](UInt32 set) -> Generator<DescriptorBinding> { // NOLINT(cppcoreguidelines-avoid-capturing-lambda-coroutines)
+        co_yield { .binding = 0, .resource = *transformBuffers[set % NUM_WORKERS], .firstElement = set / NUM_WORKERS, .elements = 1 }; 
+    }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
     
     // End and submit the command buffer.
     m_transferFence = commandBuffer->submit();
