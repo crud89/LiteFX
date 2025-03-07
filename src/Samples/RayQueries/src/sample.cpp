@@ -154,7 +154,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto commandBuffer = m_device->defaultQueue(QueueType::Graphics).createCommandBuffer(true);
 
     // Create the vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()), ResourceUsage::TransferDestination | ResourceUsage::AccelerationStructureBuildInput);
     commandBuffer->transfer(vertices.data(), static_cast<UInt32>(vertices.size() * sizeof(::Vertex)), *vertexBuffer, 0, static_cast<UInt32>(vertices.size()));
 
     // Create the index buffer and transfer the staging buffer into it.
@@ -175,7 +175,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // Add an empty geometry, so that the geometry index of the second one will increase, causing it to get reflective (as the hit group changes). Not the most elegant solution, but works 
     // for demonstration purposes.
     auto reflective = asShared(m_device->factory().createBottomLevelAccelerationStructure(AccelerationStructureFlags::AllowCompaction | AccelerationStructureFlags::MinimizeMemory));
-    auto dummyVertexBuffer = m_device->factory().createVertexBuffer(*m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, 1, ResourceUsage::AccelerationStructureBuildInput);
+    auto dummyVertexBuffer = m_device->factory().createVertexBuffer(m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, 1, ResourceUsage::AccelerationStructureBuildInput);
     reflective->withTriangleMesh({ std::move(dummyVertexBuffer), SharedPtr<IIndexBuffer>() });
     reflective->withTriangleMesh({ vertexBuffer, indexBuffer, nullptr, GeometryFlags::Opaque });
 

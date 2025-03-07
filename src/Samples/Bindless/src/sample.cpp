@@ -140,7 +140,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 
     // Create the vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
     commandBuffer->transfer(vertices.data(), vertices.size() * sizeof(::Vertex), *vertexBuffer, 0, static_cast<UInt32>(vertices.size()));
 
     // Create the index buffer and transfer the staging buffer into it.
@@ -160,11 +160,11 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // Next, we create the descriptor sets for the draw-data buffer
     auto& drawDataBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::DrawData);
     auto drawDataBuffer = m_device->factory().createBuffer("Draw Data", drawDataBindingLayout, 0, ResourceHeap::Dynamic, 3);
-    auto drawDataBindings = drawDataBindingLayout.allocateMultiple(3, {
+    auto drawDataBindings = drawDataBindingLayout.allocate(3, {
         { {.binding = 0, .resource = *drawDataBuffer, .firstElement = 0, .elements = 1 } },
         { {.binding = 0, .resource = *drawDataBuffer, .firstElement = 1, .elements = 1 } },
         { {.binding = 0, .resource = *drawDataBuffer, .firstElement = 2, .elements = 1 } },
-    });
+    }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 
     // Next, we create the descriptor set for the instance buffer. The shader is designed to handle an arbitrary number of instances using an unbounded buffer array, so
     // we have to specify how many instances we are actually allocating. We do this only once and then bind this array to all command buffers, since we do not need to 

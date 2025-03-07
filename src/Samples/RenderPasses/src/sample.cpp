@@ -176,7 +176,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 
     // Create the vertex buffer and transfer the staging buffer into it.
-    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
     commandBuffer->transfer(vertices.data(), vertices.size() * sizeof(::Vertex), *vertexBuffer, 0, static_cast<UInt32>(vertices.size()));
 
     // Create the index buffer and transfer the staging buffer into it.
@@ -198,14 +198,14 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
     auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, ResourceHeap::Dynamic, 3);
-    auto transformBindings = transformBindingLayout.allocateMultiple(3, {
+    auto transformBindings = transformBindingLayout.allocate(3, {
         { {.binding = 0, .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
         { {.binding = 0, .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
         { {.binding = 0, .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
-    });
+    }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 
     // Create buffers for lighting pass, i.e. the view plane vertex and index buffers.
-    auto viewPlaneVertexBuffer = m_device->factory().createVertexBuffer("View Plane Vertices", *m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(viewPlaneVertices.size()));
+    auto viewPlaneVertexBuffer = m_device->factory().createVertexBuffer("View Plane Vertices", m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(viewPlaneVertices.size()));
     auto viewPlaneIndexBuffer = m_device->factory().createIndexBuffer("View Plane Indices", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, static_cast<UInt32>(viewPlaneIndices.size()));
     commandBuffer->transfer(viewPlaneVertices.data(), viewPlaneVertices.size() * sizeof(::Vertex), *viewPlaneVertexBuffer, 0, static_cast<UInt32>(viewPlaneVertices.size()));
     commandBuffer->transfer(viewPlaneIndices.data(), viewPlaneIndices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), *viewPlaneIndexBuffer, 0, static_cast<UInt32>(viewPlaneIndices.size()));

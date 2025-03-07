@@ -549,7 +549,7 @@ Next, we create three `Dynamic` buffers and map them to the descriptor set at sp
 ```cxx
 auto& transformBindingLayout = m_pipeline->layout()->descriptorSet(1);
 auto& transformBufferLayout = transformBindingLayout.descriptor(0);
-m_perFrameBindings = transformBindingLayout.allocateMultiple(3);
+m_perFrameBindings = transformBindingLayout.allocate(3);
 m_transformBuffer = m_device->factory().createBuffer(transformBufferLayout.type(), ResourceHeap::Dynamic, transformBufferLayout.elementSize(), 3);
 std::ranges::for_each(m_perFrameBindings, [this, &transformBufferLayout, i = 0](const auto& descriptorSet) mutable { descriptorSet->update(transformBufferLayout.binding(), *m_transformBuffer, i++, 1); });
 ```

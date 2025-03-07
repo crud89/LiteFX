@@ -70,6 +70,7 @@ namespace LiteFX::Graphics {
         void generateMipMaps(TBackend::image_type& image, TBackend::command_buffer_type& commandBuffer) /*override*/;
     };
 
+#ifdef LITEFX_LINK_SHARED
 #ifdef LITEFX_BUILD_VULKAN_BACKEND
 #ifndef LiteFX_Graphics_EXPORTS
     template class LITEFX_GRAPHICS_API Blitter<Backends::VulkanBackend>;
@@ -81,5 +82,6 @@ namespace LiteFX::Graphics {
     template class LITEFX_GRAPHICS_API Blitter<Backends::DirectX12Backend>;
 #endif // !LiteFX_Graphics_EXPORTS
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
+#endif // LITEFX_LINK_SHARED
 
 }

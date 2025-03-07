@@ -34,15 +34,15 @@ public:
 		LITEFX_TRACE(VULKAN_LOG, "Creating compute pipeline (\"{1}\") for layout {0}...", static_cast<void*>(m_layout.get()), parent.name());
 	
 		// Setup shader stages.
-		auto modules = m_program->modules();
+		auto& modules = m_program->modules();
 		LITEFX_TRACE(VULKAN_LOG, "Using shader program {0} with {1} modules...", static_cast<void*>(m_program.get()), modules.size());
 
 		if (modules.size() > 1)
 			throw RuntimeException("Only one shader module must be bound to a compute pipeline.");
 
-		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules |
-			std::views::transform([](const VulkanShaderModule* shaderModule) { return shaderModule->shaderStageDefinition(); }) |
-			std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
+		Array<VkPipelineShaderStageCreateInfo> shaderStages = modules 
+			| std::views::transform([](const auto& shaderModule) { return shaderModule->shaderStageDefinition(); }) 
+			| std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
 
 		// Setup pipeline state.
 		VkComputePipelineCreateInfo pipelineInfo = {};

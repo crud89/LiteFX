@@ -35,24 +35,26 @@ public:
 		D3D12_COMPUTE_PIPELINE_STATE_DESC pipelineStateDescription = {};
 
 		// Setup shader stages.
-		auto modules = m_program->modules();
+		auto& modules = m_program->modules();
 		LITEFX_TRACE(DIRECTX12_LOG, "Using shader program {0} with {1} modules...", static_cast<void*>(m_program.get()), modules.size());
 
-		std::ranges::for_each(modules, [&, i = 0](const DirectX12ShaderModule* shaderModule) mutable {
+		std::ranges::for_each(modules, [&, i = 0](const auto& module) mutable {
+			const auto& shaderModule = *module;
+
 #ifdef NDEBUG
 			(void)i; // Required as [[maybe_unused]] is not supported in captures.
 #else
-			LITEFX_TRACE(DIRECTX12_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", ++i, modules.size(), shaderModule->fileName(), shaderModule->type(), shaderModule->entryPoint());
+			LITEFX_TRACE(DIRECTX12_LOG, "\tModule {0}/{1} (\"{2}\") state: {{ Type: {3}, EntryPoint: {4} }}", ++i, modules.size(), shaderModule.fileName(), shaderModule.type(), shaderModule.entryPoint());
 #endif
 
-			switch (shaderModule->type())
+			switch (shaderModule.type())
 			{
 			case ShaderStage::Compute:
-				pipelineStateDescription.CS.pShaderBytecode = shaderModule->handle()->GetBufferPointer();
-				pipelineStateDescription.CS.BytecodeLength = shaderModule->handle()->GetBufferSize();
+				pipelineStateDescription.CS.pShaderBytecode = shaderModule.handle()->GetBufferPointer();
+				pipelineStateDescription.CS.BytecodeLength = shaderModule.handle()->GetBufferSize();
 				break;
 			default:
-				throw InvalidArgumentException("shaderModule", "Trying to bind shader to unsupported shader stage '{0}'.", shaderModule->type());
+				throw InvalidArgumentException("shaderModule", "Trying to bind shader to unsupported shader stage '{0}'.", shaderModule.type());
 			}
 		});
 
