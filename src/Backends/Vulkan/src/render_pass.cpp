@@ -316,9 +316,14 @@ SharedPtr<const VulkanCommandBuffer> VulkanRenderPass::commandBuffer(UInt32 inde
 Enumerable<SharedPtr<const VulkanCommandBuffer>> VulkanRenderPass::commandBuffers() const
 {
     if (m_impl->m_secondaryCommandBufferCount == 0u || m_impl->m_activeFrameBuffer == nullptr)
-        return { };
-
-    return m_impl->m_secondaryCommandBuffers.at(m_impl->m_activeFrameBuffer.get());
+    {
+        static const Array<SharedPtr<const VulkanCommandBuffer>> _empty { };
+        return _empty;
+    }
+    else
+    {
+        return m_impl->m_secondaryCommandBuffers.at(m_impl->m_activeFrameBuffer.get());
+    }
 }
 
 UInt32 VulkanRenderPass::secondaryCommandBuffers() const noexcept

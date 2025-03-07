@@ -11,9 +11,9 @@ public:
 	friend class VulkanFrameBuffer;
 
 private:
-    Array<SharedPtr<IVulkanImage>> m_images;
+    Array<SharedPtr<const IVulkanImage>> m_images;
     Dictionary<SharedPtr<const IVulkanImage>, VkImageView> m_renderTargetHandles;
-    Dictionary<UInt64, SharedPtr<IVulkanImage>> m_mappedRenderTargets;
+    Dictionary<UInt64, SharedPtr<const IVulkanImage>> m_mappedRenderTargets;
     WeakPtr<const VulkanDevice> m_device;
 	Size2d m_size;
 
@@ -57,7 +57,7 @@ public:
             throw RuntimeException("Cannot allocate frame buffer from a released device instance.");
 
         // Define a factory callback for an image view.
-        auto getImageView = [&](SharedPtr<IVulkanImage>& image) -> std::pair<SharedPtr<const IVulkanImage>, VkImageView> {
+        auto getImageView = [&](auto& image) -> std::pair<SharedPtr<const IVulkanImage>, VkImageView> {
             VkImageViewCreateInfo createInfo = {
                 .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
                 .pNext = nullptr,
@@ -125,7 +125,7 @@ public:
         auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
 
         auto images = m_images |
-            std::views::transform([&](const SharedPtr<IVulkanImage>& image) { 
+            std::views::transform([&](const auto& image) { 
                 auto format = image->format();
                 auto newImage = device->factory().createTexture(image->name(), format, renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage()); 
                 imageReplacements[image.get()] = newImage;
@@ -136,7 +136,7 @@ public:
                     barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::ShaderResource);
 
                 return newImage;
-            }) | std::views::as_rvalue | std::ranges::to<Array<SharedPtr<IVulkanImage>>>();
+            }) | std::views::as_rvalue | std::ranges::to<Array<SharedPtr<const IVulkanImage>>>();
 
         // Transition the image layouts into their expected states.
         commandBuffer->barrier(*barrier);
@@ -179,7 +179,7 @@ VkImageView VulkanFrameBuffer::imageView(StringView imageName) const
 {
     auto nameHash = hash(imageName);
 
-    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](SharedPtr<IVulkanImage>& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end())
+    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](auto& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end())
         return m_impl->m_renderTargetHandles.at(*match);
     else
         throw InvalidArgumentException("imageName", "The frame buffer does not contain an image with the name \"{0}\".", imageName);
@@ -223,7 +223,7 @@ void VulkanFrameBuffer::mapRenderTarget(const RenderTarget& renderTarget, String
 {
     auto nameHash = hash(name);
 
-    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](SharedPtr<IVulkanImage>& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end())
+    if (auto match = std::ranges::find_if(m_impl->m_images, [nameHash](auto& image) { return hash(image->name()) == nameHash; }); match != m_impl->m_images.end())
         this->mapRenderTarget(renderTarget, static_cast<UInt32>(std::ranges::distance(m_impl->m_images.begin(), match)));
     else
         throw InvalidArgumentException("name", "The frame buffer does not contain an image with the name \"{0}\".", name);
@@ -234,9 +234,9 @@ void VulkanFrameBuffer::unmapRenderTarget(const RenderTarget& renderTarget) noex
     m_impl->m_mappedRenderTargets.erase(renderTarget.identifier());
 }
 
-Enumerable<const IVulkanImage*> VulkanFrameBuffer::images() const
+const Array<SharedPtr<const IVulkanImage>>& VulkanFrameBuffer::images() const
 {
-    return m_impl->m_images | std::views::transform([](auto& image) { return image.get(); });
+    return m_impl->m_images;
 }
 
 const IVulkanImage& VulkanFrameBuffer::image(UInt32 index) const

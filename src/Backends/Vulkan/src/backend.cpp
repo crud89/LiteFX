@@ -20,7 +20,7 @@ public:
     friend class VulkanBackend;
 
 private:
-    Array<SharedPtr<VulkanGraphicsAdapter>> m_adapters{ };
+    Array<SharedPtr<const VulkanGraphicsAdapter>> m_adapters{ };
     Dictionary<String, SharedPtr<VulkanDevice>> m_devices;
     Array<String> m_extensions;
     Array<String> m_layers;
@@ -209,7 +209,7 @@ public:
 
         m_adapters = handles | 
             std::views::transform([](const auto& handle) { return VulkanGraphicsAdapter::create(handle); }) |
-            std::ranges::to<Array<SharedPtr<VulkanGraphicsAdapter>>>();
+            std::ranges::to<Array<SharedPtr<const VulkanGraphicsAdapter>>>();
     }
 };
 
@@ -260,12 +260,12 @@ void VulkanBackend::deactivate()
     this->state() = BackendState::Inactive;
 }
 
-Enumerable<const VulkanGraphicsAdapter*> VulkanBackend::listAdapters() const
+const Array<SharedPtr<const VulkanGraphicsAdapter>>& VulkanBackend::adapters() const
 {
-    return m_impl->m_adapters | std::views::transform([](const auto& adapter) { return adapter.get(); });
+    return m_impl->m_adapters;
 }
 
-const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& adapterId) const
+const VulkanGraphicsAdapter* VulkanBackend::findAdapter(const Optional<UInt64>& adapterId) const noexcept
 {
     if (auto match = std::ranges::find_if(m_impl->m_adapters, [&adapterId](const auto& adapter) { return !adapterId.has_value() || adapter->uniqueId() == adapterId; }); match != m_impl->m_adapters.end()) [[likely]]
         return match->get();
@@ -378,7 +378,8 @@ Enumerable<String> VulkanBackend::getAvailableInstanceExtensions()
     Array<VkExtensionProperties> availableExtensions(extensions);
     ::vkEnumerateInstanceExtensionProperties(nullptr, &extensions, availableExtensions.data());
 
-    return availableExtensions | std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); }); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
+    return std::move(availableExtensions)
+        | std::views::transform([](const VkExtensionProperties& extension) { return String(extension.extensionName); }); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 }
 
 bool VulkanBackend::validateInstanceLayers(Span<const String> layers)
@@ -407,5 +408,6 @@ Enumerable<String> VulkanBackend::getInstanceValidationLayers()
     Array<VkLayerProperties> availableLayers(layers);
     ::vkEnumerateInstanceLayerProperties(&layers, availableLayers.data());
 
-    return availableLayers | std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); }); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
+    return std::move(availableLayers)
+        | std::views::transform([](const VkLayerProperties& layer) { return String(layer.layerName); }); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 }

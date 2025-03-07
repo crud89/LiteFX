@@ -94,9 +94,9 @@ const VulkanPushConstantsRange& VulkanPushConstantsLayout::range(ShaderStage sta
     return *m_impl->m_ranges[stage];
 }
 
-Enumerable<const VulkanPushConstantsRange*> VulkanPushConstantsLayout::ranges() const
+const Array<UniquePtr<VulkanPushConstantsRange>>& VulkanPushConstantsLayout::ranges() const
 {
-    return m_impl->m_rangePointers | std::views::transform([](const UniquePtr<VulkanPushConstantsRange>& range) { return range.get(); });
+    return m_impl->m_rangePointers;
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

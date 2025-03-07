@@ -22,7 +22,7 @@ public:
         m_indexBufferLayout = std::move(indexBufferLayout);
         auto layouts = std::move(vertexBufferLayouts);
 
-        for (auto& vertexBufferLayout : layouts)
+        for (auto vertexBufferLayout : layouts)
         {
             if (vertexBufferLayout == nullptr)
                 throw ArgumentNotInitializedException("vertexBufferLayouts", "One of the provided vertex buffer layouts is not initialized.");
@@ -53,15 +53,15 @@ DirectX12InputAssembler::DirectX12InputAssembler() :
 DirectX12InputAssembler::DirectX12InputAssembler(const DirectX12InputAssembler&) = default;
 DirectX12InputAssembler::~DirectX12InputAssembler() noexcept = default;
 
-Enumerable<const DirectX12VertexBufferLayout*> DirectX12InputAssembler::vertexBufferLayouts() const
+Enumerable<const DirectX12VertexBufferLayout&> DirectX12InputAssembler::vertexBufferLayouts() const
 {
-    return m_impl->m_vertexBufferLayouts | std::views::transform([](const auto& pair) { return pair.second.get(); });
+    return m_impl->m_vertexBufferLayouts | std::views::transform([](const auto& pair) -> const DirectX12VertexBufferLayout& { return *pair.second; });
 }
 
-const DirectX12VertexBufferLayout* DirectX12InputAssembler::vertexBufferLayout(UInt32 binding) const
+const DirectX12VertexBufferLayout& DirectX12InputAssembler::vertexBufferLayout(UInt32 binding) const
 {
     [[likely]] if (m_impl->m_vertexBufferLayouts.contains(binding))
-        return m_impl->m_vertexBufferLayouts[binding].get();
+        return *m_impl->m_vertexBufferLayouts[binding];
 
     throw InvalidArgumentException("binding", "No vertex buffer layout is bound to binding point {0}.", binding);
 }

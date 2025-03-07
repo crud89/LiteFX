@@ -3942,7 +3942,7 @@ namespace LiteFX::Rendering {
         /// Returns the vertex buffer attributes.
         /// </summary>
         /// <returns>The vertex buffer attributes.</returns>
-        virtual Enumerable<const BufferAttribute*> attributes() const = 0;
+        virtual const Array<BufferAttribute>& attributes() const = 0;
     };
 
     /// <summary>
@@ -5419,7 +5419,7 @@ namespace LiteFX::Rendering {
         /// Returns the layouts of the descriptors within the descriptor set.
         /// </summary>
         /// <returns>The layouts of the descriptors within the descriptor set.</returns>
-        inline Enumerable<const IDescriptorLayout*> descriptors() const {
+        inline Enumerable<const IDescriptorLayout&> descriptors() const noexcept {
             return this->getDescriptors();
         }
 
@@ -5516,8 +5516,18 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The instance of the descriptor set.</returns>
         /// <seealso cref="IDescriptorLayout" />
-        inline UniquePtr<IDescriptorSet> allocate(const Enumerable<DescriptorBinding>& bindings = { }) const {
-            return this->allocate(0, bindings);
+        inline UniquePtr<IDescriptorSet> allocate(std::initializer_list<DescriptorBinding> bindings = { }) const {
+            return this->getDescriptorSet(0, bindings);
+        }
+
+        /// <inheritdoc cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        inline UniquePtr<IDescriptorSet> allocate(Span<DescriptorBinding> bindings) const {
+            return this->getDescriptorSet(0, bindings);
+        }
+
+        /// <inheritdoc cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        inline UniquePtr<IDescriptorSet> allocate(Generator<DescriptorBinding> bindings) const {
+            return this->getDescriptorSet(0, std::move(bindings));
         }
 
         /// <summary>
@@ -5527,7 +5537,13 @@ namespace LiteFX::Rendering {
         /// <param name="bindings">Optional default bindings for descriptors in the descriptor set.</param>
         /// <returns>The instance of the descriptor set.</returns>
         /// <seealso cref="IDescriptorLayout" />
-        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const {
+        /// <seealso cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const {
+            return this->getDescriptorSet(descriptors, bindings);
+        }
+
+        /// <inheritdoc cref="allocate(UInt32, std::initializer_list{{DescriptorBinding}})" />
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, Span<DescriptorBinding> bindings) const {
             return this->getDescriptorSet(descriptors, bindings);
         }
 
@@ -5535,22 +5551,40 @@ namespace LiteFX::Rendering {
         /// Allocates an array of descriptor sets.
         /// </summary>
         /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
-        /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
-        /// <returns>The array of descriptor set instances.</returns>
-        /// <seealso cref="allocate" />
-        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const {
-            return this->allocateMultiple(descriptorSets, 0, bindings);
+        /// <param name="bindings">A generator that generates the optional default bindings for descriptors in each descriptor set.</param>
+        /// <returns>The instance of the descriptor set.</returns>
+        /// <seealso cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        inline UniquePtr<IDescriptorSet> allocate(UInt32 descriptors, Generator<DescriptorBinding> bindings) const {
+            return this->getDescriptorSet(descriptors, std::move(bindings));
         }
 
         /// <summary>
         /// Allocates an array of descriptor sets.
         /// </summary>
         /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
-        /// <param name="bindingFactory">A factory function that is called for each descriptor set in order to provide the default bindings.</param>
-        /// <returns>The array of descriptor set instances.</returns>
-        /// <seealso cref="allocate" />
-        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const {
-            return this->allocateMultiple(descriptorSets, 0, std::move(bindingFactory));
+        /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
+        /// <returns>A generator that produces the descriptor set instances.</returns>
+        /// <seealso cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
+            return this->getDescriptorSets(descriptorSets, 0, bindings);
+        }
+
+#ifdef __cpp_lib_mdspan
+        /// <inheritdoc cref="allocate(UInt32, std::initializer_list{{std::initializer_list{{DescriptorBinding}}}})" />
+        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
+            return this->getDescriptorSets(descriptorSets, 0, bindings);
+        }
+#endif
+
+        /// <summary>
+        /// Allocates an array of descriptor sets.
+        /// </summary>
+        /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
+        /// <param name="bindingFactory">A factory function that is called for each descriptor in each descriptor set in order to provide the default bindings.</param>
+        /// <returns>A generator that produces the descriptor set instances.</returns>
+        /// <seealso cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const {
+            return this->getDescriptorSets(descriptorSets, 0, std::move(bindingFactory));
         }
 
         /// <summary>
@@ -5559,21 +5593,28 @@ namespace LiteFX::Rendering {
         /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
         /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
         /// <param name="bindings">Optional default bindings for descriptors in each descriptor set.</param>
-        /// <returns>The array of descriptor set instances.</returns>
-        /// <seealso cref="allocate" />
-        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const {
+        /// <returns>A generator that produces the descriptor set instances.</returns>
+        /// <seealso cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings = { }) const {
             return this->getDescriptorSets(descriptorSets, descriptors, bindings);
         }
 
+#ifdef __cpp_lib_mdspan
+        /// <inheritdoc cref="allocate(UInt32, UInt32, std::initializer_list{{std::initializer_list{{DescriptorBinding}}}})" />
+        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const {
+            return this->getDescriptorSets(descriptorSets, descriptors, bindings);
+        }
+#endif
+
         /// <summary>
         /// Allocates an array of descriptor sets.
         /// </summary>
         /// <param name="descriptorSets">The number of descriptor sets to allocate.</param>
         /// <param name="descriptors">The number of descriptors to allocate in an unbounded descriptor array. Ignored, if the descriptor set does not contain an unbounded array.</param>
         /// <param name="bindingFactory">A factory function that is called for each descriptor set in order to provide the default bindings.</param>
-        /// <returns>The array of descriptor set instances.</returns>
-        /// <seealso cref="allocate" />
-        inline Enumerable<UniquePtr<IDescriptorSet>> allocateMultiple(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const {
+        /// <returns>A generator that produces the descriptor set instances.</returns>
+        /// <seealso cref="allocate(std::initializer_list{{DescriptorBinding}})" />
+        inline Generator<UniquePtr<IDescriptorSet>> allocate(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const {
             return this->getDescriptorSets(descriptorSets, descriptors, std::move(bindingFactory));
         }
 
@@ -5586,10 +5627,15 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        virtual Enumerable<const IDescriptorLayout*> getDescriptors() const = 0;
-        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, const Enumerable<DescriptorBinding>& bindings = { }) const = 0;
-        virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, const Enumerable<Enumerable<DescriptorBinding>>& bindings = { }) const = 0;
-        virtual Enumerable<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::function<Enumerable<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
+        virtual Enumerable<const IDescriptorLayout&> getDescriptors() const noexcept = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Span<DescriptorBinding> bindings) const = 0;
+        virtual UniquePtr<IDescriptorSet> getDescriptorSet(UInt32 descriptors, Generator<DescriptorBinding> bindings) const = 0;
+        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::initializer_list<std::initializer_list<DescriptorBinding>> bindings) const = 0;
+#ifdef __cpp_lib_mdspan
+        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::mdspan<DescriptorBinding, std::dextents<size_t, 2>> bindings) const = 0;
+#endif
+        virtual Generator<UniquePtr<IDescriptorSet>> getDescriptorSets(UInt32 descriptorSets, UInt32 descriptors, std::function<Generator<DescriptorBinding>(UInt32)> bindingFactory) const = 0;
         virtual void releaseDescriptorSet(const IDescriptorSet& descriptorSet) const = 0;
     };
 
@@ -5677,12 +5723,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>All push constant ranges.</returns>
         /// <seealso cref="range" />
-        inline Enumerable<const IPushConstantsRange*> ranges() const {
+        inline Enumerable<const IPushConstantsRange&> ranges() const {
             return this->getRanges();
         }
 
     private:
-        virtual Enumerable<const IPushConstantsRange*> getRanges() const = 0;
+        virtual Enumerable<const IPushConstantsRange&> getRanges() const = 0;
     };
 
     /// <summary>
@@ -6258,8 +6304,8 @@ namespace LiteFX::Rendering {
         inline const IShaderModule* operator[](StringView name) const {
             auto modules = this->getModules();
 
-            if (auto match = std::ranges::find_if(modules, [name](auto module) { return module->fileName().compare(name) == 0; }); match != modules.end())
-                return *match;
+            if (auto match = std::ranges::find_if(modules, [name](auto& module) { return module.fileName().compare(name) == 0; }); match != modules.end())
+                return std::addressof(*match);
 
             return nullptr;
         }
@@ -6271,7 +6317,7 @@ namespace LiteFX::Rendering {
         /// <returns>`true`, if the program contains a shader module with the provided name or file name and `false` otherwise.</returns>
         inline bool contains(StringView name) const {
             auto modules = this->getModules();
-            return std::ranges::find_if(modules, [name](auto module) { return module->fileName().compare(name) == 0; }) != modules.end();
+            return std::ranges::find_if(modules, [name](const auto& module) { return module.fileName().compare(name) == 0; }) != modules.end();
         };
 
         /// <summary>
@@ -6281,14 +6327,14 @@ namespace LiteFX::Rendering {
         /// <returns>`true`, if the program contains the provided shader module and `false` otherwise.</returns>
         inline bool contains(const IShaderModule& module) const {
             auto modules = this->getModules();
-            return std::ranges::find_if(modules, [&module](auto m) { return m == &module; }) != modules.end();
+            return std::ranges::find_if(modules, [&module](const auto& m) { return std::addressof(m) == std::addressof(module); }) != modules.end();
         };
 
         /// <summary>
         /// Returns the modules, the shader program is build from.
         /// </summary>
         /// <returns>The modules, the shader program is build from.</returns>
-        inline Enumerable<const IShaderModule*> modules() const {
+        inline Enumerable<const IShaderModule&> modules() const {
             return this->getModules();
         }
 
@@ -6329,7 +6375,7 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        virtual Enumerable<const IShaderModule*> getModules() const = 0;
+        virtual Enumerable<const IShaderModule&> getModules() const = 0;
         virtual SharedPtr<IPipelineLayout> parsePipelineLayout() const = 0;
     };
 
@@ -6365,7 +6411,7 @@ namespace LiteFX::Rendering {
         /// Returns all descriptor set layouts, the pipeline has been initialized with.
         /// </summary>
         /// <returns>All descriptor set layouts, the pipeline has been initialized with.</returns>
-        inline Enumerable<const IDescriptorSetLayout*> descriptorSets() const {
+        inline Enumerable<SharedPtr<const IDescriptorSetLayout>> descriptorSets() const {
             return this->getDescriptorSets();
         }
 
@@ -6376,7 +6422,7 @@ namespace LiteFX::Rendering {
         virtual const IPushConstantsLayout* pushConstants() const noexcept = 0;
 
     private:
-        virtual Enumerable<const IDescriptorSetLayout*> getDescriptorSets() const = 0;
+        virtual Enumerable<SharedPtr<const IDescriptorSetLayout>> getDescriptorSets() const = 0;
     };
 
     /// <summary>
@@ -6398,7 +6444,7 @@ namespace LiteFX::Rendering {
         /// Returns all vertex buffer layouts of the input assembly.
         /// </summary>
         /// <returns>All vertex buffer layouts of the input assembly.</returns>
-        inline Enumerable<const IVertexBufferLayout*> vertexBufferLayouts() const {
+        inline Enumerable<const IVertexBufferLayout&> vertexBufferLayouts() const {
             return this->getVertexBufferLayouts();
         }
 
@@ -6408,7 +6454,7 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The binding point of the vertex buffer layout.</param>
         /// <returns>The vertex buffer layout for binding provided with <paramref name="binding" />.</returns>
         /// <exception cref="ArgumentOutOfRangeException">Thrown, if no vertex buffer layout is bound to <paramref name="binding" />.</exception>
-        virtual const IVertexBufferLayout* vertexBufferLayout(UInt32 binding) const = 0;
+        virtual const IVertexBufferLayout& vertexBufferLayout(UInt32 binding) const = 0;
 
         /// <summary>
         /// Returns a pointer to the index buffer layout, or `nullptr` if the input assembler does not handle indices.
@@ -6423,7 +6469,7 @@ namespace LiteFX::Rendering {
         virtual PrimitiveTopology topology() const noexcept = 0;
 
     private:
-        virtual Enumerable<const IVertexBufferLayout*> getVertexBufferLayouts() const = 0;
+        virtual Enumerable<const IVertexBufferLayout&> getVertexBufferLayouts() const = 0;
     };
 
     /// <summary>
@@ -7803,7 +7849,7 @@ namespace LiteFX::Rendering {
         /// Returns all images contained by the frame buffer.
         /// </summary>
         /// <returns>A set of pointers to the images contained by the frame buffer.</returns>
-        inline Enumerable<const IImage*> images() const {
+        inline Enumerable<const IImage&> images() const {
             return this->getImages();
         }
 
@@ -7975,7 +8021,7 @@ namespace LiteFX::Rendering {
         virtual void resize(const Size2d& renderArea) = 0;
 
     private:
-        virtual Enumerable<const IImage*> getImages() const = 0;
+        virtual Enumerable<const IImage&> getImages() const = 0;
     };
 
     /// <summary>
@@ -8241,7 +8287,7 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <param name="name">The name of the timing event.</param>
         /// <returns>A pointer with shared ownership to the newly created timing event instance.</returns>
-        [[nodiscard]] inline std::shared_ptr<TimingEvent> registerTimingEvent(StringView name = "") {
+        [[nodiscard]] inline SharedPtr<const TimingEvent> registerTimingEvent(StringView name = "") {
             auto timingEvent = TimingEvent::create(*this, name);
             this->addTimingEvent(timingEvent);
             return timingEvent;
@@ -8251,14 +8297,14 @@ namespace LiteFX::Rendering {
         /// Returns all registered timing events.
         /// </summary>
         /// <returns>An array, containing all registered timing events.</returns>
-        virtual Enumerable<SharedPtr<TimingEvent>> timingEvents() const = 0;
+        virtual const Array<SharedPtr<const TimingEvent>>& timingEvents() const = 0;
 
         /// <summary>
         /// Returns the timing event registered for <paramref name="queryId" />.
         /// </summary>
         /// <param name="queryId">The query ID of the timing event.</param>
         /// <returns>The timing event registered for <paramref name="queryId" />.</returns>
-        virtual SharedPtr<TimingEvent> timingEvent(UInt32 queryId) const = 0;
+        virtual SharedPtr<const TimingEvent> timingEvent(UInt32 queryId) const = 0;
 
         /// <summary>
         /// Reads the current time stamp value (in ticks) of a timing event.
@@ -8329,7 +8375,7 @@ namespace LiteFX::Rendering {
         /// Returns an array of the swap chain present images.
         /// </summary>
         /// <returns>Returns an array of the swap chain present images.</returns>
-        inline Enumerable<IImage*> images() const {
+        inline Enumerable<IImage&> images() const {
             return this->getImages();
         };
 
@@ -8390,8 +8436,8 @@ namespace LiteFX::Rendering {
         [[nodiscard]] virtual UInt32 swapBackBuffer() const = 0;
 
     private:
-        virtual Enumerable<IImage*> getImages() const = 0;
-        virtual void addTimingEvent(SharedPtr<TimingEvent> timingEvent) = 0;
+        virtual Enumerable<IImage&> getImages() const = 0;
+        virtual void addTimingEvent(SharedPtr<const TimingEvent> timingEvent) = 0;
     };
 
     /// <summary>
@@ -8407,11 +8453,9 @@ namespace LiteFX::Rendering {
             Array<SharedPtr<const ICommandBuffer>> m_commandBuffers;
 
         public:
-            QueueSubmittingEventArgs(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) :
-                EventArgs() 
-            {
-                m_commandBuffers = commandBuffers | std::ranges::to<Array<SharedPtr<const ICommandBuffer>>>();
-            }
+            QueueSubmittingEventArgs(Array<SharedPtr<const ICommandBuffer>>&& commandBuffers) :
+                EventArgs(), m_commandBuffers(std::move(commandBuffers)) { }
+
             QueueSubmittingEventArgs(const QueueSubmittingEventArgs&) = default;
             QueueSubmittingEventArgs(QueueSubmittingEventArgs&&) noexcept = default;
             QueueSubmittingEventArgs& operator=(const QueueSubmittingEventArgs&) = default;
@@ -8587,22 +8631,6 @@ namespace LiteFX::Rendering {
         /// <seealso cref="waitFor" />
         inline UInt64 submit(Enumerable<SharedPtr<const ICommandBuffer>> commandBuffers) const {
             return this->submitCommandBuffers(std::move(commandBuffers));
-        }
-
-        /// <summary>
-        /// Submits a set of command buffers with shared ownership and inserts a fence to wait for them.
-        /// </summary>
-        /// <remarks>
-        /// By calling this method, the queue takes shared ownership over the <paramref name="commandBuffers" /> until the fence is passed. The reference will be released
-        /// during a <see cref="waitFor" />, if the awaited fence is inserted after the associated one.
-        /// 
-        /// Note that submitting a command buffer that is currently recording will implicitly close the command buffer.
-        /// </remarks>
-        /// <param name="commandBuffers">The command buffers to submit to the command queue.</param>
-        /// <returns>The value of the fence, inserted after the command buffers.</returns>
-        /// <seealso cref="waitFor" />
-        inline UInt64 submit(Enumerable<SharedPtr<ICommandBuffer>> commandBuffers) const { // NOLINT(performance-unnecessary-value-param)
-            return this->submitCommandBuffers(commandBuffers | std::ranges::to<Enumerable<SharedPtr<const ICommandBuffer>>>());
         }
 
         /// <summary>
@@ -8878,7 +8906,7 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Creates a texture, based on the <paramref name="layout" />.
+        /// Creates a texture.
         /// </summary>
         /// <remarks>
         /// A texture in LiteFX is always backed by GPU-only visible memory and thus can only be transferred to/from. Thus you typically have to create a buffer using 
@@ -8898,7 +8926,7 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Creates a texture, based on the <paramref name="layout" />.
+        /// Creates a texture.
         /// </summary>
         /// <remarks>
         /// A texture in LiteFX is always backed by GPU-only visible memory and thus can only be transferred to/from. Thus you typically have to create a buffer using 
@@ -8919,24 +8947,22 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Creates an array of textures, based on the <paramref name="layout" />.
+        /// Creates a series of textures.
         /// </summary>
-        /// <param name="layout">The layout of the textures.</param>
-        /// <param name="elements">The number of textures to create.</param>
         /// <param name="format">The format of the texture images.</param>
         /// <param name="size">The dimensions of the textures.</param>
         /// <param name="layers">The number of layers (slices) in this texture.</param>
         /// <param name="levels">The number of mip map levels of the textures.</param>
         /// <param name="samples">The number of samples, the textures should be sampled with.</param>
         /// <param name="usage">The intended usage for the buffer.</param>
-        /// <returns>An array of texture instances.</returns>
+        /// <returns>A generator for texture instances.</returns>
         /// <seealso cref="createTexture" />
-        inline Enumerable<SharedPtr<IImage>> createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getTextures(elements, format, size, dimension, layers, levels, samples, usage);
+        inline Generator<SharedPtr<IImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const {
+            return this->getTextures(format, size, dimension, layers, levels, samples, usage);
         }
 
         /// <summary>
-        /// Creates a texture sampler, based on the <paramref name="layout" />.
+        /// Creates a texture sampler.
         /// </summary>
         /// <param name="magFilter">The filter operation used for magnifying.</param>
         /// <param name="minFilter">The filter operation used for minifying.</param>
@@ -8955,7 +8981,7 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Creates a texture sampler, based on the <paramref name="layout" />.
+        /// Creates a texture sampler.
         /// </summary>
         /// <param name="name">The name of the sampler.</param>
         /// <param name="magFilter">The filter operation used for magnifying.</param>
@@ -8975,9 +9001,8 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
-        /// Creates an array of texture samplers, based on the <paramref name="layout" />.
+        /// Creates a series of texture samplers.
         /// </summary>
-        /// <param name="elements">The number of samplers to create.</param>
         /// <param name="magFilter">The filter operation used for magnifying.</param>
         /// <param name="minFilter">The filter operation used for minifying.</param>
         /// <param name="borderU">The border mode along the U-axis.</param>
@@ -8988,10 +9013,10 @@ namespace LiteFX::Rendering {
         /// <param name="maxLod">The maximum level of detail value.</param>
         /// <param name="minLod">The minimum level of detail value.</param>
         /// <param name="anisotropy">The level of anisotropic filtering.</param>
-        /// <returns>An array of sampler instances.</returns>
+        /// <returns>A generator for sampler instances.</returns>
         /// <seealso cref="createSampler" />
-        inline Enumerable<SharedPtr<ISampler>> createSamplers(UInt32 elements, FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const {
-            return this->getSamplers(elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
+        inline Generator<SharedPtr<ISampler>> createSamplers(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const {
+            return this->getSamplers(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
         }
 
         /// <summary>
@@ -9057,10 +9082,10 @@ namespace LiteFX::Rendering {
         virtual SharedPtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
         virtual SharedPtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
         virtual SharedPtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
-        virtual Enumerable<SharedPtr<IImage>> getTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
+        virtual Generator<SharedPtr<IImage>> getTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
         virtual SharedPtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
         virtual SharedPtr<ISampler> getSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
-        virtual Enumerable<SharedPtr<ISampler>> getSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
+        virtual Generator<SharedPtr<ISampler>> getSamplers(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
         virtual UniquePtr<IBottomLevelAccelerationStructure> getBlas(StringView name, AccelerationStructureFlags flags) const = 0;
         virtual UniquePtr<ITopLevelAccelerationStructure> getTlas(StringView name, AccelerationStructureFlags flags) const = 0;
     };
@@ -9311,7 +9336,7 @@ namespace LiteFX::Rendering {
         /// Lists all available graphics adapters.
         /// </summary>
         /// <returns>An array of pointers to all available graphics adapters.</returns>
-        inline Enumerable<const IGraphicsAdapter*> listAdapters() const {
+        inline Enumerable<SharedPtr<const IGraphicsAdapter>> listAdapters() const {
             return this->getAdapters();
         }
 
@@ -9326,7 +9351,7 @@ namespace LiteFX::Rendering {
         /// <param name="adapterId">The unique ID of the adapter, or <c>std::nullopt</c> to find the default adapter.</param>
         /// <returns>A pointer to a graphics adapter, or <c>nullptr</c>, if no adapter could be found.</returns>
         /// <seealso cref="IGraphicsAdapter" />
-        virtual const IGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const = 0;
+        virtual const IGraphicsAdapter* findAdapter(const Optional<UInt64>& adapterId = std::nullopt) const noexcept = 0;
 
         /// <summary>
         /// Looks up a device and returns a pointer to it, or <c>nullptr</c>, if no device with the provided <paramref name="name" /> could be found.
@@ -9361,7 +9386,7 @@ namespace LiteFX::Rendering {
         };
 
     private:
-        virtual Enumerable<const IGraphicsAdapter*> getAdapters() const = 0;
+        virtual Enumerable<SharedPtr<const IGraphicsAdapter>> getAdapters() const = 0;
     };
 
     /// <summary>

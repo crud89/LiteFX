@@ -274,12 +274,12 @@ SharedPtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String&
 	return DirectX12Image::allocate(name, *device.get(), m_impl->m_allocator, {width, height, depth}, format, dimension, levels, layers, samples, usage, resourceDesc, allocationDesc);
 }
 
-Enumerable<SharedPtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(UInt32 elements, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
+Generator<SharedPtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
 {
-	return [](SharedPtr<const DirectX12GraphicsFactory> factory, UInt32 elements, Format format, Size3d size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) -> std::generator<SharedPtr<IDirectX12Image>> {
-		for (UInt32 i = 0; i < elements; ++i)
+	return [](SharedPtr<const DirectX12GraphicsFactory> factory, Format format, Size3d size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) -> Generator<SharedPtr<IDirectX12Image>> {
+		for (;;)
 			co_yield factory->createTexture(format, size, dimension, levels, layers, samples, usage);
-	}(this->shared_from_this(), elements, format, size, dimension, levels, layers, samples, usage) | std::views::as_rvalue;
+	}(this->shared_from_this(), format, size, dimension, levels, layers, samples, usage);
 }
 
 SharedPtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
@@ -292,12 +292,12 @@ SharedPtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(const Strin
 	return DirectX12Sampler::allocate(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, minLod, maxLod, anisotropy, name);
 }
 
-Enumerable<SharedPtr<IDirectX12Sampler>> DirectX12GraphicsFactory::createSamplers(UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
+Generator<SharedPtr<IDirectX12Sampler>> DirectX12GraphicsFactory::createSamplers(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
 {
-	return [](SharedPtr<const DirectX12GraphicsFactory> factory, UInt32 elements, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) -> std::generator<SharedPtr<IDirectX12Sampler>> {
-		for (UInt32 i = 0; i < elements; ++i)
+	return [](SharedPtr<const DirectX12GraphicsFactory> factory, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) -> Generator<SharedPtr<IDirectX12Sampler>> {
+		for (;;)
 			co_yield factory->createSampler(magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
-	}(this->shared_from_this(), elements, magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy) | std::views::as_rvalue;
+	}(this->shared_from_this(), magFilter, minFilter, borderU, borderV, borderW, mipMapMode, mipMapBias, maxLod, minLod, anisotropy);
 }
 
 UniquePtr<DirectX12BottomLevelAccelerationStructure> DirectX12GraphicsFactory::createBottomLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const

@@ -157,11 +157,11 @@ void App::registerStopCallback(std::type_index type, const std::function<void()>
 	m_impl->m_stopCallbacks.insert(std::make_pair(type, callback));
 }
 
-Enumerable<const IBackend*> App::getBackends(const BackendType type) const
+Enumerable<const IBackend&> App::getBackends(const BackendType type) const
 {
 	return m_impl->m_backends |
-		std::views::transform([](const auto& backend) { return backend.second.get(); }) |
-		std::views::filter([type](const auto backend) { return backend->type() == type; });
+		std::views::transform([](const auto& backend) -> const IBackend& { return *backend.second.get(); }) |
+		std::views::filter([type](const auto& backend) { return backend.type() == type; });
 }
 
 void App::use(UniquePtr<IBackend>&& backend)
@@ -192,7 +192,7 @@ void App::run()
 		auto backends = this->getBackends(type);
 
 		if (!backends.empty())
-			this->startBackend(backends.front()->typeId());
+			this->startBackend(this->getBackends(type).begin()->typeId());
 	}
 
 	// Fire startup event.

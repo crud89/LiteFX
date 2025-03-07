@@ -106,11 +106,11 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
     auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, ResourceHeap::Dynamic, 3);
-    auto transformBindings = transformBindingLayout.allocateMultiple(3, {
+    auto transformBindings = transformBindingLayout.allocate(3, {
         { { .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
         { { .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
         { { .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
-    });
+    }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
     
     // End and submit the command buffer.
     m_transferFence = commandBuffer->submit();
