@@ -8,7 +8,14 @@ HWND _window{ nullptr };
 
 SharedPtr<Viewport> _viewport;
 SharedPtr<Scissor> _scissor;
-DirectX12Device* _device;
+SharedPtr<DirectX12Device> _device;
+
+struct Vertex {
+    Vector3f Position;
+    Vector4f Color;
+    Vector3f Normal;
+    Vector2f TextureCoordinate0;
+};
 
 void TestApp::onInit()
 {
@@ -23,7 +30,7 @@ void TestApp::onInit()
         auto surface = backend->createSurface(_window);
 
         // Create the device.
-        _device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, false);
+        _device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, false).shared_from_this();
 
         // Create input assembler state.
         SharedPtr<DirectX12InputAssembler> inputAssembler = _device->buildInputAssembler()
@@ -42,7 +49,7 @@ void TestApp::onInit()
             .lineWidth(1.f);
 
         // Create a geometry render pass.
-        UniquePtr<DirectX12RenderPass> renderPass = _device->buildRenderPass("Opaque")
+        SharedPtr<DirectX12RenderPass> renderPass = _device->buildRenderPass("Opaque")
             .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
             .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
@@ -96,10 +103,10 @@ void TestApp::onInit()
             if (descriptors.size() != 1)
                 LITEFX_TEST_FAIL("descriptors.size() != 1");
 
-            if (descriptors[0]->binding() != 0)
+            if (descriptors[0].binding() != 0)
                 LITEFX_TEST_FAIL("descriptors[0]->binding() != 0");
 
-            if (descriptors[0]->descriptorType() != DescriptorType::ConstantBuffer)
+            if (descriptors[0].descriptorType() != DescriptorType::ConstantBuffer)
                 LITEFX_TEST_FAIL("descriptors[0]->descriptorType() != DescriptorType::ConstantBuffer");
         }
 
@@ -112,10 +119,10 @@ void TestApp::onInit()
             if (descriptors.size() != 1)
                 LITEFX_TEST_FAIL("descriptors.size() != 1");
 
-            if (descriptors[0]->binding() != 0)
+            if (descriptors[0].binding() != 0)
                 LITEFX_TEST_FAIL("descriptors[0]->binding() != 0");
 
-            if (descriptors[0]->descriptorType() != DescriptorType::ConstantBuffer)
+            if (descriptors[0].descriptorType() != DescriptorType::ConstantBuffer)
                 LITEFX_TEST_FAIL("descriptors[0]->descriptorType() != DescriptorType::ConstantBuffer");
         }
 
@@ -139,7 +146,7 @@ void TestApp::onShutdown()
 {
 }
 
-void TestApp::onResize(const void* sender, ResizeEventArgs e)
+void TestApp::onResize(const void* /*sender*/, ResizeEventArgs /*e*/)
 {
 }
 
@@ -160,7 +167,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-int main(int argc, char* argv[])
+int main(int /*argc*/, char* argv[])
 {
     // Set the current path.
     auto binaryDir = std::filesystem::path(argv[0]);

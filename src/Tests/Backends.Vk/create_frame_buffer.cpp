@@ -7,7 +7,7 @@ HWND _window { nullptr };
 
 SharedPtr<Viewport> _viewport;
 SharedPtr<Scissor> _scissor;
-VulkanDevice* _device;
+SharedPtr<VulkanDevice> _device;
 
 void TestApp::onInit()
 {
@@ -22,7 +22,7 @@ void TestApp::onInit()
         auto surface = backend->createSurface(_window);
 
         // Create the device.
-        _device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, false);
+        _device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, false).shared_from_this();
 
         // Create a frame buffer and add targets to it.
         auto frameBuffer = _device->makeFrameBuffer("Frame Buffer", _viewport->getRectangle().extent());
@@ -41,7 +41,7 @@ void TestApp::onInit()
             frameBuffer->image(2);
             LITEFX_TEST_FAIL("frameBuffer->image(2) was not expected to succeed.");
         }
-        catch (const LiteFX::ArgumentOutOfRangeException& ex)
+        catch (const LiteFX::ArgumentOutOfRangeException& /*ex*/)
         {
         }
 
@@ -70,6 +70,7 @@ void TestApp::onInit()
     };
 
     auto stopCallback = [](VulkanBackend* backend) {
+        _device.reset();
         backend->releaseDevice("Default");
     };
 
@@ -86,7 +87,7 @@ void TestApp::onShutdown()
 {
 }
 
-void TestApp::onResize(const void* sender, ResizeEventArgs e)
+void TestApp::onResize(const void* /*sender*/, ResizeEventArgs /*e*/)
 {
 }
 
@@ -107,7 +108,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-int main(int argc, char* argv[])
+int main(int /*argc*/, char* /*argv*/[])
 {
     // Register a window class.
     HINSTANCE instance = ::GetModuleHandle(nullptr);

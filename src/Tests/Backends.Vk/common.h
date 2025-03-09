@@ -22,8 +22,8 @@ constexpr char TEST_LOG[] = "Tests";
 
 class TestApp : public LiteFX::App {
 public:
-	static String Name() noexcept { return "LiteFX Vulkan Backend Test App"; }
-	String name() const noexcept override { return Name(); }
+	static StringView Name() noexcept { return "LiteFX Vulkan Backend Test App"; }
+	StringView name() const noexcept override { return Name(); }
 
 	static AppVersion Version() noexcept { return AppVersion(1, 0, 0, 0); }
 	AppVersion version() const noexcept override { return Version(); }

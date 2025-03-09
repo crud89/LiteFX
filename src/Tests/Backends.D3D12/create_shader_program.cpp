@@ -8,7 +8,7 @@ HWND _window{ nullptr };
 
 SharedPtr<Viewport> _viewport;
 SharedPtr<Scissor> _scissor;
-DirectX12Device* _device;
+SharedPtr<DirectX12Device> _device;
 
 void TestApp::onInit()
 {
@@ -23,7 +23,7 @@ void TestApp::onInit()
         auto surface = backend->createSurface(_window);
 
         // Create the device.
-        _device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, false);
+        _device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, false).shared_from_this();
 
         // Create the shader program.
         SharedPtr<DirectX12ShaderProgram> shaderProgram = _device->buildShaderProgram()
@@ -31,10 +31,10 @@ void TestApp::onInit()
             .withFragmentShaderModule("shaders/test_fs.dxi");
 
         // Validate shader program.
-        if (shaderProgram->modules().size() != 2)
-            LITEFX_TEST_FAIL("shaderProgram->modules().size() != 2");
+        auto& modules = shaderProgram->modules();
 
-        auto modules = shaderProgram->modules() | std::ranges::to<std::vector>();
+        if (modules.size() != 2)
+            LITEFX_TEST_FAIL("modules.size() != 2");
 
         if (modules[0]->type() != ShaderStage::Vertex)
             LITEFX_TEST_FAIL("modules[0]->type() != ShaderStage::Vertex");
@@ -46,6 +46,7 @@ void TestApp::onInit()
     };
 
     auto stopCallback = [](DirectX12Backend* backend) {
+        _device.reset();
         backend->releaseDevice("Default");
     };
 
@@ -62,7 +63,7 @@ void TestApp::onShutdown()
 {
 }
 
-void TestApp::onResize(const void* sender, ResizeEventArgs e)
+void TestApp::onResize(const void* /*sender*/, ResizeEventArgs /*e*/)
 {
 }
 
@@ -83,7 +84,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-int main(int argc, char* argv[])
+int main(int /*argc*/, char* argv[])
 {
     // Set the current path.
     auto binaryDir = std::filesystem::path(argv[0]);

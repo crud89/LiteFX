@@ -7,7 +7,7 @@ HWND _window { nullptr };
 
 SharedPtr<Viewport> _viewport;
 SharedPtr<Scissor> _scissor;
-VulkanDevice* _device;
+SharedPtr<VulkanDevice> _device;
 
 void TestApp::onInit()
 {
@@ -22,7 +22,7 @@ void TestApp::onInit()
         auto surface = backend->createSurface(_window);
 
         // Create the device.
-        _device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, false);
+        _device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, false).shared_from_this();
 
         // Create a rasterizer.
         // TODO: Include depth/stencil state and bias.
@@ -49,6 +49,7 @@ void TestApp::onInit()
     };
 
     auto stopCallback = [](VulkanBackend* backend) {
+        _device.reset();
         backend->releaseDevice("Default");
     };
 
@@ -65,7 +66,7 @@ void TestApp::onShutdown()
 {
 }
 
-void TestApp::onResize(const void* sender, ResizeEventArgs e)
+void TestApp::onResize(const void* /*sender*/, ResizeEventArgs /*e*/)
 {
 }
 
@@ -86,7 +87,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-int main(int argc, char* argv[])
+int main(int /*argc*/, char* /*argv*/[])
 {
     // Register a window class.
     HINSTANCE instance = ::GetModuleHandle(nullptr);

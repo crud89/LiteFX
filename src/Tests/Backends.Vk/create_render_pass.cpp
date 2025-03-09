@@ -7,7 +7,7 @@ HWND _window { nullptr };
 
 SharedPtr<Viewport> _viewport;
 SharedPtr<Scissor> _scissor;
-VulkanDevice* _device;
+SharedPtr<VulkanDevice> _device;
 
 void TestApp::onInit()
 {
@@ -22,16 +22,16 @@ void TestApp::onInit()
         auto surface = backend->createSurface(_window);
 
         // Create the device.
-        _device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, false);
+        _device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, false).shared_from_this();
 
         // Create a render pass.
-        UniquePtr<VulkanRenderPass> renderPass = _device->buildRenderPass("Opaque", 5)
+        SharedPtr<VulkanRenderPass> renderPass = _device->buildRenderPass("Opaque", 5)
             .executeOn(_device->defaultQueue(QueueType::Graphics))
             .renderTarget("Color Target", 1, RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
             .renderTarget("Depth/Stencil Target", 3, RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
 
         // Validate render pass.
-        if (renderPass->commandBuffers().size() != 0) // No command buffers if not active.
+        if (std::ranges::distance(renderPass->commandBuffers()) != 0) // No command buffers if not active.
             LITEFX_TEST_FAIL("renderPass->commandBuffers().size() != 0");
 
         if (renderPass->secondaryCommandBuffers() != 5)
@@ -42,10 +42,10 @@ void TestApp::onInit()
             auto commandBuffer = renderPass->commandBuffer(5);
             LITEFX_TEST_FAIL("renderPass->commandBuffer(5) was not expected to succeed.");
         }
-        catch (const LiteFX::RuntimeException& ex) // No active frame buffer
+        catch (const LiteFX::RuntimeException& /*ex*/) // No active frame buffer
         {
         }
-        catch (const LiteFX::InvalidArgumentException& ex)
+        catch (const LiteFX::InvalidArgumentException& /*ex*/)
         {
             LITEFX_TEST_FAIL("renderPass->commandBuffer(5): Expected LiteFX::RuntimeException but caught LiteFX::InvalidArgumentException.");
         }
@@ -53,7 +53,7 @@ void TestApp::onInit()
         if (&renderPass->commandQueue() != &_device->defaultQueue(QueueType::Graphics))
             LITEFX_TEST_FAIL("&renderPass->commandQueue() != &_device->defaultQueue(QueueType::Graphics)");
 
-        if (&renderPass->device() != _device)
+        if (std::addressof(renderPass->device()) != _device.get())
             LITEFX_TEST_FAIL("&renderPass->device() != _device");
 
         if (renderPass->hasPresentTarget())
@@ -68,7 +68,7 @@ void TestApp::onInit()
             renderPass->renderTarget(2);
             LITEFX_TEST_FAIL("renderPass->renderTarget(2) was not expected to succeed.");
         }
-        catch (const LiteFX::InvalidArgumentException& ex)
+        catch (const LiteFX::InvalidArgumentException& /*ex*/)
         {
         }
 
@@ -100,7 +100,7 @@ void TestApp::onInit()
             LITEFX_TEST_FAIL("colorTarget.flags() != RenderTargetFlags::Clear");
 
         // Create another render pass.
-        UniquePtr<VulkanRenderPass> deferredPass = _device->buildRenderPass("Deferred", 1)
+        SharedPtr<VulkanRenderPass> deferredPass = _device->buildRenderPass("Deferred", 1)
             .inputAttachmentSamplerBinding(DescriptorBindingPoint { .Register = 42, .Space = 5 })
             .inputAttachment(DescriptorBindingPoint { .Register = 1, .Space = 4 }, colorTarget)
             .inputAttachment(DescriptorBindingPoint { .Register = 2, .Space = 4 }, *renderPass, 3)
@@ -108,7 +108,7 @@ void TestApp::onInit()
             .renderTarget("Output", 2, RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f });
 
         // Validate render pass.
-        if (deferredPass->commandBuffers().size() != 0) // No command buffers if not active.
+        if (std::ranges::distance(deferredPass->commandBuffers()) != 0) // No command buffers if not active.
             LITEFX_TEST_FAIL("deferredPass->commandBuffers().size() != 0");
 
         if (deferredPass->secondaryCommandBuffers() != 1)
@@ -117,7 +117,7 @@ void TestApp::onInit()
         if (&deferredPass->commandQueue() != &_device->defaultQueue(QueueType::Graphics))
             LITEFX_TEST_FAIL("&deferredPass->commandQueue() != &_device->defaultQueue(QueueType::Graphics)");
 
-        if (&deferredPass->device() != _device)
+        if (std::addressof(deferredPass->device()) != _device.get())
             LITEFX_TEST_FAIL("&deferredPass->device() != _device");
 
         if (!deferredPass->hasPresentTarget())
@@ -150,7 +150,7 @@ void TestApp::onInit()
             renderPass->inputAttachment(3);
             LITEFX_TEST_FAIL("renderPass->inputAttachment(3) was not expected to succeed.");
         }
-        catch (const LiteFX::ArgumentOutOfRangeException& ex)
+        catch (const LiteFX::ArgumentOutOfRangeException& /*ex*/)
         {
         }
 
@@ -173,6 +173,7 @@ void TestApp::onInit()
     };
 
     auto stopCallback = [](VulkanBackend* backend) {
+        _device.reset();
         backend->releaseDevice("Default");
     };
 
@@ -189,7 +190,7 @@ void TestApp::onShutdown()
 {
 }
 
-void TestApp::onResize(const void* sender, ResizeEventArgs e)
+void TestApp::onResize(const void* /*sender*/, ResizeEventArgs /*e*/)
 {
 }
 
@@ -210,7 +211,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-int main(int argc, char* argv[])
+int main(int /*argc*/, char* /*argv*/[])
 {
     // Register a window class.
     HINSTANCE instance = ::GetModuleHandle(nullptr);

@@ -7,7 +7,6 @@ HWND _window { nullptr };
 
 SharedPtr<Viewport> _viewport;
 SharedPtr<Scissor> _scissor;
-VulkanDevice* _device;
 
 void TestApp::onInit()
 {
@@ -18,9 +17,9 @@ void TestApp::onInit()
         _scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(FRAMEBUFFER_WIDTH), static_cast<Float>(FRAMEBUFFER_HEIGHT)));
 
         // As we've enabled WARP, it's the only one available.
-        auto adapters = backend->listAdapters() | 
-            std::views::filter([](auto adapter) { return adapter->type() == GraphicsAdapterType::CPU; }) | 
-            std::ranges::to<std::vector<const LiteFX::Rendering::Backends::VulkanGraphicsAdapter*>>();
+        auto adapters = backend->adapters() 
+            | std::views::filter([](auto adapter) { return adapter->type() == GraphicsAdapterType::CPU; }) 
+            | std::ranges::to<std::vector>();
 
         if (adapters.empty())
             throw RuntimeException("Cannot find software rasterizer driver.");
@@ -28,7 +27,7 @@ void TestApp::onInit()
         auto surface = backend->createSurface(_window);
 
         // Create the device.
-        _device = backend->createDevice("Default", *adapters.front(), std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, false);
+        [[maybe_unused]] auto& device = backend->createDevice("Default", *adapters.front(), std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, false);
 
         return true;
     };
@@ -50,7 +49,7 @@ void TestApp::onShutdown()
 {
 }
 
-void TestApp::onResize(const void* sender, ResizeEventArgs e)
+void TestApp::onResize(const void* /*sender*/, ResizeEventArgs /*e*/)
 {
 }
 
@@ -71,7 +70,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
     return 0;
 }
 
-int main(int argc, char* argv[])
+int main(int /*argc*/, char* /*argv*/[])
 {
     // Register a window class.
     HINSTANCE instance = ::GetModuleHandle(nullptr);
