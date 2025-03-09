@@ -25,7 +25,7 @@ public:
 };
 
 termination_sink::termination_sink(int status, const spdlog::level::level_enum& minLevel) :
-    m_status(status), m_minLevel(minLevel)
+    m_minLevel(minLevel), m_status(status)
 {
 }
 
