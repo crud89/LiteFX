@@ -1794,7 +1794,7 @@ namespace LiteFX::Rendering {
         /// <param name="queue">The command queue, the render pass will execute on.</param>
         template <typename TSelf>
         constexpr auto executeOn(this TSelf&& self, const command_queue_type& queue) -> TSelf&& {
-            self.m_state.commandQueue = &queue;
+            self.m_state.commandQueue = queue.shared_from_this();
             return std::forward<TSelf>(self);
         }
 

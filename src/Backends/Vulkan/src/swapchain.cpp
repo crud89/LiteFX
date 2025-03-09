@@ -31,7 +31,7 @@ private:
 	VkFence m_waitForImage{};
 	Array<VkSemaphore> m_waitForWorkload;
 
-	Array<SharedPtr<TimingEvent>> m_timingEvents;
+	Array<SharedPtr<const TimingEvent>> m_timingEvents;
 	Array<UInt64> m_timestamps;
 	Array<VkQueryPool> m_timingQueryPools;
 	VkQueryPool m_currentQueryPool{};
@@ -181,7 +181,7 @@ public:
 			this->resetQueryPools(m_timingEvents);
 	}
 
-	void resetQueryPools(const Array<SharedPtr<TimingEvent>>& timingEvents)
+	void resetQueryPools(const Array<SharedPtr<const TimingEvent>>& timingEvents)
 	{
 		// No events - no pools.
 		if (timingEvents.empty())
@@ -208,7 +208,7 @@ public:
 
 			VkQueryPool pool{};
 			raiseIfFailed(::vkCreateQueryPool(device->handle(), &poolInfo, nullptr, &pool), "Unable to allocate timestamp query pool.");
-			::vkResetQueryPool(device->handle(), pool, 0, timingEvents.size());
+			::vkResetQueryPool(device->handle(), pool, 0, static_cast<UInt32>(timingEvents.size()));
 
 			return pool;
 		});
@@ -263,13 +263,13 @@ public:
 		if (m_supportsTiming && !m_timingEvents.empty()) [[likely]]
 		{
 			m_currentQueryPool = m_timingQueryPools[m_currentImage];
-			auto result = ::vkGetQueryPoolResults(device->handle(), m_currentQueryPool, 0, m_timestamps.size(), m_timestamps.size() * sizeof(UInt64), m_timestamps.data(), sizeof(UInt64), VK_QUERY_RESULT_64_BIT);
+			auto result = ::vkGetQueryPoolResults(device->handle(), m_currentQueryPool, 0, static_cast<UInt32>(m_timestamps.size()), m_timestamps.size() * sizeof(UInt64), m_timestamps.data(), sizeof(UInt64), VK_QUERY_RESULT_64_BIT);
 		
 			if (result != VK_NOT_READY)	// Initial frames do not yet contain query results.
 				raiseIfFailed(result, "Unable to query timing events.");
 
 			// Reset the query pool.
-			::vkResetQueryPool(device->handle(), m_currentQueryPool, 0, m_timestamps.size());
+			::vkResetQueryPool(device->handle(), m_currentQueryPool, 0, static_cast<UInt32>(m_timestamps.size()));
 		}
 
 		return m_currentImage;
