@@ -45,17 +45,6 @@ jobs:
       VCPKG_FEATURE_FLAGS: 'manifests'
       
     steps:
-      - name: Checking out sources
-        uses: actions/checkout@master
-        with:
-          submodules: true
-
-      - name: Setup build environment
-        id: setup-environment
-        run: |
-          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
-          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
-
       - name: Setup Vulkan SDK 
         uses: jakoch/install-vulkan-sdk-action@v1.0.4
         with:
@@ -63,6 +52,12 @@ jobs:
           install_runtime: true
           cache: true
           stripdown: false
+       
+      - name: Setup build environment
+        id: setup-environment
+        run: |
+          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
+          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
           
       - name: Update LLVM
         if: ${{ matrix.compiler == 'clang' }}
@@ -70,6 +65,11 @@ jobs:
         with:
           version: ${{ env.llvmVersion }}
 
+      - name: Checking out sources
+        uses: actions/checkout@master
+        with:
+          submodules: true
+          
       - name: Retrieve latest CMake build
         uses: lukka/get-cmake@latest
 
