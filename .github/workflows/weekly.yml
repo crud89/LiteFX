@@ -14,6 +14,7 @@ on:
     
 env:
   vulkanSdkVersion: '1.3.268.0'
+  llvmVersion: '19.1.7'
 
 jobs:
   job:
