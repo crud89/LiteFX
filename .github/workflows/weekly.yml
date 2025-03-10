@@ -22,20 +22,28 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        profile: [ windows-x64, windows-x86 ]
+        profile: [ windows-x64-msvc, windows-x86-msvc, windows-x64-clang ]
         include:
-          - profile: windows-x64
+          - profile: windows-x64-msvc
+            compiler: msvc
             triplet: x64-windows
             configuration: windows-msvc-x64-release
             architecture: x64
-          - profile: windows-x86
+          - profile: windows-x86-msvc
+            compiler: msvc
             triplet: x86-windows
             configuration: windows-msvc-x86-release
             architecture: x86
+          - profile: windows-x64-clang
+            compiler: clang
+            triplet: x64-windows
+            configuration: windows-clang-x64-release
+            architecture: x64
             
     env:
       VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}-rel
-
+      VCPKG_FEATURE_FLAGS: 'manifests'
+      
     steps:
       - name: Checking out sources
         uses: actions/checkout@master
@@ -45,22 +53,31 @@ jobs:
       - name: Setup build environment
         id: setup-environment
         run: |
-          echo "VCPKG_FEATURE_FLAGS=manifests" >> $env:GITHUB_ENV
+          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
+          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
 
       - name: Setup Vulkan SDK 
-        uses: humbletim/install-vulkan-sdk@v1.1.1
+        uses: jakoch/install-vulkan-sdk-action@v1.0.4
         with:
-          version: ${{ env.vulkanSdkVersion }}
+          vulkan_version: ${{ env.vulkanSdkVersion }}
+          install_runtime: true
           cache: true
+          stripdown: false
+          
+      - name: Update LLVM
+        if: ${{ matrix.compiler == 'clang' }}
+        uses: KyleMayes/install-llvm-action@v2.0.6
+        with:
+          version: ${{ env.llvmVersion }}
 
       - name: Retrieve latest CMake build
         uses: lukka/get-cmake@latest
 
       - name: Restore or build vcpkg
-        uses: lukka/run-vcpkg@v10
+        uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
-          vcpkgJsonGlob: '**/vcpkg.json'
+          vcpkgJsonGlob: '**/src/vcpkg.json'
 
       - name: Build with CMake and Ninja
         id: build-with-cmake
