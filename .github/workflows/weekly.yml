@@ -92,7 +92,7 @@ jobs:
         if: ${{ github.event.inputs.uploadBuildArtifacts == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: LiteFX-${{ matrix.triplet }}-build
+          name: LiteFX-${{ matrix.profile }}-build
           path: '${{ github.workspace }}/out/build/${{ matrix.configuration }}'
           
       - name: Install with CMake
@@ -103,5 +103,5 @@ jobs:
       - name: Upload install artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: LiteFX-${{ matrix.triplet }}-install
+          name: LiteFX-${{ matrix.profile }}-install
           path: '${{ github.workspace }}/out/install/${{ matrix.configuration }}'
