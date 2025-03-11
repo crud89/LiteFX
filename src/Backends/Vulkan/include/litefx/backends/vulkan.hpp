@@ -1608,7 +1608,7 @@ namespace LiteFX::Rendering::Backends {
         void drawIndexedIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept override;
 
         /// <inheritdoc />
-        void pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept override;
+        void pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const override;
 
         /// <inheritdoc />
         void writeTimingEvent(const SharedPtr<const TimingEvent>& timingEvent) const override;

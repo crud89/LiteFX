@@ -564,7 +564,7 @@ void DirectX12CommandBuffer::drawIndexedIndirect(const IDirectX12Buffer& batchBu
 	this->handle()->ExecuteIndirect(m_impl->m_drawIndexedSignature.Get(), std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectIndexedBatch))), batchBuffer.handle().Get(), offset, countBuffer.handle().Get(), countOffset);
 }
 
-void DirectX12CommandBuffer::pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept
+void DirectX12CommandBuffer::pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const
 {
 	if (!m_impl->m_lastPipeline) [[unlikely]]
 		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the push constants range.");
@@ -575,7 +575,7 @@ void DirectX12CommandBuffer::pushConstants(const DirectX12PushConstantsLayout& l
 		auto rootParameter = m_impl->m_lastPipeline->layout()->rootParameterIndex(*range);
 
 		if (!rootParameter.has_value()) [[likely]]
-			LITEFX_WARNING(DIRECTX12_LOG, "Unable to set push constant range at register {} and space {}, as the parent pipeline was not defined with a push constant there.", range->binding(), range->space());
+			throw RuntimeException("Unable to set push constant range at register {} and space {}, as the parent pipeline was not defined with a push constant there.", range->binding(), range->space());
 		else
 		{
 			if (isGraphicsSet)

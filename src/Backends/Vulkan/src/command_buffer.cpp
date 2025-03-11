@@ -689,10 +689,13 @@ void VulkanCommandBuffer::drawIndexedIndirect(const IVulkanBuffer& batchBuffer, 
 	::vkCmdDrawIndexedIndirectCount(this->handle(), batchBuffer.handle(), offset, countBuffer.handle(), countOffset, std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectIndexedBatch))), sizeof(IndirectIndexedBatch));
 }
 
-void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept
+void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const
 {
+	if (!m_impl->m_lastPipeline) [[unlikely]]
+		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the push constants range.");
+
 	std::ranges::for_each(layout.ranges(), [this, &layout, &memory](const auto& range) { 
-		::vkCmdPushConstants(this->handle(), layout.pipelineLayout().handle(), static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), range->offset(), range->size(), memory); 
+		::vkCmdPushConstants(this->handle(), std::as_const(*m_impl->m_lastPipeline->layout()).handle(), static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), range->offset(), range->size(), memory);
 	});
 }
 
