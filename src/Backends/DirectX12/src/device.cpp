@@ -382,6 +382,15 @@ void DirectX12Device::bindDescriptorSet(const DirectX12CommandBuffer& commandBuf
 	if (descriptorSet.samplerHeap() != nullptr)
 		samplers = descriptorSet.samplerHeap()->GetDesc().NumDescriptors;
 
+	// Get the root parameter index.
+	auto rootParameterIndex = pipeline.layout()->rootParameterIndex(descriptorSet.layout());
+
+	if (!rootParameterIndex.has_value())
+	{
+		LITEFX_WARNING(DIRECTX12_LOG, "Unable to bind descriptor set at space {}, as the parent pipeline was not defined with a descriptor set.", descriptorSet.layout().space());
+		return;
+	}
+
 	// Deduct, whether to set the graphics or compute descriptor tables.
 	// TODO: Maybe we could store a simple boolean on the pipeline state to make this easier.
 	const bool isGraphicsSet = dynamic_cast<const DirectX12RenderPipeline*>(&pipeline) != nullptr;
@@ -392,9 +401,9 @@ void DirectX12Device::bindDescriptorSet(const DirectX12CommandBuffer& commandBuf
 		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalBufferHeap->GetGPUDescriptorHandleForHeapStart(), static_cast<INT>(descriptorSet.bufferOffset()), m_impl->m_bufferDescriptorIncrement);
 
 		if (isGraphicsSet)
-			commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.layout().rootParameterIndex(), targetGpuHandle);
+			commandBuffer.handle()->SetGraphicsRootDescriptorTable(rootParameterIndex.value(), targetGpuHandle);
 		else
-			commandBuffer.handle()->SetComputeRootDescriptorTable(descriptorSet.layout().rootParameterIndex(), targetGpuHandle);
+			commandBuffer.handle()->SetComputeRootDescriptorTable(rootParameterIndex.value(), targetGpuHandle);
 	}
 
 	if (samplers > 0)
@@ -403,9 +412,9 @@ void DirectX12Device::bindDescriptorSet(const DirectX12CommandBuffer& commandBuf
 		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalSamplerHeap->GetGPUDescriptorHandleForHeapStart(), static_cast<INT>(descriptorSet.samplerOffset()), m_impl->m_samplerDescriptorIncrement);
 
 		if (isGraphicsSet)
-			commandBuffer.handle()->SetGraphicsRootDescriptorTable(descriptorSet.layout().rootParameterIndex(), targetGpuHandle);
+			commandBuffer.handle()->SetGraphicsRootDescriptorTable(rootParameterIndex.value(), targetGpuHandle);
 		else
-			commandBuffer.handle()->SetComputeRootDescriptorTable(descriptorSet.layout().rootParameterIndex(), targetGpuHandle);
+			commandBuffer.handle()->SetComputeRootDescriptorTable(rootParameterIndex.value(), targetGpuHandle);
 	}
 }
 

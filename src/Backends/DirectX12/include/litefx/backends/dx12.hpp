@@ -941,12 +941,6 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <summary>
-        /// Returns the index of the descriptor set root parameter.
-        /// </summary>
-        /// <returns>The index of the descriptor set root parameter.</returns>
-        virtual UInt32 rootParameterIndex() const noexcept;
-
-        /// <summary>
         /// Returns the index of the first descriptor for a certain binding. The offset is relative to the heap for the descriptor (i.e. sampler for sampler descriptors and
         /// CBV/SRV/UAV for other descriptors).
         /// </summary>
@@ -962,12 +956,6 @@ namespace LiteFX::Rendering::Backends {
         virtual SharedPtr<const DirectX12Device> device() const noexcept;
 
     protected:
-        /// <summary>
-        /// Returns a reference of the index of the descriptor set root parameter.
-        /// </summary>
-        /// <returns>A reference of the index of the descriptor set root parameter.</returns>
-        virtual UInt32& rootParameterIndex() noexcept;
-
         /// <summary>
         /// Returns <c>true</c>, if the descriptor set contains an (unbounded) runtime array.
         /// </summary>
@@ -1085,20 +1073,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         ShaderStage stage() const noexcept override;
-
-    public:
-        /// <summary>
-        /// Returns the index of the root parameter, the range is bound to.
-        /// </summary>
-        /// <returns>The index of the root parameter, the range is bound to.</returns>
-        virtual UInt32 rootParameterIndex() const noexcept;
-
-    protected:
-        /// <summary>
-        /// Returns a reference of the index of the root parameter, the range is bound to.
-        /// </summary>
-        /// <returns>A reference of the index of the root parameter, the range is bound to.</returns>
-        virtual UInt32& rootParameterIndex() noexcept;
     };
 
     /// <summary>
@@ -1241,6 +1215,32 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         const DirectX12PushConstantsLayout* pushConstants() const noexcept override;
+
+    public:
+        /// <summary>
+        /// Returns the root parameter index for a descriptor set.
+        /// </summary>
+        /// <remarks>
+        /// Note that root parameter mapping is done by matching the descriptor set space. For example, providing any descriptor set layout for register space `1` will return the same
+        /// root parameter index, even if a different descriptor set layout was provided for space `1` during pipeline layout construction. This allows for descriptor sets and layouts
+        /// to be shared over multiple pipeline layouts, even if they are unrelated, as long as they are compatible. Compatibility must be ensured by the application.
+        /// 
+        /// Only if no descriptor set layout was provided for register space `1` in the example above, this method will return `std::nullopt`.
+        /// </remarks>
+        /// <param name="layout">The layout of the descriptor set.</param>
+        /// <returns>The root parameter index for the descriptor set layout, or `std::nullopt`, if the descriptor set is not part of the pipeline layout.</returns>
+        Optional<UInt32> rootParameterIndex(const DirectX12DescriptorSetLayout& layout) const noexcept;
+
+        /// <summary>
+        /// Returns the root parameter index for a push constants range
+        /// </summary>
+        /// <remarks>
+        /// Note that root parameter mapping is done by matching the range space and register. The restrictions and implications are similar to what's described for 
+        /// <see cref="rootParameterIndex(const DirectX12DescriptorSetLayout&) />. Compatibility must be ensured by the application.
+        /// </remarks>
+        /// <param name="range">The push constants range.</param>
+        /// <returns>The root parameter index for the push constants range, or `std::nullopt`, if the push constants range is not part of the pipeline layout.</returns>
+        Optional<UInt32> rootParameterIndex(const DirectX12PushConstantsRange& range) const noexcept;
     };
 
     /// <summary>
