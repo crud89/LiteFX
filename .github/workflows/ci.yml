@@ -7,6 +7,7 @@ name: Pull Request Checks
 #
 # - `tests`: runs tests
 # - `tidy`: runs static code analysis
+# - `builds`: builds all targets.
 # - `checks`: runs everything of the above.
 #
 # Commands are restricted to be issued by maintainers or previous contributors.
@@ -82,9 +83,10 @@ jobs:
         with:
           default: "none"
           conditionals-with-values: |
-            ${{ contains(steps.retrieve-command.outputs.command, 'checks') }} => test, tidy
+            ${{ contains(steps.retrieve-command.outputs.command, 'checks') }} => test, tidy, build
             ${{ contains(steps.retrieve-command.outputs.command, 'tests') }} => test
             ${{ contains(steps.retrieve-command.outputs.command, 'tidy') }} => tidy
+            ${{ contains(steps.retrieve-command.outputs.command, 'builds') }} => builds
             
       - name: Confirm run
         uses: peter-evans/create-or-update-comment@v4
@@ -93,11 +95,11 @@ jobs:
           comment-id: ${{ github.event.comment.id }}
           reactions: 'rocket'
 
-  # ------------------------------------- Toolchain setup -------------------------------------
+  # ------------------------------------- Toolchain setup      -------------------------------------
   setup:
     name: run-setup
     needs: verify
-    if: ${{ contains(needs.verify.outputs.commands, 'test') || contains(needs.verify.outputs.commands, 'tidy') }}
+    if: ${{ contains(needs.verify.outputs.commands, 'test') || contains(needs.verify.outputs.commands, 'tidy') || contains(needs.verify.outputs.commands, 'builds') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -152,7 +154,7 @@ jobs:
           path: ${{ github.workspace }}/dep/mesa/
           key: ${{ matrix.os }}-mesa3d-${{ env.mesaDriverVersion }}
           
-  # ------------------------------------- Test job -------------------------------------
+  # ------------------------------------- Test job             -------------------------------------
   test:
     name: run-tests
     needs: [ verify, setup ]
@@ -167,15 +169,11 @@ jobs:
           - name: windows-latest-msvc
             os: windows-latest
             compiler: msvc
-            triplet: x64-windows
             configuration: windows-msvc-x64-test
-            architecture: x64
           - name: windows-latest-clang
             os: windows-latest
             compiler: clang
-            triplet: x64-windows
             configuration: windows-clang-x64-test
-            architecture: x64
 
     steps:
       - name: Retrieve PR info
@@ -217,7 +215,7 @@ jobs:
         id: create-checks
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          name: run-tests (${{ matrix.name }})
+          name: run-tests (${{ matrix.os }})
           sha: ${{ env.HEAD_SHA }}
           status: in_progress
     
@@ -243,7 +241,7 @@ jobs:
           echo "C:\Program Files\OpenCppCoverage" >> $GITHUB_PATH
 
       - name: Update LLVM
-        if: ${{ matrix.compiler }} == 'clang'
+        if: ${{ matrix.compiler == 'clang' }}
         uses: KyleMayes/install-llvm-action@v2.0.6
         with:
           version: ${{ env.llvmVersion }}
@@ -279,7 +277,7 @@ jobs:
         uses: lukka/run-vcpkg@v10
         with:
           vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
-          vcpkgJsonGlob: '${{ github.workspace }}/src/vcpkg.json'
+          vcpkgJsonGlob: '**/src/vcpkg.json'
 
       - name: Build Runtime and Tests
         uses: lukka/run-cmake@v10
@@ -365,9 +363,7 @@ jobs:
           - name: windows-latest-clang
             os: windows-latest
             compiler: clang
-            triplet: x64-windows
             configuration: windows-clangcl-x64-release
-            architecture: x64
 
     steps:
       - name: Retrieve PR info
@@ -428,7 +424,7 @@ jobs:
           stripdown: false
           
       - name: Update LLVM
-        if: ${{ matrix.compiler }} == 'clang'
+        if: ${{ matrix.compiler == 'clang' }}
         uses: KyleMayes/install-llvm-action@v2.0.6
         with:
           version: ${{ env.llvmVersion }}
@@ -450,7 +446,7 @@ jobs:
         uses: lukka/run-vcpkg@v10
         with:
           vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
-          vcpkgJsonGlob: '${{ github.workspace }}/src/vcpkg.json'
+          vcpkgJsonGlob: '**/src/vcpkg.json'
 
       - name: Build Runtime and Samples
         id: build-with-cmake
@@ -473,6 +469,155 @@ jobs:
         if: always()
         env:
           SUMMARY: ${{ steps.collect-tidy-results.outputs.summary }}
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          check_id: ${{ steps.create-checks.outputs.check_id }}
+          sha: ${{ env.HEAD_SHA }}
+          conclusion: ${{ job.status }}
+          output: |
+            { "summary": ${{ toJSON(env.SUMMARY) }} }
+            
+  # ------------------------------------- Builds               ------------------------------------- 
+  build:
+    name: run-builds
+    needs: [ verify, setup ]
+    if: ${{ contains(needs.verify.outputs.commands, 'builds') }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [ windows-msvc-x64, windows-msvc-x64-static, windows-msvc-x86, windows-msvc-x86-static, windows-clang-x64, windows-clang-x64-static ]
+        include:
+          - name: windows-msvc-x64
+            os: windows-latest
+            compiler: msvc
+            configuration: windows-msvc-x64-release
+          - name: windows-msvc-x64-static
+            os: windows-latest
+            compiler: msvc
+            configuration: windows-msvc-x64-release-static
+          - name: windows-msvc-x86
+            os: windows-latest
+            compiler: msvc
+            configuration: windows-msvc-x86-release
+          - name: windows-msvc-x86-static
+            os: windows-latest
+            compiler: msvc
+            configuration: windows-msvc-x86-release-static
+          - name: windows-clang-x64
+            os: windows-latest
+            compiler: clang
+            configuration: windows-clang-x64-release
+          - name: windows-clang-x64-static
+            os: windows-latest
+            compiler: clang
+            configuration: windows-clang-x64-release-static
+
+    env:
+      VCPKG_FEATURE_FLAGS: 'manifests'
+
+    steps:
+      - name: Retrieve PR info
+        id: retrieve-pr-from-issue-comment
+        uses: actions/github-script@v3
+        if: ${{ github.event_name == 'issue_comment' }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            console.log('Retrieving HEAD REF for PR #${{ github.event.issue.number }}')
+            const pull_request = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ github.event.issue.number }}
+            })
+            console.log('HEAD SHA = ' + pull_request.data.head.sha + ', REF = ' + pull_request.data.head.ref)
+            core.exportVariable('HEAD_SHA', pull_request.data.head.sha)
+            core.exportVariable('HEAD_REF', pull_request.data.head.ref)
+
+      - name: Retrieve PR info
+        id: retrieve-pr-from-workflow-dispatch
+        uses: actions/github-script@v3
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            console.log('Retrieving HEAD REF for PR #${{ github.event.inputs.pullRequest }}')
+            const pull_request = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ github.event.inputs.pullRequest }}
+            })
+            console.log('HEAD SHA = ' + pull_request.data.head.sha + ', REF = ' + pull_request.data.head.ref)
+            core.exportVariable('HEAD_SHA', pull_request.data.head.sha)
+            core.exportVariable('HEAD_REF', pull_request.data.head.ref)
+            
+      - name: Create checks
+        uses: LouisBrunner/checks-action@v2.0.0
+        id: create-checks
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          name: run-builds (${{ matrix.name }})
+          sha: ${{ env.HEAD_SHA }}
+          status: in_progress
+          
+      - name: Setup Vulkan SDK 
+        uses: jakoch/install-vulkan-sdk-action@v1.0.4
+        with:
+          vulkan_version: ${{ env.vulkanSdkVersion }}
+          install_runtime: true
+          cache: true
+          stripdown: false
+          
+      - name: Setup build and test environment
+        id: setup-environment
+        shell: bash
+        run: |
+          #echo "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime" >> $GITHUB_PATH  # Somehow does not get picked up by the MSVC development environment.
+          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
+          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
+          
+      - name: Update LLVM
+        if: ${{ matrix.compiler == 'clang' }}
+        uses: KyleMayes/install-llvm-action@v2.0.6
+        with:
+          version: ${{ env.llvmVersion }}
+          
+      - name: Checking out sources
+        uses: actions/checkout@master
+        with:
+          ref: ${{ env.HEAD_SHA }}
+          submodules: true
+          
+      - name: Retrieve latest CMake build
+        uses: lukka/get-cmake@latest
+
+
+      - name: Restore or build vcpkg
+        uses: lukka/run-vcpkg@v11
+        with:
+          vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
+          vcpkgJsonGlob: '**/src/vcpkg.json'
+
+      - name: Build with CMake
+        id: do-build
+        uses: lukka/run-cmake@v10
+        with:
+          cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
+          configurePreset: '${{ matrix.configuration }}'
+          buildPreset: '${{ matrix.configuration }}'
+          
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}-build
+          path: '${{ github.workspace }}/out/build/${{ matrix.configuration }}'
+          
+      - name: Update checks
+        uses: LouisBrunner/checks-action@v2.0.0
+        if: always()
+        env:
+          SUMMARY: ${{ steps.do-build.outputs.summary }}
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           check_id: ${{ steps.create-checks.outputs.check_id }}
