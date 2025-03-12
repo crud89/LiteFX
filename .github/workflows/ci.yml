@@ -27,7 +27,7 @@ on:
       command:
         description: 'Command'
         required: true
-        default: 'checks' # Case sensitive. Must contain one or more of: 'checks', 'tests' or 'tidy'.
+        default: 'checks' # Case sensitive. Must contain one or more of: 'checks', 'tests', 'tidy' or 'builds'.
 
 # Environment variables control which version of dependent software to install.
 env:
@@ -49,7 +49,7 @@ jobs:
       pull-requests: write
     if: "${{ (github.event_name == 'workflow_dispatch') || ( github.event_name == 'issue_comment' && github.event.issue.pull_request && startsWith(github.event.comment.body, 'Run:') ) }}"
     outputs:
-      commands: ${{ steps.parse-command.outputs.match }}
+      commands: ${{ steps.emit-command.outputs.match }}
       
     steps:
       - name: Check persmission
@@ -77,16 +77,42 @@ jobs:
             echo "command=${{ github.event.inputs.command }}" >> $GITHUB_OUTPUT
           fi
             
-      - name: Parse command
-        id: parse-command
+      - name: Parse 'checks'
+        id: parse-checks
+        if: ${{ contains(steps.retrieve-command.outputs.command, 'checks') }}
+        shell: bash
+        run: |
+            echo "command=test,tidy,build" >> $GITHUB_OUTPUT
+
+      - name: Parse 'tidy'
+        id: parse-tidy
+        if: ${{ steps.parse-checks.conclusion == 'skipped' && contains(steps.retrieve-command.outputs.command, 'tidy') }}
+        shell: bash
+        run: |
+            echo "command=tidy" >> $GITHUB_OUTPUT
+  
+      - name: Parse 'test'
+        id: parse-test
+        if: ${{ steps.parse-checks.conclusion == 'skipped' && contains(steps.retrieve-command.outputs.command, 'tests') }}
+        shell: bash
+        run: |
+            echo "command=${{ parse-tidy.outputs.command }},test" >> $GITHUB_OUTPUT
+            
+      - name: Parse 'build'
+        id: parse-build
+        if: ${{ steps.parse-checks.conclusion == 'skipped' && contains(steps.retrieve-command.outputs.command, 'builds') }}
+        shell: bash
+        run: |
+            echo "command=${{ parse-test.outputs.command }},build" >> $GITHUB_OUTPUT
+            
+      - name: Emit command
+        id: emit-command
         uses: thaitype/actions-switch-case@v1
         with:
           default: "none"
           conditionals-with-values: |
-            ${{ contains(steps.retrieve-command.outputs.command, 'checks') }} => test, tidy, build
-            ${{ contains(steps.retrieve-command.outputs.command, 'tests') }} => test
-            ${{ contains(steps.retrieve-command.outputs.command, 'tidy') }} => tidy
-            ${{ contains(steps.retrieve-command.outputs.command, 'builds') }} => builds
+            ${{ steps.parse-checks.conclusion != 'skipped' }} => ${{ steps.parse-checks.outputs.command }}
+            ${{ steps.parse-checks.conclusion == 'skipped' }} => ${{ steps.parse-build.outputs.command }}
             
       - name: Confirm run
         uses: peter-evans/create-or-update-comment@v4
@@ -99,7 +125,7 @@ jobs:
   setup:
     name: run-setup
     needs: verify
-    if: ${{ contains(needs.verify.outputs.commands, 'test') || contains(needs.verify.outputs.commands, 'tidy') || contains(needs.verify.outputs.commands, 'builds') }}
+    if: ${{ contains(needs.verify.outputs.commands, 'test') || contains(needs.verify.outputs.commands, 'tidy') || contains(needs.verify.outputs.commands, 'build') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
@@ -481,7 +507,7 @@ jobs:
   build:
     name: run-builds
     needs: [ verify, setup ]
-    if: ${{ contains(needs.verify.outputs.commands, 'builds') }}
+    if: ${{ contains(needs.verify.outputs.commands, 'build') }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:
@@ -492,29 +518,36 @@ jobs:
           - name: windows-msvc-x64
             os: windows-latest
             compiler: msvc
+            triplet: x64-windows
             configuration: windows-msvc-x64-release
           - name: windows-msvc-x64-static
             os: windows-latest
             compiler: msvc
+            triplet: x64-windows
             configuration: windows-msvc-x64-release-static
           - name: windows-msvc-x86
             os: windows-latest
             compiler: msvc
+            triplet: x86-windows
             configuration: windows-msvc-x86-release
           - name: windows-msvc-x86-static
             os: windows-latest
             compiler: msvc
+            triplet: x86-windows
             configuration: windows-msvc-x86-release-static
           - name: windows-clang-x64
             os: windows-latest
             compiler: clang
+            triplet: x64-windows
             configuration: windows-clang-x64-release
           - name: windows-clang-x64-static
             os: windows-latest
             compiler: clang
+            triplet: x64-windows
             configuration: windows-clang-x64-release-static
 
     env:
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}-rel
       VCPKG_FEATURE_FLAGS: 'manifests'
 
     steps:
