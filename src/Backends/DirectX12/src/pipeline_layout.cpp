@@ -111,7 +111,7 @@ public:
                 }
 
                 // Store the range. Note we do not check for duplicates here.
-                UInt64 key = static_cast<UInt64>(range->binding()) << 32 | static_cast<UInt64>(range->space());
+                UInt64 key = static_cast<UInt64>(range->binding()) << 32 | static_cast<UInt64>(range->space()); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
                 m_rootParameterIndices[key] = rootParameterIndex++;
                 descriptorParameters.push_back(rootParameter);
             });
@@ -200,7 +200,7 @@ public:
                 descriptorRanges.push_back(std::move(rangeSet));
 
                 // Store the set. Note we do not check for duplicates here.
-                UInt64 key = 0xFFFFFFFF00000000_ui64 | static_cast<UInt64>(layout->space());
+                UInt64 key = 0xFFFFFFFF00000000_ui64 | static_cast<UInt64>(layout->space()); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
                 m_rootParameterIndices[key] = rootParameterIndex++;
                 descriptorParameters.push_back(rootParameter);
             }
@@ -276,7 +276,7 @@ const DirectX12PushConstantsLayout* DirectX12PipelineLayout::pushConstants() con
 
 Optional<UInt32> DirectX12PipelineLayout::rootParameterIndex(const DirectX12DescriptorSetLayout& layout) const noexcept
 {
-    if (auto match = m_impl->m_rootParameterIndices.find(0xFFFFFFFF00000000_ui64 | static_cast<UInt64>(layout.space())); match != m_impl->m_rootParameterIndices.end())
+    if (auto match = m_impl->m_rootParameterIndices.find(0xFFFFFFFF00000000_ui64 | static_cast<UInt64>(layout.space())); match != m_impl->m_rootParameterIndices.end()) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         return match->second;
     else
         return std::nullopt;
@@ -284,7 +284,7 @@ Optional<UInt32> DirectX12PipelineLayout::rootParameterIndex(const DirectX12Desc
 
 Optional<UInt32> DirectX12PipelineLayout::rootParameterIndex(const DirectX12PushConstantsRange& range) const noexcept
 {
-    if (auto match = m_impl->m_rootParameterIndices.find((static_cast<UInt64>(range.binding()) << 32) | static_cast<UInt64>(range.space())); match != m_impl->m_rootParameterIndices.end())
+    if (auto match = m_impl->m_rootParameterIndices.find((static_cast<UInt64>(range.binding()) << 32) | static_cast<UInt64>(range.space())); match != m_impl->m_rootParameterIndices.end()) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         return match->second;
     else
         return std::nullopt;

@@ -694,7 +694,7 @@ void VulkanCommandBuffer::pushConstants(const VulkanPushConstantsLayout& layout,
 	if (!m_impl->m_lastPipeline) [[unlikely]]
 		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the push constants range.");
 
-	std::ranges::for_each(layout.ranges(), [this, &layout, &memory](const auto& range) { 
+	std::ranges::for_each(layout.ranges(), [&](const auto& range) { 
 		::vkCmdPushConstants(this->handle(), std::as_const(*m_impl->m_lastPipeline->layout()).handle(), static_cast<VkShaderStageFlags>(Vk::getShaderStage(range->stage())), range->offset(), range->size(), memory);
 	});
 }
