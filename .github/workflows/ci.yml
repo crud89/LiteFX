@@ -77,34 +77,20 @@ jobs:
             echo "command=${{ github.event.inputs.command }}" >> $GITHUB_OUTPUT
           fi
             
-      - name: Parse 'checks'
+      - name: Parse for 'checks'
         id: parse-checks
         if: ${{ contains(steps.retrieve-command.outputs.command, 'checks') }}
         shell: bash
         run: |
             echo "command=test,tidy,build" >> $GITHUB_OUTPUT
 
-      - name: Parse 'tidy'
-        id: parse-tidy
-        if: ${{ steps.parse-checks.conclusion == 'skipped' && contains(steps.retrieve-command.outputs.command, 'tidy') }}
+      - name: Parse individual commands
+        id: parse-commands
+        if: ${{ steps.parse-checks.conclusion == 'skipped' }}
         shell: bash
         run: |
-            echo "command=tidy" >> $GITHUB_OUTPUT
+            echo "command=${{ (contains(steps.retrieve-command.outputs.command, 'tidy') && 'tidy') || '' }},${{ (contains(steps.retrieve-command.outputs.command, 'tests') && 'test') || '' }},${{ (contains(steps.retrieve-command.outputs.command, 'builds') && 'builds') || '' }}" >> $GITHUB_OUTPUT
   
-      - name: Parse 'test'
-        id: parse-test
-        if: ${{ steps.parse-checks.conclusion == 'skipped' && contains(steps.retrieve-command.outputs.command, 'tests') }}
-        shell: bash
-        run: |
-            echo "command=${{ parse-tidy.outputs.command }},test" >> $GITHUB_OUTPUT
-            
-      - name: Parse 'build'
-        id: parse-build
-        if: ${{ steps.parse-checks.conclusion == 'skipped' && contains(steps.retrieve-command.outputs.command, 'builds') }}
-        shell: bash
-        run: |
-            echo "command=${{ parse-test.outputs.command }},build" >> $GITHUB_OUTPUT
-            
       - name: Emit command
         id: emit-command
         uses: thaitype/actions-switch-case@v1
@@ -112,7 +98,7 @@ jobs:
           default: "none"
           conditionals-with-values: |
             ${{ steps.parse-checks.conclusion != 'skipped' }} => ${{ steps.parse-checks.outputs.command }}
-            ${{ steps.parse-checks.conclusion == 'skipped' }} => ${{ steps.parse-build.outputs.command }}
+            ${{ steps.parse-commands.conclusion == 'skipped' }} => ${{ steps.parse-commands.outputs.command }}
             
       - name: Confirm run
         uses: peter-evans/create-or-update-comment@v4
