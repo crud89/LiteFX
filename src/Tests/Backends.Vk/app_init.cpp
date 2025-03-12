@@ -16,10 +16,7 @@ void TestApp::onInit()
         _viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(FRAMEBUFFER_WIDTH), static_cast<Float>(FRAMEBUFFER_HEIGHT)));
         _scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(FRAMEBUFFER_WIDTH), static_cast<Float>(FRAMEBUFFER_HEIGHT)));
 
-        // As we've enabled WARP, it's the only one available.
-        auto adapters = backend->adapters() 
-            | std::views::filter([](auto adapter) { return adapter->type() == GraphicsAdapterType::CPU; }) 
-            | std::ranges::to<std::vector>();
+        auto& adapters = backend->adapters();
 
         if (adapters.empty())
             throw RuntimeException("Cannot find software rasterizer driver.");
