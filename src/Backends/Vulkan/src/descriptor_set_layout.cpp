@@ -657,7 +657,7 @@ void VulkanDescriptorSetLayoutBuilder::build()
     instance->m_impl->m_descriptorLayouts = std::move(this->state().descriptorLayouts);
     instance->m_impl->m_space = this->state().space;
     instance->m_impl->m_stages = this->state().stages;
-    instance->m_impl->initialize();
+    instance->handle() = instance->m_impl->initialize();
 }
 
 VulkanDescriptorLayout VulkanDescriptorSetLayoutBuilder::makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors)
