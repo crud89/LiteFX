@@ -97,8 +97,8 @@ jobs:
         with:
           default: "none"
           conditionals-with-values: |
-            ${{ steps.parse-checks.conclusion != 'skipped' }} => ${{ steps.parse-checks.outputs.command }}
-            ${{ steps.parse-commands.conclusion == 'skipped' }} => ${{ steps.parse-commands.outputs.command }}
+            ${{ steps.parse-checks.conclusion == 'success' }} => ${{ steps.parse-checks.outputs.command }}
+            ${{ steps.parse-commands.conclusion == 'success' }} => ${{ steps.parse-commands.outputs.command }}
             
       - name: Confirm run
         uses: peter-evans/create-or-update-comment@v4
