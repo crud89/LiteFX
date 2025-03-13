@@ -45,6 +45,11 @@ DEFINE_TEST("device_resizes_d3d12_frame_buffer" FOLDER "Tests/Backends/D3D12" EX
 	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12
 )
 
+DEFINE_TEST("device_resets_d3d12_swap_chain" FOLDER "Tests/Backends/D3D12" EXECUTABLE_NAME "d3d12_reset_swap_chain_test" 
+	SOURCES "common.h" "reset_swap_chain.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12
+)
+
 DEFINE_TEST("render_target_maps_to_d3d12_frame_buffer" FOLDER "Tests/Backends/D3D12" EXECUTABLE_NAME "d3d12_map_render_target_to_frame_buffer_test" 
 	SOURCES "common.h" "map_frame_buffer_render_target.cpp"
 	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12
