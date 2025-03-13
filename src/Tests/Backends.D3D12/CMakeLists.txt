@@ -6,12 +6,14 @@
 
 FIND_PACKAGE(directx-warp CONFIG REQUIRED)
     
-ADD_SHADER_MODULE(Tests.Dx.Shaders.VS SOURCE "shaders/test_vs.hlsl" LANGUAGE HLSL TYPE VERTEX   COMPILE_AS DXIL SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
+ADD_SHADER_MODULE(Tests.Dx.Shaders.VS    SOURCE "shaders/test_vs.hlsl"    LANGUAGE HLSL TYPE VERTEX   COMPILE_AS DXIL SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
 ADD_SHADER_MODULE(Tests.Dx.Shaders.PC.VS SOURCE "shaders/test_pc_vs.hlsl" LANGUAGE HLSL TYPE VERTEX   COMPILE_AS DXIL SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
-ADD_SHADER_MODULE(Tests.Dx.Shaders.PS SOURCE "shaders/test_fs.hlsl" LANGUAGE HLSL TYPE PIXEL    COMPILE_AS DXIL SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
-SET_TARGET_PROPERTIES(Tests.Dx.Shaders.VS PROPERTIES FOLDER "Tests/Shaders/DirectX 12")
+ADD_SHADER_MODULE(Tests.Dx.Shaders.PS    SOURCE "shaders/test_fs.hlsl"    LANGUAGE HLSL TYPE PIXEL    COMPILE_AS DXIL SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
+ADD_SHADER_MODULE(Tests.Dx.Shaders.CS    SOURCE "shaders/test_cs.hlsl"    LANGUAGE HLSL TYPE COMPUTE  COMPILE_AS DXIL SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
+SET_TARGET_PROPERTIES(Tests.Dx.Shaders.VS PROPERTIES    FOLDER "Tests/Shaders/DirectX 12")
 SET_TARGET_PROPERTIES(Tests.Dx.Shaders.PC.VS PROPERTIES FOLDER "Tests/Shaders/DirectX 12")
-SET_TARGET_PROPERTIES(Tests.Dx.Shaders.PS PROPERTIES FOLDER "Tests/Shaders/DirectX 12")
+SET_TARGET_PROPERTIES(Tests.Dx.Shaders.PS PROPERTIES    FOLDER "Tests/Shaders/DirectX 12")
+SET_TARGET_PROPERTIES(Tests.Dx.Shaders.CS PROPERTIES    FOLDER "Tests/Shaders/DirectX 12")
 
 DEFINE_TEST("app_should_accept_d3d12_backend" FOLDER "Tests/Backends/D3D12" EXECUTABLE_NAME "d3d12_app_init_test" 
 	SOURCES "common.h" "app_init.cpp"
@@ -88,6 +90,16 @@ TARGET_LINK_SHADERS(d3d12_push_constants_test
     SHADERS Tests.Dx.Shaders.PC.VS Tests.Dx.Shaders.PS
 )
 
+DEFINE_TEST("device_sets_up_d3d12_compute_pipeline" FOLDER "Tests/Backends/D3D12" EXECUTABLE_NAME "d3d12_compute_test" 
+	SOURCES "common.h" "setup_compute_pipeline.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12
+)
+
+TARGET_LINK_SHADERS(d3d12_compute_test
+    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
+    SHADERS Tests.Dx.Shaders.CS
+)
+
 ADD_DEPENDENCIES(d3d12_app_init_test dxwarp)
 ADD_DEPENDENCIES(d3d12_input_assembler_test dxwarp)
 ADD_DEPENDENCIES(d3d12_rasterizer_test dxwarp)
@@ -99,3 +111,4 @@ ADD_DEPENDENCIES(d3d12_create_shader_program_test dxwarp)
 ADD_DEPENDENCIES(d3d12_create_render_pipeline_test dxwarp)
 ADD_DEPENDENCIES(d3d12_reflect_render_pipeline_test dxwarp)
 ADD_DEPENDENCIES(d3d12_push_constants_test dxwarp)
+ADD_DEPENDENCIES(d3d12_compute_test dxwarp)

@@ -32,67 +32,28 @@ void TestApp::onInit()
         // Create the device.
         _device = backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, _viewport->getRectangle().extent(), 3, false).shared_from_this();
 
-        // Create input assembler state.
-        SharedPtr<DirectX12InputAssembler> inputAssembler = _device->buildInputAssembler()
-            .topology(PrimitiveTopology::TriangleList)
-            .indexType(IndexType::UInt16)
-            .vertexBuffer(sizeof(Vertex), 0)
-                .withAttribute(0, BufferFormat::XYZ32F, offsetof(Vertex, Position), AttributeSemantic::Position)
-                .withAttribute(1, BufferFormat::XYZW32F, offsetof(Vertex, Color), AttributeSemantic::Color)
-                .add();
-
-        // Create a rasterizer state.
-        SharedPtr<DirectX12Rasterizer> rasterizer = _device->buildRasterizer()
-            .polygonMode(PolygonMode::Solid)
-            .cullMode(CullMode::BackFaces)
-            .cullOrder(CullOrder::ClockWise)
-            .lineWidth(1.f);
-
-        // Create a geometry render pass.
-        SharedPtr<DirectX12RenderPass> renderPass = _device->buildRenderPass("Opaque")
-            .renderTarget("Color Target", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f })
-            .renderTarget("Depth/Stencil Target", RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear, { 1.f, 0.f, 0.f, 0.f });
-
         // Create the shader program.
         SharedPtr<DirectX12ShaderProgram> shaderProgram = _device->buildShaderProgram()
-            .withVertexShaderModule("shaders/test_vs.dxi")
-            .withFragmentShaderModule("shaders/test_fs.dxi");
+            .withComputeShaderModule("shaders/test_cs.dxi");
 
-        // Define pipeline layout.
-        SharedPtr<DirectX12PipelineLayout> renderPipelineLayout = _device->buildPipelineLayout()
-            .descriptorSet(0, ShaderStage::Any)
-                .withConstantBuffer(0, sizeof(float) * 4 * 4, 1)
-                .add()
-            .descriptorSet(1, ShaderStage::Any)
-                .withConstantBuffer(0, sizeof(float) * 4 * 4, 1)
-                .add();
-
-        // Create a render pipeline.
-        UniquePtr<DirectX12RenderPipeline> renderPipeline = _device->buildRenderPipeline(*renderPass, "Geometry")
-            .inputAssembler(inputAssembler)
-            .rasterizer(rasterizer)
-            .layout(renderPipelineLayout)
+        // Create a compute pipeline.
+        UniquePtr<DirectX12ComputePipeline> pipeline = _device->buildComputePipeline("Compute")
+            .layout(shaderProgram->reflectPipelineLayout())
             .shaderProgram(shaderProgram);
 
-        // Validate render pipeline.
-        if (renderPipeline->inputAssembler().get() != inputAssembler.get())
-            LITEFX_TEST_FAIL("renderPipeline->inputAssembler().get() != inputAssembler.get()");
+        // Validate compute pipeline.
+        if (pipeline->program().get() != shaderProgram.get())
+            LITEFX_TEST_FAIL("pipeline->program().get() != shaderProgram.get()");
 
-        if (renderPipeline->rasterizer().get() != rasterizer.get())
-            LITEFX_TEST_FAIL("renderPipeline->rasterizer().get() != rasterizer.get()");
-
-        if (renderPipeline->program().get() != shaderProgram.get())
-            LITEFX_TEST_FAIL("renderPipeline->program().get() != shaderProgram.get()");
-
-        auto layout = renderPipeline->layout();
+        auto layout = pipeline->layout();
 
         if (layout->pushConstants() != nullptr && layout->pushConstants()->size() != 0)
             LITEFX_TEST_FAIL("layout->pushConstants() != nullptr || layout->pushConstants()->size() != 0");
 
         auto descriptorSets = layout->descriptorSets() | std::ranges::to<std::vector>();
 
-        if (descriptorSets.size() != 2)
-            LITEFX_TEST_FAIL("descriptorSets.size() != 2");
+        if (descriptorSets.size() != 1)
+            LITEFX_TEST_FAIL("descriptorSets.size() != 1");
 
         {
             if (descriptorSets[0]->space() != 0)
@@ -106,30 +67,15 @@ void TestApp::onInit()
             if (descriptors[0].binding() != 0)
                 LITEFX_TEST_FAIL("descriptors[0]->binding() != 0");
 
-            if (descriptors[0].descriptorType() != DescriptorType::ConstantBuffer)
-                LITEFX_TEST_FAIL("descriptors[0]->descriptorType() != DescriptorType::ConstantBuffer");
-        }
-
-        {
-            if (descriptorSets[1]->space() != 1)
-                LITEFX_TEST_FAIL("descriptorSets[1]->space() != 1");
-
-            auto descriptors = descriptorSets[1]->descriptors() | std::ranges::to<std::vector>();
-
-            if (descriptors.size() != 1)
-                LITEFX_TEST_FAIL("descriptors.size() != 1");
-
-            if (descriptors[0].binding() != 0)
-                LITEFX_TEST_FAIL("descriptors[0]->binding() != 0");
-
-            if (descriptors[0].descriptorType() != DescriptorType::ConstantBuffer)
-                LITEFX_TEST_FAIL("descriptors[0]->descriptorType() != DescriptorType::ConstantBuffer");
+            if (descriptors[0].descriptorType() != DescriptorType::RWTexture)
+                LITEFX_TEST_FAIL("descriptors[0]->descriptorType() != DescriptorType::RWTexture");
         }
 
         return true;
     };
 
     auto stopCallback = [](DirectX12Backend* backend) {
+        _device.reset();
         backend->releaseDevice("Default");
     };
 

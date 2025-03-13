@@ -77,8 +77,8 @@ void TestApp::onInit()
 
         auto layout = renderPipeline->layout();
 
-        if (layout->pushConstants() != nullptr && layout->pushConstants()->size() > 0)
-            LITEFX_TEST_FAIL("layout->pushConstants() != nullptr && layout->pushConstants()->size() > 0");
+        if (layout->pushConstants() != nullptr && layout->pushConstants()->size() != 0)
+            LITEFX_TEST_FAIL("layout->pushConstants() != nullptr && layout->pushConstants()->size() != 0");
 
         auto descriptorSets = layout->descriptorSets() | std::ranges::to<std::vector>();
 
