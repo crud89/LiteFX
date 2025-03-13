@@ -5,8 +5,10 @@
 ###################################################################################################
 
 ADD_SHADER_MODULE(Tests.Vk.Shaders.VS SOURCE "shaders/test_vs.hlsl" LANGUAGE HLSL TYPE VERTEX   COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
+ADD_SHADER_MODULE(Tests.Vk.Shaders.PC.VS SOURCE "shaders/test_pc_vs.hlsl" LANGUAGE HLSL TYPE VERTEX   COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
 ADD_SHADER_MODULE(Tests.Vk.Shaders.FS SOURCE "shaders/test_fs.hlsl" LANGUAGE HLSL TYPE FRAGMENT COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
 SET_TARGET_PROPERTIES(Tests.Vk.Shaders.VS PROPERTIES FOLDER "Tests/Shaders/Vulkan")
+SET_TARGET_PROPERTIES(Tests.Vk.Shaders.PC.VS PROPERTIES FOLDER "Tests/Shaders/Vulkan")
 SET_TARGET_PROPERTIES(Tests.Vk.Shaders.FS PROPERTIES FOLDER "Tests/Shaders/Vulkan")
 
 DEFINE_TEST("app_should_accept_vk_backend" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_app_init_test" 
@@ -72,4 +74,14 @@ DEFINE_TEST("shader_program_reflects_vk_render_pipeline" FOLDER "Tests/Backends/
 TARGET_LINK_SHADERS(vk_reflect_render_pipeline_test
     INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
     SHADERS Tests.Vk.Shaders.VS Tests.Vk.Shaders.FS
+)
+
+DEFINE_TEST("device_sets_up_vk_render_pipeline_with_push_constants" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_push_constants_test" 
+	SOURCES "common.h" "setup_push_constants.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+)
+
+TARGET_LINK_SHADERS(vk_push_constants_test
+    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
+    SHADERS Tests.Vk.Shaders.PC.VS Tests.Vk.Shaders.FS
 )
