@@ -1,6 +1,6 @@
 #include <litefx/logging.hpp>
 #include <spdlog/sinks/base_sink.h>
-#include <iostream>
+#include <print>
 
 using namespace LiteFX::Logging;
 
@@ -17,11 +17,13 @@ public:
     termination_sink(int status, const spdlog::level::level_enum& minLevel = spdlog::level::level_enum::err);
     termination_sink(const termination_sink&) = delete;
     termination_sink(termination_sink&&) = delete;
-    virtual ~termination_sink() = default;
+    auto operator=(const termination_sink&) = delete;
+    auto operator=(termination_sink&&) = delete;
+    ~termination_sink() override = default;
 
 public:
-    virtual void sink_it_(const spdlog::details::log_msg& msg) override;
-    virtual void flush_() override;
+    void sink_it_(const spdlog::details::log_msg& msg) override;
+    void flush_() override;
 };
 
 termination_sink::termination_sink(int status, const spdlog::level::level_enum& minLevel) :
@@ -33,7 +35,7 @@ void termination_sink::sink_it_(const spdlog::details::log_msg& msg)
 {
     if (msg.level >= m_minLevel)
     {
-        std::cout << msg.payload.data() << "\r\nTrace: " << std::stacktrace::current() << std::endl;
+        std::println("{}\r\nTrace: {}", msg.payload, std::stacktrace::current());
         ::exit(m_status);
     }
 }

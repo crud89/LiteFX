@@ -174,7 +174,7 @@ namespace LiteFX::Logging {
         /// <summary>
         /// The default status code used to exit the application.
         /// </summary>
-        static constexpr int DEFAULT_TERMINATION_STATUS = 0xFF455252;
+        static constexpr std::uint32_t DEFAULT_TERMINATION_STATUS = 0xFF455252;
 
     public:
         /// <summary>
@@ -182,23 +182,26 @@ namespace LiteFX::Logging {
         /// </summary>
         /// <param name="level">The minimum log level at which an exception is thrown.</param>
         /// <param name="status">The status code used to exit the application.</param>
-        TerminationSink(const LogLevel& level = LogLevel::Info, int status = DEFAULT_TERMINATION_STATUS);
+        TerminationSink(const LogLevel& level = LogLevel::Info, int status = static_cast<int>(DEFAULT_TERMINATION_STATUS));
+        ~TerminationSink() noexcept override;
+
         TerminationSink(const TerminationSink&) = delete;
-        TerminationSink(TerminationSink&&) = delete;
-        virtual ~TerminationSink() noexcept;
+        TerminationSink(TerminationSink&&) noexcept = delete;
+        auto operator=(const TerminationSink&) = delete;
+        auto operator=(TerminationSink&&) noexcept = delete;
 
     public:
         /// <inheritdoc />
-        virtual LogLevel getLevel() const override;
+        LogLevel getLevel() const override;
 
         /// <inheritdoc />
-        virtual String getName() const override;
+        String getName() const override;
 
         /// <inheritdoc />
-        virtual String getPattern() const override;
+        String getPattern() const override;
 
     protected:
-        virtual spdlog::sink_ptr get() const override;
+        spdlog::sink_ptr get() const override;
     };
 
     /// <summary>
