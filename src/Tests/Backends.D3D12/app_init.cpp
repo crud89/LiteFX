@@ -11,7 +11,7 @@ SharedPtr<Scissor> _scissor;
 void TestApp::onInit()
 {
     // Create a callback for backend startup and shutdown.
-    auto startCallback = [this](DirectX12Backend* backend) {
+    auto startCallback = [](DirectX12Backend* backend) {
         // Create viewport and scissors.
         _viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(FRAMEBUFFER_WIDTH), static_cast<Float>(FRAMEBUFFER_HEIGHT)));
         _scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(FRAMEBUFFER_WIDTH), static_cast<Float>(FRAMEBUFFER_HEIGHT)));

@@ -56,7 +56,7 @@ const Array<UInt16> indices {
 void TestApp::onInit()
 {
     // Create a callback for backend startup and shutdown.
-    auto startCallback = [this](VulkanBackend* backend) {
+    auto startCallback = [](VulkanBackend* backend) {
         // Create viewport and scissors.
         _viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(FRAMEBUFFER_WIDTH), static_cast<Float>(FRAMEBUFFER_HEIGHT)));
         _scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(FRAMEBUFFER_WIDTH), static_cast<Float>(FRAMEBUFFER_HEIGHT)));
