@@ -17,7 +17,7 @@ IF(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     ADD_COMPILE_OPTIONS(/W4 $<$<CONFIG:Release,RelWithDebInfo>:/WX>)
 ELSEIF(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     # For clang-cl we need a different warning level, as `/W4` is mapped to `/Wall` which then gets mapped to `-Weverything`, which warns about C++98 compatibility and other obscure flavors irrelevant to modern C++.
-    ADD_COMPILE_OPTIONS(-W4 -Wno-missing-field-initializers $<$<CONFIG:Release,RelWithDebInfo>:-Werror> $<$<CONFIG:Debug,RelWithDebInfo>:/JMC> /EHsc)
+    ADD_COMPILE_OPTIONS(-W4 -Wno-missing-field-initializers $<$<CONFIG:Release,RelWithDebInfo>:-Werror> $<$<CONFIG:Debug,RelWithDebInfo>:/JMC> $<$<CONFIG:Debug,RelWithDebInfo>:/Zi> /EHsc)
 ELSEIF(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # Be more pedantic with warnings and treat them as errors for release builds.
     # Explicitly disable the following warnings:

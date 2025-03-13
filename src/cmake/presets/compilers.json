@@ -17,6 +17,11 @@
       "hidden": true,
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "clang++"
+      },
+      "vendor": {
+        "microsoft.com/VisualStudioSettings/CMake/1.0": {
+          "intelliSenseMode": "windows-clang-x64"
+        }
       }
     },
     {

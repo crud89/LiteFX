@@ -88,6 +88,11 @@ Furthermore, the samples also use some libraries for convenience. Those dependen
 - [glfw3](https://www.glfw.org/): Cross-platform window manager.
 - [stb](https://github.com/nothings/stb): Lightweight image loading and processing library.
 
+Finally, the tests are using conformant software emulated rasterizers to keep them portable:
+
+- [Windows Advanced Rasterization Platform (WARP)](https://learn.microsoft.com/en-us/windows/win32/direct3darticles/directx-warp): Emulates D3D12 devices.
+- [Mesa 3D 24.1 / Lavapipe](https://github.com/pal1000/mesa-dist-win): Emulates Vulkan devices and needs to be installed manually (see [Tests](/src/tests/readme.md) for more information).
+
 ## Contribute
 
 If you are having trouble using the engine, found a bug or have suggestions, just drop an [issue](https://github.com/crud89/LiteFX/issues). Keep in mind that this project is developed in my free time and I might not be able to provide any advanced support. If you want to, feel free to provide improvements by creating a pull request.
