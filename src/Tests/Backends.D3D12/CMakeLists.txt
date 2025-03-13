@@ -131,6 +131,11 @@ TARGET_LINK_SHADERS(d3d12_ray_tracing_test
     SHADERS Tests.Dx.Shaders.RG Tests.Dx.Shaders.RH Tests.Dx.Shaders.RM
 )
 
+DEFINE_TEST("device_sets_up_d3d12_acceleration_structures" FOLDER "Tests/Backends/D3D12" EXECUTABLE_NAME "d3d12_acceleration_structure_test" 
+	SOURCES "common.h" "setup_acceleration_structure.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12
+)
+
 ADD_DEPENDENCIES(d3d12_app_init_test dxwarp)
 ADD_DEPENDENCIES(d3d12_input_assembler_test dxwarp)
 ADD_DEPENDENCIES(d3d12_rasterizer_test dxwarp)
@@ -145,3 +150,4 @@ ADD_DEPENDENCIES(d3d12_push_constants_test dxwarp)
 ADD_DEPENDENCIES(d3d12_compute_test dxwarp)
 ADD_DEPENDENCIES(d3d12_alloc_descriptor_set_test dxwarp)
 ADD_DEPENDENCIES(d3d12_ray_tracing_test dxwarp)
+ADD_DEPENDENCIES(d3d12_acceleration_structure_test dxwarp)

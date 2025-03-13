@@ -130,3 +130,8 @@ TARGET_LINK_SHADERS(vk_ray_tracing_test
     INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
     SHADERS Tests.Vk.Shaders.RG Tests.Vk.Shaders.RH Tests.Vk.Shaders.RM
 )
+
+DEFINE_TEST("device_sets_up_vk_acceleration_structures" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_acceleration_structure_test" 
+	SOURCES "common.h" "setup_acceleration_structure.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+)
