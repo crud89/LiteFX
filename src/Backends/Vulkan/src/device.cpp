@@ -168,7 +168,7 @@ private:
             m_extensions.emplace_back(VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME);
         }
 
-#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
+#if defined(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN) && defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
         // Interop swap chain requires external memory access.
         m_extensions.emplace_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
         m_extensions.emplace_back(VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME);
@@ -177,9 +177,9 @@ private:
         // Required to synchronize Vulkan command execution with D3D presentation.
         m_extensions.emplace_back(VK_KHR_EXTERNAL_SEMAPHORE_WIN32_EXTENSION_NAME);
         //m_extensions.emplace_back(VK_KHR_EXTERNAL_FENCE_WIN32_EXTENSION_NAME);
-#else
+#else // defined(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN) && defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
         m_extensions.emplace_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
-#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
+#endif // defined(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN) && defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
 
 #ifndef NDEBUG
         auto availableExtensions = m_adapter->getAvailableDeviceExtensions();
@@ -282,7 +282,7 @@ public:
             .accelerationStructure = features.RayTracing || features.RayQueries,
             .descriptorBindingAccelerationStructureUpdateAfterBind = features.RayTracing || features.RayQueries
         };
-
+      
         if (features.RayQueries || features.RayTracing)
             lastFeature = &accelerationStructureFeatures;
 

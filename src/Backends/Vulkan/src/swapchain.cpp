@@ -2,11 +2,15 @@
 #include <atomic>
 #include "image.h"
 
+#if defined(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN) && defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
+#define USE_VULKAN_INTEROP_SWAP_CHAIN
+#endif
+
 using namespace LiteFX::Rendering::Backends;
 
 // NOTE: It is important to keep private variable names equal between implementation classes in order for the debug visualizers to work.
 
-#if !defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
+#if !defined(USE_VULKAN_INTEROP_SWAP_CHAIN)
 // ------------------------------------------------------------------------------------------------
 // Default implementation.
 // ------------------------------------------------------------------------------------------------
@@ -27,7 +31,7 @@ private:
 	VkFence m_waitForImage{};
 	Array<VkSemaphore> m_waitForWorkload;
 
-	Array<SharedPtr<TimingEvent>> m_timingEvents;
+	Array<SharedPtr<const TimingEvent>> m_timingEvents;
 	Array<UInt64> m_timestamps;
 	Array<VkQueryPool> m_timingQueryPools;
 	VkQueryPool m_currentQueryPool{};
@@ -102,9 +106,7 @@ public:
 		// Get the number of images in the swap chain.
 		VkSurfaceCapabilitiesKHR deviceCaps;
 		::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(adapter, surface, &deviceCaps);
-        if (deviceCaps.maxImageCount == 0) // 0 means is unlimited.
-            deviceCaps.maxImageCount = std::numeric_limits<decltype(deviceCaps.maxImageCount)>::max();
-		UInt32 images = std::clamp(buffers, deviceCaps.minImageCount, deviceCaps.maxImageCount);
+		UInt32 images = std::clamp(buffers, deviceCaps.minImageCount, deviceCaps.maxImageCount == 0 ? buffers : deviceCaps.maxImageCount);
 
 		// Create a swap chain.
 		VkSwapchainCreateInfoKHR createInfo = {};
@@ -179,7 +181,7 @@ public:
 			this->resetQueryPools(m_timingEvents);
 	}
 
-	void resetQueryPools(const Array<SharedPtr<TimingEvent>>& timingEvents)
+	void resetQueryPools(const Array<SharedPtr<const TimingEvent>>& timingEvents)
 	{
 		// No events - no pools.
 		if (timingEvents.empty())
@@ -206,7 +208,7 @@ public:
 
 			VkQueryPool pool{};
 			raiseIfFailed(::vkCreateQueryPool(device->handle(), &poolInfo, nullptr, &pool), "Unable to allocate timestamp query pool.");
-			::vkResetQueryPool(device->handle(), pool, 0, timingEvents.size());
+			::vkResetQueryPool(device->handle(), pool, 0, static_cast<UInt32>(timingEvents.size()));
 
 			return pool;
 		});
@@ -261,13 +263,13 @@ public:
 		if (m_supportsTiming && !m_timingEvents.empty()) [[likely]]
 		{
 			m_currentQueryPool = m_timingQueryPools[m_currentImage];
-			auto result = ::vkGetQueryPoolResults(device->handle(), m_currentQueryPool, 0, m_timestamps.size(), m_timestamps.size() * sizeof(UInt64), m_timestamps.data(), sizeof(UInt64), VK_QUERY_RESULT_64_BIT);
+			auto result = ::vkGetQueryPoolResults(device->handle(), m_currentQueryPool, 0, static_cast<UInt32>(m_timestamps.size()), m_timestamps.size() * sizeof(UInt64), m_timestamps.data(), sizeof(UInt64), VK_QUERY_RESULT_64_BIT);
 		
 			if (result != VK_NOT_READY)	// Initial frames do not yet contain query results.
 				raiseIfFailed(result, "Unable to query timing events.");
 
 			// Reset the query pool.
-			::vkResetQueryPool(device->handle(), m_currentQueryPool, 0, m_timestamps.size());
+			::vkResetQueryPool(device->handle(), m_currentQueryPool, 0, static_cast<UInt32>(m_timestamps.size()));
 		}
 
 		return m_currentImage;
@@ -347,7 +349,7 @@ public:
 		return VK_COLOR_SPACE_MAX_ENUM_KHR;
 	}
 };
-#else
+#else // !defined(USE_VULKAN_INTEROP_SWAP_CHAIN)
 #include <litefx/backends/dx12_api.hpp>
 
 #if VK_HEADER_VERSION < 268
@@ -517,7 +519,7 @@ public:
 		// Get the number of images in the swap chain.
 		VkSurfaceCapabilitiesKHR deviceCaps;
 		::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device.adapter().handle(), device.surface().handle(), &deviceCaps);
-		UInt32 images = std::clamp(buffers, deviceCaps.minImageCount, deviceCaps.maxImageCount);
+		UInt32 images = std::clamp(buffers, deviceCaps.minImageCount, deviceCaps.maxImageCount == 0 ? buffers : deviceCaps.maxImageCount);
 
 		[[unlikely]] if (images != buffers)
 			LITEFX_INFO(VULKAN_LOG, "The number of buffers has been adjusted from {0} to {1}.", buffers, images);
@@ -676,7 +678,7 @@ public:
 		// Get the number of images in the swap chain.
 		VkSurfaceCapabilitiesKHR deviceCaps;
 		::vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device->adapter().handle(), device->surface().handle(), &deviceCaps);
-		UInt32 images = std::clamp(buffers, deviceCaps.minImageCount, deviceCaps.maxImageCount);
+		UInt32 images = std::clamp(buffers, deviceCaps.minImageCount, deviceCaps.maxImageCount == 0 ? buffers : deviceCaps.maxImageCount);
 
 		[[unlikely]] if (images != buffers)
 			LITEFX_INFO(VULKAN_LOG, "The number of buffers has been adjusted from {0} to {1}.", buffers, images);
@@ -1052,7 +1054,9 @@ private:
 		::CloseHandle(eventHandle);
 	}
 };
-#endif // defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
+#endif // !defined(USE_VULKAN_INTEROP_SWAP_CHAIN)
+
+#undef USE_VULKAN_INTEROP_SWAP_CHAIN
 
 // ------------------------------------------------------------------------------------------------
 // Shared interface.
