@@ -564,9 +564,26 @@ void DirectX12CommandBuffer::drawIndexedIndirect(const IDirectX12Buffer& batchBu
 	this->handle()->ExecuteIndirect(m_impl->m_drawIndexedSignature.Get(), std::min(maxBatches, static_cast<UInt32>(batchBuffer.alignedElementSize() / sizeof(IndirectIndexedBatch))), batchBuffer.handle().Get(), offset, countBuffer.handle().Get(), countOffset);
 }
 
-void DirectX12CommandBuffer::pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const noexcept
+void DirectX12CommandBuffer::pushConstants(const DirectX12PushConstantsLayout& layout, const void* const memory) const
 {
-	std::ranges::for_each(layout.ranges(), [this, &memory](const auto& range) { this->handle()->SetGraphicsRoot32BitConstants(std::as_const(*range).rootParameterIndex(), range->size() / sizeof(UInt32), static_cast<const char* const>(memory) + range->offset(), 0); }); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+	if (!m_impl->m_lastPipeline) [[unlikely]]
+		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the push constants range.");
+
+	const bool isGraphicsSet = dynamic_cast<const DirectX12RenderPipeline*>(m_impl->m_lastPipeline) != nullptr;
+
+	std::ranges::for_each(layout.ranges(), [&](const auto& range) { 
+		auto rootParameter = m_impl->m_lastPipeline->layout()->rootParameterIndex(*range);
+
+		if (!rootParameter.has_value()) [[likely]]
+			throw RuntimeException("Unable to set push constant range at register {} and space {}, as the parent pipeline was not defined with a push constant there.", range->binding(), range->space());
+		else
+		{
+			if (isGraphicsSet)
+				this->handle()->SetGraphicsRoot32BitConstants(*rootParameter, range->size() / sizeof(UInt32), static_cast<const char* const>(memory) + range->offset(), 0); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			else
+				this->handle()->SetComputeRoot32BitConstants(*rootParameter, range->size() / sizeof(UInt32), static_cast<const char* const>(memory) + range->offset(), 0); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		}
+	});
 }
 
 void DirectX12CommandBuffer::writeTimingEvent(const SharedPtr<const TimingEvent>& timingEvent) const

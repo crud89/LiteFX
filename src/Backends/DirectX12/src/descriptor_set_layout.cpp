@@ -15,7 +15,7 @@ public:
 
 private:
     Array<DirectX12DescriptorLayout> m_layouts{};
-    UInt32 m_space{ 0 }, m_samplers{ 0 }, m_descriptors{ 0 }, m_rootParameterIndex{ 0 };
+    UInt32 m_space{ 0 }, m_samplers{ 0 }, m_descriptors{ 0 };
     ShaderStage m_stages{ ShaderStage::Other };
     Queue<ComPtr<ID3D12DescriptorHeap>> m_freeDescriptorSets{}, m_freeSamplerSets{};
     Dictionary<UInt32, UInt32> m_bindingToDescriptor{};
@@ -196,22 +196,12 @@ DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12Descri
 
 DirectX12DescriptorSetLayout::~DirectX12DescriptorSetLayout() noexcept = default;
 
-UInt32 DirectX12DescriptorSetLayout::rootParameterIndex() const noexcept
-{
-    return m_impl->m_rootParameterIndex;
-}
-
 UInt32 DirectX12DescriptorSetLayout::descriptorOffsetForBinding(UInt32 binding) const
 {
     if (!m_impl->m_bindingToDescriptor.contains(binding)) [[unlikely]]
         throw InvalidArgumentException("binding", "The descriptor set does not contain a descriptor at binding {0}.", binding);
 
     return m_impl->m_bindingToDescriptor[binding];
-}
-
-UInt32& DirectX12DescriptorSetLayout::rootParameterIndex() noexcept
-{
-    return m_impl->m_rootParameterIndex;
 }
 
 bool DirectX12DescriptorSetLayout::isRuntimeArray() const noexcept

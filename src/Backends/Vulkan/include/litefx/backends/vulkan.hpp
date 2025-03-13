@@ -1095,20 +1095,6 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="size">The overall size (in bytes) of the push constants backing memory.</param>
         explicit VulkanPushConstantsLayout(UInt32 size);
-
-    public:
-        /// <summary>
-        /// Returns the parent pipeline layout, the push constants are described for.
-        /// </summary>
-        /// <returns>A reference of the parent pipeline layout.</returns>
-        virtual const VulkanPipelineLayout& pipelineLayout() const;
-
-    private:
-        /// <summary>
-        /// Sets the parent pipeline layout, the push constants are described for.
-        /// </summary>
-        /// <param name="pipelineLayout">The parent pipeline layout.</param>
-        virtual void pipelineLayout(const VulkanPipelineLayout& pipelineLayout);
     
     public:
         /// <inheritdoc />
@@ -1608,7 +1594,7 @@ namespace LiteFX::Rendering::Backends {
         void drawIndexedIndirect(const IVulkanBuffer& batchBuffer, const IVulkanBuffer& countBuffer, UInt64 offset = 0, UInt64 countOffset = 0, UInt32 maxBatches = std::numeric_limits<UInt32>::max()) const noexcept override;
 
         /// <inheritdoc />
-        void pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const noexcept override;
+        void pushConstants(const VulkanPushConstantsLayout& layout, const void* const memory) const override;
 
         /// <inheritdoc />
         void writeTimingEvent(const SharedPtr<const TimingEvent>& timingEvent) const override;

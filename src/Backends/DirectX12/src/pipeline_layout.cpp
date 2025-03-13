@@ -16,6 +16,16 @@ private:
     UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout{};
     Array<SharedPtr<const DirectX12DescriptorSetLayout>> m_descriptorSetLayouts{};
     SharedPtr<const DirectX12Device> m_device;
+    
+    /// <summary>
+    /// Maps the indices of the root parameters for a descriptor set or a push constant range.
+    /// </summary>
+    /// <remarks>
+    /// The dictionary key encodes the push constant range or descriptor set. The higher 32-bit part refers to the descriptor binding register for a push constant range. If it is 
+    /// equal to `0xFFFFFFFF`, the key refers to a descriptor set. In both cases, the lower 32-bit part refers to the binding space. Descriptor sets don't require a binding register, 
+    /// as they are mapped as descriptor tables. Push constants mapped using root constants, in which case a register must be specified.
+    /// </remarks>
+    Dictionary<UInt64, UInt32> m_rootParameterIndices{};
 
 public:
     DirectX12PipelineLayoutImpl(const DirectX12Device& device) :
@@ -100,8 +110,9 @@ public:
                 default: rootParameter.InitAsConstants(range->size() / 4, range->binding(), range->space(), D3D12_SHADER_VISIBILITY_ALL); break;
                 }
 
-                // Store the range.
-                range->rootParameterIndex() = rootParameterIndex++;
+                // Store the range. Note we do not check for duplicates here.
+                UInt64 key = static_cast<UInt64>(range->binding()) << 32 | static_cast<UInt64>(range->space()); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+                m_rootParameterIndices[key] = rootParameterIndex++;
                 descriptorParameters.push_back(rootParameter);
             });
         }
@@ -188,8 +199,9 @@ public:
                 rootParameter.InitAsDescriptorTable(static_cast<UINT>(rangeSet.size()), rangeSet.data(), static_cast<D3D12_SHADER_VISIBILITY>(shaderStages));
                 descriptorRanges.push_back(std::move(rangeSet));
 
-                // Store the range set.
-                layout->rootParameterIndex() = rootParameterIndex++;
+                // Store the set. Note we do not check for duplicates here.
+                UInt64 key = 0xFFFFFFFF00000000_ui64 | static_cast<UInt64>(layout->space()); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+                m_rootParameterIndices[key] = rootParameterIndex++;
                 descriptorParameters.push_back(rootParameter);
             }
         });
@@ -260,6 +272,22 @@ const Array<SharedPtr<const DirectX12DescriptorSetLayout>>& DirectX12PipelineLay
 const DirectX12PushConstantsLayout* DirectX12PipelineLayout::pushConstants() const noexcept
 {
     return m_impl->m_pushConstantsLayout.get();
+}
+
+Optional<UInt32> DirectX12PipelineLayout::rootParameterIndex(const DirectX12DescriptorSetLayout& layout) const noexcept
+{
+    if (auto match = m_impl->m_rootParameterIndices.find(0xFFFFFFFF00000000_ui64 | static_cast<UInt64>(layout.space())); match != m_impl->m_rootParameterIndices.end()) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        return match->second;
+    else
+        return std::nullopt;
+}
+
+Optional<UInt32> DirectX12PipelineLayout::rootParameterIndex(const DirectX12PushConstantsRange& range) const noexcept
+{
+    if (auto match = m_impl->m_rootParameterIndices.find((static_cast<UInt64>(range.binding()) << 32) | static_cast<UInt64>(range.space())); match != m_impl->m_rootParameterIndices.end()) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        return match->second;
+    else
+        return std::nullopt;
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

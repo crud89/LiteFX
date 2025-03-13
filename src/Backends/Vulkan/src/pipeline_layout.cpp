@@ -61,10 +61,6 @@ public:
             std::ranges::sort(descriptorLayouts, [](const auto& a, const auto& b) { return a->space() < b->space(); });
         }
 
-        // Store the pipeline layout on the push constants.
-        if (pushConstantsLayout != nullptr)
-            pushConstantsLayout->pipelineLayout(pipelineLayout);
-
         // Query for the descriptor set layout handles.
         auto descriptorSetLayouts = descriptorLayouts |
             std::views::transform([](const SharedPtr<VulkanDescriptorSetLayout>& layout) { return std::as_const(*layout.get()).handle(); }) |

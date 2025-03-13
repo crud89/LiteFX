@@ -706,7 +706,7 @@ namespace LiteFX::Rendering {
         virtual void bind(const index_buffer_type& buffer) const noexcept = 0;
 
         /// <inheritdoc />
-        virtual void pushConstants(const push_constants_layout_type& layout, const void* const memory) const noexcept = 0;
+        virtual void pushConstants(const push_constants_layout_type& layout, const void* const memory) const = 0;
 
         /// <inheritdoc />
         virtual void dispatchIndirect(const buffer_type& batchBuffer, UInt32 batchCount, UInt64 offset = 0) const noexcept = 0;
@@ -867,7 +867,7 @@ namespace LiteFX::Rendering {
             this->bind(dynamic_cast<const index_buffer_type&>(buffer));
         }
         
-        inline void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept override {
+        inline void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const override {
             this->pushConstants(dynamic_cast<const push_constants_layout_type&>(layout), memory);
         }
 

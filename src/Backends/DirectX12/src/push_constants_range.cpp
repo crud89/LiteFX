@@ -12,7 +12,7 @@ public:
 
 private:
     ShaderStage m_stage;
-    UInt32 m_offset, m_size, m_space, m_binding, m_rootParameterIndex{ 0 };
+    UInt32 m_offset, m_size, m_space, m_binding;
 
 public:
     DirectX12PushConstantsRangeImpl(ShaderStage shaderStage, UInt32 offset, UInt32 size, UInt32 space, UInt32 binding) :
@@ -67,14 +67,4 @@ UInt32 DirectX12PushConstantsRange::size() const noexcept
 ShaderStage DirectX12PushConstantsRange::stage() const noexcept
 {
     return m_impl->m_stage;
-}
-
-UInt32 DirectX12PushConstantsRange::rootParameterIndex() const noexcept
-{
-    return m_impl->m_rootParameterIndex;
-}
-
-UInt32& DirectX12PushConstantsRange::rootParameterIndex() noexcept
-{
-    return m_impl->m_rootParameterIndex;
 }

@@ -386,7 +386,6 @@
 		<Expand>
 			<Item Name="Descriptor Layouts">m_impl.m_ptr._Mypair._Myval2->m_layouts,view(simple)</Item>
 			<Item Name="Space">m_impl.m_ptr._Mypair._Myval2->m_space</Item>
-			<Item Name="Root Descriptor">m_impl.m_ptr._Mypair._Myval2->m_rootParameterIndex</Item>
 			<Item Name="Stages">m_impl.m_ptr._Mypair._Myval2->m_stages,en</Item>
 			<Item Name="Parent Device">m_impl.m_ptr._Mypair._Myval2->m_device</Item>
 			<Item Name="Descriptor Indexing">m_impl.m_ptr._Mypair._Myval2->m_isRuntimeArray</Item>
