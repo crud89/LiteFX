@@ -8,10 +8,16 @@ ADD_SHADER_MODULE(Tests.Vk.Shaders.VS    SOURCE "shaders/test_vs.hlsl"    LANGUA
 ADD_SHADER_MODULE(Tests.Vk.Shaders.PC.VS SOURCE "shaders/test_pc_vs.hlsl" LANGUAGE HLSL TYPE VERTEX   COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
 ADD_SHADER_MODULE(Tests.Vk.Shaders.FS    SOURCE "shaders/test_fs.hlsl"    LANGUAGE HLSL TYPE FRAGMENT COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
 ADD_SHADER_MODULE(Tests.Vk.Shaders.CS    SOURCE "shaders/test_Cs.hlsl"    LANGUAGE HLSL TYPE COMPUTE  COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC)
+ADD_SHADER_MODULE(Tests.Vk.Shaders.RG    SOURCE "shaders/raytracing_gen.hlsl"  LANGUAGE HLSL TYPE RAYTRACING COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC COMPILE_OPTIONS "-fspv-extension=SPV_KHR_ray_tracing -fspv-extension=SPV_EXT_descriptor_indexing -disable-payload-qualifiers" INCLUDES "shaders/raytracing_common.hlsli")
+ADD_SHADER_MODULE(Tests.Vk.Shaders.RH    SOURCE "shaders/raytracing_hit.hlsl"  LANGUAGE HLSL TYPE RAYTRACING COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC COMPILE_OPTIONS "-fspv-extension=SPV_KHR_ray_tracing -fspv-extension=SPV_EXT_descriptor_indexing -disable-payload-qualifiers" INCLUDES "shaders/raytracing_common.hlsli")
+ADD_SHADER_MODULE(Tests.Vk.Shaders.RM    SOURCE "shaders/raytracing_miss.hlsl" LANGUAGE HLSL TYPE RAYTRACING COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL} COMPILER DXC COMPILE_OPTIONS "-fspv-extension=SPV_KHR_ray_tracing -fspv-extension=SPV_EXT_descriptor_indexing -disable-payload-qualifiers" INCLUDES "shaders/raytracing_common.hlsli")
 SET_TARGET_PROPERTIES(Tests.Vk.Shaders.VS PROPERTIES    FOLDER "Tests/Shaders/Vulkan")
 SET_TARGET_PROPERTIES(Tests.Vk.Shaders.PC.VS PROPERTIES FOLDER "Tests/Shaders/Vulkan")
 SET_TARGET_PROPERTIES(Tests.Vk.Shaders.FS PROPERTIES    FOLDER "Tests/Shaders/Vulkan")
 SET_TARGET_PROPERTIES(Tests.Vk.Shaders.CS PROPERTIES    FOLDER "Tests/Shaders/Vulkan")
+SET_TARGET_PROPERTIES(Tests.Vk.Shaders.RG PROPERTIES    FOLDER "Tests/Shaders/Vulkan")
+SET_TARGET_PROPERTIES(Tests.Vk.Shaders.RH PROPERTIES    FOLDER "Tests/Shaders/Vulkan")
+SET_TARGET_PROPERTIES(Tests.Vk.Shaders.RM PROPERTIES    FOLDER "Tests/Shaders/Vulkan")
 
 DEFINE_TEST("app_should_accept_vk_backend" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_app_init_test" 
 	SOURCES "common.h" "app_init.cpp"
@@ -113,4 +119,14 @@ DEFINE_TEST("device_allocates_vk_descriptor_sets" FOLDER "Tests/Backends/Vk" EXE
 TARGET_LINK_SHADERS(vk_alloc_descriptor_set_test
     INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
     SHADERS Tests.Vk.Shaders.VS Tests.Vk.Shaders.FS
+)
+
+DEFINE_TEST("device_sets_up_vk_ray_tracing_pipeline" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_ray_tracing_test" 
+	SOURCES "common.h" "setup_raytracing_pipeline.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+)
+
+TARGET_LINK_SHADERS(vk_ray_tracing_test
+    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
+    SHADERS Tests.Vk.Shaders.RG Tests.Vk.Shaders.RH Tests.Vk.Shaders.RM
 )
