@@ -17,7 +17,7 @@ void TestApp::onInit()
         _viewport = makeShared<Viewport>(RectF(0.f, 0.f, static_cast<Float>(FRAMEBUFFER_WIDTH), static_cast<Float>(FRAMEBUFFER_HEIGHT)));
         _scissor = makeShared<Scissor>(RectF(0.f, 0.f, static_cast<Float>(FRAMEBUFFER_WIDTH), static_cast<Float>(FRAMEBUFFER_HEIGHT)));
 
-        // As we've enabled WARP, it's the only one available.
+        // Find adapter and create surface.
         auto adapter = backend->findAdapter(std::nullopt);
         auto surface = backend->createSurface(_window);
 
