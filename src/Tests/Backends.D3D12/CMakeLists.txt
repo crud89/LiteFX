@@ -105,6 +105,16 @@ TARGET_LINK_SHADERS(d3d12_compute_test
     SHADERS Tests.Dx.Shaders.CS
 )
 
+DEFINE_TEST("device_allocates_d3d12_descriptor_sets" FOLDER "Tests/Backends/D3D12" EXECUTABLE_NAME "d3d12_alloc_descriptor_set_test" 
+	SOURCES "common.h" "alloc_descriptor_set.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12
+)
+
+TARGET_LINK_SHADERS(d3d12_alloc_descriptor_set_test
+    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
+    SHADERS Tests.Dx.Shaders.VS Tests.Dx.Shaders.PS
+)
+
 ADD_DEPENDENCIES(d3d12_app_init_test dxwarp)
 ADD_DEPENDENCIES(d3d12_input_assembler_test dxwarp)
 ADD_DEPENDENCIES(d3d12_rasterizer_test dxwarp)
@@ -117,3 +127,4 @@ ADD_DEPENDENCIES(d3d12_create_render_pipeline_test dxwarp)
 ADD_DEPENDENCIES(d3d12_reflect_render_pipeline_test dxwarp)
 ADD_DEPENDENCIES(d3d12_push_constants_test dxwarp)
 ADD_DEPENDENCIES(d3d12_compute_test dxwarp)
+ADD_DEPENDENCIES(d3d12_alloc_descriptor_set_test dxwarp)

@@ -104,3 +104,13 @@ TARGET_LINK_SHADERS(vk_compute_test
     INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
     SHADERS Tests.Vk.Shaders.CS
 )
+
+DEFINE_TEST("device_allocates_vk_descriptor_sets" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_alloc_descriptor_set_test" 
+	SOURCES "common.h" "alloc_descriptor_set.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+)
+
+TARGET_LINK_SHADERS(vk_alloc_descriptor_set_test
+    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
+    SHADERS Tests.Vk.Shaders.VS Tests.Vk.Shaders.FS
+)
