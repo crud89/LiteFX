@@ -155,7 +155,7 @@ SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
 	auto queueFamilies = device->queueFamilyIndices() | std::ranges::to<std::vector>();
 
-	bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	bufferInfo.sharingMode = queueFamilies.size() > 1 ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE; // Does not matter anyway if only one queue family is present, but satisfies validation layers.
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
@@ -222,7 +222,7 @@ SharedPtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
 	auto queueFamilies = device->queueFamilyIndices() | std::ranges::to<std::vector>();
 
-	bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	bufferInfo.sharingMode = queueFamilies.size() > 1 ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE; // Does not matter anyway if only one queue family is present, but satisfies validation layers.
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
@@ -292,7 +292,7 @@ SharedPtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 	//       prefer executing workloads that depend on one resource on the same queue, even if it could be run in parallel).
 	auto queueFamilies = device->queueFamilyIndices() | std::ranges::to<std::vector>();
 
-	bufferInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	bufferInfo.sharingMode = queueFamilies.size() > 1 ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE; // Does not matter anyway if only one queue family is present, but satisfies validation layers.
 	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
 
@@ -365,7 +365,7 @@ SharedPtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	}
 
 	auto queueFamilies = device->queueFamilyIndices() | std::ranges::to<std::vector>();
-	imageInfo.sharingMode = VK_SHARING_MODE_CONCURRENT;
+	imageInfo.sharingMode = queueFamilies.size() > 1 ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE; // Does not matter anyway if only one queue family is present, but satisfies validation layers.
 	imageInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	imageInfo.pQueueFamilyIndices = queueFamilies.data();
 

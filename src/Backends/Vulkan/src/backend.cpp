@@ -134,34 +134,34 @@ public:
         auto appName = String(app.name());
 
         // Define Vulkan app.
-        VkApplicationInfo appInfo = {};
-
-        appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        appInfo.pApplicationName = appName.c_str();
-        appInfo.applicationVersion = VK_MAKE_VERSION(app.version().major(), app.version().minor(), app.version().patch());
-        appInfo.pEngineName = LITEFX_ENGINE_ID;
-        appInfo.engineVersion = VK_MAKE_VERSION(LITEFX_MAJOR, LITEFX_MINOR, LITEFX_REV);
-        appInfo.apiVersion = VK_API_VERSION_1_3;
+        VkApplicationInfo appInfo {
+            .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+            .pApplicationName = appName.c_str(),
+            .applicationVersion = VK_MAKE_VERSION(app.version().major(), app.version().minor(), app.version().patch()),
+            .pEngineName = LITEFX_ENGINE_ID,
+            .engineVersion = VK_MAKE_VERSION(LITEFX_MAJOR, LITEFX_MINOR, LITEFX_REV),
+            .apiVersion = VK_API_VERSION_1_3
+        };
 
         // Create Vulkan instance.
-        VkInstanceCreateInfo createInfo = {};
-
-        createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-        createInfo.pApplicationInfo = &appInfo;
-        createInfo.enabledExtensionCount = static_cast<UInt32>(requiredExtensions.size());
-        createInfo.ppEnabledExtensionNames = requiredExtensions.data();
-        createInfo.enabledLayerCount = static_cast<UInt32>(enabledLayers.size());
-        createInfo.ppEnabledLayerNames = enabledLayers.data();
+        VkInstanceCreateInfo createInfo {
+            .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+            .pApplicationInfo = &appInfo,
+            .enabledLayerCount = static_cast<UInt32>(enabledLayers.size()),
+            .ppEnabledLayerNames = enabledLayers.data(),
+            .enabledExtensionCount = static_cast<UInt32>(requiredExtensions.size()),
+            .ppEnabledExtensionNames = requiredExtensions.data()
+        };
 
 #ifndef NDEBUG
-        VkDebugUtilsMessengerCreateInfoEXT debugMessageCallbackInfo = {
+        VkDebugUtilsMessengerCreateInfoEXT debugMessageCallbackInfo {
             .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
             .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
             .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
             .pfnUserCallback = &onDebugMessage
         };
 
-        VkDebugUtilsMessengerCreateInfoEXT debugBreakCallbackInfo = {
+        VkDebugUtilsMessengerCreateInfoEXT debugBreakCallbackInfo {
             .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
             .pNext = &debugMessageCallbackInfo,
             .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
@@ -231,6 +231,7 @@ VulkanBackend::VulkanBackend(const App& app, Span<String> extensions, Span<Strin
     m_impl->loadAdapters(*this);
 
     LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
+    LITEFX_DEBUG(VULKAN_LOG, "Available adapters: {0}", Join(m_impl->m_adapters | std::views::transform([](const auto& adapter) { return adapter->name(); }), ", "));
     LITEFX_DEBUG(VULKAN_LOG, "Available extensions: {0}", Join(this->getAvailableInstanceExtensions(), ", "));
     LITEFX_DEBUG(VULKAN_LOG, "Validation layers: {0}", Join(this->getInstanceValidationLayers(), ", "));
     LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");

@@ -15,7 +15,6 @@ public:
 private:
     Dictionary<ShaderStage, VulkanPushConstantsRange*> m_ranges;
     Array<UniquePtr<VulkanPushConstantsRange>> m_rangePointers;
-    const VulkanPipelineLayout* m_pipelineLayout = nullptr;
     UInt32 m_size;
 
 public:
@@ -61,22 +60,6 @@ VulkanPushConstantsLayout::VulkanPushConstantsLayout(UInt32 size) :
 VulkanPushConstantsLayout::VulkanPushConstantsLayout(VulkanPushConstantsLayout&&) noexcept = default;
 VulkanPushConstantsLayout& VulkanPushConstantsLayout::operator=(VulkanPushConstantsLayout&&) noexcept = default;
 VulkanPushConstantsLayout::~VulkanPushConstantsLayout() noexcept = default;
-
-const VulkanPipelineLayout& VulkanPushConstantsLayout::pipelineLayout() const
-{
-    if (m_impl->m_pipelineLayout != nullptr)
-        return *m_impl->m_pipelineLayout;
-    else [[unlikely]]
-        throw RuntimeException("The push constant layout has not yet been added to a pipeline layout.");
-}
-
-void VulkanPushConstantsLayout::pipelineLayout(const VulkanPipelineLayout& pipelineLayout)
-{
-    if (m_impl->m_pipelineLayout == nullptr)
-        m_impl->m_pipelineLayout = &pipelineLayout;
-    else [[unlikely]]   // Can only happen, if interface of pipeline layout changes in a way that the push constants layout is not passed as a UniquePtr rvalue anymore.
-        throw RuntimeException("The push constant layout has already been initialized from another pipeline layout.");
-}
 
 UInt32 VulkanPushConstantsLayout::size() const noexcept
 {

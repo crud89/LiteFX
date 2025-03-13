@@ -31,11 +31,15 @@
       "platform": "windows"
     },
     {
-      "name": "directx-agility",
+      "name": "directx12-agility",
       "platform": "windows"
     },
     {
       "name": "directx-dxc",
+      "platform": "windows"
+    },
+    {
+      "name": "directx-warp",
       "platform": "windows"
     }
   ],

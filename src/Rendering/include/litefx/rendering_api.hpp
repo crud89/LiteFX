@@ -7279,7 +7279,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="layout">The layout of the push constants to update.</param>
         /// <param name="memory">A pointer to the source memory.</param>
-        inline void pushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept {
+        inline void pushConstants(const IPushConstantsLayout& layout, const void* const memory) const {
             this->cmdPushConstants(layout, memory);
         }
 
@@ -7478,7 +7478,7 @@ namespace LiteFX::Rendering {
         virtual void cmdBind(Span<const IDescriptorSet*> descriptorSets, const IPipeline& pipeline) const = 0;
         virtual void cmdBind(const IVertexBuffer& buffer) const = 0;
         virtual void cmdBind(const IIndexBuffer& buffer) const = 0;
-        virtual void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const noexcept = 0;
+        virtual void cmdPushConstants(const IPushConstantsLayout& layout, const void* const memory) const = 0;
         virtual void cmdDispatchIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
         virtual void cmdDispatchMeshIndirect(const IBuffer& batchBuffer, UInt32 batchCount, UInt64 offset) const noexcept = 0;
         virtual void cmdDispatchMeshIndirect(const IBuffer& batchBuffer, const IBuffer& countBuffer, UInt64 offset, UInt64 countOffset, UInt32 maxBatches) const noexcept = 0;
