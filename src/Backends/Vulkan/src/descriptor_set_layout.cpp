@@ -254,9 +254,10 @@ public:
         LITEFX_TRACE(VULKAN_LOG, "Allocating descriptor pool with {5} sets {{ Uniforms: {0}, Storages: {1}, Images: {2}, Samplers: {3}, Input attachments: {4} }}...", m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]].descriptorCount, descriptorSets);
 
         // Filter pool sizes, since descriptorCount must be greater than 0, according to the specs.
-        auto poolSizes = m_poolSizes |
-            std::views::filter([](const VkDescriptorPoolSize& poolSize) { return poolSize.descriptorCount > 0; }) |
-            std::ranges::to<std::vector>();
+        auto poolSizes = m_poolSizes 
+            | std::views::filter([](const VkDescriptorPoolSize& poolSize) { return poolSize.descriptorCount > 0; }) 
+            | std::views::transform([descriptorSets](const VkDescriptorPoolSize& poolSize) -> VkDescriptorPoolSize { return { poolSize.type, poolSize.descriptorCount * descriptorSets }; })
+            | std::ranges::to<std::vector>();
 
         VkDescriptorPoolCreateInfo poolInfo {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
@@ -506,26 +507,32 @@ Generator<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocate(UI
     auto self = this->shared_from_this();
 
     // Create the descriptor set handles and assign each of them their default bindings.
-    auto handlesAndBindings = std::views::zip(
-        m_impl->allocate(self, descriptorSets, descriptors),
-        bindingsPerSet | std::views::transform([](auto& bindings) { return Span<const DescriptorBinding> { bindings.begin(), bindings.end() }; }));
+    auto handles = m_impl->allocate(self, descriptorSets, descriptors);
+    auto bindings = bindingsPerSet.begin();
 
     // Iterate the handles and apply the bindings.
-    for (auto [handle, bindings] : handlesAndBindings)
+    for (auto handle : handles)
     {
         auto descriptorSet = makeUnique<VulkanDescriptorSet>(*self, handle);
 
-        for (UInt32 i{ 0 }; auto& binding : bindings)
+        // Only start binding, if there are any more bindings provided.
+        if (bindings != bindingsPerSet.end())
         {
-            std::visit(type_switch{
-                [](const std::monostate&) {}, // Default: don't bind anything.
-                [&](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
-                [&](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
-                [&](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
-                [&](const IAccelerationStructure& accelerationStructure) { descriptorSet->update(binding.binding.value_or(i), accelerationStructure, binding.firstDescriptor); }
-            }, binding.resource);
+            for (UInt32 i{ 0 }; auto & binding : *bindings)
+            {
+                std::visit(type_switch{
+                    [](const std::monostate&) {}, // Default: don't bind anything.
+                    [&](const ISampler& sampler) { descriptorSet->update(binding.binding.value_or(i), sampler, binding.firstDescriptor); },
+                    [&](const IBuffer& buffer) { descriptorSet->update(binding.binding.value_or(i), buffer, binding.firstElement, binding.elements, binding.firstDescriptor); },
+                    [&](const IImage& image) { descriptorSet->update(binding.binding.value_or(i), image, binding.firstDescriptor, binding.firstLevel, binding.levels, binding.firstElement, binding.elements); },
+                    [&](const IAccelerationStructure& accelerationStructure) { descriptorSet->update(binding.binding.value_or(i), accelerationStructure, binding.firstDescriptor); }
+                }, binding.resource);
 
-            ++i;
+                ++i;
+            }
+
+            // Advance to next provided binding set.
+            bindings++;
         }
 
         co_yield std::move(descriptorSet);
