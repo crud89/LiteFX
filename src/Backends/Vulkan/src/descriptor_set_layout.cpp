@@ -25,7 +25,8 @@ private:
         { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 0 },
         { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 0 },
         { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 0 },
-        { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 0 }
+        { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 0 },
+        { VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 0 }
     };
     // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
     Dictionary<VkDescriptorType, UInt32> m_poolSizeMapping {
@@ -36,7 +37,8 @@ private:
         { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 4 },
         { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 5 },
         { VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 6 },
-        { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 7 }
+        { VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 7 },
+        { VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 8 }
     };
     // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
     ShaderStage m_stages{};
@@ -196,7 +198,7 @@ public:
             {
                 bindingFlags.push_back({ VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT });
                 m_unboundedDescriptorType = binding.descriptorType;
-
+                
                 switch (binding.descriptorType)
                 {
                 case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
@@ -262,7 +264,7 @@ public:
 
         // Filter pool sizes, since descriptorCount must be greater than 0, according to the specs.
         auto poolSizes = m_poolSizes 
-            | std::views::filter([](const VkDescriptorPoolSize& poolSize) { return poolSize.descriptorCount > 0; }) 
+            | std::views::filter([this](const VkDescriptorPoolSize& poolSize) { return poolSize.descriptorCount > 0 || usesDescriptorIndexing() && m_unboundedDescriptorType.value() == poolSize.type; })
             | std::views::transform([&](const VkDescriptorPoolSize& poolSize) -> VkDescriptorPoolSize {
                     // If we're at the unbounded array, we need to add the number of requested descriptors to the pool size. Otherwise just return the descriptor count for the type.
                     if (this->usesDescriptorIndexing() && poolSize.type == m_unboundedDescriptorType.value())
