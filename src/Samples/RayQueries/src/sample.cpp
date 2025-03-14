@@ -179,12 +179,11 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     reflective->withTriangleMesh({ std::move(dummyVertexBuffer), SharedPtr<IIndexBuffer>() });
     reflective->withTriangleMesh({ vertexBuffer, indexBuffer, nullptr, GeometryFlags::Opaque });
 
-    // Allocate a single buffer for all bottom-level acceleration structures.
-    // NOTE: We can use the sizes as offsets here directly, as they are already properly aligned when requested from the device.
+    // Allocate a single buffer for all bottom-level acceleration structures. We also need to make sure that offsets are properly aligned in the BLAS buffer.
     UInt64 opaqueSize{}, opaqueScratchSize{}, reflectiveSize{}, reflectiveScratchSize{};
     m_device->computeAccelerationStructureSizes(*opaque, opaqueSize, opaqueScratchSize);
     m_device->computeAccelerationStructureSizes(*reflective, reflectiveSize, reflectiveScratchSize);
-    UInt64 reflectiveOffset = align<UInt64>(opaqueSize, 256);
+    UInt64 reflectiveOffset = align<UInt64>(opaqueSize, 256); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
     auto blasBuffer = m_device->factory().createBuffer("BLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, static_cast<size_t>(reflectiveOffset + reflectiveSize), 1u, ResourceUsage::AllowWrite);
 
     // Orient instances randomly.
