@@ -17,10 +17,11 @@ SET(LITEFX_HAS_PIX_RUNTIME @LITEFX_BUILD_WITH_PIX_RUNTIME@)
 # Keep track of the imported libraries for convenience.
 SET(LITEFX_DEPENDENCIES LiteFX.Core LiteFX.Logging LiteFX.AppModel LiteFX.Math LiteFX.Graphics LiteFX.Rendering)
 
-FIND_DEPENDENCY(spdlog CONFIG)
-
 # Lookup package dependencies.
 INCLUDE(CMakeFindDependencyMacro)
+
+# spdlog is always required for logging.
+FIND_DEPENDENCY(spdlog CONFIG)
 
 IF(LITEFX_HAS_DIRECTX12_BACKEND)
   LIST(APPEND LITEFX_DEPENDENCIES LiteFX.Backends.DirectX12)
