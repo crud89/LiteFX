@@ -179,7 +179,8 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     UInt64 opaqueSize{}, opaqueScratchSize{}, reflectiveSize{}, reflectiveScratchSize{};
     m_device->computeAccelerationStructureSizes(*opaque, opaqueSize, opaqueScratchSize);
     m_device->computeAccelerationStructureSizes(*reflective, reflectiveSize, reflectiveScratchSize);
-    auto blasBuffer = m_device->factory().createBuffer("BLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, static_cast<size_t>(opaqueSize + reflectiveSize), 1u, ResourceUsage::AllowWrite);
+    UInt64 reflectiveOffset = align<UInt64>(opaqueSize, 256);
+    auto blasBuffer = m_device->factory().createBuffer("BLAS", BufferType::AccelerationStructure, ResourceHeap::Resource, static_cast<size_t>(reflectiveOffset + reflectiveSize), 1u, ResourceUsage::AllowWrite);
 
     // Orient instances randomly.
     std::srand(static_cast<UInt32>(std::time(nullptr)));
@@ -210,7 +211,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     barrier = m_device->makeBarrier(PipelineStage::AccelerationStructureBuild, PipelineStage::AccelerationStructureBuild);
     barrier->transition(*scratchBuffer, ResourceAccess::AccelerationStructureWrite, ResourceAccess::AccelerationStructureWrite);
     commandBuffer->barrier(*barrier);
-    reflective->build(*commandBuffer, scratchBuffer, blasBuffer, opaqueSize, reflectiveSize);
+    reflective->build(*commandBuffer, scratchBuffer, blasBuffer, reflectiveOffset, reflectiveSize);
     barrier = m_device->makeBarrier(PipelineStage::AccelerationStructureBuild, PipelineStage::AccelerationStructureBuild);
     barrier->transition(*scratchBuffer, ResourceAccess::AccelerationStructureWrite, ResourceAccess::AccelerationStructureWrite);
     commandBuffer->barrier(*barrier);
