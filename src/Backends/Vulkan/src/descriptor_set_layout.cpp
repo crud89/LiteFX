@@ -264,7 +264,9 @@ public:
 
         // Filter pool sizes, since descriptorCount must be greater than 0, according to the specs.
         auto poolSizes = m_poolSizes 
-            | std::views::filter([this](const VkDescriptorPoolSize& poolSize) { return poolSize.descriptorCount > 0 || usesDescriptorIndexing() && m_unboundedDescriptorType.value() == poolSize.type; })
+            | std::views::filter([this](const VkDescriptorPoolSize& poolSize) { 
+                    return poolSize.descriptorCount > 0 || (usesDescriptorIndexing() && m_unboundedDescriptorType.value() == poolSize.type); 
+                })
             | std::views::transform([&](const VkDescriptorPoolSize& poolSize) -> VkDescriptorPoolSize {
                     // If we're at the unbounded array, we need to add the number of requested descriptors to the pool size. Otherwise just return the descriptor count for the type.
                     if (this->usesDescriptorIndexing() && poolSize.type == m_unboundedDescriptorType.value())
