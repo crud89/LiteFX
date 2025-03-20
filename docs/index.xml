@@ -2,10 +2,10 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>LiteFX ✨ on LiteFX - Computer Graphics Engine</title>
-    <link>http://localhost:1313/</link>
+    <link>https://litefx.crudolph.io/</link>
     <description>Recent content in LiteFX ✨ on LiteFX - Computer Graphics Engine</description>
     <generator>Hugo</generator>
     <language>en</language>
-    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://litefx.crudolph.io/index.xml" rel="self" type="application/rss+xml" />
   </channel>
 </rss>

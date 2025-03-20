@@ -1,11 +1,11 @@
 <!doctype html>
 <html itemscope itemtype="http://schema.org/WebPage" lang="en" class="no-js">
   <head>
-	<meta name="generator" content="Hugo 0.145.0"><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+	<meta name="generator" content="Hugo 0.145.0">
     <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link rel="alternate" type="application/rss&#43;xml" href="http://localhost:1313/index.xml">
-<meta name="robots" content="noindex, nofollow">
+<link rel="alternate" type="application/rss&#43;xml" href="https://litefx.crudolph.io/index.xml">
+<meta name="robots" content="index, follow">
 
 
 <link rel="shortcut icon" href="/favicons/favicon.ico" >
@@ -21,7 +21,7 @@
 
 <title>LiteFX - Computer Graphics Engine</title>
 <meta name="description" content="LiteFXModern Computer Graphics EngineLatest Release GitHub Documentation Wiki Welcome to LiteFX ✨ - A modern, flexible computer graphics and rendering engine, written in C&#43;&#43;23 with support for Vulkan 🌋 and DirectX 12 ❎. It contains an abstraction layer over both graphics APIs, that allows for seamless switching between them, without re-creating the application window. The engine can be configured through a fluent builder interface, making it possible to easily and quickly express render pipeline configurations. It uses CMake and vcpkg to manage dependencies and make it straightforward to build. It supports custom shader targets (written in HLSL or GLSL), allowing you to setup a basic, fully featured rendering application within seconds.">
-<meta property="og:url" content="http://localhost:1313/">
+<meta property="og:url" content="https://litefx.crudolph.io/">
   <meta property="og:site_name" content="LiteFX - Computer Graphics Engine">
   <meta property="og:title" content="LiteFX ✨">
   <meta property="og:description" content="LiteFXModern Computer Graphics EngineLatest Release GitHub Documentation Wiki Welcome to LiteFX ✨ - A modern, flexible computer graphics and rendering engine, written in C&#43;&#43;23 with support for Vulkan 🌋 and DirectX 12 ❎. It contains an abstraction layer over both graphics APIs, that allows for seamless switching between them, without re-creating the application window. The engine can be configured through a fluent builder interface, making it possible to easily and quickly express render pipeline configurations. It uses CMake and vcpkg to manage dependencies and make it straightforward to build. It supports custom shader targets (written in HLSL or GLSL), allowing you to setup a basic, fully featured rendering application within seconds.">
@@ -31,11 +31,12 @@
   <meta itemprop="name" content="LiteFX ✨">
   <meta itemprop="description" content="LiteFXModern Computer Graphics EngineLatest Release GitHub Documentation Wiki Welcome to LiteFX ✨ - A modern, flexible computer graphics and rendering engine, written in C&#43;&#43;23 with support for Vulkan 🌋 and DirectX 12 ❎. It contains an abstraction layer over both graphics APIs, that allows for seamless switching between them, without re-creating the application window. The engine can be configured through a fluent builder interface, making it possible to easily and quickly express render pipeline configurations. It uses CMake and vcpkg to manage dependencies and make it straightforward to build. It supports custom shader targets (written in HLSL or GLSL), allowing you to setup a basic, fully featured rendering application within seconds.">
   <meta itemprop="dateModified" content="2024-05-05T17:35:32+02:00">
-  <meta itemprop="wordCount" content="289">
+  <meta itemprop="wordCount" content="509">
   <meta name="twitter:card" content="summary">
   <meta name="twitter:title" content="LiteFX ✨">
   <meta name="twitter:description" content="LiteFXModern Computer Graphics EngineLatest Release GitHub Documentation Wiki Welcome to LiteFX ✨ - A modern, flexible computer graphics and rendering engine, written in C&#43;&#43;23 with support for Vulkan 🌋 and DirectX 12 ❎. It contains an abstraction layer over both graphics APIs, that allows for seamless switching between them, without re-creating the application window. The engine can be configured through a fluent builder interface, making it possible to easily and quickly express render pipeline configurations. It uses CMake and vcpkg to manage dependencies and make it straightforward to build. It supports custom shader targets (written in HLSL or GLSL), allowing you to setup a basic, fully featured rendering application within seconds.">
-<link href="/scss/main.css" rel="stylesheet">
+<link rel="preload" href="/scss/main.min.5e43f8574351718e9b44966c9f3a571202ed048c082f457fb574c10b1a1bc56c.css" as="style" integrity="sha256-XkP4V0NRcY6bRJZsnzpXEgLtBIwIL0V/tXTBCxobxWw=" crossorigin="anonymous">
+<link href="/scss/main.min.5e43f8574351718e9b44966c9f3a571202ed048c082f457fb574c10b1a1bc56c.css" rel="stylesheet" integrity="sha256-XkP4V0NRcY6bRJZsnzpXEgLtBIwIL0V/tXTBCxobxWw=" crossorigin="anonymous">
 <script
   src="https://code.jquery.com/jquery-3.7.1.min.js"
   integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
@@ -50,7 +51,7 @@
   <div class="td-navbar-nav-scroll ms-md-auto" id="main_navbar">
     <ul class="navbar-nav">
       <li class="nav-item">
-        <a class="nav-link" href="https://litefx.crudolph.io/docs/" target="_blank" rel="noopener"><span>Documentation</span></a>
+        <a class="nav-link" href="/docs/" target="_blank" rel="noopener"><span>Documentation</span></a>
       </li>
       <li class="nav-item">
         <a class="nav-link" href="https://github.com/crud89/litefx/" target="_blank" rel="noopener"><i class='fa-brands fa-github'></i><span>GitHub</span></a>
@@ -80,6 +81,11 @@
         min-height: 100vh;
         background: rgb(2,0,36);
         background: linear-gradient(150deg, rgba(2,0,36,1) 0%, rgba(42,42,79,1) 50%, rgba(60,81,89,1) 100%);
+    }
+
+    section.td-box--gradient {
+        background: #403f4c;
+        background: linear-gradient(180deg, #403f4c 0%,rgb(39, 38, 49) 100%);
     }
 
     h1.title-gradient, h2.title-gradient {
@@ -191,6 +197,58 @@
 </div>
 </div>
 </section>
+<div><a id="td-block-3" class="td-offset-anchor"></a></div>
+<section class="row td-box td-box--secondary position-relative td-box--height-auto">
+<div class="col-12">
+<div class="container text-center td-arrow-down">
+<div class="h4 mb-0">
+<h1>With support for state of the art rendering technqiues.</h1>
+</div>
+</div>
+</div>
+</section>
+<div><a id="td-block-4" class="td-offset-anchor"></a></div>
+<section class="row td-box td-box--gradient td-box--height-auto">
+<div class="col">
+<div class="container">
+<div style="margin: 2em 0em;">
+<div style="display: flex;">
+<img src="img/bindless.jpg" width="40%" style="margin: 1em; filter: drop-shadow(rgb(22, 19, 46) 1px 1px 10px);">
+<div style="margin: 1em; color: white; width: 60%"> 
+<h4 class="h3">Bindless Rendering</h2>
+<p>LiteFX supports <span style="font-weight: bold;">descriptor indexing</span> in unbounded descriptor arrays, which enables bind-less rendering techniques. Using those, it is straightforward to put object or material information in a common buffer and pass the non-uniform index as part of a push constant, instance index or any other means to the GPU. This makes managing large dynamic scenes accessible. LiteFX takes care of managing the descriptors, so that you can work with the same interface on both sides: in you shaders as well as your application.</p>
+</div>
+</div>
+</div>
+<div style="margin: 2em 0em;">
+<div style="display: flex;">
+<div style="margin: 1em; color: white; width: 60%"> 
+<h4 class="h3">Hardware Raytracing</h2>
+<p>The engine provides an abstraction layer over hardware-accelerated ray-tracing workflows, including traditional <span style="font-weight: bold;">ray-tracing pipelines</span>, <span style="font-weight: bold;">inline ray-tracing and ray queries</span> as well as for managing and compacting <span style="font-weight: bold;">acceleration structures</span>. As with the other features, LiteFX is agnostic with regards to the graphics API you want to use. Setup rendering once and switch between backends at run-time.</p>
+</div>
+<img src="img/raytracing.jpg" width="40%" style="margin: 1em; filter: drop-shadow(rgb(22, 19, 46) 1px 1px 10px); margin-left: auto;">
+</div>
+</div>
+<div style="margin: 2em 0em;">
+<div style="display: flex;">
+<img src="img/indirect.jpg" width="40%" style="margin: 1em; filter: drop-shadow(rgb(22, 19, 46) 1px 1px 10px);">
+<div style="margin: 1em; color: white; width: 60%"> 
+<h4 class="h3">Indirect Rendering</h2>
+<p>Some workloads differ vastly between different graphics APIs. One such example is <span style="font-weight: bold;">indirect rendering</span>. LiteFX provides a comprehensive abstraction for this, using shader model 6.8 to resolve fundamental architectural differences. As with the other features, this makes it easy to write portable applications that can execute on different graphics backends based on the same compatible code base.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<div><a id="td-block-5" class="td-offset-anchor"></a></div>
+<section class="row td-box td-box--5 td-box--height-auto">
+<div class="col">
+<div class="container">
+<p>&hellip; and there&rsquo;s more! Check out the samples available on <a href="https://github.com/crud89/LiteFX/tree/main/src/Samples/">GitHub</a>!</p>
+</div>
+</div>
+</section>
 
 
 
@@ -242,8 +300,8 @@
 </footer>
 
     </div>
-    <script src="/js/main.js"></script>
-<script defer src="/js/click-to-copy.js" crossorigin="anonymous"></script>
+    <script src="/js/main.min.be69fdacaf55aa6306203edcd2f374dd8bf821e704f6f2afb1152cc7bcb8a0d3.js" integrity="sha256-vmn9rK9VqmMGID7c0vN03Yv4IecE9vKvsRUsx7y4oNM=" crossorigin="anonymous"></script>
+<script defer src="/js/click-to-copy.min.73478a7d4807698aed7e355eb23f9890ca18fea3158604c8471746d046702bad.js" integrity="sha256-c0eKfUgHaYrtfjVesj&#43;YkMoY/qMVhgTIRxdG0EZwK60=" crossorigin="anonymous"></script>
 <script src='/js/tabpane-persist.js'></script>
 
   </body>
