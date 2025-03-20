@@ -23,8 +23,8 @@ The first files we're going to initialize are the files related to vcpkg. The fi
 
 ```json
 {
-  "name": "my-app",
-  "version-string": "1.0",
+  "name": "myapp",
+  "version": "1.0",
   "supports": "windows & !arm",
   "dependencies": [
     "litefx",
@@ -37,14 +37,19 @@ The second file we need to setup is the *vcpkg-configuration.json* file. This fi
 
 ```json
 {
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg-configuration.schema.json",
+  "default-registry": {
+    "kind": "git",
+    "repository": "https://github.com/Microsoft/vcpkg",
+    "baseline": "d5ec528843d29e3a52d745a64b469f810b2cedbf"
+  },
   "registries": [
     {
       "kind": "git",
       "repository": "https://github.com/crud89/LiteFX-Registry",
-      "reference": "litefx-registry",
       "baseline": "0",
-      "packages": [ 
-        "litefx", 
+      "packages": [
+        "litefx",
         "d3d12-memory-allocator",
         "directx12-agility",
         "directx-warp",
@@ -53,9 +58,11 @@ The second file we need to setup is the *vcpkg-configuration.json* file. This fi
         "winpixeventruntime"
       ]
     }
-  ],
+  ]
 }
 ```
+
+**Important:** Remember to update the `baseline` field to the commit id of the latest registry commit [from here](https://github.com/crud89/LiteFX-Registry/commits/main/)!
 
 Finally, we need to install vcpkg. The straightforward option when you already put all your files inside a valid git repository, is to add it as a git submodule as described [here](https://learn.microsoft.com/en-us/vcpkg/concepts/continuous-integration#acquire-vcpkg). But of course any other installation method will work as well. It is strongly adviced to take your time and familiarize yourself with setting up vcpkg on your system depending on your needs. If you are not sure about what's the easiest option for you, then start by using the version integrated into Visual Studio.
 
