@@ -1,4 +1,0 @@
-The package WinPixEventRuntime provides CMake targets:
-
-     find_package(WinPixEventRuntime REQUIRED)
-     target_link_libraries(main PRIVATE microsoft::WinPixEventRuntime)
