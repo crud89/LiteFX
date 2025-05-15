@@ -15,6 +15,12 @@ IF(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 
     # Be more pedantic with warnings and treat them as errors for release builds.
     ADD_COMPILE_OPTIONS(/W4 $<$<CONFIG:Release,RelWithDebInfo>:/WX>)
+    
+    # Allow hot reload in MSVC.
+    IF(POLICY CMP0141)
+      CMAKE_POLICY(SET CMP0141 NEW)
+      SET(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>")
+    ENDIF(POLICY CMP0141)
 ELSEIF(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
     # For clang-cl we need a different warning level, as `/W4` is mapped to `/Wall` which then gets mapped to `-Weverything`, which warns about C++98 compatibility and other obscure flavors irrelevant to modern C++.
     ADD_COMPILE_OPTIONS(-W4 -Wno-missing-field-initializers $<$<CONFIG:Release,RelWithDebInfo>:-Werror> $<$<CONFIG:Debug,RelWithDebInfo>:/Zi> $<$<CONFIG:Debug,RelWithDebInfo>:/JMC> /EHsc)
@@ -57,12 +63,6 @@ ELSE()
 ENDIF(CMAKE_INSTALL_INCLUDEDIR STREQUAL "")
 
 SET(CMAKE_INSTALL_EXPORT_DIR  "cmake")
-
-# Allow hot reload in MSVC.
-IF(POLICY CMP0141)
-  CMAKE_POLICY(SET CMP0141 NEW)
-  SET(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
-ENDIF(POLICY CMP0141)
 
 # Make sure the target export configuration proxy and helper scripts get installed.
 INCLUDE(CMakePackageConfigHelpers)
