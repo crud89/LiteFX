@@ -10,7 +10,7 @@ MESSAGE(STATUS "Initializing: ${PROJECT_NAME}...")
 # Resolve package dependencies.
 FIND_PACKAGE(directx-headers CONFIG REQUIRED)
 FIND_PACKAGE(directx12-agility CONFIG REQUIRED)
-FIND_PACKAGE(d3d12-memory-allocator CONFIG REQUIRED)
+FIND_PACKAGE(D3D12MemoryAllocator CONFIG REQUIRED)
 FIND_PACKAGE(directx-dxc CONFIG REQUIRED)
 
 # Collect header & source files.
@@ -90,7 +90,7 @@ TARGET_INCLUDE_DIRECTORIES(${PROJECT_NAME}
 # Link project dependencies.
 TARGET_LINK_LIBRARIES(${PROJECT_NAME}
     PUBLIC LiteFX.Core LiteFX.Math LiteFX.Rendering LiteFX.AppModel Microsoft::DirectX-Headers Microsoft::DirectX-Guids dxgi Microsoft::DirectX12-Agility Microsoft::DirectXShaderCompiler Microsoft::DXIL 
-    PRIVATE unofficial::d3d12-memory-allocator
+    PRIVATE GPUOpen::D3D12MemoryAllocator
 )
 
 # Pre-define export specifier, to prevent dllimport/dllexport from being be emitted.
@@ -100,7 +100,7 @@ ENDIF(NOT BUILD_SHARED_LIBS)
 
 # Link PIX runtime, if available.
 IF(LITEFX_BUILD_WITH_PIX_RUNTIME)
-    FIND_PACKAGE(WinPixEventRuntime CONFIG REQUIRED)
+    FIND_PACKAGE(winpixevent CONFIG REQUIRED)
     TARGET_LINK_LIBRARIES(${PROJECT_NAME} PRIVATE Microsoft::WinPixEventRuntime)
 ENDIF(LITEFX_BUILD_WITH_PIX_RUNTIME)
 

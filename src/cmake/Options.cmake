@@ -42,6 +42,6 @@ SET(LITEFX_BUILD_ENGINE_IDENTIFIER "LiteFX" CACHE STRING "Defines the engine ide
 
 IF("pix-support" IN_LIST VCPKG_MANIFEST_FEATURES)
   SET(LITEFX_BUILD_WITH_PIX_RUNTIME ON CACHE BOOL "Link DirectX 12 backend against PIX runtime (required for debug marker support).")
-ELSE()
+ELSEIF(NOT LITEFX_BUILD_WITH_PIX_RUNTIME) # Only force it to be off, if not otherwise defined. If setting this variable manually, make sure to also provide the proper dependency!
   SET(LITEFX_BUILD_WITH_PIX_RUNTIME OFF CACHE BOOL "Link DirectX 12 backend against PIX runtime (required for debug marker support).")
 ENDIF("pix-support" IN_LIST VCPKG_MANIFEST_FEATURES)

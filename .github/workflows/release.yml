@@ -19,6 +19,7 @@ on:
 
 env:
   vulkanSdkVersion: '1.3.268.0'
+  llvmVersion: '19.1.7'
 
 jobs:
   build:
@@ -27,19 +28,49 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        profile: [ windows-x64, windows-x86 ]
+        profile: [ windows-msvc-x64, windows-msvc-x86, windows-clang-x64 ]
         include:
-          - profile: windows-x64
+          - profile: windows-msvc-x64
             triplet: x64-windows
+            compiler: msvc
             architecture: x64
-          - profile: windows-x86
+            artifact: win_x64_msvc
+          - profile: windows-msvc-x86
             triplet: x86-windows
+            compiler: msvc
             architecture: x86
-
+            artifact: win_x86_msvc
+          - profile: windows-clang-x64
+            triplet: x64-windows
+            compiler: clang
+            architecture: x64
+            artifact: win_x64_clang
+            
     env:
-      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}
+      VCPKG_DEFAULT_TRIPLET: ${{ matrix.triplet }}-rel
+      VCPKG_FEATURE_FLAGS: 'manifests'
 
     steps:
+      - name: Setup Vulkan SDK 
+        uses: jakoch/install-vulkan-sdk-action@v1.0.4
+        with:
+          vulkan_version: ${{ env.vulkanSdkVersion }}
+          install_runtime: true
+          cache: true
+          stripdown: false
+       
+      - name: Setup build environment
+        id: setup-environment
+        run: |
+          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x64\vulkan-1.dll" "C:\Windows\System32\vulkan-1.dll"
+          cp "C:\VulkanSDK\${{ env.vulkanSdkVersion }}\runtime\x86\vulkan-1.dll" "C:\Windows\SysWOW64\vulkan-1.dll"
+          
+      - name: Update LLVM
+        if: ${{ matrix.compiler == 'clang' }}
+        uses: KyleMayes/install-llvm-action@v2.0.6
+        with:
+          version: ${{ env.llvmVersion }}
+          
       - name: Checking out sources
         uses: actions/checkout@master
         with:
@@ -50,47 +81,14 @@ jobs:
         shell: powershell
         run: ".\\write-version.ps1 -major ${{ github.event.inputs.major }} -minor ${{ github.event.inputs.minor }} -build ${{ github.event.inputs.build }}"
 
-      - name: Setup build environment
-        id: setup-environment
-        run: |
-          echo "VCPKG_FEATURE_FLAGS=manifests" >> $env:GITHUB_ENV
-          
-      - name: Setup Vulkan SDK 
-        uses: jakoch/install-vulkan-sdk-action@v1.0.0
-        with:
-          vulkan_version: ${{ env.vulkanSdkVersion }}
-          install_runtime: true
-          cache: true
-          stripdown: true
-
       - name: Retrieve latest CMake build
         uses: lukka/get-cmake@latest
 
       - name: Restore or build vcpkg
-        uses: lukka/run-vcpkg@v10
+        uses: lukka/run-vcpkg@v11
         with:
           vcpkgDirectory: '${{ github.workspace }}/src/Modules/vcpkg'
-          vcpkgJsonGlob: '${{ github.workspace }}/src/vcpkg.json'
-
-      - name: Build with CMake and Ninja (Debug)
-        id: build-with-cmake-debug
-        uses: lukka/run-cmake@v10
-        with:
-          cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
-          configurePreset: '${{ matrix.profile }}-debug'
-          buildPreset: '${{ matrix.profile }}-debug'
-          
-      - name: Upload build artifacts (Debug)
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: LiteFX-${{ matrix.triplet }}-build-dbg
-          path: '${{ github.workspace }}/out/build/${{ matrix.profile }}-debug'
-
-      - name: Install with CMake (Debug)
-        run: |
-          Set-Location '${{ github.workspace }}/out/build/${{ matrix.profile }}-debug'
-          cmake --install .
+          vcpkgJsonGlob: '**/src/vcpkg.json'
           
       - name: Build with CMake and Ninja (Release)
         id: build-with-cmake-release
@@ -98,14 +96,6 @@ jobs:
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
           configurePreset: '${{ matrix.profile }}-release'
-          buildPreset: '${{ matrix.profile }}-release'
-
-      - name: Upload build artifacts (Release)
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: LiteFX-${{ matrix.triplet }}-build-rel
-          path: '${{ github.workspace }}/out/build/${{ matrix.profile }}-release'
 
       - name: Install with CMake (Release)
         run: |
@@ -123,7 +113,7 @@ jobs:
       - name: Upload install artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: LiteFX-${{ matrix.triplet }}-install
+          name: LiteFX_${{ matrix.artifact }}
           path: '${{ github.workspace }}/out/install/${{ matrix.profile }}-release'
           if-no-files-found: error 
           
@@ -170,36 +160,49 @@ jobs:
           disable_globbing: true
           tagging_message: 'v${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }}'
           
-      - name: Download windows-x64 artifacts...
+      - name: Download windows-msvc-x64 artifacts...
         uses: actions/download-artifact@master
         with:
-          name: LiteFX-x64-windows-install
-          path: artifacts/x64/
+          name: LiteFX-win_x64_msvc
+          path: artifacts/msvc/x64/
           
-      - name: Zip x64 artifacts
+      - name: Zip windows-msvc-x64 artifacts
         uses: papeloto/action-zip@v1
         with:
-          files: artifacts/x64/
-          dest: windows-x64.zip
+          files: artifacts/msvc/x64/
+          dest: windows-x64-msvc.zip
           recursive: true
           
-      - name: Download windows-x86 artifacts...
+      - name: Download windows-msvc-x86 artifacts...
         uses: actions/download-artifact@master
         with:
-          name: LiteFX-x86-windows-install
-          path: artifacts/x86/
+          name: LiteFX-win_x64_msvc
+          path: artifacts/msvc/x86/
           
-      - name: Zip x86 artifacts
+      - name: Zip windows-msvc-x86 artifacts
         uses: papeloto/action-zip@v1
         with:
-          files: artifacts/x86/
-          dest: windows-x86.zip
+          files: artifacts/msvc/x86/
+          dest: windows-x86-msvc.zip
+          recursive: true
+          
+      - name: Download windows-clang-x64 artifacts...
+        uses: actions/download-artifact@master
+        with:
+          name: LiteFX-win_x64_clang
+          path: artifacts/clang/x64/
+          
+      - name: Zip windows-clang-x64 artifacts
+        uses: papeloto/action-zip@v1
+        with:
+          files: artifacts/clang/x64/
+          dest: windows-x64-clang.zip
           recursive: true
           
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-            artifacts: windows-x64.zip,windows-x86.zip
+            artifacts: windows-x64-msvc.zip,windows-x86-msvc.zip,windows-x64-clang.zip
             token: ${{ secrets.RELEASE_BOT_PAT }}
             bodyFile: "${{ github.workspace }}/${{ github.event.inputs.releaseLog }}"
             name: "v${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }}"
