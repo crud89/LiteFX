@@ -41,7 +41,7 @@ The second file we need to setup is the *vcpkg-configuration.json* file. This fi
   "default-registry": {
     "kind": "git",
     "repository": "https://github.com/Microsoft/vcpkg",
-    "baseline": "d5ec528843d29e3a52d745a64b469f810b2cedbf"
+    "baseline": "f883576b85d03affa3f36925dba09cf06a104a03"
   },
   "registries": [
     {
@@ -50,12 +50,9 @@ The second file we need to setup is the *vcpkg-configuration.json* file. This fi
       "baseline": "0",
       "packages": [
         "litefx",
-        "d3d12-memory-allocator",
         "directx12-agility",
         "directx-warp",
-        "spdlog",
-        "vulkan-memory-allocator",
-        "winpixeventruntime"
+        "spdlog"
       ]
     }
   ]
