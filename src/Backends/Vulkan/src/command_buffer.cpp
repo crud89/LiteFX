@@ -314,6 +314,33 @@ void VulkanCommandBuffer::end() const
 	m_impl->m_recording = false;
 }
 
+void VulkanCommandBuffer::track(SharedPtr<const IBuffer> buffer) const
+{
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers may only start resource tracking if they are currently recording.");
+
+	if (buffer != nullptr)
+		m_impl->m_sharedResources.push_back(buffer);
+}
+
+void VulkanCommandBuffer::track(SharedPtr<const IImage> image) const
+{
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers may only start resource tracking if they are currently recording.");
+
+	if (image != nullptr)
+		m_impl->m_sharedResources.push_back(image);
+}
+
+void VulkanCommandBuffer::track(SharedPtr<const ISampler> sampler) const
+{
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers may only start resource tracking if they are currently recording.");
+
+	if (sampler != nullptr)
+		m_impl->m_sharedResources.push_back(sampler);
+}
+
 bool VulkanCommandBuffer::isSecondary() const noexcept
 {
 	return m_impl->m_secondary;

@@ -6554,6 +6554,41 @@ namespace LiteFX::Rendering {
         /// <returns>`true`, if the command buffer is a secondary command buffer, or `false` otherwise.</returns>
         virtual bool isSecondary() const noexcept = 0;
 
+        /// <summary>
+        /// Sets up tracking for a buffer, so that it will not be destroyed until the command buffer has been executed.
+        /// </summary>
+        /// <remarks>
+        /// When working with resources, often times you only need them for a single execution cycle of a command buffer. Having to manually check if the command buffer has been 
+        /// executed (by waiting for it's submission fence on the target queue) and releasing the resource afterwards can be difficult and intricate. Resource tracking allows the
+        /// command buffer to store a reference of a resource and releasing it at some point after the command buffer has been executed automatically. Note that this does not 
+        /// automatically destroy the resource, which only happens if all references to it are released. However, if the only reference left is the one that is tracked by the 
+        /// command buffer, this process also destroys the resource.
+        /// 
+        /// Resources can only be tracked, if the command buffer is currently recording. The command buffer will not track uninitialized resources, i.e., a submitted `nullptr`
+        /// will be discarded.
+        /// </remarks>
+        /// <param name="buffer">The buffer to track.</param>
+        /// <exception cref="RuntimeException">Thrown, if the command buffer is not currently recording.</exception>
+        /// <seealso cref="track(SharedPtr&le;const IImage&ge;)" />
+        /// <seealso cref="track(SharedPtr&le;const ISampler&ge;)" />
+        virtual void track(SharedPtr<const IBuffer> buffer) const = 0;
+
+        /// <summary>
+        /// Sets up tracking for an image, so that it will not be destroyed until the command buffer has been executed.
+        /// </summary>
+        /// <param name="image">The image to track.</param>
+        /// <exception cref="RuntimeException">Thrown, if the command buffer is not currently recording.</exception>
+        /// <seealso cref="track(SharedPtr&le;const IBuffer&ge;)" />
+        virtual void track(SharedPtr<const IImage> image) const = 0;
+
+        /// <summary>
+        /// Sets up tracking for a sampler state, so that it will not be destroyed until the command buffer has been executed.
+        /// </summary>
+        /// <param name="sampler">The sampler to track.</param>
+        /// <exception cref="RuntimeException">Thrown, if the command buffer is not currently recording.</exception>
+        /// <seealso cref="track(SharedPtr&le;const IBuffer&ge;)" />
+        virtual void track(SharedPtr<const ISampler> sampler) const = 0;
+
     public:
         /// <summary>
         /// Gets a pointer to the command queue that this command buffer was allocated from or `nullptr`, if the queue has already been released.
