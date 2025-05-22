@@ -205,6 +205,24 @@ void DirectX12CommandBuffer::end() const
 	m_impl->m_recording = false;
 }
 
+void DirectX12CommandBuffer::track(SharedPtr<const IBuffer> buffer) const noexcept
+{
+	if (buffer != nullptr)
+		m_impl->m_sharedResources.push_back(buffer);
+}
+
+void DirectX12CommandBuffer::track(SharedPtr<const IImage> image) const noexcept
+{
+	if (image != nullptr)
+		m_impl->m_sharedResources.push_back(image);
+}
+
+void DirectX12CommandBuffer::track(SharedPtr<const ISampler> sampler) const noexcept
+{
+	if (sampler != nullptr)
+		m_impl->m_sharedResources.push_back(sampler);
+}
+
 bool DirectX12CommandBuffer::isSecondary() const noexcept
 {
 	return m_impl->m_secondary;

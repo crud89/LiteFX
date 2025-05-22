@@ -1474,6 +1474,15 @@ namespace LiteFX::Rendering::Backends {
         void end() const override;
 
         /// <inheritdoc />
+        void track(SharedPtr<const IBuffer> buffer) const noexcept override;
+
+        /// <inheritdoc />
+        void track(SharedPtr<const IImage> image) const noexcept override;
+
+        /// <inheritdoc />
+        void track(SharedPtr<const ISampler> sampler) const noexcept override;
+
+        /// <inheritdoc />
         bool isSecondary() const noexcept override;
 
         /// <inheritdoc />

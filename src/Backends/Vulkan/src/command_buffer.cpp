@@ -314,6 +314,24 @@ void VulkanCommandBuffer::end() const
 	m_impl->m_recording = false;
 }
 
+void VulkanCommandBuffer::track(SharedPtr<const IBuffer> buffer) const noexcept
+{
+	if (buffer != nullptr)
+		m_impl->m_sharedResources.push_back(buffer);
+}
+
+void VulkanCommandBuffer::track(SharedPtr<const IImage> image) const noexcept
+{
+	if (image != nullptr)
+		m_impl->m_sharedResources.push_back(image);
+}
+
+void VulkanCommandBuffer::track(SharedPtr<const ISampler> sampler) const noexcept
+{
+	if (sampler != nullptr)
+		m_impl->m_sharedResources.push_back(sampler);
+}
+
 bool VulkanCommandBuffer::isSecondary() const noexcept
 {
 	return m_impl->m_secondary;
