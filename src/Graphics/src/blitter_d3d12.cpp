@@ -108,6 +108,7 @@ void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX1
 	const auto& parametersLayout = resourceBindingsLayout.descriptor(0);
 	auto parameters = device->factory().createBuffer(parametersLayout.type(), ResourceHeap::Dynamic, parametersLayout.elementSize(), image.levels());
 	parameters->map(parametersBlock, sizeof(Parameters));
+	commandBuffer.track(parameters);
 
 	// Create and bind the sampler.
 	const auto& samplerBindingsLayout = pipeline.layout()->descriptorSet(1);
