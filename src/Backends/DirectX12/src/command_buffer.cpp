@@ -205,6 +205,33 @@ void DirectX12CommandBuffer::end() const
 	m_impl->m_recording = false;
 }
 
+void DirectX12CommandBuffer::track(SharedPtr<const IBuffer> buffer) const
+{
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers may only start resource tracking if they are currently recording.");
+
+	if (buffer != nullptr)
+		m_impl->m_sharedResources.push_back(buffer);
+}
+
+void DirectX12CommandBuffer::track(SharedPtr<const IImage> image) const
+{
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers may only start resource tracking if they are currently recording.");
+
+	if (image != nullptr)
+		m_impl->m_sharedResources.push_back(image);
+}
+
+void DirectX12CommandBuffer::track(SharedPtr<const ISampler> sampler) const
+{
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers may only start resource tracking if they are currently recording.");
+
+	if (sampler != nullptr)
+		m_impl->m_sharedResources.push_back(sampler);
+}
+
 bool DirectX12CommandBuffer::isSecondary() const noexcept
 {
 	return m_impl->m_secondary;
