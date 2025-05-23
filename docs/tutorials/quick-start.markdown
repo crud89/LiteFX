@@ -740,6 +740,8 @@ void SampleApp::onStartup()
 
 ## Frame Loop
 
+Finally, let's get to the actual rendering loop. The first thing we need to do is swap the back buffer on the swap chain. This operation returns us with an index into our frame buffer, indicating which frame we are going to write. Accordingly, we are retrieving the proper frame buffer instance from the device state. Also, we acquire the render pass, as we need it to execute the actual rendering logic in a moment.
+
 ```cxx
 // main.cpp
 void SampleApp::onStartup()
@@ -759,6 +761,26 @@ void SampleApp::onStartup()
         auto& frameBuffer = m_device->state().frameBuffer(std::format("Frame Buffer {0}", backBuffer));
         auto& renderPass = m_device->state().renderPass("Geometry");
 
+        // ...
+    }
+}
+```
+
+A render pass needs to be started by passing the frame buffer into it. Remember how we setup a render target and mapped it to the frame buffer during setup? This way, the render pass can now tell which image to draw into while it executes. The render pass also provides us with a command buffer, we can record all drawing commands into. The advantage of using this command buffer is, that it already sets up synchronization for us. In multi-threaded applications, we can also have multiple command buffers per render pass - one for each thread that should record commands.
+
+Within the command buffer, we setup the pipeline state, telling the GPU how to draw the object (as explained during the setup). We also set the viewport and scissor region we declared earlier. Next, we bind the vertex and index buffer for our geometry and call `drawIndexed` to invoke the actual rendering. Finally, ending the render pass submits the command buffer and issues the present command on the swap chain.
+
+```cxx
+// main.cpp
+void SampleApp::onStartup()
+{
+    // ...
+
+    // This is the main application loop. Add any per-frame logic below.
+    while (!::glfwWindowShouldClose(m_window.get()))
+    {
+        // ...
+
         // Begin rendering on the render pass and use the only pipeline we've created for it.
         renderPass.begin(frameBuffer);
         auto commandBuffer = renderPass.commandBuffer(0);
@@ -777,6 +799,7 @@ void SampleApp::onStartup()
 }
 ```
 
+With everything set up and running, we can now execute the program and should see a single triangle in the top-right corner of the window. Feel free to experiment with the vertices and indices to change the shape of the triangle, but take care of the index order or the triangle might be culled!
 
 ## Final Words
 
