@@ -614,7 +614,7 @@ auto startCallback = [this]<typename TBackend>(TBackend* backend) {
     SharedPtr<Rasterizer> rasterizer = device->buildRasterizer()
         .polygonMode(PolygonMode::Solid)
         .cullMode(CullMode::BackFaces)
-        .cullOrder(CullOrder::ClockWise);
+        .cullOrder(CullOrder::CounterClockWise);
 
     // ...
 
@@ -674,29 +674,108 @@ auto startCallback = [this]<typename TBackend>(TBackend* backend) {
 
 > Note that in a real-world application you might end up with lots of pipeline state objects. During rendering, switching between different pipeline states can be a costly operation. A good amount of performance potential when using modern graphics APIs is based on making those aspects of rendering explicit for the application. A good practice is to group draw calls by their pipeline state and to minimize the amount of pipelines required in order to minimize context switches.
 
-### Buffer Transfers
+### Managing state resources
 
+Now that we've setup all state resources (i.e., the pipeline state, render pass, and frame buffer), the startup callback will be left, which would cause them to be released immediately again. As we need them during rendering, we also need to think about where to store the state resources. One option is to store the resources in member variables inside our application class. Another option is to use the *device state* provided by the device we've created earlier. The device state can be accessed by calling the `state` method on the device. By handing over the state resources to the device state, we do not need to take care of managing their lifetimes. We can access the state resources later using the names we provided earlier. Note that we do not need to store the input assembler, rasterizer or shader program states, as those are stored by the pipeline state.
 
+```cxx
+auto startCallback = [this]<typename TBackend>(TBackend* backend) {
 
+    // ...
 
+    // Create a render pipeline.
+    // ...
+    
+    // Store state resources in the device state.
+    device->state().add(std::move(renderPass));
+    device->state().add(std::move(renderPipeline));
+    std::ranges::for_each(frameBuffers, [device](auto& frameBuffer) { device->state().add(std::move(frameBuffer)); });
+
+    // Store the device and return,
+    m_device = device;
+    return true;
+};
+```
+
+## Buffer Transfers
 
 Currently the vertex and index buffers reside as member variables of our application instance in CPU memory. Before the GPU can access them, we need to transfer them. We do this by allocating a buffer for each of them before entering the applications main loop and transferring the data into the buffers. Those transfers are issued in a command buffer, which we record once and then let the driver execute it. As this is an asynchronous operation, we need to wait for its execution, before we can use the buffers. We do all of this in the application startup handler, just before entering the main loop.
+
+In order to create the vertex and index buffers, we need to provide their layout, which we already defined earlier as part of the input assembler state. To acquire it, we can retrieve a reference of the pipeline from the device state. As there are different types of pipelines and only graphics pipelines require input assembler and rasterizer states, we need to upcast the reference to the appropriate interface to request the input assembler. We then use this input assembler state to create the vertex and index buffer instances and issue transfer commands to initialize them. Finally, we submit the command buffer and wait for it to be executed on the underlying command queue. After this point we can be sure that the resources are available for rendering.
 
 ```cxx
 // main.cpp
 void SampleApp::onStartup()
 {
-    
+    // Request the input assembler from the pipeline state.
+	auto& geometryPipeline = dynamic_cast<IRenderPipeline&>(m_device->state().pipeline("Geometry Pipeline"));
+	auto inputAssembler = geometryPipeline.inputAssembler();
 
+    // Create a new command buffer from the transfer queue.
+    auto& transferQueue = m_device->defaultQueue(QueueType::Transfer);
+    auto commandBuffer = transferQueue.createCommandBuffer(true);
 
-    while (!::glfwWindowShouldClose(m_window))
+    // Create the vertex buffer and transfer the staging buffer into it.
+    auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(m_vertices.size()));
+    commandBuffer->transfer(m_vertices.data(), m_vertices.size() * sizeof(::Vertex), *vertexBuffer, 0, static_cast<UInt32>(m_vertices.size()));
+
+    // Create the index buffer and transfer the staging buffer into it.
+    auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *inputAssembler->indexBufferLayout(), ResourceHeap::Resource, static_cast<UInt32>(m_indices.size()));
+    commandBuffer->transfer(m_indices.data(), m_indices.size() * inputAssembler->indexBufferLayout()->elementSize(), *indexBuffer, 0, static_cast<UInt32>(m_indices.size()));
+
+    // Submit the command buffer and wait for its execution.
+    auto fence = commandBuffer->submit();
+    transferQueue.waitFor(fence);
+
+    // This is the main application loop. Add any per-frame logic below.
+    while (!::glfwWindowShouldClose(m_window.get()))
     {
-    // ...
+        // Poll UI events.
+        ::glfwPollEvents();
+
+        // ...
     }
 }
 ```
 
+## Frame Loop
 
+```cxx
+// main.cpp
+void SampleApp::onStartup()
+{
+    // ...
+
+    // This is the main application loop. Add any per-frame logic below.
+    while (!::glfwWindowShouldClose(m_window.get()))
+    {
+        // Poll UI events.
+        ::glfwPollEvents();
+        
+        // Swap the back buffers for the next frame.
+        auto backBuffer = m_device->swapChain().swapBackBuffer();
+
+        // Query state. For performance reasons, those state variables should be cached for more complex applications, instead of looking them up every frame.
+        auto& frameBuffer = m_device->state().frameBuffer(std::format("Frame Buffer {0}", backBuffer));
+        auto& renderPass = m_device->state().renderPass("Geometry");
+
+        // Begin rendering on the render pass and use the only pipeline we've created for it.
+        renderPass.begin(frameBuffer);
+        auto commandBuffer = renderPass.commandBuffer(0);
+        commandBuffer->use(geometryPipeline);
+        commandBuffer->setViewports(m_viewport.get());
+        commandBuffer->setScissors(m_scissor.get());
+
+        // Bind the vertex and index buffers.
+        commandBuffer->bind(*vertexBuffer);
+        commandBuffer->bind(*indexBuffer);
+
+        // Draw the object and present the frame by ending the render pass.
+        commandBuffer->drawIndexed(indexBuffer->elements());
+        renderPass.end();
+    }
+}
+```
 
 
 ## Final Words
