@@ -10,6 +10,11 @@ title: LiteFX ✨
         background: linear-gradient(150deg, rgba(2,0,36,1) 0%, rgba(42,42,79,1) 50%, rgba(60,81,89,1) 100%);
     }
 
+    section.td-box--gradient {
+        background: #403f4c;
+        background: linear-gradient(180deg, #403f4c 0%,rgb(39, 38, 49) 100%);
+    }
+
     h1.title-gradient, h2.title-gradient {
         font-family: sans-serif;
         letter-spacing: 0.4em;
@@ -96,4 +101,52 @@ LiteFX provides a streamlined, object-oriented API that allows for straightforwa
 {{% blocks/feature icon="fa-hammer" title="CMake Integration" %}}
 LiteFX provides tools to integrate *assets* and *shaders* into your build process, which allows you to manage them next to your sources without leaving your IDE. Shaders can be authored in *GLSL* and *HLSL* and can target both supported APIs from a single source.
 {{% /blocks/feature %}}
+{{% /blocks/section %}}
+
+
+{{% blocks/lead color="secondary" %}}
+
+<h1>With support for state of the art rendering technqiues.</h1>
+
+{{% /blocks/lead %}}
+
+
+{{% blocks/section color="gradient" %}}
+
+<div style="margin: 2em 0em;">
+<div style="display: flex;">
+<img src="img/bindless.jpg" width="40%" style="margin: 1em; filter: drop-shadow(rgb(22, 19, 46) 1px 1px 10px);">
+<div style="margin: 1em; color: white; width: 60%"> 
+<h4 class="h3">Bindless Rendering</h2>
+<p>LiteFX supports <span style="font-weight: bold;">descriptor indexing</span> in unbounded descriptor arrays, which enables bind-less rendering techniques. Using those, it is straightforward to put object or material information in a common buffer and pass the non-uniform index as part of a push constant, instance index or any other means to the GPU. This makes managing large dynamic scenes accessible. LiteFX takes care of managing the descriptors, so that you can work with the same interface on both sides: in you shaders as well as your application.</p>
+</div>
+</div>
+</div>
+
+<div style="margin: 2em 0em;">
+<div style="display: flex;">
+<div style="margin: 1em; color: white; width: 60%"> 
+<h4 class="h3">Hardware Raytracing</h2>
+<p>The engine provides an abstraction layer over hardware-accelerated ray-tracing workflows, including traditional <span style="font-weight: bold;">ray-tracing pipelines</span>, <span style="font-weight: bold;">inline ray-tracing and ray queries</span> as well as for managing and compacting <span style="font-weight: bold;">acceleration structures</span>. As with the other features, LiteFX is agnostic with regards to the graphics API you want to use. Setup rendering once and switch between backends at run-time.</p>
+</div>
+<img src="img/raytracing.jpg" width="40%" style="margin: 1em; filter: drop-shadow(rgb(22, 19, 46) 1px 1px 10px); margin-left: auto;">
+</div>
+</div>
+
+<div style="margin: 2em 0em;">
+<div style="display: flex;">
+<img src="img/indirect.jpg" width="40%" style="margin: 1em; filter: drop-shadow(rgb(22, 19, 46) 1px 1px 10px);">
+<div style="margin: 1em; color: white; width: 60%"> 
+<h4 class="h3">Indirect Rendering</h2>
+<p>Some workloads differ vastly between different graphics APIs. One such example is <span style="font-weight: bold;">indirect rendering</span>. LiteFX provides a comprehensive abstraction for this, using shader model 6.8 to resolve fundamental architectural differences. As with the other features, this makes it easy to write portable applications that can execute on different graphics backends based on the same compatible code base.</p>
+</div>
+</div>
+</div>
+
+{{% /blocks/section %}}
+
+{{% blocks/section %}}
+
+... and there's more! Check out the samples available on [GitHub](https://github.com/crud89/LiteFX/tree/main/src/Samples/)!
+
 {{% /blocks/section %}}
