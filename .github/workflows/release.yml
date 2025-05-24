@@ -96,19 +96,20 @@ jobs:
         with:
           cmakeListsTxtPath: '${{ github.workspace }}/src/CMakeLists.txt'
           configurePreset: '${{ matrix.profile }}-release'
+          buildPreset: '${{ matrix.profile }}-release'
 
       - name: Install with CMake (Release)
         run: |
           Set-Location '${{ github.workspace }}/out/build/${{ matrix.profile }}-release'
           cmake --install .
           
-      - name: Sign binaries
-        uses: dlemstra/code-sign-action@v1
-        with:
-          certificate: '${{ secrets.SIGN_CERTIFICATE_BASE64 }}'
-          password: '${{ secrets.SIGN_CERTIFICATE_PASSWORD }}'
-          folder: '${{ github.workspace }}/out/install/'
-          recursive: true
+      #- name: Sign binaries
+      #  uses: dlemstra/code-sign-action@v1
+      #  with:
+      #    certificate: '${{ secrets.SIGN_CERTIFICATE_BASE64 }}'
+      #    password: '${{ secrets.SIGN_CERTIFICATE_PASSWORD }}'
+      #    folder: '${{ github.workspace }}/out/install/'
+      #    recursive: true
 
       - name: Upload install artifacts
         uses: actions/upload-artifact@v4
@@ -123,8 +124,64 @@ jobs:
     runs-on: ubuntu-latest
       
     steps:
+      - name: Download windows-msvc-x64 artifacts...
+        uses: actions/download-artifact@v4
+        with:
+          name: LiteFX_win_x64_msvc
+          path: ${{ github.workspace }}/../.artifacts/msvc/x64/
+          
+      - name: Download windows-msvc-x86 artifacts...
+        uses: actions/download-artifact@v4
+        with:
+          name: LiteFX_win_x64_msvc
+          path: ${{ github.workspace }}/../.artifacts/msvc/x86/
+          
+      - name: Download windows-clang-x64 artifacts...
+        uses: actions/download-artifact@v4
+        with:
+          name: LiteFX_win_x64_clang
+          path: ${{ github.workspace }}/../.artifacts/clang/x64/
+
+      - run: |
+         ls -R ${{ github.workspace }}/../.artifacts/
+
+      - name: Installing zip
+        uses: montudor/action-zip@v1
+
+      - run: zip -r ${{ github.workspace }}/../windows-x64-msvc.zip .
+        working-directory: ${{ github.workspace }}/../.artifacts/msvc/x64/
+
+      - run: zip -r ${{ github.workspace }}/../windows-x86-msvc.zip .
+        working-directory: ${{ github.workspace }}/../.artifacts/msvc/x86/
+
+      - run: zip -r ${{ github.workspace }}/../windows-x64-clang.zip .
+        working-directory: ${{ github.workspace }}/../.artifacts/clang/x64/
+
+      - run: |
+         ls ${{ github.workspace }}/../*.zip
+
+      # For debug purposes
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64-msvc.zip
+          path: ${{ github.workspace }}/windows-x64-msvc.zip
+          
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x86-msvc.zip
+          path: ${{ github.workspace }}/windows-x86-msvc.zip
+          
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64-clang.zip
+          path: ${{ github.workspace }}/windows-x64-clang.zip
+          
+      - run: |
+         ls ${{ github.workspace }}/../*.zip
+
+      # Build documentation.
       - name: Checking out sources
-        uses: actions/checkout@master
+        uses: actions/checkout@v4
         with:
           submodules: true
           token: ${{ secrets.RELEASE_BOT_PAT }}
@@ -146,8 +203,11 @@ jobs:
           working-directory: .
           doxyfile-path: ./.doxyfile
 
+      - run: |
+         ls ${{ github.workspace }}/../*.zip
+
       - name: Collect changes and push commit
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:    
           commit_user_name: Release Bot 🤖
           commit_user_email: 18394207+github-actions[bot]@users.noreply.github.com
@@ -160,49 +220,10 @@ jobs:
           disable_globbing: true
           tagging_message: 'v${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }}'
           
-      - name: Download windows-msvc-x64 artifacts...
-        uses: actions/download-artifact@master
-        with:
-          name: LiteFX-win_x64_msvc
-          path: artifacts/msvc/x64/
-          
-      - name: Zip windows-msvc-x64 artifacts
-        uses: papeloto/action-zip@v1
-        with:
-          files: artifacts/msvc/x64/
-          dest: windows-x64-msvc.zip
-          recursive: true
-          
-      - name: Download windows-msvc-x86 artifacts...
-        uses: actions/download-artifact@master
-        with:
-          name: LiteFX-win_x64_msvc
-          path: artifacts/msvc/x86/
-          
-      - name: Zip windows-msvc-x86 artifacts
-        uses: papeloto/action-zip@v1
-        with:
-          files: artifacts/msvc/x86/
-          dest: windows-x86-msvc.zip
-          recursive: true
-          
-      - name: Download windows-clang-x64 artifacts...
-        uses: actions/download-artifact@master
-        with:
-          name: LiteFX-win_x64_clang
-          path: artifacts/clang/x64/
-          
-      - name: Zip windows-clang-x64 artifacts
-        uses: papeloto/action-zip@v1
-        with:
-          files: artifacts/clang/x64/
-          dest: windows-x64-clang.zip
-          recursive: true
-          
       - name: Create release
         uses: ncipollo/release-action@v1
         with:
-            artifacts: windows-x64-msvc.zip,windows-x86-msvc.zip,windows-x64-clang.zip
+            artifacts: ${{ github.workspace }}/../*.zip
             token: ${{ secrets.RELEASE_BOT_PAT }}
             bodyFile: "${{ github.workspace }}/${{ github.event.inputs.releaseLog }}"
             name: "v${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.build }}"

@@ -1,11 +1,14 @@
 var class_lite_f_x_1_1_rendering_1_1_i_render_pipeline =
 [
-    [ "~IRenderPipeline", "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a97205f198dfb57b6c3f1be3b13cd9dc9", null ],
-    [ "alphaToCoverage", "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#acf3d3b5aa5565ea312040cb4c28f8a0b", null ],
-    [ "blendFactors", "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#aea2e25c84a76f531fa414c590ec28c1d", null ],
+    [ "IRenderPipeline", "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a8268f79205b6104228d3a6eadc8f3b1d", null ],
+    [ "IRenderPipeline", "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a6872c9261b51861648b066a684b53274", null ],
+    [ "IRenderPipeline", "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a428658b2e27581dbad8c2c6d012cf3d2", null ],
+    [ "~IRenderPipeline", "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a37489148d9213ab48e40d627c09cb9be", null ],
+    [ "alphaToCoverage", "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#ac8858f0071aede40b55b7c87ec5aa8e6", null ],
     [ "inputAssembler", "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a5ecaf05af3771cfdb949ab74339c2056", null ],
+    [ "operator=", "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#aeb1a0ced5e2991b0299c28e00df77506", null ],
+    [ "operator=", "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#af48f8e7dba027fb4dca7fcd9e2c9c144", null ],
     [ "rasterizer", "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a123e6f44b7dd2dc3ec500a5e106a8655", null ],
-    [ "scissors", "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#abfef0a3b1ba8045716744fac85fa08de", null ],
-    [ "stencilRef", "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#af696fa2a6a4ed938a13c6838499b2fe1", null ],
-    [ "viewports", "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a8e69b0d15ef00012b6a59f6631ed710c", null ]
+    [ "samples", "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a535645ff298c4dea9316d844ce44aeef", null ],
+    [ "updateSamples", "class_lite_f_x_1_1_rendering_1_1_i_render_pipeline.html#a7cf53152774d2d68d248222a33f886f2", null ]
 ];

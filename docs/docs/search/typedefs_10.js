@@ -1,6 +1,19 @@
 var searchData=
 [
-  ['weakptr_0',['WeakPtr',['../namespace_lite_f_x.html#a84bce93d3c2238937e451ac712f4dc63',1,'LiteFX']]],
-  ['wstring_1',['WString',['../namespace_lite_f_x.html#a9e25a15de5d170fec677c95788835020',1,'LiteFX']]],
-  ['wstringview_2',['WStringView',['../namespace_lite_f_x.html#a81496d832619c7f4e2d5b08e583c541d',1,'LiteFX']]]
+  ['uint16_0',['UInt16',['../namespace_lite_f_x_1_1_math.html#a280a3cad8edd7469a1ba5dd703d3176b',1,'LiteFX::Math']]],
+  ['uint16vector1_1',['UInt16Vector1',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a65bfed4a49c4a14d135aff87f31a7a37',1,'LiteFX::Math::Vectors']]],
+  ['uint16vector2_2',['UInt16Vector2',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a2c119aca0e0adc06a97440bfa942d6d7',1,'LiteFX::Math::Vectors']]],
+  ['uint16vector3_3',['UInt16Vector3',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a32e9cb42368183027a1e11da8482c7aa',1,'LiteFX::Math::Vectors']]],
+  ['uint16vector4_4',['UInt16Vector4',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#ac2288538d1f034cd518fa7a74d10be33',1,'LiteFX::Math::Vectors']]],
+  ['uint32_5',['UInt32',['../namespace_lite_f_x_1_1_math.html#a9d0c69f488431cf242a743f5bee8065f',1,'LiteFX::Math']]],
+  ['uint32vector1_6',['UInt32Vector1',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a47ce0ec02fd4f943e97ba858df280b7a',1,'LiteFX::Math::Vectors']]],
+  ['uint32vector2_7',['UInt32Vector2',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a8b6fdffbdfdce3c949b2e80c4f6a8349',1,'LiteFX::Math::Vectors']]],
+  ['uint32vector3_8',['UInt32Vector3',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a5200c63cfcba63f8cd5dff767fc8b217',1,'LiteFX::Math::Vectors']]],
+  ['uint32vector4_9',['UInt32Vector4',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a05cbe6f84694d520e5077e75c105c638',1,'LiteFX::Math::Vectors']]],
+  ['uint64_10',['UInt64',['../namespace_lite_f_x_1_1_math.html#a42c7bab2ce6b3575c6e1316cd87de457',1,'LiteFX::Math']]],
+  ['uint64vector1_11',['UInt64Vector1',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a8b03240f2b7133bcd9992639a0b06d4e',1,'LiteFX::Math::Vectors']]],
+  ['uint64vector2_12',['UInt64Vector2',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#aafb02c6f02179c875f3a4b76dbaa58af',1,'LiteFX::Math::Vectors']]],
+  ['uint64vector3_13',['UInt64Vector3',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a3030b795ac9d83bf0db625eaee8e1e57',1,'LiteFX::Math::Vectors']]],
+  ['uint64vector4_14',['UInt64Vector4',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a728f3fd9a28c26fb56dd8437d06beed4',1,'LiteFX::Math::Vectors']]],
+  ['uniqueptr_15',['UniquePtr',['../namespace_lite_f_x.html#a6daa7ddc3f560528522ba2849e09e3d3',1,'LiteFX']]]
 ];

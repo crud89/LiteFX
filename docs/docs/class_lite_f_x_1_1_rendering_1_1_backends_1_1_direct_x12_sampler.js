@@ -1,18 +1,16 @@
 var class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler =
 [
     [ "DirectX12SamplerImpl", "class_direct_x12_sampler_1_1_direct_x12_sampler_impl.html", "class_direct_x12_sampler_1_1_direct_x12_sampler_impl" ],
-    [ "DirectX12Sampler", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#a13685e6e7ee0ebc38feef74473d9486d", null ],
-    [ "DirectX12Sampler", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#a78a9b1e5b74d2e1e939027f34392af3f", null ],
-    [ "DirectX12Sampler", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#a42b045175d4f0be94d66a113656c066e", null ],
-    [ "~DirectX12Sampler", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#accf85c1ceadcc6e12b03296042c7fb14", null ],
-    [ "getAnisotropy", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#ac841229f54603cf1e5ce148ecb4de31b", null ],
-    [ "getBorderModeU", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#a0b901c996bf1d0738c7fccd7eb7c220c", null ],
-    [ "getBorderModeV", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#a37971220098bf7ac8b0310e5ba060310", null ],
-    [ "getBorderModeW", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#ae0175e4a5303cec3e5e95c00811f0e17", null ],
-    [ "getMagnifyingFilter", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#a8f86a24dd3c4356b9dcf00004e7baed4", null ],
-    [ "getMaxLOD", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#ab1fb7e830aac096da29eb449ab4ec8ab", null ],
-    [ "getMinifyingFilter", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#a7e44c3585f8d4d123817599e45a13d6e", null ],
-    [ "getMinLOD", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#a3bda025c0cfdb06ac1fe892dcb208558", null ],
-    [ "getMipMapBias", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#ab7e943c4bcf191ac5788b23ec4c56db5", null ],
-    [ "getMipMapMode", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#a57e8b68a9d81f689da9dfafcf163ef90", null ]
+    [ "~DirectX12Sampler", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#a57d4e9345c594b0eaa64d244adc871f8", null ],
+    [ "getAnisotropy", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#aff1131c2e83c16ac0e1620a60a081e10", null ],
+    [ "getBorderModeU", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#a9443e6a709fc2043c5832678abc3ba8d", null ],
+    [ "getBorderModeV", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#a5feba6b13cfcda93448ea9e5289170fb", null ],
+    [ "getBorderModeW", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#a6682d8cedcc48d784c707dbafc033c3a", null ],
+    [ "getMagnifyingFilter", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#a707e9986cdc432ab288a1983ca68737e", null ],
+    [ "getMaxLOD", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#aadad7783ea8b47ff4577025e5618e63c", null ],
+    [ "getMinifyingFilter", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#a60e8f548a65faa1210802079304bf186", null ],
+    [ "getMinLOD", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#acd5256baeeee4338662e5f9c00ff5abc", null ],
+    [ "getMipMapBias", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#a36c2a7a41c0af5744a4f96b2413a06c8", null ],
+    [ "getMipMapMode", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#a9d2775095c14bb4c2842b84e09c5d93b", null ],
+    [ "SharedObject::Allocator< DirectX12Sampler >", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_sampler.html#aa0014e2afae9aa97ed6638c962f6a885", null ]
 ];

@@ -1,10 +1,8 @@
 var class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_index_buffer =
 [
     [ "DirectX12IndexBufferImpl", "class_direct_x12_index_buffer_1_1_direct_x12_index_buffer_impl.html", "class_direct_x12_index_buffer_1_1_direct_x12_index_buffer_impl" ],
-    [ "DirectX12IndexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_index_buffer.html#a2d0566df5704c25c092004391a839cfa", null ],
-    [ "DirectX12IndexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_index_buffer.html#a4838d9293f6a6bf341f7b2d63f8df176", null ],
-    [ "DirectX12IndexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_index_buffer.html#a51490b97ed074f0efc4e2ae65b9edbde", null ],
-    [ "~DirectX12IndexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_index_buffer.html#a62616c2e962638da287215c190d431dc", null ],
+    [ "~DirectX12IndexBuffer", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_index_buffer.html#a1ebdfaaca942b7091373daa232e1dc2a", null ],
     [ "layout", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_index_buffer.html#a34a21bfaadda41405cca6151e658682b", null ],
-    [ "view", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_index_buffer.html#a84eedee900380a50f1bd0297920da998", null ]
+    [ "view", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_index_buffer.html#a84eedee900380a50f1bd0297920da998", null ],
+    [ "SharedObject::Allocator< DirectX12IndexBuffer >", "class_lite_f_x_1_1_rendering_1_1_backends_1_1_direct_x12_index_buffer.html#af7097328ea7ee8719dd1de4de988920d", null ]
 ];

@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['position_0',['Position',['../struct_lite_f_x_1_1_graphics_1_1_vertex.html#a1a3eaf4d5d4ebeab9abd9681ab9ba169',1,'LiteFX::Graphics::Vertex::Position()'],['../struct_camera_buffer.html#a82845fcc5aec6ebeb68de5e00d0ef59a',1,'CameraBuffer::Position()'],['../struct_light_buffer.html#ad72660269c9a740731c6ea877379ad1b',1,'LightBuffer::Position()']]],
-  ['properties_1',['Properties',['../struct_light_buffer.html#a302f741cc75d698da7374970129dc92b',1,'LightBuffer']]]
+  ['operation_0',['Operation',['../struct_lite_f_x_1_1_rendering_1_1_depth_stencil_state_1_1_depth_state.html#a753f47d13c87eae6e07ef932a9c3670c',1,'LiteFX::Rendering::DepthStencilState::DepthState::Operation'],['../struct_lite_f_x_1_1_rendering_1_1_depth_stencil_state_1_1_stencil_test.html#a6379761ff3bba8d375a87eaf5cd0539e',1,'LiteFX::Rendering::DepthStencilState::StencilTest::Operation']]]
 ];

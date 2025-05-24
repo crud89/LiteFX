@@ -1,18 +1,11 @@
 var class_lite_f_x_1_1_math_1_1_vector4f =
 [
-    [ "Vector4f", "class_lite_f_x_1_1_math_1_1_vector4f.html#a9d14b0aa9c3f4a3d175172717d96a8da", null ],
-    [ "Vector4f", "class_lite_f_x_1_1_math_1_1_vector4f.html#ac01830914a4b5c4c076b662d1476a9cb", null ],
-    [ "Vector4f", "class_lite_f_x_1_1_math_1_1_vector4f.html#a14c0d14caaa0b859e48c3dc1b7d0c687", null ],
-    [ "Vector4f", "class_lite_f_x_1_1_math_1_1_vector4f.html#a591c081a4a1db732ab09b88243ebea81", null ],
-    [ "Vector4f", "class_lite_f_x_1_1_math_1_1_vector4f.html#ac85824dd1ab9756e564b3a3ca583599d", null ],
-    [ "Vector4f", "class_lite_f_x_1_1_math_1_1_vector4f.html#adb3944a54564070afae99c1518107696", null ],
-    [ "Vector4f", "class_lite_f_x_1_1_math_1_1_vector4f.html#a2bece8fff797348d5a78e9751dc0259f", null ],
-    [ "operator Array< Float >", "class_lite_f_x_1_1_math_1_1_vector4f.html#a5a0c201700818a7e60dc8bfca75df7a0", null ],
-    [ "operator=", "class_lite_f_x_1_1_math_1_1_vector4f.html#a9aa9843b7569ac534d605cb2c5e88741", null ],
-    [ "operator=", "class_lite_f_x_1_1_math_1_1_vector4f.html#a74393a44827e433e50d453c39260e21e", null ],
-    [ "operator=", "class_lite_f_x_1_1_math_1_1_vector4f.html#a38cdbcc92b3a1a6657d241fcf0054334", null ],
-    [ "operator=", "class_lite_f_x_1_1_math_1_1_vector4f.html#a8107e9be256c76217f443c9b2376f284", null ],
-    [ "operator=", "class_lite_f_x_1_1_math_1_1_vector4f.html#a096fd14d7e74ae21f3920f27dc7ed901", null ],
-    [ "operator[]", "class_lite_f_x_1_1_math_1_1_vector4f.html#ad59dbe1e69d0372ea82f4df4b1a13f1c", null ],
-    [ "operator[]", "class_lite_f_x_1_1_math_1_1_vector4f.html#ab935e1168db6e75a4319e90a4e6adcfc", null ]
+    [ "Vector", "class_lite_f_x_1_1_math_1_1_vector4f.html#aee1ed574b599d25be2ab841de3b7b84a", null ],
+    [ "Vector", "class_lite_f_x_1_1_math_1_1_vector4f.html#a58ce204710ebb61487ff9bf345b50873", null ],
+    [ "Vector", "class_lite_f_x_1_1_math_1_1_vector4f.html#a1871f4b22e053632709ba817b4dcdd09", null ],
+    [ "Vector", "class_lite_f_x_1_1_math_1_1_vector4f.html#ad4c0a272968b4f3f5c7c33552d971636", null ],
+    [ "Vector", "class_lite_f_x_1_1_math_1_1_vector4f.html#a786bf67da1747fa46c133148a4fcc740", null ],
+    [ "Vector", "class_lite_f_x_1_1_math_1_1_vector4f.html#a0c0bf242a088c3d8d1f888bf646d315f", null ],
+    [ "Vector", "class_lite_f_x_1_1_math_1_1_vector4f.html#aefc3b5f17c7e851368d6e4db79ebec9e", null ],
+    [ "Vector", "class_lite_f_x_1_1_math_1_1_vector4f.html#a7a5e52c9bd3ecf81e72ca33b410b1005", null ]
 ];

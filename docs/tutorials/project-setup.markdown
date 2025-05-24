@@ -1,147 +1,137 @@
 # Project Setup
 
-This guide demonstrates the steps that are required to setup a simple application that uses the LiteFX engine. It also shows you how to integrate shaders and assets into your build process.
+This guide walks you through the steps required to start a new project using the LiteFX graphics engine. The easiest way to quickly get started is to use the [project template](https://github.com/crud89/LiteFX-Template). For a more elaborate project, take a look at the [sample project](https://github.com/crud89/LiteFX-Sample). The rest of the guide covers the steps required to setup a project manually, which may be helpful if you want to integrate the engine into an existing project. While there are several ways of consuming the project, the preferred way is using [CMake](https://cmake.org/) and [vcpkg](https://github.com/microsoft/vcpkg). The rest of this guide assumes that you are too using a similar build process. In case you want to use a different build system, you can, but you may have to adjust dependencies and build scripts accordingly. 
 
-## Runtime and Dependency Installation
+In any case, please note, that this guide also does not substitute a comprehensive tutorial about CMake or vcpkg. If you want to get to know the details about those, check out [this](https://cmake.org/cmake/help/latest/index.html) and [this](https://learn.microsoft.com/en-us/vcpkg/get_started/get-started). Also this guide assumes that the project should be set up and built using Visual C++ on Windows. For other environments, you may have to perform some modifications to the sources provided below.
 
-LiteFX makes heavy use of [CMake](https://cmake.org/) for building applications. Using the engine is straightforward, if your application uses CMake too. This guide will only focus on explaining how to setup a new project using CMake. Other build systems might work similar. In fact, all required sources are available from the binary release or manual build. For details about how to perform a manual build, read the [installation notes](index.html#autotoc_md14).
+## Project Structure
 
-Before we start, we need to make sure that your application can access the engine and it's dependencies. Start of by downloading the [latest release](https://github.com/crud89/LiteFX/releases) and extract and copy it to a location you prefer. 
-
-The engine on itself does, however, require you to install its dependencies too. There are several ways to do this:
-
-- Manual dependency installation: take a look at the [dependency list](index.html#autotoc_md22) and download all the required dependencies and extract or install them into a common folder. Ideally you can use the same directory you already used for the LiteFX release. All downloads may reside in their own respective sub-directories, though. Note that, if you are using a release version (and not a manual build), all optional dependencies are required, thus you also have to install them. The only exception are the dependencies used by the samples, though in the following guide [glfw3](https://www.glfw.org/) is utilized, so you might want to install it too.
-- Using CMake find scripts: more advanced users may use `FindXXX.cmake` files to locate the dependencies. However, this process is convoluted, tedious and error-prone and thus not further described in this guide.
-- Use [vcpkg](https://github.com/microsoft/vcpkg): the engine itself uses *vcpkg* to install dependencies, so you could too. *vcpkg* makes dependency management easy, so this is the preferred way.
-
-## Setup Project using CMake
-
-Let's start creating our project. Create a new directory and within it, create the following files:
+The first thing to do is creating a bunch of files in an empty directory, that contain the build scripts, meta-data and project sources. The following list gives you an overview over the files that need to be created and about their function within the project. The contents of the files are detailled further down in this guide.
 
 - *CMakeLists.txt*: contains the project build script.
-- *main.h*: the project's main header file.
+- *CMakePresets.json*: contains build templates (e.g., common variables, definitions, etc.) for CMake to use.
 - *main.cpp*: the project's main source file.
+- *main.h*: the project's main header file.
+- *vcpkg.json*: the project manifest, that stores meta-data and dependencies for the project.
+- *vcpkg-configuration.json*: required for vcpkg to pick up the [LiteFX registry](https://github.com/crud89/LiteFX-Registry).
 
-Apart from the *CMakeLists.txt* file, we are not going to write any code in this guide. The [next guide](md_docs_tutorials_quick_start.html) will walk you through the steps required to write a simple rendering application.
+Apart from the files related to CMake and vcpkg, we are not going to write any code in this guide. The [next guide](md_docs_tutorials_quick_start.html) will walk you through the steps required to write a simple rendering application.
 
-Go ahead and open the *CMakeLists.txt* file with any text editor. Copy the following code into the file:
+## Setting up vcpkg.
 
-```cmake
-CMAKE_MINIMUM_REQUIRED(VERSION 3.20)
-PROJECT(MyLiteFXApp LANGUAGES CXX)
-
-SET(CMAKE_CXX_STANDARD 20)
-SET(CMAKE_PREFIX_PATH "...")
-FIND_PACKAGE(LiteFX 1.0 CONFIG REQUIRED)
-
-ADD_EXECUTABLE(MyLiteFXApp
-  "main.h"
-  "main.cpp"
-)
-
-TARGET_LINK_LIBRARIES(MyLiteFXApp PRIVATE LiteFX.Backends.Vulkan)   # For DirectX 12 use: LiteFX.Backends.DirectX12
-```
-
-Replace the `...` in line 5 with the directory, you've installed all your dependencies and the engine to. If you have installed LiteFX to another directory, add the following line below `SET(CMAKE_PREFIX_PATH "...")`:
-
-```cmake
-SET(LiteFX_DIR "...")
-```
-
-Again, replace the `...` with the directory, you've placed the LiteFX release to.
-
-Next, we have to ensure, that the dynamic library files (i.e. the DLL-files) for all dependencies are copied to the build directory. Otherwise your app will not run properly. LiteFX provides a list of all dependencies in the `LITEFX_DEPENDENCIES` variable. Add the following code to the bottom of your *CMakeLists.txt* file to add a copy command for the build:
-
-```cmake
-FOREACH(DEPENDENCY ${LITEFX_DEPENDENCIES})
-  GET_TARGET_PROPERTY(DEPENDENCY_LOCATION ${DEPENDENCY} IMPORTED_LOCATION)
-
-  IF(NOT DEPENDENCY_LOCATION)
-    GET_TARGET_PROPERTY(DEPENDENCY_LOCATION_DEBUG ${DEPENDENCY} IMPORTED_LOCATION_DEBUG)
-    GET_TARGET_PROPERTY(DEPENDENCY_LOCATION_RELEASE ${DEPENDENCY} IMPORTED_LOCATION_RELEASE)
-    SET(DEPENDENCY_LOCATION "$<$<CONFIG:DEBUG>:${DEPENDENCY_LOCATION_DEBUG}>$<$<CONFIG:RELEASE>:${DEPENDENCY_LOCATION_RELEASE}>")
-  ENDIF(NOT DEPENDENCY_LOCATION)
-
-  ADD_CUSTOM_COMMAND(TARGET MyLiteFXApp POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DEPENDENCY_LOCATION} $<TARGET_FILE_DIR:MyLiteFXApp>)
-ENDFOREACH(DEPENDENCY ${LITEFX_DEPENDENCIES})
-```
-
-This loop looks complicated at first, but all it does is to look for the right library file, depending on the build configuration (`Debug` or `Release`) and copy the proper file into the build directory in a post-build event.
-
-### Setup Project using vcpkg
-
-If you choose to use *vcpkg*, then the *CMakeLists.txt* file will look slightly different. If you want to go ahead with the manual installation, you can skip this section.
-
-```cmake
-CMAKE_MINIMUM_REQUIRED(VERSION 3.20)
-
-SET(VCPKG_MODULE_DIRECTORY "...")
-SET(CMAKE_TOOLCHAIN_FILE "${VCPKG_MODULE_DIRECTORY}/scripts/buildsystems/vcpkg.cmake")
-
-PROJECT(MyLiteFXApp LANGUAGES CXX)
-
-SET(CMAKE_CXX_STANDARD 20)
-SET(LiteFX_DIR "...")
-FIND_PACKAGE(LiteFX 1.0 CONFIG REQUIRED)
-
-ADD_EXECUTABLE(MyLiteFXApp "main.h" "main.cpp")
-
-TARGET_LINK_LIBRARIES(MyLiteFXApp PRIVATE LiteFX.Backends.Vulkan)   # For the DirectX 12 target use: LiteFX.Backends.DirectX12. You can also add both targets here.
-
-FOREACH(DEPENDENCY ${LITEFX_DEPENDENCIES})
-  GET_TARGET_PROPERTY(DEPENDENCY_LOCATION ${DEPENDENCY} IMPORTED_LOCATION)
-
-  IF(NOT DEPENDENCY_LOCATION)
-    GET_TARGET_PROPERTY(DEPENDENCY_LOCATION_DEBUG ${DEPENDENCY} IMPORTED_LOCATION_DEBUG)
-    GET_TARGET_PROPERTY(DEPENDENCY_LOCATION_RELEASE ${DEPENDENCY} IMPORTED_LOCATION_RELEASE)
-    SET(DEPENDENCY_LOCATION "$<$<CONFIG:DEBUG>:${DEPENDENCY_LOCATION_DEBUG}>$<$<CONFIG:RELEASE>:${DEPENDENCY_LOCATION_RELEASE}>")
-  ENDIF(NOT DEPENDENCY_LOCATION)
-
-  ADD_CUSTOM_COMMAND(TARGET MyLiteFXApp POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DEPENDENCY_LOCATION} $<TARGET_FILE_DIR:MyLiteFXApp>)
-ENDFOREACH(DEPENDENCY ${LITEFX_DEPENDENCIES})
-```
-
-Again, replace the `...` in line 4 with the path to the *vcpkg* installation and set the `LiteFX_DIR` in line 9 to the release location. Unfortunately, LiteFX does not currently have its dedicated *vcpkg*-port, that's why this directory needs to be specified. Before we continue, create another file in the project directory and call it *vcpkg.json*. This file is called *manifest file* and is used by *vcpkg* to find the dependencies and install them when the project is configured later. Copy the following code to the manifest file:
+The first files we're going to initialize are the files related to vcpkg. The first file, *vcpkg.json* is called a *manifest file* and tells vcpkg about your project and its dependencies. Everything despite the list of dependencies is actually purely optional. Within the dependencies, we provide two libraries. The first one is the engine itself (after all, that's why you're here for) and the second one being [GLFW3](https://www.glfw.org/), a cross-platform window system, which we use to setup our app window with and which we can use to handle user input. If you don't want to use it, you can choose any alternative or even write your own window system. However, keep in mind that you might have to change some parts of the [quick start guide](md_docs_tutorials_quick_start.html) accordingly.
 
 ```json
 {
-  "name": "my-litefx-app",
+  "name": "myapp",
   "version": "1.0",
+  "supports": "windows & !arm",
   "dependencies": [
-    "spdlog",
-    "glm",
-    "directxmath",
-    "directx-headers",
-    "vulkan",
+    "litefx",
     "glfw3"
   ]
 }
 ```
 
-### Running CMake
+The second file we need to setup is the *vcpkg-configuration.json* file. This file specifies where to find the engine package as well as some of its dependencies. This step is required, as the engine applies some customizations to official ports and provides ports that are currently not yet available in the default package registry. If you start a new project, just go ahead and copy the following contents into the *vcpkg-configuration.json* file:
 
-The next thing we need to do is letting CMake configure our project. Open a command line interface and navigate to your project directory. Run the following command to configure your project and write the build to the *out/build/* subdirectory:
-
-```sh
-cmake . -B out/build/
+```json
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg-configuration.schema.json",
+  "default-registry": {
+    "kind": "git",
+    "repository": "https://github.com/Microsoft/vcpkg",
+    "baseline": "f883576b85d03affa3f36925dba09cf06a104a03"
+  },
+  "registries": [
+    {
+      "kind": "git",
+      "repository": "https://github.com/crud89/LiteFX-Registry",
+      "baseline": "0",
+      "packages": [
+        "litefx",
+        "directx12-agility",
+        "directx-warp",
+        "spdlog"
+      ]
+    }
+  ]
+}
 ```
 
-Note that there are other ways to do this step. For example, Visual Studio's CMake integration is very straightforward and should be used, if you are working with Visual Studio anyway.
+**Important:** Remember to update the `baseline` field to the commit id of the latest registry commit [from here](https://github.com/crud89/LiteFX-Registry/commits/main/)!
 
-### Performing Builds
+Finally, we need to install vcpkg. The straightforward option when you already put all your files inside a valid git repository, is to add it as a git submodule as described [here](https://learn.microsoft.com/en-us/vcpkg/concepts/continuous-integration#acquire-vcpkg). But of course any other installation method will work as well. It is strongly adviced to take your time and familiarize yourself with setting up vcpkg on your system depending on your needs. If you are not sure about what's the easiest option for you, then start by using the version integrated into Visual Studio.
 
-The next step is to write the actual code and is described in [the quick start guide](md_docs_tutorials_quick_start.html). In order to compile your application after you've changed the code, you can run the following command:
+## Setting up CMake.
 
-```sh
-cmake --build out/build/
+Now that we've set up vcpkg, it's time to configure CMake to build your project. First, we need to setup a preset, that CMake uses for the build. The following simple *CMakePresets.json* file is sufficient as a starting point. Please modify the `VCPKG_ROOT` variable to point to your vcpkg installation directory. This may vary depending on your way of installation, as described earlier. In the provided example below it is assumed, that vcpkg got cloned as a submodule into a `modules/` directory in the project root. For more details about how to integrate vcpkg into a CMake build process in varying scenarios, refer to [this guide](https://learn.microsoft.com/en-us/vcpkg/users/buildsystems/cmake-integration).
+
+```json
+{
+  "version": 4,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 23,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "windows-msvc-x64-debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/out/build/${presetName}",
+      "installDir": "${sourceDir}/out/install/${presetName}",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "environment": {
+        "VCPKG_ROOT": "${sourceDir}/modules/vcpkg/"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "VCPKG_TARGET_TRIPLET": "x64-windows"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "windows-msvc-x64-debug",
+      "configurePreset": "windows-msvc-x64-debug"
+    }
+  ]
+}
 ```
 
-Currently this build will fail, because we have not yet written any code.
+The next and final step is to setup the `CMakeLists.txt` file with a build script that describes how to perform a build of your app. The following file defines a new project called `MyApp` and sets up some build variables. First, it requires C++23 as a language standard. It also sets the `CMAKE_RUNTIME_OUTPUT_DIRECTORY` variable, which ensures that all dependencies are copied into a common *binaries* directory during the build. The `FIND_PACKAGE` lines make sure that the project knows about the engine and the aforementioned glfw framework. Using all this information it defines an executable project based on the two provided source files, which we implement in the [next guide](md_docs_tutorials_quick_start.html). The last line defines a dependency between the engine backends (here both available backends are used, but if you wish you can omit what you do not like to include), glfw and the executeable.
 
-### Adding Shader Sources
+```cmake
+CMAKE_MINIMUM_REQUIRED(VERSION 3.23)
+PROJECT(MyApp LANGUAGES CXX)
 
-During development you naturally have to work with shaders. LiteFX allows you to easily integrate shader sources into your build tree using CMake. You can use the `ADD_SHADER_MODULE` function to define a shader. The `TARGET_LINK_SHADERS` function can then be used to define a dependency to the shader module for your project. For more information, refer to the [project wiki](https://github.com/crud89/LiteFX/wiki/Shader-Module-Targets).
+SET(CMAKE_CXX_STANDARD 23)
+SET(CMAKE_CXX_STANDARD_REQUIRED ON)
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "$<1:${CMAKE_BINARY_DIR}/binaries/>")
 
-### Defining Asset Directories
+FIND_PACKAGE(LiteFX CONFIG REQUIRED)
+FIND_PACKAGE(glfw3 CONFIG REQUIRED)
 
-Similar to shaders, you may want to integrate assets into your build process. Using LiteFX, you can define asset directories using the `TARGET_ADD_ASSET_DIRECTORY` function. This function will define a sub-directory that can be used by your executable to locate assets. For more information, refer to the [project wiki](https://github.com/crud89/LiteFX/wiki/Asset-Directories).
+ADD_EXECUTABLE(MyApp
+  "main.h"
+  "main.cpp"
+)
+
+TARGET_LINK_LIBRARIES(MyApp PRIVATE LiteFX.Backends.Vulkan LiteFX.Backends.DirectX12 glfw)
+```
+
+## Performing a build.
+
+The next step is to write the actual code and is described in [the quick start guide](md_docs_tutorials_quick_start.html). In order to compile your application after you've changed the code, you can run the following command. For now, however, this will produce errors, as we did not have defined any code yet.
+
+```sh
+cmake . --preset windows-msvc-x64-debug
+cmake --build out/build/windows-msvc-x64-debug
+```
+
+LiteFX provides macros to include shaders and assets into your build process. If you want to use those, take a look at the [sample project](https://github.com/crud89/LiteFX-Sample) for a demonstration on how to use them.

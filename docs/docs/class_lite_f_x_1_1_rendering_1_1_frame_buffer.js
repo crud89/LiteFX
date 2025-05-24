@@ -1,10 +1,19 @@
 var class_lite_f_x_1_1_rendering_1_1_frame_buffer =
 [
-    [ "command_buffer_type", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#a071da940928b0a7c52b2bbda206a9725", null ],
-    [ "image_type", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#a78b74a7e21bf0f4e0f4c271fc97df718", null ],
-    [ "~FrameBuffer", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#a7af5598c623d390e1360dbcecab988b4", null ],
-    [ "commandBuffer", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#ab9b2a710cadfe55212a5a86f2e2e0118", null ],
-    [ "commandBuffers", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#aa89c590fcd52ae3f089e19000682e440", null ],
-    [ "image", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#ab34eb7d2f35f73a2080aed37fb09e597", null ],
-    [ "images", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#ab871a019194f760a8ea5570e9981593f", null ]
+    [ "image_type", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#a12d14be955cc2cef7f97c79578e38f07", null ],
+    [ "FrameBuffer", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#a5f1a730df071ca7204632ec1f9f76516", null ],
+    [ "FrameBuffer", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#ac1d6884bb2f4ff5b7e17a2e0d2f4ed35", null ],
+    [ "FrameBuffer", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#aaee806d2689fe9b22e9078bc614607b8", null ],
+    [ "~FrameBuffer", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#aba09aace12e3a7e27f2c067efd692acf", null ],
+    [ "addImage", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#a15e37bfbc919d5e0ac31baa3d5896d2a", null ],
+    [ "addImage", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#ad5ef8ac0e64a05f450a791bd5daca0a9", null ],
+    [ "addImage", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#a1058ddab3649adafc8771b23194b5a4a", null ],
+    [ "addImage", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#a48f9a6fe6999d36db0755824faa0e323", null ],
+    [ "addImage", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#af13f4581bf445ab6b0a4d15949a38307", null ],
+    [ "addImage", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#abdca8f77488c9e1d564c2f9fe8fb1461", null ],
+    [ "addImage", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#acf802a5ba4ba1e2d2719553efcad6487", null ],
+    [ "addImage", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#a23d0320dbb76662524db426cc051a0f1", null ],
+    [ "images", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#a5ff9e85cf2b904219856e922320f84f0", null ],
+    [ "operator=", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#aa518d11c569255c0cdfb22930d7a087f", null ],
+    [ "operator=", "class_lite_f_x_1_1_rendering_1_1_frame_buffer.html#a1166e430d27caa5c815868d0053c4007", null ]
 ];
