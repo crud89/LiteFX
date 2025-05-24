@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['project_20setup_0',['Project Setup',['../md_docs_tutorials_project_setup.html',1,'']]]
+  ['project_20setup_0',['Project Setup',['../md_docs_2tutorials_2project-setup.html',1,'']]]
 ];

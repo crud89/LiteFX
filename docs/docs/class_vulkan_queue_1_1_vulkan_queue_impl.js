@@ -1,8 +1,8 @@
 var class_vulkan_queue_1_1_vulkan_queue_impl =
 [
-    [ "VulkanQueueImpl", "class_vulkan_queue_1_1_vulkan_queue_impl.html#ad3b495d5becf95b3eb92487c9adfe1d4", null ],
-    [ "~VulkanQueueImpl", "class_vulkan_queue_1_1_vulkan_queue_impl.html#a8ebf687d2f2014ef1ab7adfe17ce4399", null ],
-    [ "bind", "class_vulkan_queue_1_1_vulkan_queue_impl.html#a53c285d9bf38bc5ce12512c02be9ba7f", null ],
+    [ "VulkanQueueImpl", "class_vulkan_queue_1_1_vulkan_queue_impl.html#ad0c9fec907d2ce33f78b9383b7c74776", null ],
+    [ "initialize", "class_vulkan_queue_1_1_vulkan_queue_impl.html#ac74ee495b61a615b87c3a94caf9329f8", null ],
     [ "release", "class_vulkan_queue_1_1_vulkan_queue_impl.html#a05af31219fb262105281473458c98fb6", null ],
+    [ "releaseCommandBuffers", "class_vulkan_queue_1_1_vulkan_queue_impl.html#acc0238161f391fea023164decf9223d0", null ],
     [ "VulkanQueue", "class_vulkan_queue_1_1_vulkan_queue_impl.html#a3d2bcb6f0614e3ca11dabbe1b9921784", null ]
 ];

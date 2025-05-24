@@ -1,6 +1,8 @@
 var searchData=
 [
-  ['world_0',['World',['../struct_transform_buffer.html#ae5b0677f80356d81a3ecafdefde105fa',1,'TransformBuffer::World()'],['../struct_object_buffer.html#a7ad3c7518c698aae84272e051a389b10',1,'ObjectBuffer::World()']]],
-  ['write_1',['Write',['../struct_lite_f_x_1_1_rendering_1_1_depth_stencil_state_1_1_depth_state.html#ac9df272423c986514ffc9972c29aef73',1,'LiteFX::Rendering::DepthStencilState::DepthState']]],
-  ['writemask_2',['WriteMask',['../struct_lite_f_x_1_1_rendering_1_1_i_render_target_1_1_blend_state.html#ad18f89a513937f0a51d3f1b9a5890851',1,'LiteFX::Rendering::IRenderTarget::BlendState::WriteMask()'],['../struct_lite_f_x_1_1_rendering_1_1_depth_stencil_state_1_1_stencil_state.html#a30862087aecfe2f9c39abaa61f6637be',1,'LiteFX::Rendering::DepthStencilState::StencilState::WriteMask()']]]
+  ['valid_5fbackend_5ftypes_0',['VALID_BACKEND_TYPES',['../namespace_lite_f_x.html#a7b0a9b31e64e10d2cbc965e1d2e8d2af',1,'LiteFX']]],
+  ['vec_5fsize_1',['vec_size',['../struct_lite_f_x_1_1_math_1_1_vector.html#af0ff65130ab44e18e264f8b69cf2d328',1,'LiteFX::Math::Vector']]],
+  ['vertexbuffer_2',['VertexBuffer',['../struct_lite_f_x_1_1_rendering_1_1_i_bottom_level_acceleration_structure_1_1_triangle_mesh.html#a378585dab2775f0c7575981ef9b56f7c',1,'LiteFX::Rendering::IBottomLevelAccelerationStructure::TriangleMesh']]],
+  ['vertexoffset_3',['VertexOffset',['../struct_object_buffer.html#acf9c9e770ec35f19efc21103e048a08a',1,'ObjectBuffer']]],
+  ['vulkan_5flog_4',['VULKAN_LOG',['../namespace_lite_f_x_1_1_rendering_1_1_backends.html#a75850d3bb702d54e8edb6152605317f1',1,'LiteFX::Rendering::Backends']]]
 ];

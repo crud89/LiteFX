@@ -1,14 +1,12 @@
 var class_lite_f_x_1_1_pimpl_ptr =
 [
-    [ "PimplPtr", "class_lite_f_x_1_1_pimpl_ptr.html#ab14ae5446031c0123b611ba9a4caa710", null ],
-    [ "PimplPtr", "class_lite_f_x_1_1_pimpl_ptr.html#af3b60968307605421d1c94ae01ff0a5d", null ],
-    [ "PimplPtr", "class_lite_f_x_1_1_pimpl_ptr.html#a9cc49d18e069c10cd94525c251998f77", null ],
-    [ "~PimplPtr", "class_lite_f_x_1_1_pimpl_ptr.html#abd4d972498a019ce27861c4f7e589826", null ],
-    [ "destroy", "class_lite_f_x_1_1_pimpl_ptr.html#a2cbb407b0b9f8bb74e72a862569b756e", null ],
-    [ "operator*", "class_lite_f_x_1_1_pimpl_ptr.html#afb35d256e69a13cc0191b22be006bfd4", null ],
-    [ "operator->", "class_lite_f_x_1_1_pimpl_ptr.html#ab86402985b318cd736c60317ca5b67c4", null ],
-    [ "operator=", "class_lite_f_x_1_1_pimpl_ptr.html#ac1ee50de5fa1242ba888b41347d6fff0", null ],
-    [ "operator=", "class_lite_f_x_1_1_pimpl_ptr.html#a5c577ccee68b2749c5e34d4308f4e2e4", null ],
-    [ "release", "class_lite_f_x_1_1_pimpl_ptr.html#a24975e91926aa885225631212509b08d", null ],
-    [ "makePimpl", "class_lite_f_x_1_1_pimpl_ptr.html#a5a4343922e633d2e2078e7ef44a087a8", null ]
+    [ "PimplPtr", "class_lite_f_x_1_1_pimpl_ptr.html#a57b6f41088a09ac5a51f11dcaf52a81e", null ],
+    [ "PimplPtr", "class_lite_f_x_1_1_pimpl_ptr.html#a6d3099d5f7fb1d251f3f959a9133799d", null ],
+    [ "PimplPtr", "class_lite_f_x_1_1_pimpl_ptr.html#a48c2c314938edb3947e7f47cff2884c9", null ],
+    [ "PimplPtr", "class_lite_f_x_1_1_pimpl_ptr.html#afb31173219c5d65303eb1566a605de31", null ],
+    [ "~PimplPtr", "class_lite_f_x_1_1_pimpl_ptr.html#a6690044ee379bcde5b5e672b36af4ae8", null ],
+    [ "operator*", "class_lite_f_x_1_1_pimpl_ptr.html#a89c0984e989b350c5f762331b83f8dd1", null ],
+    [ "operator->", "class_lite_f_x_1_1_pimpl_ptr.html#a36b14cb50bf091a5f3a52e18195bda01", null ],
+    [ "operator=", "class_lite_f_x_1_1_pimpl_ptr.html#aa697214617b3c381dd7428ab476d86a5", null ],
+    [ "operator=", "class_lite_f_x_1_1_pimpl_ptr.html#aedce38785b3023c7b447454e77a987e1", null ]
 ];

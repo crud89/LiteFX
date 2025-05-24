@@ -1,18 +1,18 @@
 var class_lite_f_x_1_1_builder =
 [
-    [ "builder_type", "class_lite_f_x_1_1_builder.html#a4472ed47a33de6a5d370c32ae2c200e5", null ],
-    [ "derived_type", "class_lite_f_x_1_1_builder.html#a96be38feeab3e08806f54cf8d0e90e70", null ],
-    [ "instance_type", "class_lite_f_x_1_1_builder.html#a816e8000c8b1c7221389725e8ba09307", null ],
-    [ "parent_type", "class_lite_f_x_1_1_builder.html#ab8028b7112e72fcf58c9660621b008bb", null ],
-    [ "pointer_type", "class_lite_f_x_1_1_builder.html#a95ce991f0f204ba6133127b0a07cb6f9", null ],
-    [ "Builder", "class_lite_f_x_1_1_builder.html#aa1c2dd8d8ea6696fca827657bea81890", null ],
-    [ "Builder", "class_lite_f_x_1_1_builder.html#a44795a2054a83aa3ce217c2ac8c62101", null ],
-    [ "Builder", "class_lite_f_x_1_1_builder.html#a900587ce836ff360cf28f76d35eac463", null ],
-    [ "~Builder", "class_lite_f_x_1_1_builder.html#a9a467e50fc8f4db7e6d8ff5a2b54381c", null ],
-    [ "add", "class_lite_f_x_1_1_builder.html#a2bbb0149d16d8bebc6d094819ea2860c", null ],
-    [ "build", "class_lite_f_x_1_1_builder.html#a95738f7d4e5e84f2cf67f49cde8c7698", null ],
-    [ "instance", "class_lite_f_x_1_1_builder.html#ab1386039f6d789336a6efae97c47af11", null ],
-    [ "instance", "class_lite_f_x_1_1_builder.html#a154b40af42e20879a9a9852e07667fb4", null ],
-    [ "parent", "class_lite_f_x_1_1_builder.html#af482e4c9dabc55c5e016568ffe8587ce", null ],
-    [ "use", "class_lite_f_x_1_1_builder.html#ad24ee7d95ca10a44b4ec8205f19245b6", null ]
+    [ "instance_type", "class_lite_f_x_1_1_builder.html#abe574972ee83ea5cff7afb99807ae9f1", null ],
+    [ "parent_type", "class_lite_f_x_1_1_builder.html#ae54249f63618f16fcd2fafd9c94898ac", null ],
+    [ "pointer_type", "class_lite_f_x_1_1_builder.html#a737e00f0cedb3d3dfe931c5f0e100cb2", null ],
+    [ "Builder", "class_lite_f_x_1_1_builder.html#a5c85c6bc3442b784eee3306047c154f8", null ],
+    [ "Builder", "class_lite_f_x_1_1_builder.html#a225a5b4cec77f784c043219d028e6f77", null ],
+    [ "Builder", "class_lite_f_x_1_1_builder.html#ab8b958d9dc99a51e147cddf279a1008d", null ],
+    [ "~Builder", "class_lite_f_x_1_1_builder.html#a8e689c0b33a6201b79bb839bb6febefb", null ],
+    [ "add", "class_lite_f_x_1_1_builder.html#a3a479859763bfdf6bdbc54d15b23d2c5", null ],
+    [ "build", "class_lite_f_x_1_1_builder.html#ac5a962bf5e103526f9c14d6e465d773e", null ],
+    [ "instance", "class_lite_f_x_1_1_builder.html#ad1356e313e9468d3ff9af4cacb68fc5d", null ],
+    [ "instance", "class_lite_f_x_1_1_builder.html#a49c08e82c7d114bb57de0d8771da2a71", null ],
+    [ "operator=", "class_lite_f_x_1_1_builder.html#a70bbe1fff8a2c14f74323ee415c8e3a5", null ],
+    [ "operator=", "class_lite_f_x_1_1_builder.html#a17565597f0dfa4884b7a87afa6e64f11", null ],
+    [ "parent", "class_lite_f_x_1_1_builder.html#a7b028c36f9a901fb8db7faa6d0a04216", null ],
+    [ "use", "class_lite_f_x_1_1_builder.html#a578e5f81d56a37d55996a7cec77b8af5", null ]
 ];

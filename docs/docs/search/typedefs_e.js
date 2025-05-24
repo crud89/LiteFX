@@ -1,19 +1,15 @@
 var searchData=
 [
-  ['uint16_0',['UInt16',['../namespace_lite_f_x_1_1_math.html#a492f9b0c7e29617145869c29f6b45820',1,'LiteFX::Math']]],
-  ['uint16vector1_1',['UInt16Vector1',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a58dd16a117a481cc39018aed384fa484',1,'LiteFX::Math::Vectors']]],
-  ['uint16vector2_2',['UInt16Vector2',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a28c9ef29fe3d52d2511978f755603a91',1,'LiteFX::Math::Vectors']]],
-  ['uint16vector3_3',['UInt16Vector3',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a9e0a2a5e7c0afbb9f42d77ed34cd1c66',1,'LiteFX::Math::Vectors']]],
-  ['uint16vector4_4',['UInt16Vector4',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#ad20f6a11a071b34469e90a13fb837e78',1,'LiteFX::Math::Vectors']]],
-  ['uint32_5',['UInt32',['../namespace_lite_f_x_1_1_math.html#a2c8d4a702fa98fc521a431084842b245',1,'LiteFX::Math']]],
-  ['uint32vector1_6',['UInt32Vector1',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a9418ab869c62d79460237c9bbd53e9cd',1,'LiteFX::Math::Vectors']]],
-  ['uint32vector2_7',['UInt32Vector2',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a066f2d2cec5422e1e69cf3143deb888f',1,'LiteFX::Math::Vectors']]],
-  ['uint32vector3_8',['UInt32Vector3',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a3c9d56a52bec43950d2f816f041cebb6',1,'LiteFX::Math::Vectors']]],
-  ['uint32vector4_9',['UInt32Vector4',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a277a98e729f565191646f9a3f2e74ee9',1,'LiteFX::Math::Vectors']]],
-  ['uint64_10',['UInt64',['../namespace_lite_f_x_1_1_math.html#a61c5cb713e801152ad8098c7b7d0f427',1,'LiteFX::Math']]],
-  ['uint64vector1_11',['UInt64Vector1',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a0bf276d2e5a228787ced5d820561b9b9',1,'LiteFX::Math::Vectors']]],
-  ['uint64vector2_12',['UInt64Vector2',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a66ada2959ec3e0568a8c8f01023e08c4',1,'LiteFX::Math::Vectors']]],
-  ['uint64vector3_13',['UInt64Vector3',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#a3f6748b02caa78cd8cfecfae68525ff4',1,'LiteFX::Math::Vectors']]],
-  ['uint64vector4_14',['UInt64Vector4',['../namespace_lite_f_x_1_1_math_1_1_vectors.html#acf5d36481575da0b52d67085ef93c8ee',1,'LiteFX::Math::Vectors']]],
-  ['uniqueptr_15',['UniquePtr',['../namespace_lite_f_x.html#abc27711f32315287f061ac8b253f3ca4',1,'LiteFX']]]
+  ['sampler_5ftype_0',['sampler_type',['../class_lite_f_x_1_1_rendering_1_1_descriptor_set.html#a4d9ea97ed50054340cd85ebde8d559bb',1,'LiteFX::Rendering::DescriptorSet::sampler_type'],['../class_lite_f_x_1_1_rendering_1_1_ray_tracing_pipeline.html#ab70fbec583bd3acb66514c03cb341afb',1,'LiteFX::Rendering::RayTracingPipeline::sampler_type'],['../class_lite_f_x_1_1_rendering_1_1_graphics_factory.html#a87df624b68f489fff83f3f285d35689d',1,'LiteFX::Rendering::GraphicsFactory::sampler_type'],['../class_lite_f_x_1_1_rendering_1_1_graphics_device.html#aee3111bdb56822633f6fcc251ed9d274',1,'LiteFX::Rendering::GraphicsDevice::sampler_type'],['../class_lite_f_x_1_1_rendering_1_1_render_backend.html#a1928786b766959596ebf7ff86810ebe1',1,'LiteFX::Rendering::RenderBackend::sampler_type']]],
+  ['scalar_5ftype_1',['scalar_type',['../struct_lite_f_x_1_1_math_1_1_matrix.html#a52d8786afb2c6702f9ebd9cafb4948f6',1,'LiteFX::Math::Matrix::scalar_type'],['../struct_lite_f_x_1_1_math_1_1_vector.html#a9a0607c61f7054dc462a6de6a64ae91d',1,'LiteFX::Math::Vector::scalar_type']]],
+  ['shader_5fgroup_5ftype_2',['shader_group_type',['../struct_lite_f_x_1_1_rendering_1_1_i_shader_record.html#af5254b113b280226d0dd1ed9cce94bc1',1,'LiteFX::Rendering::IShaderRecord::shader_group_type'],['../struct_lite_f_x_1_1_rendering_1_1_shader_record_3_01_t_local_data_01_4.html#a8fcdf979f8baee598ff1476effd36c3b',1,'LiteFX::Rendering::ShaderRecord&lt; TLocalData &gt;::shader_group_type'],['../struct_lite_f_x_1_1_rendering_1_1_shader_record_3_4.html#aa896c625c9ac7f3522f9ad4053dad554',1,'LiteFX::Rendering::ShaderRecord&lt;&gt;::shader_group_type']]],
+  ['shader_5fmodule_5ftype_3',['shader_module_type',['../class_lite_f_x_1_1_rendering_1_1_shader_program.html#a3a4bce75bab3b7f92ec4d2b1f03548c0',1,'LiteFX::Rendering::ShaderProgram']]],
+  ['shader_5fprogram_5ftype_4',['shader_program_type',['../class_lite_f_x_1_1_rendering_1_1_pipeline.html#ab4554feb09b7453833d8dce4e98edaed',1,'LiteFX::Rendering::Pipeline::shader_program_type'],['../class_lite_f_x_1_1_rendering_1_1_graphics_device.html#a3ed2768ea40938170e1ecb1cc4768a5d',1,'LiteFX::Rendering::GraphicsDevice::shader_program_type'],['../class_lite_f_x_1_1_rendering_1_1_render_backend.html#ada46575e0212d17f29cc9faa2e43683e',1,'LiteFX::Rendering::RenderBackend::shader_program_type']]],
+  ['sharedptr_5',['SharedPtr',['../namespace_lite_f_x.html#a58ddcdf7464eb219bb14d225153daa7f',1,'LiteFX']]],
+  ['span_6',['Span',['../namespace_lite_f_x.html#aacf6de04faf43ec99887d011dd065ef4',1,'LiteFX']]],
+  ['string_7',['String',['../namespace_lite_f_x.html#a85a10b8c5c41d6c566c33bf05cf5aa51',1,'LiteFX']]],
+  ['stringview_8',['StringView',['../namespace_lite_f_x.html#a8f67ef1b66d8e11201ba89c9db51c0c8',1,'LiteFX']]],
+  ['surface_5fcallback_9',['surface_callback',['../class_lite_f_x_1_1_rendering_1_1_backends_1_1_vulkan_backend.html#a2fe747d4e94c1086c0f29984e476cc0e',1,'LiteFX::Rendering::Backends::VulkanBackend']]],
+  ['surface_5ftype_10',['surface_type',['../class_lite_f_x_1_1_rendering_1_1_graphics_device.html#adb7756dd9991d8e7ba3424911f841827',1,'LiteFX::Rendering::GraphicsDevice::surface_type'],['../class_lite_f_x_1_1_rendering_1_1_render_backend.html#a29aa819827b6b4cd77b33aee4e3dd2a5',1,'LiteFX::Rendering::RenderBackend::surface_type']]],
+  ['swap_5fchain_5ftype_11',['swap_chain_type',['../class_lite_f_x_1_1_rendering_1_1_graphics_device.html#a882e8ad847322802fb3d1f326d32f479',1,'LiteFX::Rendering::GraphicsDevice::swap_chain_type'],['../class_lite_f_x_1_1_rendering_1_1_render_backend.html#ac331218b0f97f2ff05110f45d766fcc1',1,'LiteFX::Rendering::RenderBackend::swap_chain_type']]]
 ];
