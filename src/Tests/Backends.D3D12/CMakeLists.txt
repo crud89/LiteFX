@@ -136,6 +136,11 @@ DEFINE_TEST("device_sets_up_d3d12_acceleration_structures" FOLDER "Tests/Backend
 	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12
 )
 
+DEFINE_TEST("d3d12_partial_scissor_rects_dont_fail" FOLDER "Tests/Backends/D3D12" EXECUTABLE_NAME "d3d12_partial_scissor_test" 
+	SOURCES "common.h" "partial_scissor_rect.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12
+)
+
 ADD_DEPENDENCIES(d3d12_app_init_test dxwarp)
 ADD_DEPENDENCIES(d3d12_input_assembler_test dxwarp)
 ADD_DEPENDENCIES(d3d12_rasterizer_test dxwarp)
@@ -151,3 +156,4 @@ ADD_DEPENDENCIES(d3d12_compute_test dxwarp)
 ADD_DEPENDENCIES(d3d12_alloc_descriptor_set_test dxwarp)
 ADD_DEPENDENCIES(d3d12_ray_tracing_test dxwarp)
 ADD_DEPENDENCIES(d3d12_acceleration_structure_test dxwarp)
+ADD_DEPENDENCIES(d3d12_partial_scissor_test dxwarp)
