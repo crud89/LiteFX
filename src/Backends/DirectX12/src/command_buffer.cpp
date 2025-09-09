@@ -254,16 +254,24 @@ void DirectX12CommandBuffer::setViewports(const IViewport* viewport) const
 
 void DirectX12CommandBuffer::setScissors(Span<const IScissor*> scissors) const
 {
-	auto scs = scissors |
-		std::views::transform([](const auto& scissor) { return CD3DX12_RECT(static_cast<LONG>(scissor->getRectangle().x()), static_cast<LONG>(scissor->getRectangle().y()), static_cast<LONG>(scissor->getRectangle().width()), static_cast<LONG>(scissor->getRectangle().height())); }) |
-		std::ranges::to<Array<D3D12_RECT>>();
+	auto scs = scissors 
+		| std::views::transform([](const auto& scissor) -> D3D12_RECT { return CD3DX12_RECT{
+				static_cast<LONG>(scissor->getRectangle().x()), static_cast<LONG>(scissor->getRectangle().y()),
+				static_cast<LONG>(scissor->getRectangle().x()) + static_cast<LONG>(scissor->getRectangle().width()),
+				static_cast<LONG>(scissor->getRectangle().y()) + static_cast<LONG>(scissor->getRectangle().height())
+			}; })
+		| std::ranges::to<Array<D3D12_RECT>>();
 
 	this->handle()->RSSetScissorRects(static_cast<UINT>(scs.size()), scs.data());
 }
 
 void DirectX12CommandBuffer::setScissors(const IScissor* scissor) const
 {
-	auto s = CD3DX12_RECT(static_cast<LONG>(scissor->getRectangle().x()), static_cast<LONG>(scissor->getRectangle().y()), static_cast<LONG>(scissor->getRectangle().width()), static_cast<LONG>(scissor->getRectangle().height()));
+	CD3DX12_RECT s {
+		static_cast<LONG>(scissor->getRectangle().x()), static_cast<LONG>(scissor->getRectangle().y()),
+		static_cast<LONG>(scissor->getRectangle().x()) + static_cast<LONG>(scissor->getRectangle().width()),
+		static_cast<LONG>(scissor->getRectangle().y()) + static_cast<LONG>(scissor->getRectangle().height())
+	};
 	this->handle()->RSSetScissorRects(1, &s);
 }
 
