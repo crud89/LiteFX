@@ -245,9 +245,16 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
     }
 
     auto& descriptorLayout = *match;
-    auto offset = m_impl->m_layout->descriptorOffsetForBinding(binding);
+
+    if (descriptorLayout.descriptors() <= descriptor) [[unlikely]]
+    {
+        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor array at binding {1} of descriptor set {0} does only contain {2} descriptors, but the descriptor {3} has been specified for binding.", m_impl->m_layout->space(), binding, descriptorLayout.descriptors(), descriptor);
+        return;
+    }
+
+    auto offset = m_impl->m_layout->descriptorOffsetForBinding(binding) + descriptor;
     auto device = m_impl->m_layout->device();
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset + descriptor), device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
 
     // Get the number of levels and layers.
     const UInt32 numLevels = levels == 0 ? texture.levels() - firstLevel : levels;
@@ -419,8 +426,13 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sam
         LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
         return;
     }
+    else if (match->descriptors() <= descriptor) [[unlikely]]
+    {
+        LITEFX_WARNING(DIRECTX12_LOG, "The descriptor array at binding {1} of descriptor set {0} does only contain {2} descriptors, but the descriptor {3} has been specified for binding.", m_impl->m_layout->space(), binding, match->descriptors(), descriptor);
+        return;
+    }
 
-    auto offset = m_impl->m_layout->descriptorOffsetForBinding(binding);
+    auto offset = m_impl->m_layout->descriptorOffsetForBinding(binding) + descriptor;
 
     D3D12_SAMPLER_DESC samplerInfo = {
         .Filter = m_impl->getFilterMode(sampler.getMinifyingFilter(), sampler.getMagnifyingFilter(), sampler.getMipMapMode(), sampler.getAnisotropy()),
@@ -436,7 +448,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sam
     };
 
     auto device = m_impl->m_layout->device();
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_samplerHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset + descriptor), device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER));
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_samplerHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER));
     device->handle()->CreateSampler(&samplerInfo, descriptorHandle);
     device->updateSamplerDescriptors(*this, offset, 1);
 }
