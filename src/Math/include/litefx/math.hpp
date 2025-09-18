@@ -80,7 +80,7 @@ namespace LiteFX::Math {
 	/// </summary>
 	/// <param name="arg">The value that should be assigned to the byte.</param>
 	/// <returns>The value as byte.</returns>
-	constexpr Byte operator "" _b(unsigned long long int arg) noexcept {
+	constexpr Byte operator ""_b(unsigned long long int arg) noexcept {
 		return static_cast<Byte>(arg);
 	}
 
@@ -89,7 +89,7 @@ namespace LiteFX::Math {
 	/// </summary>
 	/// <param name="arg">The value that should be assigned to the integer.</param>
 	/// <returns>The value as 16 bit integer.</returns>
-	constexpr Int16 operator "" _i16(unsigned long long int arg) noexcept {
+	constexpr Int16 operator ""_i16(unsigned long long int arg) noexcept {
 		return static_cast<Int16>(arg);
 	}
 
@@ -98,7 +98,7 @@ namespace LiteFX::Math {
 	/// </summary>
 	/// <param name="arg">The value that should be assigned to the integer.</param>
 	/// <returns>The value as 16 bit unsigned integer.</returns>
-	constexpr UInt16 operator "" _ui16(unsigned long long int arg) noexcept {
+	constexpr UInt16 operator ""_ui16(unsigned long long int arg) noexcept {
 		return static_cast<UInt16>(arg);
 	}
 
@@ -107,7 +107,7 @@ namespace LiteFX::Math {
 	/// </summary>
 	/// <param name="arg">The value that should be assigned to the integer.</param>
 	/// <returns>The value as 32 bit integer.</returns>
-	constexpr Int32 operator "" _i32(unsigned long long int arg) noexcept {
+	constexpr Int32 operator ""_i32(unsigned long long int arg) noexcept {
 		return static_cast<Int32>(arg);
 	}
 
@@ -116,7 +116,7 @@ namespace LiteFX::Math {
 	/// </summary>
 	/// <param name="arg">The value that should be assigned to the integer.</param>
 	/// <returns>The value as 32 bit unsigned integer.</returns>
-	constexpr UInt32 operator "" _ui32(unsigned long long int arg) noexcept {
+	constexpr UInt32 operator ""_ui32(unsigned long long int arg) noexcept {
 		return static_cast<UInt32>(arg);
 	}
 
@@ -125,7 +125,7 @@ namespace LiteFX::Math {
 	/// </summary>
 	/// <param name="arg">The value that should be assigned to the integer.</param>
 	/// <returns>The value as 64 bit integer.</returns>
-	constexpr Int64 operator "" _i64(unsigned long long int arg) noexcept {
+	constexpr Int64 operator ""_i64(unsigned long long int arg) noexcept {
 		return static_cast<Int64>(arg);
 	}
 
@@ -134,7 +134,7 @@ namespace LiteFX::Math {
 	/// </summary>
 	/// <param name="arg">The value that should be assigned to the integer.</param>
 	/// <returns>The value as 64 bit unsigned integer.</returns>
-	constexpr UInt64 operator "" _ui64(unsigned long long int arg) noexcept {
+	constexpr UInt64 operator ""_ui64(unsigned long long int arg) noexcept {
 		return static_cast<UInt64>(arg);
 	}
 
@@ -143,7 +143,7 @@ namespace LiteFX::Math {
 	/// </summary>
 	/// <param name="arg">The value that should be assigned to the floating point number.</param>
 	/// <returns>The value as floating point number.</returns>
-	constexpr Float operator "" _f32(long double arg) noexcept {
+	constexpr Float operator ""_f32(long double arg) noexcept {
 		return static_cast<Float>(arg);
 	}
 
@@ -152,7 +152,7 @@ namespace LiteFX::Math {
 	/// </summary>
 	/// <param name="arg">The value that should be assigned to the floating point number.</param>
 	/// <returns>The value as floating point number.</returns>
-	constexpr Double operator "" _f64(long double arg) noexcept {
+	constexpr Double operator ""_f64(long double arg) noexcept {
 		return static_cast<Double>(arg);
 	}
 
