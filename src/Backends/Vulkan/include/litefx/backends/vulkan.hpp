@@ -2695,6 +2695,13 @@ namespace LiteFX::Rendering::Backends {
         /// <returns>The indices of the queue families that support queue workloads specified by <paramref name="type" />.</returns>
         Enumerable<UInt32> queueFamilyIndices(QueueType type = QueueType::None) const;
 
+        /// <summary>
+        /// Resolves the binary size for a descriptor of <paramref name="type" />.
+        /// </summary>
+        /// <param name="type">The type of the descriptor.</param>
+        /// <returns>The size of the descriptor.</returns>
+        UInt32 descriptorSize(DescriptorType type) const;
+
         // GraphicsDevice interface.
     public:
         /// <inheritdoc />

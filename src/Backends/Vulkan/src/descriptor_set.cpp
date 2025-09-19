@@ -2,6 +2,12 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
+extern PFN_vkGetDescriptorSetLayoutSizeEXT vkGetDescriptorSetLayoutSize;
+extern PFN_vkGetDescriptorSetLayoutBindingOffsetEXT vkGetDescriptorSetLayoutBindingOffset;
+extern PFN_vkGetDescriptorEXT vkGetDescriptor;
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
+// 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
@@ -14,10 +20,16 @@ private:
     Dictionary<UInt32, VkImageView> m_imageViews{};
     SharedPtr<const VulkanDescriptorSetLayout> m_layout;
 
+    UniquePtr<std::byte[]> m_descriptorBuffer;
+
 public:
     VulkanDescriptorSetImpl(const VulkanDescriptorSetLayout& layout) :
         m_layout(layout.shared_from_this())
     {
+        // Allocate the descriptor set binding buffer.
+        VkDeviceSize descriptorSetSize;
+        vkGetDescriptorSetLayoutSize(m_layout->device().handle(), m_layout->handle(), &descriptorSetSize);
+        m_descriptorBuffer = std::make_unique_for_overwrite<std::byte[]>(static_cast<size_t>(descriptorSetSize));
     }
 };
 
@@ -54,120 +66,75 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
 {
     // Find the descriptor.
     auto descriptors = m_impl->m_layout->descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
+    auto descriptorLayout = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
 
-    if (match == descriptors.end()) [[unlikely]]
+    if (descriptorLayout == descriptors.end()) [[unlikely]]
     {
         LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
         return;
     }
-    
-    auto& descriptorLayout = *match;
 
-    VkWriteDescriptorSet descriptorWrite{ };
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.dstSet = this->handle();
-    descriptorWrite.dstBinding = binding;
-    descriptorWrite.dstArrayElement = firstDescriptor;
-    descriptorWrite.descriptorCount = 1;
-
-    Array<VkDescriptorBufferInfo> bufferInfos;
-    UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;
-
-    switch (descriptorLayout.descriptorType())
-    {
-    case DescriptorType::ConstantBuffer:
-    {
-        descriptorWrite.descriptorCount = elementCount;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-
-        bufferInfos.resize(elementCount);
-        std::ranges::generate(bufferInfos, [&buffer, &bufferElement, i = 0]() mutable {
-            return VkDescriptorBufferInfo {
-                .buffer = buffer.handle(),
-                .offset = buffer.alignedElementSize() * static_cast<size_t>(bufferElement + i++),
-                .range = buffer.elementSize()
-            };
-        });
-
-        descriptorWrite.pBufferInfo = bufferInfos.data();
-        break;
-    }
-    case DescriptorType::StructuredBuffer:
-    case DescriptorType::RWStructuredBuffer:
-    case DescriptorType::ByteAddressBuffer:
-    case DescriptorType::RWByteAddressBuffer:
-    {
-        descriptorWrite.descriptorCount = elementCount;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-
-        bufferInfos.resize(elementCount);
-        std::ranges::generate(bufferInfos, [&buffer, &bufferElement, i = 0]() mutable {
-            return VkDescriptorBufferInfo {
-                .buffer = buffer.handle(),
-                .offset = buffer.alignedElementSize() * static_cast<size_t>(bufferElement + i++),
-                .range = buffer.elementSize()
-            };
-        });
-
-        descriptorWrite.pBufferInfo = bufferInfos.data();
-        break;
-    }
-    case DescriptorType::Buffer:
-    {
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
-
-        VkBufferViewCreateInfo bufferViewDesc {
-            .sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .buffer = buffer.handle(),
-            .format = VK_FORMAT_UNDEFINED,
-            .offset = buffer.alignedElementSize() * bufferElement,     // TODO: Handle alignment properly, as texel buffers do not need to be aligned (afaik).
-            .range = buffer.alignedElementSize() * elementCount
-        };
-
-        VkBufferView bufferView{};
-        raiseIfFailed(::vkCreateBufferView(m_impl->m_layout->device().handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
-        m_impl->m_bufferViews[binding] = bufferView;
-
-        descriptorWrite.pTexelBufferView = &bufferView;
-        break;
-    }
-    case DescriptorType::RWBuffer:
-    {
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
-
-        VkBufferViewCreateInfo bufferViewDesc {
-            .sType = VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO,
-            .pNext = nullptr,
-            .flags = 0,
-            .buffer = buffer.handle(),
-            .format = VK_FORMAT_UNDEFINED,
-            .offset = buffer.alignedElementSize() * bufferElement,     // TODO: Handle alignment properly, as texel buffers do not need to be aligned (afaik).
-            .range = buffer.alignedElementSize() * elementCount
-        };
-
-        VkBufferView bufferView{};
-        raiseIfFailed(::vkCreateBufferView(m_impl->m_layout->device().handle(), &bufferViewDesc, nullptr, &bufferView), "Unable to create buffer view.");
-        m_impl->m_bufferViews[binding] = bufferView;
-
-        descriptorWrite.pTexelBufferView = &bufferView;
-        break;
-    }
-    default: [[unlikely]]
+    // Check if the descriptor type is valid for the requested operation.
+    if (descriptorLayout->descriptorType() != DescriptorType::Buffer && 
+        descriptorLayout->descriptorType() != DescriptorType::ConstantBuffer &&
+        descriptorLayout->descriptorType() != DescriptorType::RWBuffer && 
+        descriptorLayout->descriptorType() != DescriptorType::ByteAddressBuffer &&
+        descriptorLayout->descriptorType() != DescriptorType::RWByteAddressBuffer && 
+        descriptorLayout->descriptorType() != DescriptorType::StructuredBuffer &&
+        descriptorLayout->descriptorType() != DescriptorType::RWStructuredBuffer) [[unlikely]]
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a buffer descriptor.", binding);
-    }
 
-    // Remove the buffer view, if there is one bound to the current descriptor.
-    if (m_impl->m_bufferViews.contains(binding))
+    // Check if all elements can be bound to a bounded array.
+    if (descriptorLayout->descriptors() > 1 && descriptorLayout->descriptors() < (firstDescriptor + elements)) [[unlikely]]
+        ArgumentOutOfRangeException("elements", "The descriptor layout can only bind up to {0} descriptors at binding {3}, however the request was to bind {1} descriptors starting at {2}.", descriptorLayout->descriptors(), elements, firstDescriptor, binding);
+
+    // Acquire the binding offset.
+    VkDeviceSize descriptorOffset;
+    vkGetDescriptorSetLayoutBindingOffset(m_impl->m_layout->device().handle(), m_impl->m_layout->handle(), binding, &descriptorOffset);
+
+    // Offset to first array index. Arrays are tightly packed, so we simply add the descriptor size for each element.
+    size_t descriptorSize = m_impl->m_layout->device().descriptorSize(descriptorLayout->descriptorType());
+
+    // Update the descriptor each element.
+    for (UInt32 i{ 0 }; i < elements; ++i)
     {
-        ::vkDestroyBufferView(m_impl->m_layout->device().handle(), m_impl->m_bufferViews[binding], nullptr);
-        m_impl->m_bufferViews.erase(binding);
-    }
+        // Create the address info object.
+        VkDescriptorAddressInfoEXT addressInfo = {
+            .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT,
+            .address = buffer.virtualAddress() + (bufferElement + i) * buffer.alignedElementSize(),
+            .range = descriptorOffset + (firstDescriptor + i) * descriptorSize,
+            .format = VK_FORMAT_UNDEFINED
+        };
 
-    // Update the descriptor set.
-    ::vkUpdateDescriptorSets(m_impl->m_layout->device().handle(), 1, &descriptorWrite, 0, nullptr);
+        // Setup the descriptor info.
+        VkDescriptorGetInfoEXT descriptorInfo = { .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT };
+
+        switch (descriptorLayout->descriptorType())
+        {
+        case DescriptorType::Buffer:
+            descriptorInfo.type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
+            descriptorInfo.data.pUniformTexelBuffer = &addressInfo;
+            break;
+        case DescriptorType::ConstantBuffer:
+            descriptorInfo.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+            descriptorInfo.data.pUniformBuffer = &addressInfo;
+            break;
+        case DescriptorType::RWBuffer:
+            descriptorInfo.type = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
+            descriptorInfo.data.pStorageTexelBuffer = &addressInfo;
+            break;
+        case DescriptorType::ByteAddressBuffer:
+        case DescriptorType::RWByteAddressBuffer:
+        case DescriptorType::StructuredBuffer:
+        case DescriptorType::RWStructuredBuffer:
+            descriptorInfo.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+            descriptorInfo.data.pStorageBuffer = &addressInfo;
+            break;
+        }
+
+        // Create the descriptor in the descriptor buffer.
+        vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, m_impl->m_descriptorBuffer.get());
+    }
 }
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
@@ -266,69 +233,78 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, 
 {
     // Find the descriptor.
     auto descriptors = m_impl->m_layout->descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
+    auto descriptorLayout = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
 
-    if (match == descriptors.end()) [[unlikely]]
+    if (descriptorLayout == descriptors.end()) [[unlikely]]
     {
         LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
         return;
     }
-    
-    const auto& layout = *match;
 
-    if (layout.descriptorType() != DescriptorType::Sampler) [[unlikely]]
+    // Check if the descriptor type is valid for the requested operation.
+    if (descriptorLayout->descriptorType() != DescriptorType::Sampler) [[unlikely]]
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a sampler descriptor.", binding);
 
-    VkDescriptorImageInfo imageInfo{ };
-    imageInfo.sampler = sampler.handle();
+    // Check if all elements can be bound to a bounded array.
+    if (descriptorLayout->descriptors() > 1 && descriptorLayout->descriptors() <= descriptor) [[unlikely]]
+        ArgumentOutOfRangeException("descriptor", "The descriptor layout can only bind up to {0} descriptors at binding {3}, however the request was to bind {1} descriptors starting at {2}.", descriptorLayout->descriptors(), 1, descriptor, binding);
 
-    VkWriteDescriptorSet descriptorWrite{ };
-    descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-    descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;
-    descriptorWrite.dstSet = this->handle();
-    descriptorWrite.dstBinding = binding;
-    descriptorWrite.dstArrayElement = descriptor;
-    descriptorWrite.descriptorCount = 1;
-    descriptorWrite.pImageInfo = &imageInfo;
+    // Acquire the binding offset.
+    VkDeviceSize descriptorOffset;
+    vkGetDescriptorSetLayoutBindingOffset(m_impl->m_layout->device().handle(), m_impl->m_layout->handle(), binding, &descriptorOffset);
 
-    ::vkUpdateDescriptorSets(m_impl->m_layout->device().handle(), 1, &descriptorWrite, 0, nullptr);
+    // Offset to first array index. Arrays are tightly packed, so we simply add the descriptor size for each element.
+    size_t descriptorSize = m_impl->m_layout->device().descriptorSize(descriptorLayout->descriptorType());
+
+    // Setup the descriptor info.
+    VkDescriptorGetInfoEXT descriptorInfo = { 
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT,
+        .type = VK_DESCRIPTOR_TYPE_SAMPLER,
+        .data = { .pSampler = &sampler.handle() }
+    };
+
+    // Create the descriptor in the descriptor buffer.
+    vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, m_impl->m_descriptorBuffer.get());
 }
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStructure& accelerationStructure, UInt32 descriptor) const
 {
+    // Check if the acceleration structure has been initialized.
+    if (accelerationStructure.buffer() == nullptr || accelerationStructure.handle() == VK_NULL_HANDLE) [[unlikely]]
+        throw InvalidArgumentException("accelerationStructure", "The acceleration structure buffer has not yet been allocated.");
+
     // Find the descriptor.
     auto descriptors = m_impl->m_layout->descriptors();
-    auto match = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
+    auto descriptorLayout = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
 
-    if (match == descriptors.end()) [[unlikely]]
+    if (descriptorLayout == descriptors.end()) [[unlikely]]
     {
         LITEFX_WARNING(VULKAN_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
         return;
     }
-    
-    const auto& layout = *match;
 
-    if (layout.descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
+    // Check if the descriptor type is valid for the requested operation.
+    if (descriptorLayout->descriptorType() != DescriptorType::AccelerationStructure) [[unlikely]]
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to an acceleration structure descriptor.", binding);
 
-    if (accelerationStructure.buffer() == nullptr || accelerationStructure.handle() == VK_NULL_HANDLE) [[unlikely]]
-        throw InvalidArgumentException("accelerationStructure", "The acceleration structure buffer has not yet been allocated.");
+    // Check if all elements can be bound to a bounded array.
+    if (descriptorLayout->descriptors() > 1 && descriptorLayout->descriptors() <= descriptor) [[unlikely]]
+        ArgumentOutOfRangeException("descriptor", "The descriptor layout can only bind up to {0} descriptors at binding {3}, however the request was to bind {1} descriptors starting at {2}.", descriptorLayout->descriptors(), 1, descriptor, binding);
 
-    VkWriteDescriptorSetAccelerationStructureKHR accelerationStructureInfo = {
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR,
-        .accelerationStructureCount = 1,
-        .pAccelerationStructures = &accelerationStructure.handle()
-    };
-    
-    VkWriteDescriptorSet descriptorWrite = { 
-        .sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-        .pNext = &accelerationStructureInfo,
-        .dstSet = this->handle(),
-        .dstBinding = binding,
-        .dstArrayElement = descriptor,
-        .descriptorCount = 1,
-        .descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR
+    // Acquire the binding offset.
+    VkDeviceSize descriptorOffset;
+    vkGetDescriptorSetLayoutBindingOffset(m_impl->m_layout->device().handle(), m_impl->m_layout->handle(), binding, &descriptorOffset);
+
+    // Offset to first array index. Arrays are tightly packed, so we simply add the descriptor size for each element.
+    size_t descriptorSize = m_impl->m_layout->device().descriptorSize(descriptorLayout->descriptorType());
+
+    // Setup the descriptor info.
+    VkDescriptorGetInfoEXT descriptorInfo = { 
+        .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT,
+        .type = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,
+        .data = { .accelerationStructure = accelerationStructure.buffer()->virtualAddress() }
     };
 
-    ::vkUpdateDescriptorSets(m_impl->m_layout->device().handle(), 1, &descriptorWrite, 0, nullptr);
+    // Create the descriptor in the descriptor buffer.
+    vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, m_impl->m_descriptorBuffer.get());
 }

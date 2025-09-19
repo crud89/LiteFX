@@ -20,6 +20,9 @@ PFN_vkCmdWriteAccelerationStructuresPropertiesKHR vkCmdWriteAccelerationStructur
 PFN_vkCreateRayTracingPipelinesKHR vkCreateRayTracingPipelines{ nullptr };
 PFN_vkGetRayTracingShaderGroupHandlesKHR vkGetRayTracingShaderGroupHandles{ nullptr };
 PFN_vkCmdTraceRaysKHR vkCmdTraceRays{ nullptr };
+PFN_vkGetDescriptorSetLayoutSizeEXT vkGetDescriptorSetLayoutSize{ nullptr };
+PFN_vkGetDescriptorSetLayoutBindingOffsetEXT vkGetDescriptorSetLayoutBindingOffset{ nullptr };
+PFN_vkGetDescriptorEXT vkGetDescriptor{ nullptr };
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 // ------------------------------------------------------------------------------------------------
@@ -469,6 +472,17 @@ public:
             if (vkCmdWriteAccelerationStructuresProperties == nullptr)
                 vkCmdWriteAccelerationStructuresProperties = reinterpret_cast<PFN_vkCmdWriteAccelerationStructuresPropertiesKHR>(::vkGetDeviceProcAddr(device, "vkCmdWriteAccelerationStructuresPropertiesKHR"));
         }
+
+        // Load required extension functions.
+        if (vkGetDescriptorSetLayoutSize == nullptr)
+            vkGetDescriptorSetLayoutSize = reinterpret_cast<PFN_vkGetDescriptorSetLayoutSizeEXT>(::vkGetDeviceProcAddr(device, "vkGetDescriptorSetLayoutSizeEXT"));
+
+        if (vkGetDescriptorSetLayoutBindingOffset == nullptr)
+            vkGetDescriptorSetLayoutBindingOffset = reinterpret_cast<PFN_vkGetDescriptorSetLayoutBindingOffsetEXT>(::vkGetDeviceProcAddr(device, "vkGetDescriptorSetLayoutBindingOffsetEXT"));
+
+        if (vkGetDescriptor == nullptr)
+            vkGetDescriptor = reinterpret_cast<PFN_vkGetDescriptorEXT>(::vkGetDeviceProcAddr(device, "vkGetDescriptorEXT"));
+
         // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
         
         // Return the device instance.
@@ -622,6 +636,36 @@ Enumerable<UInt32> VulkanDevice::queueFamilyIndices(QueueType type) const
         std::views::filter([type](const auto& family) { return type == QueueType::None || LITEFX_FLAG_IS_SET(family.type(), type); }) |
         std::views::transform([](const auto& family) { return family.id(); }) |
         std::ranges::to<Enumerable<UInt32>>();
+}
+
+UInt32 VulkanDevice::descriptorSize(DescriptorType type) const
+{
+    switch (type)
+    {
+    case DescriptorType::AccelerationStructure:
+        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.accelerationStructureDescriptorSize);
+    case DescriptorType::Buffer:
+        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.uniformTexelBufferDescriptorSize);
+    case DescriptorType::ConstantBuffer:
+        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.uniformBufferDescriptorSize);
+    case DescriptorType::InputAttachment:
+        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.inputAttachmentDescriptorSize);
+    case DescriptorType::RWBuffer:
+        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.storageTexelBufferDescriptorSize);
+    case DescriptorType::RWTexture:
+        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.storageImageDescriptorSize);
+    case DescriptorType::Sampler:
+        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.samplerDescriptorSize);
+    case DescriptorType::ByteAddressBuffer:
+    case DescriptorType::RWByteAddressBuffer:
+    case DescriptorType::StructuredBuffer:
+    case DescriptorType::RWStructuredBuffer:
+        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.storageBufferDescriptorSize);
+    case DescriptorType::Texture:
+        return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.sampledImageDescriptorSize);
+    default:
+        throw InvalidArgumentException("type", "The provided descriptor type cannot be mapped to a descriptor heap.");
+    }
 }
 
 VulkanSwapChain& VulkanDevice::swapChain() noexcept
