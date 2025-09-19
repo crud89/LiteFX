@@ -2486,6 +2486,25 @@ namespace LiteFX::Rendering::Backends {
             return SharedObject::create<VulkanGraphicsFactory>(device);
         }
 
+        /// <summary>
+        /// Creates a descriptor heap.
+        /// </summary>
+        /// <param name="heapSize">The size of the descriptor heap buffer in bytes.</param>
+        /// <param name="onCpu">If set to `true`, the heap can be mapped from the CPU.</param>
+        /// <param name="forSamplers">If set to `true`, the heap does only accept samplers. Must be set to `false` for all other resource types.</param>
+        /// <returns>A buffer that provides memory for the descriptor heap.</returns>
+        SharedPtr<IVulkanBuffer> createDescriptorHeap(size_t heapSize, bool onCpu, bool forSamplers) const noexcept;
+
+        /// <summary>
+        /// Creates a descriptor heap.
+        /// </summary>
+        /// <param name="name">The name of the descriptor heap.</param>
+        /// <param name="heapSize">The size of the descriptor heap buffer in bytes.</param>
+        /// <param name="onCpu">If set to `true`, the heap can be mapped from the CPU.</param>
+        /// <param name="forSamplers">If set to `true`, the heap does only accept samplers. Must be set to `false` for all other resource types.</param>
+        /// <returns>A buffer that provides memory for the descriptor heap.</returns>
+        SharedPtr<IVulkanBuffer> createDescriptorHeap(const String& name, size_t heapSize, bool onCpu, bool forSamplers) const noexcept;
+
     public:
         /// <inheritdoc />
         SharedPtr<IVulkanBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
@@ -2538,6 +2557,17 @@ namespace LiteFX::Rendering::Backends {
         friend struct SharedObject::Allocator<VulkanDevice>;
         friend class VulkanBackend;
 
+    public:
+        /// <summary>
+        /// The default size for the global buffer heap in bytes.
+        /// </summary>
+        static const size_t DEFAULT_RESOURCE_HEAP_SIZE = 134'217'728;   // equals 128 Mb
+
+        /// <summary>
+        /// The default size for the global sampler heap in bytes.
+        /// </summary>
+        static const size_t DEFAULT_SAMPLER_HEAP_SIZE = 1'048'576;      // equals 1 Mb.
+
     private:
         /// <summary>
         /// Creates a new device instance.
@@ -2547,7 +2577,9 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="surface">The surface, the device should draw to.</param>
         /// <param name="features">The features that should be supported by this device.</param>
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
-        explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { });
+        /// <param name="globalBufferHeapSize">The size of the global buffer heap in bytes.</param>
+        /// <param name="globalSamplerHeapSize">The size of the global sampler heap in bytes.</param>
+        explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }, size_t globalBufferHeapSize = DEFAULT_RESOURCE_HEAP_SIZE, size_t globalSamplerHeapSize = DEFAULT_SAMPLER_HEAP_SIZE);
 
     private:
         /// <inheritdoc />
@@ -2576,9 +2608,11 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="surface">The surface, the device should draw to.</param>
         /// <param name="features">The features that should be supported by this device.</param>
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
+        /// <param name="globalBufferHeapSize">The size of the global buffer heap in bytes.</param>
+        /// <param name="globalSamplerHeapSize">The size of the global sampler heap in bytes.</param>
         /// <returns>A shared pointer to the new device instance.</returns>
-        static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }) {
-            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions)->initialize(Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }, size_t globalBufferHeapSize = DEFAULT_RESOURCE_HEAP_SIZE, size_t globalSamplerHeapSize = DEFAULT_SAMPLER_HEAP_SIZE) {
+            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions, globalBufferHeapSize, globalSamplerHeapSize)->initialize(Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         }
 
         /// <summary>
@@ -2593,9 +2627,11 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="enableVsync">The initial setting for vertical synchronization.</param>
         /// <param name="features">The features that should be supported by this device.</param>
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
+        /// <param name="globalBufferHeapSize">The size of the global buffer heap in bytes.</param>
+        /// <param name="globalSamplerHeapSize">The size of the global sampler heap in bytes.</param>
         /// <returns>A shared pointer to the new device instance.</returns>
-        static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }) {
-            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions)->initialize(format, renderArea, backBuffers, enableVsync, features);
+        static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }, size_t globalBufferHeapSize = DEFAULT_RESOURCE_HEAP_SIZE, size_t globalSamplerHeapSize = DEFAULT_SAMPLER_HEAP_SIZE) {
+            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions, globalBufferHeapSize, globalSamplerHeapSize)->initialize(format, renderArea, backBuffers, enableVsync, features);
         }
 
     private:

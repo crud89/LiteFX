@@ -2,6 +2,9 @@
 #include <litefx/backends/vulkan_builders.hpp>
 #include <bit>
 
+#include "image.h"
+#include "buffer.h"
+
 using namespace LiteFX::Rendering::Backends;
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
@@ -126,9 +129,13 @@ private:
     PFN_vkDebugMarkerSetObjectNameEXT debugMarkerSetObjectName = nullptr;
 #endif
 
+    size_t m_globalBufferHeapSize, m_globalSamplerHeapSize, m_bufferOffset{ 0 }, m_samplerOffset{ 0 };
+    VkPhysicalDeviceDescriptorBufferPropertiesEXT m_descriptorBufferProperties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT };
+    SharedPtr<IVulkanBuffer> m_globalBufferHeap, m_globalSamplerHeap;
+
 public:
-    VulkanDeviceImpl(const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const GraphicsDeviceFeatures& features, Span<String> extensions) :
-        m_adapter(adapter.shared_from_this()), m_surface(std::move(surface))
+    VulkanDeviceImpl(const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const GraphicsDeviceFeatures& features, Span<String> extensions, size_t globalBufferHeapSize, size_t globalSamplerHeapSize) :
+        m_adapter(adapter.shared_from_this()), m_surface(std::move(surface)), m_globalBufferHeapSize(globalBufferHeapSize), m_globalSamplerHeapSize(globalSamplerHeapSize)
     {
         if (m_surface == nullptr)
             throw ArgumentNotInitializedException("surface", "The surface must be initialized.");
@@ -150,6 +157,9 @@ private:
 
         // Required to query image and buffer requirements.
         m_extensions.emplace_back(VK_KHR_GET_MEMORY_REQUIREMENTS_2_EXTENSION_NAME);
+
+        // Required for improved descriptor management.
+        m_extensions.emplace_back(VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
 
         // Required for mesh shading.
         if (features.MeshShaders)
@@ -460,7 +470,8 @@ public:
                 vkCmdWriteAccelerationStructuresProperties = reinterpret_cast<PFN_vkCmdWriteAccelerationStructuresPropertiesKHR>(::vkGetDeviceProcAddr(device, "vkCmdWriteAccelerationStructuresPropertiesKHR"));
         }
         // NOLINTEND(cppcoreguidelines-pro-type-reinterpret-cast)
-
+        
+        // Return the device instance.
         return device;
     }
 
@@ -485,6 +496,25 @@ public:
             LITEFX_INFO(VULKAN_LOG, "Unable to find dedicated compute queue. Using default graphics queue instead.");
             m_computeQueue = m_graphicsQueue;
         }
+    }
+
+    inline void initializeResourceHeaps() noexcept
+    {
+        // Initialize the global descriptor heaps. First, we need to request the physical device limits that we need later to bind descriptors within the descriptor buffer.
+        VkPhysicalDeviceProperties2 deviceProperties = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
+            .pNext = &m_descriptorBufferProperties
+        };
+
+        ::vkGetPhysicalDeviceProperties2(m_adapter->handle(), &deviceProperties);
+
+        // Align the heap sizes to the descriptor buffer offset alignment.
+        m_globalBufferHeapSize = align(m_globalBufferHeapSize, m_descriptorBufferProperties.descriptorBufferOffsetAlignment);
+        m_globalSamplerHeapSize = align(m_globalSamplerHeapSize, m_descriptorBufferProperties.descriptorBufferOffsetAlignment);
+
+        // Create the descriptor buffers for both heaps.
+        m_globalBufferHeap = m_factory->createDescriptorHeap("Global Buffer Heap", m_globalBufferHeapSize, false, false);
+        m_globalSamplerHeap = m_factory->createDescriptorHeap("Global Sampler Heap", m_globalSamplerHeapSize, false, true);
     }
 
 public:
@@ -515,8 +545,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features, Span<String> extensions) :
-    Resource<VkDevice>(nullptr), m_impl(adapter, std::move(surface), features, extensions)
+VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features, Span<String> extensions, size_t globalBufferHeapSize, size_t globalSamplerHeapSize) :
+    Resource<VkDevice>(nullptr), m_impl(adapter, std::move(surface), features, extensions, globalBufferHeapSize, globalSamplerHeapSize)
 {
     LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", static_cast<void*>(m_impl->m_surface.get()), adapter.deviceId(), Join(this->enabledExtensions(), ", "));
     LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
@@ -538,8 +568,9 @@ VulkanDevice::~VulkanDevice() noexcept = default;
 SharedPtr<VulkanDevice> VulkanDevice::initialize(Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features)
 {
     this->handle() = m_impl->initialize(features);
-    m_impl->initializeDefaultQueues(*this);
     m_impl->m_factory = VulkanGraphicsFactory::create(*this);
+    m_impl->initializeDefaultQueues(*this);
+    m_impl->initializeResourceHeaps();
     m_impl->m_swapChain = UniquePtr<VulkanSwapChain>(new VulkanSwapChain(*this, format, renderArea, backBuffers, enableVsync));
 
     return this->shared_from_this();
@@ -554,6 +585,8 @@ void VulkanDevice::release() noexcept
     m_impl->m_graphicsQueue.reset();
     m_impl->m_families.clear();
     m_impl->m_surface.reset();
+    m_impl->m_globalBufferHeap.reset();
+    m_impl->m_globalSamplerHeap.reset();
     m_impl->m_factory.reset();
 
     // Destroy the device.
