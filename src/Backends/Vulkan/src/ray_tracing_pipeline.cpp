@@ -122,6 +122,7 @@ public:
 		// Setup pipeline.
 		VkRayTracingPipelineCreateInfoKHR pipelineInfo = {
 			.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR,
+			.flags = VK_PIPELINE_CREATE_DESCRIPTOR_BUFFER_BIT_EXT,
 			.stageCount = static_cast<UInt32>(shaderStages.size()),
 			.pStages = shaderStages.data(),
 			.groupCount = static_cast<UInt32>(shaderGroups.size()),

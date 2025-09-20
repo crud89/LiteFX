@@ -45,10 +45,12 @@ public:
 			| std::ranges::to<Array<VkPipelineShaderStageCreateInfo>>();
 
 		// Setup pipeline state.
-		VkComputePipelineCreateInfo pipelineInfo = {};
-		pipelineInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-		pipelineInfo.layout = std::as_const(*m_layout.get()).handle();
-		pipelineInfo.stage = shaderStages.front();
+		VkComputePipelineCreateInfo pipelineInfo = {
+			.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+			.flags = VK_PIPELINE_CREATE_DESCRIPTOR_BUFFER_BIT_EXT,
+			.stage = shaderStages.front(),
+			.layout = std::as_const(*m_layout.get()).handle()
+		};
 
 		VkPipeline pipeline{};
 		raiseIfFailed(::vkCreateComputePipelines(m_device->handle(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &pipeline), "Unable to create compute pipeline.");

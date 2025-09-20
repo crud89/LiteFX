@@ -713,20 +713,29 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a Vulkan <see cref="DescriptorSet" />.
     /// </summary>
     /// <seealso cref="VulkanDescriptorSetLayout" />
-    class LITEFX_VULKAN_API VulkanDescriptorSet final : public DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler, IVulkanAccelerationStructure>, public Resource<VkDescriptorSet> {
+    class LITEFX_VULKAN_API VulkanDescriptorSet final : public DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler, IVulkanAccelerationStructure> {
         LITEFX_IMPLEMENTATION(VulkanDescriptorSetImpl);
+        friend class VulkanDescriptorSetLayout;
 
     public:
         using base_type = DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler, IVulkanAccelerationStructure>;
         using base_type::update;
+
+    private:
+        /// <summary>
+        /// Initializes the descriptor set from a cached buffer. This is only called from the descriptor set layout.
+        /// </summary>
+        /// <param name="layout">The parent layout of the descriptor set.</param>
+        /// <param name="buffer">The buffer to take over.</param>
+        explicit VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, Array<Byte>&& buffer);
 
     public:
         /// <summary>
         /// Initializes a new descriptor set.
         /// </summary>
         /// <param name="layout">The parent descriptor set layout.</param>
-        /// <param name="descriptorSet">The descriptor set handle.</param>
-        explicit VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, VkDescriptorSet descriptorSet);
+        /// <param name="unboundedArraySize">The size of the unbounded runtime array, if available.</param>
+        explicit VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, UInt32 unboundedArraySize = std::numeric_limits<UInt32>::max());
 
         /// <inheritdoc />
         VulkanDescriptorSet(VulkanDescriptorSet&&) noexcept = delete;
@@ -749,6 +758,20 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <returns>The parent descriptor set layout.</returns>
         virtual const VulkanDescriptorSetLayout& layout() const noexcept;
+
+    private:
+        /// <summary>
+        /// Releases the underlying buffer of the descriptor set and returns it to the caller (usually the parent descriptor set layout).
+        /// </summary>
+        /// <returns>The underlying descriptor buffer.</returns>
+        Array<Byte>&& releaseBuffer() const noexcept;
+
+    public:
+        /// <summary>
+        /// Returns a view over the underlying descriptor buffer.
+        /// </summary>
+        /// <returns>A view over the underlying descriptor buffer.</returns>
+        Span<const Byte> descriptorBuffer() const noexcept;
 
     public:
         /// <inheritdoc />
@@ -997,15 +1020,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void free(const VulkanDescriptorSet& descriptorSet) const override;
-
-    public:
-        /// <summary>
-        /// Returns the number of active descriptor pools.
-        /// </summary>
-        /// <returns>The number of active descriptor pools.</returns>
-        /// <seealso cref="allocate" />
-        /// <seealso cref="free" />
-        virtual size_t pools() const noexcept;
     };
 
     /// <summary>

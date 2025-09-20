@@ -54,12 +54,12 @@ VulkanGraphicsFactory::VulkanGraphicsFactory(const VulkanDevice& device) :
 
 VulkanGraphicsFactory::~VulkanGraphicsFactory() noexcept = default;
 
-SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(size_t heapSize, bool onCpu, bool forSamplers) const noexcept
+SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(size_t heapSize, bool onCpu, bool forSamplers) const
 {
 	return this->createDescriptorHeap("", heapSize, onCpu, forSamplers);
 }
 
-SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(const String& name, size_t heapSize, bool onCpu, bool forSamplers) const noexcept
+SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(const String& name, size_t heapSize, bool onCpu, bool forSamplers) const
 {
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
