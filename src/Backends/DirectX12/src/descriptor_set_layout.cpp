@@ -204,11 +204,6 @@ UInt32 DirectX12DescriptorSetLayout::descriptorOffsetForBinding(UInt32 binding) 
     return m_impl->m_bindingToDescriptor[binding];
 }
 
-bool DirectX12DescriptorSetLayout::isRuntimeArray() const noexcept
-{
-    return m_impl->m_isRuntimeArray;
-}
-
 SharedPtr<const DirectX12Device> DirectX12DescriptorSetLayout::device() const noexcept
 {
     return m_impl->m_device.lock();
@@ -270,6 +265,11 @@ UInt32 DirectX12DescriptorSetLayout::staticSamplers() const noexcept
 UInt32 DirectX12DescriptorSetLayout::inputAttachments() const noexcept
 {
     return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::InputAttachment; }));
+}
+
+bool DirectX12DescriptorSetLayout::containsUnboundedArray() const noexcept
+{
+    return m_impl->m_isRuntimeArray;
 }
 
 UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const

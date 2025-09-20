@@ -971,6 +971,9 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         UInt32 inputAttachments() const noexcept override;
 
+        /// <inheritdoc />
+        bool containsUnboundedArray() const noexcept override;
+
     public:
         /// <inheritdoc />
         UniquePtr<VulkanDescriptorSet> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const override;
@@ -2493,7 +2496,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="onCpu">If set to `true`, the heap can be mapped from the CPU.</param>
         /// <param name="forSamplers">If set to `true`, the heap does only accept samplers. Must be set to `false` for all other resource types.</param>
         /// <returns>A buffer that provides memory for the descriptor heap.</returns>
-        SharedPtr<IVulkanBuffer> createDescriptorHeap(size_t heapSize, bool onCpu, bool forSamplers) const noexcept;
+        SharedPtr<IVulkanBuffer> createDescriptorHeap(size_t heapSize, bool onCpu, bool forSamplers) const;
 
         /// <summary>
         /// Creates a descriptor heap.
@@ -2503,7 +2506,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="onCpu">If set to `true`, the heap can be mapped from the CPU.</param>
         /// <param name="forSamplers">If set to `true`, the heap does only accept samplers. Must be set to `false` for all other resource types.</param>
         /// <returns>A buffer that provides memory for the descriptor heap.</returns>
-        SharedPtr<IVulkanBuffer> createDescriptorHeap(const String& name, size_t heapSize, bool onCpu, bool forSamplers) const noexcept;
+        SharedPtr<IVulkanBuffer> createDescriptorHeap(const String& name, size_t heapSize, bool onCpu, bool forSamplers) const;
 
     public:
         /// <inheritdoc />

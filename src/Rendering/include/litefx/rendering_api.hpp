@@ -5489,6 +5489,12 @@ namespace LiteFX::Rendering {
         /// <returns>The number of input attachment descriptors.</returns>
         virtual UInt32 inputAttachments() const noexcept = 0;
 
+        /// <summary>
+        /// Returns `true`, if the descriptor set layout contains an unbounded runtime array and `false` otherwise.
+        /// </summary>
+        /// <returns>`true`, if the descriptor set layout contains an unbounded runtime array and `false` otherwise</returns>
+        virtual bool containsUnboundedArray() const noexcept = 0;
+
     public:
         /// <summary>
         /// Allocates a new descriptor set or returns an instance of an unused descriptor set.

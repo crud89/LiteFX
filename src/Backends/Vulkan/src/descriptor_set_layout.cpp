@@ -503,6 +503,11 @@ UInt32 VulkanDescriptorSetLayout::inputAttachments() const noexcept
     return m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT].descriptorCount;
 }
 
+bool VulkanDescriptorSetLayout::containsUnboundedArray() const noexcept
+{
+    return m_impl->usesDescriptorIndexing();
+}
+
 UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const
 {
     return m_impl->allocate(this->shared_from_this(), descriptors, bindings);

@@ -955,16 +955,6 @@ namespace LiteFX::Rendering::Backends {
         /// <returns>A pointer to the parent device or `nullptr`, if it has been released.</returns>
         virtual SharedPtr<const DirectX12Device> device() const noexcept;
 
-    protected:
-        /// <summary>
-        /// Returns <c>true</c>, if the descriptor set contains an (unbounded) runtime array.
-        /// </summary>
-        /// <remarks>
-        /// A descriptor set is a runtime array, if it contains exactly one descriptor, which is an unbounded array, i.e. which has a descriptor count of `-1` (or `0xFFFFFFFF`).
-        /// </remarks>
-        /// <returns><c>true</c>, if the descriptor set contains an (unbounded) runtime array and <c>false</c> otherwise.</returns>
-        virtual bool isRuntimeArray() const noexcept;
-
     public:
         /// <inheritdoc />
         const Array<DirectX12DescriptorLayout>& descriptors() const noexcept override;
@@ -998,6 +988,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt32 inputAttachments() const noexcept override;
+
+        /// <inheritdoc />
+        bool containsUnboundedArray() const noexcept override;
 
     public:
         /// <inheritdoc />
