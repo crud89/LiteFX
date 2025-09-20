@@ -1398,13 +1398,6 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="commandBuffer">The command buffer to set the current pipeline state on.</param>
         virtual void use(const VulkanCommandBuffer& commandBuffer) const = 0;
-
-        /// <summary>
-        /// Binds a descriptor set on a command buffer.
-        /// </summary>
-        /// <param name="commandBuffer">The command buffer to issue the bind command on.</param>
-        /// <param name="descriptorSets">The descriptor sets to bind.</param>
-        virtual void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const = 0;
     };
 
     /// <summary>
@@ -1865,9 +1858,6 @@ namespace LiteFX::Rendering::Backends {
     public:
         /// <inheritdoc />
         void use(const VulkanCommandBuffer& commandBuffer) const override;
-
-        /// <inheritdoc />
-        void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const override;
     };
 
     /// <summary>
@@ -1923,9 +1913,6 @@ namespace LiteFX::Rendering::Backends {
     public:
         /// <inheritdoc />
         void use(const VulkanCommandBuffer& commandBuffer) const override;
-
-        /// <inheritdoc />
-        void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const override;
     };
     
     /// <summary>
@@ -2003,9 +1990,6 @@ namespace LiteFX::Rendering::Backends {
     public:
         /// <inheritdoc />
         void use(const VulkanCommandBuffer& commandBuffer) const override;
-
-        /// <inheritdoc />
-        void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const override;
     };
 
     /// <summary>
