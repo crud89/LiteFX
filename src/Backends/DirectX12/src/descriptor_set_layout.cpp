@@ -74,6 +74,9 @@ public:
                 m_descriptors += layout.descriptors();
             }
         });
+
+        LITEFX_TRACE(DIRECTX12_LOG, "Creating descriptor set {0} layout with {1} bindings {{ Uniform: {2}, Storage: {3}, Images: {4}, Sampler: {5}, Input Attachments: {6}, Texel Buffers: {7} }}...",
+            m_space, m_layouts.size(), this->uniforms(), this->storages(), this->images(), this->samplers(), this->inputAttachments(), this->buffers());
     }
 
 public:
@@ -168,6 +171,41 @@ public:
         // Return the descriptor set.
         return descriptorSet;
     }
+
+    inline UInt32 uniforms() const noexcept
+    {
+        return static_cast<UInt32>(std::ranges::count_if(m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::ConstantBuffer; }));
+    }
+
+    inline UInt32 storages() const noexcept
+    {
+        return static_cast<UInt32>(std::ranges::count_if(m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::StructuredBuffer || layout.descriptorType() == DescriptorType::RWStructuredBuffer || layout.descriptorType() == DescriptorType::ByteAddressBuffer || layout.descriptorType() == DescriptorType::RWByteAddressBuffer; }));
+    }
+
+    inline UInt32 buffers() const noexcept
+    {
+        return static_cast<UInt32>(std::ranges::count_if(m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Buffer || layout.descriptorType() == DescriptorType::RWBuffer; }));
+    }
+
+    inline UInt32 images() const noexcept
+    {
+        return static_cast<UInt32>(std::ranges::count_if(m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Texture || layout.descriptorType() == DescriptorType::RWTexture; }));
+    }
+
+    inline UInt32 samplers() const noexcept
+    {
+        return static_cast<UInt32>(std::ranges::count_if(m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Sampler && layout.staticSampler() == nullptr; }));
+    }
+
+    inline UInt32 staticSamplers() const noexcept
+    {
+        return static_cast<UInt32>(std::ranges::count_if(m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Sampler && layout.staticSampler() != nullptr; }));
+    }
+
+    inline UInt32 inputAttachments() const noexcept
+    {
+        return static_cast<UInt32>(std::ranges::count_if(m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::InputAttachment; }));
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -234,37 +272,37 @@ ShaderStage DirectX12DescriptorSetLayout::shaderStages() const noexcept
 
 UInt32 DirectX12DescriptorSetLayout::uniforms() const noexcept
 {
-    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::ConstantBuffer; }));
+    return m_impl->uniforms();
 }
 
 UInt32 DirectX12DescriptorSetLayout::storages() const noexcept
 {
-    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::StructuredBuffer || layout.descriptorType() == DescriptorType::RWStructuredBuffer || layout.descriptorType() == DescriptorType::ByteAddressBuffer || layout.descriptorType() == DescriptorType::RWByteAddressBuffer; }));
+    return m_impl->storages();
 }
 
 UInt32 DirectX12DescriptorSetLayout::buffers() const noexcept
 {
-    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Buffer || layout.descriptorType() == DescriptorType::RWBuffer; }));
+    return m_impl->buffers();
 }
 
 UInt32 DirectX12DescriptorSetLayout::images() const noexcept
 {
-    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Texture || layout.descriptorType() == DescriptorType::RWTexture; }));
+    return m_impl->images();
 }
 
 UInt32 DirectX12DescriptorSetLayout::samplers() const noexcept
 {
-    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Sampler && layout.staticSampler() == nullptr; }));
+    return m_impl->samplers();
 }
 
 UInt32 DirectX12DescriptorSetLayout::staticSamplers() const noexcept
 {
-    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Sampler && layout.staticSampler() != nullptr; }));
+    return m_impl->staticSamplers();
 }
 
 UInt32 DirectX12DescriptorSetLayout::inputAttachments() const noexcept
 {
-    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::InputAttachment; }));
+    return m_impl->inputAttachments();
 }
 
 bool DirectX12DescriptorSetLayout::containsUnboundedArray() const noexcept

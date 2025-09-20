@@ -233,7 +233,8 @@ public:
             bindings.push_back(binding);
         });
 
-        LITEFX_TRACE(VULKAN_LOG, "Creating descriptor set {0} layout with {1} bindings {{ Uniform: {2}, Storage: {3}, Images: {4}, Sampler: {5}, Input Attachments: {6}, Writable Images: {7}, Texel Buffers: {8} }}...", m_space, m_descriptorLayouts.size(), m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_SAMPLER]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_STORAGE_IMAGE]].descriptorCount, m_poolSizes[m_poolSizeMapping[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER]].descriptorCount);
+        LITEFX_TRACE(VULKAN_LOG, "Creating descriptor set {0} layout with {1} bindings {{ Uniform: {2}, Storage: {3}, Images: {4}, Sampler: {5}, Input Attachments: {6}, Texel Buffers: {7} }}...", 
+            m_space, m_descriptorLayouts.size(), this->uniforms(), this->storages(), this->images(), this->samplers(), this->inputAttachments(), this->buffers());
 
         // Create the descriptor set layout.
         VkDescriptorSetLayoutBindingFlagsCreateInfo extendedInfo {
@@ -406,6 +407,41 @@ public:
 
         co_yield std::ranges::elements_of(handles | std::views::as_rvalue);
     }
+
+    inline UInt32 uniforms() const noexcept
+    {
+        return static_cast<UInt32>(std::ranges::count_if(m_descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::ConstantBuffer; }));
+    }
+
+    inline UInt32 storages() const noexcept
+    {
+        return static_cast<UInt32>(std::ranges::count_if(m_descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::StructuredBuffer || layout.descriptorType() == DescriptorType::RWStructuredBuffer || layout.descriptorType() == DescriptorType::ByteAddressBuffer || layout.descriptorType() == DescriptorType::RWByteAddressBuffer; }));
+    }
+
+    inline UInt32 buffers() const noexcept
+    {
+        return static_cast<UInt32>(std::ranges::count_if(m_descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Buffer || layout.descriptorType() == DescriptorType::RWBuffer; }));
+    }
+
+    inline UInt32 images() const noexcept
+    {
+        return static_cast<UInt32>(std::ranges::count_if(m_descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Texture || layout.descriptorType() == DescriptorType::RWTexture; }));
+    }
+
+    inline UInt32 samplers() const noexcept
+    {
+        return static_cast<UInt32>(std::ranges::count_if(m_descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Sampler && layout.staticSampler() == nullptr; }));
+    }
+
+    inline UInt32 staticSamplers() const noexcept
+    {
+        return static_cast<UInt32>(std::ranges::count_if(m_descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Sampler && layout.staticSampler() != nullptr; }));
+    }
+
+    inline UInt32 inputAttachments() const noexcept
+    {
+        return static_cast<UInt32>(std::ranges::count_if(m_descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::InputAttachment; }));
+    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -470,37 +506,37 @@ ShaderStage VulkanDescriptorSetLayout::shaderStages() const noexcept
 
 UInt32 VulkanDescriptorSetLayout::uniforms() const noexcept
 {
-    return m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER].descriptorCount;
+    return m_impl->uniforms();
 }
 
 UInt32 VulkanDescriptorSetLayout::storages() const noexcept
 {
-    return m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_STORAGE_BUFFER].descriptorCount;
+    return m_impl->storages();
 }
 
 UInt32 VulkanDescriptorSetLayout::buffers() const noexcept
 {
-    return m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER].descriptorCount + m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER].descriptorCount;
+    return m_impl->buffers();
 }
 
 UInt32 VulkanDescriptorSetLayout::images() const noexcept
 {
-    return m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE].descriptorCount + m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_STORAGE_IMAGE].descriptorCount;
+    return m_impl->images();
 }
 
 UInt32 VulkanDescriptorSetLayout::samplers() const noexcept
 {
-    return m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_SAMPLER].descriptorCount;
+    return m_impl->samplers();
 }
 
 UInt32 VulkanDescriptorSetLayout::staticSamplers() const noexcept
 {
-    return static_cast<UInt32>(std::ranges::count_if(m_impl->m_descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Sampler && layout.staticSampler() != nullptr; }));
+    return m_impl->staticSamplers();
 }
 
 UInt32 VulkanDescriptorSetLayout::inputAttachments() const noexcept
 {
-    return m_impl->m_poolSizes[VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT].descriptorCount;
+    return m_impl->inputAttachments();
 }
 
 bool VulkanDescriptorSetLayout::containsUnboundedArray() const noexcept
