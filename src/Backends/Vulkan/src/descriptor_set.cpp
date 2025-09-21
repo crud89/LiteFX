@@ -19,7 +19,7 @@ private:
     Dictionary<UInt32, VkImageView> m_imageViews{};
     SharedPtr<const VulkanDescriptorSetLayout> m_layout;
     Array<Byte> m_descriptorBuffer;
-    UInt32 m_unboundedArraySize;
+    UInt32 m_unboundedArraySize, m_offset{ 0 }, m_heapSize{ 0 };
 
 public:
     VulkanDescriptorSetImpl(const VulkanDescriptorSetLayout& layout, Array<Byte>&& buffer) :
@@ -88,6 +88,16 @@ Array<Byte>&& VulkanDescriptorSet::releaseBuffer() const noexcept
 Span<const Byte> VulkanDescriptorSet::descriptorBuffer() const noexcept
 {
     return m_impl->m_descriptorBuffer;
+}
+
+UInt32 VulkanDescriptorSet::globalHeapOffset() const noexcept
+{
+    return m_impl->m_offset;
+}
+
+UInt32 VulkanDescriptorSet::globalHeapAddressRange() const noexcept
+{
+    return m_impl->m_heapSize;
 }
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const

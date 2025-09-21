@@ -11,21 +11,16 @@ public:
     friend class DirectX12DescriptorSet;
 
 private:
-    ComPtr<ID3D12DescriptorHeap> m_bufferHeap, m_samplerHeap;
-    UInt32 m_bufferOffset{ 0 }, m_samplerOffset{ 0 };
+    ComPtr<ID3D12DescriptorHeap> m_localHeap;
+    UInt32 m_heapOffset{ 0 }, m_heapSize{ 0 };
     SharedPtr<const DirectX12DescriptorSetLayout> m_layout;
 
 public:
-    DirectX12DescriptorSetImpl(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& bufferHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap) :
-        m_bufferHeap(std::move(bufferHeap)), m_samplerHeap(std::move(samplerHeap)), m_layout(layout.shared_from_this())
+    DirectX12DescriptorSetImpl(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& localHeap) :
+        m_localHeap(std::move(localHeap)), m_layout(layout.shared_from_this())
     {
-        auto buffers = m_layout->uniforms() + m_layout->images() + m_layout->storages() + m_layout->buffers();
-
-        if (buffers > 0 && m_bufferHeap == nullptr)
-            throw ArgumentNotInitializedException("bufferHeap", "The buffer descriptor heap handle must be initialized, if the descriptor set layout contains uniform buffers, storage buffers or images.");
-
-        if (m_layout->samplers() > 0 && m_samplerHeap == nullptr)
-            throw ArgumentNotInitializedException("samplerHeap", "The sampler descriptor heap handle must be initialized, if the descriptor set layout contains samplers.");
+        if (m_localHeap == nullptr)
+            throw ArgumentNotInitializedException("localHeap", "The local descriptor heap handle must be initialized.");
     }
 
 public:
@@ -66,10 +61,10 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12DescriptorSet::DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& bufferHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap) :
-    m_impl(layout, std::move(bufferHeap), std::move(samplerHeap))
+DirectX12DescriptorSet::DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& localHeap) :
+    m_impl(layout, std::move(localHeap))
 {
-    layout.device()->allocateGlobalDescriptors(*this, m_impl->m_bufferOffset, m_impl->m_samplerOffset);
+    layout.device()->allocateGlobalDescriptors(*this, m_impl->m_heapOffset, m_impl->m_heapSize);
 }
 
 DirectX12DescriptorSet::~DirectX12DescriptorSet() noexcept
@@ -81,6 +76,16 @@ DirectX12DescriptorSet::~DirectX12DescriptorSet() noexcept
 const DirectX12DescriptorSetLayout& DirectX12DescriptorSet::layout() const noexcept
 {
     return *m_impl->m_layout;
+}
+
+UInt32 DirectX12DescriptorSet::globalHeapOffset() const noexcept
+{
+    return m_impl->m_heapOffset;
+}
+
+UInt32 DirectX12DescriptorSet::globalHeapAddressRange() const noexcept
+{
+    return m_impl->m_heapSize;
 }
 
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const
@@ -104,7 +109,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
     auto device = m_impl->m_layout->device();
     auto offset = m_impl->m_layout->descriptorOffsetForBinding(binding) + firstDescriptor;
     auto descriptorSize = device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), descriptorSize);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_localHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), descriptorSize);
 
     switch (descriptorLayout.descriptorType())
     {
@@ -254,7 +259,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
 
     auto offset = m_impl->m_layout->descriptorOffsetForBinding(binding) + descriptor;
     auto device = m_impl->m_layout->device();
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_localHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
 
     // Get the number of levels and layers.
     const UInt32 numLevels = levels == 0 ? texture.levels() - firstLevel : levels;
@@ -448,7 +453,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sam
     };
 
     auto device = m_impl->m_layout->device();
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_samplerHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER));
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_localHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER));
     device->handle()->CreateSampler(&samplerInfo, descriptorHandle);
     device->updateSamplerDescriptors(*this, offset, 1);
 }
@@ -478,7 +483,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Acceleration
     auto offset = m_impl->m_layout->descriptorOffsetForBinding(binding);
     auto device = m_impl->m_layout->device();
     auto descriptorSize = device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_bufferHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset + descriptor), descriptorSize);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_localHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset + descriptor), descriptorSize);
 
     D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
         .Format = DXGI_FORMAT_UNKNOWN,
@@ -493,22 +498,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Acceleration
     m_impl->updateGlobalBuffers(*this, offset, 1);
 }
 
-const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::bufferHeap() const noexcept
+const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::localHeap() const noexcept
 {
-    return m_impl->m_bufferHeap;
-}
-
-UInt32 DirectX12DescriptorSet::bufferOffset() const noexcept
-{
-    return m_impl->m_bufferOffset;
-}
-
-const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::samplerHeap() const noexcept
-{
-    return m_impl->m_samplerHeap;
-}
-
-UInt32 DirectX12DescriptorSet::samplerOffset() const noexcept
-{
-    return m_impl->m_samplerOffset;
+    return m_impl->m_localHeap;
 }

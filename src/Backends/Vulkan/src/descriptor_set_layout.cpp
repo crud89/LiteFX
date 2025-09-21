@@ -80,7 +80,7 @@ public:
         Array<VkDescriptorSetLayoutBinding> bindings;
         Array<VkDescriptorBindingFlags> bindingFlags;
         Array<VkDescriptorSetLayoutBindingFlagsCreateInfo> bindingFlagCreateInfo;
-        bool hasStaticSampler{ false };
+        bool hasStaticSampler{ false }, hasSamplers{ false }, hasResources{ false };
 
         // Track maximum number of descriptors in unbounded arrays.
         // NOTE: We do this to make an educated guess on the maximum amount of descriptors that can be bound. However, we rely on the driver to not allocate memory for all the 
@@ -116,6 +116,16 @@ public:
             if (type == DescriptorType::InputAttachment && m_stages != ShaderStage::Fragment)
                 throw RuntimeException("Unable to bind input attachment at {0} to a descriptor set that is accessible from other stages, than the fragment shader.", bindingPoint);
 
+            // Check for invalid mixing of samplers and resources.
+            if ((type == DescriptorType::Sampler && hasResources) || (type != DescriptorType::Sampler && hasSamplers)) [[unlikely]]
+                throw InvalidArgumentException("descriptorLayouts", "Mixing samplers and resources in a single descriptor set is not supported. Samplers must be defined in a separate set.");
+
+            if (type == DescriptorType::Sampler)
+                hasSamplers = true;
+            else
+                hasResources = true;
+
+            // Map descriptor type to Vulkan type set.
             switch (type)
             {
             case DescriptorType::ConstantBuffer:        binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;       break;
@@ -261,7 +271,7 @@ public:
         else
         {
             // Otherwise, pick and remove one from the list.
-            descriptorSet = makeUnique<VulkanDescriptorSet>(*layout, std::move(m_freeDescriptorSets.front()));
+            descriptorSet = UniquePtr<VulkanDescriptorSet>(new VulkanDescriptorSet(*layout, std::move(m_freeDescriptorSets.front())));
             m_freeDescriptorSets.pop();
         }
 
@@ -299,7 +309,7 @@ public:
                 // Pop cached descriptor sets.
                 while (!m_freeDescriptorSets.empty() && descriptorSets --> 0) // Finally a good use for the "-->" operator!!!
                 {
-                    handles.emplace_back(makeUnique<VulkanDescriptorSet>(std::move(m_freeDescriptorSets.front())));
+                    handles.emplace_back(UniquePtr<VulkanDescriptorSet>(new VulkanDescriptorSet(*layout, std::move(m_freeDescriptorSets.front()))));
                     m_freeDescriptorSets.pop();
                 }
 
@@ -467,10 +477,8 @@ Generator<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocate(UI
     auto bindings = bindingsPerSet.begin();
 
     // Iterate the handles and apply the bindings.
-    for (auto handle : handles)
+    for (auto descriptorSet : handles)
     {
-        auto descriptorSet = makeUnique<VulkanDescriptorSet>(*self, handle);
-
         // Only start binding, if there are any more bindings provided.
         if (bindings != bindingsPerSet.end())
         {
@@ -505,10 +513,8 @@ Generator<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocate(UI
     auto handles = m_impl->allocate(self, descriptorSets, descriptors);
 
     // Iterate the handles and bind them.
-    for (UInt32 offset{ 0 }; auto handle : handles)
+    for (UInt32 offset{ 0 }; auto descriptorSet : handles)
     {
-        auto descriptorSet = makeUnique<VulkanDescriptorSet>(*self, handle);
-
         // TODO: With C++26 we can use submdspan here. The workaround works, as `layout_right` of the mdspan.
         for (UInt32 i{ 0 }; auto& binding : Span<DescriptorBinding>{ bindings.data_handle() + offset++ * sizeof(DescriptorBinding), bindings.extent(1) * sizeof(DescriptorBinding) }) // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
         {
@@ -537,9 +543,8 @@ Generator<UniquePtr<VulkanDescriptorSet>> VulkanDescriptorSetLayout::allocate(UI
     auto handles = m_impl->allocate(self, descriptorSets, descriptors);
 
     // Iterate the handles and bind them.
-    for (UInt32 setId{ 0 }; auto handle : handles)
+    for (UInt32 setId{ 0 }; auto descriptorSet : handles)
     {
-        auto descriptorSet = makeUnique<VulkanDescriptorSet>(*self, handle);
         auto bindingsGenerator = bindingFactory(setId++);
 
         for (UInt32 i{ 0 }; auto binding : bindingsGenerator)

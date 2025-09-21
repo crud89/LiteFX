@@ -714,9 +714,8 @@ namespace LiteFX::Rendering::Backends {
         /// Initializes a new descriptor set.
         /// </summary>
         /// <param name="layout">The parent descriptor set layout.</param>
-        /// <param name="bufferHeap">A CPU-visible descriptor heap that contains all buffer descriptors of the descriptor set.</param>
-        /// <param name="samplerHeap">A CPU-visible descriptor heap that contains all sampler descriptors of the descriptor set.</param>
-        explicit DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& bufferHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap);
+        /// <param name="localHeap">A CPU-visible descriptor heap that contains all descriptors of the descriptor set.</param>
+        explicit DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& localHeap);
 
         /// <inheritdoc />
         DirectX12DescriptorSet(DirectX12DescriptorSet&&) noexcept = delete;
@@ -742,6 +741,12 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
+        virtual UInt32 globalHeapOffset() const noexcept override;
+
+        /// <inheritdoc />
+        virtual UInt32 globalHeapAddressRange() const noexcept override;
+
+        /// <inheritdoc />
         void update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0) const override;
 
         /// <inheritdoc />
@@ -755,28 +760,10 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <summary>
-        /// Returns the local (CPU-visible) heap that contains the buffer descriptors.
+        /// Returns the local (CPU-visible) heap that contains the set's descriptors.
         /// </summary>
-        /// <returns>The local (CPU-visible) heap that contains the buffer descriptors, or <c>nullptr</c>, if the descriptor set does not contain any buffers.</returns>
-        virtual const ComPtr<ID3D12DescriptorHeap>& bufferHeap() const noexcept;
-
-        /// <summary>
-        /// Returns the offset of the buffer descriptors in the global descriptor heap.
-        /// </summary>
-        /// <returns>The offset of the buffer descriptors in the global descriptor heap.</returns>
-        virtual UInt32 bufferOffset() const noexcept;
-
-        /// <summary>
-        /// Returns the local (CPU-visible) heap that contains the sampler descriptors.
-        /// </summary>
-        /// <returns>The local (CPU-visible) heap that contains the sampler descriptors, or <c>nullptr</c>, if the descriptor set does not contain any samplers.</returns>
-        virtual const ComPtr<ID3D12DescriptorHeap>& samplerHeap() const noexcept;
-
-        /// <summary>
-        /// Returns the offset of the sampler descriptors in the global descriptor heap.
-        /// </summary>
-        /// <returns>The offset of the sampler descriptors in the global descriptor heap.</returns>
-        virtual UInt32 samplerOffset() const noexcept;
+        /// <returns>The local (CPU-visible) heap that contains the set's descriptors.</returns>
+        virtual const ComPtr<ID3D12DescriptorHeap>& localHeap() const noexcept;
     };
 
     /// <summary>

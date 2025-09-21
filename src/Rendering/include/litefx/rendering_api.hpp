@@ -5263,6 +5263,25 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// Returns the offset into the global descriptor heap.
+        /// </summary>
+        /// <remarks>
+        /// The heap offset may differ between used backends and does not necessarily correspond to memory.
+        /// </remarks>
+        /// <returns>The offset into the global descriptor heap.</returns>
+        virtual UInt32 globalHeapOffset() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the amount size of the range in the global descriptor heap address space.
+        /// </summary>
+        /// <remarks>
+        /// The heap size may differ between used backends and does not necessarily correspond to memory.
+        /// </remarks>
+        /// <returns>The size of the range in the global descriptor heap.</returns>
+        /// <seealso cref="globalHeapOffset" />
+        virtual UInt32 globalHeapAddressRange() const noexcept = 0;
+
+        /// <summary>
         /// Updates one or more buffer descriptors within the current descriptor set.
         /// </summary>
         /// <param name="binding">The buffer binding point.</param>
