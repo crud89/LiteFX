@@ -2639,59 +2639,6 @@ namespace LiteFX::Rendering::Backends {
         const ID3D12DescriptorHeap* globalSamplerHeap() const noexcept;
 
         /// <summary>
-        /// Allocates a range of descriptors in the global descriptor heaps for the provided <paramref name="descriptorSet" />.
-        /// </summary>
-        /// <param name="descriptorSet">The descriptor set containing the descriptors to update.</param>
-        /// <param name="bufferOffset">The offset of the descriptor range in the buffer heap.</param>
-        /// <param name="samplerOffset">The offset of the descriptor range in the sampler heap.</param>
-        void allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32& bufferOffset, UInt32& samplerOffset) const;
-
-        /// <summary>
-        /// Releases a range of descriptors from the global descriptor heaps.
-        /// </summary>
-        /// <remarks>
-        /// This is done, if a descriptor set layout is destroyed, of a descriptor set, which contains an unbounded array is freed. It will cause the global 
-        /// descriptor heaps to fragment, which may result in inefficient future descriptor allocations and should be avoided. Consider caching descriptor
-        /// sets with unbounded arrays instead. Also avoid relying on creating and releasing pipeline layouts during runtime. Instead, it may be more efficient
-        /// to write shaders that support multiple pipeline variations, that can be kept alive for the lifetime of the whole application.
-        /// </remarks>
-        void releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const;
-
-        /// <summary>
-        /// Updates a range of descriptors in the global buffer descriptor heap with the descriptors from <paramref name="descriptorSet" />.
-        /// </summary>
-        /// <param name="descriptorSet">The descriptor set to copy the descriptors from.</param>
-        /// <param name="firstDescriptor">The index of the first descriptor to copy.</param>
-        /// <param name="descriptors">The number of descriptors to copy.</param>
-        void updateBufferDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 firstDescriptor, UInt32 descriptors) const noexcept;
-
-        /// <summary>
-        /// Updates a sampler descriptors in the global buffer descriptor heap with a descriptor from <paramref name="descriptorSet" />.
-        /// </summary>
-        /// <param name="descriptorSet">The descriptor set to copy the descriptors from.</param>
-        /// <param name="firstDescriptor">The index of the first descriptor to copy.</param>
-        /// <param name="descriptors">The number of descriptors to copy.</param>
-        void updateSamplerDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 firstDescriptor, UInt32 descriptors) const noexcept;
-
-        /// <summary>
-        /// Binds the descriptors of the descriptor set to the global descriptor heaps.
-        /// </summary>
-        /// <remarks>
-        /// Note that after binding the descriptor set, the descriptors must not be updated anymore, unless they are elements on unbounded descriptor arrays, 
-        /// in which case you have to ensure manually to not update them, as long as they may still be in use!
-        /// </remarks>
-        /// <param name="commandBuffer">The command buffer to bind the descriptor set on.</param>
-        /// <param name="descriptorSet">The descriptor set to bind.</param>
-        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
-        void bindDescriptorSet(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept;
-
-        /// <summary>
-        /// Binds the global descriptor heap.
-        /// </summary>
-        /// <param name="commandBuffer">The command buffer to issue the bind command on.</param>
-        void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept;
-
-        /// <summary>
         /// Returns the command signatures for indirect dispatch and draw calls.
         /// </summary>
         /// <param name="dispatchSignature">The command signature used to execute indirect dispatches.</param>
@@ -2747,6 +2694,21 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void computeAccelerationStructureSizes(const DirectX12TopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
+
+        /// <inheritdoc />
+        void allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32& heapOffset, UInt32& heapSize) const override;
+
+        /// <inheritdoc />
+        void releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const override;
+
+        /// <inheritdoc />
+        void updateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const override;
+
+        /// <inheritdoc />
+        void bindDescriptorSet(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept override;
+
+        /// <inheritdoc />
+        void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept override;
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:

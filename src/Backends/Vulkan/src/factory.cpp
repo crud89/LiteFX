@@ -54,12 +54,12 @@ VulkanGraphicsFactory::VulkanGraphicsFactory(const VulkanDevice& device) :
 
 VulkanGraphicsFactory::~VulkanGraphicsFactory() noexcept = default;
 
-SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(size_t heapSize, bool onCpu, bool forSamplers) const
+SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(size_t heapSize, bool forSamplers) const
 {
-	return this->createDescriptorHeap("", heapSize, onCpu, forSamplers);
+	return this->createDescriptorHeap("", heapSize, forSamplers);
 }
 
-SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(const String& name, size_t heapSize, bool onCpu, bool forSamplers) const
+SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(const String& name, size_t heapSize, bool forSamplers) const
 {
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
@@ -78,7 +78,7 @@ SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(const Strin
 
 	VmaAllocationCreateInfo allocInfo = {
 		.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
-		.usage = onCpu ? VMA_MEMORY_USAGE_CPU_ONLY : VMA_MEMORY_USAGE_GPU_ONLY
+		.usage = VMA_MEMORY_USAGE_CPU_TO_GPU
 	};
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.

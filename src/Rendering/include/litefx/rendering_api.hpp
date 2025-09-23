@@ -9380,9 +9380,70 @@ namespace LiteFX::Rendering {
             this->getAccelerationStructureSizes(tlas, bufferSize, scratchSize, forUpdate);
         }
 
+        /// <summary>
+        /// Allocates a range of descriptors in the global descriptor heaps for the provided <paramref name="descriptorSet" />.
+        /// </summary>
+        /// <param name="descriptorSet">The descriptor set containing the descriptors to update.</param>
+        /// <param name="heapOffset">The offset of the descriptor range in the global descriptor heap.</param>
+        /// <param name="heapSize">The size of the address range in the global descriptor heap.</param>
+        inline void allocateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32& heapOffset, UInt32& heapSize) const {
+            this->doAllocateGlobalDescriptors(descriptorSet, heapOffset, heapSize);
+        }
+
+        /// <summary>
+        /// Releases a range of descriptors from the global descriptor heaps.
+        /// </summary>
+        /// <remarks>
+        /// This is done, if a descriptor set layout is destroyed, of a descriptor set, which contains an unbounded array is freed. It will cause the global 
+        /// descriptor heaps to fragment, which may result in inefficient future descriptor allocations and should be avoided. Consider caching descriptor
+        /// sets with unbounded arrays instead. Also avoid relying on creating and releasing pipeline layouts during runtime. Instead, it may be more efficient
+        /// to write shaders that support multiple pipeline variations, that can be kept alive for the lifetime of the whole application.
+        /// </remarks>
+        inline void releaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const {
+            this->doReleaseGlobalDescriptors(descriptorSet);
+        }
+
+        /// <summary>
+        /// Updates a range of descriptors in the global buffer descriptor heap with the descriptors from <paramref name="descriptorSet" />.
+        /// </summary>
+        /// <param name="descriptorSet">The descriptor set to copy the descriptors from.</param>
+        /// <param name="binding">The binding point for which to update the descriptors.</param>
+        /// <param name="offset">The index of the first descriptor in a descriptor array at the binding point.</param>
+        /// <param name="descriptors">The number of descriptors in a descriptor array to copy, starting at the offset.</param>
+        inline void updateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const {
+            this->doUpdateGlobalDescriptors(descriptorSet, binding, offset, descriptors);
+        }
+
+        /// <summary>
+        /// Binds the descriptors of the descriptor set to the global descriptor heaps.
+        /// </summary>
+        /// <remarks>
+        /// Note that after binding the descriptor set, the descriptors must not be updated anymore, unless they are elements on unbounded descriptor arrays, 
+        /// in which case you have to ensure manually to not update them, as long as they may still be in use!
+        /// </remarks>
+        /// <param name="commandBuffer">The command buffer to bind the descriptor set on.</param>
+        /// <param name="descriptorSet">The descriptor set to bind.</param>
+        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
+        inline void bindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept {
+            this->doBindDescriptorSet(commandBuffer, descriptorSet, pipeline);
+        }
+
+        /// <summary>
+        /// Binds the global descriptor heap.
+        /// </summary>
+        /// <param name="commandBuffer">The command buffer to issue the bind command on.</param>
+        inline void bindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const noexcept {
+            this->doBindGlobalDescriptorHeaps(commandBuffer);
+        }
+
     private:
         virtual void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
         virtual void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
+        virtual void doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32& heapOffset, UInt32& heapSize) const = 0;
+        virtual void doReleaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const = 0;
+        virtual void doUpdateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const = 0;
+        virtual void doBindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept = 0;
+        virtual void doBindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const noexcept = 0;
 
     public:
         /// <summary>

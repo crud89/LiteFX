@@ -7,7 +7,7 @@ extern PFN_vkGetDescriptorSetLayoutSizeEXT vkGetDescriptorSetLayoutSize;
 extern PFN_vkGetDescriptorSetLayoutBindingOffsetEXT vkGetDescriptorSetLayoutBindingOffset;
 extern PFN_vkGetDescriptorEXT vkGetDescriptor;
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
-// 
+
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
@@ -58,11 +58,13 @@ public:
 VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, Array<Byte>&& buffer) :
     m_impl(layout, std::forward<Array<Byte>>(buffer))
 {
+    layout.device().allocateGlobalDescriptors(*this, m_impl->m_offset, m_impl->m_heapSize);
 }
 
 VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, UInt32 unboundedArraySize) :
     m_impl(layout, unboundedArraySize)
 {
+    layout.device().allocateGlobalDescriptors(*this, m_impl->m_offset, m_impl->m_heapSize);
 }
 
 VulkanDescriptorSet::~VulkanDescriptorSet() noexcept
@@ -102,6 +104,11 @@ UInt32 VulkanDescriptorSet::globalHeapAddressRange() const noexcept
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const
 {
+    UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;
+
+    if (bufferElement + elementCount > buffer.elements()) [[unlikely]]
+        LITEFX_WARNING(VULKAN_LOG, "The buffer only has {0} elements, however there are {1} elements starting at element {2} specified.", buffer.elements(), elementCount, bufferElement);
+
     // Find the descriptor.
     auto descriptors = m_impl->m_layout->descriptors();
     auto descriptorLayout = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
@@ -123,24 +130,23 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
         throw InvalidArgumentException("binding", "Invalid descriptor type. The binding {0} does not point to a buffer descriptor.", binding);
 
     // Check if all elements can be bound to a bounded array.
-    if (descriptorLayout->descriptors() > 1 && descriptorLayout->descriptors() < (firstDescriptor + elements)) [[unlikely]]
-        throw ArgumentOutOfRangeException("elements", "The descriptor layout can only bind up to {0} descriptors at binding {3}, however the request was to bind {1} descriptors starting at {2}.", descriptorLayout->descriptors(), elements, firstDescriptor, binding);
+    if (descriptorLayout->descriptors() > 1 && descriptorLayout->descriptors() < (firstDescriptor + elementCount)) [[unlikely]]
+        throw ArgumentOutOfRangeException("elements", "The descriptor layout can only bind up to {0} descriptors at binding {3}, however the request was to bind {1} descriptors starting at {2}.", descriptorLayout->descriptors(), elementCount, firstDescriptor, binding);
 
     // Acquire the binding offset.
-    VkDeviceSize descriptorOffset;
-    vkGetDescriptorSetLayoutBindingOffset(m_impl->m_layout->device().handle(), m_impl->m_layout->handle(), binding, &descriptorOffset);
+    auto descriptorOffset = static_cast<VkDeviceSize>(m_impl->m_layout->getDescriptorOffset(binding));
 
     // Offset to first array index. Arrays are tightly packed, so we simply add the descriptor size for each element.
     size_t descriptorSize = m_impl->m_layout->device().descriptorSize(descriptorLayout->descriptorType());
 
     // Update the descriptor each element.
-    for (UInt32 i{ 0 }; i < elements; ++i)
+    for (UInt32 i{ 0 }; i < elementCount; ++i)
     {
         // Create the address info object.
         VkDescriptorAddressInfoEXT addressInfo = {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_ADDRESS_INFO_EXT,
             .address = buffer.virtualAddress() + (bufferElement + i) * buffer.alignedElementSize(),
-            .range = descriptorOffset + (firstDescriptor + i) * descriptorSize,
+            .range = buffer.alignedElementSize(),
             .format = VK_FORMAT_UNDEFINED
         };
 
@@ -177,7 +183,8 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
         vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, m_impl->m_descriptorBuffer.data());
     }
 
-    // TODO: Update the invalidated range on the global descriptor heap.
+    // Update the invalidated range on the global descriptor heap.
+    m_impl->m_layout->device().updateGlobalDescriptors(*this, binding, firstDescriptor, elementCount);
 }
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
@@ -297,8 +304,8 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, 
     //    throw ArgumentOutOfRangeException("descriptor", "The descriptor layout can only bind up to {0} descriptors at binding {3}, however the request was to bind {1} descriptors starting at {2}.", descriptorLayout->descriptors(), 1, descriptor, binding);
 
     //// Acquire the binding offset.
-    //VkDeviceSize descriptorOffset;
-    //vkGetDescriptorSetLayoutBindingOffset(m_impl->m_layout->device().handle(), m_impl->m_layout->handle(), binding, &descriptorOffset);
+    //auto descriptorOffset = ...;
+    ////vkGetDescriptorSetLayoutBindingOffset(m_impl->m_layout->device().handle(), m_impl->m_layout->handle(), binding, &descriptorOffset);
 
     //// Offset to first array index. Arrays are tightly packed, so we simply add the descriptor size for each element.
     //size_t descriptorSize = m_impl->m_layout->device().descriptorSize(descriptorLayout->descriptorType());
@@ -341,8 +348,8 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStruct
     //    throw ArgumentOutOfRangeException("descriptor", "The descriptor layout can only bind up to {0} descriptors at binding {3}, however the request was to bind {1} descriptors starting at {2}.", descriptorLayout->descriptors(), 1, descriptor, binding);
 
     //// Acquire the binding offset.
-    //VkDeviceSize descriptorOffset;
-    //vkGetDescriptorSetLayoutBindingOffset(m_impl->m_layout->device().handle(), m_impl->m_layout->handle(), binding, &descriptorOffset);
+    //auto descriptorOffset = ...;
+    ////vkGetDescriptorSetLayoutBindingOffset(m_impl->m_layout->device().handle(), m_impl->m_layout->handle(), binding, &descriptorOffset);
 
     //// Offset to first array index. Arrays are tightly packed, so we simply add the descriptor size for each element.
     //size_t descriptorSize = m_impl->m_layout->device().descriptorSize(descriptorLayout->descriptorType());

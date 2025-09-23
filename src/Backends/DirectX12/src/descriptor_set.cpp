@@ -50,11 +50,6 @@ public:
         default: [[unlikely]] throw InvalidArgumentException("mode", "Invalid border mode.");
         }
     }
-
-    void updateGlobalBuffers(const DirectX12DescriptorSet& descriptorSet, UInt32 offset, UInt32 descriptors)
-    {
-        m_layout->device()->updateBufferDescriptors(descriptorSet, offset, descriptors);
-    }
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -107,7 +102,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
 
     auto& descriptorLayout = *match;
     auto device = m_impl->m_layout->device();
-    auto offset = m_impl->m_layout->descriptorOffsetForBinding(binding) + firstDescriptor;
+    auto offset = m_impl->m_layout->getDescriptorOffset(binding, firstDescriptor);
     auto descriptorSize = device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_localHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), descriptorSize);
 
@@ -233,7 +228,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
         throw InvalidArgumentException("binding", "The descriptor at binding point {0} does not reference a buffer, uniform or storage resource.", binding);
     }
 
-    m_impl->updateGlobalBuffers(*this, offset, elementCount);
+    m_impl->m_layout->device()->updateGlobalDescriptors(*this, binding, firstDescriptor, elementCount);
 }
 
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
@@ -257,7 +252,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
         return;
     }
 
-    auto offset = m_impl->m_layout->descriptorOffsetForBinding(binding) + descriptor;
+    auto offset = m_impl->m_layout->getDescriptorOffset(binding, descriptor);
     auto device = m_impl->m_layout->device();
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_localHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV));
 
@@ -417,7 +412,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& textu
     }
     // NOLINTEND(cppcoreguidelines-pro-type-union-access)
 
-    m_impl->updateGlobalBuffers(*this, offset, 1);
+    m_impl->m_layout->device()->updateGlobalDescriptors(*this, binding, descriptor, 1u);
 }
 
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sampler, UInt32 descriptor) const
@@ -437,7 +432,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sam
         return;
     }
 
-    auto offset = m_impl->m_layout->descriptorOffsetForBinding(binding) + descriptor;
+    auto offset = m_impl->m_layout->getDescriptorOffset(binding, descriptor);
 
     D3D12_SAMPLER_DESC samplerInfo = {
         .Filter = m_impl->getFilterMode(sampler.getMinifyingFilter(), sampler.getMagnifyingFilter(), sampler.getMipMapMode(), sampler.getAnisotropy()),
@@ -455,7 +450,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sam
     auto device = m_impl->m_layout->device();
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_localHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER));
     device->handle()->CreateSampler(&samplerInfo, descriptorHandle);
-    device->updateSamplerDescriptors(*this, offset, 1);
+    device->updateGlobalDescriptors(*this, binding, descriptor, 1u);
 }
 
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12AccelerationStructure& accelerationStructure, UInt32 descriptor) const
@@ -480,10 +475,10 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Acceleration
     if (buffer == nullptr) [[unlikely]]
         throw InvalidArgumentException("accelerationStructure", "The acceleration structure buffer has not yet been allocated.");
 
-    auto offset = m_impl->m_layout->descriptorOffsetForBinding(binding);
+    auto offset = m_impl->m_layout->getDescriptorOffset(binding, descriptor);
     auto device = m_impl->m_layout->device();
     auto descriptorSize = device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_localHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset + descriptor), descriptorSize);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_localHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), descriptorSize);
 
     D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
         .Format = DXGI_FORMAT_UNKNOWN,
@@ -495,7 +490,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Acceleration
     device->handle()->CreateShaderResourceView(nullptr, &bufferView, descriptorHandle);
     descriptorHandle = descriptorHandle.Offset(static_cast<INT>(descriptorSize));
 
-    m_impl->updateGlobalBuffers(*this, offset, 1);
+    m_impl->m_layout->device()->updateGlobalDescriptors(*this, binding, descriptor, 1u);
 }
 
 const ComPtr<ID3D12DescriptorHeap>& DirectX12DescriptorSet::localHeap() const noexcept

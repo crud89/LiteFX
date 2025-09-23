@@ -2515,20 +2515,18 @@ namespace LiteFX::Rendering::Backends {
         /// Creates a descriptor heap.
         /// </summary>
         /// <param name="heapSize">The size of the descriptor heap buffer in bytes.</param>
-        /// <param name="onCpu">If set to `true`, the heap can be mapped from the CPU.</param>
         /// <param name="forSamplers">If set to `true`, the heap does only accept samplers. Must be set to `false` for all other resource types.</param>
         /// <returns>A buffer that provides memory for the descriptor heap.</returns>
-        SharedPtr<IVulkanBuffer> createDescriptorHeap(size_t heapSize, bool onCpu, bool forSamplers) const;
+        SharedPtr<IVulkanBuffer> createDescriptorHeap(size_t heapSize, bool forSamplers) const;
 
         /// <summary>
         /// Creates a descriptor heap.
         /// </summary>
         /// <param name="name">The name of the descriptor heap.</param>
         /// <param name="heapSize">The size of the descriptor heap buffer in bytes.</param>
-        /// <param name="onCpu">If set to `true`, the heap can be mapped from the CPU.</param>
         /// <param name="forSamplers">If set to `true`, the heap does only accept samplers. Must be set to `false` for all other resource types.</param>
         /// <returns>A buffer that provides memory for the descriptor heap.</returns>
-        SharedPtr<IVulkanBuffer> createDescriptorHeap(const String& name, size_t heapSize, bool onCpu, bool forSamplers) const;
+        SharedPtr<IVulkanBuffer> createDescriptorHeap(const String& name, size_t heapSize, bool forSamplers) const;
 
     public:
         /// <inheritdoc />
@@ -2773,6 +2771,21 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
+
+        /// <inheritdoc />
+        void allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, UInt32& heapOffset, UInt32& heapSize) const override;
+
+        /// <inheritdoc />
+        void releaseGlobalDescriptors(const VulkanDescriptorSet& descriptorSet) const override;
+
+        /// <inheritdoc />
+        void updateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const override;
+
+        /// <inheritdoc />
+        void bindDescriptorSet(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept override;
+
+        /// <inheritdoc />
+        void bindGlobalDescriptorHeaps(const VulkanCommandBuffer& commandBuffer) const noexcept override;
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:
