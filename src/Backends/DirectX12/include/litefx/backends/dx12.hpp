@@ -928,15 +928,6 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <summary>
-        /// Returns the index of the first descriptor for a certain binding. The offset is relative to the heap for the descriptor (i.e. sampler for sampler descriptors and
-        /// CBV/SRV/UAV for other descriptors).
-        /// </summary>
-        /// <param name="binding">The binding of the descriptor.</param>
-        /// <returns>The index of the first descriptor for the binding.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the descriptor set does not contain a descriptor bound to the binding point specified by <paramref name="binding"/>.</exception>
-        virtual UInt32 descriptorOffsetForBinding(UInt32 binding) const;
-
-        /// <summary>
         /// Returns the parent device or `nullptr`, if it has been released.
         /// </summary>
         /// <returns>A pointer to the parent device or `nullptr`, if it has been released.</returns>
@@ -978,6 +969,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         bool containsUnboundedArray() const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 getDescriptorOffset(UInt32 binding, UInt32 element = 0) const override;
 
     public:
         /// <inheritdoc />

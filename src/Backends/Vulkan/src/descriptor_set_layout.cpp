@@ -4,6 +4,10 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
+extern PFN_vkGetDescriptorSetLayoutBindingOffsetEXT vkGetDescriptorSetLayoutBindingOffset;
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
+
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
@@ -450,6 +454,22 @@ UInt32 VulkanDescriptorSetLayout::inputAttachments() const noexcept
 bool VulkanDescriptorSetLayout::containsUnboundedArray() const noexcept
 {
     return m_impl->usesDescriptorIndexing();
+}
+
+UInt32 VulkanDescriptorSetLayout::getDescriptorOffset(UInt32 binding, UInt32 element) const
+{
+    if (auto descriptorLayout = std::ranges::find_if(m_impl->m_descriptorLayouts, [&binding](auto& layout) { return layout.binding() == binding; }); descriptorLayout != m_impl->m_descriptorLayouts.end())
+    {
+        VkDeviceSize descriptorOffset;
+        vkGetDescriptorSetLayoutBindingOffset(this->device().handle(), this->handle(), binding, &descriptorOffset);
+        descriptorOffset += static_cast<VkDeviceSize>(this->device().descriptorSize(descriptorLayout->descriptorType()) * element);
+
+        return static_cast<UInt32>(descriptorOffset);
+    }
+    else [[unlikely]]
+    {
+        throw ArgumentOutOfRangeException("binding", "The descriptor layout does not contain a descriptor bound at {0}.", binding);
+    }
 }
 
 UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const

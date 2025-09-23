@@ -1003,6 +1003,9 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         bool containsUnboundedArray() const noexcept override;
 
+        /// <inheritdoc />
+        UInt32 getDescriptorOffset(UInt32 binding, UInt32 element = 0) const override;
+
     public:
         /// <inheritdoc />
         UniquePtr<VulkanDescriptorSet> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const override;

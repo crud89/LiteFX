@@ -241,14 +241,6 @@ DirectX12DescriptorSetLayout::DirectX12DescriptorSetLayout(const DirectX12Descri
 
 DirectX12DescriptorSetLayout::~DirectX12DescriptorSetLayout() noexcept = default;
 
-UInt32 DirectX12DescriptorSetLayout::descriptorOffsetForBinding(UInt32 binding) const
-{
-    if (!m_impl->m_bindingToDescriptor.contains(binding)) [[unlikely]]
-        throw InvalidArgumentException("binding", "The descriptor set does not contain a descriptor at binding {0}.", binding);
-
-    return m_impl->m_bindingToDescriptor[binding];
-}
-
 SharedPtr<const DirectX12Device> DirectX12DescriptorSetLayout::device() const noexcept
 {
     return m_impl->m_device.lock();
@@ -315,6 +307,14 @@ UInt32 DirectX12DescriptorSetLayout::inputAttachments() const noexcept
 bool DirectX12DescriptorSetLayout::containsUnboundedArray() const noexcept
 {
     return m_impl->m_isRuntimeArray;
+}
+
+UInt32 DirectX12DescriptorSetLayout::getDescriptorOffset(UInt32 binding, UInt32 element) const
+{
+    if (!m_impl->m_bindingToDescriptor.contains(binding)) [[unlikely]]
+        throw InvalidArgumentException("binding", "The descriptor set does not contain a descriptor at binding {0}.", binding);
+
+    return m_impl->m_bindingToDescriptor[binding] + element;
 }
 
 UniquePtr<DirectX12DescriptorSet> DirectX12DescriptorSetLayout::allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const

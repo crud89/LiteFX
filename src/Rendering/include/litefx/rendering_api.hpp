@@ -5530,6 +5530,14 @@ namespace LiteFX::Rendering {
         /// <returns>`true`, if the descriptor set layout contains an unbounded runtime array and `false` otherwise</returns>
         virtual bool containsUnboundedArray() const noexcept = 0;
 
+        /// <summary>
+        /// Returns the offset for a descriptor within a descriptor set of this layout.
+        /// </summary>
+        /// <param name="binding">The binding point for the descriptor.</param>
+        /// <param name="element">The index of the array element of a descriptor array.</param>
+        /// <returns>The offset from the beginning of the descriptor set.</returns>
+        virtual UInt32 getDescriptorOffset(UInt32 binding, UInt32 element = 0) const = 0;
+
     public:
         /// <summary>
         /// Allocates a new descriptor set or returns an instance of an unused descriptor set.
