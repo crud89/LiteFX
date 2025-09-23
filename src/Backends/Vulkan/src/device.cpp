@@ -540,8 +540,8 @@ public:
         ::vkGetPhysicalDeviceProperties2(m_adapter->handle(), &deviceProperties);
 
         // Align the heap sizes to the descriptor buffer offset alignment.
-        m_globalBufferHeapSize = align(m_globalBufferHeapSize, m_descriptorBufferProperties.descriptorBufferOffsetAlignment);
-        m_globalSamplerHeapSize = align(m_globalSamplerHeapSize, m_descriptorBufferProperties.descriptorBufferOffsetAlignment);
+        m_globalBufferHeapSize = align(m_globalBufferHeapSize, static_cast<size_t>(m_descriptorBufferProperties.descriptorBufferOffsetAlignment));
+        m_globalSamplerHeapSize = align(m_globalSamplerHeapSize, static_cast<size_t>(m_descriptorBufferProperties.descriptorBufferOffsetAlignment));
 
         // Create the descriptor buffers for both heaps.
         m_globalBufferHeap = m_factory->createDescriptorHeap("Global Buffer Heap", m_globalBufferHeapSize, false);

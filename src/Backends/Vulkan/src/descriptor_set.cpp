@@ -181,7 +181,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
         }
 
         // Create the descriptor in the descriptor buffer.
-        vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), descriptorOffset)); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
+        vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), static_cast<size_t>(descriptorOffset))); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
     }
 
     // Update the invalidated range on the global descriptor heap.
@@ -293,7 +293,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
     }
 
     // Create the descriptor in the descriptor buffer.
-    vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), descriptorOffset)); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
+    vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), static_cast<size_t>(descriptorOffset))); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
 
     // Update the invalidated range on the global descriptor heap.
     m_impl->m_layout->device().updateGlobalDescriptors(*this, binding, descriptor, 1u);
@@ -333,7 +333,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, 
     };
 
     // Create the descriptor in the descriptor buffer.
-    vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), descriptorOffset)); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
+    vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), static_cast<size_t>(descriptorOffset))); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
 
     // Update the invalidated range on the global descriptor heap.
     m_impl->m_layout->device().updateGlobalDescriptors(*this, binding, descriptor, 1u);
@@ -377,7 +377,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStruct
     };
 
     // Create the descriptor in the descriptor buffer.
-    vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), descriptorOffset)); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
+    vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), static_cast<size_t>(descriptorOffset))); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
 
     // Update the invalidated range on the global descriptor heap.
     m_impl->m_layout->device().updateGlobalDescriptors(*this, binding, descriptor, 1u);
