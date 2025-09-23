@@ -223,12 +223,6 @@ public:
                 }
             }
 
-            // Allow update after binding for all buffers except constant/uniform buffers.
-            // NOTE: This is a hack, as older NVidia cards do not support this. However, there is a feature we could query for this. If you find a card or situation where this is actually required,
-            //       please open an issue!
-            if (type != DescriptorType::ConstantBuffer)
-                bindingFlags.back() |= VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT;
-
             bindings.push_back(binding);
         });
 
