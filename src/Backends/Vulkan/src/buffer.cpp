@@ -102,17 +102,12 @@ void VulkanBuffer::map(const void* const data, size_t size, UInt32 element)
 	if (this->size() - (element * this->alignedElementSize()) < size) [[unlikely]]
 		throw InvalidArgumentException("size", "The provided data size would overflow the buffer (buffer offset: 0x{1:X}; {2} bytes remaining but size was set to {0}).", size, element * this->alignedElementSize(), this->size() - (element * this->alignedElementSize()));
 
-	void* buffer{};		// A pointer to the whole (aligned) buffer memory.
-	void* bufferPtr = static_cast<void*>(buffer);
-	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, &bufferPtr), "Unable to map buffer memory.");
-	std::memcpy(static_cast<char*>(bufferPtr) + (element * this->alignedElementSize()), data, size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-
-	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
+	this->write(data, size, element * this->alignedElementSize());
 }
 
 void VulkanBuffer::map(Span<const void* const> data, size_t elementSize, UInt32 firstElement)
 {
-	std::ranges::for_each(data, [this, &elementSize, i = firstElement](const void* const mem) mutable { this->map(mem, elementSize, i++); });
+	std::ranges::for_each(data, [this, &elementSize, i = firstElement](auto mem) mutable { this->map(mem, elementSize, i++); });
 }
 
 void VulkanBuffer::map(void* data, size_t size, UInt32 element, bool write)
@@ -126,21 +121,25 @@ void VulkanBuffer::map(void* data, size_t size, UInt32 element, bool write)
 	if (this->size() - (element * this->alignedElementSize()) < size) [[unlikely]]
 		throw InvalidArgumentException("size", "The provided data size would overflow the buffer (buffer offset: 0x{1:X}; {2} bytes remaining but size was set to {0}).", size, element * this->alignedElementSize(), this->size() - (element * this->alignedElementSize()));
 
-	char* buffer{};		// A pointer to the whole (aligned) buffer memory.
-	void* bufferPtr = static_cast<void*>(buffer);
-	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, &bufferPtr), "Unable to map buffer memory.");
-	
 	if (write)
-		std::memcpy(static_cast<char*>(bufferPtr) + (element * this->alignedElementSize()), data, size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		this->write(data, size, element * this->alignedElementSize());
 	else
-		std::memcpy(data, static_cast<char*>(bufferPtr) + (element * this->alignedElementSize()), size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-
-	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
+		this->read(data, size, element * this->alignedElementSize());
 }
 
 void VulkanBuffer::map(Span<void*> data, size_t elementSize, UInt32 firstElement, bool write)
 {
-	std::ranges::for_each(data, [this, &elementSize, &write, i = firstElement](void* mem) mutable { this->map(mem, elementSize, i++, write); });
+	std::ranges::for_each(data, [this, &elementSize, &write, i = firstElement](auto mem) mutable { this->map(mem, elementSize, i++, write); });
+}
+
+void VulkanBuffer::write(const void* const data, size_t size, size_t offset)
+{
+	raiseIfFailed(::vmaCopyMemoryToAllocation(m_impl->m_allocator, data, m_impl->m_allocation, offset, size), "Unable to write to buffer.");
+}
+
+void VulkanBuffer::read(void* data, size_t size, size_t offset)
+{
+	raiseIfFailed(::vmaCopyAllocationToMemory(m_impl->m_allocator, m_impl->m_allocation, offset, data, size), "Unable to read from buffer.");
 }
 
 SharedPtr<IVulkanBuffer> VulkanBuffer::allocate(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)

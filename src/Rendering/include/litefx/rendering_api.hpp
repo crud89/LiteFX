@@ -4080,6 +4080,22 @@ namespace LiteFX::Rendering {
         /// <param name="firstElement">The first element of the array to map.</param>
         /// <param name="write">If `true`, <paramref name="data" /> is copied into the internal memory. If `false` the internal memory is copied into <paramref name="data" />.</param>
         virtual void map(Span<void*> data, size_t elementSize, UInt32 firstElement = 0, bool write = true) = 0;
+
+        /// <summary>
+        /// Writes a span of memory in <paramref name="data" /> into the internal memory of this object, starting at <paramref name="offset" />.
+        /// </summary>
+        /// <param name="data">The span of bytes containing the data to write.</param>
+        /// <param name="size">The size of the memory block at <paramref name="data" />.</param>
+        /// <param name="offset">The offset at which to start writing.</param>
+        virtual void write(const void* const data, size_t size, size_t offset = 0) = 0;
+
+        /// <summary>
+        /// Writes a span of memory in <paramref name="data" /> into the internal memory of this object, starting at <paramref name="offset" />.
+        /// </summary>
+        /// <param name="data">The span of bytes containing the data to write.</param>
+        /// <param name="size">The size of the memory block at <paramref name="data" />.</param>
+        /// <param name="offset">The offset at which to start writing.</param>
+        virtual void read(void* data, size_t size, size_t offset = 0) = 0;
     };
 
     /// <summary>
