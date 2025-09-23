@@ -18,21 +18,20 @@ public:
 private:
     Dictionary<UInt32, VkImageView> m_imageViews{};
     SharedPtr<const VulkanDescriptorSetLayout> m_layout;
-    Array<Byte> m_descriptorBuffer;
+    Array<Byte> m_descriptorBuffer{};
     UInt32 m_unboundedArraySize, m_offset{ 0 }, m_heapSize{ 0 };
 
 public:
     VulkanDescriptorSetImpl(const VulkanDescriptorSetLayout& layout, Array<Byte>&& buffer) :
-        m_layout(layout.shared_from_this()), m_unboundedArraySize(0)
+        m_layout(layout.shared_from_this()), m_descriptorBuffer(std::move(buffer)), m_unboundedArraySize(0)
     {
-        m_descriptorBuffer = std::move(buffer);
     }
 
     VulkanDescriptorSetImpl(const VulkanDescriptorSetLayout& layout, UInt32 unboundedArraySize) :
         m_layout(layout.shared_from_this()), m_unboundedArraySize(unboundedArraySize)
     {
         // Allocate the descriptor set binding buffer.
-        VkDeviceSize descriptorSetSize;
+        VkDeviceSize descriptorSetSize{};
 
         if (!layout.containsUnboundedArray())
             vkGetDescriptorSetLayoutSize(m_layout->device().handle(), m_layout->handle(), &descriptorSetSize);
@@ -42,9 +41,9 @@ public:
             // the descriptor set, so we compute the offset, descriptor size and from this the total amount of required memory.
             // First, we need to lookup the binding for the unbounded array. If we cannot match any binding here, we've conceptually messed up somewhere earlier, in which case no error handling
             // could save us, so we gently ignore the chance of not matching anything.
-            auto descriptorLayout = std::ranges::find_if(layout.descriptors(), [](auto& layout) { return layout.descriptors() == -1; });
+            auto descriptorLayout = std::ranges::find_if(layout.descriptors(), [](auto& layout) { return layout.descriptors() == std::numeric_limits<UInt32>::max(); });
             vkGetDescriptorSetLayoutBindingOffset(layout.device().handle(), layout.handle(), descriptorLayout->binding(), &descriptorSetSize);
-            descriptorSetSize += unboundedArraySize * layout.device().descriptorSize(descriptorLayout->descriptorType());
+            descriptorSetSize += unboundedArraySize * static_cast<VkDeviceSize>(layout.device().descriptorSize(descriptorLayout->descriptorType()));
         }
 
         m_descriptorBuffer.resize(static_cast<size_t>(descriptorSetSize), 0_b);
@@ -56,7 +55,7 @@ public:
 // ------------------------------------------------------------------------------------------------
 
 VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, Array<Byte>&& buffer) :
-    m_impl(layout, std::forward<Array<Byte>>(buffer))
+    m_impl(layout, std::move(buffer))
 {
     layout.device().allocateGlobalDescriptors(*this, m_impl->m_offset, m_impl->m_heapSize);
 }
@@ -177,10 +176,12 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
             descriptorInfo.type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
             descriptorInfo.data.pStorageBuffer = &addressInfo;
             break;
+        default:
+            std::unreachable();
         }
 
         // Create the descriptor in the descriptor buffer.
-        vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), descriptorOffset));
+        vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), descriptorOffset)); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
     }
 
     // Update the invalidated range on the global descriptor heap.
@@ -287,10 +288,12 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UI
         descriptorInfo.type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
         descriptorInfo.data.pInputAttachmentImage = &imageInfo;
         break;
+    default:
+        std::unreachable();
     }
 
     // Create the descriptor in the descriptor buffer.
-    vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), descriptorOffset));
+    vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), descriptorOffset)); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
 
     // Update the invalidated range on the global descriptor heap.
     m_impl->m_layout->device().updateGlobalDescriptors(*this, binding, descriptor, 1u);
@@ -330,7 +333,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanSampler& sampler, 
     };
 
     // Create the descriptor in the descriptor buffer.
-    vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), descriptorOffset));
+    vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), descriptorOffset)); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
 
     // Update the invalidated range on the global descriptor heap.
     m_impl->m_layout->device().updateGlobalDescriptors(*this, binding, descriptor, 1u);
@@ -374,7 +377,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanAccelerationStruct
     };
 
     // Create the descriptor in the descriptor buffer.
-    vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), descriptorOffset));
+    vkGetDescriptor(m_impl->m_layout->device().handle(), &descriptorInfo, descriptorSize, std::next(m_impl->m_descriptorBuffer.data(), descriptorOffset)); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
 
     // Update the invalidated range on the global descriptor heap.
     m_impl->m_layout->device().updateGlobalDescriptors(*this, binding, descriptor, 1u);

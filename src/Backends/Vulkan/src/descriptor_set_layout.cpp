@@ -457,7 +457,7 @@ UInt32 VulkanDescriptorSetLayout::getDescriptorOffset(UInt32 binding, UInt32 ele
 {
     if (auto descriptorLayout = std::ranges::find_if(m_impl->m_descriptorLayouts, [&binding](auto& layout) { return layout.binding() == binding; }); descriptorLayout != m_impl->m_descriptorLayouts.end())
     {
-        VkDeviceSize descriptorOffset;
+        VkDeviceSize descriptorOffset{};
         vkGetDescriptorSetLayoutBindingOffset(this->device().handle(), this->handle(), binding, &descriptorOffset);
         descriptorOffset += static_cast<VkDeviceSize>(this->device().descriptorSize(descriptorLayout->descriptorType()) * element);
 

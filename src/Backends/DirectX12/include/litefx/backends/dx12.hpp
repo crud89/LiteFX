@@ -741,10 +741,10 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        virtual UInt32 globalHeapOffset() const noexcept override;
+        UInt32 globalHeapOffset() const noexcept override;
 
         /// <inheritdoc />
-        virtual UInt32 globalHeapAddressRange() const noexcept override;
+        UInt32 globalHeapAddressRange() const noexcept override;
 
         /// <inheritdoc />
         void update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0) const override;

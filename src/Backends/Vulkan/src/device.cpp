@@ -779,7 +779,7 @@ void VulkanDevice::updateGlobalDescriptors(const VulkanDescriptorSet& descriptor
     auto descriptorBuffer = descriptorSet.descriptorBuffer();
     auto descriptorOffset = std::next(descriptorBuffer.data(), firstDescriptor);
     auto descriptorSize = this->descriptorSize(descriptorSet.layout().descriptor(binding).descriptorType());
-    auto mappedRange = static_cast<size_t>(descriptors * descriptorSize);
+    auto mappedRange = static_cast<size_t>(descriptors) * descriptorSize;
 
     if (descriptorSet.layout().samplers() > 0 || descriptorSet.layout().staticSamplers() > 0)
         m_impl->m_globalSamplerHeap->write(descriptorOffset, mappedRange, static_cast<size_t>(descriptorSet.globalHeapOffset()) + firstDescriptor);

@@ -132,7 +132,7 @@ void DirectX12Buffer::write(const void* const data, size_t size, size_t offset)
 	D3D12_RANGE mappedRange{ };
 	void* buffer{ nullptr };
 	raiseIfFailed(this->handle()->Map(0, &mappedRange, &buffer), "Unable to map buffer memory.");
-	std::memcpy(std::next(static_cast<Byte*>(buffer), offset), data, size);
+	std::memcpy(std::next(static_cast<Byte*>(buffer), offset), data, size); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
 	this->handle()->Unmap(0, nullptr);
 }
 
@@ -141,7 +141,7 @@ void DirectX12Buffer::read(void* data, size_t size, size_t offset)
 	D3D12_RANGE mappedRange{ };
 	void* buffer{ nullptr };
 	raiseIfFailed(this->handle()->Map(0, &mappedRange, &buffer), "Unable to map buffer memory.");
-	std::memcpy(data, std::next(static_cast<Byte*>(buffer), offset), size);
+	std::memcpy(data, std::next(static_cast<Byte*>(buffer), offset), size); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
 	this->handle()->Unmap(0, nullptr);
 }
 
