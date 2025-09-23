@@ -196,7 +196,7 @@ public:
 
 		// Write each record group by group.
 		UInt32 record{ 0 };
-		Array<Byte> recordData(static_cast<size_t>(recordSize), 0x00);
+		Array<Byte> recordData(static_cast<size_t>(recordSize), 0x00_b);
 
 		// Write each shader binding group that should be included.
 		for (auto group : { ShaderBindingGroup::RayGeneration, ShaderBindingGroup::Miss, ShaderBindingGroup::Callable, ShaderBindingGroup::HitGroup })
@@ -253,7 +253,7 @@ public:
 					raiseIfFailed(::vkGetRayTracingShaderGroupHandles(m_device->handle(), parent.handle(), id, 1, rayTracingProperties.shaderGroupHandleSize, recordData.data()), "Unable to query shader record handle.");
 
 					// Write the payload and map everything into the buffer.
-					std::memcpy(recordData.data() + rayTracingProperties.shaderGroupHandleSize, currentRecord->localData(), static_cast<size_t>(currentRecord->localDataSize())); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+					std::memcpy(std::next(recordData.data(), rayTracingProperties.shaderGroupHandleSize), currentRecord->localData(), static_cast<size_t>(currentRecord->localDataSize()));
 					result->map(recordData.data(), static_cast<size_t>(recordSize), record++);
 				}
 

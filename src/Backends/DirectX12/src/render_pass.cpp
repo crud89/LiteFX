@@ -176,7 +176,7 @@ public:
             std::get<1>(m_activeContext) = std::nullopt;
         else
         {
-            CD3DX12_CLEAR_VALUE clearValue{ DX12::getFormat(m_depthStencilTarget->format()), m_depthStencilTarget->clearValues().x(), static_cast<Byte>(m_depthStencilTarget->clearValues().y()) };
+            CD3DX12_CLEAR_VALUE clearValue{ DX12::getFormat(m_depthStencilTarget->format()), m_depthStencilTarget->clearValues().x(), static_cast<UInt8>(m_depthStencilTarget->clearValues().y()) };
             
             D3D12_RENDER_PASS_ENDING_ACCESS depthEndAccess, stencilEndAccess;
             D3D12_RENDER_PASS_BEGINNING_ACCESS depthBeginAccess = m_depthStencilTarget->clearBuffer() && ::hasDepth(m_depthStencilTarget->format()) ?

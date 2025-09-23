@@ -3236,12 +3236,12 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// Specifies the bits to write to the stencil state (default: <c>0xFF</c>).
             /// </summary>
-            Byte WriteMask{ 0xFF }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            UInt8 WriteMask{ 0xFF }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
             /// <summary>
             /// Specifies the bits to read from the stencil state (default: <c>0xFF</c>).
             /// </summary>
-            Byte ReadMask{ 0xFF }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            UInt8 ReadMask{ 0xFF }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
             /// <summary>
             /// Describes the stencil test for faces that point towards the camera.
@@ -4893,7 +4893,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// A user-defined mask value that is matched with another mask value during ray-tracing to include or discard the instance.
             /// </summary>
-            Byte Mask : 8 = 0xFF;
+            UInt8 Mask : 8 = 0xFF;
 
             /// <summary>
             /// An offset added to the address of the shader-local data of the shader record that is invoked for the instance, *after* the <see cref="IBottomLevelAccelerationStructure" /> indexing
@@ -4950,7 +4950,7 @@ namespace LiteFX::Rendering {
         /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
         /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
         /// <param name="flags">The flags that control the behavior of the instance.</param>
-        inline void addInstance(const SharedPtr<const IBottomLevelAccelerationStructure>& blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        inline void addInstance(const SharedPtr<const IBottomLevelAccelerationStructure>& blas, UInt32 id, UInt32 hitGroupOffset = 0, UInt8 mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
         }
         
@@ -4963,7 +4963,7 @@ namespace LiteFX::Rendering {
         /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
         /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
         /// <param name="flags">The flags that control the behavior of the instance.</param>
-        inline void addInstance(const SharedPtr<const IBottomLevelAccelerationStructure>& blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        inline void addInstance(const SharedPtr<const IBottomLevelAccelerationStructure>& blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, UInt8 mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
         }
 
@@ -5039,7 +5039,7 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <returns>A reference to the current TLAS.</returns>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, const SharedPtr<const IBottomLevelAccelerationStructure>& blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        inline auto withInstance(this TSelf&& self, const SharedPtr<const IBottomLevelAccelerationStructure>& blas, UInt32 id, UInt32 hitGroupOffset = 0, UInt8 mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
             return std::forward<TSelf>(self);
         }
@@ -5055,7 +5055,7 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <returns>A reference to the current TLAS.</returns>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, const SharedPtr<const IBottomLevelAccelerationStructure>& blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        inline auto withInstance(this TSelf&& self, const SharedPtr<const IBottomLevelAccelerationStructure>& blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, UInt8 mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
             return std::forward<TSelf>(self);
         }
@@ -8587,7 +8587,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <seealso cref="beginDebugRegion" />
         /// <seealso cref="setDebugMarker" />
-        static constexpr Vectors::ByteVector3 DEFAULT_DEBUG_COLOR = { 128_b, 128_b, 128_b };
+        static constexpr Vectors::ByteVector3 DEFAULT_DEBUG_COLOR = { 128_ui8, 128_ui8, 128_ui8 };
 
         /// <summary>
         /// Starts a new debug region.

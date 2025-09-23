@@ -136,7 +136,7 @@ void VulkanQueue::beginDebugRegion(const String& label, const Vectors::ByteVecto
 	VkDebugUtilsLabelEXT labelInfo {
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
 		.pLabelName = label.c_str(),
-		.color = { static_cast<float>(color.x()) / static_cast<float>(std::numeric_limits<Byte>::max()), static_cast<float>(color.y()) / static_cast<float>(std::numeric_limits<Byte>::max()), static_cast<float>(color.z()) / static_cast<float>(std::numeric_limits<Byte>::max()), 1.0f }
+		.color = { static_cast<float>(color.x()) / static_cast<float>(std::numeric_limits<UInt8>::max()), static_cast<float>(color.y()) / static_cast<float>(std::numeric_limits<UInt8>::max()), static_cast<float>(color.z()) / static_cast<float>(std::numeric_limits<UInt8>::max()), 1.0f }
 	};
 	
 	::vkQueueBeginDebugUtilsLabel(this->handle(), &labelInfo);
@@ -152,7 +152,7 @@ void VulkanQueue::setDebugMarker(const String& label, const Vectors::ByteVector3
 	VkDebugUtilsLabelEXT labelInfo{
 		.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_LABEL_EXT,
 		.pLabelName = label.c_str(),
-		.color = { static_cast<float>(color.x()) / static_cast<float>(std::numeric_limits<Byte>::max()), static_cast<float>(color.y()) / static_cast<float>(std::numeric_limits<Byte>::max()), static_cast<float>(color.z()) / static_cast<float>(std::numeric_limits<Byte>::max()), 1.0f }
+		.color = { static_cast<float>(color.x()) / static_cast<float>(std::numeric_limits<UInt8>::max()), static_cast<float>(color.y()) / static_cast<float>(std::numeric_limits<UInt8>::max()), static_cast<float>(color.z()) / static_cast<float>(std::numeric_limits<UInt8>::max()), 1.0f }
 	};
 
 	::vkQueueInsertDebugUtilsLabel(this->handle(), &labelInfo);
