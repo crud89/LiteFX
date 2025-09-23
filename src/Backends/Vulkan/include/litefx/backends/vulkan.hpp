@@ -1403,6 +1403,12 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <summary>
+        /// Returns the type of the pipeline.
+        /// </summary>
+        /// <returns>The type of the pipeline.</returns>
+        virtual VkPipelineBindPoint pipelineType() const noexcept = 0;
+
+        /// <summary>
         /// Sets the current pipeline state on the <paramref name="commandBuffer" />.
         /// </summary>
         /// <param name="commandBuffer">The command buffer to set the current pipeline state on.</param>
@@ -1866,6 +1872,9 @@ namespace LiteFX::Rendering::Backends {
         // VulkanPipelineState interface.
     public:
         /// <inheritdoc />
+        VkPipelineBindPoint pipelineType() const noexcept override;
+
+        /// <inheritdoc />
         void use(const VulkanCommandBuffer& commandBuffer) const override;
     };
 
@@ -1920,6 +1929,9 @@ namespace LiteFX::Rendering::Backends {
 
         // VulkanPipelineState interface.
     public:
+        /// <inheritdoc />
+        VkPipelineBindPoint pipelineType() const noexcept override;
+
         /// <inheritdoc />
         void use(const VulkanCommandBuffer& commandBuffer) const override;
     };
@@ -1997,6 +2009,9 @@ namespace LiteFX::Rendering::Backends {
 
         // VulkanPipelineState interface.
     public:
+        /// <inheritdoc />
+        VkPipelineBindPoint pipelineType() const noexcept override;
+
         /// <inheritdoc />
         void use(const VulkanCommandBuffer& commandBuffer) const override;
     };

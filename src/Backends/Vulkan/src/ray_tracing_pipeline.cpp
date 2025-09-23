@@ -327,6 +327,11 @@ SharedPtr<IVulkanBuffer> VulkanRayTracingPipeline::allocateShaderBindingTable(Sh
 	return m_impl->allocateShaderBindingTable(*this, offsets, groups);
 }
 
+VkPipelineBindPoint VulkanRayTracingPipeline::pipelineType() const noexcept
+{
+	return VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR;
+}
+
 void VulkanRayTracingPipeline::use(const VulkanCommandBuffer& commandBuffer) const
 {
 	::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, this->handle());

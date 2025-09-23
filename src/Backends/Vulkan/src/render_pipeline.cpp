@@ -420,7 +420,7 @@ public:
 		// Bind the input attachment sets.
 		//commandBuffer.bind(m_inputAttachmentBindings.at(interfacePointer) | std::views::transform([](auto& set) { return set.get(); }));
 		auto descriptorSets = m_inputAttachmentBindings.at(interfacePointer) | std::views::transform([](auto& set) { return set.get(); }) | std::ranges::to<Array<const VulkanDescriptorSet*>>();
-		parent.bind(commandBuffer, descriptorSets);
+		commandBuffer.bind(descriptorSets, parent);
 	}
 
 	void onFrameBufferResize(const void* sender, const IFrameBuffer::ResizeEventArgs& /*args*/)
@@ -513,6 +513,11 @@ void VulkanRenderPipeline::updateSamples(MultiSamplingLevel samples)
 
 	// Rebuild the pipeline.
 	this->handle() = m_impl->initialize(*this, samples);
+}
+
+VkPipelineBindPoint VulkanRenderPipeline::pipelineType() const noexcept
+{
+	return VK_PIPELINE_BIND_POINT_GRAPHICS;
 }
 
 void VulkanRenderPipeline::use(const VulkanCommandBuffer& commandBuffer) const

@@ -99,6 +99,11 @@ SharedPtr<const VulkanPipelineLayout> VulkanComputePipeline::layout() const noex
 	return m_impl->m_layout;
 }
 
+VkPipelineBindPoint VulkanComputePipeline::pipelineType() const noexcept
+{
+	return VK_PIPELINE_BIND_POINT_COMPUTE;
+}
+
 void VulkanComputePipeline::use(const VulkanCommandBuffer& commandBuffer) const
 {
 	::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_COMPUTE, this->handle());
