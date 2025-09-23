@@ -386,7 +386,10 @@ VulkanDescriptorSetLayout::VulkanDescriptorSetLayout(const VulkanDescriptorSetLa
     this->handle() = m_impl->initialize();
 }
 
-VulkanDescriptorSetLayout::~VulkanDescriptorSetLayout() noexcept = default;
+VulkanDescriptorSetLayout::~VulkanDescriptorSetLayout() noexcept
+{
+    ::vkDestroyDescriptorSetLayout(m_impl->m_device->handle(), this->handle(), nullptr);
+}
 
 const VulkanDevice& VulkanDescriptorSetLayout::device() const noexcept
 {
