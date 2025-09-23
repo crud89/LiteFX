@@ -1103,6 +1103,12 @@ VkAccessFlags2 LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getResourceAcc
 	return access;
 }
 
+#ifndef USE_VULKAN_INTEROP_SWAP_CHAIN
+#if defined(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN) && defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
+#define USE_VULKAN_INTEROP_SWAP_CHAIN
+#endif
+#endif
+
 VkImageLayout LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getImageLayout(ImageLayout imageLayout)
 {
 	switch (imageLayout) {
@@ -1115,14 +1121,16 @@ VkImageLayout LITEFX_VULKAN_API LiteFX::Rendering::Backends::Vk::getImageLayout(
 	case ImageLayout::DepthWrite: return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 	case ImageLayout::RenderTarget:
 	case ImageLayout::ResolveSource:
-#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND // Images from interop swap chain must not be transitioned into present state.
+#ifdef USE_VULKAN_INTEROP_SWAP_CHAIN // Images from interop swap chain must not be transitioned into present state.
 	case ImageLayout::Present:
 #endif
 	case ImageLayout::ResolveDestination: return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-#ifndef LITEFX_BUILD_DIRECTX_12_BACKEND
+#ifndef USE_VULKAN_INTEROP_SWAP_CHAIN
 	case ImageLayout::Present: return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 #endif
 	case ImageLayout::Undefined: return VK_IMAGE_LAYOUT_UNDEFINED;
 	default: throw InvalidArgumentException("imageLayout", "Unsupported image layout.");
 	}
 }
+
+#undef USE_VULKAN_INTEROP_SWAP_CHAIN
