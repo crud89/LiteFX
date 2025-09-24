@@ -178,7 +178,7 @@ public:
             throw InvalidArgumentException("modules", "A shader program that contains only a fragment/pixel shader is not valid.");
     }
 
-    void reflectRootSignature(const ComPtr<ID3D12RootSignatureDeserializer>& deserializer, Dictionary<UInt32, DescriptorSetInfo>& descriptorSetLayouts, Array<PushConstantRangeInfo>& pushConstantRanges)
+    void reflectRootSignature(const ComPtr<ID3D12RootSignatureDeserializer>& deserializer, Dictionary<UInt32, DescriptorSetInfo>& descriptorSetLayouts, Array<PushConstantRangeInfo>& pushConstantRanges, bool& directResourceHeapAccess, bool& directSamplerHeapAccess)
     {
         // NOLINTBEGIN(cppcoreguidelines-pro-type-union-access)
         // Collect the shader stages.
@@ -187,6 +187,8 @@ public:
 
         // Get the root signature description.
         auto description = deserializer->GetRootSignatureDesc();
+        directResourceHeapAccess = LITEFX_FLAG_IS_SET(description->Flags, D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED);
+        directSamplerHeapAccess = LITEFX_FLAG_IS_SET(description->Flags, D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED);
 
         // Iterate the static samplers.
         for (UInt32 i(0); i < description->NumStaticSamplers; ++i)
@@ -449,6 +451,8 @@ public:
         // Attempt to find a shader module that exports a root signature. If none is found, issue a warning.
         // NOTE: Root signature is only ever expected to be provided in one shader module. If multiple are provided, it is not defined, which one will be picked.
         bool hasRootSignature = false;
+        bool directlyAccessResourceHeap = false;
+        bool directlyAccessSamplerHeap = false;
 
         for (const auto& shaderModule : m_modules)
         {
@@ -458,7 +462,7 @@ public:
             {
                 // Reflect the root signature in order to define static samplers and push constants.
                 LITEFX_TRACE(DIRECTX12_LOG, "Found root signature in shader module {0}.", shaderModule->type());
-                this->reflectRootSignature(deserializer, descriptorSetLayouts, pushConstantRanges);
+                this->reflectRootSignature(deserializer, descriptorSetLayouts, pushConstantRanges, directlyAccessResourceHeap, directlyAccessSamplerHeap);
                 hasRootSignature = true;
                 break;
             }
@@ -466,7 +470,7 @@ public:
 
         // Otherwise, fall back to traditional reflection to acquire the root signature.
         if (!hasRootSignature && !SUPPRESS_MISSING_ROOT_SIGNATURE_WARNING)
-            LITEFX_WARNING(DIRECTX12_LOG, "None of the provided shader modules exports a root signature. Descriptor sets will be acquired using reflection. Some features (such as root/push constants) are not supported.");
+            LITEFX_WARNING(DIRECTX12_LOG, "None of the provided shader modules exports a root signature. Descriptor sets will be acquired using reflection. Some features (such as root/push constants or dynamic descriptors/direct heap indexing) are not supported.");
 
         // Create the descriptor set layouts.
         auto descriptorSets = [](SharedPtr<const DirectX12Device> device, Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts) -> std::generator<SharedPtr<DirectX12DescriptorSetLayout>> {
@@ -510,7 +514,7 @@ public:
         auto pushConstantsLayout = makeUnique<DirectX12PushConstantsLayout>(pushConstants | std::views::as_rvalue, overallSize);
 
         // Return the pipeline layout.
-        return DirectX12PipelineLayout::create(*m_device, std::move(descriptorSets), std::move(pushConstantsLayout));
+        return DirectX12PipelineLayout::create(*m_device, std::move(descriptorSets), std::move(pushConstantsLayout), directlyAccessResourceHeap, directlyAccessSamplerHeap);
     }
 };
 
