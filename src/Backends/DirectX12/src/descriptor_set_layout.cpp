@@ -409,9 +409,9 @@ void DirectX12DescriptorSetLayoutBuilder::build()
     instance->m_impl->initialize();
 }
 
-DirectX12DescriptorLayout DirectX12DescriptorSetLayoutBuilder::makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors)
+DirectX12DescriptorLayout DirectX12DescriptorSetLayoutBuilder::makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors, bool unbounded)
 {
-    return { type, binding, descriptorSize, descriptors };
+    return { type, binding, descriptorSize, descriptors, unbounded };
 }
 
 DirectX12DescriptorLayout DirectX12DescriptorSetLayoutBuilder::makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy)
