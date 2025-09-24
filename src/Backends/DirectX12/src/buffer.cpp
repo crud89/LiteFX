@@ -97,17 +97,12 @@ void DirectX12Buffer::map(const void* const data, size_t size, UInt32 element)
 	if (this->size() - (element * this->alignedElementSize()) < size) [[unlikely]]
 		throw InvalidArgumentException("size", "The provided data size would overflow the buffer (buffer offset: 0x{1:X}; {2} bytes remaining but size was set to {0}).", size, element * this->alignedElementSize(), this->size() - (element * this->alignedElementSize()));
 
-	D3D12_RANGE mappedRange = { };
-	char* buffer{};
-	void* bufferPtr = static_cast<void*>(buffer);
-	raiseIfFailed(this->handle()->Map(0, &mappedRange, &bufferPtr), "Unable to map buffer memory.");
-	std::memcpy(static_cast<char*>(bufferPtr) + (element * this->alignedElementSize()), data, size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-	this->handle()->Unmap(0, nullptr);
+	this->write(data, size, element * this->alignedElementSize());
 }
 
 void DirectX12Buffer::map(Span<const void* const> data, size_t elementSize, UInt32 firstElement)
 {
-	std::ranges::for_each(data, [this, &elementSize, i = firstElement](const void* const mem) mutable { this->map(mem, elementSize, i++); });
+	std::ranges::for_each(data, [this, &elementSize, i = firstElement](auto mem) mutable { this->map(mem, elementSize, i++); });
 }
 
 void DirectX12Buffer::map(void* data, size_t size, UInt32 element, bool write)
@@ -121,22 +116,33 @@ void DirectX12Buffer::map(void* data, size_t size, UInt32 element, bool write)
 	if (this->size() - (element * this->alignedElementSize()) < size) [[unlikely]]
 		throw InvalidArgumentException("size", "The provided data size would overflow the buffer (buffer offset: 0x{1:X}; {2} bytes remaining but size was set to {0}).", size, element * this->alignedElementSize(), this->size() - (element * this->alignedElementSize()));
 
-	D3D12_RANGE mappedRange = { };
-	char* buffer{};
-	void* bufferPtr = static_cast<void*>(buffer);
-	raiseIfFailed(this->handle()->Map(0, &mappedRange, &bufferPtr), "Unable to map buffer memory.");
-
 	if (write)
-		std::memcpy(static_cast<char*>(bufferPtr) + (element * this->alignedElementSize()), data, size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		this->write(data, size, element * this->alignedElementSize());
 	else
-		std::memcpy(data, static_cast<char*>(bufferPtr) + (element * this->alignedElementSize()), size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-
-	this->handle()->Unmap(0, nullptr);
+		this->read(data, size, element * this->alignedElementSize());
 }
 
 void DirectX12Buffer::map(Span<void*> data, size_t elementSize, UInt32 firstElement, bool write)
 {
-	std::ranges::for_each(data, [this, &elementSize, &write, i = firstElement](void* mem) mutable { this->map(mem, elementSize, i++, write); });
+	std::ranges::for_each(data, [this, &elementSize, &write, i = firstElement](auto mem) mutable { this->map(mem, elementSize, i++, write); });
+}
+
+void DirectX12Buffer::write(const void* const data, size_t size, size_t offset)
+{
+	D3D12_RANGE mappedRange{ };
+	void* buffer{ nullptr };
+	raiseIfFailed(this->handle()->Map(0, &mappedRange, &buffer), "Unable to map buffer memory.");
+	std::memcpy(std::next(static_cast<Byte*>(buffer), offset), data, size); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
+	this->handle()->Unmap(0, nullptr);
+}
+
+void DirectX12Buffer::read(void* data, size_t size, size_t offset)
+{
+	D3D12_RANGE mappedRange{ };
+	void* buffer{ nullptr };
+	raiseIfFailed(this->handle()->Map(0, &mappedRange, &buffer), "Unable to map buffer memory.");
+	std::memcpy(data, std::next(static_cast<Byte*>(buffer), offset), size); // NOLINT(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
+	this->handle()->Unmap(0, nullptr);
 }
 
 AllocatorPtr DirectX12Buffer::allocator() const noexcept

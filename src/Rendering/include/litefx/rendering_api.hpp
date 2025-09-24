@@ -3236,12 +3236,12 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// Specifies the bits to write to the stencil state (default: <c>0xFF</c>).
             /// </summary>
-            Byte WriteMask{ 0xFF }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            UInt8 WriteMask{ 0xFF }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
             /// <summary>
             /// Specifies the bits to read from the stencil state (default: <c>0xFF</c>).
             /// </summary>
-            Byte ReadMask{ 0xFF }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            UInt8 ReadMask{ 0xFF }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
             /// <summary>
             /// Describes the stencil test for faces that point towards the camera.
@@ -4080,6 +4080,22 @@ namespace LiteFX::Rendering {
         /// <param name="firstElement">The first element of the array to map.</param>
         /// <param name="write">If `true`, <paramref name="data" /> is copied into the internal memory. If `false` the internal memory is copied into <paramref name="data" />.</param>
         virtual void map(Span<void*> data, size_t elementSize, UInt32 firstElement = 0, bool write = true) = 0;
+
+        /// <summary>
+        /// Writes a span of memory in <paramref name="data" /> into the internal memory of this object, starting at <paramref name="offset" />.
+        /// </summary>
+        /// <param name="data">The span of bytes containing the data to write.</param>
+        /// <param name="size">The size of the memory block at <paramref name="data" />.</param>
+        /// <param name="offset">The offset at which to start writing.</param>
+        virtual void write(const void* const data, size_t size, size_t offset = 0) = 0;
+
+        /// <summary>
+        /// Writes a span of memory in <paramref name="data" /> into the internal memory of this object, starting at <paramref name="offset" />.
+        /// </summary>
+        /// <param name="data">The span of bytes containing the data to write.</param>
+        /// <param name="size">The size of the memory block at <paramref name="data" />.</param>
+        /// <param name="offset">The offset at which to start writing.</param>
+        virtual void read(void* data, size_t size, size_t offset = 0) = 0;
     };
 
     /// <summary>
@@ -4893,7 +4909,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// A user-defined mask value that is matched with another mask value during ray-tracing to include or discard the instance.
             /// </summary>
-            Byte Mask : 8 = 0xFF;
+            UInt8 Mask : 8 = 0xFF;
 
             /// <summary>
             /// An offset added to the address of the shader-local data of the shader record that is invoked for the instance, *after* the <see cref="IBottomLevelAccelerationStructure" /> indexing
@@ -4950,7 +4966,7 @@ namespace LiteFX::Rendering {
         /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
         /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
         /// <param name="flags">The flags that control the behavior of the instance.</param>
-        inline void addInstance(const SharedPtr<const IBottomLevelAccelerationStructure>& blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        inline void addInstance(const SharedPtr<const IBottomLevelAccelerationStructure>& blas, UInt32 id, UInt32 hitGroupOffset = 0, UInt8 mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
         }
         
@@ -4963,7 +4979,7 @@ namespace LiteFX::Rendering {
         /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
         /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
         /// <param name="flags">The flags that control the behavior of the instance.</param>
-        inline void addInstance(const SharedPtr<const IBottomLevelAccelerationStructure>& blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        inline void addInstance(const SharedPtr<const IBottomLevelAccelerationStructure>& blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, UInt8 mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
         }
 
@@ -5039,7 +5055,7 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <returns>A reference to the current TLAS.</returns>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, const SharedPtr<const IBottomLevelAccelerationStructure>& blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        inline auto withInstance(this TSelf&& self, const SharedPtr<const IBottomLevelAccelerationStructure>& blas, UInt32 id, UInt32 hitGroupOffset = 0, UInt8 mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
             return std::forward<TSelf>(self);
         }
@@ -5055,7 +5071,7 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <returns>A reference to the current TLAS.</returns>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, const SharedPtr<const IBottomLevelAccelerationStructure>& blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        inline auto withInstance(this TSelf&& self, const SharedPtr<const IBottomLevelAccelerationStructure>& blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, UInt8 mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
             return std::forward<TSelf>(self);
         }
@@ -5262,6 +5278,25 @@ namespace LiteFX::Rendering {
         virtual ~IDescriptorSet() noexcept = default;
 
     public:
+        /// <summary>
+        /// Returns the offset into the global descriptor heap.
+        /// </summary>
+        /// <remarks>
+        /// The heap offset may differ between used backends and does not necessarily correspond to memory.
+        /// </remarks>
+        /// <returns>The offset into the global descriptor heap.</returns>
+        virtual UInt32 globalHeapOffset() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the amount size of the range in the global descriptor heap address space.
+        /// </summary>
+        /// <remarks>
+        /// The heap size may differ between used backends and does not necessarily correspond to memory.
+        /// </remarks>
+        /// <returns>The size of the range in the global descriptor heap.</returns>
+        /// <seealso cref="globalHeapOffset" />
+        virtual UInt32 globalHeapAddressRange() const noexcept = 0;
+
         /// <summary>
         /// Updates one or more buffer descriptors within the current descriptor set.
         /// </summary>
@@ -5488,6 +5523,20 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The number of input attachment descriptors.</returns>
         virtual UInt32 inputAttachments() const noexcept = 0;
+
+        /// <summary>
+        /// Returns `true`, if the descriptor set layout contains an unbounded runtime array and `false` otherwise.
+        /// </summary>
+        /// <returns>`true`, if the descriptor set layout contains an unbounded runtime array and `false` otherwise</returns>
+        virtual bool containsUnboundedArray() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the offset for a descriptor within a descriptor set of this layout.
+        /// </summary>
+        /// <param name="binding">The binding point for the descriptor.</param>
+        /// <param name="element">The index of the array element of a descriptor array.</param>
+        /// <returns>The offset from the beginning of the descriptor set.</returns>
+        virtual UInt32 getDescriptorOffset(UInt32 binding, UInt32 element = 0) const = 0;
 
     public:
         /// <summary>
@@ -8562,7 +8611,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <seealso cref="beginDebugRegion" />
         /// <seealso cref="setDebugMarker" />
-        static constexpr Vectors::ByteVector3 DEFAULT_DEBUG_COLOR = { 128_b, 128_b, 128_b };
+        static constexpr Vectors::ByteVector3 DEFAULT_DEBUG_COLOR = { 128_ui8, 128_ui8, 128_ui8 };
 
         /// <summary>
         /// Starts a new debug region.
@@ -9331,9 +9380,70 @@ namespace LiteFX::Rendering {
             this->getAccelerationStructureSizes(tlas, bufferSize, scratchSize, forUpdate);
         }
 
+        /// <summary>
+        /// Allocates a range of descriptors in the global descriptor heaps for the provided <paramref name="descriptorSet" />.
+        /// </summary>
+        /// <param name="descriptorSet">The descriptor set containing the descriptors to update.</param>
+        /// <param name="heapOffset">The offset of the descriptor range in the global descriptor heap.</param>
+        /// <param name="heapSize">The size of the address range in the global descriptor heap.</param>
+        inline void allocateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32& heapOffset, UInt32& heapSize) const {
+            this->doAllocateGlobalDescriptors(descriptorSet, heapOffset, heapSize);
+        }
+
+        /// <summary>
+        /// Releases a range of descriptors from the global descriptor heaps.
+        /// </summary>
+        /// <remarks>
+        /// This is done, if a descriptor set layout is destroyed, of a descriptor set, which contains an unbounded array is freed. It will cause the global 
+        /// descriptor heaps to fragment, which may result in inefficient future descriptor allocations and should be avoided. Consider caching descriptor
+        /// sets with unbounded arrays instead. Also avoid relying on creating and releasing pipeline layouts during runtime. Instead, it may be more efficient
+        /// to write shaders that support multiple pipeline variations, that can be kept alive for the lifetime of the whole application.
+        /// </remarks>
+        inline void releaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const {
+            this->doReleaseGlobalDescriptors(descriptorSet);
+        }
+
+        /// <summary>
+        /// Updates a range of descriptors in the global buffer descriptor heap with the descriptors from <paramref name="descriptorSet" />.
+        /// </summary>
+        /// <param name="descriptorSet">The descriptor set to copy the descriptors from.</param>
+        /// <param name="binding">The binding point for which to update the descriptors.</param>
+        /// <param name="offset">The index of the first descriptor in a descriptor array at the binding point.</param>
+        /// <param name="descriptors">The number of descriptors in a descriptor array to copy, starting at the offset.</param>
+        inline void updateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const {
+            this->doUpdateGlobalDescriptors(descriptorSet, binding, offset, descriptors);
+        }
+
+        /// <summary>
+        /// Binds the descriptors of the descriptor set to the global descriptor heaps.
+        /// </summary>
+        /// <remarks>
+        /// Note that after binding the descriptor set, the descriptors must not be updated anymore, unless they are elements on unbounded descriptor arrays, 
+        /// in which case you have to ensure manually to not update them, as long as they may still be in use!
+        /// </remarks>
+        /// <param name="commandBuffer">The command buffer to bind the descriptor set on.</param>
+        /// <param name="descriptorSet">The descriptor set to bind.</param>
+        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
+        inline void bindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept {
+            this->doBindDescriptorSet(commandBuffer, descriptorSet, pipeline);
+        }
+
+        /// <summary>
+        /// Binds the global descriptor heap.
+        /// </summary>
+        /// <param name="commandBuffer">The command buffer to issue the bind command on.</param>
+        inline void bindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const noexcept {
+            this->doBindGlobalDescriptorHeaps(commandBuffer);
+        }
+
     private:
         virtual void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
         virtual void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
+        virtual void doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32& heapOffset, UInt32& heapSize) const = 0;
+        virtual void doReleaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const = 0;
+        virtual void doUpdateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const = 0;
+        virtual void doBindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept = 0;
+        virtual void doBindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const noexcept = 0;
 
     public:
         /// <summary>

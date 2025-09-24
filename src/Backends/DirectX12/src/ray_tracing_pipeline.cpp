@@ -411,7 +411,7 @@ public:
 
 		// Write each record group by group.
 		UInt32 record{ 0 };
-		Array<Byte> recordData(recordSize, 0x00);
+		Array<Byte> recordData(recordSize, 0x00_b);
 
 		// Write each shader binding group that should be included.
 		for (auto group : { ShaderBindingGroup::RayGeneration, ShaderBindingGroup::Miss, ShaderBindingGroup::Callable, ShaderBindingGroup::HitGroup })
@@ -487,7 +487,7 @@ public:
 					std::memcpy(recordData.data(), getRecordIdentifier(currentRecord), D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES);
 
 					// Write the payload and map everything into the buffer.
-					std::memcpy(recordData.data() + D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES, currentRecord->localData(), static_cast<size_t>(currentRecord->localDataSize())); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+					std::memcpy(std::next(recordData.data(), D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES), currentRecord->localData(), static_cast<size_t>(currentRecord->localDataSize()));
 					result->map(recordData.data(), recordSize, record++);
 				}
 

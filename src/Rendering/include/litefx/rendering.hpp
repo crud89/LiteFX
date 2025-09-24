@@ -1435,6 +1435,8 @@ namespace LiteFX::Rendering {
         using swap_chain_type = TSwapChain;
         using command_queue_type = TCommandQueue;
         using command_buffer_type = command_queue_type::command_buffer_type;
+        using descriptor_set_type = command_buffer_type::descriptor_set_type;
+        using pipeline_type = command_buffer_type::pipeline_type;
         using factory_type = TFactory;
         using barrier_type = TBarrier;
         using descriptor_layout_type = factory_type::descriptor_layout_type;
@@ -1522,6 +1524,21 @@ namespace LiteFX::Rendering {
         /// <inheritdoc />
         virtual void computeAccelerationStructureSizes(const top_level_acceleration_structure_type& tlas, UInt64 & bufferSize, UInt64 & scratchSize, bool forUpdate = false) const = 0;
 
+        /// <inheritdoc />
+        virtual void allocateGlobalDescriptors(const descriptor_set_type& descriptorSet, UInt32& heapOffset, UInt32& heapSize) const = 0;
+
+        /// <inheritdoc />
+        virtual void releaseGlobalDescriptors(const descriptor_set_type& descriptorSet) const = 0;
+
+        /// <inheritdoc />
+        virtual void updateGlobalDescriptors(const descriptor_set_type& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const = 0;
+
+        /// <inheritdoc />
+        virtual void bindDescriptorSet(const command_buffer_type& commandBuffer, const descriptor_set_type& descriptorSet, const pipeline_type& pipeline) const noexcept = 0;
+
+        /// <inheritdoc />
+        virtual void bindGlobalDescriptorHeaps(const command_buffer_type& commandBuffer) const noexcept = 0;
+
     private:
         inline void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const override {
             this->computeAccelerationStructureSizes(dynamic_cast<const bottom_level_acceleration_structure_type&>(blas), bufferSize, scratchSize, forUpdate);
@@ -1529,6 +1546,26 @@ namespace LiteFX::Rendering {
 
         inline void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const override {
             this->computeAccelerationStructureSizes(dynamic_cast<const top_level_acceleration_structure_type&>(tlas), bufferSize, scratchSize, forUpdate);
+        }
+        
+        inline void doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32& heapOffset, UInt32& heapSize) const override {
+            this->allocateGlobalDescriptors(dynamic_cast<const descriptor_set_type&>(descriptorSet), heapOffset, heapSize);
+        }
+
+        inline void doReleaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const override {
+            this->releaseGlobalDescriptors(dynamic_cast<const descriptor_set_type&>(descriptorSet));
+        }
+
+        inline void doUpdateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const override {
+            this->updateGlobalDescriptors(dynamic_cast<const descriptor_set_type&>(descriptorSet), binding, offset, descriptors);
+        }
+
+        inline void doBindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept override {
+            this->bindDescriptorSet(dynamic_cast<const command_buffer_type&>(commandBuffer), dynamic_cast<const descriptor_set_type&>(descriptorSet), dynamic_cast<const pipeline_type&>(pipeline));
+        }
+
+        inline void doBindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const noexcept override {
+            this->bindGlobalDescriptorHeaps(dynamic_cast<const command_buffer_type&>(commandBuffer));
         }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

@@ -54,6 +54,52 @@ VulkanGraphicsFactory::VulkanGraphicsFactory(const VulkanDevice& device) :
 
 VulkanGraphicsFactory::~VulkanGraphicsFactory() noexcept = default;
 
+SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(size_t heapSize, bool forSamplers) const
+{
+	return this->createDescriptorHeap("", heapSize, forSamplers);
+}
+
+SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(const String& name, size_t heapSize, bool forSamplers) const
+{
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot allocate buffer from a released device instance.");
+
+	// Create the buffer.
+	VkBufferUsageFlags usageFlags = { static_cast<VkBufferUsageFlags>(forSamplers ? VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT : VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT) | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT };
+	VkBufferCreateInfo bufferInfo = { 
+		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
+		.pNext = nullptr,
+		.size = heapSize,
+		.usage = usageFlags
+	};
+
+	VmaAllocationCreateInfo allocInfo = {
+		.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
+		.usage = VMA_MEMORY_USAGE_CPU_TO_GPU
+	};
+
+	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
+	auto queueFamilies = device->queueFamilyIndices() | std::ranges::to<std::vector>();
+
+	bufferInfo.sharingMode = queueFamilies.size() > 1 ? VK_SHARING_MODE_CONCURRENT : VK_SHARING_MODE_EXCLUSIVE; // Does not matter anyway if only one queue family is present, but satisfies validation layers.
+	bufferInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
+	bufferInfo.pQueueFamilyIndices = queueFamilies.data();
+
+#ifndef NDEBUG
+	auto buffer = VulkanBuffer::allocate(name, BufferType::Other, 1u, heapSize, 1u, ResourceUsage::Default, *device, m_impl->m_allocator, bufferInfo, allocInfo);
+
+	if (!name.empty())
+		device->setDebugName(std::as_const(*buffer).handle(), VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT, name);
+
+	return buffer;
+#else
+	return VulkanBuffer::allocate(name, BufferType::Other, 1u, heapSize, 1u, ResourceUsage::Default, *device, m_impl->m_allocator, bufferInfo, allocInfo);
+#endif
+}
+
 SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const
 {
 	return this->createBuffer("", type, heap, elementSize, elements, usage);

@@ -69,6 +69,12 @@ namespace LiteFX::Rendering::Backends {
 
 		/// <inheritdoc />
 		void map(Span<void*> data, size_t elementSize, UInt32 firstElement = 0, bool write = true) override;
+		
+		/// <inheritdoc />
+		void write(const void* const data, size_t size, size_t offset = 0) override;
+
+		/// <inheritdoc />
+		void read(void* data, size_t size, size_t offset = 0) override;
 
 		// VulkanBuffer.
 	public:

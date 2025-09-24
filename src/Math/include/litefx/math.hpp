@@ -31,9 +31,14 @@ namespace LiteFX::Math {
 	using namespace LiteFX;
 
 	/// <summary>
+	/// A type for a single byte of raw memory.
+	/// </summary>
+	using Byte = std::byte;
+
+	/// <summary>
 	/// A type for an unsigned 8 bit integer.
 	/// </summary>
-	using Byte = uint8_t;
+	using UInt8 = uint8_t;
 
 	/// <summary>
 	/// A type for a signed 16 bit integer.
@@ -82,6 +87,15 @@ namespace LiteFX::Math {
 	/// <returns>The value as byte.</returns>
 	constexpr Byte operator ""_b(unsigned long long int arg) noexcept {
 		return static_cast<Byte>(arg);
+	}
+
+	/// <summary>
+	/// A literal to define a 8 bit unsigned integer.
+	/// </summary>
+	/// <param name="arg">The value that should be assigned to the integer.</param>
+	/// <returns>The value as integer.</returns>
+	constexpr UInt8 operator ""_ui8(unsigned long long int arg) noexcept {
+		return static_cast<UInt8>(arg);
 	}
 
 	/// <summary>
@@ -604,22 +618,22 @@ namespace LiteFX::Math {
 		/// <summary>
 		/// A vector that contains a single byte.
 		/// </summary>
-		using ByteVector1 = TVector1<Byte>;
+		using ByteVector1 = TVector1<UInt8>;
 
 		/// <summary>
 		/// A vector that contains two bytes.
 		/// </summary>
-		using ByteVector2 = TVector2<Byte>;
+		using ByteVector2 = TVector2<UInt8>;
 
 		/// <summary>
 		/// A vector that contains three bytes.
 		/// </summary>
-		using ByteVector3 = TVector3<Byte>;
+		using ByteVector3 = TVector3<UInt8>;
 
 		/// <summary>
 		/// A vector that contains four bytes.
 		/// </summary>
-		using ByteVector4 = TVector4<Byte>;
+		using ByteVector4 = TVector4<UInt8>;
 
 		/// <summary>
 		/// A vector that contains a single 16 bit signed integer.

@@ -122,6 +122,7 @@ public:
 		// Setup pipeline.
 		VkRayTracingPipelineCreateInfoKHR pipelineInfo = {
 			.sType = VK_STRUCTURE_TYPE_RAY_TRACING_PIPELINE_CREATE_INFO_KHR,
+			.flags = VK_PIPELINE_CREATE_DESCRIPTOR_BUFFER_BIT_EXT,
 			.stageCount = static_cast<UInt32>(shaderStages.size()),
 			.pStages = shaderStages.data(),
 			.groupCount = static_cast<UInt32>(shaderGroups.size()),
@@ -195,7 +196,7 @@ public:
 
 		// Write each record group by group.
 		UInt32 record{ 0 };
-		Array<Byte> recordData(static_cast<size_t>(recordSize), 0x00);
+		Array<Byte> recordData(static_cast<size_t>(recordSize), 0x00_b);
 
 		// Write each shader binding group that should be included.
 		for (auto group : { ShaderBindingGroup::RayGeneration, ShaderBindingGroup::Miss, ShaderBindingGroup::Callable, ShaderBindingGroup::HitGroup })
@@ -252,7 +253,7 @@ public:
 					raiseIfFailed(::vkGetRayTracingShaderGroupHandles(m_device->handle(), parent.handle(), id, 1, rayTracingProperties.shaderGroupHandleSize, recordData.data()), "Unable to query shader record handle.");
 
 					// Write the payload and map everything into the buffer.
-					std::memcpy(recordData.data() + rayTracingProperties.shaderGroupHandleSize, currentRecord->localData(), static_cast<size_t>(currentRecord->localDataSize())); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+					std::memcpy(std::next(recordData.data(), rayTracingProperties.shaderGroupHandleSize), currentRecord->localData(), static_cast<size_t>(currentRecord->localDataSize()));
 					result->map(recordData.data(), static_cast<size_t>(recordSize), record++);
 				}
 
@@ -326,37 +327,14 @@ SharedPtr<IVulkanBuffer> VulkanRayTracingPipeline::allocateShaderBindingTable(Sh
 	return m_impl->allocateShaderBindingTable(*this, offsets, groups);
 }
 
+VkPipelineBindPoint VulkanRayTracingPipeline::pipelineType() const noexcept
+{
+	return VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR;
+}
+
 void VulkanRayTracingPipeline::use(const VulkanCommandBuffer& commandBuffer) const
 {
 	::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, this->handle());
-}
-
-void VulkanRayTracingPipeline::bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const
-{
-	// Filter out uninitialized sets.
-	auto sets = descriptorSets | std::views::filter([](auto set) { return set != nullptr; }) | std::ranges::to<Array<const VulkanDescriptorSet*>>();
-
-	if (sets.empty()) [[unlikely]]
-		return; // Nothing to do on empty sets.
-	else if (sets.size() == 1)
-		::vkCmdBindDescriptorSets(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, std::as_const(*m_impl->m_layout).handle(), sets.front()->layout().space(), 1, &sets.front()->handle(), 0, nullptr);
-	else
-	{
-		// Sort the descriptor sets by space, as we might be able to pass the sets more efficiently if they are sorted and continuous.
-		std::ranges::sort(sets, [](auto lhs, auto rhs) { return lhs->layout().space() > rhs->layout().space(); });
-
-		// In a sorted range, last - (first - 1) equals the size of the range only if there are no duplicates and no gaps.
-		auto startSpace = sets.back()->layout().space();
-
-		if (startSpace - (sets.front()->layout().space() - 1) != static_cast<UInt32>(sets.size()))
-			std::ranges::for_each(sets, [&](auto set) { ::vkCmdBindDescriptorSets(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, std::as_const(*m_impl->m_layout).handle(), set->layout().space(), 1, &set->handle(), 0, nullptr); });
-		else
-		{
-			// Obtain the handles and bind the sets.
-			auto handles = sets | std::views::transform([](auto set) { return set->handle(); }) | std::ranges::to<Array<VkDescriptorSet>>();
-			::vkCmdBindDescriptorSets(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR, std::as_const(*m_impl->m_layout).handle(), startSpace, static_cast<UInt32>(handles.size()), handles.data(), 0, nullptr);
-		}
-	}
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
