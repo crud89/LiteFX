@@ -784,9 +784,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="type">The type of the descriptor.</param>
         /// <param name="binding">The binding point for the descriptor.</param>
         /// <param name="elementSize">The size of the descriptor.</param>
-        /// <param name="elementSize">The number of descriptors in the descriptor array.</param>
+        /// <param name="descriptors">The number of descriptors in the descriptor array. If <paramref name="unbounded" /> is set, this value sets the upper limit for the array size.</param>
+        /// <param name="unbounded">If set to `true`, the descriptor will be defined as a runtime-allocated, unbounded array.</param>
         /// <param name="local">Determines if the descriptor is part of the local or global root signature for ray-tracing shaders.</param>
-        DirectX12DescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1, bool local = false);
+        DirectX12DescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1, bool unbounded = false, bool local = false);
 
         /// <summary>
         /// Initializes a new DirectX 12 descriptor layout for a static sampler.
@@ -829,6 +830,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt32 descriptors() const noexcept override;
+
+        /// <inheritdoc />
+        bool unbounded() const noexcept override;
 
         /// <inheritdoc />
         const IDirectX12Sampler* staticSampler() const noexcept override;

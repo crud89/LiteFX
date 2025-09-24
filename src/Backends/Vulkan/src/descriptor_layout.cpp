@@ -17,10 +17,11 @@ private:
     DescriptorType m_descriptorType;
     BufferType m_bufferType;
     SharedPtr<const IVulkanSampler> m_staticSampler;
+    bool m_unbounded;
 
 public:
-    VulkanDescriptorLayoutImpl(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors) :
-        m_elementSize(elementSize), m_binding(binding), m_descriptors(descriptors), m_inputAttachmentIndex(0), m_descriptorType(type)
+    VulkanDescriptorLayoutImpl(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors, bool unbounded) :
+        m_elementSize(elementSize), m_binding(binding), m_descriptors(descriptors), m_inputAttachmentIndex(0), m_descriptorType(type), m_unbounded(unbounded)
     {
         switch (m_descriptorType)
         {
@@ -47,13 +48,13 @@ public:
     }
 
     VulkanDescriptorLayoutImpl(const IVulkanSampler& staticSampler, UInt32 binding) :
-        VulkanDescriptorLayoutImpl(DescriptorType::Sampler, binding, 0, 1)
+        VulkanDescriptorLayoutImpl(DescriptorType::Sampler, binding, 0, 1, false)
     {
         m_staticSampler = VulkanSampler::copy(staticSampler);
     }
 
     VulkanDescriptorLayoutImpl(UInt32 binding, UInt32 inputAttachmentIndex) :
-        VulkanDescriptorLayoutImpl(DescriptorType::Sampler, binding, 0, 1)
+        VulkanDescriptorLayoutImpl(DescriptorType::Sampler, binding, 0, 1, false)
     {
         m_inputAttachmentIndex = inputAttachmentIndex;
     }
@@ -63,8 +64,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDescriptorLayout::VulkanDescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors) :
-    m_impl(type, binding, elementSize, descriptors)
+VulkanDescriptorLayout::VulkanDescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors, bool unbounded) :
+    m_impl(type, binding, elementSize, descriptors, unbounded)
 {
 }
 
@@ -97,6 +98,11 @@ UInt32 VulkanDescriptorLayout::binding() const noexcept
 UInt32 VulkanDescriptorLayout::descriptors() const noexcept
 {
     return m_impl->m_descriptors;
+}
+
+bool VulkanDescriptorLayout::unbounded() const noexcept
+{
+    return m_impl->m_unbounded;
 }
 
 BufferType VulkanDescriptorLayout::type() const noexcept

@@ -18,11 +18,11 @@ private:
     BufferType m_bufferType;
     UInt32 m_descriptors;
     SharedPtr<const IDirectX12Sampler> m_staticSampler{};
-    bool m_local;
+    bool m_local, m_unbounded;
 
 public:
-    DirectX12DescriptorLayoutImpl(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors, bool local) :
-        m_elementSize(elementSize), m_binding(binding), m_descriptorType(type), m_descriptors(descriptors), m_local(local)
+    DirectX12DescriptorLayoutImpl(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors, bool unbounded, bool local) :
+        m_elementSize(elementSize), m_binding(binding), m_descriptorType(type), m_descriptors(descriptors), m_unbounded(unbounded), m_local(local)
     {
         switch (m_descriptorType)
         {
@@ -48,7 +48,7 @@ public:
     }
 
     DirectX12DescriptorLayoutImpl(const IDirectX12Sampler& staticSampler, UInt32 binding, bool local) :
-        DirectX12DescriptorLayoutImpl(DescriptorType::Sampler, binding, 0, 1, local)
+        DirectX12DescriptorLayoutImpl(DescriptorType::Sampler, binding, 0, 1, false, local)
     {
         m_staticSampler = DirectX12Sampler::copy(staticSampler);
     }
@@ -58,8 +58,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12DescriptorLayout::DirectX12DescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors, bool local) :
-    m_impl(type, binding, elementSize, descriptors, local)
+DirectX12DescriptorLayout::DirectX12DescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors, bool unbounded, bool local) :
+    m_impl(type, binding, elementSize, descriptors, unbounded, local)
 {
 }
 
@@ -87,6 +87,11 @@ size_t DirectX12DescriptorLayout::elementSize() const noexcept
 UInt32 DirectX12DescriptorLayout::descriptors() const noexcept
 {
     return m_impl->m_descriptors;
+}
+
+bool DirectX12DescriptorLayout::unbounded() const noexcept
+{
+    return m_impl->m_unbounded;
 }
 
 UInt32 DirectX12DescriptorLayout::binding() const noexcept

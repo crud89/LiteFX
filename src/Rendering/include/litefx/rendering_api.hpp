@@ -3981,12 +3981,9 @@ namespace LiteFX::Rendering {
     /// layout describes a static sampler, the <see cref="IDescriptorLayout::staticSampler" /> returns a pointer to the static sampler state.
     /// 
     /// Typically, a descriptor "points" to a singular buffer, i.e. a scalar. However, a descriptor can also resemble an array. In this case,
-    /// <see cref="IDescriptorLayout::descriptors" /> returns the number of elements in the array. If it returns `-1` (or `0xFFFFFFFF`), the descriptor 
-    /// array is called `unbounded`. In this case, the number of descriptors in the array can be specified when allocating the descriptor set. Unbounded
-    /// descriptor arrays behave different to normal descriptor arrays in different ways. They are typically used for bindless descriptors. If a descriptor
-    /// represents an unbounded array, it must be the only descriptor in this descriptor set. Furthermore, unbounded arrays are not cached by the descriptor
-    /// set layout. Descriptors within unbounded arrays may be updated after binding them to a command buffer. However, this must be done with special care,
-    /// to prevent descriptors that are in use to be overwritten. For more information on how to manage unbounded arrays, refer to 
+    /// <see cref="IDescriptorLayout::descriptors" /> returns the number of elements in the array. If the size of the array is not known beforehand, the
+    /// descriptor can be defined as unbounded, causing the <see cref="IDescriptorLayout::unbounded" /> property to return `true`. In this case, the number
+    /// of descriptors defines the upper limit for the actual descriptor count that can be allocated for the array when calling 
     /// <see cref="IDescriptorSetLayout::allocate" />.
     /// </remarks>
     /// <seealso cref="DescriptorSetLayout" />
@@ -4009,16 +4006,22 @@ namespace LiteFX::Rendering {
         virtual DescriptorType descriptorType() const noexcept = 0;
 
         /// <summary>
-        /// Returns the number of descriptors in the descriptor array, or `-1` if the array is unbounded.
+        /// Returns the number of descriptors in the descriptor array.
         /// </summary>
         /// <remarks>
-        /// If the number of descriptors is `-1` (or `0xFFFFFFFF`), the descriptor array is unbounded. In that case, the size of the array must be specified,
-        /// when allocating the descriptor set. This can be done by specifying the `descriptors` parameter when calling 
-        /// <see cref="IDescriptorSetLayout::allocate" />.
+        /// If <see cref="unbounded" /> is set to `true`, the descriptor count defines the upper limit for the number of descriptors that can be allocated 
+        /// for in the array.
         /// </remarks>
-        /// <returns>The number of descriptors in the descriptor array, or `-1` if the array is unbounded.</returns>
+        /// <returns>The number of descriptors in the descriptor array.</returns>
         /// <seealso cref="IDescriptorLayout" />
         virtual UInt32 descriptors() const noexcept = 0;
+
+        /// <summary>
+        /// Returns `true`, if the descriptor defines an unbounded descriptor array.
+        /// </summary>
+        /// <returns>`true`, if the descriptor defines an unbounded descriptor array, `false` otherwise.</returns>
+        /// <seealso cref="descriptors" />
+        virtual bool unbounded() const noexcept = 0;
 
         /// <summary>
         /// If the descriptor describes a static sampler, this method returns the state of the sampler. Otherwise, it returns <c>nullptr</c>.
