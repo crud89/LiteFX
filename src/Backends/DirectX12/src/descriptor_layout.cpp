@@ -22,7 +22,7 @@ private:
 
 public:
     DirectX12DescriptorLayoutImpl(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors, bool unbounded, bool local) :
-        m_elementSize(elementSize), m_binding(binding), m_descriptorType(type), m_descriptors(descriptors), m_unbounded(unbounded), m_local(local)
+        m_elementSize(elementSize), m_binding(binding), m_descriptorType(type), m_descriptors(descriptors), m_local(local), m_unbounded(unbounded)
     {
         switch (m_descriptorType)
         {
