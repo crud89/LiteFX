@@ -294,21 +294,25 @@ public:
     inline Generator<UniquePtr<VulkanDescriptorSet>> allocate(SharedPtr<const VulkanDescriptorSetLayout> layout, UInt32 descriptorSets, UInt32 unboundedDescriptorArraySize)
     {
         Array<UniquePtr<VulkanDescriptorSet>> handles;
-        handles.resize(descriptorSets);
+        handles.reserve(descriptorSets);
+        auto& impl = layout->m_impl;
 
         {
-            std::lock_guard<std::mutex> lock(m_mutex);
+            std::lock_guard<std::mutex> lock(impl->m_mutex);
 
             // Descriptor sets that use unbounded runtime arrays aren't cached.
-            if (this->usesDescriptorIndexing() || m_freeDescriptorSets.empty())
+            if (this->usesDescriptorIndexing() || impl->m_freeDescriptorSets.empty())
+            {
+                handles.resize(descriptorSets);
                 std::ranges::generate(handles, [&]() { return makeUnique<VulkanDescriptorSet>(*layout, unboundedDescriptorArraySize); });
+            }
             else
             {
                 // Pop cached descriptor sets.
-                while (!m_freeDescriptorSets.empty() && descriptorSets --> 0) // Finally a good use for the "-->" operator!!!
+                while (!impl->m_freeDescriptorSets.empty() && descriptorSets --> 0) // Finally a good use for the "-->" operator!!!
                 {
-                    handles.emplace_back(UniquePtr<VulkanDescriptorSet>(new VulkanDescriptorSet(*layout, std::move(m_freeDescriptorSets.front()))));
-                    m_freeDescriptorSets.pop();
+                    handles.emplace_back(UniquePtr<VulkanDescriptorSet>(new VulkanDescriptorSet(*layout, std::move(impl->m_freeDescriptorSets.front()))));
+                    impl->m_freeDescriptorSets.pop();
                 }
 
                 // Allocate the rest from a new descriptor pool and return them.
