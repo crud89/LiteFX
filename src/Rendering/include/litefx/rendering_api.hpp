@@ -9205,6 +9205,12 @@ namespace LiteFX::Rendering {
         /// Enables or disables support for indirect draw.
         /// </summary>
         bool DrawIndirect { false };
+
+        /// <summary>
+        /// Enables or disables support for dynamic descriptor types ([SM 6.6 dynamic resources](https://microsoft.github.io/DirectX-Specs/d3d/HLSL_SM_6_6_DynamicResources.html) and 
+        /// [VK_EXT_mutable_descriptor_type](https://registry.khronos.org/vulkan/specs/latest/man/html/VK_EXT_mutable_descriptor_type.html)).
+        /// </summary>
+        bool DynamicDescriptors{ false };
     };
 
     /// <summary>
