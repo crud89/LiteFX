@@ -970,6 +970,12 @@ namespace LiteFX::Rendering::Backends {
         /// <returns>A reference of the device, the pipeline layout has been created from.</returns>
         const VulkanDevice& device() const noexcept;
 
+        /// <summary>
+        /// Returns the maximum allowed size for an unbounded array in a descriptor set created with this layout, or `0` if the layout does not contain an unbounded array.
+        /// </summary>
+        /// <returns>The maximum allowed size for an unbounded array in a descriptor set created with this layout</returns>
+        UInt32 maxUnboundedArraySize() const noexcept;
+
     public:
         /// <inheritdoc />
         const Array<VulkanDescriptorLayout>& descriptors() const noexcept override;

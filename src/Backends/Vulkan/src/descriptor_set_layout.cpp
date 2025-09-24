@@ -17,17 +17,11 @@ public:
     friend class VulkanDescriptorSetLayoutBuilder;
     friend class VulkanDescriptorSetLayout;
 
-    // TODO: This is a temporary workaround to satisfy the validation layer during ray-tracing tests. While we do completely manage descriptor memory ourselves now, we still
-    //       have to provide a `descriptorCount` when creating the descriptor set layout. For unbounded arrays, this acts as an upper limit and counts towards the accumulated
-    //       limits in the validation layers. Unfortunately we cannot get rid of this at the moment, so we use a fixed value it for now. We do need to expose this to clients
-    //       in the future though, to allow for more granular fine-tuning.
-    static const UInt32 DEFAULT_UNBOUNDED_ARRAY_CAPACITY = 500'000;
-
 private:
     Array<VulkanDescriptorLayout> m_descriptorLayouts;
     Queue<Array<Byte>> m_freeDescriptorSets;
     ShaderStage m_stages{};
-    UInt32 m_space{};
+    UInt32 m_space{}, m_maxUnboundedArraySize{};
     mutable std::mutex m_mutex;
     SharedPtr<const VulkanDevice> m_device;
     Optional<VkDescriptorType> m_unboundedDescriptorType{ std::nullopt };
@@ -53,6 +47,9 @@ public:
     VkDescriptorSetLayout initialize()
     {
         LITEFX_TRACE(VULKAN_LOG, "Defining layout for descriptor set {0} {{ Stages: {1} }}...", m_space, m_stages);
+
+        // Sort the layouts by binding.
+        std::sort(std::begin(m_descriptorLayouts), std::end(m_descriptorLayouts), [](const auto& a, const auto& b) { return a.binding() < b.binding(); });
 
         // Parse the shader stage descriptor.
         VkShaderStageFlags shaderStages = {};
@@ -85,13 +82,7 @@ public:
             shaderStages |= VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
         if ((m_stages & ShaderStage::Intersection) == ShaderStage::Intersection)
             shaderStages |= VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
-
-        // Parse descriptor set layouts.
-        Array<VkDescriptorSetLayoutBinding> bindings;
-        Array<VkDescriptorBindingFlags> bindingFlags;
-        Array<VkDescriptorSetLayoutBindingFlagsCreateInfo> bindingFlagCreateInfo;
-        bool hasStaticSampler{ false }, hasSamplers{ false }, hasResources{ false };
-
+        
         // Track maximum number of descriptors in unbounded arrays.
         // NOTE: We do this to make an educated guess on the maximum amount of descriptors that can be bound. However, we rely on the driver to not allocate memory for all the 
         //       descriptors. In fact, when using descriptor buffers, we are free to allocate less memory for descriptors during descriptor set allocation. However, this still
@@ -102,6 +93,13 @@ public:
         auto maxSampledImages  = m_device->adapter().limits().maxDescriptorSetSampledImages;
         auto maxSamplers       = m_device->adapter().limits().maxDescriptorSetSamplers;
         auto maxAttachments    = m_device->adapter().limits().maxDescriptorSetInputAttachments;
+
+        // Parse descriptor set layouts.
+        Array<VkDescriptorSetLayoutBinding> bindings;
+        Array<VkDescriptorBindingFlags> bindingFlags;
+        Array<VkDescriptorSetLayoutBindingFlagsCreateInfo> bindingFlagCreateInfo;
+        bool hasStaticSampler{ false }, hasSamplers{ false }, hasResources{ false };
+        UInt32 unboundedDescriptorIndex{ }, unboundedDescriptorCount{ };
 
         std::ranges::for_each(m_descriptorLayouts, [&, i = 0](const auto& layout) mutable {
             auto bindingPoint = layout.binding();
@@ -154,30 +152,63 @@ public:
             }
             
             // If the descriptor is an unbounded runtime array, disable validation warnings about partially bound elements.
-            if (binding.descriptorCount != std::numeric_limits<UInt32>::max())
+            if (layout.unbounded())
             {
-                // Increment the descriptor count for the type, only if we're not at the unbounded descriptor array. For the latter case, descriptor count is 
-                // determined at allocation time.
+                bindingFlags.push_back({ VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT });
+                m_unboundedDescriptorType = binding.descriptorType;
 
-                // Samplers are handled differently. Immutable samplers do not count towards the limit, as they are embedded directly into the descriptor set.
+                // Store the preferred descriptor count, the binding array index and set the descriptor count to 0. We will query the maximum supported descriptor count right before creating
+                // the layout handle and overwrite the descriptor count, if required. Note that this does not necessarily validate all required limits. The effective number of bound descriptors
+                // can be further influenced by the per stage resource bindings limit.
+                switch (binding.descriptorType)
+                {
+                case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
+                    unboundedDescriptorCount = std::min(binding.descriptorCount, maxStorageBuffers);
+                    break;
+                case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
+                    unboundedDescriptorCount = std::min(binding.descriptorCount, maxUniformBuffers);
+                    break;
+                case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
+                case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
+                    unboundedDescriptorCount = std::min(binding.descriptorCount, maxStorageImages);
+                    break;
+                case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
+                case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
+                    unboundedDescriptorCount = std::min(binding.descriptorCount, maxSampledImages);
+                    break;
+                case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
+                    unboundedDescriptorCount = std::min(binding.descriptorCount, maxAttachments);
+                    break;
+                case VK_DESCRIPTOR_TYPE_SAMPLER:
+                    unboundedDescriptorCount = std::min(binding.descriptorCount, maxSamplers);
+                    break;
+                default:
+                    break;
+                }
+
+                unboundedDescriptorIndex = static_cast<UInt32>(bindings.size());
+                binding.descriptorCount = 0;
+            }
+            else
+            {
+                bindingFlags.push_back({ VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT });
+
                 if (type == DescriptorType::Sampler)
                 {
                     if (layout.staticSampler() == nullptr)
                         maxSamplers -= binding.descriptorCount;
-                    else
+                    else // Static samplers don't count towards the limit.
                     {
                         binding.pImmutableSamplers = &layout.staticSampler()->handle();
                         hasStaticSampler = true;
                     }
                 }
 
-                bindingFlags.push_back({ VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT });
-
                 // Track remaining descriptors towards limit.
                 switch (binding.descriptorType)
                 {
                 case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-                    maxStorageBuffers -= binding.descriptorCount; 
+                    maxStorageBuffers -= binding.descriptorCount;
                     break;
                 case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
                     maxUniformBuffers -= binding.descriptorCount;
@@ -192,37 +223,6 @@ public:
                     break;
                 case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
                     maxAttachments -= binding.descriptorCount;
-                    break;
-                default:
-                    break;
-                }
-            }
-            else
-            {
-                bindingFlags.push_back({ VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT });
-                m_unboundedDescriptorType = binding.descriptorType;
-                
-                switch (binding.descriptorType)
-                {
-                case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-                    binding.descriptorCount = std::min(DEFAULT_UNBOUNDED_ARRAY_CAPACITY, maxStorageBuffers);
-                    break;
-                case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-                    binding.descriptorCount = std::min(DEFAULT_UNBOUNDED_ARRAY_CAPACITY, maxUniformBuffers);
-                    break;
-                case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
-                case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-                    binding.descriptorCount = std::min(DEFAULT_UNBOUNDED_ARRAY_CAPACITY, maxStorageImages);
-                    break;
-                case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
-                case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
-                    binding.descriptorCount = std::min(DEFAULT_UNBOUNDED_ARRAY_CAPACITY, maxSampledImages);
-                    break;
-                case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
-                    binding.descriptorCount = std::min(DEFAULT_UNBOUNDED_ARRAY_CAPACITY, maxAttachments);
-                    break;
-                case VK_DESCRIPTOR_TYPE_SAMPLER:
-                    binding.descriptorCount = std::min(DEFAULT_UNBOUNDED_ARRAY_CAPACITY, maxSamplers);
                     break;
                 default:
                     break;
@@ -254,6 +254,18 @@ public:
 
         if (hasStaticSampler)
             descriptorSetLayoutInfo.flags |= VK_DESCRIPTOR_SET_LAYOUT_CREATE_EMBEDDED_IMMUTABLE_SAMPLERS_BIT_EXT;
+
+        // Query support before creating the descriptor set to store the maximum supported unbounded array size for this descriptor set.
+        if (this->usesDescriptorIndexing())
+        {
+            VkDescriptorSetVariableDescriptorCountLayoutSupport descriptorCountSupportInfo = { .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_LAYOUT_SUPPORT };
+            VkDescriptorSetLayoutSupport descriptorSetLayoutSupportInfo = { .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_SUPPORT, .pNext = &descriptorCountSupportInfo };
+            ::vkGetDescriptorSetLayoutSupport(m_device->handle(), &descriptorSetLayoutInfo, &descriptorSetLayoutSupportInfo);
+            m_maxUnboundedArraySize = descriptorCountSupportInfo.maxVariableDescriptorCount;
+
+            // Reset the unbounded array descriptor count.
+            bindings[unboundedDescriptorIndex].descriptorCount = std::min(m_maxUnboundedArraySize, unboundedDescriptorCount);
+        }
 
         VkDescriptorSetLayout layout{};
         raiseIfFailed(::vkCreateDescriptorSetLayout(m_device->handle(), &descriptorSetLayoutInfo, nullptr, &layout), "Unable to create descriptor set layout.");
@@ -398,6 +410,11 @@ VulkanDescriptorSetLayout::~VulkanDescriptorSetLayout() noexcept
 const VulkanDevice& VulkanDescriptorSetLayout::device() const noexcept
 {
     return *m_impl->m_device;
+}
+
+UInt32 VulkanDescriptorSetLayout::maxUnboundedArraySize() const noexcept
+{
+    return m_impl->m_maxUnboundedArraySize;
 }
 
 const Array<VulkanDescriptorLayout>& VulkanDescriptorSetLayout::descriptors() const noexcept
