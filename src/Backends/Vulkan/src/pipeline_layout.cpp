@@ -16,10 +16,11 @@ private:
     SharedPtr<const VulkanDevice> m_device;
     UniquePtr<VulkanPushConstantsLayout> m_pushConstantsLayout;
     Array<SharedPtr<const VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
+    bool m_directlyIndexSamplers{ false }, m_directlyIndexResources{ false };
 
 public:
-    VulkanPipelineLayoutImpl(const VulkanDevice& device) :
-        m_device(device.shared_from_this())
+    VulkanPipelineLayoutImpl(const VulkanDevice& device, bool directlyIndexResources = false, bool directlyIndexSamplers = false) :
+        m_device(device.shared_from_this()), m_directlyIndexResources(directlyIndexResources), m_directlyIndexSamplers(directlyIndexSamplers)
     {
     }
 
@@ -103,8 +104,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, const Enumerable<SharedPtr<VulkanDescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
-    Resource<VkPipelineLayout>(VK_NULL_HANDLE), m_impl(device)
+VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, const Enumerable<SharedPtr<VulkanDescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout, bool directlyIndexResources, bool directlyIndexSamplers) :
+    Resource<VkPipelineLayout>(VK_NULL_HANDLE), m_impl(device, directlyIndexResources, directlyIndexSamplers)
 {
     this->handle() = m_impl->initialize(*this, descriptorSetLayouts | std::ranges::to<std::vector>(), std::move(pushConstantsLayout));
 }
@@ -142,6 +143,16 @@ const VulkanPushConstantsLayout* VulkanPipelineLayout::pushConstants() const noe
     return m_impl->m_pushConstantsLayout.get();
 }
 
+bool VulkanPipelineLayout::directlyIndexResources() const noexcept
+{
+    return m_impl->m_directlyIndexResources;
+}
+
+bool VulkanPipelineLayout::directlyIndexSamplers() const noexcept
+{
+    return m_impl->m_directlyIndexSamplers;
+}
+
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Pipeline layout builder interface.
@@ -157,6 +168,8 @@ VulkanPipelineLayoutBuilder::~VulkanPipelineLayoutBuilder() noexcept = default;
 void VulkanPipelineLayoutBuilder::build()
 {
     auto instance = this->instance();
+    instance->m_impl->m_directlyIndexResources = this->state().directlyAccessResources;
+    instance->m_impl->m_directlyIndexSamplers = this->state().directlyAccessSamplers;
     instance->handle() = instance->m_impl->initialize(*instance, std::move(this->state().descriptorSetLayouts), std::move(this->state().pushConstantsLayout));
 }
 

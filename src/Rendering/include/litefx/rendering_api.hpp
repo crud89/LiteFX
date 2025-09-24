@@ -6470,6 +6470,18 @@ namespace LiteFX::Rendering {
         /// <returns>The push constants layout, or <c>nullptr</c>, if the pipeline does not use any push constants.</returns>
         virtual const IPushConstantsLayout* pushConstants() const noexcept = 0;
 
+        /// <summary>
+        /// Returns `true`, if the pipeline supports directly indexing into the global resource heap and `false` otherwise.
+        /// </summary>
+        /// <returns>`true`, if the pipeline supports directly indexing into the global resource heap and `false` otherwise</returns>
+        virtual bool directlyIndexResources() const noexcept = 0;
+
+        /// <summary>
+        /// Returns `true`, if the pipeline supports directly indexing into the global sampler heap and `false` otherwise.
+        /// </summary>
+        /// <returns>`true`, if the pipeline supports directly indexing into the global sampler heap and `false` otherwise</returns>
+        virtual bool directlyIndexSamplers() const noexcept = 0;
+
     private:
         virtual Enumerable<SharedPtr<const IDescriptorSetLayout>> getDescriptorSets() const = 0;
     };
@@ -9210,7 +9222,7 @@ namespace LiteFX::Rendering {
         /// Enables or disables support for dynamic descriptor types ([SM 6.6 dynamic resources](https://microsoft.github.io/DirectX-Specs/d3d/HLSL_SM_6_6_DynamicResources.html) and 
         /// [VK_EXT_mutable_descriptor_type](https://registry.khronos.org/vulkan/specs/latest/man/html/VK_EXT_mutable_descriptor_type.html)).
         /// </summary>
-        bool DynamicDescriptors{ false };
+        bool DynamicDescriptors { false };
     };
 
     /// <summary>

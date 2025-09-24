@@ -16,6 +16,7 @@ private:
     UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout{};
     Array<SharedPtr<const DirectX12DescriptorSetLayout>> m_descriptorSetLayouts{};
     SharedPtr<const DirectX12Device> m_device;
+    bool m_directlyIndexSamplers{ false }, m_directlyIndexResources{ false };
     
     /// <summary>
     /// Maps the indices of the root parameters for a descriptor set or a push constant range.
@@ -28,9 +29,11 @@ private:
     Dictionary<UInt64, UInt32> m_rootParameterIndices{};
 
 public:
-    DirectX12PipelineLayoutImpl(const DirectX12Device& device) :
-        m_device(device.shared_from_this())
+    DirectX12PipelineLayoutImpl(const DirectX12Device& device, bool directlyIndexResources = false, bool directlyIndexSamplers = false) :
+        m_device(device.shared_from_this()), m_directlyIndexResources(directlyIndexResources), m_directlyIndexSamplers(directlyIndexSamplers)
     {
+        // NOTE: We could (and probably should) check if the `GraphicsDeviceFeatures::DynamicDescriptors` feature is enabled on the device, if one of the direct indexing capabilities 
+        //       is requested, but there's currently no interface for this.
     }
 
 private:
@@ -210,11 +213,20 @@ public:
         if (hasInputAttachments && !hasInputAttachmentSampler)
             staticSamplers.push_back(CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR));
 
+        // Setup root signature flags.
+        D3D12_ROOT_SIGNATURE_FLAGS flags { D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT };
+        
+        if (m_directlyIndexResources)
+            flags |= D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED;
+
+        if (m_directlyIndexSamplers)
+            flags |= D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED;
+
         // Create root signature descriptor.
         ComPtr<ID3DBlob> signature, error;
         String errorString = "";
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init_1_1(static_cast<UInt32>(descriptorParameters.size()), descriptorParameters.data(), static_cast<UInt32>(staticSamplers.size()), staticSamplers.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        rootSignatureDesc.Init_1_1(static_cast<UInt32>(descriptorParameters.size()), descriptorParameters.data(), static_cast<UInt32>(staticSamplers.size()), staticSamplers.data(), flags);
         HRESULT hr = ::D3D12SerializeVersionedRootSignature(&rootSignatureDesc, &signature, &error);
         
         if (error != nullptr)
@@ -238,8 +250,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, const Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
-    ComResource<ID3D12RootSignature>(nullptr), m_impl(device)
+DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, const Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout, bool directlyIndexResources, bool directlyIndexSamplers) :
+    ComResource<ID3D12RootSignature>(nullptr), m_impl(device, directlyIndexResources, directlyIndexSamplers)
 {
     this->handle() = m_impl->initialize(*this, descriptorSetLayouts | std::ranges::to<std::vector>(), std::move(pushConstantsLayout));
 }
@@ -290,6 +302,16 @@ Optional<UInt32> DirectX12PipelineLayout::rootParameterIndex(const DirectX12Push
         return std::nullopt;
 }
 
+bool DirectX12PipelineLayout::directlyIndexResources() const noexcept
+{
+    return m_impl->m_directlyIndexResources;
+}
+
+bool DirectX12PipelineLayout::directlyIndexSamplers() const noexcept
+{
+    return m_impl->m_directlyIndexSamplers;
+}
+
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Pipeline layout builder implementation.
@@ -324,6 +346,8 @@ DirectX12PipelineLayoutBuilder::~DirectX12PipelineLayoutBuilder() noexcept = def
 void DirectX12PipelineLayoutBuilder::build()
 {
     auto instance = this->instance();
+    instance->m_impl->m_directlyIndexResources = this->state().directlyAccessResources;
+    instance->m_impl->m_directlyIndexSamplers = this->state().directlyAccessSamplers;
     instance->handle() = instance->m_impl->initialize(*instance, std::move(this->state().descriptorSetLayouts), std::move(this->state().pushConstantsLayout));
 }
 
