@@ -81,19 +81,19 @@ private:
 private:
 	void checkRequiredExtensions(ID3D12Device10* device, const GraphicsDeviceFeatures& features)
 	{
-		D3D12_FEATURE_DATA_D3D12_OPTIONS5 options5 {};
-		D3D12_FEATURE_DATA_D3D12_OPTIONS7 options7 {};
-		D3D12_FEATURE_DATA_D3D12_OPTIONS12 options12 {};
-		raiseIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &options5, sizeof(options5)), "Unable to query device extensions.");
-		raiseIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS7, &options7, sizeof(options7)), "Unable to query device extensions.");
-		raiseIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &options12, sizeof(options12)), "Unable to query device extensions.");
-		
-		if (features.RayTracing && options5.RaytracingTier < D3D12_RAYTRACING_TIER_1_0)
+		CD3DX12FeatureSupport featureSupport;
+		featureSupport.Init(device);
+
+		if (features.RayTracing && featureSupport.RaytracingTier() < D3D12_RAYTRACING_TIER_1_0)
 			throw RuntimeException("The device does not support hardware ray-tracing.");
-		if (features.RayQueries && options5.RaytracingTier < D3D12_RAYTRACING_TIER_1_1)
+		if (features.RayQueries && featureSupport.RaytracingTier() < D3D12_RAYTRACING_TIER_1_1)
 			throw RuntimeException("The device does not support ray-queries and inline ray-tracing.");
-		if (features.MeshShaders && options7.MeshShaderTier < D3D12_MESH_SHADER_TIER_1)
+		if (features.MeshShaders && featureSupport.MeshShaderTier() < D3D12_MESH_SHADER_TIER_1)
 			throw RuntimeException("The device does not support mesh shaders.");
+		if (features.DynamicDescriptors && featureSupport.HighestShaderModel() < D3D_SHADER_MODEL_6_6)
+			throw RuntimeException("The device does not support shader model 6.6 or later, which is required for the dynamic descriptors feature.");
+		if (features.DrawIndirect && featureSupport.HighestShaderModel() < D3D_SHADER_MODEL_6_8)
+			throw RuntimeException("The device does not support shader model 6.8 or later, which is required for the indirect draw feature.");
 	}
 
 public:
