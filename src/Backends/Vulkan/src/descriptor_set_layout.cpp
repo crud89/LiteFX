@@ -13,6 +13,12 @@ public:
     friend class VulkanDescriptorSetLayoutBuilder;
     friend class VulkanDescriptorSetLayout;
 
+    // TODO: This is a temporary workaround to satisfy the validation layer during ray-tracing tests. While we do completely manage descriptor memory ourselves now, we still
+    //       have to provide a `descriptorCount` when creating the descriptor set layout. For unbounded arrays, this acts as an upper limit and counts towards the accumulated
+    //       limits in the validation layers. Unfortunately we cannot get rid of this at the moment, so we use a fixed value it for now. We do need to expose this to clients
+    //       in the future though, to allow for more granular fine-tuning.
+    static const UInt32 DEFAULT_UNBOUNDED_ARRAY_CAPACITY = 500'000;
+
 private:
     Array<VulkanDescriptorLayout> m_descriptorLayouts;
     Array<VkDescriptorPool> m_descriptorPools;
@@ -202,24 +208,24 @@ public:
                 switch (binding.descriptorType)
                 {
                 case VK_DESCRIPTOR_TYPE_STORAGE_BUFFER:
-                    binding.descriptorCount = maxStorageBuffers;
+                    binding.descriptorCount = std::min(DEFAULT_UNBOUNDED_ARRAY_CAPACITY, maxStorageBuffers);
                     break;
                 case VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER:
-                    binding.descriptorCount = maxUniformBuffers;
+                    binding.descriptorCount = std::min(DEFAULT_UNBOUNDED_ARRAY_CAPACITY, maxUniformBuffers);
                     break;
                 case VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER:
                 case VK_DESCRIPTOR_TYPE_STORAGE_IMAGE:
-                    binding.descriptorCount = maxStorageImages;
+                    binding.descriptorCount = std::min(DEFAULT_UNBOUNDED_ARRAY_CAPACITY, maxStorageImages);
                     break;
                 case VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER:
                 case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
-                    binding.descriptorCount = maxSampledImages;
+                    binding.descriptorCount = std::min(DEFAULT_UNBOUNDED_ARRAY_CAPACITY, maxSampledImages);
                     break;
                 case VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT:
-                    binding.descriptorCount = maxAttachments;
+                    binding.descriptorCount = std::min(DEFAULT_UNBOUNDED_ARRAY_CAPACITY, maxAttachments);
                     break;
                 case VK_DESCRIPTOR_TYPE_SAMPLER:
-                    binding.descriptorCount = maxSamplers;
+                    binding.descriptorCount = std::min(DEFAULT_UNBOUNDED_ARRAY_CAPACITY, maxSamplers);
                     break;
                 default:
                     break;
