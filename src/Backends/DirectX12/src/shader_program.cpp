@@ -15,8 +15,6 @@ consteval UInt32 FOUR_CC(char ch0, char ch1, char ch2, char ch3)
     return static_cast<UInt32>((Byte)ch0) | static_cast<UInt32>((Byte)ch1) << 8 | static_cast<UInt32>((Byte)ch2) << 16 | static_cast<UInt32>((Byte)ch3) << 24; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 }
 
-static bool SUPPRESS_MISSING_ROOT_SIGNATURE_WARNING = false; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
 constexpr BorderMode DECODE_BORDER_MODE(D3D12_TEXTURE_ADDRESS_MODE addressMode) noexcept
 {
     switch (addressMode)
@@ -353,7 +351,7 @@ public:
         return descriptor;
     }
 
-    SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout()
+    SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints)
     {
         // First, filter the descriptor sets and push constant ranges.
         Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts;
@@ -536,9 +534,9 @@ const Array<UniquePtr<const DirectX12ShaderModule>>& DirectX12ShaderProgram::mod
     return m_impl->m_modules;
 }
 
-SharedPtr<DirectX12PipelineLayout> DirectX12ShaderProgram::reflectPipelineLayout() const
+SharedPtr<DirectX12PipelineLayout> DirectX12ShaderProgram::reflectPipelineLayout(Enumerable<PipelineBindingHint> hints) const
 {
-    return m_impl->reflectPipelineLayout();
+    return m_impl->reflectPipelineLayout(hints);
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

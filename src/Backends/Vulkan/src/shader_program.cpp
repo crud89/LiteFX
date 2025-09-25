@@ -196,7 +196,7 @@ public:
             throw InvalidArgumentException("modules", "A shader program that contains only a fragment/pixel shader is not valid.");
     }
 
-    SharedPtr<VulkanPipelineLayout> reflectPipelineLayout()
+    SharedPtr<VulkanPipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints)
     {
         // First, filter the descriptor sets and push constant ranges.
         Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts;
@@ -384,9 +384,9 @@ const Array<UniquePtr<const VulkanShaderModule>>& VulkanShaderProgram::modules()
     return m_impl->m_modules;
 }
 
-SharedPtr<VulkanPipelineLayout> VulkanShaderProgram::reflectPipelineLayout() const
+SharedPtr<VulkanPipelineLayout> VulkanShaderProgram::reflectPipelineLayout(Enumerable<PipelineBindingHint> hints) const
 {
-    return m_impl->reflectPipelineLayout();
+    return m_impl->reflectPipelineLayout(hints);
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

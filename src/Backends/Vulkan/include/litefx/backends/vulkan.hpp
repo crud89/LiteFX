@@ -701,11 +701,11 @@ namespace LiteFX::Rendering::Backends {
         const Array<UniquePtr<const VulkanShaderModule>>& modules() const noexcept override;
 
         /// <inheritdoc />
-        virtual SharedPtr<VulkanPipelineLayout> reflectPipelineLayout() const;
+        virtual SharedPtr<VulkanPipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints = {}) const;
 
     private:
-        SharedPtr<IPipelineLayout> parsePipelineLayout() const override {
-            return std::static_pointer_cast<IPipelineLayout>(this->reflectPipelineLayout());
+        SharedPtr<IPipelineLayout> parsePipelineLayout(Enumerable<PipelineBindingHint> hints) const override {
+            return std::static_pointer_cast<IPipelineLayout>(this->reflectPipelineLayout(hints));
         }
     };
 
