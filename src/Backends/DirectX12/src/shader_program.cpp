@@ -473,11 +473,15 @@ public:
 
         // Patch the descriptor set layouts and push constant ranges based on the pipeline binding hints. This is done after shader reflection and root signature parsing.
         std::ranges::for_each(descriptorSetLayouts | std::views::values, [&](auto& descriptorSet) {
-            for (auto descriptor = descriptorSet.descriptors.begin(); descriptor < descriptorSet.descriptors.end(); descriptor++)
+            //for (auto descriptor = std::begin(descriptorSet.descriptors); descriptor != std::end(descriptorSet.descriptors); descriptor++)
+            for (size_t i{ 0 }; i < descriptorSet.descriptors.size(); ++i)
             {
+                // Get the current descriptor.
+                auto descriptor = descriptorSet.descriptors[i];
+
                 // See if there's a hint about the binding.
                 auto hint = PipelineBindingHint::hint_type{ };
-                auto binding = DescriptorBindingPoint{ .Register = descriptor->location, .Space = descriptorSet.space };
+                auto binding = DescriptorBindingPoint{ .Register = descriptor.location, .Space = descriptorSet.space };
 
                 if (hintsMap.contains(binding))
                     hint = hintsMap[binding].Hint;
@@ -487,20 +491,20 @@ public:
                     // Static samplers must be bound to a sampler descriptor and we prefer static samplers from the serialized root signature.
                     auto sampler = std::dynamic_pointer_cast<DirectX12Sampler>(hint.StaticSampler);
 
-                    if (descriptor->type != DescriptorType::Sampler)
-                        LITEFX_WARNING(DIRECTX12_LOG, "A hint for binding {0} at space {1} indicates a static sampler, but the descriptor does not bind a sampler. The hint will be ignored.", descriptor->location, descriptorSet.space);
-                    else if (!std::holds_alternative<std::monostate>(descriptor->staticSamplerState))
-                        LITEFX_INFO(DIRECTX12_LOG, "A hint for binding {0} at space {1} indicates a static sampler and one was already loaded from the root signature. The hint will be ignored.", descriptor->location, descriptorSet.space);
+                    if (descriptor.type != DescriptorType::Sampler)
+                        LITEFX_WARNING(DIRECTX12_LOG, "A hint for binding {0} at space {1} indicates a static sampler, but the descriptor does not bind a sampler. The hint will be ignored.", descriptor.location, descriptorSet.space);
+                    else if (!std::holds_alternative<std::monostate>(descriptor.staticSamplerState))
+                        LITEFX_INFO(DIRECTX12_LOG, "A hint for binding {0} at space {1} indicates a static sampler and one was already loaded from the root signature. The hint will be ignored.", descriptor.location, descriptorSet.space);
                     else if (sampler != nullptr)
-                        descriptor->staticSamplerState = sampler;
+                        descriptor.staticSamplerState = sampler;
                 };
 
                 auto pushConstantsHintCallback = [&](const PipelineBindingHint::PushConstantsHint& hint) {
                     // If a push constant range should be used, we need to convert the descriptor and remove it from the descriptor set.
                     if (hint.AsPushConstants)
                     {
-                        if (descriptor->type != DescriptorType::ConstantBuffer)
-                            LITEFX_WARNING(DIRECTX12_LOG, "A hint for binding {0} at space {1} indicates a push constants range, but the bound descriptor type is not a constant buffer. The hint will be ignored.", descriptor->location, descriptorSet.space);
+                        if (descriptor.type != DescriptorType::ConstantBuffer)
+                            LITEFX_WARNING(DIRECTX12_LOG, "A hint for binding {0} at space {1} indicates a push constants range, but the bound descriptor type is not a constant buffer. The hint will be ignored.", descriptor.location, descriptorSet.space);
                         else
                         {
                             // Lookup the last registered range to compute the highest offset.
@@ -509,22 +513,21 @@ public:
                             if (!pushConstantRanges.empty())
                                 pushConstantOffset = pushConstantRanges.back().offset + pushConstantRanges.back().size;
 
-                            auto rangeSize = descriptor->elements * descriptor->elementSize;
-                            pushConstantRanges.push_back(PushConstantRangeInfo{ .stage = descriptorSet.stage, .offset = pushConstantOffset, .size = rangeSize, .location = descriptor->location, .space = descriptorSet.space });
+                            auto rangeSize = descriptor.elements * descriptor.elementSize;
+                            pushConstantRanges.push_back(PushConstantRangeInfo{ .stage = descriptorSet.stage, .offset = pushConstantOffset, .size = rangeSize, .location = descriptor.location, .space = descriptorSet.space });
 
                             // Remove the descriptor from the descriptor set.
-                            // TODO: This needs to be moved out of the loop.
-                            descriptorSet.descriptors.erase(descriptor);
+                            descriptorSet.descriptors.erase(std::next(std::begin(descriptorSet.descriptors), i--));
                         }
                     }
                 };
 
                 auto unboundedArrayHintCallback = [&](const PipelineBindingHint::UnboundedArrayHint& hint) {
                     // Unbounded arrays are supported by D3D12 reflection, so we just need to validate them. We also do not need to set an upper bound here, as D3D12 handles descriptors more loosely.
-                    if (!descriptor->unbounded)
-                        LITEFX_WARNING(DIRECTX12_LOG, "A hint for binding {0} at space {1} indicates an unbounded array, but the bound descriptor type either a static array or a single descriptor. The hint will be ignored.", descriptor->location, descriptorSet.space);
+                    if (!descriptor.unbounded)
+                        LITEFX_WARNING(DIRECTX12_LOG, "A hint for binding {0} at space {1} indicates an unbounded array, but the bound descriptor type either a static array or a single descriptor. The hint will be ignored.", descriptor.location, descriptorSet.space);
                     else
-                        descriptor->elements = hint.MaxDescriptors;
+                        descriptor.elements = hint.MaxDescriptors;
                 };
 
                 // If the descriptor binds a sampler and the hint is a static sampler, patch it.
@@ -532,6 +535,8 @@ public:
                     [](const std::monostate&) {}, // Default: don't patch anything
                     samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback
                 }, hint);
+
+                // NOTE: don't do anything here, as both `descriptor` and `i` may be invalid at this point.
             }
         });
 
