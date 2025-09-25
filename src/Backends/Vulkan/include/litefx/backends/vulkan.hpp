@@ -811,9 +811,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="type">The type of the descriptor.</param>
         /// <param name="binding">The binding point for the descriptor.</param>
         /// <param name="elementSize">The size of the descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the descriptor array. If set to `-1`, the descriptor will be unbounded.</param>
+        /// <param name="descriptors">The number of descriptors in the descriptor array. If <paramref name="unbounded" /> is set, this value sets the upper limit for the array size.</param>
+        /// <param name="unbounded">If set to `true`, the descriptor will be defined as a runtime-allocated, unbounded array.</param>
         /// <seealso cref="descriptors" />
-        VulkanDescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1);
+        VulkanDescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1, bool unbounded = false);
 
         /// <summary>
         /// Initializes a new Vulkan descriptor layout for a static sampler.
@@ -851,6 +852,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt32 descriptors() const noexcept override;
+
+        /// <inheritdoc />
+        bool unbounded() const noexcept override;
 
         /// <inheritdoc />
         const IVulkanSampler* staticSampler() const noexcept override;
@@ -965,6 +969,12 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <returns>A reference of the device, the pipeline layout has been created from.</returns>
         const VulkanDevice& device() const noexcept;
+
+        /// <summary>
+        /// Returns the maximum allowed size for an unbounded array in a descriptor set created with this layout, or `0` if the layout does not contain an unbounded array.
+        /// </summary>
+        /// <returns>The maximum allowed size for an unbounded array in a descriptor set created with this layout</returns>
+        UInt32 maxUnboundedArraySize() const noexcept;
 
     public:
         /// <inheritdoc />

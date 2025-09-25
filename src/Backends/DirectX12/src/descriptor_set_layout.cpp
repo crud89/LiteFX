@@ -60,7 +60,7 @@ public:
             else
                 hasResources = true;
             
-            if (layout.descriptors() == std::numeric_limits<UInt32>::max())
+            if (layout.unbounded())
             {
                 if (m_layouts.size() != 1) [[unlikely]]
                     throw InvalidArgumentException("descriptorLayouts", "If an unbounded runtime array descriptor is used, it must be the only descriptor in the descriptor set, however the current descriptor set specifies {0} descriptors", m_layouts.size());
@@ -99,10 +99,7 @@ public:
         // Use descriptor heaps from the queues, if possible.
         if (m_descriptors > 0)
         {
-            // If the descriptor set has an unbounded array, use the descriptor count from the parameter to allocate it.
-            UInt32 descriptors = m_descriptors == std::numeric_limits<UInt32>::max() ? descriptorCount : m_descriptors;
-
-            if (!m_freeDescriptorSets.empty())
+            if (!m_freeDescriptorSets.empty() && !m_isRuntimeArray)
             {
                 localHeap = m_freeDescriptorSets.front();
                 m_freeDescriptorSets.pop();
@@ -111,7 +108,7 @@ public:
             {
                 D3D12_DESCRIPTOR_HEAP_DESC bufferHeapDesc = {
                     .Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
-                    .NumDescriptors = descriptors,
+                    .NumDescriptors = m_isRuntimeArray ? descriptorCount : m_descriptors,
                     .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE
                 };
 
@@ -120,10 +117,7 @@ public:
         }
         else if (m_samplers > 0)
         {
-            // If the descriptor set has an unbounded array, use the descriptor count from the parameter to allocate it.
-            UInt32 samplers = m_samplers == std::numeric_limits<UInt32>::max() ? descriptorCount : m_samplers;
-
-            if (!m_freeSamplerSets.empty())
+            if (!m_freeSamplerSets.empty() && !m_isRuntimeArray)
             {
                 localHeap = m_freeSamplerSets.front();
                 m_freeSamplerSets.pop();
@@ -132,7 +126,7 @@ public:
             {
                 D3D12_DESCRIPTOR_HEAP_DESC samplerHeapDesc = {
                     .Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER,
-                    .NumDescriptors = samplers,
+                    .NumDescriptors = m_isRuntimeArray ? descriptorCount : m_samplers,
                     .Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE
                 };
 
@@ -409,9 +403,9 @@ void DirectX12DescriptorSetLayoutBuilder::build()
     instance->m_impl->initialize();
 }
 
-DirectX12DescriptorLayout DirectX12DescriptorSetLayoutBuilder::makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors)
+DirectX12DescriptorLayout DirectX12DescriptorSetLayoutBuilder::makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors, bool unbounded)
 {
-    return { type, binding, descriptorSize, descriptors };
+    return { type, binding, descriptorSize, descriptors, unbounded };
 }
 
 DirectX12DescriptorLayout DirectX12DescriptorSetLayoutBuilder::makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy)

@@ -491,7 +491,7 @@ public:
                         }
                         else
                         {
-                            co_yield { descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->local };
+                            co_yield { descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->elements == std::numeric_limits<UInt32>::max(), descriptor->local };
                         }
                     }
                 }(std::move(it->second)) | std::ranges::to<Array<DirectX12DescriptorLayout>>();

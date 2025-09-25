@@ -66,6 +66,7 @@ private:
         UInt32 elements;
         UInt32 inputAttachmentIndex;
         DescriptorType type;
+        bool unbounded;
 
         bool equals(const DescriptorInfo& rhs)
         {
@@ -73,7 +74,8 @@ private:
                 this->location == rhs.location &&
                 this->elements == rhs.elements &&
                 this->elementSize == rhs.elementSize &&
-                this->type == rhs.type;
+                this->type == rhs.type &&
+                this->unbounded == rhs.unbounded;
         }
     };
 
@@ -286,13 +288,13 @@ public:
                     UInt32 descriptors = 1;
 
                     if (descriptor->type_description->op == SpvOp::SpvOpTypeRuntimeArray)
-                        descriptors = std::numeric_limits<UInt32>::max();   // Unbounded.
+                        descriptors = std::numeric_limits<UInt32>::max();   // Unbounded. TODO: Provide a hint to initialize the upper limit here.
                     else
                         for (UInt32 d(0); d < descriptor->array.dims_count; ++d)
                             descriptors *= descriptor->array.dims[d];
 
                     // Create the descriptor layout.
-                    return DescriptorInfo{ .location = descriptor->binding, .elementSize = descriptor->block.padded_size, .elements = descriptors, .inputAttachmentIndex = inputAttachmentIndex, .type = type };
+                    return DescriptorInfo{ .location = descriptor->binding, .elementSize = descriptor->block.padded_size, .elements = descriptors, .inputAttachmentIndex = inputAttachmentIndex, .type = type, .unbounded = descriptor->type_description->op == SpvOp::SpvOpTypeRuntimeArray };
                 });
 
                 if (!descriptorSetLayouts.contains(descriptorSet->set))
@@ -339,7 +341,7 @@ public:
                     for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor)
                         co_yield descriptor->type == DescriptorType::InputAttachment ?
                             VulkanDescriptorLayout { descriptor->type, descriptor->location, descriptor->inputAttachmentIndex} :
-                            VulkanDescriptorLayout { descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements };
+                            VulkanDescriptorLayout { descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->unbounded };
                 }(std::move(it->second)) | std::ranges::to<Array<VulkanDescriptorLayout>>();
 
                 co_yield VulkanDescriptorSetLayout::create(*device, descriptorLayouts, space, stage);
