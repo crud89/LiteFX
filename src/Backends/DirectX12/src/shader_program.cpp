@@ -473,7 +473,6 @@ public:
 
         // Patch the descriptor set layouts and push constant ranges based on the pipeline binding hints. This is done after shader reflection and root signature parsing.
         std::ranges::for_each(descriptorSetLayouts | std::views::values, [&](auto& descriptorSet) {
-            //for (auto descriptor = std::begin(descriptorSet.descriptors); descriptor != std::end(descriptorSet.descriptors); descriptor++)
             for (size_t i{ 0 }; i < descriptorSet.descriptors.size(); ++i)
             {
                 // Get the current descriptor.
