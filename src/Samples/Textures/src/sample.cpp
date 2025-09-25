@@ -307,9 +307,6 @@ void SampleApp::onInit()
 #endif // LITEFX_BUILD_VULKAN_BACKEND
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
-    // We do not need to provide a root signature for shader reflection (refer to the project wiki for more information: https://github.com/crud89/LiteFX/wiki/Shader-Development).
-    DirectX12ShaderProgram::suppressMissingRootSignatureWarning();
-
     // Register the DirectX 12 backend de-/initializer.
     this->onBackendStart<DirectX12Backend>(startCallback);
     this->onBackendStop<DirectX12Backend>(stopCallback);

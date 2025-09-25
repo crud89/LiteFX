@@ -125,7 +125,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
             .cullOrder(CullOrder::ClockWise)
             .lineWidth(1.f)
             .depthState(DepthStencilState::DepthState{ .Operation = CompareOperation::LessEqual }))
-        .layout(shaderProgram->reflectPipelineLayout())
+        .layout(shaderProgram->reflectPipelineLayout(std::array { PipelineBindingHint::runtimeArray(DescriptorSets::InstanceData, 0u, NUM_INSTANCES) }))
         .shaderProgram(shaderProgram);
 
     // Add the resources to the device state.
@@ -281,9 +281,6 @@ void SampleApp::onInit()
 #endif // LITEFX_BUILD_VULKAN_BACKEND
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
-    // We do not need to provide a root signature for shader reflection (refer to the project wiki for more information: https://github.com/crud89/LiteFX/wiki/Shader-Development).
-    DirectX12ShaderProgram::suppressMissingRootSignatureWarning();
-
     // Register the DirectX 12 backend de-/initializer.
     this->onBackendStart<DirectX12Backend>(startCallback);
     this->onBackendStop<DirectX12Backend>(stopCallback);

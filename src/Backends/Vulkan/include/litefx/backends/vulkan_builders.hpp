@@ -226,7 +226,7 @@ namespace LiteFX::Rendering::Backends {
 		// DescriptorSetLayoutBuilder interface.
 	protected:
 		/// <inheritdoc />
-		VulkanDescriptorLayout makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors) override;
+		VulkanDescriptorLayout makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors, bool unbounded) override;
 
 		/// <inheritdoc />
 		VulkanDescriptorLayout makeDescriptor(UInt32 binding, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float minLod, Float maxLod, Float anisotropy) override;

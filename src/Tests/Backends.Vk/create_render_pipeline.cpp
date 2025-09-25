@@ -62,10 +62,10 @@ void TestApp::onInit()
         // Define pipeline layout.
         SharedPtr<VulkanPipelineLayout> renderPipelineLayout = _device->buildPipelineLayout()
             .descriptorSet(0, ShaderStage::Any)
-                .withConstantBuffer(0, sizeof(float) * 4 * 4, 1)
+                .withConstantBuffer(0, sizeof(float) * 4 * 4)
                 .add()
             .descriptorSet(1, ShaderStage::Any)
-                .withConstantBuffer(0, sizeof(float) * 4 * 4, 1)
+                .withConstantBuffer(0, sizeof(float) * 4 * 4)
                 .add();
 
         // Create a render pipeline.
