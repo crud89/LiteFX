@@ -476,7 +476,7 @@ public:
             for (size_t i{ 0 }; i < descriptorSet.descriptors.size(); ++i)
             {
                 // Get the current descriptor.
-                auto descriptor = descriptorSet.descriptors[i];
+                auto& descriptor = descriptorSet.descriptors[i];
 
                 // See if there's a hint about the binding.
                 auto hint = PipelineBindingHint::hint_type{ };

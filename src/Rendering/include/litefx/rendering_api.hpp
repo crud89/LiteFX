@@ -2755,6 +2755,7 @@ namespace LiteFX::Rendering {
         /// equal, the operator returns `equal`.
         /// </returns>
         inline auto operator<=>(const DescriptorBindingPoint& other) const noexcept {
+            // NOLINTBEGIN(bugprone-branch-clone)
             if (this->Space < other.Space)
                 return std::strong_ordering::less;
             else if (this->Space > other.Space)
@@ -2765,6 +2766,7 @@ namespace LiteFX::Rendering {
                 return std::strong_ordering::greater;
             else // Space and Register are equal.
                 return std::strong_ordering::equal;
+            // NOLINTEND(bugprone-branch-clone)
         }
 
         /// <summary>
@@ -6436,7 +6438,7 @@ namespace LiteFX::Rendering {
         /// <param name="sampler">The sampler state used to initialize the static sampler with.</param>
         /// <returns>The initialized shader binding hint.</returns>
         static inline auto staticSampler(DescriptorBindingPoint at, SharedPtr<ISampler> sampler) noexcept -> PipelineBindingHint {
-            return { .Binding = at, .Hint = StaticSamplerHint { sampler } };
+            return { .Binding = at, .Hint = StaticSamplerHint { std::move(sampler) } };
         }
 
         /// <summary>
@@ -6447,7 +6449,7 @@ namespace LiteFX::Rendering {
         /// <param name="sampler">The sampler state used to initialize the static sampler with.</param>
         /// <returns>The initialized shader binding hint.</returns>
         static inline auto staticSampler(UInt32 space, UInt32 binding, SharedPtr<ISampler> sampler) noexcept -> PipelineBindingHint {
-            return { .Binding = {.Register = binding, .Space = space }, .Hint = StaticSamplerHint { sampler } };
+            return { .Binding = {.Register = binding, .Space = space }, .Hint = StaticSamplerHint { std::move(sampler) } };
         }
     };
 
