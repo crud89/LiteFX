@@ -514,11 +514,6 @@ public:
     }
 };
 
-void DirectX12ShaderProgram::suppressMissingRootSignatureWarning(bool disableWarning) noexcept
-{
-    SUPPRESS_MISSING_ROOT_SIGNATURE_WARNING = disableWarning;
-}
-
 // ------------------------------------------------------------------------------------------------
 // Interface.
 // ------------------------------------------------------------------------------------------------
