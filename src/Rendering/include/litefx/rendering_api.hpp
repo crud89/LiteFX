@@ -2743,6 +2743,40 @@ namespace LiteFX::Rendering {
         /// Stores the descriptor space (or set index) of the binding point.
         /// </summary>
         UInt32 Space { 0 };
+
+    public:
+        /// <summary>
+        /// Implements three-way comparison for descriptor binding points.
+        /// </summary>
+        /// <param name="other">The other binding point to compare against.</param>
+        /// <returns>
+        /// `less`, if the `Space` property of the instance is lower than the `Space` property of <paramref name="other" />, and `greater` if the opposite is true 
+        /// and they are not equal. If the `Space` properties are equal, the `Register` properties are compared accordingly. If both, `Space` and `Register` are 
+        /// equal, the operator returns `equal`.
+        /// </returns>
+        inline auto operator<=>(const DescriptorBindingPoint& other) const noexcept {
+            // NOLINTBEGIN(bugprone-branch-clone)
+            if (this->Space < other.Space)
+                return std::strong_ordering::less;
+            else if (this->Space > other.Space)
+                return std::strong_ordering::greater;
+            else if (this->Register < other.Register)
+                return std::strong_ordering::less;
+            else if(this->Register > other.Register)
+                return std::strong_ordering::greater;
+            else // Space and Register are equal.
+                return std::strong_ordering::equal;
+            // NOLINTEND(bugprone-branch-clone)
+        }
+
+        /// <summary>
+        /// Implements equality comparison for descriptor binding points.
+        /// </summary>
+        /// <param name="other">The other binding point to compare against.</param>
+        /// <returns>`true`, if the `Space` and `Register` values for both binding points are equal, otherwise `false`.</returns>
+        inline bool operator==(const DescriptorBindingPoint& other) const noexcept {
+            return other.Space == this->Space && other.Register == this->Register;
+        }
     };
 
     /// <summary>
@@ -6297,6 +6331,129 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// A hint used during shader reflection to control the pipeline layout.
+    /// </summary>
+    /// <remarks>
+    /// Hints are generally used to express the desired layout to backends that cannot infer them implicitly. They do not imply an enforcement of the layout otherwise. For example, 
+    /// hinting a push constants range when performing shader reflection in Vulkan, where push constants are supported by the reflection library, will not affect the ultimate decision on 
+    /// whether the layout will contain a push constants range. In this case, shader reflection will always emit a push constants range.
+    /// 
+    /// Backends do emit diagnostic log messages, if a hint is given that it will ignore. Hints for descriptors that are not bound will silently be ignored.
+    /// </remarks>
+    /// <seealso cref="IShaderProgram::reflectPipelineLayout" />
+    struct LITEFX_RENDERING_API PipelineBindingHint {
+
+        /// <summary>
+        /// Defines a hint that is used to mark an unbounded descriptor array.
+        /// </summary>
+        struct UnboundedArrayHint {
+            /// <summary>
+            /// If the binding point binds an array, this property can be used to turn it into an unbounded array and set the maximum number of descriptors that can be bound to the array. 
+            /// This is especially useful to comply with Vulkan device limits.
+            /// </summary>
+            UInt32 MaxDescriptors{ 0 };
+        };
+
+        /// <summary>
+        /// Defines a hint that is used to mark a push constants range.
+        /// </summary>
+        struct PushConstantsHint {
+            /// <summary>
+            /// If the binding point binds a constant or uniform buffer, setting this property to `true` will configure the binding point it as part of the root constants for the pipeline 
+            /// layout. If this property is set to `false`, the hint will have no effect.
+            /// </summary>
+            bool AsPushConstants{ false };
+        };
+
+        /// <summary>
+        /// Defines a hint that is used to bind a static sampler state to a sampler descriptor.
+        /// </summary>
+        struct StaticSamplerHint {
+            /// <summary>
+            /// If the binding point binds a sampler, setting this property will bind a static or constant sampler, if supported by the backend.
+            /// </summary>
+            SharedPtr<ISampler> StaticSampler{ nullptr };
+        };
+
+        /// <summary>
+        /// Defines the type of the pipeline binding hint.
+        /// </summary>
+        using hint_type = Variant<std::monostate, UnboundedArrayHint, PushConstantsHint, StaticSamplerHint>;
+
+        /// <summary>
+        /// The binding point the hint applies to.
+        /// </summary>
+        DescriptorBindingPoint Binding{ };
+
+        /// <summary>
+        /// Stores the underlying hint.
+        /// </summary>
+        hint_type Hint = std::monostate{};
+
+    public:
+        /// <summary>
+        /// Initializes a hint that binds an unbounded runtime array.
+        /// </summary>
+        /// <param name="at">The binding point the hint applies to.</param>
+        /// <param name="maxDescriptors">The maximum number of descriptors that can be bound to the runtime array at the binding point.</param>
+        /// <returns>The initialized shader binding hint.</returns>
+        static inline auto runtimeArray(DescriptorBindingPoint at, UInt32 maxDescriptors) noexcept -> PipelineBindingHint {
+            return { .Binding = at, .Hint = UnboundedArrayHint { maxDescriptors } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds an unbounded runtime array.
+        /// </summary>
+        /// <param name="space">The descriptor space of the binding point.</param>
+        /// <param name="binding">The register of the descriptor binding point.</param>
+        /// <param name="maxDescriptors">The maximum number of descriptors that can be bound to the runtime array at the binding point.</param>
+        /// <returns>The initialized shader binding hint.</returns>
+        static inline auto runtimeArray(UInt32 space, UInt32 binding, UInt32 maxDescriptors) noexcept -> PipelineBindingHint {
+            return { .Binding = {.Register = binding, .Space = space }, .Hint = UnboundedArrayHint { maxDescriptors } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds push constants.
+        /// </summary>
+        /// <param name="at">The binding point the hint applies to.</param>
+        /// <returns>The initialized shader binding hint.</returns>
+        static inline auto pushConstants(DescriptorBindingPoint at) noexcept -> PipelineBindingHint {
+            return { .Binding = at, .Hint = PushConstantsHint { true } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds push constants.
+        /// </summary>
+        /// <param name="space">The descriptor space of the binding point.</param>
+        /// <param name="binding">The register of the descriptor binding point.</param>
+        /// <returns>The initialized shader binding hint.</returns>
+        static inline auto pushConstants(UInt32 space, UInt32 binding) noexcept -> PipelineBindingHint {
+            return { .Binding = {.Register = binding, .Space = space }, .Hint = PushConstantsHint { true } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds a static sampler, if supported by the backend.
+        /// </summary>
+        /// <param name="at">The binding point the hint applies to.</param>
+        /// <param name="sampler">The sampler state used to initialize the static sampler with.</param>
+        /// <returns>The initialized shader binding hint.</returns>
+        static inline auto staticSampler(DescriptorBindingPoint at, SharedPtr<ISampler> sampler) noexcept -> PipelineBindingHint {
+            return { .Binding = at, .Hint = StaticSamplerHint { std::move(sampler) } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds a static sampler, if supported by the backend.
+        /// </summary>
+        /// <param name="space">The descriptor space of the binding point.</param>
+        /// <param name="binding">The register of the descriptor binding point.</param>
+        /// <param name="sampler">The sampler state used to initialize the static sampler with.</param>
+        /// <returns>The initialized shader binding hint.</returns>
+        static inline auto staticSampler(UInt32 space, UInt32 binding, SharedPtr<ISampler> sampler) noexcept -> PipelineBindingHint {
+            return { .Binding = {.Register = binding, .Space = space }, .Hint = StaticSamplerHint { std::move(sampler) } };
+        }
+    };
+
+    /// <summary>
     /// The interface for a shader program.
     /// </summary>
     /// <remarks>
@@ -6412,10 +6569,12 @@ namespace LiteFX::Rendering {
         /// </item>
         /// </list>
         /// </remarks>
+        /// <param name="hints">A series of individual binding hints to use to deduce explicit binding information.</param>
         /// <returns>The pipeline layout extracted from shader reflection.</returns>
+        /// <seealso cref="PipelineBindingHint" />
         /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
-        inline SharedPtr<IPipelineLayout> reflectPipelineLayout() const {
-            return this->parsePipelineLayout();
+        inline SharedPtr<IPipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints = {}) const {
+            return this->parsePipelineLayout(hints);
         };
 
         /// <summary>
@@ -6428,7 +6587,7 @@ namespace LiteFX::Rendering {
 
     private:
         virtual Enumerable<const IShaderModule&> getModules() const = 0;
-        virtual SharedPtr<IPipelineLayout> parsePipelineLayout() const = 0;
+        virtual SharedPtr<IPipelineLayout> parsePipelineLayout(Enumerable<PipelineBindingHint> hints) const = 0;
     };
 
     /// <summary>

@@ -63,7 +63,7 @@ void TestApp::onInit()
             .maxBounces(16)                       // Important: If changed, the closest hit shader also needs to be updated!
             .maxPayloadSize(sizeof(Float) * 5)    // See HitInfo in raytracing_common.hlsli
             .maxAttributeSize(sizeof(Float) * 2)  // See Attributes in raytracing_common.hlsli
-            .layout(shaderProgram->reflectPipelineLayout());
+            .layout(shaderProgram->reflectPipelineLayout(std::array { PipelineBindingHint::runtimeArray(2u, 0u, 100u) }));
 
         // Validate the ray tracing pipeline.
         if (rayTracingPipeline->maxAttributeSize() != 8)

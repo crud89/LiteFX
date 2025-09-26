@@ -62,7 +62,7 @@ void TestApp::onInit()
         UniquePtr<DirectX12RenderPipeline> renderPipeline = _device->buildRenderPipeline(*renderPass, "Geometry")
             .inputAssembler(inputAssembler)
             .rasterizer(rasterizer)
-            .layout(shaderProgram->reflectPipelineLayout())
+            .layout(shaderProgram->reflectPipelineLayout(std::array { PipelineBindingHint::pushConstants(1u, 0u) }))
             .shaderProgram(shaderProgram);
 
         // Validate render pipeline.

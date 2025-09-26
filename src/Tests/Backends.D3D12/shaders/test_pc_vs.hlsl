@@ -1,11 +1,5 @@
 #pragma pack_matrix(row_major)
 
-// For DXIL we need to define a root signature, in order for shader reflection to properly pick up the push constants.
-#define ROOT_SIGNATURE \
-    "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT), " \
-    "CBV(b0, space = 0, flags = DATA_STATIC_WHILE_SET_AT_EXECUTE), " \
-    "RootConstants(num32BitConstants = 16, b0, space = 1, visibility = SHADER_VISIBILITY_VERTEX)"
-
 struct VertexData
 {
     float4 Position : SV_POSITION;
@@ -34,7 +28,6 @@ struct TransformData
 ConstantBuffer<CameraData> camera : register(b0, space0);
 ConstantBuffer<TransformData> transform : register(b0, space1);
 
-[RootSignature(ROOT_SIGNATURE)]
 VertexData main(in VertexInput input)
 {
     VertexData vertex;

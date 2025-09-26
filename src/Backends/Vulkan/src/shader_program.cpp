@@ -61,12 +61,13 @@ private:
 private:
     struct DescriptorInfo {
     public:
-        UInt32 location;
-        UInt32 elementSize;
-        UInt32 elements;
-        UInt32 inputAttachmentIndex;
-        DescriptorType type;
-        bool unbounded;
+        UInt32 location{};
+        UInt32 elementSize{};
+        UInt32 elements{};
+        UInt32 inputAttachmentIndex{};
+        DescriptorType type{};
+        SharedPtr<IVulkanSampler> staticSampler{};
+        bool unbounded{false};
 
         bool equals(const DescriptorInfo& rhs)
         {
@@ -196,8 +197,13 @@ public:
             throw InvalidArgumentException("modules", "A shader program that contains only a fragment/pixel shader is not valid.");
     }
 
-    SharedPtr<VulkanPipelineLayout> reflectPipelineLayout()
+    SharedPtr<VulkanPipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints)
     {
+        // Put the hints into a map so we can easier look them up.
+        auto hintsMap = hints
+            | std::views::transform([](const auto& hint) -> std::pair<DescriptorBindingPoint, PipelineBindingHint> { return { hint.Binding, hint }; })
+            | std::ranges::to<std::map>();
+
         // First, filter the descriptor sets and push constant ranges.
         Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts;
         Array<PushConstantRangeInfo> pushConstantRanges;
@@ -288,13 +294,13 @@ public:
                     UInt32 descriptors = 1;
 
                     if (descriptor->type_description->op == SpvOp::SpvOpTypeRuntimeArray)
-                        descriptors = std::numeric_limits<UInt32>::max();   // Unbounded. TODO: Provide a hint to initialize the upper limit here.
+                        descriptors = std::numeric_limits<UInt32>::max();
                     else
                         for (UInt32 d(0); d < descriptor->array.dims_count; ++d)
                             descriptors *= descriptor->array.dims[d];
 
                     // Create the descriptor layout.
-                    return DescriptorInfo{ .location = descriptor->binding, .elementSize = descriptor->block.padded_size, .elements = descriptors, .inputAttachmentIndex = inputAttachmentIndex, .type = type, .unbounded = descriptor->type_description->op == SpvOp::SpvOpTypeRuntimeArray };
+                    return DescriptorInfo { .location = descriptor->binding, .elementSize = descriptor->block.padded_size, .elements = descriptors, .inputAttachmentIndex = inputAttachmentIndex, .type = type, .unbounded = descriptor->type_description->op == SpvOp::SpvOpTypeRuntimeArray };
                 });
 
                 if (!descriptorSetLayouts.contains(descriptorSet->set))
@@ -330,6 +336,61 @@ public:
             });
         });
 
+        // Patch the descriptor set layouts and push constant ranges based on the pipeline binding hints.
+        std::ranges::for_each(descriptorSetLayouts | std::views::values, [&](auto& descriptorSet) {
+            for (size_t i{ 0 }; i < descriptorSet.descriptors.size(); ++i)
+            {
+                // Get the current descriptor.
+                auto& descriptor = descriptorSet.descriptors[i];
+
+                // See if there's a hint about the binding.
+                auto hint = PipelineBindingHint::hint_type{ };
+                auto binding = DescriptorBindingPoint{ .Register = descriptor.location, .Space = descriptorSet.space };
+
+                if (hintsMap.contains(binding))
+                    hint = hintsMap[binding].Hint;
+
+                // Create patch lambdas.
+                auto samplerHintCallback = [&](const PipelineBindingHint::StaticSamplerHint& hint) {
+                    // Vulkan does not deduce immutable samplers from reflection, so we can define it using this hint. However, we need to make sure it addresses a sampler 
+                    // binding first.
+                    auto sampler = std::dynamic_pointer_cast<IVulkanSampler>(hint.StaticSampler);
+
+                    if (descriptor.type != DescriptorType::Sampler)
+                        LITEFX_WARNING(VULKAN_LOG, "A hint for binding {0} at space {1} indicates a static sampler, but the descriptor does not bind a sampler. The hint will be ignored.", descriptor.location, descriptorSet.space);
+                    else if (sampler != nullptr)
+                        descriptor.staticSampler = sampler;
+                };
+
+                auto pushConstantsHintCallback = [&](const PipelineBindingHint::PushConstantsHint& hint) {
+                    // Push constant ranges are always parsed from shader reflection, so we merely validate them using the hint. In Vulkan, push constants are not mapped to 
+                    // a descriptor set. Hitting this point means that a descriptor at this binding has been defined, so if we end up here, we issue a warning, as the hint
+                    // contradicts the layout.
+                    if (hint.AsPushConstants)
+                        LITEFX_WARNING(VULKAN_LOG, "A hint for binding {0} at space {1} indicates a push constants range, but a standard descriptor was bound here. In Vulkan push constants do not bind to a descriptor set, but a hint for the descriptor set indicates that the binding should be reserved for one anyway, perhaps to preserve compatibility with other backends. The hint will be ignored.", descriptor.location, descriptorSet.space);
+                };
+
+                auto unboundedArrayHintCallback = [&](const PipelineBindingHint::UnboundedArrayHint& hint) {
+                    // In Vulkan, unbounded arrays are obtained through shader reflection, however, to comply with device limits, a descriptor count for the upper limit of 
+                    // descriptors in the pipeline layout must be set. Only few implementations actually support arbitrarily (i.e., max UInt32) large arrays. It's a good
+                    // practice to provide a reasonable guess using a hint. 
+                    // If the binding does not refer to a static array, we must not overwrite the descriptor count, so we issue a warning. The same holds true for scalar
+                    // descriptors.
+                    
+                    if (!descriptor.unbounded)
+                        LITEFX_WARNING(VULKAN_LOG, "A hint for binding {0} at space {1} indicates an unbounded array, but the bound descriptor type either a static array or a single descriptor. The hint will be ignored.", descriptor.location, descriptorSet.space);
+                    else
+                        descriptor.elements = hint.MaxDescriptors;
+                };
+
+                // If the descriptor binds a sampler and the hint is a static sampler, patch it.
+                std::visit(type_switch{
+                    [](const std::monostate&) {}, // Default: don't patch anything
+                    samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback
+                }, hint);
+            }
+        });
+
         // Create the descriptor set layouts.
         auto descriptorSets = [](SharedPtr<const VulkanDevice> device, Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts) -> std::generator<SharedPtr<VulkanDescriptorSetLayout>> {
             for (auto it = descriptorSetLayouts.begin(); it != descriptorSetLayouts.end(); ++it) {
@@ -338,10 +399,14 @@ public:
 
                 // Create the descriptor layouts.
                 auto descriptorLayouts = [](DescriptorSetInfo descriptorSet) -> std::generator<VulkanDescriptorLayout> {
-                    for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor)
-                        co_yield descriptor->type == DescriptorType::InputAttachment ?
-                            VulkanDescriptorLayout { descriptor->type, descriptor->location, descriptor->inputAttachmentIndex} :
-                            VulkanDescriptorLayout { descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->unbounded };
+                    for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor) {
+                        if (descriptor->type == DescriptorType::Sampler && descriptor->staticSampler != nullptr)
+                            co_yield VulkanDescriptorLayout { *descriptor->staticSampler, descriptor->location };
+                        else if (descriptor->type == DescriptorType::InputAttachment)
+                            co_yield VulkanDescriptorLayout { descriptor->type, descriptor->location, descriptor->inputAttachmentIndex };
+                        else [[likely]]
+                            co_yield VulkanDescriptorLayout { descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->unbounded };
+                    }
                 }(std::move(it->second)) | std::ranges::to<Array<VulkanDescriptorLayout>>();
 
                 co_yield VulkanDescriptorSetLayout::create(*device, descriptorLayouts, space, stage);
@@ -384,9 +449,9 @@ const Array<UniquePtr<const VulkanShaderModule>>& VulkanShaderProgram::modules()
     return m_impl->m_modules;
 }
 
-SharedPtr<VulkanPipelineLayout> VulkanShaderProgram::reflectPipelineLayout() const
+SharedPtr<VulkanPipelineLayout> VulkanShaderProgram::reflectPipelineLayout(Enumerable<PipelineBindingHint> hints) const
 {
-    return m_impl->reflectPipelineLayout();
+    return m_impl->reflectPipelineLayout(hints);
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
