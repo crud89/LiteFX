@@ -37,11 +37,16 @@ public:
             vkGetDescriptorSetLayoutSize(m_layout->device().handle(), m_layout->handle(), &descriptorSetSize);
         else
         {
+            // If the unbounded descriptor array size is set to the maximum, use the device limit instead. Note that this could still conflict with other limits (such as the per stage resource 
+            // binding limit), so prefer to provide an explicit size here.
+            if (unboundedArraySize == std::numeric_limits<UInt32>::max())
+                m_unboundedArraySize = unboundedArraySize = layout.maxUnboundedArraySize();
+
             // If the layout contains an unbounded array size, the actual required address space needs to be computed. We exploit the guarantee that unbounded arrays are always put last in 
             // the descriptor set, so we compute the offset, descriptor size and from this the total amount of required memory.
             // First, we need to lookup the binding for the unbounded array. If we cannot match any binding here, we've conceptually messed up somewhere earlier, in which case no error handling
             // could save us, so we gently ignore the chance of not matching anything.
-            auto descriptorLayout = std::ranges::find_if(layout.descriptors(), [](auto& layout) { return layout.descriptors() == std::numeric_limits<UInt32>::max(); });
+            auto descriptorLayout = std::ranges::find_if(layout.descriptors(), [](auto& layout) { return layout.unbounded(); });
             vkGetDescriptorSetLayoutBindingOffset(layout.device().handle(), layout.handle(), descriptorLayout->binding(), &descriptorSetSize);
             descriptorSetSize += unboundedArraySize * static_cast<VkDeviceSize>(layout.device().descriptorSize(descriptorLayout->descriptorType()));
         }

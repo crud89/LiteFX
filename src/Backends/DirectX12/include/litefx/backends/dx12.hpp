@@ -675,27 +675,12 @@ namespace LiteFX::Rendering::Backends {
         const Array<UniquePtr<const DirectX12ShaderModule>>& modules() const noexcept override;
 
         /// <inheritdoc />
-        virtual SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout() const;
+        virtual SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints = {}) const;
 
     private:
-        SharedPtr<IPipelineLayout> parsePipelineLayout() const override {
-            return std::static_pointer_cast<IPipelineLayout>(this->reflectPipelineLayout());
+        SharedPtr<IPipelineLayout> parsePipelineLayout(Enumerable<PipelineBindingHint> hints) const override {
+            return std::static_pointer_cast<IPipelineLayout>(this->reflectPipelineLayout(hints));
         }
-
-    public:
-        /// <summary>
-        /// Suppresses the warning that is issued, if no root signature is found on a shader module when calling <see cref="reflectPipelineLayout" />.
-        /// </summary>
-        /// <remarks>
-        /// When a shader program is asked to build a pipeline layout, it first checks if a root signature is provided within the shader bytecode. If no root signature could 
-        /// be found, it falls back to using plain reflection to extract the descriptor sets. This has the drawback, that some features are not or only partially supported.
-        /// Most notably, it is not possible to reflect a pipeline layout that uses push/root constants this way. To ensure that you are not missing the root signature by 
-        /// accident, the engine warns you when it encounters this situation. However, if you are only using plain descriptor sets, this can result in noise warnings that 
-        /// clutter the log. You can call this function to disable the warnings explicitly.
-        /// </remarks>
-        /// <param name="disableWarning"><c>true</c> to stop issuing the warning or <c>false</c> to continue.</param>
-        /// <seealso cref="reflectPipelineLayout" />
-        static void suppressMissingRootSignatureWarning(bool disableWarning = true) noexcept;
     };
 
     /// <summary>
@@ -784,9 +769,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="type">The type of the descriptor.</param>
         /// <param name="binding">The binding point for the descriptor.</param>
         /// <param name="elementSize">The size of the descriptor.</param>
-        /// <param name="elementSize">The number of descriptors in the descriptor array.</param>
+        /// <param name="descriptors">The number of descriptors in the descriptor array. If <paramref name="unbounded" /> is set, this value sets the upper limit for the array size.</param>
+        /// <param name="unbounded">If set to `true`, the descriptor will be defined as a runtime-allocated, unbounded array.</param>
         /// <param name="local">Determines if the descriptor is part of the local or global root signature for ray-tracing shaders.</param>
-        DirectX12DescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1, bool local = false);
+        DirectX12DescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1, bool unbounded = false, bool local = false);
 
         /// <summary>
         /// Initializes a new DirectX 12 descriptor layout for a static sampler.
@@ -829,6 +815,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt32 descriptors() const noexcept override;
+
+        /// <inheritdoc />
+        bool unbounded() const noexcept override;
 
         /// <inheritdoc />
         const IDirectX12Sampler* staticSampler() const noexcept override;
