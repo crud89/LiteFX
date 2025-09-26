@@ -25,7 +25,7 @@
 var NAVTREE =
 [
   [ "LiteFX", "index.html", [
-    [ "About", "index.html#autotoc_md7", [
+    [ "About", "index.html#autotoc_md5", [
       [ "Key Features", "index.html#autotoc_md8", null ]
     ] ],
     [ "Getting Started", "index.html#autotoc_md9", null ],
@@ -36,8 +36,8 @@ var NAVTREE =
     [ "Project Setup", "md_docs_2tutorials_2project-setup.html", [
       [ "Project Structure", "md_docs_2tutorials_2project-setup.html#autotoc_md3", null ],
       [ "Setting up vcpkg.", "md_docs_2tutorials_2project-setup.html#autotoc_md4", null ],
-      [ "Setting up CMake.", "md_docs_2tutorials_2project-setup.html#autotoc_md5", null ],
-      [ "Performing a build.", "md_docs_2tutorials_2project-setup.html#autotoc_md6", null ]
+      [ "Setting up CMake.", "md_docs_2tutorials_2project-setup.html#autotoc_md6", null ],
+      [ "Performing a build.", "md_docs_2tutorials_2project-setup.html#autotoc_md7", null ]
     ] ],
     [ "Quick Start", "md_docs_2tutorials_2quick-start.html", [
       [ "Application Infrastructure", "md_docs_2tutorials_2quick-start.html#autotoc_md14", [

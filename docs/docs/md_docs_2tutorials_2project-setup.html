@@ -29,7 +29,7 @@
  <tbody>
  <tr id="projectrow">
   <td id="projectalign">
-   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.1.2025</span>
+   <div id="projectname">LiteFX<span id="projectnumber">&#160;0.4.2.2025</span>
    </div>
    <div id="projectbrief">Computer Graphics Engine</div>
   </td>
@@ -153,7 +153,7 @@ Setting up vcpkg.</h1>
 <div class="line">}</div>
 </div><!-- fragment --><p><b>Important:</b> Remember to update the <code>baseline</code> field to the commit id of the latest registry commit <a href="https://github.com/crud89/LiteFX-Registry/commits/main/">from here</a>!</p>
 <p>Finally, we need to install vcpkg. The straightforward option when you already put all your files inside a valid git repository, is to add it as a git submodule as described <a href="https://learn.microsoft.com/en-us/vcpkg/concepts/continuous-integration#acquire-vcpkg">here</a>. But of course any other installation method will work as well. It is strongly adviced to take your time and familiarize yourself with setting up vcpkg on your system depending on your needs. If you are not sure about what's the easiest option for you, then start by using the version integrated into Visual Studio.</p>
-<h1><a class="anchor" id="autotoc_md5"></a>
+<h1><a class="anchor" id="autotoc_md6"></a>
 Setting up CMake.</h1>
 <p>Now that we've set up vcpkg, it's time to configure CMake to build your project. First, we need to setup a preset, that CMake uses for the build. The following simple <em>CMakePresets.json</em> file is sufficient as a starting point. Please modify the <code>VCPKG_ROOT</code> variable to point to your vcpkg installation directory. This may vary depending on your way of installation, as described earlier. In the provided example below it is assumed, that vcpkg got cloned as a submodule into a <code>modules/</code> directory in the project root. For more details about how to integrate vcpkg into a CMake build process in varying scenarios, refer to <a href="https://learn.microsoft.com/en-us/vcpkg/users/buildsystems/cmake-integration">this guide</a>.</p>
 <div class="fragment"><div class="line">{</div>
@@ -207,7 +207,7 @@ Setting up CMake.</h1>
 <div class="line">)</div>
 <div class="line"> </div>
 <div class="line">TARGET_LINK_LIBRARIES(MyApp PRIVATE LiteFX.Backends.Vulkan LiteFX.Backends.DirectX12 glfw)</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md6"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md7"></a>
 Performing a build.</h1>
 <p>The next step is to write the actual code and is described in <a href="md_docs_tutorials_quick_start.html">the quick start guide</a>. In order to compile your application after you've changed the code, you can run the following command. For now, however, this will produce errors, as we did not have defined any code yet.</p>
 <div class="fragment"><div class="line">cmake . --preset windows-msvc-x64-debug</div>
