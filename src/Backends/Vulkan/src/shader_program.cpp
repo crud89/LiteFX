@@ -61,13 +61,13 @@ private:
 private:
     struct DescriptorInfo {
     public:
-        UInt32 location;
-        UInt32 elementSize;
-        UInt32 elements;
-        UInt32 inputAttachmentIndex;
-        DescriptorType type;
-        SharedPtr<IVulkanSampler> staticSampler;
-        bool unbounded;
+        UInt32 location{};
+        UInt32 elementSize{};
+        UInt32 elements{};
+        UInt32 inputAttachmentIndex{};
+        DescriptorType type{};
+        SharedPtr<IVulkanSampler> staticSampler{};
+        bool unbounded{false};
 
         bool equals(const DescriptorInfo& rhs)
         {
@@ -341,7 +341,7 @@ public:
             for (size_t i{ 0 }; i < descriptorSet.descriptors.size(); ++i)
             {
                 // Get the current descriptor.
-                auto descriptor = descriptorSet.descriptors[i];
+                auto& descriptor = descriptorSet.descriptors[i];
 
                 // See if there's a hint about the binding.
                 auto hint = PipelineBindingHint::hint_type{ };
