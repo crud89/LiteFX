@@ -1415,16 +1415,6 @@ namespace LiteFX::Rendering {
             /// The push constant layout of the pipeline state.
             /// </summary>
             UniquePtr<push_constants_layout_type> pushConstantsLayout{ };
-
-            /// <summary>
-            /// `true`, if the pipeline should support direct access to the global resource heap, `false` otherwise.
-            /// </summary>
-            bool directlyAccessResources{ false };
-
-            /// <summary>
-            /// `true`, if the pipeline should support direct access to the global sampler heap, `false` otherwise.
-            /// </summary>
-            bool directlyAccessSamplers{ false };
         } m_state;
 
     protected:
@@ -1456,32 +1446,6 @@ namespace LiteFX::Rendering {
         template <typename TSelf>
         constexpr auto use(this TSelf&& self, UniquePtr<push_constants_layout_type>&& layout) -> TSelf&& {
             self.m_state.pushConstantsLayout = std::move(layout);
-            return std::forward<TSelf>(self);
-        }
-
-        /// <summary>
-        /// Enables direct access to the global resource heap for the pipeline.
-        /// </summary>
-        /// <remarks>
-        /// Enabling direct heap access requires the <see cref="GraphicsDeviceFeature::DynamicDescriptors" /> feature to be enabled.
-        /// </remarks>
-        /// <param name="enable">`true`, if direct access to the global resource heap should be enabled, `false` otherwise.</param>
-        template <typename TSelf>
-        constexpr auto directlyAccessResources(this TSelf&& self, bool enable = true) -> TSelf&& {
-            self.m_state.directlyAccessResources = enable;
-            return std::forward<TSelf>(self);
-        }
-
-        /// <summary>
-        /// Enables direct access to the global resource sampler for the pipeline.
-        /// </summary>
-        /// <remarks>
-        /// Enabling direct heap access requires the <see cref="GraphicsDeviceFeature::DynamicDescriptors" /> feature to be enabled.
-        /// </remarks>
-        /// <param name="enable">`true`, if direct access to the global sampler heap should be enabled, `false` otherwise.</param>
-        template <typename TSelf>
-        constexpr auto directlyAccessSamplers(this TSelf&& self, bool enable = true) -> TSelf&& {
-            self.m_state.directlyAccessSamplers = enable;
             return std::forward<TSelf>(self);
         }
     };

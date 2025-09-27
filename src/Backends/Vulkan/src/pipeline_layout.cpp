@@ -16,11 +16,10 @@ private:
     SharedPtr<const VulkanDevice> m_device;
     UniquePtr<VulkanPushConstantsLayout> m_pushConstantsLayout;
     Array<SharedPtr<const VulkanDescriptorSetLayout>> m_descriptorSetLayouts;
-    bool m_directlyIndexSamplers{ false }, m_directlyIndexResources{ false };
 
 public:
-    VulkanPipelineLayoutImpl(const VulkanDevice& device, bool directlyIndexResources = false, bool directlyIndexSamplers = false) :
-        m_device(device.shared_from_this()), m_directlyIndexResources(directlyIndexResources), m_directlyIndexSamplers(directlyIndexSamplers)
+    VulkanPipelineLayoutImpl(const VulkanDevice& device) :
+        m_device(device.shared_from_this())
     {
     }
 
@@ -104,8 +103,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, const Enumerable<SharedPtr<VulkanDescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout, bool directlyIndexResources, bool directlyIndexSamplers) :
-    Resource<VkPipelineLayout>(VK_NULL_HANDLE), m_impl(device, directlyIndexResources, directlyIndexSamplers)
+VulkanPipelineLayout::VulkanPipelineLayout(const VulkanDevice& device, const Enumerable<SharedPtr<VulkanDescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) :
+    Resource<VkPipelineLayout>(VK_NULL_HANDLE), m_impl(device)
 {
     this->handle() = m_impl->initialize(*this, descriptorSetLayouts | std::ranges::to<std::vector>(), std::move(pushConstantsLayout));
 }
@@ -143,14 +142,22 @@ const VulkanPushConstantsLayout* VulkanPipelineLayout::pushConstants() const noe
     return m_impl->m_pushConstantsLayout.get();
 }
 
-bool VulkanPipelineLayout::directlyIndexResources() const noexcept
+bool VulkanPipelineLayout::dynamicResourceHeapAccess() const noexcept
 {
-    return m_impl->m_directlyIndexResources;
+    auto descriptorLayouts = m_impl->m_descriptorSetLayouts 
+        | std::views::transform([](const auto& layout) { return layout->descriptors(); }) 
+        | std::views::join;
+
+    return std::ranges::any_of(descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::ResourceDescriptorHeap; });
 }
 
-bool VulkanPipelineLayout::directlyIndexSamplers() const noexcept
+bool VulkanPipelineLayout::dynamicSamplerHeapAccess() const noexcept
 {
-    return m_impl->m_directlyIndexSamplers;
+    auto descriptorLayouts = m_impl->m_descriptorSetLayouts
+        | std::views::transform([](const auto& layout) { return layout->descriptors(); })
+        | std::views::join;
+
+    return std::ranges::any_of(descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::SamplerDescriptorHeap; });
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
@@ -168,8 +175,6 @@ VulkanPipelineLayoutBuilder::~VulkanPipelineLayoutBuilder() noexcept = default;
 void VulkanPipelineLayoutBuilder::build()
 {
     auto instance = this->instance();
-    instance->m_impl->m_directlyIndexResources = this->state().directlyAccessResources;
-    instance->m_impl->m_directlyIndexSamplers = this->state().directlyAccessSamplers;
     instance->handle() = instance->m_impl->initialize(*instance, std::move(this->state().descriptorSetLayouts), std::move(this->state().pushConstantsLayout));
 }
 

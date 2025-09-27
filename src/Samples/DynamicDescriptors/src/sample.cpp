@@ -124,7 +124,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
             .cullOrder(CullOrder::ClockWise)
             .lineWidth(1.f)
             .depthState(DepthStencilState::DepthState{ .Operation = CompareOperation::LessEqual }))
-        .layout(shaderProgram->reflectPipelineLayout())
+        .layout(shaderProgram->reflectPipelineLayout(std::array{ PipelineBindingHint::resourceHeap(0u, 0u) }))
         .shaderProgram(shaderProgram);
 
     // Add the resources to the device state.
@@ -260,7 +260,7 @@ void SampleApp::onInit()
         auto surface = backend->createSurface(::glfwGetWin32Window(window));
 
         // Create the device.
-        m_device = std::addressof(backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3, false));
+        m_device = std::addressof(backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3, false, GraphicsDeviceFeatures{ .DynamicDescriptors = true }));
 
         // Initialize resources.
         ::initRenderGraph(backend, m_inputAssembler);
@@ -280,9 +280,6 @@ void SampleApp::onInit()
 #endif // LITEFX_BUILD_VULKAN_BACKEND
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
-    // We do not need to provide a root signature for shader reflection (refer to the project wiki for more information: https://github.com/crud89/LiteFX/wiki/Shader-Development).
-    DirectX12ShaderProgram::suppressMissingRootSignatureWarning();
-
     // Register the DirectX 12 backend de-/initializer.
     this->onBackendStart<DirectX12Backend>(startCallback);
     this->onBackendStop<DirectX12Backend>(stopCallback);

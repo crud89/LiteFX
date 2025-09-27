@@ -1159,9 +1159,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="device">The parent device, the layout is created from.</param>
         /// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
         /// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
-        /// <param name="directlyIndexResources">`true`, if the pipeline directly accesses the global resource heap. Requires the <see cref="GraphicsDeviceFeatures::DynamicDescriptors" /> feature to be enabled on the parent device.</param>
-        /// <param name="directlyIndexSamplers">`true`, if the pipeline directly accesses the global sampler heap. Requires the <see cref="GraphicsDeviceFeatures::DynamicDescriptors" /> feature to be enabled on the parent device.</param>
-        explicit VulkanPipelineLayout(const VulkanDevice& device, const Enumerable<SharedPtr<VulkanDescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout, bool directlyIndexResources = false, bool directlyIndexSamplers = false);
+        explicit VulkanPipelineLayout(const VulkanDevice& device, const Enumerable<SharedPtr<VulkanDescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout);
 
         /// <summary>
         /// Initializes a new Vulkan render pipeline layout.
@@ -1193,11 +1191,9 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="device">The parent device, the layout is created from.</param>
         /// <param name="descriptorSetLayouts">The descriptor set layouts used by the pipeline.</param>
         /// <param name="pushConstantsLayout">The push constants layout used by the pipeline.</param>
-        /// <param name="directlyIndexResources">`true`, if the pipeline directly accesses the global resource heap. Requires the <see cref="GraphicsDeviceFeatures::DynamicDescriptors" /> feature to be enabled on the parent device.</param>
-        /// <param name="directlyIndexSamplers">`true`, if the pipeline directly accesses the global sampler heap. Requires the <see cref="GraphicsDeviceFeatures::DynamicDescriptors" /> feature to be enabled on the parent device.</param>
         /// <returns>A shared pointer to the newly created pipeline layout instance.</returns>
-        static inline auto create(const VulkanDevice& device, const Enumerable<SharedPtr<VulkanDescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout, bool directlyIndexResources = false, bool directlyIndexSamplers = false) {
-            return SharedObject::create<VulkanPipelineLayout>(device, descriptorSetLayouts, std::move(pushConstantsLayout), directlyIndexResources, directlyIndexSamplers);
+        static inline auto create(const VulkanDevice& device, const Enumerable<SharedPtr<VulkanDescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<VulkanPushConstantsLayout>&& pushConstantsLayout) {
+            return SharedObject::create<VulkanPipelineLayout>(device, descriptorSetLayouts, std::move(pushConstantsLayout));
         }
 
     private:
@@ -1225,10 +1221,10 @@ namespace LiteFX::Rendering::Backends {
         const VulkanPushConstantsLayout* pushConstants() const noexcept override;
 
         /// <inheritdoc />
-        bool directlyIndexResources() const noexcept override;
+        bool dynamicResourceHeapAccess() const noexcept override;
 
         /// <inheritdoc />
-        bool directlyIndexSamplers() const noexcept override;
+        bool dynamicSamplerHeapAccess() const noexcept override;
     };
 
     /// <summary>

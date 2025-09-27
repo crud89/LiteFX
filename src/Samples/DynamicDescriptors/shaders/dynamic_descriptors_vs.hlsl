@@ -1,11 +1,5 @@
 #pragma pack_matrix(row_major)
 
-// For DXIL we need to define a root signature, in order for shader reflection to properly pick up that we want to use direct heap indexing.
-#define ROOT_SIGNATURE \
-    "RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT | CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED), " \
-    "CBV(b0, space = 1, flags = DATA_STATIC_WHILE_SET_AT_EXECUTE), " \
-    "CBV(b0, space = 2, flags = DATA_STATIC_WHILE_SET_AT_EXECUTE)"
-
 struct VertexData 
 {
     float4 Position : SV_POSITION;
@@ -53,7 +47,6 @@ float4x4 angleAxis(float angle, float4 axis)
     );
 }
 
-[RootSignature(ROOT_SIGNATURE)]
 VertexData main(in VertexInput input, uint id : SV_InstanceID)
 {
     VertexData vertex;

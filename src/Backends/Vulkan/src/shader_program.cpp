@@ -383,10 +383,14 @@ public:
                         descriptor.elements = hint.MaxDescriptors;
                 };
 
+                auto descriptorHeapHintCallback = [&](const PipelineBindingHint::DescriptorHeapHint& /*hint*/) {
+                    //throw;
+                };
+
                 // If the descriptor binds a sampler and the hint is a static sampler, patch it.
                 std::visit(type_switch{
                     [](const std::monostate&) {}, // Default: don't patch anything
-                    samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback
+                    samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback, descriptorHeapHintCallback
                 }, hint);
             }
         });

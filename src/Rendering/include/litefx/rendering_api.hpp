@@ -530,7 +530,11 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Represents a ray-tracing acceleration structure.
         /// </summary>
-        AccelerationStructure = 0x00000008
+        AccelerationStructure = 0x00000008,
+
+        ResourceDescriptorHeap = 0x00000009,
+
+        SamplerDescriptorHeap = 0x0000000A
     };
 
     /// <summary>
@@ -6376,9 +6380,47 @@ namespace LiteFX::Rendering {
         };
 
         /// <summary>
+        /// Defines a hint that is used to initialize a dynamic descriptor heap.
+        /// </summary>
+        /// <remarks>
+        /// This hint is special, as it must not be associated with an existing binding. Instead, dynamic descriptor heaps use a proxy descriptor set to bind resources to the global 
+        /// descriptor heaps, that can later be directly indexed by the shader. In the DirectX 12 backend, this hint will cause a new descriptor set to be created, that is not part of the
+        /// pipeline state. In Vulkan, this functionality is emulated using the `VK_EXT_mutable_descriptor_type` extension and binds to an existing descriptor set. DXC emits this descriptor
+        /// set automatically, if direct heap indexing is used from a shader.
+        /// </remarks>
+        /// <seealso cref="DescriptorType::ResourceDescriptorHeap" />
+        /// <seealso cref="DescriptorType::SamplerDescriptorHeap" />
+        struct DescriptorHeapHint {
+            /// <summary>
+            /// The desired type of the descriptor heap.
+            /// </summary>
+            enum class HeapType { 
+                /// <summary>
+                /// Default value that will not have any effect, if set for the hint.
+                /// </summary>
+                None = 0x00, 
+
+                /// <summary>
+                /// Binds all resources, except acceleration structures and samplers.
+                /// </summary>
+                Resource = 0x01, 
+
+                /// <summary>
+                /// Binds all samplers.
+                /// </summary>
+                Sampler = 0x02 
+            };
+        
+            /// <summary>
+            /// The desired type of the descriptor heap.
+            /// </summary>
+            HeapType Type{ HeapType::None };
+        };
+
+        /// <summary>
         /// Defines the type of the pipeline binding hint.
         /// </summary>
-        using hint_type = Variant<std::monostate, UnboundedArrayHint, PushConstantsHint, StaticSamplerHint>;
+        using hint_type = Variant<std::monostate, UnboundedArrayHint, PushConstantsHint, StaticSamplerHint, DescriptorHeapHint>;
 
         /// <summary>
         /// The binding point the hint applies to.
@@ -6396,7 +6438,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="at">The binding point the hint applies to.</param>
         /// <param name="maxDescriptors">The maximum number of descriptors that can be bound to the runtime array at the binding point.</param>
-        /// <returns>The initialized shader binding hint.</returns>
+        /// <returns>The initialized pipeline binding hint.</returns>
         static inline auto runtimeArray(DescriptorBindingPoint at, UInt32 maxDescriptors) noexcept -> PipelineBindingHint {
             return { .Binding = at, .Hint = UnboundedArrayHint { maxDescriptors } };
         }
@@ -6407,16 +6449,16 @@ namespace LiteFX::Rendering {
         /// <param name="space">The descriptor space of the binding point.</param>
         /// <param name="binding">The register of the descriptor binding point.</param>
         /// <param name="maxDescriptors">The maximum number of descriptors that can be bound to the runtime array at the binding point.</param>
-        /// <returns>The initialized shader binding hint.</returns>
+        /// <returns>The initialized pipeline binding hint.</returns>
         static inline auto runtimeArray(UInt32 space, UInt32 binding, UInt32 maxDescriptors) noexcept -> PipelineBindingHint {
-            return { .Binding = {.Register = binding, .Space = space }, .Hint = UnboundedArrayHint { maxDescriptors } };
+            return { .Binding = { .Register = binding, .Space = space }, .Hint = UnboundedArrayHint { maxDescriptors } };
         }
 
         /// <summary>
         /// Initializes a hint that binds push constants.
         /// </summary>
         /// <param name="at">The binding point the hint applies to.</param>
-        /// <returns>The initialized shader binding hint.</returns>
+        /// <returns>The initialized pipeline binding hint.</returns>
         static inline auto pushConstants(DescriptorBindingPoint at) noexcept -> PipelineBindingHint {
             return { .Binding = at, .Hint = PushConstantsHint { true } };
         }
@@ -6426,9 +6468,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="space">The descriptor space of the binding point.</param>
         /// <param name="binding">The register of the descriptor binding point.</param>
-        /// <returns>The initialized shader binding hint.</returns>
+        /// <returns>The initialized pipeline binding hint.</returns>
         static inline auto pushConstants(UInt32 space, UInt32 binding) noexcept -> PipelineBindingHint {
-            return { .Binding = {.Register = binding, .Space = space }, .Hint = PushConstantsHint { true } };
+            return { .Binding = { .Register = binding, .Space = space }, .Hint = PushConstantsHint { true } };
         }
 
         /// <summary>
@@ -6436,7 +6478,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="at">The binding point the hint applies to.</param>
         /// <param name="sampler">The sampler state used to initialize the static sampler with.</param>
-        /// <returns>The initialized shader binding hint.</returns>
+        /// <returns>The initialized pipeline binding hint.</returns>
         static inline auto staticSampler(DescriptorBindingPoint at, SharedPtr<ISampler> sampler) noexcept -> PipelineBindingHint {
             return { .Binding = at, .Hint = StaticSamplerHint { std::move(sampler) } };
         }
@@ -6447,9 +6489,47 @@ namespace LiteFX::Rendering {
         /// <param name="space">The descriptor space of the binding point.</param>
         /// <param name="binding">The register of the descriptor binding point.</param>
         /// <param name="sampler">The sampler state used to initialize the static sampler with.</param>
-        /// <returns>The initialized shader binding hint.</returns>
+        /// <returns>The initialized pipeline binding hint.</returns>
         static inline auto staticSampler(UInt32 space, UInt32 binding, SharedPtr<ISampler> sampler) noexcept -> PipelineBindingHint {
-            return { .Binding = {.Register = binding, .Space = space }, .Hint = StaticSamplerHint { std::move(sampler) } };
+            return { .Binding = { .Register = binding, .Space = space }, .Hint = StaticSamplerHint { std::move(sampler) } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds a proxy descriptor set to access the resource heap at the provided binding point.
+        /// </summary>
+        /// <param name="at">The binding point the hint applies to.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        static inline auto resourceHeap(DescriptorBindingPoint at) noexcept -> PipelineBindingHint {
+            return { .Binding = at, .Hint = DescriptorHeapHint { DescriptorHeapHint::HeapType::Resource } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds a proxy descriptor set to access the resource heap at the provided binding point.
+        /// </summary>
+        /// <param name="space">The descriptor space of the binding point.</param>
+        /// <param name="binding">The register of the descriptor binding point.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        static inline auto resourceHeap(UInt32 space, UInt32 binding) noexcept -> PipelineBindingHint {
+            return { .Binding = { .Register = binding, .Space = space }, .Hint = DescriptorHeapHint { DescriptorHeapHint::HeapType::Resource } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds a proxy descriptor set to access the sampler heap at the provided binding point.
+        /// </summary>
+        /// <param name="at">The binding point the hint applies to.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        static inline auto samplerHeap(DescriptorBindingPoint at) noexcept -> PipelineBindingHint {
+            return { .Binding = at, .Hint = DescriptorHeapHint { DescriptorHeapHint::HeapType::Sampler } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds a proxy descriptor set to access the sampler heap at the provided binding point.
+        /// </summary>
+        /// <param name="space">The descriptor space of the binding point.</param>
+        /// <param name="binding">The register of the descriptor binding point.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        static inline auto samplerHeap(UInt32 space, UInt32 binding) noexcept -> PipelineBindingHint {
+            return { .Binding = { .Register = binding, .Space = space }, .Hint = DescriptorHeapHint { DescriptorHeapHint::HeapType::Sampler } };
         }
     };
 
@@ -6633,16 +6713,16 @@ namespace LiteFX::Rendering {
         virtual const IPushConstantsLayout* pushConstants() const noexcept = 0;
 
         /// <summary>
-        /// Returns `true`, if the pipeline supports directly indexing into the global resource heap and `false` otherwise.
+        /// Returns `true`, if the pipeline supports directly indexing into a resource heap and `false` otherwise.
         /// </summary>
-        /// <returns>`true`, if the pipeline supports directly indexing into the global resource heap and `false` otherwise</returns>
-        virtual bool directlyIndexResources() const noexcept = 0;
+        /// <returns>`true`, if the pipeline supports directly indexing into a resource heap and `false` otherwise</returns>
+        virtual bool dynamicResourceHeapAccess() const noexcept = 0;
 
         /// <summary>
-        /// Returns `true`, if the pipeline supports directly indexing into the global sampler heap and `false` otherwise.
+        /// Returns `true`, if the pipeline supports directly indexing into a sampler heap and `false` otherwise.
         /// </summary>
-        /// <returns>`true`, if the pipeline supports directly indexing into the global sampler heap and `false` otherwise</returns>
-        virtual bool directlyIndexSamplers() const noexcept = 0;
+        /// <returns>`true`, if the pipeline supports directly indexing into a sampler heap and `false` otherwise</returns>
+        virtual bool dynamicSamplerHeapAccess() const noexcept = 0;
 
     private:
         virtual Enumerable<SharedPtr<const IDescriptorSetLayout>> getDescriptorSets() const = 0;

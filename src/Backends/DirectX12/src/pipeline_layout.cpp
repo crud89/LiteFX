@@ -16,7 +16,6 @@ private:
     UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout{};
     Array<SharedPtr<const DirectX12DescriptorSetLayout>> m_descriptorSetLayouts{};
     SharedPtr<const DirectX12Device> m_device;
-    bool m_directlyIndexSamplers{ false }, m_directlyIndexResources{ false };
     
     /// <summary>
     /// Maps the indices of the root parameters for a descriptor set or a push constant range.
@@ -29,11 +28,9 @@ private:
     Dictionary<UInt64, UInt32> m_rootParameterIndices{};
 
 public:
-    DirectX12PipelineLayoutImpl(const DirectX12Device& device, bool directlyIndexResources = false, bool directlyIndexSamplers = false) :
-        m_device(device.shared_from_this()), m_directlyIndexResources(directlyIndexResources), m_directlyIndexSamplers(directlyIndexSamplers)
+    DirectX12PipelineLayoutImpl(const DirectX12Device& device) :
+        m_device(device.shared_from_this())
     {
-        // NOTE: We could (and probably should) check if the `GraphicsDeviceFeatures::DynamicDescriptors` feature is enabled on the device, if one of the direct indexing capabilities 
-        //       is requested, but there's currently no interface for this.
     }
 
 private:
@@ -216,10 +213,10 @@ public:
         // Setup root signature flags.
         D3D12_ROOT_SIGNATURE_FLAGS flags { D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT };
         
-        if (m_directlyIndexResources)
+        if (pipelineLayout.dynamicResourceHeapAccess())
             flags |= D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED;
 
-        if (m_directlyIndexSamplers)
+        if (pipelineLayout.dynamicSamplerHeapAccess())
             flags |= D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED;
 
         // Create root signature descriptor.
@@ -250,8 +247,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, const Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout, bool directlyIndexResources, bool directlyIndexSamplers) :
-    ComResource<ID3D12RootSignature>(nullptr), m_impl(device, directlyIndexResources, directlyIndexSamplers)
+DirectX12PipelineLayout::DirectX12PipelineLayout(const DirectX12Device& device, const Enumerable<SharedPtr<DirectX12DescriptorSetLayout>>& descriptorSetLayouts, UniquePtr<DirectX12PushConstantsLayout>&& pushConstantsLayout) :
+    ComResource<ID3D12RootSignature>(nullptr), m_impl(device)
 {
     this->handle() = m_impl->initialize(*this, descriptorSetLayouts | std::ranges::to<std::vector>(), std::move(pushConstantsLayout));
 }
@@ -302,14 +299,22 @@ Optional<UInt32> DirectX12PipelineLayout::rootParameterIndex(const DirectX12Push
         return std::nullopt;
 }
 
-bool DirectX12PipelineLayout::directlyIndexResources() const noexcept
+bool DirectX12PipelineLayout::dynamicResourceHeapAccess() const noexcept
 {
-    return m_impl->m_directlyIndexResources;
+    auto descriptorLayouts = m_impl->m_descriptorSetLayouts
+        | std::views::transform([](const auto& layout) { return layout->descriptors(); })
+        | std::views::join;
+
+    return std::ranges::any_of(descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::ResourceDescriptorHeap; });
 }
 
-bool DirectX12PipelineLayout::directlyIndexSamplers() const noexcept
+bool DirectX12PipelineLayout::dynamicSamplerHeapAccess() const noexcept
 {
-    return m_impl->m_directlyIndexSamplers;
+    auto descriptorLayouts = m_impl->m_descriptorSetLayouts
+        | std::views::transform([](const auto& layout) { return layout->descriptors(); })
+        | std::views::join;
+
+    return std::ranges::any_of(descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::SamplerDescriptorHeap; });
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
@@ -346,8 +351,6 @@ DirectX12PipelineLayoutBuilder::~DirectX12PipelineLayoutBuilder() noexcept = def
 void DirectX12PipelineLayoutBuilder::build()
 {
     auto instance = this->instance();
-    instance->m_impl->m_directlyIndexResources = this->state().directlyAccessResources;
-    instance->m_impl->m_directlyIndexSamplers = this->state().directlyAccessSamplers;
     instance->handle() = instance->m_impl->initialize(*instance, std::move(this->state().descriptorSetLayouts), std::move(this->state().pushConstantsLayout));
 }
 

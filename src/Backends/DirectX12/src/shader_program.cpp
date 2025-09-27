@@ -534,15 +534,79 @@ public:
                         descriptor.elements = hint.MaxDescriptors;
                 };
 
+                auto descriptorHeapHintCallback = [&](const PipelineBindingHint::DescriptorHeapHint& hint) {
+                    // In D3D12, there is no descriptor set associated with a descriptor heap, as we instead want to index directly into the global heaps. However, we have to create a proxy heap to be able to 
+                    // dynamically bind to the heap from the host side. By default, reflection looks for the first unused space for this. However, with this hint, we can control where this proxy set is created.
+                    // If it instead happens to fall on an existing binding, this is not possible, so we ignore the hint.
+
+                    if (hint.Type != PipelineBindingHint::DescriptorHeapHint::HeapType::None)
+                        LITEFX_WARNING(DIRECTX12_LOG, "A hint for binding {0} at space {1} indicates a dynamic resource or sampler heap, but the binding is already used for another descriptor. The hint will be ignored.", descriptor.location, descriptorSet.space);
+                };
+
                 // If the descriptor binds a sampler and the hint is a static sampler, patch it.
                 std::visit(type_switch{
                     [](const std::monostate&) {}, // Default: don't patch anything
-                    samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback
+                    samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback, descriptorHeapHintCallback
                 }, hint);
 
                 // NOTE: don't do anything here, as both `descriptor` and `i` may be invalid at this point.
             }
         });
+
+        // Create the proxy descriptor sets if dynamic resource or sampler heaps are enabled.
+        Optional<UInt32> deducedSpace{};
+        Array<DescriptorBindingPoint> occupiedBindings{};
+
+        // First, look up if there are any hints for the heap bindings. If not, the root signature could still enable those.
+        auto resourceHeapHint = std::ranges::find_if(hints, [&](const auto& hint) { return
+            std::holds_alternative<PipelineBindingHint::DescriptorHeapHint>(hint.Hint) &&
+            std::get<PipelineBindingHint::DescriptorHeapHint>(hint.Hint).Type == PipelineBindingHint::DescriptorHeapHint::HeapType::Resource &&
+            std::ranges::none_of(occupiedBindings, [&hint](const auto& binding) { return binding == hint.Binding; }); });
+        auto samplerHeapHint = std::ranges::find_if(hints, [&](const auto& hint) { return
+            std::holds_alternative<PipelineBindingHint::DescriptorHeapHint>(hint.Hint) &&
+            std::get<PipelineBindingHint::DescriptorHeapHint>(hint.Hint).Type == PipelineBindingHint::DescriptorHeapHint::HeapType::Sampler &&
+            std::ranges::none_of(occupiedBindings, [&hint](const auto& binding) { return binding == hint.Binding; }); });
+
+        if (resourceHeapHint != hints.end())
+            directlyAccessResourceHeap = true;
+        if (samplerHeapHint != hints.end())
+            directlyAccessSamplerHeap = true;
+
+        if (directlyAccessResourceHeap || directlyAccessSamplerHeap)
+            std::ranges::for_each(descriptorSetLayouts | std::views::values, [&occupiedBindings](const auto& layout) {
+                occupiedBindings.append_range(layout.descriptors | std::views::transform([&layout](const auto& descriptorLayout) -> DescriptorBindingPoint {
+                    return { .Register = descriptorLayout.location, .Space = layout.space }; })); });
+
+        if (directlyAccessResourceHeap)
+        {
+            // Look for a hint that defines the desired binding point and does not overlay with an existing descriptor. If non is available create one behind the last descriptor set.
+            DescriptorBindingPoint binding{};
+            
+            if (resourceHeapHint != hints.end())
+                binding = (*resourceHeapHint).Binding;
+            else
+            {
+                binding = { .Register = 0u, .Space = std::ranges::max(descriptorSetLayouts | std::views::keys) + 1 };
+                deducedSpace = binding.Space; // Store it, so we can attach the sampler heap to register 1, if available and no hint is given.
+            }
+
+            // Create proxy binding.
+            descriptorSetLayouts[binding.Space].descriptors.emplace_back(binding.Register, 0u, 0u, true, DescriptorType::ResourceDescriptorHeap); // TODO: Specify max bindings?
+        }
+
+        if (directlyAccessSamplerHeap)
+        {
+            // Look for a hint that defines the desired binding point. If non is available create one behind the last descriptor set.
+            DescriptorBindingPoint binding{};
+
+            if (samplerHeapHint != hints.end())
+                binding = (*samplerHeapHint).Binding;
+            else
+                binding = { .Register = 1u, .Space = deducedSpace.value_or(std::ranges::max(descriptorSetLayouts | std::views::keys) + 1) };
+
+            // Create proxy binding.
+            descriptorSetLayouts[binding.Space].descriptors.emplace_back(binding.Register, 0u, 0u, true, DescriptorType::SamplerDescriptorHeap); // TODO: Specify max bindings?
+        }
 
         // Create the descriptor set layouts.
         auto descriptorSets = [](SharedPtr<const DirectX12Device> device, Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts) -> std::generator<SharedPtr<DirectX12DescriptorSetLayout>> {
@@ -595,7 +659,7 @@ public:
         auto pushConstantsLayout = makeUnique<DirectX12PushConstantsLayout>(pushConstants | std::views::as_rvalue, overallSize);
 
         // Return the pipeline layout.
-        return DirectX12PipelineLayout::create(*m_device, std::move(descriptorSets), std::move(pushConstantsLayout), directlyAccessResourceHeap, directlyAccessSamplerHeap);
+        return DirectX12PipelineLayout::create(*m_device, std::move(descriptorSets), std::move(pushConstantsLayout));
     }
 };
 
