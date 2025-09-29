@@ -781,6 +781,9 @@ namespace LiteFX::Rendering::Backends {
         UInt32 globalHeapAddressRange() const noexcept override;
 
         /// <inheritdoc />
+        UInt32 heapIndex(UInt32 descriptor) const noexcept override;
+
+        /// <inheritdoc />
         void update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0) const override;
 
         /// <inheritdoc />

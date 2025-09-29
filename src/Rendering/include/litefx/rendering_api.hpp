@@ -532,8 +532,37 @@ namespace LiteFX::Rendering {
         /// </summary>
         AccelerationStructure = 0x00000008,
 
+        /// <summary>
+        /// Special descriptor type, that can bind all resources besides constant buffers, acceleration structures and samplers, which then can be directly indexed from the global resource heap.
+        /// </summary>
+        /// <remarks>
+        /// This descriptor type does not directly map to an underlying resource type and instead denotes a descriptor binding, that accepts any resource descriptor besides constant buffers and
+        /// acceleration structures. Samplers are also disallowed, as they need to be bound to a descriptor of the <see cref="GlobalSamplerHeap" /> type. The existence of such a descriptor as a
+        /// part of a descriptor set, indicates that the pipeline layout uses direct descriptor indexing (see <see cref="IPipelineLayout::directlyIndexResources" />). A descriptor set containing
+        /// a descriptor of this type does not allocate any space on the respective global descriptor heap. Instead, it acts as a proxy set, that binds any of the aforementioned buffers. When
+        /// binding to this descriptor, a single uncached descriptor address will be allocated for the resource on the global descriptor heap. On the shader side, this descriptor can be retrieved 
+        /// by calling the <see cref="IDescriptorSet::heapIndex" /> method.
+        /// 
+        /// As there's no underlying descriptor set or binding when using this descriptor type, you should only ever have on descriptor of this type in a <see cref="IPipelineLayout" />. In the
+        /// DirectX 12 backend, it is sufficient to have a descriptor of this type in a pipeline to access any descriptor on the global resource heap. In Vulkan, this descriptor type creates a
+        /// descriptor set containing an unbounded runtime array to emulate this behavior. This array is special, as it uses the `VK_EXT_mutable_descriptor_type` extension to bind arbitrary 
+        /// resources to a descriptor. However, this is only allowed for descriptors created this way, so indexing only works within the range of the proxy descriptor set. It is therefore good
+        /// practice not to use indices obtained outside a binding created from the proxy descriptor sets. Furthermore, the use of mutable descriptor types is considered less efficient than the
+        /// traditional binding procedure, as it might prevent certain fast paths. For this reason, consider alternative approaches, like multiple unbounded descriptor arrays first. Directly
+        /// indexing into the global descriptor heap this way can be beneficial, if it allows you to re-use the same pipeline state where you would otherwise have to switch between multiple 
+        /// states, however, especially in combination with indirect drawing.
+        /// </remarks>
+        /// <seealso cref="DescriptorType::GlobalSamplerHeap" />
         ResourceDescriptorHeap = 0x00000009,
 
+        /// <summary>
+        /// A special descriptor type that allows indexed access to the a portion of the global sampler heap.
+        /// </summary>
+        /// <remarks>
+        /// This descriptor type is equivalent to <see cref="DescriptorType::GlobalResourceHeap" />, except that it enables access to the global sampler heap instead. The same conceptual design
+        /// as for the resource heap applies here, with the same limitations, listed in the remarks for the `GlobalResourceHeap` descriptor type.
+        /// </remarks>
+        /// <seealso cref="DescriptorType::GlobalResourceHeap" />
         SamplerDescriptorHeap = 0x0000000A
     };
 
@@ -5337,6 +5366,20 @@ namespace LiteFX::Rendering {
         /// <returns>The size of the range in the global descriptor heap.</returns>
         /// <seealso cref="globalHeapOffset" />
         virtual UInt32 globalHeapAddressRange() const noexcept = 0;
+
+        /// <summary>
+        /// Resolves the heap index for a descriptor that is used with dynamic heap access.
+        /// </summary>
+        /// <remarks>
+        /// The index provided by <paramref name="descriptor" /> addresses a descriptor within the (proxy) descriptor set, for which the index within the descriptor heap is returned 
+        /// by this method. The returned index can then be passed to a shader in order to access the descriptor the resource or sampler heaps.
+        /// 
+        /// Note that this does not validate the descriptor. If passed a index to a descriptor that is not bound or out of range, a valid index will be returned, but indexing at 
+        /// this location will still be an invalid operation.
+        /// </remarks>
+        /// <param name="descriptor">The index of a descriptor within the current descriptor set.</param>
+        /// <returns>The index that can be used to resolve the descriptor from the resource or sampler heaps.</returns>
+        virtual UInt32 heapIndex(UInt32 descriptor) const noexcept = 0;
 
         /// <summary>
         /// Updates one or more buffer descriptors within the current descriptor set.

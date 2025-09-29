@@ -83,6 +83,11 @@ UInt32 DirectX12DescriptorSet::globalHeapAddressRange() const noexcept
     return m_impl->m_heapSize;
 }
 
+UInt32 DirectX12DescriptorSet::heapIndex(UInt32 descriptor) const noexcept
+{
+    return m_impl->m_heapOffset + descriptor;
+}
+
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const
 {
     UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;
@@ -106,6 +111,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
     auto descriptorSize = device->handle()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     CD3DX12_CPU_DESCRIPTOR_HANDLE descriptorHandle(m_impl->m_localHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), descriptorSize);
 
+    // Get the descriptor type to bind, which we usually directly obtain from the descriptor layout, except if we are binding to a descriptor heap.
     switch (descriptorLayout.descriptorType())
     {
     case DescriptorType::ConstantBuffer:
@@ -420,6 +426,9 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sam
     // Find the descriptor.
     auto descriptors = m_impl->m_layout->descriptors();
     auto match = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
+
+    if (match->descriptorType() != DescriptorType::Sampler) [[unlikely]]
+        throw InvalidArgumentException("binding", "The descriptor at binding point {0} does not reference a sampler state.", binding);
 
     if (match == descriptors.end()) [[unlikely]]
     {
