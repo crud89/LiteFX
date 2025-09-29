@@ -539,7 +539,7 @@ public:
                     // dynamically bind to the heap from the host side. By default, reflection looks for the first unused space for this. However, with this hint, we can control where this proxy set is created.
                     // If it instead happens to fall on an existing binding, this is not possible, so we ignore the hint.
 
-                    if (hint.Type != PipelineBindingHint::DescriptorHeapHint::HeapType::None)
+                    if (hint.Type != DescriptorHeapType::None)
                         LITEFX_WARNING(DIRECTX12_LOG, "A hint for binding {0} at space {1} indicates a dynamic resource or sampler heap, but the binding is already used for another descriptor. The hint will be ignored.", descriptor.location, descriptorSet.space);
                 };
 
@@ -560,11 +560,11 @@ public:
         // First, look up if there are any hints for the heap bindings. If not, the root signature could still enable those.
         auto resourceHeapHint = std::ranges::find_if(hints, [&](const auto& hint) { return
             std::holds_alternative<PipelineBindingHint::DescriptorHeapHint>(hint.Hint) &&
-            std::get<PipelineBindingHint::DescriptorHeapHint>(hint.Hint).Type == PipelineBindingHint::DescriptorHeapHint::HeapType::Resource &&
+            std::get<PipelineBindingHint::DescriptorHeapHint>(hint.Hint).Type == DescriptorHeapType::Resource &&
             std::ranges::none_of(occupiedBindings, [&hint](const auto& binding) { return binding == hint.Binding; }); });
         auto samplerHeapHint = std::ranges::find_if(hints, [&](const auto& hint) { return
             std::holds_alternative<PipelineBindingHint::DescriptorHeapHint>(hint.Hint) &&
-            std::get<PipelineBindingHint::DescriptorHeapHint>(hint.Hint).Type == PipelineBindingHint::DescriptorHeapHint::HeapType::Sampler &&
+            std::get<PipelineBindingHint::DescriptorHeapHint>(hint.Hint).Type == DescriptorHeapType::Sampler &&
             std::ranges::none_of(occupiedBindings, [&hint](const auto& binding) { return binding == hint.Binding; }); });
 
         if (resourceHeapHint != hints.end())

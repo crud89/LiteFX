@@ -245,6 +245,20 @@ struct LITEFX_RENDERING_API std::formatter<DescriptorType> : std::formatter<std:
 };
 
 template <>
+struct LITEFX_RENDERING_API std::formatter<DescriptorHeapType> : std::formatter<std::string_view> {
+	auto format(DescriptorHeapType t, std::format_context& ctx) const {
+		string_view name = "Invalid";
+		switch (t) {
+		using enum DescriptorHeapType;
+		case Sampler: name = "Sampler"; break;
+		case Resource: name = "Resource"; break;
+		case None: name = "None"; break;
+		}
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
 struct LITEFX_RENDERING_API std::formatter<BufferType> : std::formatter<std::string_view> {
 	auto format(BufferType t, std::format_context& ctx) const {
 		string_view name = "Invalid";

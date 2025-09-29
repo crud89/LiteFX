@@ -567,6 +567,26 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// The target heap type for a descriptor.
+    /// </summary>
+    enum class DescriptorHeapType {
+        /// <summary>
+        /// Indicates an invalid heap.
+        /// </summary>
+        None = 0x00,
+
+        /// <summary>
+        /// Binds all non-sampler resource views.
+        /// </summary>
+        Resource = 0x01,
+
+        /// <summary>
+        /// Binds all sampler states.
+        /// </summary>
+        Sampler = 0x02
+    };
+
+    /// <summary>
     /// Describes the type of a <see cref="IBuffer" />.
     /// </summary>
     /// <seealso cref="IBufferLayout" />
@@ -6437,27 +6457,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// The desired type of the descriptor heap.
             /// </summary>
-            enum class HeapType { 
-                /// <summary>
-                /// Default value that will not have any effect, if set for the hint.
-                /// </summary>
-                None = 0x00, 
-
-                /// <summary>
-                /// Binds all resources, except acceleration structures and samplers.
-                /// </summary>
-                Resource = 0x01, 
-
-                /// <summary>
-                /// Binds all samplers.
-                /// </summary>
-                Sampler = 0x02 
-            };
-        
-            /// <summary>
-            /// The desired type of the descriptor heap.
-            /// </summary>
-            HeapType Type{ HeapType::None };
+            DescriptorHeapType Type{ DescriptorHeapType::None };
         };
 
         /// <summary>
@@ -6543,7 +6543,7 @@ namespace LiteFX::Rendering {
         /// <param name="at">The binding point the hint applies to.</param>
         /// <returns>The initialized pipeline binding hint.</returns>
         static inline auto resourceHeap(DescriptorBindingPoint at) noexcept -> PipelineBindingHint {
-            return { .Binding = at, .Hint = DescriptorHeapHint { DescriptorHeapHint::HeapType::Resource } };
+            return { .Binding = at, .Hint = DescriptorHeapHint { DescriptorHeapType::Resource } };
         }
 
         /// <summary>
@@ -6553,7 +6553,7 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The register of the descriptor binding point.</param>
         /// <returns>The initialized pipeline binding hint.</returns>
         static inline auto resourceHeap(UInt32 space, UInt32 binding) noexcept -> PipelineBindingHint {
-            return { .Binding = { .Register = binding, .Space = space }, .Hint = DescriptorHeapHint { DescriptorHeapHint::HeapType::Resource } };
+            return { .Binding = { .Register = binding, .Space = space }, .Hint = DescriptorHeapHint { DescriptorHeapType::Resource } };
         }
 
         /// <summary>
@@ -6562,7 +6562,7 @@ namespace LiteFX::Rendering {
         /// <param name="at">The binding point the hint applies to.</param>
         /// <returns>The initialized pipeline binding hint.</returns>
         static inline auto samplerHeap(DescriptorBindingPoint at) noexcept -> PipelineBindingHint {
-            return { .Binding = at, .Hint = DescriptorHeapHint { DescriptorHeapHint::HeapType::Sampler } };
+            return { .Binding = at, .Hint = DescriptorHeapHint { DescriptorHeapType::Sampler } };
         }
 
         /// <summary>
@@ -6572,7 +6572,7 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The register of the descriptor binding point.</param>
         /// <returns>The initialized pipeline binding hint.</returns>
         static inline auto samplerHeap(UInt32 space, UInt32 binding) noexcept -> PipelineBindingHint {
-            return { .Binding = { .Register = binding, .Space = space }, .Hint = DescriptorHeapHint { DescriptorHeapHint::HeapType::Sampler } };
+            return { .Binding = { .Register = binding, .Space = space }, .Hint = DescriptorHeapHint { DescriptorHeapType::Sampler } };
         }
     };
 
