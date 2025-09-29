@@ -427,9 +427,6 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sam
     auto descriptors = m_impl->m_layout->descriptors();
     auto match = std::ranges::find_if(descriptors, [&binding](auto& layout) { return layout.binding() == binding; });
 
-    if (match->descriptorType() != DescriptorType::Sampler) [[unlikely]]
-        throw InvalidArgumentException("binding", "The descriptor at binding point {0} does not reference a sampler state.", binding);
-
     if (match == descriptors.end()) [[unlikely]]
     {
         LITEFX_WARNING(DIRECTX12_LOG, "The descriptor set {0} does not contain a descriptor at binding {1}.", m_impl->m_layout->space(), binding);
@@ -440,6 +437,9 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Sampler& sam
         LITEFX_WARNING(DIRECTX12_LOG, "The descriptor array at binding {1} of descriptor set {0} does only contain {2} descriptors, but the descriptor {3} has been specified for binding.", m_impl->m_layout->space(), binding, match->descriptors(), descriptor);
         return;
     }
+
+    if (match->descriptorType() != DescriptorType::Sampler) [[unlikely]]
+        throw InvalidArgumentException("binding", "The descriptor at binding point {0} does not reference a sampler state.", binding);
 
     auto offset = m_impl->m_layout->getDescriptorOffset(binding, descriptor);
 

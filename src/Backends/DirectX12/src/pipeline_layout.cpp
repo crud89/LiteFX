@@ -3,6 +3,8 @@
 
 using namespace LiteFX::Rendering::Backends;
 
+static const UInt64 DESCRIPTOR_SET_MASK = { 0xFFFFFFFF00000000 };
+
 // ------------------------------------------------------------------------------------------------
 // Implementation.
 // ------------------------------------------------------------------------------------------------
@@ -137,9 +139,9 @@ public:
 
             // Define the root parameter ranges.
             auto layouts = layout->descriptors();
-            Array<D3D12_DESCRIPTOR_RANGE1> rangeSet = layouts |
-                std::views::filter([](auto& range) { return range.staticSampler() == nullptr && !range.local(); }) |
-                std::views::transform([&](auto& range) {
+            Array<D3D12_DESCRIPTOR_RANGE1> rangeSet = layouts 
+                | std::views::filter([](auto& range) { return range.staticSampler() == nullptr && !range.local() && range.descriptorType() != DescriptorType::ResourceDescriptorHeap && range.descriptorType() != DescriptorType::SamplerDescriptorHeap; })
+                | std::views::transform([&](auto& range) {
                     CD3DX12_DESCRIPTOR_RANGE1 descriptorRange = {};
 
                     switch(range.descriptorType()) 
@@ -200,7 +202,7 @@ public:
                 descriptorRanges.push_back(std::move(rangeSet));
 
                 // Store the set. Note we do not check for duplicates here.
-                UInt64 key = 0xFFFFFFFF00000000_ui64 | static_cast<UInt64>(layout->space()); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+                UInt64 key = DESCRIPTOR_SET_MASK | static_cast<UInt64>(layout->space());
                 m_rootParameterIndices[key] = rootParameterIndex++;
                 descriptorParameters.push_back(rootParameter);
             }
@@ -213,10 +215,10 @@ public:
         // Setup root signature flags.
         D3D12_ROOT_SIGNATURE_FLAGS flags { D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT };
         
-        if (pipelineLayout.dynamicResourceHeapAccess())
+        if (this->containsDescriptorOfType(descriptorLayouts, DescriptorType::ResourceDescriptorHeap))
             flags |= D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED;
 
-        if (pipelineLayout.dynamicSamplerHeapAccess())
+        if (this->containsDescriptorOfType(descriptorLayouts, DescriptorType::SamplerDescriptorHeap))
             flags |= D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED;
 
         // Create root signature descriptor.
@@ -240,6 +242,14 @@ public:
         m_descriptorSetLayouts.append_range(std::move(descriptorLayouts));
 
         return rootSignature;
+    }
+
+    inline bool containsDescriptorOfType(Enumerable<SharedPtr<const DirectX12DescriptorSetLayout>> descriptorSetLayouts, DescriptorType descriptorType) const noexcept {
+        auto descriptorLayouts = descriptorSetLayouts
+            | std::views::transform([](const auto& layout) { return layout->descriptors(); })
+            | std::views::join;
+
+        return std::ranges::any_of(descriptorLayouts, [descriptorType](const auto& layout) { return layout.descriptorType() == descriptorType; });
     }
 };
 
@@ -285,7 +295,7 @@ const DirectX12PushConstantsLayout* DirectX12PipelineLayout::pushConstants() con
 
 Optional<UInt32> DirectX12PipelineLayout::rootParameterIndex(const DirectX12DescriptorSetLayout& layout) const noexcept
 {
-    if (auto match = m_impl->m_rootParameterIndices.find(0xFFFFFFFF00000000_ui64 | static_cast<UInt64>(layout.space())); match != m_impl->m_rootParameterIndices.end()) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    if (auto match = m_impl->m_rootParameterIndices.find(DESCRIPTOR_SET_MASK | static_cast<UInt64>(layout.space())); match != m_impl->m_rootParameterIndices.end())
         return match->second;
     else
         return std::nullopt;
@@ -301,20 +311,12 @@ Optional<UInt32> DirectX12PipelineLayout::rootParameterIndex(const DirectX12Push
 
 bool DirectX12PipelineLayout::dynamicResourceHeapAccess() const noexcept
 {
-    auto descriptorLayouts = m_impl->m_descriptorSetLayouts
-        | std::views::transform([](const auto& layout) { return layout->descriptors(); })
-        | std::views::join;
-
-    return std::ranges::any_of(descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::ResourceDescriptorHeap; });
+    return m_impl->containsDescriptorOfType(m_impl->m_descriptorSetLayouts, DescriptorType::ResourceDescriptorHeap);
 }
 
 bool DirectX12PipelineLayout::dynamicSamplerHeapAccess() const noexcept
 {
-    auto descriptorLayouts = m_impl->m_descriptorSetLayouts
-        | std::views::transform([](const auto& layout) { return layout->descriptors(); })
-        | std::views::join;
-
-    return std::ranges::any_of(descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::SamplerDescriptorHeap; });
+    return m_impl->containsDescriptorOfType(m_impl->m_descriptorSetLayouts, DescriptorType::SamplerDescriptorHeap);
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
