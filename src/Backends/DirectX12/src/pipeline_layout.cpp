@@ -36,6 +36,11 @@ private:
         /// Indicates that the root parameter is a sampler table. Must not be combined with <see cref="IsRootConstant" /> or <see cref="IsResourceTable" />.
         /// </summary>
         IsSamplerTable = 0x00000020,
+
+        // TODO: We could use those to support directly binding descriptors to the root signature instead of using tables.
+        //CBV = 0x00000100,
+        //SRV = 0x00000200,
+        //UAV = 0x00000400,
     };
 
     /// <summary>

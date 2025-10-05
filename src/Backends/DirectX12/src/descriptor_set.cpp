@@ -22,10 +22,10 @@ public:
     DirectX12DescriptorSetImpl(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& resourceHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap) :
         m_resourceHeap{ .Heap = std::move(resourceHeap) }, m_samplerHeap{ .Heap = std::move(samplerHeap) }, m_layout(layout.shared_from_this())
     {
-        if (m_layout->bindsResources() && m_resourceHeap.Heap == nullptr)
+        if (m_layout->bindsResources() && m_resourceHeap.Heap == nullptr) [[unlikely]]
             throw ArgumentNotInitializedException("resourceHeap", "The local resource heap must be initialized, if the descriptor set binds resources.");
 
-        if (m_layout->bindsSamplers() && m_samplerHeap.Heap == nullptr)
+        if (m_layout->bindsSamplers() && m_samplerHeap.Heap == nullptr) [[unlikely]]
             throw ArgumentNotInitializedException("samplerHeap", "The local sampler heap must be initialized, if the descriptor set binds samplers.");
     }
 

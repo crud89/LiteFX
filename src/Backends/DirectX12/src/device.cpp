@@ -342,6 +342,7 @@ void DirectX12Device::allocateGlobalDescriptors(const DirectX12DescriptorSet& de
 
 		break;
 	default:
+		LITEFX_WARNING(DIRECTX12_LOG, "The descriptor heap type must be one of the following: {{ `Resource`, `Sampler` }}, but it was: `{0}`.", heapType);
 		return;
 	}
 }
