@@ -699,8 +699,9 @@ namespace LiteFX::Rendering::Backends {
         /// Initializes a new descriptor set.
         /// </summary>
         /// <param name="layout">The parent descriptor set layout.</param>
-        /// <param name="localHeap">A CPU-visible descriptor heap that contains all descriptors of the descriptor set.</param>
-        explicit DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& localHeap);
+        /// <param name="resourceHeap">A CPU-visible descriptor heap that contains the descriptors for the resources of the descriptor set.</param>
+        /// <param name="samplerHeap">A CPU-visible descriptor heap that contains the descriptors for the samplers of the descriptor set.</param>
+        explicit DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& resourceHeap = nullptr, ComPtr<ID3D12DescriptorHeap>&& samplerHeap = nullptr);
 
         /// <inheritdoc />
         DirectX12DescriptorSet(DirectX12DescriptorSet&&) noexcept = delete;
@@ -726,10 +727,10 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        UInt32 globalHeapOffset() const noexcept override;
+        UInt32 globalHeapOffset(DescriptorHeapType heapType) const noexcept override;
 
         /// <inheritdoc />
-        UInt32 globalHeapAddressRange() const noexcept override;
+        UInt32 globalHeapAddressRange(DescriptorHeapType heapType) const noexcept override;
 
         /// <inheritdoc />
         void update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0) const override;
@@ -747,8 +748,9 @@ namespace LiteFX::Rendering::Backends {
         /// <summary>
         /// Returns the local (CPU-visible) heap that contains the set's descriptors.
         /// </summary>
+        /// <param name="heapType">The type of the descriptor heap to obtain.</param>
         /// <returns>The local (CPU-visible) heap that contains the set's descriptors.</returns>
-        virtual const ComPtr<ID3D12DescriptorHeap>& localHeap() const noexcept;
+        virtual const ComPtr<ID3D12DescriptorHeap> localHeap(DescriptorHeapType heapType) const noexcept;
     };
 
     /// <summary>
@@ -961,6 +963,12 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt32 getDescriptorOffset(UInt32 binding, UInt32 element = 0) const override;
+
+        /// <inheritdoc />
+        bool bindsResources() const noexcept override;
+
+        /// <inheritdoc />
+        bool bindsSamplers() const noexcept override;
 
     public:
         /// <inheritdoc />
@@ -1189,10 +1197,18 @@ namespace LiteFX::Rendering::Backends {
         /// to be shared over multiple pipeline layouts, even if they are unrelated, as long as they are compatible. Compatibility must be ensured by the application.
         /// 
         /// Only if no descriptor set layout was provided for register space `1` in the example above, this method will return `std::nullopt`.
+        /// 
+        /// The <paramref name="heapType" /> determines the target descriptor heap, for which to obtain the root parameter index. This is required, as samplers bind to another 
+        /// descriptor heap as all other resources. If the descriptor set does not contain descriptors that bind to the desired descriptor heap, the method will also return 
+        /// `std::nullopt`.
         /// </remarks>
         /// <param name="layout">The layout of the descriptor set.</param>
-        /// <returns>The root parameter index for the descriptor set layout, or `std::nullopt`, if the descriptor set is not part of the pipeline layout.</returns>
-        Optional<UInt32> rootParameterIndex(const DirectX12DescriptorSetLayout& layout) const noexcept;
+        /// <param name="heapType">The type of the descriptor heap for which to obtain the root parameter index.</param>
+        /// <returns>
+        /// The root parameter index for the descriptor set layout, or `std::nullopt`, if the descriptor set is not part of the pipeline layout or does not contain descriptors that 
+        /// bind to <paramref name="heapType" />.
+        /// </returns>
+        Optional<UInt32> rootParameterIndex(const DirectX12DescriptorSetLayout& layout, DescriptorHeapType heapType) const noexcept;
 
         /// <summary>
         /// Returns the root parameter index for a push constants range
@@ -2685,7 +2701,7 @@ namespace LiteFX::Rendering::Backends {
         void computeAccelerationStructureSizes(const DirectX12TopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
 
         /// <inheritdoc />
-        void allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32& heapOffset, UInt32& heapSize) const override;
+        void allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const override;
 
         /// <inheritdoc />
         void releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const override;

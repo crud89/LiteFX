@@ -1525,7 +1525,7 @@ namespace LiteFX::Rendering {
         virtual void computeAccelerationStructureSizes(const top_level_acceleration_structure_type& tlas, UInt64 & bufferSize, UInt64 & scratchSize, bool forUpdate = false) const = 0;
 
         /// <inheritdoc />
-        virtual void allocateGlobalDescriptors(const descriptor_set_type& descriptorSet, UInt32& heapOffset, UInt32& heapSize) const = 0;
+        virtual void allocateGlobalDescriptors(const descriptor_set_type& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const = 0;
 
         /// <inheritdoc />
         virtual void releaseGlobalDescriptors(const descriptor_set_type& descriptorSet) const = 0;
@@ -1548,8 +1548,8 @@ namespace LiteFX::Rendering {
             this->computeAccelerationStructureSizes(dynamic_cast<const top_level_acceleration_structure_type&>(tlas), bufferSize, scratchSize, forUpdate);
         }
         
-        inline void doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32& heapOffset, UInt32& heapSize) const override {
-            this->allocateGlobalDescriptors(dynamic_cast<const descriptor_set_type&>(descriptorSet), heapOffset, heapSize);
+        inline void doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const override {
+            this->allocateGlobalDescriptors(dynamic_cast<const descriptor_set_type&>(descriptorSet), heapType, heapOffset, heapSize);
         }
 
         inline void doReleaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const override {

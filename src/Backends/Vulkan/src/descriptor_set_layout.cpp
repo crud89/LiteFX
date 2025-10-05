@@ -98,7 +98,7 @@ public:
         Array<VkDescriptorSetLayoutBinding> bindings;
         Array<VkDescriptorBindingFlags> bindingFlags;
         Array<VkDescriptorSetLayoutBindingFlagsCreateInfo> bindingFlagCreateInfo;
-        bool hasStaticSampler{ false }, hasSamplers{ false }, hasResources{ false };
+        bool hasStaticSampler{ false };
         UInt32 unboundedDescriptorIndex{ }, unboundedDescriptorCount{ };
 
         std::ranges::for_each(m_descriptorLayouts, [&, i = 0](const auto& layout) mutable {
@@ -108,7 +108,8 @@ public:
 #ifdef NDEBUG
             (void)i; // Required as [[maybe_unused]] is not supported in captures.
 #else
-            LITEFX_TRACE(VULKAN_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Array size: {6}, Offset: {4}, Binding point: {5} }}...", ++i, m_descriptorLayouts.size(), type, layout.elementSize(), 0, bindingPoint, layout.descriptors());
+            LITEFX_TRACE(VULKAN_LOG, "\tWith descriptor {0}/{1} {{ Type: {2}, Element size: {3} bytes, Array size: {6}, Offset: {4}, Binding point: {5} }}...",
+                ++i, m_descriptorLayouts.size(), type, layout.elementSize(), 0, bindingPoint, layout.descriptors());
 #endif
 
             // Unbounded arrays are only allowed for the last descriptor in the descriptor set (https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkDescriptorBindingFlagBits.html#_description).
@@ -123,15 +124,6 @@ public:
 
             if (type == DescriptorType::InputAttachment && m_stages != ShaderStage::Fragment)
                 throw RuntimeException("Unable to bind input attachment at {0} to a descriptor set that is accessible from other stages, than the fragment shader.", bindingPoint);
-
-            // Check for invalid mixing of samplers and resources.
-            if ((type == DescriptorType::Sampler && hasResources) || (type != DescriptorType::Sampler && hasSamplers)) [[unlikely]]
-                throw InvalidArgumentException("descriptorLayouts", "Mixing samplers and resources in a single descriptor set is not supported. Samplers must be defined in a separate set.");
-
-            if (type == DescriptorType::Sampler)
-                hasSamplers = true;
-            else
-                hasResources = true;
 
             // Map descriptor type to Vulkan type set.
             switch (type)
@@ -494,6 +486,16 @@ UInt32 VulkanDescriptorSetLayout::getDescriptorOffset(UInt32 binding, UInt32 ele
     {
         throw ArgumentOutOfRangeException("binding", "The descriptor layout does not contain a descriptor bound at {0}.", binding);
     }
+}
+
+bool VulkanDescriptorSetLayout::bindsResources() const noexcept
+{
+    return std::ranges::any_of(m_impl->m_descriptorLayouts, [](const auto& layout) { return layout.descriptorType() != DescriptorType::Sampler; });
+}
+
+bool VulkanDescriptorSetLayout::bindsSamplers() const noexcept
+{
+    return std::ranges::any_of(m_impl->m_descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Sampler && layout.staticSampler() == nullptr; });
 }
 
 UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const
