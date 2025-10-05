@@ -16,15 +16,41 @@ private:
     UniquePtr<DirectX12PushConstantsLayout> m_pushConstantsLayout{};
     Array<SharedPtr<const DirectX12DescriptorSetLayout>> m_descriptorSetLayouts{};
     SharedPtr<const DirectX12Device> m_device;
+
+    /// <summary>
+    /// The flags for a root parameter entry.
+    /// </summary>
+    enum class RootParameterFlags : UInt32
+    {
+        /// <summary>
+        /// Indicates that the root parameter is a root/push constant. Must not be combined with <see cref="IsResourceTable" /> or <see cref="IsSamplerTable" />.
+        /// </summary>
+        IsRootConstant = 0x00000001,
+
+        /// <summary>
+        /// Indicates that the root parameter is a resource table. Must not be combined with <see cref="IsRootConstant" /> or <see cref="IsSamplerTable" />.
+        /// </summary>
+        IsResourceTable = 0x00000010,
+
+        /// <summary>
+        /// Indicates that the root parameter is a sampler table. Must not be combined with <see cref="IsRootConstant" /> or <see cref="IsResourceTable" />.
+        /// </summary>
+        IsSamplerTable = 0x00000020,
+    };
+
+    /// <summary>
+    /// Generates a root parameter identifier from a set of flags and the descriptor space.
+    /// </summary>
+    /// <param name="flags">The flags that store metadata about the root parameter.</param>
+    /// <param name="descriptorSpace">The target space to bind the root descriptor to.</param>
+    /// <returns>The root parameter identifier.</returns>
+    constexpr static UInt64 makeRootParameterId(RootParameterFlags flags, UInt32 descriptorSpace) noexcept {
+        return (static_cast<UInt64>(std::to_underlying(flags)) << 32) | static_cast<UInt64>(descriptorSpace); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    }
     
     /// <summary>
     /// Maps the indices of the root parameters for a descriptor set or a push constant range.
     /// </summary>
-    /// <remarks>
-    /// The dictionary key encodes the push constant range or descriptor set. The higher 32-bit part refers to the descriptor binding register for a push constant range. If it is 
-    /// equal to `0xFFFFFFFF`, the key refers to a descriptor set. In both cases, the lower 32-bit part refers to the binding space. Descriptor sets don't require a binding register, 
-    /// as they are mapped as descriptor tables. Push constants mapped using root constants, in which case a register must be specified.
-    /// </remarks>
     Dictionary<UInt64, UInt32> m_rootParameterIndices{};
 
 public:
@@ -81,6 +107,7 @@ public:
         }
 
         // Define the descriptor range from descriptor set layouts.
+        // NOTE: The following arrays keep the description structs alive, so they don't go out of scope.
         Array<D3D12_ROOT_PARAMETER1> descriptorParameters;
         Array<D3D12_STATIC_SAMPLER_DESC> staticSamplers;
         Array<Array<D3D12_DESCRIPTOR_RANGE1>> descriptorRanges;
@@ -111,7 +138,7 @@ public:
                 }
 
                 // Store the range. Note we do not check for duplicates here.
-                UInt64 key = static_cast<UInt64>(range->binding()) << 32 | static_cast<UInt64>(range->space()); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+                auto key = makeRootParameterId(RootParameterFlags::IsRootConstant, range->space());
                 m_rootParameterIndices[key] = rootParameterIndex++;
                 descriptorParameters.push_back(rootParameter);
             });
@@ -135,11 +162,13 @@ public:
             default: break;
             }
 
-            // Define the root parameter ranges.
+            // Define the root parameter ranges. Those ranges encode the individual binding points, i.e., scalar bindings, static or unbounded arrays. Each range represents a singular binding
+            // point. However, we need to keep in mind, that samplers need to be bound at a different heap. In case samplers are mixed with resources in a single descriptor heap, we need to
+            // create separate root descriptor tables, as described here: https://learn.microsoft.com/en-us/windows/win32/direct3d12/example-root-signatures#binding-descriptor-tables.
             auto layouts = layout->descriptors();
-            Array<D3D12_DESCRIPTOR_RANGE1> rangeSet = layouts |
-                std::views::filter([](auto& range) { return range.staticSampler() == nullptr && !range.local(); }) |
-                std::views::transform([&](auto& range) {
+            Array<D3D12_DESCRIPTOR_RANGE1> resourceSet = layouts 
+                | std::views::filter([](auto& range) { return range.descriptorType() != DescriptorType::Sampler && !range.local(); }) 
+                | std::views::transform([&](auto& range) {
                     CD3DX12_DESCRIPTOR_RANGE1 descriptorRange = {};
 
                     switch(range.descriptorType()) 
@@ -155,52 +184,67 @@ public:
                     case DescriptorType::RWStructuredBuffer:
                     case DescriptorType::RWByteAddressBuffer:
                     case DescriptorType::RWTexture:         descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, range.descriptors(), range.binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_DESCRIPTORS_VOLATILE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
-                    case DescriptorType::Sampler:           descriptorRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, range.descriptors(), range.binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_NONE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); break;
                     default: throw InvalidArgumentException("descriptorSetLayouts", "Invalid descriptor type: {0}.", range.descriptorType());
                     }
 
                     return descriptorRange;
-                }) | std::ranges::to<Array<D3D12_DESCRIPTOR_RANGE1>>();
+                })
+                | std::ranges::to<Array<D3D12_DESCRIPTOR_RANGE1>>();
 
-            // Define the static samplers.
-            std::ranges::for_each(layouts, [&](auto& range) {
-                if (range.staticSampler() != nullptr)
-                {
-                    // Remember, that there's a manually defined input attachment sampler.
-                    if (range.binding() == 0 && space == 0)
-                        hasInputAttachmentSampler = true;
+            Array<D3D12_DESCRIPTOR_RANGE1> samplerSet = layouts 
+                | std::views::filter([](auto& range) { return range.descriptorType() == DescriptorType::Sampler && range.staticSampler() == nullptr && !range.local(); }) 
+                | std::views::transform([&](auto& range) { 
+                    return CD3DX12_DESCRIPTOR_RANGE1(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, range.descriptors(), range.binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_NONE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); }) 
+                | std::ranges::to<Array<D3D12_DESCRIPTOR_RANGE1>>();
 
-                    auto sampler = range.staticSampler();
+            // Define the static samplers. Those do not occur within the descriptor table and instead are part of the pipeline state object, so we handle them separately.
+            std::ranges::for_each(layouts | std::views::filter([](auto& range) { return range.staticSampler() != nullptr; }), [&](auto& range) {
+                // Remember, that there's a manually defined input attachment sampler.
+                if (range.binding() == 0 && space == 0)
+                    hasInputAttachmentSampler = true;
 
-                    D3D12_STATIC_SAMPLER_DESC samplerInfo = {
-                        .Filter = getFilterMode(sampler->getMinifyingFilter(), sampler->getMagnifyingFilter(), sampler->getMipMapMode(), sampler->getAnisotropy()),
-                        .AddressU = getBorderMode(sampler->getBorderModeU()),
-                        .AddressV = getBorderMode(sampler->getBorderModeV()),
-                        .AddressW = getBorderMode(sampler->getBorderModeW()),
-                        .MipLODBias = sampler->getMipMapBias(),
-                        .MaxAnisotropy = static_cast<UInt32>(sampler->getAnisotropy()),
-                        .ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS,
-                        //.BorderColor = { 0.f, 0.f, 0.f, 0.f },
-                        .MinLOD = sampler->getMinLOD(),
-                        .MaxLOD = sampler->getMaxLOD(),
-                        .ShaderRegister = range.binding(),
-                        .RegisterSpace = space,
-                        .ShaderVisibility = shaderStages
-                    };
+                auto sampler = range.staticSampler();
 
-                    staticSamplers.push_back(samplerInfo);
-                }
+                D3D12_STATIC_SAMPLER_DESC samplerInfo = {
+                    .Filter = getFilterMode(sampler->getMinifyingFilter(), sampler->getMagnifyingFilter(), sampler->getMipMapMode(), sampler->getAnisotropy()),
+                    .AddressU = getBorderMode(sampler->getBorderModeU()),
+                    .AddressV = getBorderMode(sampler->getBorderModeV()),
+                    .AddressW = getBorderMode(sampler->getBorderModeW()),
+                    .MipLODBias = sampler->getMipMapBias(),
+                    .MaxAnisotropy = static_cast<UInt32>(sampler->getAnisotropy()),
+                    .ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS,
+                    //.BorderColor = { 0.f, 0.f, 0.f, 0.f },
+                    .MinLOD = sampler->getMinLOD(),
+                    .MaxLOD = sampler->getMaxLOD(),
+                    .ShaderRegister = range.binding(),
+                    .RegisterSpace = space,
+                    .ShaderVisibility = shaderStages
+                };
+
+                staticSamplers.push_back(samplerInfo);
             });
 
-            // Define the root parameter.
-            if (!rangeSet.empty())
+            // Define the root parameter(s).
+            if (!resourceSet.empty())
             {
                 CD3DX12_ROOT_PARAMETER1 rootParameter = {};
-                rootParameter.InitAsDescriptorTable(static_cast<UINT>(rangeSet.size()), rangeSet.data(), static_cast<D3D12_SHADER_VISIBILITY>(shaderStages));
-                descriptorRanges.push_back(std::move(rangeSet));
+                rootParameter.InitAsDescriptorTable(static_cast<UINT>(resourceSet.size()), resourceSet.data(), static_cast<D3D12_SHADER_VISIBILITY>(shaderStages));
+                descriptorRanges.push_back(std::move(resourceSet));
 
                 // Store the set. Note we do not check for duplicates here.
-                UInt64 key = 0xFFFFFFFF00000000_ui64 | static_cast<UInt64>(layout->space()); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+                auto key = makeRootParameterId(RootParameterFlags::IsResourceTable, layout->space());
+                m_rootParameterIndices[key] = rootParameterIndex++;
+                descriptorParameters.push_back(rootParameter);
+            }
+
+            if (!samplerSet.empty())
+            {
+                CD3DX12_ROOT_PARAMETER1 rootParameter = {};
+                rootParameter.InitAsDescriptorTable(static_cast<UINT>(samplerSet.size()), samplerSet.data(), static_cast<D3D12_SHADER_VISIBILITY>(shaderStages));
+                descriptorRanges.push_back(std::move(samplerSet));
+
+                // Store the set. Note we do not check for duplicates here.
+                auto key = makeRootParameterId(RootParameterFlags::IsSamplerTable, layout->space());
                 m_rootParameterIndices[key] = rootParameterIndex++;
                 descriptorParameters.push_back(rootParameter);
             }
@@ -274,9 +318,14 @@ const DirectX12PushConstantsLayout* DirectX12PipelineLayout::pushConstants() con
     return m_impl->m_pushConstantsLayout.get();
 }
 
-Optional<UInt32> DirectX12PipelineLayout::rootParameterIndex(const DirectX12DescriptorSetLayout& layout) const noexcept
+Optional<UInt32> DirectX12PipelineLayout::rootParameterIndex(const DirectX12DescriptorSetLayout& layout, DescriptorHeapType heapType) const noexcept
 {
-    if (auto match = m_impl->m_rootParameterIndices.find(0xFFFFFFFF00000000_ui64 | static_cast<UInt64>(layout.space())); match != m_impl->m_rootParameterIndices.end()) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    if (heapType == DescriptorHeapType::None)
+        return std::nullopt;
+
+    auto key = DirectX12PipelineLayoutImpl::makeRootParameterId(heapType == DescriptorHeapType::Resource ? DirectX12PipelineLayoutImpl::RootParameterFlags::IsResourceTable : DirectX12PipelineLayoutImpl::RootParameterFlags::IsSamplerTable, layout.space());
+
+    if (auto match = m_impl->m_rootParameterIndices.find(key); match != m_impl->m_rootParameterIndices.end())
         return match->second;
     else
         return std::nullopt;
@@ -284,7 +333,7 @@ Optional<UInt32> DirectX12PipelineLayout::rootParameterIndex(const DirectX12Desc
 
 Optional<UInt32> DirectX12PipelineLayout::rootParameterIndex(const DirectX12PushConstantsRange& range) const noexcept
 {
-    if (auto match = m_impl->m_rootParameterIndices.find((static_cast<UInt64>(range.binding()) << 32) | static_cast<UInt64>(range.space())); match != m_impl->m_rootParameterIndices.end()) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+    if (auto match = m_impl->m_rootParameterIndices.find(DirectX12PipelineLayoutImpl::makeRootParameterId(DirectX12PipelineLayoutImpl::RootParameterFlags::IsRootConstant, range.space())); match != m_impl->m_rootParameterIndices.end())
         return match->second;
     else
         return std::nullopt;
