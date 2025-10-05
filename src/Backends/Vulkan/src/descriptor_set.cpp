@@ -62,13 +62,13 @@ public:
 VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, Array<Byte>&& buffer) :
     m_impl(layout, std::move(buffer))
 {
-    layout.device().allocateGlobalDescriptors(*this, m_impl->m_offset, m_impl->m_heapSize);
+    layout.device().allocateGlobalDescriptors(*this, DescriptorHeapType::Resource, m_impl->m_offset, m_impl->m_heapSize); // NOTE: Heap type does not matter for Vulkan backend.
 }
 
 VulkanDescriptorSet::VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, UInt32 unboundedArraySize) :
     m_impl(layout, unboundedArraySize)
 {
-    layout.device().allocateGlobalDescriptors(*this, m_impl->m_offset, m_impl->m_heapSize);
+    layout.device().allocateGlobalDescriptors(*this, DescriptorHeapType::Resource, m_impl->m_offset, m_impl->m_heapSize); // NOTE: Heap type does not matter for Vulkan backend.
 }
 
 VulkanDescriptorSet::~VulkanDescriptorSet() noexcept
@@ -96,14 +96,28 @@ Span<const Byte> VulkanDescriptorSet::descriptorBuffer() const noexcept
     return m_impl->m_descriptorBuffer;
 }
 
-UInt32 VulkanDescriptorSet::globalHeapOffset() const noexcept
+UInt32 VulkanDescriptorSet::globalHeapOffset(DescriptorHeapType heapType) const noexcept
 {
-    return m_impl->m_offset;
+    switch (heapType)
+    {
+    case DescriptorHeapType::Resource:
+    case DescriptorHeapType::Sampler:
+        return m_impl->m_offset;
+    default:
+        return std::numeric_limits<UInt32>::max();
+    }
 }
 
-UInt32 VulkanDescriptorSet::globalHeapAddressRange() const noexcept
+UInt32 VulkanDescriptorSet::globalHeapAddressRange(DescriptorHeapType heapType) const noexcept
 {
-    return m_impl->m_heapSize;
+    switch (heapType)
+    {
+    case DescriptorHeapType::Resource:
+    case DescriptorHeapType::Sampler:
+        return m_impl->m_heapSize;
+    default:
+        return 0u;
+    }
 }
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const

@@ -54,12 +54,12 @@ VulkanGraphicsFactory::VulkanGraphicsFactory(const VulkanDevice& device) :
 
 VulkanGraphicsFactory::~VulkanGraphicsFactory() noexcept = default;
 
-SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(size_t heapSize, bool forSamplers) const
+SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(size_t heapSize) const
 {
-	return this->createDescriptorHeap("", heapSize, forSamplers);
+	return this->createDescriptorHeap("", heapSize);
 }
 
-SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(const String& name, size_t heapSize, bool forSamplers) const
+SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(const String& name, size_t heapSize) const
 {
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
@@ -68,7 +68,19 @@ SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(const Strin
 		throw RuntimeException("Cannot allocate buffer from a released device instance.");
 
 	// Create the buffer.
-	VkBufferUsageFlags usageFlags = { static_cast<VkBufferUsageFlags>(forSamplers ? VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT : VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT) | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT };
+	// NOTE: D3D12 descriptor heaps do not map exactly to descriptor buffers:
+	// - Descriptor heaps bind individual root parameters (we support constants and tables), which a single descriptor set can contain multiple of (one per binding point). Those
+	//   can be split over multiple heaps (one for samplers, one for resources).
+	// - Descriptor buffers bind whole descriptor sets, which cannot be split over multiple descriptor buffers.
+	// For this specific reason, we do not create two descriptor buffers (one for samplers and one for resources), as we would otherwise have to enforce a separation between sets
+	// that contain samplers and sets that contain resources. We did this earlier, but this is a quite significant restriction when authoring shaders, so I removed it after 
+	// implementing descriptor buffers. 
+	// Luckily it appears as if all devices that support VK_EXT_descriptor_buffer provide exactly the same limits for `samplerDescriptorBufferAddressSpaceSize`, 
+	// `resourceDescriptorBufferAddressSpaceSize` and `descriptorBufferAddressSpaceSize` in `VkPhysicalDeviceDescriptorBufferPropertiesEXT` (see: 
+	// https://vulkan.gpuinfo.org/listpropertiesextensions.php). In other words, it does not make a difference in the available address space, when binding resources and samplers
+	// separately, compared to binding them to a single descriptor buffer that can bind all of them. 
+	// This might change in the future, in which case I hope we will have a better alternative. Until then, we simply use a single descriptor buffer, supporting mixed sets.
+	VkBufferUsageFlags usageFlags = { VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT };
 	VkBufferCreateInfo bufferInfo = { 
 		.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,
 		.pNext = nullptr,
