@@ -30,7 +30,7 @@ struct TransformData
 };
 
 ConstantBuffer<CameraData>    camera    : register(b0, space0);
-ConstantBuffer<TransformData> transform : register(b0, space2);
+ConstantBuffer<TransformData> transform : register(b0, space1);
 
 VertexData main(in VertexInput input)
 {
