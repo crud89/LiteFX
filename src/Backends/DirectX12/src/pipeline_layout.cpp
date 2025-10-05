@@ -20,7 +20,7 @@ private:
     /// <summary>
     /// The flags for a root parameter entry.
     /// </summary>
-    enum class RootParameterFlags : UInt32
+    enum class RootParameterFlags : UInt32 // NOLINT(performance-enum-size)
     {
         /// <summary>
         /// Indicates that the root parameter is a root/push constant. Must not be combined with <see cref="IsResourceTable" /> or <see cref="IsSamplerTable" />.
