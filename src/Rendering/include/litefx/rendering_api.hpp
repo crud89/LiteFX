@@ -5374,8 +5374,9 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// The heap offset may differ between used backends and does not necessarily correspond to memory.
         /// </remarks>
+        /// <param name="heapType">The type of the descriptor heap for which to obtain the heap offset.</param>
         /// <returns>The offset into the global descriptor heap.</returns>
-        virtual UInt32 globalHeapOffset() const noexcept = 0;
+        virtual UInt32 globalHeapOffset(DescriptorHeapType heapType) const noexcept = 0;
 
         /// <summary>
         /// Returns the amount size of the range in the global descriptor heap address space.
@@ -5383,9 +5384,10 @@ namespace LiteFX::Rendering {
         /// <remarks>
         /// The heap size may differ between used backends and does not necessarily correspond to memory.
         /// </remarks>
+        /// <param name="heapType">The type of the descriptor heap for which to obtain the heap size.</param>
         /// <returns>The size of the range in the global descriptor heap.</returns>
         /// <seealso cref="globalHeapOffset" />
-        virtual UInt32 globalHeapAddressRange() const noexcept = 0;
+        virtual UInt32 globalHeapAddressRange(DescriptorHeapType heapType) const noexcept = 0;
 
         /// <summary>
         /// Resolves the heap index for a descriptor that is used with dynamic heap access.
@@ -5641,6 +5643,21 @@ namespace LiteFX::Rendering {
         /// <param name="element">The index of the array element of a descriptor array.</param>
         /// <returns>The offset from the beginning of the descriptor set.</returns>
         virtual UInt32 getDescriptorOffset(UInt32 binding, UInt32 element = 0) const = 0;
+
+        /// <summary>
+        /// Returns `true` if the descriptor set layout contains bindings for resources (i.e., bindings that aren't samplers) and `false` otherwise.
+        /// </summary>
+        /// <returns>`true` if the descriptor set layout contains bindings for resources and `false` otherwise.</returns>
+        virtual bool bindsResources() const noexcept = 0;
+
+        /// <summary>
+        /// Returns `true` if the descriptor set layout contains bindings for samplers and `false` otherwise.
+        /// </summary>
+        /// <remarks>
+        /// Note that this method only returns `true` if the layout binds samplers, that is, if they are not static/immutable.
+        /// </remarks>
+        /// <returns>`true` if the descriptor set layout contains bindings for samplers and `false` otherwise.</returns>
+        virtual bool bindsSamplers() const noexcept = 0;
 
     public:
         /// <summary>
@@ -9687,10 +9704,11 @@ namespace LiteFX::Rendering {
         /// Allocates a range of descriptors in the global descriptor heaps for the provided <paramref name="descriptorSet" />.
         /// </summary>
         /// <param name="descriptorSet">The descriptor set containing the descriptors to update.</param>
+        /// <param name="heapType">The type of the descriptor heap to allocate descriptors on.</param>
         /// <param name="heapOffset">The offset of the descriptor range in the global descriptor heap.</param>
         /// <param name="heapSize">The size of the address range in the global descriptor heap.</param>
-        inline void allocateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32& heapOffset, UInt32& heapSize) const {
-            this->doAllocateGlobalDescriptors(descriptorSet, heapOffset, heapSize);
+        inline void allocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const {
+            this->doAllocateGlobalDescriptors(descriptorSet, heapType, heapOffset, heapSize);
         }
 
         /// <summary>
@@ -9742,7 +9760,7 @@ namespace LiteFX::Rendering {
     private:
         virtual void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
         virtual void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
-        virtual void doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32& heapOffset, UInt32& heapSize) const = 0;
+        virtual void doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const = 0;
         virtual void doReleaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const = 0;
         virtual void doUpdateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const = 0;
         virtual void doBindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept = 0;

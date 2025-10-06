@@ -134,15 +134,15 @@ private:
     PFN_vkDebugMarkerSetObjectNameEXT debugMarkerSetObjectName = nullptr;
 #endif
 
-    size_t m_globalBufferHeapSize, m_globalSamplerHeapSize, m_bufferOffset{ 0 }, m_samplerOffset{ 0 };
+    size_t m_globalDescriptorHeapSize, m_globalDescriptorHeapOffset{ 0 };
     VkPhysicalDeviceDescriptorBufferPropertiesEXT m_descriptorBufferProperties { .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_BUFFER_PROPERTIES_EXT };
-    SharedPtr<IVulkanBuffer> m_globalBufferHeap, m_globalSamplerHeap;
+    SharedPtr<IVulkanBuffer> m_globalDescriptorHeap;
     mutable std::mutex m_bufferBindMutex;
-    Array<std::pair<UInt32, UInt32>> m_bufferDescriptorFragments, m_samplerDescriptorFragments;
+    Array<std::pair<UInt32, UInt32>> m_descriptorHeapFragments;
 
 public:
-    VulkanDeviceImpl(const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const GraphicsDeviceFeatures& features, Span<String> extensions, size_t globalBufferHeapSize, size_t globalSamplerHeapSize) :
-        m_adapter(adapter.shared_from_this()), m_surface(std::move(surface)), m_globalBufferHeapSize(globalBufferHeapSize), m_globalSamplerHeapSize(globalSamplerHeapSize)
+    VulkanDeviceImpl(const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, const GraphicsDeviceFeatures& features, Span<String> extensions, size_t globalDescriptorHeapSize) :
+        m_adapter(adapter.shared_from_this()), m_surface(std::move(surface)), m_globalDescriptorHeapSize(globalDescriptorHeapSize)
     {
         if (m_surface == nullptr)
             throw ArgumentNotInitializedException("surface", "The surface must be initialized.");
@@ -531,6 +531,8 @@ public:
 
     inline void initializeResourceHeaps() noexcept
     {
+        // NOTE: Check the notes in `VulkanGraphicsFactory::createDescriptorHeap` for an explanation why we only use one descriptor heap in the Vulkan backend!
+
         // Initialize the global descriptor heaps. First, we need to request the physical device limits that we need later to bind descriptors within the descriptor buffer.
         VkPhysicalDeviceProperties2 deviceProperties = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
@@ -539,13 +541,15 @@ public:
 
         ::vkGetPhysicalDeviceProperties2(m_adapter->handle(), &deviceProperties);
 
-        // Align the heap sizes to the descriptor buffer offset alignment.
-        m_globalBufferHeapSize = align(m_globalBufferHeapSize, static_cast<size_t>(m_descriptorBufferProperties.descriptorBufferOffsetAlignment));
-        m_globalSamplerHeapSize = align(m_globalSamplerHeapSize, static_cast<size_t>(m_descriptorBufferProperties.descriptorBufferOffsetAlignment));
+        // Reduce the descriptor buffer size and warn about it, if the device properties exhibit a lower limit. Creation should then fail in factory, if 
+        // validation layers are enabled. Otherwise a more severe error could be encountered (probably VK_DEVICE_LOST).
+        m_globalDescriptorHeapSize = align(m_globalDescriptorHeapSize, static_cast<size_t>(m_descriptorBufferProperties.descriptorBufferOffsetAlignment));
+
+        if (static_cast<size_t>(m_descriptorBufferProperties.descriptorBufferAddressSpaceSize) < m_globalDescriptorHeapSize)
+            LITEFX_WARNING(VULKAN_LOG, "Requested descriptor heap size was: {0} bytes, but the device only supports descriptor buffers up to {1} bytes.", m_globalDescriptorHeapSize, m_descriptorBufferProperties.descriptorBufferAddressSpaceSize);
 
         // Create the descriptor buffers for both heaps.
-        m_globalBufferHeap = m_factory->createDescriptorHeap("Global Buffer Heap", m_globalBufferHeapSize, false);
-        m_globalSamplerHeap = m_factory->createDescriptorHeap("Global Sampler Heap", m_globalSamplerHeapSize, true);
+        m_globalDescriptorHeap = m_factory->createDescriptorHeap("Global Descriptor Heap", m_globalDescriptorHeapSize);
     }
 
 public:
@@ -576,8 +580,8 @@ public:
 // Interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features, Span<String> extensions, size_t globalBufferHeapSize, size_t globalSamplerHeapSize) :
-    Resource<VkDevice>(nullptr), m_impl(adapter, std::move(surface), features, extensions, globalBufferHeapSize, globalSamplerHeapSize)
+VulkanDevice::VulkanDevice(const VulkanBackend& /*backend*/, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features, Span<String> extensions, size_t globalDescriptorHeapSize) :
+    Resource<VkDevice>(nullptr), m_impl(adapter, std::move(surface), features, extensions, globalDescriptorHeapSize)
 {
     LITEFX_DEBUG(VULKAN_LOG, "Creating Vulkan device {{ Surface: {0}, Adapter: {1}, Extensions: {2} }}...", static_cast<void*>(m_impl->m_surface.get()), adapter.deviceId(), Join(this->enabledExtensions(), ", "));
     LITEFX_DEBUG(VULKAN_LOG, "--------------------------------------------------------------------------");
@@ -616,8 +620,7 @@ void VulkanDevice::release() noexcept
     m_impl->m_graphicsQueue.reset();
     m_impl->m_families.clear();
     m_impl->m_surface.reset();
-    m_impl->m_globalBufferHeap.reset();
-    m_impl->m_globalSamplerHeap.reset();
+    m_impl->m_globalDescriptorHeap.reset();
     m_impl->m_factory.reset();
 
     // Destroy the device.
@@ -685,7 +688,7 @@ UInt32 VulkanDevice::descriptorSize(DescriptorType type) const
     }
 }
 
-void VulkanDevice::allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, UInt32& offset, UInt32& size) const
+void VulkanDevice::allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& offset, UInt32& size) const
 {
     // NOTE: Freeing descriptor sets with leaves the heap(s) in fragmented state. This should be prevented, however we also keep track of the released offset/count pairs to re-allocate 
     //       them later. Re-allocation could follow those steps:
@@ -696,60 +699,35 @@ void VulkanDevice::allocateGlobalDescriptors(const VulkanDescriptorSet& descript
     std::lock_guard<std::mutex> lock(m_impl->m_bufferBindMutex);
 
     // Get the current descriptor sizes and compute the offsets.
-    // NOTE: The descriptor set layout checks for invalid mixture of samplers and resources, so we only get one or the other here.
     auto descriptorBuffer = descriptorSet.descriptorBuffer();
     auto alignedHeapSize = size = static_cast<UInt32>(align(descriptorBuffer.size(), static_cast<size_t>(m_impl->m_descriptorBufferProperties.descriptorBufferOffsetAlignment)));
+    size = 0u;
+    offset = std::numeric_limits<UInt32>::max();
 
     if (alignedHeapSize == 0)
         throw InvalidArgumentException("descriptorSet", "Cannot allocate space for empty descriptor set on global descriptor heap.");
 
-    if (descriptorSet.layout().samplers() > 0 || descriptorSet.layout().staticSamplers() > 0)
+    switch (heapType)
     {
-        auto alignedEndOffset = m_impl->m_samplerOffset + alignedHeapSize;
+    case DescriptorHeapType::Resource:
+    case DescriptorHeapType::Sampler:
+    {
+        auto alignedEndOffset = m_impl->m_globalDescriptorHeapOffset + alignedHeapSize;
 
-        if (alignedEndOffset <= m_impl->m_globalSamplerHeapSize) [[likely]]
+        if (m_impl->m_globalDescriptorHeapOffset <= m_impl->m_globalDescriptorHeapSize) [[likely]]
         {
-            offset = static_cast<UInt32>(m_impl->m_samplerOffset);
-            m_impl->m_samplerOffset = alignedEndOffset;
+            offset = static_cast<UInt32>(m_impl->m_globalDescriptorHeapOffset);
+            m_impl->m_globalDescriptorHeapOffset = alignedEndOffset;
         }
         else [[unlikely]]
         {
             // Find a fitting offset from the fragment heap.
-            if (auto match = std::ranges::find_if(m_impl->m_samplerDescriptorFragments, [&alignedHeapSize](const auto& pair) { return pair.second == alignedHeapSize; }); match != m_impl->m_samplerDescriptorFragments.end())
+            if (auto match = std::ranges::find_if(m_impl->m_descriptorHeapFragments, [&alignedHeapSize](const auto& pair) { return pair.second == alignedHeapSize; }); match != m_impl->m_descriptorHeapFragments.end())
             {
                 offset = match->first;
-                m_impl->m_samplerDescriptorFragments.erase(match);
+                m_impl->m_descriptorHeapFragments.erase(match);
             }
-            else if (match = std::ranges::find_if(m_impl->m_samplerDescriptorFragments, [&alignedHeapSize](const auto& pair) { return pair.second > alignedHeapSize; }); match != m_impl->m_samplerDescriptorFragments.end())
-            {
-                offset = match->first;
-                match->first += alignedHeapSize;
-                match->second -= alignedHeapSize;
-            }
-            else [[unlikely]]
-            {
-                throw RuntimeException("Unable to allocate more descriptors on global sampler heap.");
-            }
-        }
-    }
-    else // We're allocating for non-sampler resources.
-    {
-        auto alignedEndOffset = m_impl->m_bufferOffset + alignedHeapSize;
-
-        if (m_impl->m_bufferOffset <= m_impl->m_globalBufferHeapSize) [[likely]]
-        {
-            offset = static_cast<UInt32>(m_impl->m_bufferOffset);
-            m_impl->m_bufferOffset = alignedEndOffset;
-        }
-        else [[unlikely]]
-        {
-            // Find a fitting offset from the fragment heap.
-            if (auto match = std::ranges::find_if(m_impl->m_bufferDescriptorFragments, [&alignedHeapSize](const auto& pair) { return pair.second == alignedHeapSize; }); match != m_impl->m_bufferDescriptorFragments.end())
-            {
-                offset = match->first;
-                m_impl->m_bufferDescriptorFragments.erase(match);
-            }
-            else if (match = std::ranges::find_if(m_impl->m_bufferDescriptorFragments, [&alignedHeapSize](const auto& pair) { return pair.second > alignedHeapSize; }); match != m_impl->m_bufferDescriptorFragments.end())
+            else if (match = std::ranges::find_if(m_impl->m_descriptorHeapFragments, [&alignedHeapSize](const auto& pair) { return pair.second > alignedHeapSize; }); match != m_impl->m_descriptorHeapFragments.end())
             {
                 offset = match->first;
                 match->first += alignedHeapSize;
@@ -760,6 +738,14 @@ void VulkanDevice::allocateGlobalDescriptors(const VulkanDescriptorSet& descript
                 throw RuntimeException("Unable to allocate more descriptors on global buffer heap.");
             }
         }
+
+        break;
+    }
+    default:
+    {
+        LITEFX_WARNING(VULKAN_LOG, "The descriptor heap type must be one of the following: {{ `Resource`, `Sampler` }}, but it was: `{0}`.", heapType);
+        return;
+    }
     }
 }
 
@@ -767,37 +753,40 @@ void VulkanDevice::releaseGlobalDescriptors(const VulkanDescriptorSet& descripto
 {
     std::lock_guard<std::mutex> lock(m_impl->m_bufferBindMutex);
 
-    if (descriptorSet.layout().samplers() > 0 || descriptorSet.layout().staticSamplers() > 0)
-        m_impl->m_samplerDescriptorFragments.emplace_back(descriptorSet.globalHeapOffset(), descriptorSet.globalHeapAddressRange());
-    else
-        m_impl->m_bufferDescriptorFragments.emplace_back(descriptorSet.globalHeapOffset(), descriptorSet.globalHeapAddressRange());
+    if (descriptorSet.layout().bindsSamplers() || descriptorSet.layout().bindsResources()) // Discard empty sets.
+        m_impl->m_descriptorHeapFragments.emplace_back(descriptorSet.globalHeapOffset(DescriptorHeapType::Resource), descriptorSet.globalHeapAddressRange(DescriptorHeapType::Resource)); // NOTE: Heap type does not matter in Vulkan.
 }
 
 void VulkanDevice::updateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const
 {
+    // Bind the descriptor to the appropriate type. Note that static samplers aren't bound, so effectively this call is invalid. However we simply treat it as a no-op.
+    auto descriptorLayout = descriptorSet.layout().descriptor(binding);
+
+    // Compute the descriptor offset and binding range.
     auto firstDescriptor = descriptorSet.layout().getDescriptorOffset(binding, offset);
     auto descriptorBuffer = descriptorSet.descriptorBuffer();
     auto descriptorOffset = std::next(descriptorBuffer.data(), firstDescriptor);
-    auto descriptorSize = this->descriptorSize(descriptorSet.layout().descriptor(binding).descriptorType());
+    auto descriptorSize = this->descriptorSize(descriptorLayout.descriptorType());
     auto mappedRange = static_cast<size_t>(descriptors) * descriptorSize;
 
-    if (descriptorSet.layout().samplers() > 0 || descriptorSet.layout().staticSamplers() > 0)
-        m_impl->m_globalSamplerHeap->write(descriptorOffset, mappedRange, static_cast<size_t>(descriptorSet.globalHeapOffset()) + firstDescriptor);
-    else
-        m_impl->m_globalBufferHeap->write(descriptorOffset, mappedRange, static_cast<size_t>(descriptorSet.globalHeapOffset()) + firstDescriptor);
+    // NOTE: We actually only need to check for a static sampler here, but in case we need to change this later, we'll keep it this way.
+    if (descriptorLayout.descriptorType() == DescriptorType::Sampler && descriptorLayout.staticSampler() == nullptr)
+        m_impl->m_globalDescriptorHeap->write(descriptorOffset, mappedRange, static_cast<size_t>(descriptorSet.globalHeapOffset(DescriptorHeapType::Sampler)) + firstDescriptor);
+    else if (descriptorLayout.descriptorType() != DescriptorType::Sampler)
+        m_impl->m_globalDescriptorHeap->write(descriptorOffset, mappedRange, static_cast<size_t>(descriptorSet.globalHeapOffset(DescriptorHeapType::Resource)) + firstDescriptor);
 }
 
 void VulkanDevice::bindDescriptorSet(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept
 {
-    // We only use one descriptor buffer for resources and one for samplers, which makes setting offsets pretty straightforward. The indices are defined by 
-    // the `bindGlobalDescriptorHeaps` implementation below. The offsets are then simply mapped to linear memory. The offset is assigned to a descriptor set
-    // during allocation.
-    const bool isSamplerSet = descriptorSet.layout().samplers() > 0 || descriptorSet.layout().staticSamplers() > 0;
-    UInt32 bufferIndex = isSamplerSet ? 1 : 0; // Again, see `bindGlobalDescriptorHeaps` below - samplers are stored in the heap bound at index 1 there.
-    auto bufferOffset = static_cast<VkDeviceSize>(descriptorSet.globalHeapOffset());
+    // Copy the descriptors to the global heaps and set the root table parameters.
+    if (descriptorSet.layout().bindsResources() || descriptorSet.layout().bindsSamplers()) // Discard empty sets.
+    {
+        const UInt32 bufferIndex{ 0u }; // See `bindGlobalDescriptorHeaps` below - the only heap is bound at index 0 there.
+        const auto bufferOffset = static_cast<VkDeviceSize>(descriptorSet.globalHeapOffset(DescriptorHeapType::Resource)); // NOTE: Heap type does not matter in Vulkan.
 
-    // Set the descriptor buffer offsets for the descriptor sets.
-    vkCmdSetDescriptorBufferOffsets(commandBuffer.handle(), pipeline.pipelineType(), pipeline.layout()->handle(), descriptorSet.layout().space(), 1u, &bufferIndex, &bufferOffset);
+        // Set the descriptor buffer offsets for the descriptor sets.
+        vkCmdSetDescriptorBufferOffsets(commandBuffer.handle(), pipeline.pipelineType(), pipeline.layout()->handle(), descriptorSet.layout().space(), 1u, &bufferIndex, &bufferOffset);
+    }
 }
 
 void VulkanDevice::bindGlobalDescriptorHeaps(const VulkanCommandBuffer& commandBuffer) const noexcept
@@ -805,8 +794,7 @@ void VulkanDevice::bindGlobalDescriptorHeaps(const VulkanCommandBuffer& commandB
     // Create the descriptor buffer binding infos.
     // NOTE: The order is important here! If we change this, `bindDescriptorSet` must be updated as well.
     auto descriptorHeaps = std::array {
-        VkDescriptorBufferBindingInfoEXT { .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_BUFFER_BINDING_INFO_EXT, .address = m_impl->m_globalBufferHeap->virtualAddress(), .usage = VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT },
-        VkDescriptorBufferBindingInfoEXT { .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_BUFFER_BINDING_INFO_EXT, .address = m_impl->m_globalSamplerHeap->virtualAddress(), .usage = VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT }
+        VkDescriptorBufferBindingInfoEXT { .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_BUFFER_BINDING_INFO_EXT, .address = m_impl->m_globalDescriptorHeap->virtualAddress(), .usage = VK_BUFFER_USAGE_RESOURCE_DESCRIPTOR_BUFFER_BIT_EXT | VK_BUFFER_USAGE_SAMPLER_DESCRIPTOR_BUFFER_BIT_EXT },
     };
 
     // Bind the descriptor buffers.
