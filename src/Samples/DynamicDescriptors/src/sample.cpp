@@ -124,7 +124,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
             .cullOrder(CullOrder::ClockWise)
             .lineWidth(1.f)
             .depthState(DepthStencilState::DepthState{ .Operation = CompareOperation::LessEqual }))
-        .layout(shaderProgram->reflectPipelineLayout(std::array{ PipelineBindingHint::resourceHeap(0u, 0u) }))
+        .layout(shaderProgram->reflectPipelineLayout(std::array{ PipelineBindingHint::resourceHeap(0u, 0u, NUM_INSTANCES) }))
         .shaderProgram(shaderProgram);
 
     // Add the resources to the device state.

@@ -579,33 +579,26 @@ public:
 
         if (directlyAccessResourceHeap)
         {
-            // Look for a hint that defines the desired binding point and does not overlay with an existing descriptor. If non is available create one behind the last descriptor set.
-            DescriptorBindingPoint binding{};
-            
-            if (resourceHeapHint != hints.end())
-                binding = (*resourceHeapHint).Binding;
+            // Look for a hint that defines the desired binding point and does not overlay with an existing descriptor. If non is available, issue a warning.
+            if (resourceHeapHint == hints.end())
+                LITEFX_WARNING(DIRECTX12_LOG, "The root signature of the shader specifies dynamic resource descriptor heap access, but you did not provide a binding hint to initialize it.");
             else
             {
-                binding = { .Register = 0u, .Space = std::ranges::max(descriptorSetLayouts | std::views::keys) + 1 };
-                deducedSpace = binding.Space; // Store it, so we can attach the sampler heap to register 1, if available and no hint is given.
+                auto binding = (*resourceHeapHint).Binding;
+                descriptorSetLayouts[binding.Space].descriptors.emplace_back(binding.Register, 0u, std::get<PipelineBindingHint::DescriptorHeapHint>((*resourceHeapHint).Hint).HeapSize, false, DescriptorType::ResourceDescriptorHeap);
             }
-
-            // Create proxy binding.
-            descriptorSetLayouts[binding.Space].descriptors.emplace_back(binding.Register, 0u, 0u, true, DescriptorType::ResourceDescriptorHeap); // TODO: Specify max bindings?
         }
 
         if (directlyAccessSamplerHeap)
         {
-            // Look for a hint that defines the desired binding point. If non is available create one behind the last descriptor set.
-            DescriptorBindingPoint binding{};
-
-            if (samplerHeapHint != hints.end())
-                binding = (*samplerHeapHint).Binding;
+            // Look for a hint that defines the desired binding point. If non is available, issue a warning.
+            if (samplerHeapHint == hints.end())
+                LITEFX_WARNING(DIRECTX12_LOG, "The root signature of the shader specifies dynamic sampler descriptor heap access, but you did not provide a binding hint to initialize it.");
             else
-                binding = { .Register = 1u, .Space = deducedSpace.value_or(std::ranges::max(descriptorSetLayouts | std::views::keys) + 1) };
-
-            // Create proxy binding.
-            descriptorSetLayouts[binding.Space].descriptors.emplace_back(binding.Register, 0u, 0u, true, DescriptorType::SamplerDescriptorHeap); // TODO: Specify max bindings?
+            {
+                auto binding = (*samplerHeapHint).Binding;
+                descriptorSetLayouts[binding.Space].descriptors.emplace_back(binding.Register, 0u, std::get<PipelineBindingHint::DescriptorHeapHint>((*resourceHeapHint).Hint).HeapSize, false, DescriptorType::SamplerDescriptorHeap);
+            }
         }
 
         // Create the descriptor set layouts.

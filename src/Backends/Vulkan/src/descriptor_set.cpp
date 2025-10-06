@@ -120,11 +120,6 @@ UInt32 VulkanDescriptorSet::globalHeapAddressRange(DescriptorHeapType heapType) 
     }
 }
 
-UInt32 VulkanDescriptorSet::heapIndex(UInt32 descriptor) const noexcept
-{
-    return descriptor; // As dynamic indexing is only emulated in Vulkan, we do not need to apply any offset into the global heap.
-}
-
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const
 {
     UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;

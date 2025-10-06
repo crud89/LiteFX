@@ -109,11 +109,6 @@ UInt32 DirectX12DescriptorSet::globalHeapAddressRange(DescriptorHeapType heapTyp
     }
 }
 
-UInt32 DirectX12DescriptorSet::heapIndex(UInt32 descriptor) const noexcept
-{
-    return m_impl->m_heapOffset + descriptor;
-}
-
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const
 {
     UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;

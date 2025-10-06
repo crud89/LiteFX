@@ -32,6 +32,7 @@ struct InstanceData
 
 ConstantBuffer<CameraData> camera  : register(b0, space1);
 ConstantBuffer<DrawData> drawData  : register(b0, space2);
+Texture2D texture : register(t1, space2);
 
 float4x4 angleAxis(float angle, float4 axis)
 {
@@ -59,6 +60,10 @@ VertexData main(in VertexInput input, uint id : SV_InstanceID)
     float4x4 transform = mul(rotation, mul(instance.Transform, rotation));
     float4 position = mul(float4(input.Position, 1.0), transform);
 
+    
+    //SamplerState samplerState = SamplerDescriptorHeap[NonUniformResourceIndex(id)];
+    //vertex.Color = texture.SampleLevel(samplerState, 0.5.xx, 0.0);
+    
     vertex.Position = mul(position, camera.ViewProjection);
     vertex.Color = instance.Color;
  
