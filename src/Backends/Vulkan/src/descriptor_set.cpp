@@ -120,7 +120,7 @@ UInt32 VulkanDescriptorSet::globalHeapAddressRange(DescriptorHeapType heapType) 
     }
 }
 
-void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const
+void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat) const
 {
     UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;
 
@@ -181,12 +181,12 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
         case DescriptorType::Buffer:
             descriptorInfo.type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
             descriptorInfo.data.pUniformTexelBuffer = &addressInfo;
-            addressInfo.format = VK_FORMAT_R8G8B8A8_UINT;
+            addressInfo.format = Vk::getFormat(texelFormat);
             break;
         case DescriptorType::RWBuffer:
             descriptorInfo.type = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
             descriptorInfo.data.pStorageTexelBuffer = &addressInfo;
-            addressInfo.format = VK_FORMAT_R8G8B8A8_UINT;
+            addressInfo.format = Vk::getFormat(texelFormat);
             break;
         case DescriptorType::ByteAddressBuffer:
         case DescriptorType::RWByteAddressBuffer:

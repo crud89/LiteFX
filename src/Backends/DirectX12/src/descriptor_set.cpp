@@ -109,7 +109,7 @@ UInt32 DirectX12DescriptorSet::globalHeapAddressRange(DescriptorHeapType heapTyp
     }
 }
 
-void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const
+void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat) const
 {
     UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;
 
@@ -222,7 +222,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
         for (UInt32 i(0); i < elementCount; ++i)
         {
             D3D12_SHADER_RESOURCE_VIEW_DESC bufferView = {
-                .Format = DXGI_FORMAT_R32_TYPELESS, // TODO: Actually set the proper texel format.
+                .Format = DX12::getFormat(texelFormat),
                 .ViewDimension = D3D12_SRV_DIMENSION_BUFFER,
                 .Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING,
                 .Buffer = {.FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0 }
@@ -239,7 +239,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
         for (UInt32 i(0); i < elementCount; ++i)
         {
             D3D12_UNORDERED_ACCESS_VIEW_DESC bufferView = {
-                .Format = DXGI_FORMAT_R32_TYPELESS, // TODO: Actually set the proper texel format.
+                .Format = DX12::getFormat(texelFormat),
                 .ViewDimension = D3D12_UAV_DIMENSION_BUFFER,
                 .Buffer = {.FirstElement = (bufferElement + i) * sizeof(DWORD), .NumElements = static_cast<UInt32>(buffer.alignedElementSize() / sizeof(DWORD)), .StructureByteStride = 0, .CounterOffsetInBytes = 0 }
             };

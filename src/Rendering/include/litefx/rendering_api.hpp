@@ -5350,8 +5350,9 @@ namespace LiteFX::Rendering {
         /// <param name="bufferElement">The index of the first element in the buffer to bind to the descriptor set.</param>
         /// <param name="elements">The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at <paramref name="bufferElement" />.</param>
         /// <param name="firstDescriptor">The index of the first descriptor in the descriptor array to update.</param>
-        void update(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0) const {
-            this->doUpdate(binding, buffer, bufferElement, elements, firstDescriptor);
+        /// <param name="texelFormat">The format used to read a texel buffer. Required if <paramref name="binding" /> binds a texel buffer and ignored otherwise.</param>
+        void update(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None) const {
+            this->doUpdate(binding, buffer, bufferElement, elements, firstDescriptor, texelFormat);
         }
 
         /// <summary>
@@ -5400,7 +5401,7 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        virtual void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const = 0;
+        virtual void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat) const = 0;
         virtual void doUpdate(UInt32 binding, const IImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const = 0;
         virtual void doUpdate(UInt32 binding, const ISampler& sampler, UInt32 descriptor) const = 0;
         virtual void doUpdate(UInt32 binding, const IAccelerationStructure& accelerationStructure, UInt32 descriptor) const = 0;
