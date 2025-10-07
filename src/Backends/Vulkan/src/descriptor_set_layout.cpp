@@ -195,9 +195,6 @@ public:
                 case VK_DESCRIPTOR_TYPE_SAMPLER:
                     unboundedDescriptorCount = std::min(binding.descriptorCount, maxSamplers);
                     break;
-                case VK_DESCRIPTOR_TYPE_MUTABLE_EXT:
-                    
-                    break;
                 default:
                     break;
                 }
