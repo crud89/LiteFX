@@ -170,9 +170,6 @@ public:
                 bindingFlags.emplace_back(VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT);
                 m_unboundedDescriptorType = binding.descriptorType;
                 
-                // Set the descriptor count for the binding to 0 for now and patch it later.
-                binding.descriptorCount = 0;
-
                 // Store the preferred descriptor count, the binding array index and set the descriptor count to 0. We will query the maximum supported descriptor count right before creating
                 // the layout handle and overwrite the descriptor count, if required. Note that this does not necessarily validate all required limits. The effective number of bound descriptors
                 // can be further influenced by the per stage resource bindings limit.
@@ -199,15 +196,21 @@ public:
                     unboundedDescriptorCount = std::min(binding.descriptorCount, maxSamplers);
                     break;
                 case VK_DESCRIPTOR_TYPE_MUTABLE_EXT:
-                    // For descriptor heaps, we straight up pass the heap size to the descriptor count property. As it is required to provide it anyway, any validation errors from this
-                    // can easily be resolved by reducing the heap sizes. Note that we shouldn't actually reach here anyway, but this might change in the future.
-                    binding.descriptorCount = layout.descriptors();
+                    
                     break;
                 default:
                     break;
                 }
 
                 unboundedDescriptorIndex = static_cast<UInt32>(bindings.size());
+
+                // Set the descriptor count for the binding to 0 for now and patch it later.
+                // For descriptor heaps, we straight up pass the heap size to the descriptor count property. As it is required to provide it anyway, any validation errors from this
+                // can easily be resolved by reducing the heap sizes. Note that we shouldn't actually reach here anyway, but this might change in the future.
+                if (binding.descriptorType != VK_DESCRIPTOR_TYPE_MUTABLE_EXT)
+                    binding.descriptorCount = 0;
+                else
+                    binding.descriptorCount = layout.descriptors();
             }
             else
             {
