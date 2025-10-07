@@ -61,7 +61,7 @@ public:
                 m_isRuntimeArray = true;
             
             // Map and count the descriptors.
-            if (layout.descriptorType() == DescriptorType::Sampler)
+            if (layout.descriptorType() == DescriptorType::Sampler || layout.descriptorType() == DescriptorType::SamplerDescriptorHeap)
             {
                 // Only count dynamic samplers.
                 if (layout.staticSampler() == nullptr)

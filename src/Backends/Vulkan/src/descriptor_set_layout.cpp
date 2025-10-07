@@ -532,12 +532,12 @@ UInt32 VulkanDescriptorSetLayout::getDescriptorOffset(UInt32 binding, UInt32 ele
 
 bool VulkanDescriptorSetLayout::bindsResources() const noexcept
 {
-    return std::ranges::any_of(m_impl->m_descriptorLayouts, [](const auto& layout) { return layout.descriptorType() != DescriptorType::Sampler; });
+    return std::ranges::any_of(m_impl->m_descriptorLayouts, [](const auto& layout) { return layout.descriptorType() != DescriptorType::Sampler && layout.descriptorType() != DescriptorType::SamplerDescriptorHeap; });
 }
 
 bool VulkanDescriptorSetLayout::bindsSamplers() const noexcept
 {
-    return std::ranges::any_of(m_impl->m_descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::Sampler && layout.staticSampler() == nullptr; });
+    return std::ranges::any_of(m_impl->m_descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::SamplerDescriptorHeap || (layout.descriptorType() == DescriptorType::Sampler && layout.staticSampler() == nullptr); });
 }
 
 UniquePtr<VulkanDescriptorSet> VulkanDescriptorSetLayout::allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const
