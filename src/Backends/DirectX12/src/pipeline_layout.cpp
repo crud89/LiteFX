@@ -298,7 +298,8 @@ public:
         return rootSignature;
     }
 
-    inline bool containsDescriptorOfType(Enumerable<SharedPtr<const DirectX12DescriptorSetLayout>> descriptorSetLayouts, DescriptorType descriptorType) const noexcept {
+    inline bool containsDescriptorOfType(Enumerable<SharedPtr<const DirectX12DescriptorSetLayout>> descriptorSetLayouts, DescriptorType descriptorType) const {
+        // TODO: Check why we can't make this `noexcept`... because in my opinion it should be possible.
         auto descriptorLayouts = descriptorSetLayouts
             | std::views::transform([](const auto& layout) { return layout->descriptors(); })
             | std::views::join;
@@ -368,12 +369,12 @@ Optional<UInt32> DirectX12PipelineLayout::rootParameterIndex(const DirectX12Push
         return std::nullopt;
 }
 
-bool DirectX12PipelineLayout::dynamicResourceHeapAccess() const noexcept
+bool DirectX12PipelineLayout::dynamicResourceHeapAccess() const
 {
     return m_impl->containsDescriptorOfType(m_impl->m_descriptorSetLayouts, DescriptorType::ResourceDescriptorHeap);
 }
 
-bool DirectX12PipelineLayout::dynamicSamplerHeapAccess() const noexcept
+bool DirectX12PipelineLayout::dynamicSamplerHeapAccess() const
 {
     return m_impl->containsDescriptorOfType(m_impl->m_descriptorSetLayouts, DescriptorType::SamplerDescriptorHeap);
 }

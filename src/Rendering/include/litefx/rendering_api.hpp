@@ -6845,13 +6845,13 @@ namespace LiteFX::Rendering {
         /// Returns `true`, if the pipeline supports directly indexing into a resource heap and `false` otherwise.
         /// </summary>
         /// <returns>`true`, if the pipeline supports directly indexing into a resource heap and `false` otherwise</returns>
-        virtual bool dynamicResourceHeapAccess() const noexcept = 0;
+        virtual bool dynamicResourceHeapAccess() const = 0;
 
         /// <summary>
         /// Returns `true`, if the pipeline supports directly indexing into a sampler heap and `false` otherwise.
         /// </summary>
         /// <returns>`true`, if the pipeline supports directly indexing into a sampler heap and `false` otherwise</returns>
-        virtual bool dynamicSamplerHeapAccess() const noexcept = 0;
+        virtual bool dynamicSamplerHeapAccess() const = 0;
 
     private:
         virtual Enumerable<SharedPtr<const IDescriptorSetLayout>> getDescriptorSets() const = 0;

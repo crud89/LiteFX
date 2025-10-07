@@ -554,7 +554,6 @@ public:
         });
 
         // Create the proxy descriptor sets if dynamic resource or sampler heaps are enabled.
-        Optional<UInt32> deducedSpace{};
         Array<DescriptorBindingPoint> occupiedBindings{};
 
         // First, look up if there are any hints for the heap bindings. If not, the root signature could still enable those.

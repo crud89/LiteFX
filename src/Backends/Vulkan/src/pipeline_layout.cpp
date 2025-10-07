@@ -142,7 +142,7 @@ const VulkanPushConstantsLayout* VulkanPipelineLayout::pushConstants() const noe
     return m_impl->m_pushConstantsLayout.get();
 }
 
-bool VulkanPipelineLayout::dynamicResourceHeapAccess() const noexcept
+bool VulkanPipelineLayout::dynamicResourceHeapAccess() const
 {
     auto descriptorLayouts = m_impl->m_descriptorSetLayouts 
         | std::views::transform([](const auto& layout) { return layout->descriptors(); }) 
@@ -151,7 +151,7 @@ bool VulkanPipelineLayout::dynamicResourceHeapAccess() const noexcept
     return std::ranges::any_of(descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::ResourceDescriptorHeap; });
 }
 
-bool VulkanPipelineLayout::dynamicSamplerHeapAccess() const noexcept
+bool VulkanPipelineLayout::dynamicSamplerHeapAccess() const
 {
     auto descriptorLayouts = m_impl->m_descriptorSetLayouts
         | std::views::transform([](const auto& layout) { return layout->descriptors(); })

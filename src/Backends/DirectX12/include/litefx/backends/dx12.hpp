@@ -1197,10 +1197,10 @@ namespace LiteFX::Rendering::Backends {
         const DirectX12PushConstantsLayout* pushConstants() const noexcept override;
 
         /// <inheritdoc />
-        bool dynamicResourceHeapAccess() const noexcept override;
+        bool dynamicResourceHeapAccess() const override;
 
         /// <inheritdoc />
-        bool dynamicSamplerHeapAccess() const noexcept override;
+        bool dynamicSamplerHeapAccess() const override;
 
     public:
         /// <summary>
