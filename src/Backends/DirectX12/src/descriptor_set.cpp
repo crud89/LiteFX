@@ -83,7 +83,7 @@ public:
         }
     }
 
-    UInt32 updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 firstDescriptor, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements)
+    UInt32 updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 firstDescriptor, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat)
     {
         // Validate the buffer element bounds.
         UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;
@@ -485,7 +485,7 @@ UInt32 DirectX12DescriptorSet::globalHeapAddressRange(DescriptorHeapType heapTyp
     return m_impl->globalHeapAddressRange(heapType);
 }
 
-UInt32 DirectX12DescriptorSet::bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements) const
+UInt32 DirectX12DescriptorSet::bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat) const
 {
     // Find the resource descriptor heap.
     auto descriptors = m_impl->m_layout->descriptors();
@@ -495,7 +495,7 @@ UInt32 DirectX12DescriptorSet::bindToHeap(DescriptorType bindingType, UInt32 des
         throw RuntimeException("The descriptor set does not contain a resource heap descriptor.");
 
     // Update the binding.
-    return m_impl->updateBinding(*this, (*descriptorLayout), bindingType, descriptor, buffer, bufferElement, elements);
+    return m_impl->updateBinding(*this, (*descriptorLayout), bindingType, descriptor, buffer, bufferElement, elements, texelFormat);
 }
 
 UInt32 DirectX12DescriptorSet::bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IDirectX12Image& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
@@ -524,7 +524,7 @@ UInt32 DirectX12DescriptorSet::bindToHeap(UInt32 descriptor, const IDirectX12Sam
     return m_impl->updateBinding(*this, (*descriptorLayout), descriptor, sampler);
 }
 
-void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const
+void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat) const
 {
     // Find the descriptor.
     auto descriptors = m_impl->m_layout->descriptors();
@@ -540,7 +540,7 @@ void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Buffer& buff
         throw InvalidArgumentException("binding", "Resources that are bound to descriptor heaps directly must use `bindToHeap`.");
 
     // Update the binding.
-    m_impl->updateBinding(*this, (*match), match->descriptorType(), firstDescriptor, buffer, bufferElement, elements);
+    m_impl->updateBinding(*this, (*match), match->descriptorType(), firstDescriptor, buffer, bufferElement, elements, texelFormat);
 }
 
 void DirectX12DescriptorSet::update(UInt32 binding, const IDirectX12Image& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const

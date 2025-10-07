@@ -5406,10 +5406,11 @@ namespace LiteFX::Rendering {
         /// <param name="buffer">The buffer to bind.</param>
         /// <param name="bufferElement">The index of an element inside <paramref name="buffer" /> that should be bound.</param>
         /// <param name="elements">The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at <paramref name="bufferElement" />.</param>
+        /// <param name="texelFormat">The format used to read a texel buffer. Required if <paramref name="binding" /> binds a texel buffer and ignored otherwise.</param>
         /// <returns>The global heap index that can be used to access the resource from the shader.</returns>
         /// <exception cref="RuntimeException">Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by <paramref name="bindingType" />.</exception>
-        inline UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0) const {
-            return this->doBind(bindingType, descriptor, buffer, bufferElement, elements);
+        inline UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const {
+            return this->doBind(bindingType, descriptor, buffer, bufferElement, elements, texelFormat);
         }
 
         /// <summary>
@@ -5511,7 +5512,7 @@ namespace LiteFX::Rendering {
         }
 
     private:
-        virtual UInt32 doBind(DescriptorType bindingType, UInt32 descriptor, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements) const = 0;
+        virtual UInt32 doBind(DescriptorType bindingType, UInt32 descriptor, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat) const = 0;
         virtual UInt32 doBind(DescriptorType bindingType, UInt32 descriptor, const IImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const = 0;
         virtual UInt32 doBind(UInt32 descriptor, const ISampler& sampler) const = 0;
         virtual void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat) const = 0;

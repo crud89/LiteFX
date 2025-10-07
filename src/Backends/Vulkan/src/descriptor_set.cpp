@@ -346,7 +346,7 @@ UInt32 VulkanDescriptorSet::globalHeapAddressRange(DescriptorHeapType heapType) 
     }
 }
 
-UInt32 VulkanDescriptorSet::bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements) const
+UInt32 VulkanDescriptorSet::bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat) const
 {
     // Find the resource descriptor heap.
     auto descriptors = m_impl->m_layout->descriptors();
@@ -356,7 +356,7 @@ UInt32 VulkanDescriptorSet::bindToHeap(DescriptorType bindingType, UInt32 descri
         throw RuntimeException("The descriptor set does not contain a resource heap descriptor.");
 
     // Update the binding.
-    return m_impl->updateBinding(*this, (*descriptorLayout), bindingType, descriptor, buffer, bufferElement, elements, TexelFormat::None);
+    return m_impl->updateBinding(*this, (*descriptorLayout), bindingType, descriptor, buffer, bufferElement, elements, texelFormat);
 }
 
 UInt32 VulkanDescriptorSet::bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
