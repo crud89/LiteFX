@@ -58,6 +58,7 @@ IF(LITEFX_BUILD_EXAMPLES)
     ADD_SUBDIRECTORY(Samples/MeshShader)
     ADD_SUBDIRECTORY(Samples/RayTracing)
     ADD_SUBDIRECTORY(Samples/RayQueries)
+    ADD_SUBDIRECTORY(Samples/ImGui)
 ENDIF(LITEFX_BUILD_EXAMPLES)
 
 # Include tests.

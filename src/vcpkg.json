@@ -23,7 +23,11 @@
     "d3d12-memory-allocator",
     "directx12-agility",
     "directx-dxc",
-    "directx-warp"
+    "directx-warp",
+    {
+      "name": "imgui",
+      "features": [ "dx12-binding", "vulkan-binding", "glfw-binding" ]
+    }
   ],
   "features": {
     "pix-support": {
