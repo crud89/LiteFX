@@ -44,6 +44,7 @@ public:
             break;
         default:
             m_bufferType = BufferType::Other;
+            break;
         }
     }
 

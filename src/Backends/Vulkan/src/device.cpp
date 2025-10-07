@@ -185,6 +185,9 @@ private:
             m_extensions.emplace_back(VK_KHR_RAY_TRACING_MAINTENANCE_1_EXTENSION_NAME);
         }
 
+        if (features.DynamicDescriptors)
+            m_extensions.emplace_back(VK_EXT_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME);
+
 #if defined(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN) && defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
         // Interop swap chain requires external memory access.
         m_extensions.emplace_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
@@ -323,6 +326,15 @@ public:
         if (features.MeshShaders)
             lastFeature = &meshShaderFeatures;
 
+        VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT mutableDescriptorTypeFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT,
+            .pNext = lastFeature,
+            .mutableDescriptorType = features.DynamicDescriptors
+        };
+
+        if (features.DynamicDescriptors)
+            lastFeature = &mutableDescriptorTypeFeatures;
+
         // Allow geometry and tessellation shader stages.
         // NOTE: ... except when building tests, as they are not supported by SwiftShader.
         VkPhysicalDeviceFeatures2 deviceFeatures = {
@@ -384,7 +396,7 @@ public:
         VkPhysicalDeviceVulkan11Features deviceFeatures11 = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES,
             .pNext = &deviceFeatures12,
-            .shaderDrawParameters = features.DrawIndirect
+            .shaderDrawParameters = true
         };
 
         // Enable extended dynamic state.
@@ -675,6 +687,7 @@ UInt32 VulkanDevice::descriptorSize(DescriptorType type) const
     case DescriptorType::RWTexture:
         return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.storageImageDescriptorSize);
     case DescriptorType::Sampler:
+    case DescriptorType::SamplerDescriptorHeap:
         return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.samplerDescriptorSize);
     case DescriptorType::ByteAddressBuffer:
     case DescriptorType::RWByteAddressBuffer:
@@ -683,6 +696,17 @@ UInt32 VulkanDevice::descriptorSize(DescriptorType type) const
         return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.storageBufferDescriptorSize);
     case DescriptorType::Texture:
         return static_cast<UInt32>(m_impl->m_descriptorBufferProperties.sampledImageDescriptorSize);
+    case DescriptorType::ResourceDescriptorHeap:
+        // We need to return the largest descriptor from all supported ones. Supported descriptor types are listed in `VulkanDescriptorSetLayoutImpl::initialize`.
+        // See: https://registry.khronos.org/vulkan/specs/latest/man/html/VkPhysicalDeviceDescriptorBufferPropertiesEXT.html#_description
+        return static_cast<UInt32>(std::max({
+                m_impl->m_descriptorBufferProperties.uniformBufferDescriptorSize,       // VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER
+                m_impl->m_descriptorBufferProperties.uniformTexelBufferDescriptorSize,  // VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER
+                m_impl->m_descriptorBufferProperties.storageTexelBufferDescriptorSize,  // VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER
+                m_impl->m_descriptorBufferProperties.sampledImageDescriptorSize,        // VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE
+                m_impl->m_descriptorBufferProperties.storageImageDescriptorSize,        // VK_DESCRIPTOR_TYPE_STORAGE_IMAGE
+                m_impl->m_descriptorBufferProperties.storageBufferDescriptorSize        // VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+            }));
     default:
         throw InvalidArgumentException("type", "The provided descriptor type cannot be mapped to a descriptor heap.");
     }

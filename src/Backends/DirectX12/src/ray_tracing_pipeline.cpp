@@ -222,6 +222,8 @@ public:
 				case DescriptorType::RWTexture:         binding.Type = D3D12_DESCRIPTOR_RANGE_TYPE_UAV; break;
 				case DescriptorType::Sampler:			throw RuntimeException("Shader-local samplers are not supported.");
 				case DescriptorType::InputAttachment:   throw RuntimeException("Shader-local input attachments are not supported.");
+				case DescriptorType::ResourceDescriptorHeap:
+				case DescriptorType::SamplerDescriptorHeap: throw RuntimeException("Shader-local heap access descriptors are not supported.");
 			}
 
 			if (!rootSignatures.contains(binding))
