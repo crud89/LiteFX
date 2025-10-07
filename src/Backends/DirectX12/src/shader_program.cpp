@@ -596,7 +596,7 @@ public:
             else
             {
                 auto binding = (*samplerHeapHint).Binding;
-                descriptorSetLayouts[binding.Space].descriptors.emplace_back(binding.Register, 0u, std::get<PipelineBindingHint::DescriptorHeapHint>((*resourceHeapHint).Hint).HeapSize, false, DescriptorType::SamplerDescriptorHeap);
+                descriptorSetLayouts[binding.Space].descriptors.emplace_back(binding.Register, 0u, std::get<PipelineBindingHint::DescriptorHeapHint>((*samplerHeapHint).Hint).HeapSize, false, DescriptorType::SamplerDescriptorHeap);
             }
         }
 
