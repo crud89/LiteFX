@@ -172,7 +172,11 @@ public:
             // create separate root descriptor tables, as described here: https://learn.microsoft.com/en-us/windows/win32/direct3d12/example-root-signatures#binding-descriptor-tables.
             auto layouts = layout->descriptors();
             Array<D3D12_DESCRIPTOR_RANGE1> resourceSet = layouts 
-                | std::views::filter([](auto& range) { return range.descriptorType() != DescriptorType::Sampler && !range.local(); }) 
+                | std::views::filter([](auto& range) { 
+                    return !range.local() &&
+                        range.descriptorType() != DescriptorType::Sampler && 
+                        range.descriptorType() != DescriptorType::ResourceDescriptorHeap && 
+                        range.descriptorType() != DescriptorType::SamplerDescriptorHeap; })
                 | std::views::transform([&](auto& range) {
                     CD3DX12_DESCRIPTOR_RANGE1 descriptorRange = {};
 
@@ -197,7 +201,10 @@ public:
                 | std::ranges::to<Array<D3D12_DESCRIPTOR_RANGE1>>();
 
             Array<D3D12_DESCRIPTOR_RANGE1> samplerSet = layouts 
-                | std::views::filter([](auto& range) { return range.descriptorType() == DescriptorType::Sampler && range.staticSampler() == nullptr && !range.local(); }) 
+                | std::views::filter([](auto& range) { 
+                    return !range.local() && 
+                        range.descriptorType() == DescriptorType::Sampler && 
+                        range.staticSampler() == nullptr; })
                 | std::views::transform([&](auto& range) { 
                     return CD3DX12_DESCRIPTOR_RANGE1(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, range.descriptors(), range.binding(), space, D3D12_DESCRIPTOR_RANGE_FLAG_NONE, D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND); }) 
                 | std::ranges::to<Array<D3D12_DESCRIPTOR_RANGE1>>();
@@ -259,11 +266,20 @@ public:
         if (hasInputAttachments && !hasInputAttachmentSampler)
             staticSamplers.push_back(CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR));
 
+        // Setup root signature flags.
+        D3D12_ROOT_SIGNATURE_FLAGS flags { D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT };
+        
+        if (this->containsDescriptorOfType(descriptorLayouts, DescriptorType::ResourceDescriptorHeap))
+            flags |= D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED;
+
+        if (this->containsDescriptorOfType(descriptorLayouts, DescriptorType::SamplerDescriptorHeap))
+            flags |= D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED;
+
         // Create root signature descriptor.
         ComPtr<ID3DBlob> signature, error;
         String errorString = "";
         CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
-        rootSignatureDesc.Init_1_1(static_cast<UInt32>(descriptorParameters.size()), descriptorParameters.data(), static_cast<UInt32>(staticSamplers.size()), staticSamplers.data(), D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        rootSignatureDesc.Init_1_1(static_cast<UInt32>(descriptorParameters.size()), descriptorParameters.data(), static_cast<UInt32>(staticSamplers.size()), staticSamplers.data(), flags);
         HRESULT hr = ::D3D12SerializeVersionedRootSignature(&rootSignatureDesc, &signature, &error);
         
         if (error != nullptr)
@@ -280,6 +296,15 @@ public:
         m_descriptorSetLayouts.append_range(std::move(descriptorLayouts));
 
         return rootSignature;
+    }
+
+    inline bool containsDescriptorOfType(Enumerable<SharedPtr<const DirectX12DescriptorSetLayout>> descriptorSetLayouts, DescriptorType descriptorType) const {
+        // TODO: Check why we can't make this `noexcept`... because in my opinion it should be possible.
+        auto descriptorLayouts = descriptorSetLayouts
+            | std::views::transform([](const auto& layout) { return layout->descriptors(); })
+            | std::views::join;
+
+        return std::ranges::any_of(descriptorLayouts, [descriptorType](const auto& layout) { return layout.descriptorType() == descriptorType; });
     }
 };
 
@@ -342,6 +367,16 @@ Optional<UInt32> DirectX12PipelineLayout::rootParameterIndex(const DirectX12Push
         return match->second;
     else
         return std::nullopt;
+}
+
+bool DirectX12PipelineLayout::dynamicResourceHeapAccess() const
+{
+    return m_impl->containsDescriptorOfType(m_impl->m_descriptorSetLayouts, DescriptorType::ResourceDescriptorHeap);
+}
+
+bool DirectX12PipelineLayout::dynamicSamplerHeapAccess() const
+{
+    return m_impl->containsDescriptorOfType(m_impl->m_descriptorSetLayouts, DescriptorType::SamplerDescriptorHeap);
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

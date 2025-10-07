@@ -733,6 +733,15 @@ namespace LiteFX::Rendering::Backends {
         UInt32 globalHeapAddressRange(DescriptorHeapType heapType) const noexcept override;
 
         /// <inheritdoc />
+        UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0) const override;
+
+        /// <inheritdoc />
+        UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IDirectX12Image& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const override;
+
+        /// <inheritdoc />
+        UInt32 bindToHeap(UInt32 descriptor, const IDirectX12Sampler& sampler) const override;
+
+        /// <inheritdoc />
         void update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0) const override;
 
         /// <inheritdoc />
@@ -1186,6 +1195,12 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         const DirectX12PushConstantsLayout* pushConstants() const noexcept override;
+
+        /// <inheritdoc />
+        bool dynamicResourceHeapAccess() const override;
+
+        /// <inheritdoc />
+        bool dynamicSamplerHeapAccess() const override;
 
     public:
         /// <summary>
