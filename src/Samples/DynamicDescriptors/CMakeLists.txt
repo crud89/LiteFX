@@ -13,10 +13,11 @@ LIST(GET SHADER_MODEL 0 SHADER_MODEL_MAJOR)
 LIST(GET SHADER_MODEL 1 SHADER_MODEL_MINOR)
 SET(SAMPLE_SHADER_MODEL ${LITEFX_BUILD_HLSL_SHADER_MODEL})
 
-IF(${SHADER_MODEL_MAJOR} LESS 6 OR (${SHADER_MODEL_MAJOR} EQUAL 6 AND ${SHADER_MODEL_MINOR} LESS 6))
-    MESSAGE(WARNING "The dynamic descriptors sample requires shader model 6.6 or later, but ${SHADER_MODEL_MAJOR}.${SHADER_MODEL_MINOR} is selected. The sample will be built with shader model 6.6 and will not work if your system does not support it.")
-    SET(SAMPLE_SHADER_MODEL "6_6")
-ENDIF(${SHADER_MODEL_MAJOR} LESS 6 OR (${SHADER_MODEL_MAJOR} EQUAL 6 AND ${SHADER_MODEL_MINOR} LESS 6))
+# NOTE: The dynamic descriptors syntax actually only requries SM 6.6, but we use SV_StartInstanceLocation so that we do not have to pass around instance indices.
+IF(${SHADER_MODEL_MAJOR} LESS 6 OR (${SHADER_MODEL_MAJOR} EQUAL 6 AND ${SHADER_MODEL_MINOR} LESS 8))
+    MESSAGE(WARNING "The dynamic descriptors sample requires shader model 6.8 or later, but ${SHADER_MODEL_MAJOR}.${SHADER_MODEL_MINOR} is selected. The sample will be built with shader model 6.8 and will not work if your system does not support it.")
+    SET(SAMPLE_SHADER_MODEL "6_8")
+ENDIF(${SHADER_MODEL_MAJOR} LESS 6 OR (${SHADER_MODEL_MAJOR} EQUAL 6 AND ${SHADER_MODEL_MINOR} LESS 8))
 
 IF(NOT LITEFX_BUILD_WITH_GLM)
     MESSAGE(FATAL_ERROR "This sample requires the glm converters for the math module. Set the LITEFX_BUILD_WITH_GLM option to ON and retry.")

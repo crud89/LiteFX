@@ -42,10 +42,6 @@ public:
         case DescriptorType::AccelerationStructure:
             m_bufferType = BufferType::AccelerationStructure;
             break;
-        case DescriptorType::ResourceDescriptorHeap:
-        case DescriptorType::SamplerDescriptorHeap:
-            m_unbounded = true; // Descriptor heaps are always modeled as runtime arrays.
-            [[fallthrough]];
         default:
             m_bufferType = BufferType::Other;
             break;

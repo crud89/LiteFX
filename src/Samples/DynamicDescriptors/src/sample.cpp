@@ -165,18 +165,19 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
         { {.binding = 0, .resource = *drawDataBuffer, .firstElement = 2, .elements = 1 } },
     }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
 
-    // Next, we create the descriptor set for the instance buffer. The shader is designed to handle an arbitrary number of instances using an unbounded buffer array, so
-    // we have to specify how many instances we are actually allocating. We do this only once and then bind this array to all command buffers, since we do not need to 
-    // update it regularly. In case, updates are required, we either would have to allocate multiple descriptor sets (as in the other examples), or handle the frame index
-    // in the shader manually (which is a little bit more tricky, but we could then pack everything in one descriptor set. This descriptor set would then receive updates
-    // to the indices currently not in use (i.e. each instance buffer needs to be inside the array multiple times, once for each frame in flight). This is allowed for 
-    // unbounded descriptor arrays, as long as we ensure, not to overwrite descriptors that are currently in use.
-    //auto& instanceBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::InstanceData);
+    // Next, we create the descriptor set for the instance buffer. The shader uses direct heap indexing, so we need to bind the resources using the proxy descriptor set
+    // created at the binding we specified using the hint during shader reflection.
+    auto& instanceBindingLayout = geometryPipeline.layout()->descriptorSet(0u);
 
-    //// Since we are using an unstructured storage buffer, we need to specify the element size manually.
-    //auto instanceBuffer = m_device->factory().createBuffer("Instance Buffer", instanceBindingLayout, 0, ResourceHeap::Resource, sizeof(InstanceBuffer), NUM_INSTANCES);
-    //auto instanceBinding = instanceBindingLayout.allocate(NUM_INSTANCES, { { 0, *instanceBuffer } });
-    //commandBuffer->transfer(static_cast<const void*>(&instanceData), sizeof(instanceData), *instanceBuffer, 0, NUM_INSTANCES);
+    // Since we are using an unstructured storage buffer, we need to specify the element size manually. To be able to use dynamic descriptors, we need to call `bindToHeap`
+    // instead of `update`. Note that we also cannot supply the bindings directly to the `allocate`.
+    auto instanceBuffer = m_device->factory().createBuffer("Instance Buffer", instanceBindingLayout, 0, ResourceHeap::Resource, sizeof(InstanceBuffer), NUM_INSTANCES);
+    auto instanceBinding = instanceBindingLayout.allocate();
+
+    // We store the base index of the first instance buffer here and supply it later as a base offset for the draw call. This way, we do not need to pass the resource 
+    // index by other means (e.g., a push constant or buffer).
+    m_instanceBaseIndex = instanceBinding->bindToHeap(DescriptorType::StructuredBuffer, 0u, *instanceBuffer, 0u, NUM_INSTANCES);
+    commandBuffer->transfer(static_cast<const void*>(&instanceData), sizeof(instanceData), *instanceBuffer, 0, NUM_INSTANCES);
 
     // End and submit the command buffer.
     m_transferFence = commandBuffer->submit();
@@ -186,10 +187,10 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     m_device->state().add(std::move(indexBuffer));
     m_device->state().add(std::move(cameraBuffer));
     m_device->state().add(std::move(drawDataBuffer));
-    //m_device->state().add(std::move(instanceBuffer));
+    m_device->state().add(std::move(instanceBuffer));
     m_device->state().add("Camera Bindings", std::move(cameraBindings));
     std::ranges::for_each(drawDataBindings, [this, i = 0](auto& binding) mutable { m_device->state().add(std::format("Draw Data Bindings {0}", i++), std::move(binding)); });
-    //m_device->state().add("Instance Bindings", std::move(instanceBinding));
+    m_device->state().add("Instance Bindings", std::move(instanceBinding));
 }
 
 void SampleApp::updateCamera(const ICommandBuffer& commandBuffer, IBuffer& buffer) const
@@ -426,7 +427,7 @@ void SampleApp::drawFrame()
     auto& drawDataBuffer = m_device->state().buffer("Draw Data");
     auto& drawDataBindings = m_device->state().descriptorSet(std::format("Draw Data Bindings {0}", backBuffer));
     auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
-    //auto& instanceBindings = m_device->state().descriptorSet("Instance Bindings");
+    auto& instanceBindings = m_device->state().descriptorSet("Instance Bindings");
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
 
@@ -450,13 +451,13 @@ void SampleApp::drawFrame()
     drawDataBuffer.map(static_cast<const void*>(&drawData), sizeof(drawData), backBuffer);
 
     // Bind all descriptor sets to the pipeline.
-    commandBuffer->bind({ &cameraBindings, &drawDataBindings });
+    commandBuffer->bind({ &cameraBindings, &instanceBindings, &drawDataBindings });
 
     // Bind the vertex and index buffers.
     commandBuffer->bind(vertexBuffer);
     commandBuffer->bind(indexBuffer);
 
     // Draw the object and present the frame by ending the render pass.
-    commandBuffer->drawIndexed(indexBuffer.elements(), NUM_INSTANCES);
+    commandBuffer->drawIndexed(indexBuffer.elements(), NUM_INSTANCES, 0u, 0u, m_instanceBaseIndex);
     renderPass.end();
 }

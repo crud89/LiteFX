@@ -77,10 +77,20 @@ public:
             }
         });
 
+        // We only support one of each descriptor heap in a descriptor set.
+        auto resourceDescriptorHeaps = std::ranges::count_if(m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::ResourceDescriptorHeap; });
+        auto samplerDescriptorHeaps = std::ranges::count_if(m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::SamplerDescriptorHeap; });
+
+        if (resourceDescriptorHeaps > 1u) [[unlikely]]
+            throw InvalidArgumentException("descriptorLayouts", "There must be no more than one descriptor of type `ResourceDescriptorHeap`.");
+        
+        if (samplerDescriptorHeaps > 1u) [[unlikely]]
+            throw InvalidArgumentException("descriptorLayouts", "There must be no more than one descriptor of type `SamplerDescriptorHeap`.");
+
         // If the layout is a proxy descriptor, remember it, as we don't want to cache those either. Those potentially occupy many descriptors and not intended to be allocated in 
         // large quantities.
-        m_dynamicResourceAccess = std::ranges::any_of(m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::ResourceDescriptorHeap; });
-        m_dynamicSamplerAccess = std::ranges::any_of(m_layouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::SamplerDescriptorHeap; });
+        m_dynamicResourceAccess = resourceDescriptorHeaps > 0;
+        m_dynamicSamplerAccess = samplerDescriptorHeaps > 0;
 
         LITEFX_TRACE(DIRECTX12_LOG, "Creating descriptor set {0} layout with {1} bindings {{ Uniform: {2}, Storage: {3}, Images: {4}, Sampler: {5}, Input Attachments: {6}, Texel Buffers: {7} }}...",
             m_space, m_layouts.size(), this->uniforms(), this->storages(), this->images(), this->samplers(), this->inputAttachments(), this->buffers());

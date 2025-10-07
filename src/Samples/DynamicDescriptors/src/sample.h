@@ -79,6 +79,12 @@ private:
 	/// </summary>
 	UInt64 m_transferFence = 0;
 
+	/// <summary>
+	/// The base index of the first instance. This value is set to the index of the first instance buffer in the global resource descriptor heap and later
+	/// passed as a static offset to the `drawInstanced` call.
+	/// </summary>
+	UInt32 m_instanceBaseIndex = 0;
+
 public:
 	SampleApp(GlfwWindowPtr&& window, Optional<UInt32> adapterId) : 
 		App(), m_window(std::move(window)), m_adapterId(adapterId)

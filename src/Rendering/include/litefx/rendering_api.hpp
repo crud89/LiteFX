@@ -5402,12 +5402,14 @@ namespace LiteFX::Rendering {
         /// If the descriptor set does not contain a descriptor of type <see cref="DescriptorType::ResourceDescriptorHeap" />, this method will throw an exception.
         /// </remarks>
         /// <param name="bindingType">The type of the descriptor used to bind <paramref name="buffer" /> to the heap.</param>
+        /// <param name="descriptor">The index of the descriptor in the heap to bind <paramref name="buffer" /> to.</param>
         /// <param name="buffer">The buffer to bind.</param>
         /// <param name="bufferElement">The index of an element inside <paramref name="buffer" /> that should be bound.</param>
+        /// <param name="elements">The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at <paramref name="bufferElement" />.</param>
         /// <returns>The global heap index that can be used to access the resource from the shader.</returns>
         /// <exception cref="RuntimeException">Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by <paramref name="bindingType" />.</exception>
-        inline UInt32 bindToHeap(DescriptorType bindingType, const IBuffer& buffer, UInt32 bufferElement = 0) const {
-            throw;
+        inline UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0) const {
+            return this->doBind(bindingType, descriptor, buffer, bufferElement, elements);
         }
 
         /// <summary>
@@ -5420,14 +5422,17 @@ namespace LiteFX::Rendering {
         /// 
         /// If the descriptor set does not contain a descriptor of type <see cref="DescriptorType::ResourceDescriptorHeap" />, this method will throw an exception.
         /// </remarks>
-        /// <param name="bindingType">The type of the descriptor used to bind <paramref name="buffer" /> to the heap.</param>
+        /// <param name="bindingType">The type of the descriptor used to bind <paramref name="image" /> to the heap.</param>
+        /// <param name="descriptor">The index of the descriptor in the heap to bind <paramref name="image" /> to.</param>
         /// <param name="image">The image to bind.</param>
-        /// <param name="level">The index of a mip-map level to bind.</param>
-        /// <param name="layer">The index of an image layer to bind.</param>
+        /// <param name="firstLevel">The index of the first mip-map level to bind.</param>
+        /// <param name="levels">The number of mip-map levels to bind. A value of `0` binds all available levels, starting at <paramref name="firstLevel" />.</param>
+        /// <param name="firstLayer">The index of the first layer to bind.</param>
+        /// <param name="layers">The number of layers to bind. A value of `0` binds all available layers, starting at <paramref name="firstLayer" />.</param>
         /// <returns>The global heap index that can be used to access the resource from the shader.</returns>
         /// <exception cref="RuntimeException">Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by <paramref name="bindingType" />.</exception>
-        inline UInt32 bindToHeap(DescriptorType bindingType, const IImage& image, UInt32 level = 0, UInt32 layer = 0) const {
-            throw;
+        inline UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IImage& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const {
+            return this->doBind(bindingType, descriptor, image, firstLevel, levels, firstLayer, layers);
         }
 
         /// <summary>
@@ -5439,11 +5444,12 @@ namespace LiteFX::Rendering {
         /// 
         /// If the descriptor set does not contain a descriptor of type <see cref="DescriptorType::SamplerDescriptorHeap" />, this method will throw an exception.
         /// </remarks>
+        /// <param name="descriptor">The index of the descriptor in the heap to bind <paramref name="sampler" /> to.</param>
         /// <param name="sampler">The sampler to bind.</param>
         /// <returns>The global heap index that can be used to access the sampler from the shader.</returns>
         /// <exception cref="RuntimeException">Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by <paramref name="bindingType" />.</exception>
-        inline UInt32 bindToHeap(const ISampler& sampler) const {
-            throw;
+        inline UInt32 bindToHeap(UInt32 descriptor, const ISampler& sampler) const {
+            return this->doBind(descriptor, sampler);
         }
 
         /// <summary>
@@ -5504,6 +5510,9 @@ namespace LiteFX::Rendering {
         }
 
     private:
+        virtual UInt32 doBind(DescriptorType bindingType, UInt32 descriptor, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements) const = 0;
+        virtual UInt32 doBind(DescriptorType bindingType, UInt32 descriptor, const IImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const = 0;
+        virtual UInt32 doBind(UInt32 descriptor, const ISampler& sampler) const = 0;
         virtual void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const = 0;
         virtual void doUpdate(UInt32 binding, const IImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const = 0;
         virtual void doUpdate(UInt32 binding, const ISampler& sampler, UInt32 descriptor) const = 0;
@@ -5726,6 +5735,9 @@ namespace LiteFX::Rendering {
         /// they have been bound to a command buffer or from different threads. However, you must ensure yourself not to overwrite any descriptors that are currently
         /// in use. Because unbounded arrays are not cached, freeing and re-allocating such descriptor sets may leave the descriptor heap fragmented, which might cause
         /// the allocation to fail, if the heap is full.
+        /// 
+        /// Note that providing bindings for descriptors of type <see cref="DescriptorType::ResourceDescriptorHeap" /> or 
+        /// <see cref="DescriptorType::SamplerDescriptorHeap" /> here is not supported and will cause an exception to be thrown.
         /// </remarks>
         /// <returns>The instance of the descriptor set.</returns>
         /// <seealso cref="IDescriptorLayout" />
