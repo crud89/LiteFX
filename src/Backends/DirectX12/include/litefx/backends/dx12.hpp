@@ -2652,6 +2652,37 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="drawIndexedSignature">The command signature used to execute indirect indexed draw calls.</param>
         void indirectDrawSignatures(ComPtr<ID3D12CommandSignature>& dispatchSignature, ComPtr<ID3D12CommandSignature>& dispatchMeshSignature, ComPtr<ID3D12CommandSignature>& drawSignature, ComPtr<ID3D12CommandSignature>& drawIndexedSignature) const noexcept;
 
+        /// <summary>
+        /// Allocates a <paramref name="descriptors" /> on the descriptor heap indicated by <paramref name=heapType" /> for use with external clients.
+        /// </summary>
+        /// <remarks>
+        /// This call allocates a descriptor range on one of the global descriptor heaps, that can be used with external clients and libraries. Keep in mind that you have to release 
+        /// those descriptors manually by calling the appropriate overload to <see cref="releaseGlobalDescriptors" />. The following example demonstrates how to use this function.
+        /// 
+        /// <example>
+        /// auto [offset, size] = d3dDevice.allocateGlobalDescriptors(1000, DescriptorHeapType::Resource);
+        /// // Use the descriptors.
+        /// d3dDevice.releaseGlobalDescriptors(DescriptorHeapType::Resource, offset, size);
+        /// </example>
+        /// </remarks>
+        /// <param name="descriptors">The number of descriptors to allocate.</param>
+        /// <param name="heapType">The heap type, indicating the descriptor heap to allocate the descriptors from.</param>
+        /// <returns>The offset and size of the allocated descriptor range in the global descriptor heap.</returns>
+        Tuple<UInt32, UInt32> allocateGlobalDescriptors(UInt32 descriptors, DescriptorHeapType heapType) const;
+
+        /// <summary>
+        /// Releases a manually allocated descriptor range from the descriptor heap indicated by <paramref name="heapType" />.
+        /// </summary>
+        /// <remarks>
+        /// Note that the offset and size need to match the allocated range exactly, otherwise calling this method will raise an exception.
+        /// </remarks>
+        /// <param name="heapType">The heap type, indicating the descriptor heap to release the descriptors from.</param>
+        /// <param name="offset">The offset to the beginning of the descriptor range in the heap.</param>
+        /// <param name="descriptors">The number of descriptors in the descriptor range.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if the combination of <paramref name="offset" /> and <parmref name="descriptors" /> does not match an externally allocated descriptor range on the descriptor heap indicated by <paramref name="heapType" />.</exception>
+        /// <seealso cref="allocateGlobalDescriptors(descriptors, heapType)" /> 
+        void releaseGlobalDescriptors(DescriptorHeapType heapType, UInt32 offset, UInt32 descriptors) const;
+
         // GraphicsDevice interface.
     public:
         /// <inheritdoc />
