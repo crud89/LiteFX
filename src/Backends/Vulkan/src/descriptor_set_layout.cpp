@@ -98,8 +98,18 @@ public:
         Array<VkDescriptorSetLayoutBinding> bindings;
         Array<VkDescriptorBindingFlags> bindingFlags;
         Array<VkDescriptorSetLayoutBindingFlagsCreateInfo> bindingFlagCreateInfo;
-        bool hasStaticSampler{ false };
+        Array<VkMutableDescriptorTypeListEXT> mutableDescriptorTypeLists;
+        bool hasStaticSampler{ false }, usesDescriptorHeap{ false };
         UInt32 unboundedDescriptorIndex{ }, unboundedDescriptorCount{ };
+
+        static constexpr auto SUPPORTED_MUTABLE_DESCRIPTOR_TYPES = std::array {
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+            VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,
+            VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,
+            VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,
+            VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,
+            VK_DESCRIPTOR_TYPE_STORAGE_BUFFER
+        };
 
         std::ranges::for_each(m_descriptorLayouts, [&, i = 0](const auto& layout) mutable {
             auto bindingPoint = layout.binding();
@@ -128,26 +138,40 @@ public:
             // Map descriptor type to Vulkan type set.
             switch (type)
             {
-            case DescriptorType::ConstantBuffer:        binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;       break;
+            case DescriptorType::ConstantBuffer:         binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;       break;
             case DescriptorType::ByteAddressBuffer:
             case DescriptorType::RWByteAddressBuffer:
             case DescriptorType::StructuredBuffer:
-            case DescriptorType::RWStructuredBuffer:    binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;       break;
-            case DescriptorType::RWTexture:             binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;        break;
-            case DescriptorType::Texture:               binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;        break;
-            case DescriptorType::RWBuffer:              binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER; break;
-            case DescriptorType::Buffer:                binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER; break;
-            case DescriptorType::InputAttachment:       binding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;     break;
-            case DescriptorType::Sampler:               binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;              break;
-            case DescriptorType::AccelerationStructure: binding.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR; break;
-            default: LITEFX_WARNING(VULKAN_LOG, "The descriptor type is unsupported. Binding will be skipped.");       return;
+            case DescriptorType::RWStructuredBuffer:     binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;       break;
+            case DescriptorType::RWTexture:              binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;        break;
+            case DescriptorType::Texture:                binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;        break;
+            case DescriptorType::RWBuffer:               binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER; break;
+            case DescriptorType::Buffer:                 binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER; break;
+            case DescriptorType::InputAttachment:        binding.descriptorType = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;     break;
+            case DescriptorType::SamplerDescriptorHeap:
+            case DescriptorType::Sampler:                binding.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLER;              break;
+            case DescriptorType::AccelerationStructure:  binding.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR; break;
+            case DescriptorType::ResourceDescriptorHeap: binding.descriptorType = VK_DESCRIPTOR_TYPE_MUTABLE_EXT;          break;
+            default: LITEFX_WARNING(VULKAN_LOG, "The descriptor type is unsupported. Binding will be skipped.");          return;
+            }
+
+            // Remember the use of mutable descriptor types for later.
+            if (binding.descriptorType != VK_DESCRIPTOR_TYPE_MUTABLE_EXT)
+                mutableDescriptorTypeLists.emplace_back(0u, nullptr);
+            else
+            {
+                mutableDescriptorTypeLists.emplace_back(static_cast<UInt32>(SUPPORTED_MUTABLE_DESCRIPTOR_TYPES.size()), SUPPORTED_MUTABLE_DESCRIPTOR_TYPES.data());
+                usesDescriptorHeap = true;
             }
             
             // If the descriptor is an unbounded runtime array, disable validation warnings about partially bound elements.
             if (layout.unbounded())
             {
-                bindingFlags.push_back({ VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT });
+                bindingFlags.emplace_back(VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT | VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT | VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT);
                 m_unboundedDescriptorType = binding.descriptorType;
+                
+                // Set the descriptor count for the binding to 0 for now and patch it later.
+                binding.descriptorCount = 0;
 
                 // Store the preferred descriptor count, the binding array index and set the descriptor count to 0. We will query the maximum supported descriptor count right before creating
                 // the layout handle and overwrite the descriptor count, if required. Note that this does not necessarily validate all required limits. The effective number of bound descriptors
@@ -174,16 +198,24 @@ public:
                 case VK_DESCRIPTOR_TYPE_SAMPLER:
                     unboundedDescriptorCount = std::min(binding.descriptorCount, maxSamplers);
                     break;
+                case VK_DESCRIPTOR_TYPE_MUTABLE_EXT:
+                    // For descriptor heaps, we straight up pass the heap size to the descriptor count property. As it is required to provide it anyway, any validation errors from this
+                    // can easily be resolved by reducing the heap sizes. Note that we shouldn't actually reach here anyway, but this might change in the future.
+                    binding.descriptorCount = layout.descriptors();
+                    break;
                 default:
                     break;
                 }
 
                 unboundedDescriptorIndex = static_cast<UInt32>(bindings.size());
-                binding.descriptorCount = 0;
             }
             else
             {
-                bindingFlags.push_back({ VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT });
+                // TODO: Do we need to support VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT for static arrays?
+                if (binding.descriptorType == VK_DESCRIPTOR_TYPE_MUTABLE_EXT)
+                    bindingFlags.emplace_back(VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT | VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT);
+                else
+                    bindingFlags.emplace_back(VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT);
 
                 if (type == DescriptorType::Sampler)
                 {
@@ -228,8 +260,15 @@ public:
             m_space, m_descriptorLayouts.size(), this->uniforms(), this->storages(), this->images(), this->samplers(), this->inputAttachments(), this->buffers());
 
         // Create the descriptor set layout.
+        VkMutableDescriptorTypeCreateInfoEXT mutableDescriptorTypeInfo = {
+            .sType = VK_STRUCTURE_TYPE_MUTABLE_DESCRIPTOR_TYPE_CREATE_INFO_EXT,
+            .mutableDescriptorTypeListCount = static_cast<UInt32>(mutableDescriptorTypeLists.size()),
+            .pMutableDescriptorTypeLists = mutableDescriptorTypeLists.data()
+        };
+
         VkDescriptorSetLayoutBindingFlagsCreateInfo extendedInfo = {
             .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO,
+            .pNext = usesDescriptorHeap ? &mutableDescriptorTypeInfo : nullptr,
             .bindingCount = static_cast<UInt32>(bindingFlags.size()),
             .pBindingFlags = bindingFlags.data()
         };
