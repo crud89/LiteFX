@@ -1295,6 +1295,30 @@ namespace LiteFX::Rendering {
         }
 
         /// <summary>
+        /// Adds a proxy descriptor that can be used with dynamic resource indexing.
+        /// </summary>
+        /// <param name="binding">The binding point or register index at which to create the proxy descriptor.</param>
+        /// <param name="heapSize">The number of descriptors to reserve for the proxy descriptor.</param>
+        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        template <typename TSelf>
+        [[nodiscard]] constexpr auto withResourceHeapAccess(this TSelf&& self, UInt32 binding, UInt32 heapSize) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::ResourceDescriptorHeap, binding, 0u, heapSize, false)));
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds a proxy descriptor that can be used with dynamic sampler indexing.
+        /// </summary>
+        /// <param name="binding">The binding point or register index at which to create the proxy descriptor.</param>
+        /// <param name="heapSize">The number of descriptors to reserve for the proxy descriptor.</param>
+        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        template <typename TSelf>
+        [[nodiscard]] constexpr auto withSamplerHeapAccess(this TSelf&& self, UInt32 binding, UInt32 heapSize) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::SamplerDescriptorHeap, binding, 0u, heapSize, false)));
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
         /// Sets the space, the descriptor set is bound to.
         /// </summary>
         /// <param name="space">The space, the descriptor set is bound to.</param>

@@ -149,6 +149,7 @@ namespace LiteFX::Rendering {
         std::derived_from<TAccelerationStructure, IAccelerationStructure>
     class DescriptorSet : public IDescriptorSet {
     public:
+        using IDescriptorSet::bindToHeap;
         using IDescriptorSet::update;
 
         using buffer_type = TBuffer;
@@ -168,6 +169,15 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
+        virtual UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const buffer_type& buffer, UInt32 bufferElement = 0, UInt32 elements = 0) const = 0;
+
+        /// <inheritdoc />
+        virtual UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const image_type& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const = 0;
+
+        /// <inheritdoc />
+        virtual UInt32 bindToHeap(UInt32 descriptor, const sampler_type& sampler) const = 0;
+
+        /// <inheritdoc />
         virtual void update(UInt32 binding, const buffer_type& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None) const = 0;
 
         /// <inheritdoc />
@@ -180,6 +190,18 @@ namespace LiteFX::Rendering {
         virtual void update(UInt32 binding, const acceleration_structure_type& accelerationStructure, UInt32 descriptor = 0) const = 0;
 
     private:
+        UInt32 doBind(DescriptorType bindingType, UInt32 descriptor, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements) const override {
+            return this->bindToHeap(bindingType, descriptor, dynamic_cast<const buffer_type&>(buffer), bufferElement, elements);
+        }
+
+        UInt32 doBind(DescriptorType bindingType, UInt32 descriptor, const IImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const override {
+            return this->bindToHeap(bindingType, descriptor, dynamic_cast<const image_type&>(image), firstLevel, levels, firstLayer, layers);
+        }
+
+        UInt32 doBind(UInt32 descriptor, const ISampler& sampler) const override {
+            return this->bindToHeap(descriptor, dynamic_cast<const sampler_type&>(sampler));
+        }
+
         void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat) const override {
             this->update(binding, dynamic_cast<const buffer_type&>(buffer), bufferElement, elements, firstDescriptor, texelFormat);
         }

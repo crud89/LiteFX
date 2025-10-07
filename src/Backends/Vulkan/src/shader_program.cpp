@@ -378,15 +378,28 @@ public:
                     // descriptors.
                     
                     if (!descriptor.unbounded)
-                        LITEFX_WARNING(VULKAN_LOG, "A hint for binding {0} at space {1} indicates an unbounded array, but the bound descriptor type either a static array or a single descriptor. The hint will be ignored.", descriptor.location, descriptorSet.space);
+                        LITEFX_WARNING(VULKAN_LOG, "A hint for binding {0} at space {1} indicates an unbounded array, but the bound descriptor is either a static array or a single descriptor. The hint will be ignored.", descriptor.location, descriptorSet.space);
                     else
                         descriptor.elements = hint.MaxDescriptors;
+                };
+
+                auto descriptorHeapHintCallback = [&](const PipelineBindingHint::DescriptorHeapHint& hint) {
+                    // DXC emits unbounded arrays to emulate mutable descriptor type bindings, but we force them to be fixed-size arrays, as multiple unbounded arrays in one 
+                    // descriptor set are not allowed anyway.
+                    // See: https://github.com/microsoft/DirectXShaderCompiler/blob/main/docs/SPIR-V.rst#resourcedescriptorheaps-samplerdescriptorheaps
+
+                    if (hint.Type != DescriptorHeapType::None)
+                    {
+                        descriptor.unbounded = false;
+                        descriptor.type = hint.Type == DescriptorHeapType::Resource ? DescriptorType::ResourceDescriptorHeap : DescriptorType::SamplerDescriptorHeap;
+                        descriptor.elements = hint.HeapSize;
+                    }
                 };
 
                 // If the descriptor binds a sampler and the hint is a static sampler, patch it.
                 std::visit(type_switch{
                     [](const std::monostate&) {}, // Default: don't patch anything
-                    samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback
+                    samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback, descriptorHeapHintCallback
                 }, hint);
             }
         });

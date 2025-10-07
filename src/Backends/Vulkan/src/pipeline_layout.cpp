@@ -142,6 +142,24 @@ const VulkanPushConstantsLayout* VulkanPipelineLayout::pushConstants() const noe
     return m_impl->m_pushConstantsLayout.get();
 }
 
+bool VulkanPipelineLayout::dynamicResourceHeapAccess() const
+{
+    auto descriptorLayouts = m_impl->m_descriptorSetLayouts 
+        | std::views::transform([](const auto& layout) { return layout->descriptors(); }) 
+        | std::views::join;
+
+    return std::ranges::any_of(descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::ResourceDescriptorHeap; });
+}
+
+bool VulkanPipelineLayout::dynamicSamplerHeapAccess() const
+{
+    auto descriptorLayouts = m_impl->m_descriptorSetLayouts
+        | std::views::transform([](const auto& layout) { return layout->descriptors(); })
+        | std::views::join;
+
+    return std::ranges::any_of(descriptorLayouts, [](const auto& layout) { return layout.descriptorType() == DescriptorType::SamplerDescriptorHeap; });
+}
+
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
 // ------------------------------------------------------------------------------------------------
 // Pipeline layout builder interface.
