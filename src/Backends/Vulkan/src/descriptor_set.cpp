@@ -55,7 +55,7 @@ public:
     }
 
 public:
-    UInt32 updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 firstDescriptor, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements)
+    UInt32 updateBinding(const VulkanDescriptorSet& parent, const VulkanDescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 firstDescriptor, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat)
     {
         // Validate the buffer element bounds.
         UInt32 elementCount = elements > 0 ? elements : buffer.elements() - bufferElement;
@@ -97,7 +97,6 @@ public:
             // Setup the descriptor info.
             VkDescriptorGetInfoEXT descriptorInfo = { .sType = VK_STRUCTURE_TYPE_DESCRIPTOR_GET_INFO_EXT };
 
-            // TODO: Texel buffers need a format, which is currently not supported.
             switch (bindingType)
             {
             case DescriptorType::ConstantBuffer:
@@ -107,12 +106,12 @@ public:
             case DescriptorType::Buffer:
                 descriptorInfo.type = VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER;
                 descriptorInfo.data.pUniformTexelBuffer = &addressInfo;
-                addressInfo.format = VK_FORMAT_R8G8B8A8_UINT;
+                addressInfo.format = Vk::getFormat(texelFormat);
                 break;
             case DescriptorType::RWBuffer:
                 descriptorInfo.type = VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER;
                 descriptorInfo.data.pStorageTexelBuffer = &addressInfo;
-                addressInfo.format = VK_FORMAT_R8G8B8A8_UINT;
+                addressInfo.format = Vk::getFormat(texelFormat);
                 break;
             case DescriptorType::ByteAddressBuffer:
             case DescriptorType::RWByteAddressBuffer:
@@ -347,7 +346,7 @@ UInt32 VulkanDescriptorSet::globalHeapAddressRange(DescriptorHeapType heapType) 
     }
 }
 
-UInt32 VulkanDescriptorSet::bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements) const
+UInt32 VulkanDescriptorSet::bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat) const
 {
     // Find the resource descriptor heap.
     auto descriptors = m_impl->m_layout->descriptors();
@@ -357,7 +356,7 @@ UInt32 VulkanDescriptorSet::bindToHeap(DescriptorType bindingType, UInt32 descri
         throw RuntimeException("The descriptor set does not contain a resource heap descriptor.");
 
     // Update the binding.
-    return m_impl->updateBinding(*this, (*descriptorLayout), bindingType, descriptor, buffer, bufferElement, elements);
+    return m_impl->updateBinding(*this, (*descriptorLayout), bindingType, descriptor, buffer, bufferElement, elements, texelFormat);
 }
 
 UInt32 VulkanDescriptorSet::bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
@@ -386,7 +385,7 @@ UInt32 VulkanDescriptorSet::bindToHeap(UInt32 descriptor, const IVulkanSampler& 
     return m_impl->updateBinding(*this, (*descriptorLayout), descriptor, sampler);
 }
 
-void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const
+void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat) const
 {
     // Find the descriptor.
     auto descriptors = m_impl->m_layout->descriptors();
@@ -399,7 +398,7 @@ void VulkanDescriptorSet::update(UInt32 binding, const IVulkanBuffer& buffer, UI
     }
 
     // Update the binding.
-    m_impl->updateBinding(*this, (*descriptorLayout), descriptorLayout->descriptorType(), firstDescriptor, buffer, bufferElement, elements);
+    m_impl->updateBinding(*this, (*descriptorLayout), descriptorLayout->descriptorType(), firstDescriptor, buffer, bufferElement, elements, texelFormat);
 }
 
 void VulkanDescriptorSet::update(UInt32 binding, const IVulkanImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const
