@@ -323,7 +323,8 @@ void SampleApp::onInit()
             initInfo.Device = std::as_const(*device).handle();
             initInfo.QueueFamily = device->defaultQueue(QueueType::Graphics).familyId();
             initInfo.Queue = device->defaultQueue(QueueType::Graphics).handle();
-            initInfo.DescriptorPoolSize = 10u;   // Randomly guessed... not sure how many are required by ImGui.
+            // Randomly guessed... not sure how many are required by ImGui.
+            initInfo.DescriptorPoolSize = 10u;  // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             initInfo.MinImageCount = backBuffers;
             initInfo.ImageCount = backBuffers;
             initInfo.UseDynamicRendering = true;
