@@ -20,12 +20,26 @@ public:
 	VulkanGraphicsFactoryImpl(const VulkanDevice& device) :
 		m_device(device.weak_from_this())
 	{
+		// Setup VMA flags according to enabled device extensions.
+		VmaAllocatorCreateFlags createFlags{ VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT | VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE4_BIT };
+
+		auto supportedExtensions = device.enabledExtensions();
+
+		if (std::ranges::any_of(supportedExtensions, [](auto& extension) { return extension == VK_KHR_MAINTENANCE_5_EXTENSION_NAME; }))
+			createFlags |= VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE5_BIT;
+
+		if (std::ranges::any_of(supportedExtensions, [](auto& extension) { return extension == VK_EXT_MEMORY_BUDGET_EXTENSION_NAME; }))
+			createFlags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+
+		if (std::ranges::any_of(supportedExtensions, [](auto& extension) { return extension == VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME; }))
+			createFlags |= VMA_ALLOCATOR_CREATE_KHR_EXTERNAL_MEMORY_WIN32_BIT;
+
 		// Create an buffer allocator.
 		VmaAllocatorCreateInfo allocatorInfo = {};
 		allocatorInfo.physicalDevice = device.adapter().handle();
 		allocatorInfo.instance = device.surface().instance();
 		allocatorInfo.device = device.handle();
-		allocatorInfo.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+		allocatorInfo.flags = createFlags;
 		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_3;
 
 		raiseIfFailed(::vmaCreateAllocator(&allocatorInfo, &m_allocator), "Unable to create Vulkan memory allocator.");

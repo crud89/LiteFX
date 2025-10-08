@@ -207,6 +207,14 @@ private:
         // Required to set debug names.
         if (auto match = std::ranges::find_if(availableExtensions, [](const String& extension) { return extension == VK_EXT_DEBUG_MARKER_EXTENSION_NAME; }); match != availableExtensions.end())
             m_extensions.emplace_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+
+        // Required for native budget info by VMA - if not availabe VMA emulates this behavior.
+        if (auto match = std::ranges::find_if(availableExtensions, [](const String& extension) { return extension == VK_EXT_MEMORY_BUDGET_EXTENSION_NAME ; }); match != availableExtensions.end())
+            m_extensions.emplace_back(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
+
+        // Query maintenance 5 extension as well as win32 external memory, so that we can let VMA support it.
+        if (auto match = std::ranges::find_if(availableExtensions, [](const String& extension) { return extension == VK_KHR_MAINTENANCE_5_EXTENSION_NAME; }); match != availableExtensions.end())
+            m_extensions.emplace_back(VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
 #endif
     }
 
@@ -334,6 +342,16 @@ public:
 
         if (features.DynamicDescriptors)
             lastFeature = &mutableDescriptorTypeFeatures;
+
+        // Enable maintenance 5 extension, if supported.
+        VkPhysicalDeviceMaintenance5FeaturesKHR maintenance5Features = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MAINTENANCE_5_FEATURES_KHR,
+            .pNext = lastFeature,
+            .maintenance5 = true
+        };
+
+        if (std::ranges::find_if(m_extensions, [](auto& ext) { return ext == VK_KHR_MAINTENANCE_5_EXTENSION_NAME; }) != m_extensions.end())
+            lastFeature = &maintenance5Features;
 
         // Allow geometry and tessellation shader stages.
         // NOTE: ... except when building tests, as they are not supported by SwiftShader.
