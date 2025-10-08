@@ -305,9 +305,11 @@ DirectX12Device::~DirectX12Device() noexcept = default;
 SharedPtr<DirectX12Device> DirectX12Device::initialize(const DirectX12Backend& backend, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features)
 {
 	this->handle() = m_impl->initialize(features);
+
+	// NOTE: The order of initialization here is important.
 	m_impl->createQueues(*this);
-	m_impl->m_factory = DirectX12GraphicsFactory::create(*this);
 	m_impl->m_swapChain = UniquePtr<DirectX12SwapChain>(new DirectX12SwapChain(*this, backend, format, renderArea, backBuffers, enableVsync));
+	m_impl->m_factory = DirectX12GraphicsFactory::create(*this);
 
 	return this->shared_from_this();
 }

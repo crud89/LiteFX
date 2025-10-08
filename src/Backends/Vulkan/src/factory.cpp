@@ -43,6 +43,9 @@ public:
 		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_3;
 
 		raiseIfFailed(::vmaCreateAllocator(&allocatorInfo, &m_allocator), "Unable to create Vulkan memory allocator.");
+
+		// Listen to swap chain buffer swap events, in order to call `vmaSetCurrentFrameIndex`.
+		device.swapChain().swapped += std::bind(&VulkanGraphicsFactory::VulkanGraphicsFactoryImpl::onBackBufferSwap, this, std::placeholders::_1, std::placeholders::_2);
 	}
 
 	VulkanGraphicsFactoryImpl(VulkanGraphicsFactoryImpl&&) noexcept = default;
@@ -50,10 +53,14 @@ public:
 	VulkanGraphicsFactoryImpl& operator=(VulkanGraphicsFactoryImpl&&) noexcept = default;
 	VulkanGraphicsFactoryImpl& operator=(const VulkanGraphicsFactoryImpl&) = delete;
 
-	~VulkanGraphicsFactoryImpl()
-	{
+	~VulkanGraphicsFactoryImpl() {
 		if (m_allocator != nullptr)
 			::vmaDestroyAllocator(m_allocator);
+	}
+
+private:
+	void onBackBufferSwap([[maybe_unused]] const void* sender, const ISwapChain::BackBufferSwapEventArgs& e) {
+		::vmaSetCurrentFrameIndex(m_allocator, e.backBuffer());
 	}
 };
 

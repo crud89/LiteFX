@@ -633,10 +633,12 @@ VulkanDevice::~VulkanDevice() noexcept = default;
 SharedPtr<VulkanDevice> VulkanDevice::initialize(Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features)
 {
     this->handle() = m_impl->initialize(features);
-    m_impl->m_factory = VulkanGraphicsFactory::create(*this);
+
+    // NOTE: The order of initialization here is important.
     m_impl->initializeDefaultQueues(*this);
-    m_impl->initializeResourceHeaps();
     m_impl->m_swapChain = UniquePtr<VulkanSwapChain>(new VulkanSwapChain(*this, format, renderArea, backBuffers, enableVsync));
+    m_impl->m_factory = VulkanGraphicsFactory::create(*this);
+    m_impl->initializeResourceHeaps();
 
     return this->shared_from_this();
 }

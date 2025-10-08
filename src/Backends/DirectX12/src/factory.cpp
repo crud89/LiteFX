@@ -31,6 +31,14 @@ public:
 		D3D12MA::Allocator* allocator{};
 		raiseIfFailed(D3D12MA::CreateAllocator(&allocatorDesc, &allocator), "Unable to create D3D12 memory allocator.");
 		m_allocator.reset(allocator, D3D12MADeleter{});
+
+		// Listen to swap chain buffer swap events, in order to call `vmaSetCurrentFrameIndex`.
+		device.swapChain().swapped += std::bind(&DirectX12GraphicsFactory::DirectX12GraphicsFactoryImpl::onBackBufferSwap, this, std::placeholders::_1, std::placeholders::_2);
+	}
+
+private:
+	void onBackBufferSwap([[maybe_unused]] const void* sender, const ISwapChain::BackBufferSwapEventArgs& e) {
+		m_allocator->SetCurrentFrameIndex(e.backBuffer());
 	}
 };
 
