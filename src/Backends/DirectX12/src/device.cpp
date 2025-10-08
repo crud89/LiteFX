@@ -25,6 +25,7 @@ private:
 	ComPtr<ID3D12DescriptorHeap> m_globalBufferHeap, m_globalSamplerHeap;
 	mutable std::mutex m_bufferBindMutex;
 	Array<std::pair<UInt32, UInt32>> m_bufferDescriptorFragments, m_samplerDescriptorFragments;
+	Array<Tuple<DescriptorHeapType, UInt32, UInt32>> m_externallyAllocatedDescriptorRanges;
 	ComPtr<ID3D12CommandSignature> m_dispatchSignature, m_drawSignature, m_drawIndexedSignature, m_dispatchMeshSignature;
 
 public:
@@ -206,6 +207,78 @@ public:
 
 		return surfaceFormats;
 	}
+
+	Tuple<UInt32, UInt32> allocateDescriptors(DescriptorHeapType heap, UInt32 descriptors, bool external)
+	{
+		UInt32 offset{};
+
+		switch (heap)
+		{
+		case DescriptorHeapType::Resource:
+			if (m_bufferOffset + descriptors <= m_globalBufferHeapSize) [[likely]]
+			{
+				offset = m_bufferOffset;
+				m_bufferOffset += descriptors;
+			}
+			else [[unlikely]]
+			{
+				// Find a fitting offset from the fragment heap.
+				if (auto match = std::ranges::find_if(m_bufferDescriptorFragments, [&descriptors](const auto& pair) { return pair.second == descriptors; }); match != m_bufferDescriptorFragments.end())
+				{
+					offset = match->first;
+					m_bufferDescriptorFragments.erase(match);
+				}
+				else if (match = std::ranges::find_if(m_bufferDescriptorFragments, [&descriptors](const auto& pair) { return pair.second > descriptors; }); match != m_bufferDescriptorFragments.end())
+				{
+					offset = match->first;
+					match->first += descriptors;
+					match->second -= descriptors;
+				}
+				else [[unlikely]]
+				{
+					throw RuntimeException("Unable to allocate more descriptors on global buffer heap.");
+				}
+			}
+
+			break;
+		case DescriptorHeapType::Sampler:
+			if (m_samplerOffset + descriptors <= m_globalSamplerHeapSize) [[likely]]
+			{
+				offset = m_samplerOffset;
+				m_samplerOffset += descriptors;
+			}
+			else [[unlikely]]
+			{
+				// Find a fitting offset from the fragment heap.
+				if (auto match = std::ranges::find_if(m_samplerDescriptorFragments, [&descriptors](const auto& pair) { return pair.second == descriptors; }); match != m_samplerDescriptorFragments.end())
+				{
+					offset = match->first;
+					m_samplerDescriptorFragments.erase(match);
+				}
+				else if (match = std::ranges::find_if(m_samplerDescriptorFragments, [&descriptors](const auto& pair) { return pair.second > descriptors; }); match != m_samplerDescriptorFragments.end())
+				{
+					offset = match->first;
+					match->first += descriptors;
+					match->second -= descriptors;
+				}
+				else [[unlikely]]
+				{
+					throw RuntimeException("Unable to allocate more descriptors on global sampler heap.");
+				}
+			}
+
+			break;
+		default:
+			LITEFX_WARNING(DIRECTX12_LOG, "The descriptor heap type must be one of the following: {{ `Resource`, `Sampler` }}, but it was: `{0}`.", heap);
+			return { std::numeric_limits<UInt32>::max(), 0u };
+		}
+
+		// Remember the segments allocated for external use.
+		if (external)
+			m_externallyAllocatedDescriptorRanges.emplace_back(heap, offset, descriptors);
+
+		return { offset, descriptors };
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -257,12 +330,12 @@ void DirectX12Device::release() noexcept
 	m_impl->m_factory.reset();
 }
 
-const ID3D12DescriptorHeap* DirectX12Device::globalBufferHeap() const noexcept
+ID3D12DescriptorHeap* DirectX12Device::globalBufferHeap() const noexcept
 {
 	return m_impl->m_globalBufferHeap.Get();
 }
 
-const ID3D12DescriptorHeap* DirectX12Device::globalSamplerHeap() const noexcept
+ID3D12DescriptorHeap* DirectX12Device::globalSamplerHeap() const noexcept
 {
 	return m_impl->m_globalSamplerHeap.Get();
 }
@@ -285,66 +358,16 @@ void DirectX12Device::allocateGlobalDescriptors(const DirectX12DescriptorSet& de
 	if (size == 0)
 		throw InvalidArgumentException("descriptorSet", "Cannot allocate space for empty descriptor set on global descriptor heap.");
 
-	switch (heapType)
-	{
-	case DescriptorHeapType::Resource:
-		if (m_impl->m_bufferOffset + size <= m_impl->m_globalBufferHeapSize) [[likely]]
-		{
-			offset = m_impl->m_bufferOffset;
-			m_impl->m_bufferOffset += size;
-		}
-		else [[unlikely]]
-		{
-			// Find a fitting offset from the fragment heap.
-			if (auto match = std::ranges::find_if(m_impl->m_bufferDescriptorFragments, [&size](const auto& pair) { return pair.second == size; }); match != m_impl->m_bufferDescriptorFragments.end())
-			{
-				offset = match->first;
-				m_impl->m_bufferDescriptorFragments.erase(match);
-			}
-			else if (match = std::ranges::find_if(m_impl->m_bufferDescriptorFragments, [&size](const auto& pair) { return pair.second > size; }); match != m_impl->m_bufferDescriptorFragments.end())
-			{
-				offset = match->first;
-				match->first += size;
-				match->second -= size;
-			}
-			else [[unlikely]]
-			{
-				throw RuntimeException("Unable to allocate more descriptors on global buffer heap.");
-			}
-		}
+	auto [o, s] = m_impl->allocateDescriptors(heapType, size, false);
+	size = s;
+	offset = o;
+}
 
-		break;
-	case DescriptorHeapType::Sampler:
-		if (m_impl->m_samplerOffset + size <= m_impl->m_globalSamplerHeapSize) [[likely]]
-		{
-			offset = m_impl->m_samplerOffset;
-			m_impl->m_samplerOffset += size;
-		}
-		else [[unlikely]]
-		{
-			// Find a fitting offset from the fragment heap.
-			if (auto match = std::ranges::find_if(m_impl->m_samplerDescriptorFragments, [&size](const auto& pair) { return pair.second == size; }); match != m_impl->m_samplerDescriptorFragments.end())
-			{
-				offset = match->first;
-				m_impl->m_samplerDescriptorFragments.erase(match);
-			}
-			else if (match = std::ranges::find_if(m_impl->m_samplerDescriptorFragments, [&size](const auto& pair) { return pair.second > size; }); match != m_impl->m_samplerDescriptorFragments.end())
-			{
-				offset = match->first;
-				match->first += size;
-				match->second -= size;
-			}
-			else [[unlikely]]
-			{
-				throw RuntimeException("Unable to allocate more descriptors on global sampler heap.");
-			}
-		}
+Tuple<UInt32, UInt32> DirectX12Device::allocateGlobalDescriptors(UInt32 descriptors, DescriptorHeapType heapType) const
+{
+	std::lock_guard<std::mutex> lock(m_impl->m_bufferBindMutex);
 
-		break;
-	default:
-		LITEFX_WARNING(DIRECTX12_LOG, "The descriptor heap type must be one of the following: {{ `Resource`, `Sampler` }}, but it was: `{0}`.", heapType);
-		return;
-	}
+	return m_impl->allocateDescriptors(heapType, descriptors, true);
 }
 
 void DirectX12Device::releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const
@@ -356,6 +379,27 @@ void DirectX12Device::releaseGlobalDescriptors(const DirectX12DescriptorSet& des
 
 	if (descriptorSet.layout().bindsResources())
 		m_impl->m_bufferDescriptorFragments.emplace_back(descriptorSet.globalHeapOffset(DescriptorHeapType::Resource), descriptorSet.globalHeapAddressRange(DescriptorHeapType::Resource));
+}
+
+void DirectX12Device::releaseGlobalDescriptors(DescriptorHeapType heapType, UInt32 offset, UInt32 descriptors) const
+{
+	std::lock_guard<std::mutex> lock(m_impl->m_bufferBindMutex);
+
+	// Check if the address range has been externally allocated.
+	auto match = std::ranges::find_if(m_impl->m_externallyAllocatedDescriptorRanges, [heapType, offset, descriptors](const auto& range) { 
+		auto [t, o, s] = range;
+		return t == heapType && o == offset && s == descriptors;
+	});
+
+	if (match == m_impl->m_externallyAllocatedDescriptorRanges.end()) [[unlikely]]
+		throw InvalidArgumentException("offset", "No externally allocated descriptor range was found at offset {0} with {1} descriptors in heap {2}.", offset, descriptors, heapType);
+
+	if (heapType == DescriptorHeapType::Resource)
+		m_impl->m_bufferDescriptorFragments.emplace_back(offset, descriptors);
+	else if (heapType == DescriptorHeapType::Sampler)
+		m_impl->m_samplerDescriptorFragments.emplace_back(offset, descriptors);
+
+	m_impl->m_externallyAllocatedDescriptorRanges.erase(match);
 }
 
 void DirectX12Device::updateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const
