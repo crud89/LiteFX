@@ -23,7 +23,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "VCPKG_TARGET_TRIPLET": "x64-windows",
-        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "VCPKG_MANIFEST_FEATURES": "pix-support;imgui",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
     },
@@ -41,7 +41,7 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "BUILD_SHARED_LIBS": "OFF",
         "VCPKG_TARGET_TRIPLET": "x64-windows-static",
-        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "VCPKG_MANIFEST_FEATURES": "pix-support;imgui",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
     },
@@ -76,7 +76,8 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-rel"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-rel",
+        "VCPKG_MANIFEST_FEATURES": "imgui"
       }
     },
     {
@@ -92,7 +93,8 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "BUILD_SHARED_LIBS": "OFF",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static-rel"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-rel",
+        "VCPKG_MANIFEST_FEATURES": "imgui"
       }
     },
     {
@@ -190,7 +192,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "VCPKG_TARGET_TRIPLET": "x64-windows",
-        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "VCPKG_MANIFEST_FEATURES": "pix-support;imgui",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
     },
@@ -206,7 +208,8 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "VCPKG_TARGET_TRIPLET": "x64-windows"
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "VCPKG_MANIFEST_FEATURES": "imgui"
       }
     },
     {
@@ -222,7 +225,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "VCPKG_TARGET_TRIPLET": "x64-windows",
-        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "VCPKG_MANIFEST_FEATURES": "pix-support;imgui",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
     },
@@ -240,7 +243,7 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "BUILD_SHARED_LIBS": "OFF",
         "VCPKG_TARGET_TRIPLET": "x64-windows-static",
-        "VCPKG_MANIFEST_FEATURES": "pix-support",
+        "VCPKG_MANIFEST_FEATURES": "pix-support;imgui",
         "LITEFX_BUILD_SUPPORT_DEBUG_MARKERS": "ON"
       }
     },
@@ -275,7 +278,8 @@
       },
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-rel"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-rel",
+        "VCPKG_MANIFEST_FEATURES": "imgui"
       }
     },
     {
@@ -291,7 +295,8 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "BUILD_SHARED_LIBS": "OFF",
-        "VCPKG_TARGET_TRIPLET": "x64-windows-static-rel"
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-rel",
+        "VCPKG_MANIFEST_FEATURES": "imgui"
       }
     }
   ],

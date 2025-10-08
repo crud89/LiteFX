@@ -45,3 +45,9 @@ IF("pix-support" IN_LIST VCPKG_MANIFEST_FEATURES)
 ELSEIF(NOT LITEFX_BUILD_WITH_PIX_RUNTIME) # Only force it to be off, if not otherwise defined. If setting this variable manually, make sure to also provide the proper dependency!
   SET(LITEFX_BUILD_WITH_PIX_RUNTIME OFF CACHE BOOL "Link DirectX 12 backend against PIX runtime (required for debug marker support).")
 ENDIF("pix-support" IN_LIST VCPKG_MANIFEST_FEATURES)
+
+IF("imgui" IN_LIST VCPKG_MANIFEST_FEATURES)
+  SET(LITEFX_BUILD_WITH_IMGUI_SAMPLE ON CACHE BOOL "Enables building the ImGui sample.")
+ELSEIF(NOT LITEFX_BUILD_WITH_IMGUI_SAMPLE)
+  SET(LITEFX_BUILD_WITH_IMGUI_SAMPLE OFF CACHE BOOL "Enables building the ImGui sample.")
+ENDIF("imgui" IN_LIST VCPKG_MANIFEST_FEATURES)
