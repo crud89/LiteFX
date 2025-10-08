@@ -330,12 +330,12 @@ void DirectX12Device::release() noexcept
 	m_impl->m_factory.reset();
 }
 
-const ID3D12DescriptorHeap* DirectX12Device::globalBufferHeap() const noexcept
+ID3D12DescriptorHeap* DirectX12Device::globalBufferHeap() const noexcept
 {
 	return m_impl->m_globalBufferHeap.Get();
 }
 
-const ID3D12DescriptorHeap* DirectX12Device::globalSamplerHeap() const noexcept
+ID3D12DescriptorHeap* DirectX12Device::globalSamplerHeap() const noexcept
 {
 	return m_impl->m_globalSamplerHeap.Get();
 }

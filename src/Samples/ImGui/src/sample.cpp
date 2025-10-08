@@ -56,8 +56,8 @@ void SampleApp::allocImGuiD3D12DescriptorsCallback(ImGui_ImplDX12_InitInfo* cont
     // Initialize the CPU and GPU handles.
     auto descriptorHandleIncrement = device.handle().Get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE targetHandle(const_cast<ID3D12DescriptorHeap*>(device.globalBufferHeap())->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), descriptorHandleIncrement);
-    CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(const_cast<ID3D12DescriptorHeap*>(device.globalBufferHeap())->GetGPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), descriptorHandleIncrement);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE targetHandle(device.globalBufferHeap()->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), descriptorHandleIncrement);
+    CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(device.globalBufferHeap()->GetGPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), descriptorHandleIncrement);
     cpu_handle->ptr = targetHandle.ptr;
     gpu_handle->ptr = targetGpuHandle.ptr;
 
@@ -278,7 +278,7 @@ void SampleApp::onInit()
             initInfo.NumFramesInFlight = backBuffers;
             initInfo.RTVFormat = LiteFX::Rendering::Backends::DX12::getFormat(Format::B8G8R8A8_UNORM);
             initInfo.DSVFormat = LiteFX::Rendering::Backends::DX12::getFormat(Format::D32_SFLOAT);
-            initInfo.SrvDescriptorHeap = const_cast<ID3D12DescriptorHeap*>(device->globalBufferHeap()); // NOLINT(cppcoreguidelines-pro-type-const-cast)
+            initInfo.SrvDescriptorHeap = device->globalBufferHeap();
             initInfo.UserData = this;
             initInfo.SrvDescriptorAllocFn = SampleApp::allocImGuiD3D12DescriptorsCallback;
             initInfo.SrvDescriptorFreeFn = SampleApp::releaseImGuiD3D12DescriptorsCallback;
@@ -294,7 +294,7 @@ void SampleApp::onInit()
             };
 
             m_endUiCallback = [](const ICommandBuffer& commandBuffer) {
-                ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), static_cast<const DirectX12CommandBuffer&>(commandBuffer).handle().Get());
+                ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), dynamic_cast<const DirectX12CommandBuffer&>(commandBuffer).handle().Get());
             };
         }
         else if constexpr (std::is_same<TBackend, VulkanBackend>())
@@ -346,7 +346,7 @@ void SampleApp::onInit()
             };
 
             m_endUiCallback = [](const ICommandBuffer& commandBuffer) {
-                ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), static_cast<const VulkanCommandBuffer&>(commandBuffer).handle());
+                ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), dynamic_cast<const VulkanCommandBuffer&>(commandBuffer).handle());
             };
         }
 

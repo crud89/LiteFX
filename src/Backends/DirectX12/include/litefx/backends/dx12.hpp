@@ -2649,14 +2649,14 @@ namespace LiteFX::Rendering::Backends {
         /// The DirectX 12 device uses a global heap of descriptors and samplers in a ring-buffer fashion. The heap itself is managed by the device.
         /// </remarks>
         /// <returns>A pointer to the global descriptor heap.</returns>
-        const ID3D12DescriptorHeap* globalBufferHeap() const noexcept;
+        ID3D12DescriptorHeap* globalBufferHeap() const noexcept;
 
         /// <summary>
         /// Returns the global sampler heap.
         /// </summary>
         /// <returns>A pointer to the global sampler heap.</returns>
         /// <seealso cref="globalBufferHeap" />
-        const ID3D12DescriptorHeap* globalSamplerHeap() const noexcept;
+        ID3D12DescriptorHeap* globalSamplerHeap() const noexcept;
 
         /// <summary>
         /// Returns the command signatures for indirect dispatch and draw calls.
