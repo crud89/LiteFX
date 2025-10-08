@@ -368,7 +368,9 @@ void DirectX12SwapChain::reset(Format surfaceFormat, const Size2d& renderArea, U
 
 UInt32 DirectX12SwapChain::swapBackBuffer() const
 {
-	return m_impl->swapBackBuffer(*this);
+	auto backBuffer = m_impl->swapBackBuffer(*this);
+	this->swapped(this, BackBufferSwapEventArgs { backBuffer });
+	return backBuffer;
 }
 
 void DirectX12SwapChain::resolveQueryHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept

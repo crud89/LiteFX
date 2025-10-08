@@ -8736,6 +8736,33 @@ namespace LiteFX::Rendering {
             }
         };
 
+        /// <summary>
+        /// Event arguments for a <see cref="ISwapChain::swapped" /> event.
+        /// </summary>
+        struct BackBufferSwapEventArgs : public EventArgs {
+        private:
+            UInt32 m_backBuffer;
+
+        public:
+            explicit BackBufferSwapEventArgs(UInt32 backBuffer) noexcept :
+                EventArgs(), m_backBuffer(backBuffer) {
+            }
+            BackBufferSwapEventArgs(const BackBufferSwapEventArgs&) = default;
+            BackBufferSwapEventArgs(BackBufferSwapEventArgs&&) noexcept = default;
+            BackBufferSwapEventArgs& operator=(const BackBufferSwapEventArgs&) = default;
+            BackBufferSwapEventArgs& operator=(BackBufferSwapEventArgs&&) noexcept = default;
+            ~BackBufferSwapEventArgs() noexcept override = default;
+
+        public:
+            /// <summary>
+            /// Returns the index of the new back buffer on the swap chain.
+            /// </summary>
+            /// <returns>The index of the new back buffer on the swap chain.</returns>
+            UInt32 backBuffer() const noexcept {
+                return m_backBuffer;
+            }
+        };
+
     protected:
         ISwapChain() noexcept = default;
         ISwapChain(ISwapChain&&) noexcept = default;
@@ -8865,7 +8892,7 @@ namespace LiteFX::Rendering {
         /// Invoked, when the swap chain has swapped the back buffers.
         /// </summary>
         /// <seealso cref="swapBackBuffer" />
-        mutable Event<EventArgs> swapped;
+        mutable Event<BackBufferSwapEventArgs> swapped;
 
         /// <summary>
         /// Invoked, after the swap chain has been reseted.
