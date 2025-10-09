@@ -733,7 +733,17 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Creates a buffer that can be written on the GPU and read by the CPU.
         /// </summary>
-        Readback = 0x00000100
+        Readback = 0x00000100,
+
+        /// <summary>
+        /// Creates a buffer that is directly allocated in GPU memory, but that can be efficiently written from the CPU.
+        /// </summary>
+        /// <remarks>
+        /// This heap uses the resizable base address register (ReBAR) of the GPU to create the buffer. However, this is only possible, if the GPU supports it. To 
+        /// check support for it, you can query <see cref="IGraphicsFactory::supportsResizableBaseAddressRegister" />. In case this feature is not supported, you may
+        /// want to fall back to a <see cref="Dynamic" /> resource.
+        /// </remarks>
+        GPUUpload = 0x00001000
     };
 
     /// <summary>
@@ -8736,6 +8746,33 @@ namespace LiteFX::Rendering {
             }
         };
 
+        /// <summary>
+        /// Event arguments for a <see cref="ISwapChain::swapped" /> event.
+        /// </summary>
+        struct BackBufferSwapEventArgs : public EventArgs {
+        private:
+            UInt32 m_backBuffer;
+
+        public:
+            explicit BackBufferSwapEventArgs(UInt32 backBuffer) noexcept :
+                EventArgs(), m_backBuffer(backBuffer) {
+            }
+            BackBufferSwapEventArgs(const BackBufferSwapEventArgs&) = default;
+            BackBufferSwapEventArgs(BackBufferSwapEventArgs&&) noexcept = default;
+            BackBufferSwapEventArgs& operator=(const BackBufferSwapEventArgs&) = default;
+            BackBufferSwapEventArgs& operator=(BackBufferSwapEventArgs&&) noexcept = default;
+            ~BackBufferSwapEventArgs() noexcept override = default;
+
+        public:
+            /// <summary>
+            /// Returns the index of the new back buffer on the swap chain.
+            /// </summary>
+            /// <returns>The index of the new back buffer on the swap chain.</returns>
+            UInt32 backBuffer() const noexcept {
+                return m_backBuffer;
+            }
+        };
+
     protected:
         ISwapChain() noexcept = default;
         ISwapChain(ISwapChain&&) noexcept = default;
@@ -8865,7 +8902,7 @@ namespace LiteFX::Rendering {
         /// Invoked, when the swap chain has swapped the back buffers.
         /// </summary>
         /// <seealso cref="swapBackBuffer" />
-        mutable Event<EventArgs> swapped;
+        mutable Event<BackBufferSwapEventArgs> swapped;
 
         /// <summary>
         /// Invoked, after the swap chain has been reseted.
@@ -9541,6 +9578,16 @@ namespace LiteFX::Rendering {
         inline UniquePtr<ITopLevelAccelerationStructure> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const {
             return this->getTlas(name, flags);
         }
+
+        /// <summary>
+        /// Returns `true`, if the GPU supports resizable base address register (ReBAR) and `false` otherwise.
+        /// </summary>
+        /// <remarks>
+        /// If the GPU supports resizable base address register (ReBAR), you can use <see cref="ResourceHeap::GPUUpload" /> for buffers to directly write map into GPU memory. If it is
+        /// not supported, you may want to fall back to a <see cref="ResourceHeap::Dynamic" /> resource instead.
+        /// </remarks>
+        /// <returns>`true`, if the GPU supports resizable base address register (ReBAR) and `false` otherwise.</returns>
+        virtual bool supportsResizableBaseAddressRegister() const noexcept = 0;
 
     private:
         virtual SharedPtr<IBuffer> getBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const = 0;

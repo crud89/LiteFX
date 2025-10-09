@@ -2599,6 +2599,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UniquePtr<VulkanTopLevelAccelerationStructure> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
+
+        /// <inheritdoc />
+        bool supportsResizableBaseAddressRegister() const noexcept override;
     };
 
     /// <summary>

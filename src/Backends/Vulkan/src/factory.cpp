@@ -20,15 +20,32 @@ public:
 	VulkanGraphicsFactoryImpl(const VulkanDevice& device) :
 		m_device(device.weak_from_this())
 	{
+		// Setup VMA flags according to enabled device extensions.
+		VmaAllocatorCreateFlags createFlags{ VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT | VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE4_BIT };
+
+		auto supportedExtensions = device.enabledExtensions();
+
+		if (std::ranges::any_of(supportedExtensions, [](auto& extension) { return extension == VK_KHR_MAINTENANCE_5_EXTENSION_NAME; }))
+			createFlags |= VMA_ALLOCATOR_CREATE_KHR_MAINTENANCE5_BIT;
+
+		if (std::ranges::any_of(supportedExtensions, [](auto& extension) { return extension == VK_EXT_MEMORY_BUDGET_EXTENSION_NAME; }))
+			createFlags |= VMA_ALLOCATOR_CREATE_EXT_MEMORY_BUDGET_BIT;
+
+		if (std::ranges::any_of(supportedExtensions, [](auto& extension) { return extension == VK_KHR_EXTERNAL_MEMORY_WIN32_EXTENSION_NAME; }))
+			createFlags |= VMA_ALLOCATOR_CREATE_KHR_EXTERNAL_MEMORY_WIN32_BIT;
+
 		// Create an buffer allocator.
 		VmaAllocatorCreateInfo allocatorInfo = {};
 		allocatorInfo.physicalDevice = device.adapter().handle();
 		allocatorInfo.instance = device.surface().instance();
 		allocatorInfo.device = device.handle();
-		allocatorInfo.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+		allocatorInfo.flags = createFlags;
 		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_3;
 
 		raiseIfFailed(::vmaCreateAllocator(&allocatorInfo, &m_allocator), "Unable to create Vulkan memory allocator.");
+
+		// Listen to swap chain buffer swap events, in order to call `vmaSetCurrentFrameIndex`.
+		device.swapChain().swapped += std::bind(&VulkanGraphicsFactory::VulkanGraphicsFactoryImpl::onBackBufferSwap, this, std::placeholders::_1, std::placeholders::_2);
 	}
 
 	VulkanGraphicsFactoryImpl(VulkanGraphicsFactoryImpl&&) noexcept = default;
@@ -36,10 +53,14 @@ public:
 	VulkanGraphicsFactoryImpl& operator=(VulkanGraphicsFactoryImpl&&) noexcept = default;
 	VulkanGraphicsFactoryImpl& operator=(const VulkanGraphicsFactoryImpl&) = delete;
 
-	~VulkanGraphicsFactoryImpl()
-	{
+	~VulkanGraphicsFactoryImpl() {
 		if (m_allocator != nullptr)
 			::vmaDestroyAllocator(m_allocator);
+	}
+
+private:
+	void onBackBufferSwap([[maybe_unused]] const void* sender, const ISwapChain::BackBufferSwapEventArgs& e) {
+		::vmaSetCurrentFrameIndex(m_allocator, e.backBuffer());
 	}
 };
 
@@ -53,6 +74,31 @@ VulkanGraphicsFactory::VulkanGraphicsFactory(const VulkanDevice& device) :
 }
 
 VulkanGraphicsFactory::~VulkanGraphicsFactory() noexcept = default;
+
+bool VulkanGraphicsFactory::supportsResizableBaseAddressRegister() const noexcept
+{
+	static constinit UInt32 DEFAULT_BAR_SIZE = 256 * 1024 * 1024; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+
+	// Query the memory properties from VMA.
+	std::array<const VkPhysicalDeviceMemoryProperties*, 1> memProps{};
+	::vmaGetMemoryProperties(m_impl->m_allocator, memProps.data());
+
+	// Check the heap sizes for all memory types that are both, DEVICE_LOCAL and HOST_VISIBLE. Default BAR size is 256 Mb. If we found a
+	// heap that has equal or less than that, we ignore it, even if it might still be ReBAR-supported, but with that small BAR memory we
+	// might as well assume non-support.
+	auto memTypes = Span{ memProps[0]->memoryTypes, memProps[0]->memoryTypeCount }; // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
+
+	for (auto& memType : memTypes
+		| std::views::filter([](const auto& type) { return
+			(type.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT &&
+			(type.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT; }))
+	{
+		if (memProps[0]->memoryHeaps[memType.heapIndex].size > DEFAULT_BAR_SIZE) // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
+			return true;
+	}
+
+	return false;
+}
 
 SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(size_t heapSize) const
 {
@@ -89,8 +135,8 @@ SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(const Strin
 	};
 
 	VmaAllocationCreateInfo allocInfo = {
-		.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
-		.usage = VMA_MEMORY_USAGE_CPU_TO_GPU
+		.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+		.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE
 	};
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
@@ -204,10 +250,25 @@ SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 
 	switch (heap)
 	{
-	case ResourceHeap::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
-	case ResourceHeap::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
-	case ResourceHeap::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
-	case ResourceHeap::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	case ResourceHeap::Staging:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		break;
+	case ResourceHeap::Resource:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		break;
+	case ResourceHeap::Dynamic:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		break;
+	case ResourceHeap::Readback:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		break;
+	case ResourceHeap::GPUUpload:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		break;
 	}
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
@@ -271,10 +332,25 @@ SharedPtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 
 	switch (heap)
 	{
-	case ResourceHeap::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
-	case ResourceHeap::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
-	case ResourceHeap::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
-	case ResourceHeap::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	case ResourceHeap::Staging:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		break;
+	case ResourceHeap::Resource:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		break;
+	case ResourceHeap::Dynamic:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		break;
+	case ResourceHeap::Readback:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		break;
+	case ResourceHeap::GPUUpload:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		break;
 	}
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
@@ -338,10 +414,25 @@ SharedPtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 
 	switch (heap)
 	{
-	case ResourceHeap::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
-	case ResourceHeap::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
-	case ResourceHeap::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
-	case ResourceHeap::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	case ResourceHeap::Staging:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		break;
+	case ResourceHeap::Resource:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		break;
+	case ResourceHeap::Dynamic:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		break;
+	case ResourceHeap::Readback:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		break;
+	case ResourceHeap::GPUUpload:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		break;
 	}
 
 	// NOTE: Resource sharing between queue families leaves room for optimization. Currently we simply allow concurrent access by all queue families, so that the driver
@@ -427,8 +518,7 @@ SharedPtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	imageInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	imageInfo.pQueueFamilyIndices = queueFamilies.data();
 
-	VmaAllocationCreateInfo allocInfo = {};
-	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+	VmaAllocationCreateInfo allocInfo = { .usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE };
 
 #ifndef NDEBUG
 	auto image = VulkanImage::allocate(name, { width, height, depth }, format, dimension, levels, layers, samples, usage, m_impl->m_allocator, imageInfo, allocInfo);

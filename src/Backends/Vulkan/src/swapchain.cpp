@@ -1204,6 +1204,6 @@ void VulkanSwapChain::reset(Format surfaceFormat, const Size2d& renderArea, UInt
 UInt32 VulkanSwapChain::swapBackBuffer() const
 {
 	auto backBuffer = m_impl->swapBackBuffer();
-	this->swapped(this, { });
+	this->swapped(this, BackBufferSwapEventArgs { backBuffer });
 	return backBuffer;
 }

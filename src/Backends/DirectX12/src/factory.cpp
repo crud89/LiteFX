@@ -31,6 +31,14 @@ public:
 		D3D12MA::Allocator* allocator{};
 		raiseIfFailed(D3D12MA::CreateAllocator(&allocatorDesc, &allocator), "Unable to create D3D12 memory allocator.");
 		m_allocator.reset(allocator, D3D12MADeleter{});
+
+		// Listen to swap chain buffer swap events, in order to call `SetCurrentFrameIndex`.
+		device.swapChain().swapped += std::bind(&DirectX12GraphicsFactory::DirectX12GraphicsFactoryImpl::onBackBufferSwap, this, std::placeholders::_1, std::placeholders::_2);
+	}
+
+private:
+	void onBackBufferSwap([[maybe_unused]] const void* sender, const ISwapChain::BackBufferSwapEventArgs& e) {
+		m_allocator->SetCurrentFrameIndex(e.backBuffer());
 	}
 };
 
@@ -44,6 +52,11 @@ DirectX12GraphicsFactory::DirectX12GraphicsFactory(const DirectX12Device& device
 }
 
 DirectX12GraphicsFactory::~DirectX12GraphicsFactory() noexcept = default;
+
+bool DirectX12GraphicsFactory::supportsResizableBaseAddressRegister() const noexcept
+{
+	return m_impl->m_allocator->IsGPUUploadHeapSupported();
+}
 
 SharedPtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const
 {
@@ -108,6 +121,9 @@ SharedPtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String&
 	case ResourceHeap::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
 		break;
+	case ResourceHeap::GPUUpload:
+		allocationDesc.HeapType = D3D12_HEAP_TYPE_GPU_UPLOAD;
+		break;
 	default:
 		throw InvalidArgumentException("heap", "The buffer heap {0} is not supported.", heap);
 	}
@@ -159,6 +175,9 @@ SharedPtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(c
 	case ResourceHeap::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
 		break;
+	case ResourceHeap::GPUUpload:
+		allocationDesc.HeapType = D3D12_HEAP_TYPE_GPU_UPLOAD;
+		break;
 	default:
 		throw InvalidArgumentException("heap", "The buffer heap {0} is not supported.", heap);
 	}
@@ -209,6 +228,9 @@ SharedPtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(con
 		break;
 	case ResourceHeap::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
+		break;
+	case ResourceHeap::GPUUpload:
+		allocationDesc.HeapType = D3D12_HEAP_TYPE_GPU_UPLOAD;
 		break;
 	default:
 		throw InvalidArgumentException("heap", "The buffer heap {0} is not supported.", heap);
