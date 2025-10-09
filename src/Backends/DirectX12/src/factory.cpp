@@ -32,7 +32,7 @@ public:
 		raiseIfFailed(D3D12MA::CreateAllocator(&allocatorDesc, &allocator), "Unable to create D3D12 memory allocator.");
 		m_allocator.reset(allocator, D3D12MADeleter{});
 
-		// Listen to swap chain buffer swap events, in order to call `vmaSetCurrentFrameIndex`.
+		// Listen to swap chain buffer swap events, in order to call `SetCurrentFrameIndex`.
 		device.swapChain().swapped += std::bind(&DirectX12GraphicsFactory::DirectX12GraphicsFactoryImpl::onBackBufferSwap, this, std::placeholders::_1, std::placeholders::_2);
 	}
 
@@ -52,6 +52,11 @@ DirectX12GraphicsFactory::DirectX12GraphicsFactory(const DirectX12Device& device
 }
 
 DirectX12GraphicsFactory::~DirectX12GraphicsFactory() noexcept = default;
+
+bool DirectX12GraphicsFactory::supportsResizableBaseAddressRegister() const noexcept
+{
+	return m_impl->m_allocator->IsGPUUploadHeapSupported();
+}
 
 SharedPtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const
 {
