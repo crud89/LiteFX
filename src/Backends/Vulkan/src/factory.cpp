@@ -135,8 +135,8 @@ SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(const Strin
 	};
 
 	VmaAllocationCreateInfo allocInfo = {
-		.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
-		.usage = VMA_MEMORY_USAGE_CPU_TO_GPU
+		.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT,
+		.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE
 	};
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
@@ -250,10 +250,25 @@ SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 
 	switch (heap)
 	{
-	case ResourceHeap::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
-	case ResourceHeap::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
-	case ResourceHeap::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
-	case ResourceHeap::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	case ResourceHeap::Staging:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		break;
+	case ResourceHeap::Resource:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		break;
+	case ResourceHeap::Dynamic:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		break;
+	case ResourceHeap::Readback:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		break;
+	case ResourceHeap::GPUUpload:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		break;
 	}
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
@@ -317,10 +332,25 @@ SharedPtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 
 	switch (heap)
 	{
-	case ResourceHeap::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
-	case ResourceHeap::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
-	case ResourceHeap::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
-	case ResourceHeap::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	case ResourceHeap::Staging:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		break;
+	case ResourceHeap::Resource:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		break;
+	case ResourceHeap::Dynamic:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		break;
+	case ResourceHeap::Readback:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		break;
+	case ResourceHeap::GPUUpload:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		break;
 	}
 
 	// If the buffer is used as a static resource or staging buffer, it needs to be accessible concurrently by the graphics and transfer queues.
@@ -384,10 +414,25 @@ SharedPtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 
 	switch (heap)
 	{
-	case ResourceHeap::Staging:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;   break;
-	case ResourceHeap::Resource: allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;   break;
-	case ResourceHeap::Dynamic:  allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU; break;
-	case ResourceHeap::Readback: allocInfo.usage = VMA_MEMORY_USAGE_GPU_TO_CPU; break;
+	case ResourceHeap::Staging:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		break;
+	case ResourceHeap::Resource:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		break;
+	case ResourceHeap::Dynamic:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		break;
+	case ResourceHeap::Readback:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		break;
+	case ResourceHeap::GPUUpload:
+		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		break;
 	}
 
 	// NOTE: Resource sharing between queue families leaves room for optimization. Currently we simply allow concurrent access by all queue families, so that the driver
@@ -473,8 +518,7 @@ SharedPtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 	imageInfo.queueFamilyIndexCount = static_cast<UInt32>(queueFamilies.size());
 	imageInfo.pQueueFamilyIndices = queueFamilies.data();
 
-	VmaAllocationCreateInfo allocInfo = {};
-	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+	VmaAllocationCreateInfo allocInfo = { .usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE };
 
 #ifndef NDEBUG
 	auto image = VulkanImage::allocate(name, { width, height, depth }, format, dimension, levels, layers, samples, usage, m_impl->m_allocator, imageInfo, allocInfo);
