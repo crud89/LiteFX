@@ -121,6 +121,9 @@ SharedPtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String&
 	case ResourceHeap::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
 		break;
+	case ResourceHeap::GPUUpload:
+		allocationDesc.HeapType = D3D12_HEAP_TYPE_GPU_UPLOAD;
+		break;
 	default:
 		throw InvalidArgumentException("heap", "The buffer heap {0} is not supported.", heap);
 	}
@@ -172,6 +175,9 @@ SharedPtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(c
 	case ResourceHeap::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
 		break;
+	case ResourceHeap::GPUUpload:
+		allocationDesc.HeapType = D3D12_HEAP_TYPE_GPU_UPLOAD;
+		break;
 	default:
 		throw InvalidArgumentException("heap", "The buffer heap {0} is not supported.", heap);
 	}
@@ -222,6 +228,9 @@ SharedPtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(con
 		break;
 	case ResourceHeap::Readback:
 		allocationDesc.HeapType = D3D12_HEAP_TYPE_READBACK;
+		break;
+	case ResourceHeap::GPUUpload:
+		allocationDesc.HeapType = D3D12_HEAP_TYPE_GPU_UPLOAD;
 		break;
 	default:
 		throw InvalidArgumentException("heap", "The buffer heap {0} is not supported.", heap);
