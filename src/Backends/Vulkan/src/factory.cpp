@@ -77,7 +77,7 @@ VulkanGraphicsFactory::~VulkanGraphicsFactory() noexcept = default;
 
 bool VulkanGraphicsFactory::supportsResizableBaseAddressRegister() const noexcept
 {
-	static constinit UInt32 DEFAULT_BAR_SIZE = 256 * 1024 * 1024;
+	static constinit UInt32 DEFAULT_BAR_SIZE = 256 * 1024 * 1024; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
 	// Query the memory properties from VMA.
 	std::array<const VkPhysicalDeviceMemoryProperties*, 1> memProps{};
@@ -86,14 +86,14 @@ bool VulkanGraphicsFactory::supportsResizableBaseAddressRegister() const noexcep
 	// Check the heap sizes for all memory types that are both, DEVICE_LOCAL and HOST_VISIBLE. Default BAR size is 256 Mb. If we found a
 	// heap that has equal or less than that, we ignore it, even if it might still be ReBAR-supported, but with that small BAR memory we
 	// might as well assume non-support.
-	auto memTypes = Span{ memProps[0]->memoryTypes, memProps[0]->memoryTypeCount };
+	auto memTypes = Span{ memProps[0]->memoryTypes, memProps[0]->memoryTypeCount }; // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
 
 	for (auto& memType : memTypes
 		| std::views::filter([](const auto& type) { return
 			(type.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT &&
 			(type.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT; }))
 	{
-		if (memProps[0]->memoryHeaps[memType.heapIndex].size > DEFAULT_BAR_SIZE)
+		if (memProps[0]->memoryHeaps[memType.heapIndex].size > DEFAULT_BAR_SIZE) // NOLINT(cppcoreguidelines-pro-bounds-constant-array-index)
 			return true;
 	}
 
