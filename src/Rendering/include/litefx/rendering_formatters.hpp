@@ -314,6 +314,7 @@ struct LITEFX_RENDERING_API std::formatter<ResourceHeap> : std::formatter<std::s
 		case Resource: name = "Resource"; break;
 		case Dynamic:  name = "Dynamic";  break;
 		case Readback: name = "Readback"; break;
+		case GPUUpload: name = "GPUUpload"; break;
 		}
 		return formatter<string_view>::format(name, ctx);
 	}
