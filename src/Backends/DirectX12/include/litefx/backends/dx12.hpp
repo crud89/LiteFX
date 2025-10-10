@@ -2558,6 +2558,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         Array<MemoryHeapStatistics> memoryStatistics() const noexcept override;
+
+        /// <inheritdoc />
+        DetailedMemoryStatistics detailedMemoryStatistics() const noexcept override;
     };
 
     /// <summary>

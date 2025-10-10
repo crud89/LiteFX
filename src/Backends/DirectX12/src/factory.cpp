@@ -89,6 +89,61 @@ Array<MemoryHeapStatistics> DirectX12GraphicsFactory::memoryStatistics() const n
 	};
 }
 
+DetailedMemoryStatistics DirectX12GraphicsFactory::detailedMemoryStatistics() const noexcept
+{
+	static auto convertStats = [](const D3D12MA::DetailedStatistics& stats, bool onGpu, bool cpuVisible) -> DetailedMemoryStatistics::StatisticsBlock {
+		return {
+			.onGpu = onGpu,
+			.cpuVisible = cpuVisible,
+			.blocks = stats.Stats.BlockCount,
+			.allocations = stats.Stats.AllocationCount,
+			.blockSize = stats.Stats.BlockCount,
+			.allocationSize = stats.Stats.AllocationBytes,
+			.unusedRangeCount = stats.UnusedRangeCount,
+			.minAllocationSize = stats.AllocationSizeMin,
+			.maxAllocationSize = stats.AllocationSizeMax,
+			.minUnusedRangeSize = stats.UnusedRangeSizeMin,
+			.maxUnusedRangeSize = stats.UnusedRangeSizeMax
+		};
+	};
+
+	// Query the total memory statistics.
+	D3D12MA::TotalStatistics stats{};
+	m_impl->m_allocator->CalculateStatistics(&stats);
+
+	// Convert and return.
+	return {
+		.perLocation = stats.MemorySegmentGroup 
+			| std::views::transform([&, i = 0](const auto& stats) mutable -> DetailedMemoryStatistics::StatisticsBlock {
+					if (i++ == 0)
+						return convertStats(stats, !m_impl->m_allocator->IsUMA(), static_cast<bool>(m_impl->m_allocator->IsUMA()));
+					else
+						return convertStats(stats, false, true);
+				}) 
+			| std::ranges::to<Array<DetailedMemoryStatistics::StatisticsBlock>>(),
+		.perResourceHeap = stats.HeapType 
+			| std::views::transform([&, i = 0](const auto& stats) mutable -> DetailedMemoryStatistics::StatisticsBlock {
+					switch (i++)
+					{
+					case 0:  // DEFAULT
+						return convertStats(stats, true, false);
+					case 1:  // UPLOAD
+						return convertStats(stats, false, true);
+					case 2:  // READBACK
+						return convertStats(stats, true, true);
+					case 3:  // CUSTOM
+						return convertStats(stats, true, false);
+					case 4:  // GPUUPLOAD
+						return convertStats(stats, true, true);
+					default: // INVALID
+						return convertStats(stats, false, false);
+					}
+				})
+			| std::ranges::to<Array<DetailedMemoryStatistics::StatisticsBlock>>(),
+		.total = convertStats(stats.Total, true, true)
+	};
+}
+
 SharedPtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const
 {
 	return this->createBuffer("", type, heap, elementSize, elements, usage);

@@ -9234,6 +9234,89 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Stores extended memory statistics, that can be queried by calling <see cref="IGraphicsFactory::detailedMemoryStatistics" />.
+    /// </summary>
+    /// <remarks>
+    /// Note that those statistics should only be used for debugging purposes, as their computation may be significantly slower compared to calling <see cref="IGraphicsFactory::memoryStatistics" />.
+    /// </remarks>
+    struct LITEFX_RENDERING_API DetailedMemoryStatistics {
+        /// <summary>
+        /// Defines a single statistics block.
+        /// </summary>
+        struct StatisticsBlock {
+            /// <summary>
+            /// `true`, if the heap is located in video memory and `false` otherwise.
+            /// </summary>
+            bool onGpu{ false };
+
+            /// <summary>
+            /// `true`, of the heap is accessible for the CPU and `false` otherwise.
+            /// </summary>
+            bool cpuVisible{ false };
+
+            /// <summary>
+            /// Returns the number of memory blocks in the heap.
+            /// </summary>
+            UInt32 blocks{};
+
+            /// <summary>
+            /// Returns the total number of allocations in the heap.
+            /// </summary>
+            UInt32 allocations{};
+
+            /// <summary>
+            /// Returns the total size of allocated memory across all blocks in the heap.
+            /// </summary>
+            UInt64 blockSize{};
+
+            /// <summary>
+            /// Returns the total size of memory for all allocations in the heap. Always less or equal to <see cref="totalBlockSize" />.
+            /// </summary>
+            UInt64 allocationSize{};
+
+            /// <summary>
+            /// The number of unoccupied memory ranges between allocations.
+            /// </summary>
+            UInt32 unusedRangeCount{};
+
+            /// <summary>
+            /// The size of the smallest allocation.
+            /// </summary>
+            UInt64 minAllocationSize{};
+
+            /// <summary>
+            /// The size of the largest allocation.
+            /// </summary>
+            UInt64 maxAllocationSize{};
+
+            /// <summary>
+            /// The size of the smallest unused memory range.
+            /// </summary>
+            UInt64 minUnusedRangeSize{};
+
+            /// <summary>
+            /// The size of the largest unused memory range.
+            /// </summary>
+            UInt64 maxUnusedRangeSize{};
+        };
+
+        /// <summary>
+        /// Stores the memory statistics per location (e.g., VRAM/RAM).
+        /// </summary>
+        Array<StatisticsBlock> perLocation{};
+
+        /// <summary>
+        /// Stores the memory statistics per <see cref="ResourceHeap" />.
+        /// </summary>
+        Array<StatisticsBlock> perResourceHeap{};
+
+        /// <summary>
+        /// Stores the total memory statistics.
+        /// </summary>
+        StatisticsBlock total{};
+    };
+
+    /// <summary>
     /// The interface for a graphics factory.
     /// </summary>
     class LITEFX_RENDERING_API IGraphicsFactory : public SharedObject {
@@ -9646,6 +9729,16 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>An array of objects, containing memory statistics for a memory heap.</returns>
         virtual Array<MemoryHeapStatistics> memoryStatistics() const noexcept = 0;
+
+        /// <summary>
+        /// Returns detailed memory statistics.
+        /// </summary>
+        /// <remarks>
+        /// Only call this method for debugging purposes, as it is significantly slower compared to <see cref="memoryStatistics" />, which can be called multiple times every frame 
+        /// without any significant performance impact.
+        /// </remarks>
+        /// <returns>The detailed memory statistics of the application.</returns>
+        virtual DetailedMemoryStatistics detailedMemoryStatistics() const noexcept = 0;
 
     private:
         virtual SharedPtr<IBuffer> getBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const = 0;

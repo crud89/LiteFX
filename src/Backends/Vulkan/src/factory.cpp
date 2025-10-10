@@ -114,24 +114,79 @@ Array<MemoryHeapStatistics> VulkanGraphicsFactory::memoryStatistics() const noex
 	// Convert the heap budgets to the API types.
 	return heapBudgets 
 		| std::views::transform([&memoryTypes, i = 0](const VmaBudget& budget) mutable -> MemoryHeapStatistics {
-			// Find the memory type for the heap.
-			UInt32 heapIndex = i++;
+				// Find the memory type for the heap.
+				UInt32 heapIndex = i++;
 
-			// Return the heap statistics.
-			if (auto match = std::ranges::find_if(memoryTypes, [heapIndex](const auto& type) { return type.heapIndex == heapIndex; }); match != memoryTypes.end())
-				return {
-					.onGpu = (match->propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-					.cpuVisible = (match->propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-					.blocks = budget.statistics.blockCount,
-					.allocations = budget.statistics.allocationCount,
-					.blockSize = budget.statistics.blockBytes,
-					.allocationSize = budget.statistics.allocationBytes,
-					.usedMemory = budget.usage,
-					.availableMemory = budget.budget
-				}; 
-			else
-				return { }; })
+				// Return the heap statistics.
+				if (auto match = std::ranges::find_if(memoryTypes, [heapIndex](const auto& type) { return type.heapIndex == heapIndex; }); match != memoryTypes.end())
+					return {
+						.onGpu = (match->propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+						.cpuVisible = (match->propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+						.blocks = budget.statistics.blockCount,
+						.allocations = budget.statistics.allocationCount,
+						.blockSize = budget.statistics.blockBytes,
+						.allocationSize = budget.statistics.allocationBytes,
+						.usedMemory = budget.usage,
+						.availableMemory = budget.budget
+					}; 
+				else [[unlikely]]
+					std::unreachable(); // If we reach here, the driver messed up something real badly.
+			})
 		| std::ranges::to<Array<MemoryHeapStatistics>>();
+}
+
+DetailedMemoryStatistics VulkanGraphicsFactory::detailedMemoryStatistics() const noexcept
+{
+	static auto convertStats = [](const VmaDetailedStatistics& stats, bool onGpu, bool cpuVisible) -> DetailedMemoryStatistics::StatisticsBlock {
+		return {
+			.onGpu = onGpu,
+			.cpuVisible = cpuVisible,
+			.blocks = stats.statistics.blockCount,
+			.allocations = stats.statistics.allocationCount,
+			.blockSize = stats.statistics.blockCount,
+			.allocationSize = stats.statistics.allocationBytes,
+			.unusedRangeCount = stats.unusedRangeCount,
+			.minAllocationSize = stats.allocationSizeMin,
+			.maxAllocationSize = stats.allocationSizeMax,
+			.minUnusedRangeSize = stats.unusedRangeSizeMin,
+			.maxUnusedRangeSize = stats.unusedRangeSizeMax
+		};
+	};
+
+	// Query the memory properties from VMA to get the number of heaps.
+	std::array<const VkPhysicalDeviceMemoryProperties*, 1> memProps{};
+	::vmaGetMemoryProperties(m_impl->m_allocator, memProps.data());
+	UInt32 heapCount = memProps[0]->memoryHeapCount, typeCount = memProps[0]->memoryTypeCount; // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
+	auto memoryTypes = Span{ memProps[0]->memoryTypes, memProps[0]->memoryTypeCount }; // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
+
+	// Query the total memory statistics.
+	VmaTotalStatistics stats{};
+	::vmaCalculateStatistics(m_impl->m_allocator, &stats);
+
+	// Convert and return.
+	return {
+		.perLocation = stats.memoryHeap
+			| std::views::take(heapCount)
+			| std::views::transform([&, i = 0](const auto& stats) mutable ->DetailedMemoryStatistics::StatisticsBlock {
+				// Find the memory type for the heap.
+				UInt32 heapIndex = i++;
+
+				// Return the heap statistics.
+				if (auto match = std::ranges::find_if(memoryTypes, [heapIndex](const auto& type) { return type.heapIndex == heapIndex; }); match != memoryTypes.end())
+					return convertStats(stats, (match->propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (match->propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+				else [[unlikely]]
+					std::unreachable(); // If we reach here, the driver messed up something real badly.
+			})
+		| std::ranges::to<Array<DetailedMemoryStatistics::StatisticsBlock>>(),
+		.perResourceHeap = stats.memoryType
+			| std::views::take(typeCount)
+			| std::views::transform([&, i = 0](const auto& stats) mutable -> DetailedMemoryStatistics::StatisticsBlock {
+					const auto& type = memoryTypes[i++];
+					return convertStats(stats, (type.propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (type.propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+				})
+			| std::ranges::to<Array<DetailedMemoryStatistics::StatisticsBlock>>(),
+		.total = convertStats(stats.total, true, true)
+	};
 }
 
 SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(size_t heapSize) const
