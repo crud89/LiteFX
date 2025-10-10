@@ -58,12 +58,12 @@ bool DirectX12GraphicsFactory::supportsResizableBaseAddressRegister() const noex
 	return m_impl->m_allocator->IsGPUUploadHeapSupported();
 }
 
-SharedPtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
-	return this->createBuffer("", type, heap, elementSize, elements, usage);
+	return this->createBuffer("", type, heap, elementSize, elements, usage, allocationBehavior);
 }
 
-SharedPtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
 	// Validate inputs.
 	if ((type == BufferType::Vertex || type == BufferType::Index || type == BufferType::Uniform) && LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite)) [[unlikely]]
@@ -109,6 +109,11 @@ SharedPtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String&
 
 	D3D12MA::ALLOCATION_DESC allocationDesc { };
 
+	if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
+	else if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
+
 	switch (heap)
 	{
 	case ResourceHeap::Dynamic:
@@ -131,12 +136,12 @@ SharedPtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(const String&
 	return DirectX12Buffer::allocate(name, m_impl->m_allocator, type, elements, elementSize, elementAlignment, usage, resourceDesc, allocationDesc);
 }
 
-SharedPtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(const DirectX12VertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(const DirectX12VertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
-	return this->createVertexBuffer("", layout, heap, elements, usage);
+	return this->createVertexBuffer("", layout, heap, elements, usage, allocationBehavior);
 }
 
-SharedPtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(const String& name, const DirectX12VertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(const String& name, const DirectX12VertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
 	// Validate usage.
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite)) [[unlikely]]
@@ -163,6 +168,11 @@ SharedPtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(c
 
 	D3D12MA::ALLOCATION_DESC allocationDesc { };
 
+	if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
+	else if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
+
 	switch (heap)
 	{
 	case ResourceHeap::Dynamic:
@@ -185,12 +195,12 @@ SharedPtr<IDirectX12VertexBuffer> DirectX12GraphicsFactory::createVertexBuffer(c
 	return DirectX12VertexBuffer::allocate(name, layout, m_impl->m_allocator, elements, usage, resourceDesc, allocationDesc);
 }
 
-SharedPtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(const DirectX12IndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(const DirectX12IndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
-	return this->createIndexBuffer("", layout, heap, elements, usage);
+	return this->createIndexBuffer("", layout, heap, elements, usage, allocationBehavior);
 }
 
-SharedPtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(const String& name, const DirectX12IndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(const String& name, const DirectX12IndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
 	// Validate usage.
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite)) [[unlikely]]
@@ -217,6 +227,11 @@ SharedPtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(con
 	
 	D3D12MA::ALLOCATION_DESC allocationDesc { };
 
+	if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
+	else if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
+
 	switch (heap)
 	{
 	case ResourceHeap::Dynamic:
@@ -239,12 +254,12 @@ SharedPtr<IDirectX12IndexBuffer> DirectX12GraphicsFactory::createIndexBuffer(con
 	return DirectX12IndexBuffer::allocate(name, layout, m_impl->m_allocator, elements, usage, resourceDesc, allocationDesc);
 }
 
-SharedPtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
+SharedPtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
-	return this->createTexture("", format, size, dimension, levels, layers, samples, usage);
+	return this->createTexture("", format, size, dimension, levels, layers, samples, usage, allocationBehavior);
 }
 
-SharedPtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
+SharedPtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
 	// Check if the device is still valid.
 	auto device = m_impl->m_device.lock();
@@ -292,16 +307,21 @@ SharedPtr<IDirectX12Image> DirectX12GraphicsFactory::createTexture(const String&
 	};
 
 	D3D12MA::ALLOCATION_DESC allocationDesc { .HeapType = D3D12_HEAP_TYPE_DEFAULT };
+
+	if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
+	else if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
 	
 	return DirectX12Image::allocate(name, *device.get(), m_impl->m_allocator, {width, height, depth}, format, dimension, levels, layers, samples, usage, resourceDesc, allocationDesc);
 }
 
-Generator<SharedPtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
+Generator<SharedPtr<IDirectX12Image>> DirectX12GraphicsFactory::createTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
-	return [](SharedPtr<const DirectX12GraphicsFactory> factory, Format format, Size3d size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) -> Generator<SharedPtr<IDirectX12Image>> {
+	return [](SharedPtr<const DirectX12GraphicsFactory> factory, Format format, Size3d size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) -> Generator<SharedPtr<IDirectX12Image>> {
 		for (;;)
-			co_yield factory->createTexture(format, size, dimension, levels, layers, samples, usage);
-	}(this->shared_from_this(), format, size, dimension, levels, layers, samples, usage);
+			co_yield factory->createTexture(format, size, dimension, levels, layers, samples, usage, allocationBehavior);
+	}(this->shared_from_this(), format, size, dimension, levels, layers, samples, usage, allocationBehavior);
 }
 
 SharedPtr<IDirectX12Sampler> DirectX12GraphicsFactory::createSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const

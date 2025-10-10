@@ -810,6 +810,28 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Controls the allocation behavior of <see cref="IGraphicsFactory" />.
+    /// </summary>
+    enum class AllocationBehavior : UInt32 {
+        /// <summary>
+        /// Represents the default behavior, which might fall back to slower memory types, if required.
+        /// </summary>
+        Default = 0x00,
+
+        /// <summary>
+        /// Stays within heap budgets. If the desired resource heap is out of memory, allocation will fail. Use this behavior for resources that are not required to
+        /// prevent them from being allocated in potentially slower memory heaps.
+        /// </summary>
+        StayWithingBudget = 0x01,
+
+        /// <summary>
+        /// Does not resize heap cache, if no more pre-allocated memory is available and will fail, if available memory is exceeded. Use this in situations, where you 
+        /// can potentially delay an allocation to a less time-critical point.
+        /// </summary>
+        DontExpandCache = 0x02
+    };
+
+    /// <summary>
     /// Describes the element type of an index buffer.
     /// </summary>
     enum class IndexType : UInt32 {
@@ -9204,9 +9226,10 @@ namespace LiteFX::Rendering {
         /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getBuffer(type, heap, elementSize, elements, usage);
+        inline SharedPtr<IBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getBuffer(type, heap, elementSize, elements, usage, allocationBehavior);
         };
 
         /// <summary>
@@ -9217,10 +9240,11 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
+        inline SharedPtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
-            return this->createBuffer(descriptor.type(), heap, descriptor.elementSize(), elements, usage);
+            return this->createBuffer(descriptor.type(), heap, descriptor.elementSize(), elements, usage, allocationBehavior);
         };
 
         /// <summary>
@@ -9231,10 +9255,11 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
+        inline SharedPtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
-            return this->createBuffer(descriptor.type(), heap, elementSize, elements, usage);
+            return this->createBuffer(descriptor.type(), heap, elementSize, elements, usage, allocationBehavior);
         };
 
         /// <summary>
@@ -9246,9 +9271,10 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, heap, elementSize, elements, usage);
+        inline SharedPtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, heap, elementSize, elements, usage, allocationBehavior);
         };
 
         /// <summary>
@@ -9260,9 +9286,10 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, heap, elements, usage);
+        inline SharedPtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, heap, elements, usage, allocationBehavior);
         };
 
         /// <summary>
@@ -9274,9 +9301,10 @@ namespace LiteFX::Rendering {
         /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getBuffer(name, type, heap, elementSize, elements, usage);
+        inline SharedPtr<IBuffer> createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getBuffer(name, type, heap, elementSize, elements, usage, allocationBehavior);
         };
 
         /// <summary>
@@ -9288,10 +9316,11 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
+        inline SharedPtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
-            return this->createBuffer(name, descriptor.type(), heap, descriptor.elementSize(), elements, usage);
+            return this->createBuffer(name, descriptor.type(), heap, descriptor.elementSize(), elements, usage, allocationBehavior);
         };
         
         /// <summary>
@@ -9304,10 +9333,11 @@ namespace LiteFX::Rendering {
         /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
+        inline SharedPtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
-            return this->createBuffer(name, descriptor.type(), heap, elementSize, elements, usage);
+            return this->createBuffer(name, descriptor.type(), heap, elementSize, elements, usage, allocationBehavior);
         };
 
         /// <summary>
@@ -9320,9 +9350,10 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, heap, elements, usage);
+        inline SharedPtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, heap, elements, usage, allocationBehavior);
         };
 
         /// <summary>
@@ -9336,9 +9367,10 @@ namespace LiteFX::Rendering {
         /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, heap, elementSize, elements, usage);
+        inline SharedPtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, heap, elementSize, elements, usage, allocationBehavior);
         };
 
         /// <summary>
@@ -9353,9 +9385,10 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the vertex buffer.</returns>
-        inline SharedPtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getVertexBuffer(layout, heap, elements, usage);
+        inline SharedPtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getVertexBuffer(layout, heap, elements, usage, allocationBehavior);
         }
 
         /// <summary>
@@ -9371,9 +9404,10 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the vertex buffer.</returns>
-        inline SharedPtr<IVertexBuffer> createVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getVertexBuffer(name, layout, heap, elements, usage);
+        inline SharedPtr<IVertexBuffer> createVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getVertexBuffer(name, layout, heap, elements, usage, allocationBehavior);
         }
 
         /// <summary>
@@ -9388,9 +9422,10 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the index buffer.</returns>
-        inline SharedPtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getIndexBuffer(layout, heap, elements, usage);
+        inline SharedPtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getIndexBuffer(layout, heap, elements, usage, allocationBehavior);
         }
 
         /// <summary>
@@ -9406,9 +9441,10 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="usage">The intended usage for the buffer.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the index buffer.</returns>
-        inline SharedPtr<IIndexBuffer> createIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getIndexBuffer(name, layout, heap, elements, usage);
+        inline SharedPtr<IIndexBuffer> createIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getIndexBuffer(name, layout, heap, elements, usage, allocationBehavior);
         }
 
         /// <summary>
@@ -9425,10 +9461,11 @@ namespace LiteFX::Rendering {
         /// <param name="levels">The number of mip map levels of the texture.</param>
         /// <param name="samples">The number of samples, the texture should be sampled with.</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the texture.</returns>
         /// <seealso cref="createTextures" />
-        inline SharedPtr<IImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getTexture(format, size, dimension, levels, layers, samples, usage);
+        inline SharedPtr<IImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getTexture(format, size, dimension, levels, layers, samples, usage, allocationBehavior);
         }
 
         /// <summary>
@@ -9446,10 +9483,11 @@ namespace LiteFX::Rendering {
         /// <param name="levels">The number of mip map levels of the texture.</param>
         /// <param name="samples">The number of samples, the texture should be sampled with.</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the texture.</returns>
         /// <seealso cref="createTextures" />
-        inline SharedPtr<IImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getTexture(name, format, size, dimension, levels, layers, samples, usage);
+        inline SharedPtr<IImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getTexture(name, format, size, dimension, levels, layers, samples, usage, allocationBehavior);
         }
 
         /// <summary>
@@ -9461,10 +9499,11 @@ namespace LiteFX::Rendering {
         /// <param name="levels">The number of mip map levels of the textures.</param>
         /// <param name="samples">The number of samples, the textures should be sampled with.</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>A generator for texture instances.</returns>
         /// <seealso cref="createTexture" />
-        inline Generator<SharedPtr<IImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getTextures(format, size, dimension, layers, levels, samples, usage);
+        inline Generator<SharedPtr<IImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getTextures(format, size, dimension, layers, levels, samples, usage, allocationBehavior);
         }
 
         /// <summary>
@@ -9590,15 +9629,15 @@ namespace LiteFX::Rendering {
         virtual bool supportsResizableBaseAddressRegister() const noexcept = 0;
 
     private:
-        virtual SharedPtr<IBuffer> getBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const = 0;
-        virtual SharedPtr<IBuffer> getBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const = 0;
-        virtual SharedPtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
-        virtual SharedPtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
-        virtual SharedPtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
-        virtual SharedPtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
-        virtual SharedPtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
-        virtual SharedPtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
-        virtual Generator<SharedPtr<IImage>> getTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
+        virtual SharedPtr<IBuffer> getBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual SharedPtr<IBuffer> getBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual SharedPtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual SharedPtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual SharedPtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual SharedPtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual SharedPtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual SharedPtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual Generator<SharedPtr<IImage>> getTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
         virtual SharedPtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
         virtual SharedPtr<ISampler> getSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
         virtual Generator<SharedPtr<ISampler>> getSamplers(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;

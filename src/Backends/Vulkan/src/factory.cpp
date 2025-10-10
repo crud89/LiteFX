@@ -158,12 +158,12 @@ SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(const Strin
 #endif
 }
 
-SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
-	return this->createBuffer("", type, heap, elementSize, elements, usage);
+	return this->createBuffer("", type, heap, elementSize, elements, usage, allocationBehavior);
 }
 
-SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
 	// Validate inputs.
 	if ((type == BufferType::Vertex || type == BufferType::Index || type == BufferType::Uniform) && LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite)) [[unlikely]]
@@ -247,27 +247,32 @@ SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 
 	// Deduct the allocation usage from the buffer usage scenario.
 	VmaAllocationCreateInfo allocInfo = {};
+	
+	if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT;
+	else if (allocationBehavior == AllocationBehavior::DontExpandCache)
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_NEVER_ALLOCATE_BIT;
 
 	switch (heap)
 	{
 	case ResourceHeap::Staging:
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
-		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
 		break;
 	case ResourceHeap::Resource:
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
 		break;
 	case ResourceHeap::Dynamic:
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
-		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
 		break;
 	case ResourceHeap::Readback:
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
-		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
 		break;
 	case ResourceHeap::GPUUpload:
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
-		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
 		break;
 	}
 
@@ -290,12 +295,12 @@ SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(const String& name,
 #endif
 }
 
-SharedPtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
-	return this->createVertexBuffer("", layout, heap, elements, usage);
+	return this->createVertexBuffer("", layout, heap, elements, usage, allocationBehavior);
 }
 
-SharedPtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
 	// Validate usage.
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite)) [[unlikely]]
@@ -330,26 +335,31 @@ SharedPtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 	// Deduct the allocation usage from the buffer usage scenario.
 	VmaAllocationCreateInfo allocInfo = {};
 
+	if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT;
+	else if (allocationBehavior == AllocationBehavior::DontExpandCache)
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_NEVER_ALLOCATE_BIT;
+
 	switch (heap)
 	{
 	case ResourceHeap::Staging:
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
-		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
 		break;
 	case ResourceHeap::Resource:
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
 		break;
 	case ResourceHeap::Dynamic:
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
-		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
 		break;
 	case ResourceHeap::Readback:
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
-		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
 		break;
 	case ResourceHeap::GPUUpload:
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
-		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
 		break;
 	}
 
@@ -372,12 +382,12 @@ SharedPtr<IVulkanVertexBuffer> VulkanGraphicsFactory::createVertexBuffer(const S
 #endif
 }
 
-SharedPtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
-	return this->createIndexBuffer("", layout, heap, elements, usage);
+	return this->createIndexBuffer("", layout, heap, elements, usage, allocationBehavior);
 }
 
-SharedPtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const
+SharedPtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
 	// Validate usage.
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AllowWrite)) [[unlikely]]
@@ -412,26 +422,31 @@ SharedPtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 	// Deduct the allocation usage from the buffer usage scenario.
 	VmaAllocationCreateInfo allocInfo = {};
 
+	if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT;
+	else if (allocationBehavior == AllocationBehavior::DontExpandCache)
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_NEVER_ALLOCATE_BIT;
+
 	switch (heap)
 	{
 	case ResourceHeap::Staging:
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
-		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
 		break;
 	case ResourceHeap::Resource:
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
 		break;
 	case ResourceHeap::Dynamic:
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
-		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
 		break;
 	case ResourceHeap::Readback:
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
-		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
 		break;
 	case ResourceHeap::GPUUpload:
 		allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
-		allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
 		break;
 	}
 
@@ -457,12 +472,12 @@ SharedPtr<IVulkanIndexBuffer> VulkanGraphicsFactory::createIndexBuffer(const Str
 #endif
 }
 
-SharedPtr<IVulkanImage> VulkanGraphicsFactory::createTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
+SharedPtr<IVulkanImage> VulkanGraphicsFactory::createTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
-	return this->createTexture("", format, size, dimension, levels, layers, samples, usage);
+	return this->createTexture("", format, size, dimension, levels, layers, samples, usage, allocationBehavior);
 }
 
-SharedPtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
+SharedPtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
 	// Validate usage flags
 	if (LITEFX_FLAG_IS_SET(usage, ResourceUsage::AccelerationStructureBuildInput)) [[unlikely]]
@@ -520,6 +535,11 @@ SharedPtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 
 	VmaAllocationCreateInfo allocInfo = { .usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE };
 
+	if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT;
+	else if (allocationBehavior == AllocationBehavior::DontExpandCache)
+		allocInfo.flags |= VMA_ALLOCATION_CREATE_NEVER_ALLOCATE_BIT;
+
 #ifndef NDEBUG
 	auto image = VulkanImage::allocate(name, { width, height, depth }, format, dimension, levels, layers, samples, usage, m_impl->m_allocator, imageInfo, allocInfo);
 
@@ -532,12 +552,12 @@ SharedPtr<IVulkanImage> VulkanGraphicsFactory::createTexture(const String& name,
 #endif
 }
 
-Generator<SharedPtr<IVulkanImage>> VulkanGraphicsFactory::createTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const
+Generator<SharedPtr<IVulkanImage>> VulkanGraphicsFactory::createTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const
 {
-	return [](SharedPtr<const VulkanGraphicsFactory> factory, Format format, Size3d size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) -> Generator<SharedPtr<IVulkanImage>> {
+	return [](SharedPtr<const VulkanGraphicsFactory> factory, Format format, Size3d size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) -> Generator<SharedPtr<IVulkanImage>> {
 		for (;;)
-			co_yield factory->createTexture(format, size, dimension, levels, layers, samples, usage);
-	}(this->shared_from_this(), format, size, dimension, levels, layers, samples, usage);
+			co_yield factory->createTexture(format, size, dimension, levels, layers, samples, usage, allocationBehavior);
+	}(this->shared_from_this(), format, size, dimension, levels, layers, samples, usage, allocationBehavior);
 }
 
 SharedPtr<IVulkanSampler> VulkanGraphicsFactory::createSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const
