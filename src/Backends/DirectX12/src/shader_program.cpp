@@ -543,10 +543,15 @@ public:
                         LITEFX_WARNING(DIRECTX12_LOG, "A hint for binding {0} at space {1} indicates a dynamic resource or sampler heap, but the binding is already used for another descriptor. The hint will be ignored.", descriptor.location, descriptorSet.space);
                 };
 
+                auto shaderStageHintCallback = [&](const PipelineBindingHint::ShaderStageHint& hint) {
+                    // Simply mask in the stage into the parent descriptor set mask.
+                    descriptorSet.stage |= hint.Stages;
+                };
+
                 // If the descriptor binds a sampler and the hint is a static sampler, patch it.
                 std::visit(type_switch{
                     [](const std::monostate&) {}, // Default: don't patch anything
-                    samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback, descriptorHeapHintCallback
+                    samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback, descriptorHeapHintCallback, shaderStageHintCallback
                 }, hint);
 
                 // NOTE: don't do anything here, as both `descriptor` and `i` may be invalid at this point.
