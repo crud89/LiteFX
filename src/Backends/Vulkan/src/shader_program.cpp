@@ -396,10 +396,15 @@ public:
                     }
                 };
 
+                auto shaderStageHintCallback = [&](const PipelineBindingHint::ShaderStageHint& hint) {
+                    // Simply mask in the stage into the parent descriptor set mask.
+                    descriptorSet.stage |= hint.Stages;
+                };
+
                 // If the descriptor binds a sampler and the hint is a static sampler, patch it.
                 std::visit(type_switch{
                     [](const std::monostate&) {}, // Default: don't patch anything
-                    samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback, descriptorHeapHintCallback
+                    samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback, descriptorHeapHintCallback, shaderStageHintCallback
                 }, hint);
             }
         });
