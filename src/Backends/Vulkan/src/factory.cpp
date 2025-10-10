@@ -100,7 +100,7 @@ bool VulkanGraphicsFactory::supportsResizableBaseAddressRegister() const noexcep
 	return false;
 }
 
-Array<MemoryHeapStatistics> VulkanGraphicsFactory::memoryStatistics() const noexcept
+Array<MemoryHeapStatistics> VulkanGraphicsFactory::memoryStatistics() const
 {
 	// Query the memory properties from VMA to get the number of heaps.
 	std::array<const VkPhysicalDeviceMemoryProperties*, 1> memProps{};
@@ -135,7 +135,7 @@ Array<MemoryHeapStatistics> VulkanGraphicsFactory::memoryStatistics() const noex
 		| std::ranges::to<Array<MemoryHeapStatistics>>();
 }
 
-DetailedMemoryStatistics VulkanGraphicsFactory::detailedMemoryStatistics() const noexcept
+DetailedMemoryStatistics VulkanGraphicsFactory::detailedMemoryStatistics() const
 {
 	static auto convertStats = [](const VmaDetailedStatistics& stats, bool onGpu, bool cpuVisible) -> DetailedMemoryStatistics::StatisticsBlock {
 		return {

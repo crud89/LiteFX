@@ -58,7 +58,7 @@ bool DirectX12GraphicsFactory::supportsResizableBaseAddressRegister() const noex
 	return m_impl->m_allocator->IsGPUUploadHeapSupported();
 }
 
-Array<MemoryHeapStatistics> DirectX12GraphicsFactory::memoryStatistics() const noexcept
+Array<MemoryHeapStatistics> DirectX12GraphicsFactory::memoryStatistics() const
 {
 	// Query the current memory statistics.
 	auto budgets = std::array<D3D12MA::Budget, 2u>{};
@@ -89,7 +89,7 @@ Array<MemoryHeapStatistics> DirectX12GraphicsFactory::memoryStatistics() const n
 	};
 }
 
-DetailedMemoryStatistics DirectX12GraphicsFactory::detailedMemoryStatistics() const noexcept
+DetailedMemoryStatistics DirectX12GraphicsFactory::detailedMemoryStatistics() const
 {
 	static auto convertStats = [](const D3D12MA::DetailedStatistics& stats, bool onGpu, bool cpuVisible) -> DetailedMemoryStatistics::StatisticsBlock {
 		return {

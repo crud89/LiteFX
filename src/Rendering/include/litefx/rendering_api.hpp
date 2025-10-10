@@ -9728,7 +9728,7 @@ namespace LiteFX::Rendering {
         /// Returns an array of objects, that contain information about the current memory usage and available memory for a memory heap.
         /// </summary>
         /// <returns>An array of objects, containing memory statistics for a memory heap.</returns>
-        virtual Array<MemoryHeapStatistics> memoryStatistics() const noexcept = 0;
+        virtual Array<MemoryHeapStatistics> memoryStatistics() const = 0;
 
         /// <summary>
         /// Returns detailed memory statistics.
@@ -9738,7 +9738,7 @@ namespace LiteFX::Rendering {
         /// without any significant performance impact.
         /// </remarks>
         /// <returns>The detailed memory statistics of the application.</returns>
-        virtual DetailedMemoryStatistics detailedMemoryStatistics() const noexcept = 0;
+        virtual DetailedMemoryStatistics detailedMemoryStatistics() const = 0;
 
     private:
         virtual SharedPtr<IBuffer> getBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const = 0;
