@@ -2555,6 +2555,12 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         bool supportsResizableBaseAddressRegister() const noexcept override;
+
+        /// <inheritdoc />
+        Array<MemoryHeapStatistics> memoryStatistics() const override;
+
+        /// <inheritdoc />
+        DetailedMemoryStatistics detailedMemoryStatistics() const override;
     };
 
     /// <summary>
