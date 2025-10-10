@@ -100,6 +100,40 @@ bool VulkanGraphicsFactory::supportsResizableBaseAddressRegister() const noexcep
 	return false;
 }
 
+Array<MemoryHeapStatistics> VulkanGraphicsFactory::memoryStatistics() const noexcept
+{
+	// Query the memory properties from VMA to get the number of heaps.
+	std::array<const VkPhysicalDeviceMemoryProperties*, 1> memProps{};
+	::vmaGetMemoryProperties(m_impl->m_allocator, memProps.data());
+	auto memoryTypes = Span{ memProps[0]->memoryTypes, memProps[0]->memoryTypeCount }; // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
+
+	// Allocate array for heap statistics.
+	Array<VmaBudget> heapBudgets(memProps[0]->memoryHeapCount); // NOLINT(cppcoreguidelines-pro-bounds-array-to-pointer-decay)
+	::vmaGetHeapBudgets(m_impl->m_allocator, heapBudgets.data());
+
+	// Convert the heap budgets to the API types.
+	return heapBudgets 
+		| std::views::transform([&memoryTypes, i = 0](const VmaBudget& budget) mutable -> MemoryHeapStatistics {
+			// Find the memory type for the heap.
+			UInt32 heapIndex = i++;
+
+			// Return the heap statistics.
+			if (auto match = std::ranges::find_if(memoryTypes, [heapIndex](const auto& type) { return type.heapIndex == heapIndex; }); match != memoryTypes.end())
+				return {
+					.onGpu = (match->propertyFlags & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+					.cpuVisible = (match->propertyFlags & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+					.blocks = budget.statistics.blockCount,
+					.allocations = budget.statistics.allocationCount,
+					.blockSize = budget.statistics.blockBytes,
+					.allocationSize = budget.statistics.allocationBytes,
+					.usedMemory = budget.usage,
+					.availableMemory = budget.budget
+				}; 
+			else
+				return { }; })
+		| std::ranges::to<Array<MemoryHeapStatistics>>();
+}
+
 SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createDescriptorHeap(size_t heapSize) const
 {
 	return this->createDescriptorHeap("", heapSize);

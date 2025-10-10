@@ -58,6 +58,37 @@ bool DirectX12GraphicsFactory::supportsResizableBaseAddressRegister() const noex
 	return m_impl->m_allocator->IsGPUUploadHeapSupported();
 }
 
+Array<MemoryHeapStatistics> DirectX12GraphicsFactory::memoryStatistics() const noexcept
+{
+	// Query the current memory statistics.
+	auto budgets = std::array<D3D12MA::Budget, 2u>{};
+	m_impl->m_allocator->GetBudget(&budgets[0], &budgets[1]);
+
+	// Convert the budgets to the API type.
+	return {
+		MemoryHeapStatistics {
+			.onGpu = !m_impl->m_allocator->IsUMA(),
+			.cpuVisible = static_cast<bool>(m_impl->m_allocator->IsUMA()),
+			.blocks = budgets[0].Stats.BlockCount,
+			.allocations = budgets[0].Stats.AllocationCount,
+			.blockSize = budgets[0].Stats.BlockBytes,
+			.allocationSize = budgets[0].Stats.AllocationBytes,
+			.usedMemory = budgets[0].UsageBytes,
+			.availableMemory = budgets[0].BudgetBytes
+		},
+		MemoryHeapStatistics {
+			.onGpu = false,
+			.cpuVisible = true,
+			.blocks = budgets[1].Stats.BlockCount,
+			.allocations = budgets[1].Stats.AllocationCount,
+			.blockSize = budgets[1].Stats.BlockBytes,
+			.allocationSize = budgets[1].Stats.AllocationBytes,
+			.usedMemory = budgets[1].UsageBytes,
+			.availableMemory = budgets[1].BudgetBytes
+		},
+	};
+}
+
 SharedPtr<IDirectX12Buffer> DirectX12GraphicsFactory::createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const
 {
 	return this->createBuffer("", type, heap, elementSize, elements, usage);

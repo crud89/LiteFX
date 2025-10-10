@@ -9182,6 +9182,58 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Stores simple memory heap statistics, that can be quickly queried by calling <see cref="IGraphicsFactory::memoryStatistics" />
+    /// </summary>
+    struct LITEFX_RENDERING_API MemoryHeapStatistics {
+        /// <summary>
+        /// `true`, if the heap is located in video memory and `false` otherwise.
+        /// </summary>
+        bool onGpu{ false };
+
+        /// <summary>
+        /// `true`, of the heap is accessible for the CPU and `false` otherwise.
+        /// </summary>
+        bool cpuVisible{ false };
+
+        /// <summary>
+        /// Returns the number of memory blocks in the heap.
+        /// </summary>
+        UInt32 blocks{};
+
+        /// <summary>
+        /// Returns the total number of allocations in the heap.
+        /// </summary>
+        UInt32 allocations{};
+
+        /// <summary>
+        /// Returns the total size of allocated memory across all blocks in the heap.
+        /// </summary>
+        UInt64 blockSize{};
+
+        /// <summary>
+        /// Returns the total size of memory for all allocations in the heap. Always less or equal to <see cref="totalBlockSize" />.
+        /// </summary>
+        UInt64 allocationSize{};
+
+        /// <summary>
+        /// Estimated memory used by the program in the heap.
+        /// </summary>
+        /// <remarks>
+        /// This value best represents the actual memory pressure of the program in the heap, as it not only factors in allocations, but also other resources.
+        /// </remarks>
+        UInt64 usedMemory{};
+
+        /// <summary>
+        /// Estimated memory available to the program in the heap.
+        /// </summary>
+        /// <remarks>
+        /// This value best represents the actual memory available to the program in the heap
+        /// </remarks>
+        /// <seealso cref="usedMemory" />
+        UInt64 availableMemory{};
+    };
+
+    /// <summary>
     /// The interface for a graphics factory.
     /// </summary>
     class LITEFX_RENDERING_API IGraphicsFactory : public SharedObject {
@@ -9588,6 +9640,12 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>`true`, if the GPU supports resizable base address register (ReBAR) and `false` otherwise.</returns>
         virtual bool supportsResizableBaseAddressRegister() const noexcept = 0;
+
+        /// <summary>
+        /// Returns an array of objects, that contain information about the current memory usage and available memory for a memory heap.
+        /// </summary>
+        /// <returns>An array of objects, containing memory statistics for a memory heap.</returns>
+        virtual Array<MemoryHeapStatistics> memoryStatistics() const noexcept = 0;
 
     private:
         virtual SharedPtr<IBuffer> getBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const = 0;
