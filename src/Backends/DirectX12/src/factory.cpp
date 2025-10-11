@@ -23,7 +23,7 @@ public:
 		// Initialize memory allocator.
 		D3D12MA::ALLOCATOR_DESC allocatorDesc = {};
 		//allocatorDesc.Flags = D3D12MA::ALLOCATOR_FLAG_SINGLETHREADED;
-		allocatorDesc.Flags = D3D12MA::ALLOCATOR_FLAG_NONE;
+		allocatorDesc.Flags = D3D12MA::ALLOCATOR_FLAG_DEFAULT_POOLS_NOT_ZEROED;
 		allocatorDesc.pAdapter = device.adapter().handle().Get();
 		allocatorDesc.pDevice = device.handle().Get();
 		allocatorDesc.PreferredBlockSize = 0;	// TODO: Make configurable.
