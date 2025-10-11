@@ -825,6 +825,22 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// The rate at which a vertex buffer of a certain <see cref="IVertexBufferLayout" /> is made available for vertex shaders.
+    /// </summary>
+    /// <seealso cref="IVertexBufferLayout" />
+    enum class VertexBufferInputRate : UInt32 {
+        /// <summary>
+        /// The vertex buffer layout describes data that is made available per individual vertex.
+        /// </summary>
+        Vertex = 0,
+
+        /// <summary>
+        /// The vertex buffer layout describes data that is made available per instance.
+        /// </summary>
+        Instance = 1
+    };
+
+    /// <summary>
     /// Describes the topology of a mesh primitive.
     /// </summary>
     enum class PrimitiveTopology {
@@ -4042,6 +4058,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The vertex buffer attributes.</returns>
         virtual const Array<BufferAttribute>& attributes() const = 0;
+
+        /// <summary>
+        /// Returns the vertex buffer input rate that describes how the data is made available to the vertex shader.
+        /// </summary>
+        /// <returns>The vertex buffer input rate setting.</returns>
+        virtual VertexBufferInputRate inputRate() const noexcept = 0;
     };
 
     /// <summary>

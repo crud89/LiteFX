@@ -29,7 +29,8 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="vertexSize">The overall size of a single vertex.</param>
         /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
-        explicit DirectX12VertexBufferLayout(size_t vertexSize, UInt32 binding = 0);
+        /// <param name="inputRate">The rate at which the vertex buffer is made available to the vertex shader.</param>
+        explicit DirectX12VertexBufferLayout(size_t vertexSize, UInt32 binding = 0, VertexBufferInputRate inputRate = VertexBufferInputRate::Vertex);
 
         /// <summary>
         /// Initializes a new vertex buffer layout.
@@ -37,7 +38,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="vertexSize">The overall size of a single vertex.</param>
         /// <param name="attributes">The vertex attributes.</param>
         /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
-        explicit DirectX12VertexBufferLayout(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding = 0);
+        /// <param name="inputRate">The rate at which the vertex buffer is made available to the vertex shader.</param>
+        explicit DirectX12VertexBufferLayout(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding = 0, VertexBufferInputRate inputRate = VertexBufferInputRate::Vertex);
 
     private:
         /// <inheritdoc />
@@ -91,6 +93,9 @@ namespace LiteFX::Rendering::Backends {
     public:
         /// <inheritdoc />
         const Array<BufferAttribute>& attributes() const override;
+
+        /// <inheritdoc />
+        VertexBufferInputRate inputRate() const noexcept override;
 
         // IBufferLayout interface.
     public:

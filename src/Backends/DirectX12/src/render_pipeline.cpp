@@ -111,14 +111,17 @@ public:
 #endif
 
 			std::ranges::for_each(bufferAttributes, [&](auto& attribute) {
-				D3D12_INPUT_ELEMENT_DESC elementDescriptor = {};
-				elementDescriptor.SemanticName = DX12::getSemanticName(attribute.semantic());
-				elementDescriptor.SemanticIndex = attribute.semanticIndex();
-				elementDescriptor.Format = DX12::getFormat(attribute.format());
-				elementDescriptor.InputSlot = bindingPoint;
-				elementDescriptor.InputSlotClass = D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
-				elementDescriptor.AlignedByteOffset = attribute.offset();	// TODO: May not include packing, but packing is required - need to test this!
-				elementDescriptor.InstanceDataStepRate = 0;
+				D3D12_INPUT_ELEMENT_DESC elementDescriptor = {
+					.SemanticName = DX12::getSemanticName(attribute.semantic()),
+					.SemanticIndex = attribute.semanticIndex(),
+					.Format = DX12::getFormat(attribute.format()),
+					.InputSlot = bindingPoint,
+					.AlignedByteOffset = attribute.offset(),	// TODO: May not include packing, but packing is required - need to test this!
+					.InputSlotClass = layout.inputRate() == VertexBufferInputRate::Vertex ?
+						D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA :
+						D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA
+					//.InstanceDataStepRate = 0
+				};
 
 				inputLayoutElements.push_back(elementDescriptor);
 			});
