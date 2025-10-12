@@ -292,12 +292,7 @@ VmaAllocation& VulkanImage::allocationInfo() const noexcept
 	return m_impl->m_allocationInfo;
 }
 
-SharedPtr<VulkanImage> VulkanImage::allocate(const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
-{
-	return VulkanImage::allocate("", extent, format, dimensions, levels, layers, samples, usage, allocator, createInfo, allocationInfo, allocationResult);
-}
-
-SharedPtr<VulkanImage> VulkanImage::allocate(const String& name, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+SharedPtr<IVulkanImage> VulkanImage::allocate(const String& name, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkImage image{};
 	VmaAllocation allocation{};
@@ -308,12 +303,7 @@ SharedPtr<VulkanImage> VulkanImage::allocate(const String& name, const Size3d& e
 	return SharedObject::create<VulkanImage>(image, extent, format, dimensions, levels, layers, samples, usage, allocator, allocation, name);
 }
 
-bool VulkanImage::tryAllocate(SharedPtr<VulkanImage>& image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
-{
-	return VulkanImage::tryAllocate(image, "", extent, format, dimensions, levels, layers, samples, usage, allocator, createInfo, allocationInfo, allocationResult);
-}
-
-bool VulkanImage::tryAllocate(SharedPtr<VulkanImage>& image, const String& name, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+bool VulkanImage::tryAllocate(SharedPtr<IVulkanImage>& image, const String& name, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkImage imageHandle{};
 	VmaAllocation allocation{};

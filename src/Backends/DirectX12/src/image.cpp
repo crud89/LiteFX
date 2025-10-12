@@ -208,12 +208,7 @@ const D3D12MA::Allocation* DirectX12Image::allocationInfo() const noexcept
 	return m_impl->m_allocation.get();
 }
 
-SharedPtr<DirectX12Image> DirectX12Image::allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
-{
-	return DirectX12Image::allocate("", device, std::move(allocator), extent, format, dimension, levels, layers, samples, usage, resourceDesc, allocationDesc);
-}
-
-SharedPtr<DirectX12Image> DirectX12Image::allocate(const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
+SharedPtr<IDirectX12Image> DirectX12Image::allocate(const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
 {
 	if (allocator == nullptr) [[unlikely]]
 		throw ArgumentNotInitializedException("allocator", "The allocator must be initialized.");
@@ -228,12 +223,7 @@ SharedPtr<DirectX12Image> DirectX12Image::allocate(const String& name, const Dir
 	return SharedObject::create<DirectX12Image>(device, std::move(resource), extent, format, dimension, levels, layers, samples, usage, std::move(allocator), AllocationPtr(allocation), name);
 }
 
-bool DirectX12Image::tryAllocate(SharedPtr<DirectX12Image>& image, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
-{
-	return DirectX12Image::tryAllocate(image, "", device, std::move(allocator), extent, format, dimension, levels, layers, samples, usage, resourceDesc, allocationDesc);
-}
-
-bool DirectX12Image::tryAllocate(SharedPtr<DirectX12Image>& image, const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
+bool DirectX12Image::tryAllocate(SharedPtr<IDirectX12Image>& image, const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
 {
 	image = nullptr;
 

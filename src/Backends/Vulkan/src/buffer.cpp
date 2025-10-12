@@ -142,11 +142,6 @@ void VulkanBuffer::read(void* data, size_t size, size_t offset)
 	raiseIfFailed(::vmaCopyAllocationToMemory(m_impl->m_allocator, m_impl->m_allocation, offset, data, size), "Unable to read from buffer.");
 }
 
-SharedPtr<IVulkanBuffer> VulkanBuffer::allocate(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
-{
-	return VulkanBuffer::allocate("", type, elements, elementSize, alignment, usage, device, allocator, createInfo, allocationInfo, allocationResult);
-}
-
 SharedPtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkBuffer buffer{};
@@ -164,11 +159,6 @@ SharedPtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, BufferType t
 #endif
 
 	return SharedObject::create<VulkanBuffer>(buffer, type, elements, elementSize, alignment, usage, device, allocator, allocation, name);
-}
-
-bool VulkanBuffer::tryAllocate(SharedPtr<IVulkanBuffer>& buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
-{
-	return VulkanBuffer::tryAllocate(buffer, "", type, elements, elementSize, alignment, usage, device, allocator, createInfo, allocationInfo, allocationResult);
 }
 
 bool VulkanBuffer::tryAllocate(SharedPtr<IVulkanBuffer>& buffer, const String& name, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
@@ -235,11 +225,6 @@ const VulkanVertexBufferLayout& VulkanVertexBuffer::layout() const noexcept
 	return *m_impl->m_layout;
 }
 
-SharedPtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
-{
-	return VulkanVertexBuffer::allocate("", layout, elements, usage, device, allocator, createInfo, allocationInfo, allocationResult);
-}
-
 SharedPtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const String& name, const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkBuffer buffer{};
@@ -257,11 +242,6 @@ SharedPtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const String& name, 
 #endif
 
 	return SharedObject::create<VulkanVertexBuffer>(buffer, layout, elements, usage, device, allocator, allocation, name);
-}
-
-bool VulkanVertexBuffer::tryAllocate(SharedPtr<IVulkanVertexBuffer>& buffer, const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
-{
-	return VulkanVertexBuffer::tryAllocate(buffer, "", layout, elements, usage, device, allocator, createInfo, allocationInfo, allocationResult);
 }
 
 bool VulkanVertexBuffer::tryAllocate(SharedPtr<IVulkanVertexBuffer>& buffer, const String& name, const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
@@ -327,11 +307,6 @@ const VulkanIndexBufferLayout& VulkanIndexBuffer::layout() const noexcept
 	return *m_impl->m_layout;
 }
 
-SharedPtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
-{
-	return VulkanIndexBuffer::allocate("", layout, elements, usage, device, allocator, createInfo, allocationInfo, allocationResult);
-}
-
 SharedPtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const String& name, const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkBuffer buffer{};
@@ -349,11 +324,6 @@ SharedPtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const String& name, co
 #endif
 
 	return SharedObject::create<VulkanIndexBuffer>(buffer, layout, elements, usage, device, allocator, allocation, name);
-}
-
-bool VulkanIndexBuffer::tryAllocate(SharedPtr<IVulkanIndexBuffer>& buffer, const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
-{
-	return VulkanIndexBuffer::tryAllocate(buffer, "", layout, elements, usage, device, allocator, createInfo, allocationInfo, allocationResult);
 }
 
 bool VulkanIndexBuffer::tryAllocate(SharedPtr<IVulkanIndexBuffer>& buffer, const String& name, const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)

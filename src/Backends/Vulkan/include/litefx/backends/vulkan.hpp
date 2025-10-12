@@ -2502,9 +2502,13 @@ namespace LiteFX::Rendering::Backends {
     public:
         using base_type = GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>;
         using base_type::createBuffer;
+        using base_type::tryCreateBuffer;
         using base_type::createVertexBuffer;
+        using base_type::tryCreateVertexBuffer;
         using base_type::createIndexBuffer;
+        using base_type::tryCreateIndexBuffer;
         using base_type::createTexture;
+        using base_type::tryCreateTexture;
         using base_type::createTextures;
         using base_type::createSampler;
         using base_type::createSamplers;
@@ -2581,6 +2585,30 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         SharedPtr<IVulkanImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateBuffer(SharedPtr<IVulkanBuffer>& buffer, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateBuffer(SharedPtr<IVulkanBuffer>& buffer, const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateVertexBuffer(SharedPtr<IVulkanVertexBuffer>& buffer, const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateVertexBuffer(SharedPtr<IVulkanVertexBuffer>& buffer, const String& name, const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateIndexBuffer(SharedPtr<IVulkanIndexBuffer>& buffer, const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateIndexBuffer(SharedPtr<IVulkanIndexBuffer>& buffer, const String& name, const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateTexture(SharedPtr<IVulkanImage>& image, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateTexture(SharedPtr<IVulkanImage>& image, const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
         Generator<SharedPtr<IVulkanImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
