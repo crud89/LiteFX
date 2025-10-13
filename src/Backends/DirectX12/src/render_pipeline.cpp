@@ -119,8 +119,8 @@ public:
 					.AlignedByteOffset = attribute.offset(),	// TODO: May not include packing, but packing is required - need to test this!
 					.InputSlotClass = layout.inputRate() == VertexBufferInputRate::Vertex ?
 						D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA :
-						D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA
-					//.InstanceDataStepRate = 0
+						D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA,
+					.InstanceDataStepRate = layout.inputRate() == VertexBufferInputRate::Vertex ? 0u : 1u
 				};
 
 				inputLayoutElements.push_back(elementDescriptor);
