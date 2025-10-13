@@ -64,9 +64,10 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="vertexSize">The overall size of a single vertex.</param>
         /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
+        /// <param name="inputRate">The rate at which the vertex buffer is made available to the vertex shader.</param>
         /// <returns>A shared pointer to the newly created vertex buffer layout.</returns>
-        static inline auto create(size_t vertexSize, UInt32 binding = 0) {
-            return SharedObject::create<VulkanVertexBufferLayout>(vertexSize, binding);
+        static inline auto create(size_t vertexSize, UInt32 binding = 0, VertexBufferInputRate inputRate = VertexBufferInputRate::Vertex) {
+            return SharedObject::create<VulkanVertexBufferLayout>(vertexSize, binding, inputRate);
         }
 
         /// <summary>
@@ -75,9 +76,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="vertexSize">The overall size of a single vertex.</param>
         /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
         /// <param name="attributes">The vertex attributes.</param>
+        /// <param name="inputRate">The rate at which the vertex buffer is made available to the vertex shader.</param>
         /// <returns>A shared pointer to the newly created vertex buffer layout.</returns>
-        static inline auto create(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding = 0) {
-            return SharedObject::create<VulkanVertexBufferLayout>(vertexSize, attributes, binding);
+        static inline auto create(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding = 0, VertexBufferInputRate inputRate = VertexBufferInputRate::Vertex) {
+            return SharedObject::create<VulkanVertexBufferLayout>(vertexSize, attributes, binding, inputRate);
         }
 
         /// <summary>
