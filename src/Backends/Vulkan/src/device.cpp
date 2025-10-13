@@ -359,12 +359,21 @@ public:
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,
             .pNext = lastFeature,
             .features = {
+                .fullDrawIndexUint32 = true,
+                .independentBlend = true,
 #ifndef LITEFX_BUILD_TESTS
                 .geometryShader = true,
                 .tessellationShader = true,
 #endif // LITEFX_BUILD_TESTS
+                .dualSrcBlend = true,
+                .logicOp = true,
                 .drawIndirectFirstInstance = features.DrawIndirect,
-                .samplerAnisotropy = true
+                .alphaToOne = true,
+                .multiViewport = true,
+                .samplerAnisotropy = true,
+                .shaderFloat64 = true,
+                .shaderInt64 = true,
+                .shaderInt16 = true
             }
         };
 
