@@ -89,8 +89,8 @@ public:
 
 		D3D12MA::ALLOCATION_DESC allocationDesc{ };
 
-		if (allocationBehavior == AllocationBehavior::StayWithingBudget)
-			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
+		if (allocationBehavior == AllocationBehavior::DontExpandCache)
+			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_NEVER_ALLOCATE;
 		else if (allocationBehavior == AllocationBehavior::StayWithingBudget)
 			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
 
@@ -144,8 +144,8 @@ public:
 
 		D3D12MA::ALLOCATION_DESC allocationDesc{ };
 
-		if (allocationBehavior == AllocationBehavior::StayWithingBudget)
-			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
+		if (allocationBehavior == AllocationBehavior::DontExpandCache)
+			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_NEVER_ALLOCATE;
 		else if (allocationBehavior == AllocationBehavior::StayWithingBudget)
 			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
 
@@ -199,8 +199,8 @@ public:
 
 		D3D12MA::ALLOCATION_DESC allocationDesc{ };
 
-		if (allocationBehavior == AllocationBehavior::StayWithingBudget)
-			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
+		if (allocationBehavior == AllocationBehavior::DontExpandCache)
+			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_NEVER_ALLOCATE;
 		else if (allocationBehavior == AllocationBehavior::StayWithingBudget)
 			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
 
@@ -276,8 +276,8 @@ public:
 
 		D3D12MA::ALLOCATION_DESC allocationDesc{ .HeapType = D3D12_HEAP_TYPE_DEFAULT };
 
-		if (allocationBehavior == AllocationBehavior::StayWithingBudget)
-			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
+		if (allocationBehavior == AllocationBehavior::DontExpandCache)
+			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_NEVER_ALLOCATE;
 		else if (allocationBehavior == AllocationBehavior::StayWithingBudget)
 			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
 
