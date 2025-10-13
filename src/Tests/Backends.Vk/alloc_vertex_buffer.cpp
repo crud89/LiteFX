@@ -74,14 +74,14 @@ void TestApp::onInit()
         {
             SharedPtr<IVulkanVertexBuffer> buffer{};
 
-            if (!factory.tryCreateVertexBuffer(buffer, layout, ResourceHeap::Resource, elements + 10u, ResourceUsage::Default, AllocationBehavior::StayWithingBudget))
+            if (!factory.tryCreateVertexBuffer(buffer, layout, ResourceHeap::Resource, elements + 10u, ResourceUsage::Default, AllocationBehavior::StayWithinBudget))
                 LITEFX_TEST_FAIL("tryCreateVertexBuffer failed where it shouldn't.");
         }
 
         {
             try
             {
-                SharedPtr<IVulkanVertexBuffer> buffer = factory.createVertexBuffer(layout, ResourceHeap::Resource, elements + 10u, ResourceUsage::Default, AllocationBehavior::StayWithingBudget);
+                SharedPtr<IVulkanVertexBuffer> buffer = factory.createVertexBuffer(layout, ResourceHeap::Resource, elements + 10u, ResourceUsage::Default, AllocationBehavior::StayWithinBudget);
             }
             catch (RuntimeException& /*ex*/)
             {

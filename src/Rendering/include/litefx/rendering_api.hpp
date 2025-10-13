@@ -822,7 +822,7 @@ namespace LiteFX::Rendering {
         /// Stays within heap budgets. If the desired resource heap is out of memory, allocation will fail. Use this behavior for resources that are not required to
         /// prevent them from being allocated in potentially slower memory heaps.
         /// </summary>
-        StayWithingBudget = 0x01,
+        StayWithinBudget = 0x01,
 
         /// <summary>
         /// Does not resize heap cache, if no more pre-allocated memory is available and will fail, if available memory is exceeded. Use this in situations, where you 

@@ -91,7 +91,7 @@ public:
 
 		if (allocationBehavior == AllocationBehavior::DontExpandCache)
 			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_NEVER_ALLOCATE;
-		else if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		else if (allocationBehavior == AllocationBehavior::StayWithinBudget)
 			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
 
 		switch (heap)
@@ -146,7 +146,7 @@ public:
 
 		if (allocationBehavior == AllocationBehavior::DontExpandCache)
 			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_NEVER_ALLOCATE;
-		else if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		else if (allocationBehavior == AllocationBehavior::StayWithinBudget)
 			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
 
 		switch (heap)
@@ -201,7 +201,7 @@ public:
 
 		if (allocationBehavior == AllocationBehavior::DontExpandCache)
 			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_NEVER_ALLOCATE;
-		else if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		else if (allocationBehavior == AllocationBehavior::StayWithinBudget)
 			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
 
 		switch (heap)
@@ -278,7 +278,7 @@ public:
 
 		if (allocationBehavior == AllocationBehavior::DontExpandCache)
 			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_NEVER_ALLOCATE;
-		else if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		else if (allocationBehavior == AllocationBehavior::StayWithinBudget)
 			allocationDesc.Flags = D3D12MA::ALLOCATION_FLAGS::ALLOCATION_FLAG_WITHIN_BUDGET;
 
 		return allocator(std::forward<TArgs>(args)..., name, *device.get(), m_allocator, { width, height, depth }, format, dimension, levels, layers, samples, usage, resourceDesc, allocationDesc);

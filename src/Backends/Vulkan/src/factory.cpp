@@ -150,7 +150,7 @@ public:
 		// Deduct the allocation usage from the buffer usage scenario.
 		VmaAllocationCreateInfo allocInfo = {};
 	
-		if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		if (allocationBehavior == AllocationBehavior::StayWithinBudget)
 			allocInfo.flags |= VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT;
 		else if (allocationBehavior == AllocationBehavior::DontExpandCache)
 			allocInfo.flags |= VMA_ALLOCATION_CREATE_NEVER_ALLOCATE_BIT;
@@ -225,7 +225,7 @@ public:
 		// Deduct the allocation usage from the buffer usage scenario.
 		VmaAllocationCreateInfo allocInfo = {};
 
-		if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		if (allocationBehavior == AllocationBehavior::StayWithinBudget)
 			allocInfo.flags |= VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT;
 		else if (allocationBehavior == AllocationBehavior::DontExpandCache)
 			allocInfo.flags |= VMA_ALLOCATION_CREATE_NEVER_ALLOCATE_BIT;
@@ -300,7 +300,7 @@ public:
 		// Deduct the allocation usage from the buffer usage scenario.
 		VmaAllocationCreateInfo allocInfo = {};
 
-		if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		if (allocationBehavior == AllocationBehavior::StayWithinBudget)
 			allocInfo.flags |= VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT;
 		else if (allocationBehavior == AllocationBehavior::DontExpandCache)
 			allocInfo.flags |= VMA_ALLOCATION_CREATE_NEVER_ALLOCATE_BIT;
@@ -401,7 +401,7 @@ public:
 
 		VmaAllocationCreateInfo allocInfo = { .usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE };
 
-		if (allocationBehavior == AllocationBehavior::StayWithingBudget)
+		if (allocationBehavior == AllocationBehavior::StayWithinBudget)
 			allocInfo.flags |= VMA_ALLOCATION_CREATE_WITHIN_BUDGET_BIT;
 		else if (allocationBehavior == AllocationBehavior::DontExpandCache)
 			allocInfo.flags |= VMA_ALLOCATION_CREATE_NEVER_ALLOCATE_BIT;

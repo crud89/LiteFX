@@ -72,14 +72,14 @@ void TestApp::onInit()
         {
             SharedPtr<IDirectX12IndexBuffer> buffer{};
 
-            if (!factory.tryCreateIndexBuffer(buffer, layout, ResourceHeap::Resource, elements + 10u, ResourceUsage::Default, AllocationBehavior::StayWithingBudget))
+            if (!factory.tryCreateIndexBuffer(buffer, layout, ResourceHeap::Resource, elements + 10u, ResourceUsage::Default, AllocationBehavior::StayWithinBudget))
                 LITEFX_TEST_FAIL("tryCreateIndexBuffer failed where it shouldn't.");
         }
 
         {
             try
             {
-                SharedPtr<IDirectX12IndexBuffer> buffer = factory.createIndexBuffer(layout, ResourceHeap::Resource, elements + 10u, ResourceUsage::Default, AllocationBehavior::StayWithingBudget);
+                SharedPtr<IDirectX12IndexBuffer> buffer = factory.createIndexBuffer(layout, ResourceHeap::Resource, elements + 10u, ResourceUsage::Default, AllocationBehavior::StayWithinBudget);
             }
             catch (RuntimeException& /*ex*/)
             {

@@ -61,14 +61,14 @@ void TestApp::onInit()
         {
             SharedPtr<IVulkanBuffer> buffer{};
 
-            if (!factory.tryCreateBuffer(buffer, BufferType::Uniform, ResourceHeap::Resource, defaultMaxPoolSize * 2, 1u, ResourceUsage::Default, AllocationBehavior::StayWithingBudget))
+            if (!factory.tryCreateBuffer(buffer, BufferType::Uniform, ResourceHeap::Resource, defaultMaxPoolSize * 2, 1u, ResourceUsage::Default, AllocationBehavior::StayWithinBudget))
                 LITEFX_TEST_FAIL("tryCreateBuffer failed where it shouldn't.");
         }
 
         {
             try
             {
-                SharedPtr<IVulkanBuffer> buffer = factory.createBuffer(BufferType::Uniform, ResourceHeap::Resource, defaultMaxPoolSize * 2, 1u, ResourceUsage::Default, AllocationBehavior::StayWithingBudget);
+                SharedPtr<IVulkanBuffer> buffer = factory.createBuffer(BufferType::Uniform, ResourceHeap::Resource, defaultMaxPoolSize * 2, 1u, ResourceUsage::Default, AllocationBehavior::StayWithinBudget);
             }
             catch (RuntimeException& /*ex*/)
             {

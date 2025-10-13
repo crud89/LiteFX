@@ -61,14 +61,14 @@ void TestApp::onInit()
         {
             SharedPtr<IVulkanImage> image{};
 
-            if (!factory.tryCreateTexture(image, Format::R32G32B32A32_SFLOAT, { 2048, 2048, 1 }, ImageDimensions::DIM_2, 1u, 1u, MultiSamplingLevel::x1, ResourceUsage::Default, AllocationBehavior::StayWithingBudget))
+            if (!factory.tryCreateTexture(image, Format::R32G32B32A32_SFLOAT, { 2048, 2048, 1 }, ImageDimensions::DIM_2, 1u, 1u, MultiSamplingLevel::x1, ResourceUsage::Default, AllocationBehavior::StayWithinBudget))
                 LITEFX_TEST_FAIL("tryCreateTexture failed where it shouldn't.");
         }
 
         {
             try
             {
-                SharedPtr<IVulkanImage> image = factory.createTexture(Format::R32G32B32A32_SFLOAT, { 2048, 2048, 1 }, ImageDimensions::DIM_2, 1u, 1u, MultiSamplingLevel::x1, ResourceUsage::Default, AllocationBehavior::StayWithingBudget);
+                SharedPtr<IVulkanImage> image = factory.createTexture(Format::R32G32B32A32_SFLOAT, { 2048, 2048, 1 }, ImageDimensions::DIM_2, 1u, 1u, MultiSamplingLevel::x1, ResourceUsage::Default, AllocationBehavior::StayWithinBudget);
             }
             catch (RuntimeException& /*ex*/)
             {
