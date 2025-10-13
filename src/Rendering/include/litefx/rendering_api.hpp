@@ -6573,9 +6573,28 @@ namespace LiteFX::Rendering {
         };
 
         /// <summary>
+        /// Defines a hint that is used to mark additional a binding as used by certain shader stages.
+        /// </summary>
+        /// <remarks>
+        /// Shader stages are set on the descriptor set, so the binding register for this hint is ignored. If specified, this hint causes shader stages that are not found in shader reflection
+        /// to be included in the shader stage mask. Usually reflection leaves out shader stages that a descriptor set is not bound to, as this can improve performance. However, if a 
+        /// descriptor set can be re-used between compatible pipeline layouts, shader reflection may be unable to tell which shader stages the descriptor set is actually accessed from. In 
+        /// those scenarios, additional stages can be provided using this hint.
+        /// 
+        /// In the DirectX 12 backend, shader stages aren't actually masked. Rather a binding is only accessible to a single shader stage, or all shader stages. However, in Vulkan this can be
+        /// specified with finer granularity.
+        /// </remarks>
+        struct ShaderStageHint {
+            /// <summary>
+            /// A mask that contains the shader stages, that the descriptor set should be accessible from.
+            /// </summary>
+            ShaderStage Stages{ };
+        };
+
+        /// <summary>
         /// Defines the type of the pipeline binding hint.
         /// </summary>
-        using hint_type = Variant<std::monostate, UnboundedArrayHint, PushConstantsHint, StaticSamplerHint, DescriptorHeapHint>;
+        using hint_type = Variant<std::monostate, UnboundedArrayHint, PushConstantsHint, StaticSamplerHint, DescriptorHeapHint, ShaderStageHint>;
 
         /// <summary>
         /// The binding point the hint applies to.
@@ -6585,7 +6604,7 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Stores the underlying hint.
         /// </summary>
-        hint_type Hint = std::monostate{};
+        hint_type Hint = std::monostate{ };
 
     public:
         /// <summary>
@@ -6693,6 +6712,29 @@ namespace LiteFX::Rendering {
         /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
         static inline auto samplerHeap(UInt32 space, UInt32 binding, UInt32 heapSize) noexcept -> PipelineBindingHint {
             return { .Binding = { .Register = binding, .Space = space }, .Hint = DescriptorHeapHint { DescriptorHeapType::Sampler, heapSize } };
+        }
+
+        /// <summary>
+        /// Initializes a hint provides additional shader stages, that may be not covered by shader reflection.
+        /// </summary>
+        /// <param name="at">The binding point the hint applies to.</param>
+        /// <param name="shaderStages">The number of descriptors allocated for the heap when creating the descriptor set.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        static inline auto shaderStage(DescriptorBindingPoint at, ShaderStage shaderStages) noexcept -> PipelineBindingHint {
+            return { .Binding = at, .Hint = ShaderStageHint { shaderStages } };
+        }
+
+        /// <summary>
+        /// Initializes a hint provides additional shader stages, that may be not covered by shader reflection.
+        /// </summary>
+        /// <param name="space">The descriptor space of the binding point.</param>
+        /// <param name="binding">The register of the descriptor binding point.</param>
+        /// <param name="shaderStages">The number of descriptors allocated for the heap when creating the descriptor set.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        static inline auto shaderStage(UInt32 space, UInt32 binding, ShaderStage shaderStages) noexcept -> PipelineBindingHint {
+            return { .Binding = {.Register = binding, .Space = space }, .Hint = ShaderStageHint { shaderStages } };
         }
     };
 
