@@ -979,7 +979,7 @@ namespace LiteFX::Rendering {
         /// <param name="semantic">The semantic of the attribute.</param>
         /// <param name="semanticIndex">The semantic index of the attribute.</param>
         template <typename TSelf>
-        [[nodiscard]] constexpr auto withAttribute(this TSelf&& self, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf&& {
+        [[nodiscard]] constexpr auto withAttribute(this TSelf&& self, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Arbitrary, UInt32 semanticIndex = 0) -> TSelf&& {
             return std::forward<TSelf>(self).withAttribute({ static_cast<UInt32>(self.m_state.attributes.size()), offset, format, semantic, semanticIndex });
         }
 
@@ -992,7 +992,7 @@ namespace LiteFX::Rendering {
         /// <param name="semantic">The semantic of the attribute.</param>
         /// <param name="semanticIndex">The semantic index of the attribute.</param>
         template <typename TSelf>
-        [[nodiscard]] constexpr auto withAttribute(this TSelf&& self, UInt32 location, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf&& {
+        [[nodiscard]] constexpr auto withAttribute(this TSelf&& self, UInt32 location, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Arbitrary, UInt32 semanticIndex = 0) -> TSelf&& {
             return std::forward<TSelf>(self).withAttribute({ location, offset, format, semantic, semanticIndex });
         }
 
