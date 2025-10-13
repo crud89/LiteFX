@@ -1044,8 +1044,9 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The binding point for the descriptor.</param>
         /// <param name="descriptorSize">The size of a single descriptor.</param>
         /// <param name="descriptors">The number of descriptors to bind.</param>
+        /// <param name="unbounded">`true` if the descriptor should define an unbounded array and `false` otherwise.</param>
         /// <returns>The descriptor layout instance.</returns>
-        constexpr virtual descriptor_layout_type makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors) = 0;
+        constexpr virtual descriptor_layout_type makeDescriptor(DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors, bool unbounded) = 0;
 
         /// <summary>
         /// Creates a static sampler for the descriptor bound to <see cref="binding" />.
@@ -1082,9 +1083,10 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The binding point for the descriptor.</param>
         /// <param name="descriptorSize">The size of a single descriptor.</param>
         /// <param name="descriptors">The number of descriptors to bind.</param>
+        /// <param name="unbounded">`true` if the descriptor should define an unbounded array and `false` otherwise.</param>
         template <typename TSelf>
-        [[nodiscard]] constexpr auto withDescriptor(this TSelf&& self, DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors = 1) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(type, binding, descriptorSize, descriptors)));
+        [[nodiscard]] constexpr auto withDescriptor(this TSelf&& self, DescriptorType type, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors = 1, bool unbounded = false) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(type, binding, descriptorSize, descriptors, unbounded)));
             return std::forward<TSelf>(self);
         }
 
@@ -1113,10 +1115,26 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="binding">The binding point or register index of the descriptor.</param>
         /// <param name="descriptorSize">The size of a single descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the array.</param>
         template <typename TSelf>
-        [[nodiscard]] constexpr auto withConstantBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors = 1) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::ConstantBuffer, binding, descriptorSize, descriptors)));
+        [[nodiscard]] constexpr auto withConstantBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptorSize) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::ConstantBuffer, binding, descriptorSize, 1u, false)));
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds an uniform/constant buffer descriptor array.
+        /// </summary>
+        /// <remarks>
+        /// If the <paramref name="unbounded" /> is set to `true`, the <paramref name="descriptors" /> parameter defines the upper limit for the number of descriptors in the runtime array. Note that
+        /// unbounded constant/uniform buffer arrays might not be supported on older hardware.
+        /// </remarks>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        /// <param name="descriptorSize">The size of a single descriptor.</param>
+        /// <param name="descriptors">The number of descriptors in the array.</param>
+        /// <param name="unbounded">`true` if the descriptor should define an unbounded array, `false` otherwise.</param>
+        template <typename TSelf>
+        [[nodiscard]] constexpr auto withConstantBufferArray(this TSelf&& self, UInt32 binding, UInt32 descriptorSize, UInt32 descriptors, bool unbounded = false) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::ConstantBuffer, binding, descriptorSize, descriptors, unbounded)));
             return std::forward<TSelf>(self);
         }
 
@@ -1124,11 +1142,26 @@ namespace LiteFX::Rendering {
         /// Adds a texel buffer descriptor.
         /// </summary>
         /// <param name="binding">The binding point or register index of the descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the array.</param>
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
         template <typename TSelf>
-        [[nodiscard]] constexpr auto withBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(writable ? DescriptorType::RWBuffer : DescriptorType::Buffer, binding, 0, descriptors)));
+        [[nodiscard]] constexpr auto withBuffer(this TSelf&& self, UInt32 binding, bool writable = false) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(writable ? DescriptorType::RWBuffer : DescriptorType::Buffer, binding, 0u, 1u, false)));
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds a texel buffer descriptor array.
+        /// </summary>
+        /// <remarks>
+        /// If the <paramref name="unbounded" /> is set to `true`, the <paramref name="descriptors" /> parameter defines the upper limit for the number of descriptors in the runtime array.
+        /// </remarks>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        /// <param name="descriptors">The number of descriptors in the array.</param>
+        /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
+        /// <param name="unbounded">`true` if the descriptor should define an unbounded array, `false` otherwise.</param>
+        template <typename TSelf>
+        [[nodiscard]] constexpr auto withBufferArray(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false, bool unbounded = false) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(writable ? DescriptorType::RWBuffer : DescriptorType::Buffer, binding, 0, descriptors, unbounded)));
             return std::forward<TSelf>(self);
         }
 
@@ -1136,11 +1169,26 @@ namespace LiteFX::Rendering {
         /// Adds a storage/structured buffer descriptor.
         /// </summary>
         /// <param name="binding">The binding point or register index of the descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the array.</param>
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
         template <typename TSelf>
-        [[nodiscard]] constexpr auto withStructuredBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(writable ? DescriptorType::RWStructuredBuffer : DescriptorType::StructuredBuffer, binding, 0, descriptors)));
+        [[nodiscard]] constexpr auto withStructuredBuffer(this TSelf&& self, UInt32 binding, bool writable = false) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(writable ? DescriptorType::RWStructuredBuffer : DescriptorType::StructuredBuffer, binding, 0u, 1u, false)));
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds a storage/structured buffer descriptor array.
+        /// </summary>
+        /// <remarks>
+        /// If the <paramref name="unbounded" /> is set to `true`, the <paramref name="descriptors" /> parameter defines the upper limit for the number of descriptors in the runtime array.
+        /// </remarks>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        /// <param name="descriptors">The number of descriptors in the array.</param>
+        /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
+        /// <param name="unbounded">`true` if the descriptor should define an unbounded array, `false` otherwise.</param>
+        template <typename TSelf>
+        [[nodiscard]] constexpr auto withStructuredBufferArray(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false, bool unbounded = false) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(writable ? DescriptorType::RWStructuredBuffer : DescriptorType::StructuredBuffer, binding, 0, descriptors, unbounded)));
             return std::forward<TSelf>(self);
         }
 
@@ -1148,11 +1196,26 @@ namespace LiteFX::Rendering {
         /// Adds a byte address buffer descriptor.
         /// </summary>
         /// <param name="binding">The binding point or register index of the descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the array.</param>
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
         template <typename TSelf>
-        [[nodiscard]] constexpr auto withByteAddressBuffer(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(writable ? DescriptorType::RWByteAddressBuffer : DescriptorType::ByteAddressBuffer, binding, 0, descriptors)));
+        [[nodiscard]] constexpr auto withByteAddressBuffer(this TSelf&& self, UInt32 binding, bool writable = false) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(writable ? DescriptorType::RWByteAddressBuffer : DescriptorType::ByteAddressBuffer, binding, 0u, 1u, false)));
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds a byte address buffer descriptor array.
+        /// </summary>
+        /// <remarks>
+        /// If the <paramref name="unbounded" /> is set to `true`, the <paramref name="descriptors" /> parameter defines the upper limit for the number of descriptors in the runtime array.
+        /// </remarks>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        /// <param name="descriptors">The number of descriptors in the array.</param>
+        /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
+        /// <param name="unbounded">`true` if the descriptor should define an unbounded array, `false` otherwise.</param>
+        template <typename TSelf>
+        [[nodiscard]] constexpr auto withByteAddressBufferArray(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false, bool unbounded = false) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(writable ? DescriptorType::RWByteAddressBuffer : DescriptorType::ByteAddressBuffer, binding, 0, descriptors, unbounded)));
             return std::forward<TSelf>(self);
         }
 
@@ -1160,11 +1223,26 @@ namespace LiteFX::Rendering {
         /// Adds an image/texture descriptor.
         /// </summary>
         /// <param name="binding">The binding point or register index of the descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the array.</param>
         /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
         template <typename TSelf>
-        [[nodiscard]] constexpr auto withTexture(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(writable ? DescriptorType::RWTexture : DescriptorType::Texture, binding, 0, descriptors)));
+        [[nodiscard]] constexpr auto withTexture(this TSelf&& self, UInt32 binding, bool writable = false) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(writable ? DescriptorType::RWTexture : DescriptorType::Texture, binding, 0u, 1u, false)));
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds an image/texture descriptor.
+        /// </summary>
+        /// <remarks>
+        /// If the <paramref name="unbounded" /> is set to `true`, the <paramref name="descriptors" /> parameter defines the upper limit for the number of descriptors in the runtime array.
+        /// </remarks>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        /// <param name="descriptors">The number of descriptors in the array.</param>
+        /// <param name="writable"><c>true</c>, if the buffer should be writable.</param>
+        /// <param name="unbounded">`true` if the descriptor should define an unbounded array, `false` otherwise.</param>
+        template <typename TSelf>
+        [[nodiscard]] constexpr auto withTextureArray(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool writable = false, bool unbounded = false) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(writable ? DescriptorType::RWTexture : DescriptorType::Texture, binding, 0, descriptors, unbounded)));
             return std::forward<TSelf>(self);
         }
 
@@ -1174,7 +1252,7 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The binding point or register index of the descriptor.</param>
         template <typename TSelf>
         [[nodiscard]] constexpr auto withInputAttachment(this TSelf&& self, UInt32 binding) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::InputAttachment, binding, 0)));
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::InputAttachment, binding, 0, false)));
             return std::forward<TSelf>(self);
         }
 
@@ -1187,7 +1265,7 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The binding point or register index of the descriptor.</param>
         template <typename TSelf>
         [[nodiscard]] constexpr auto withAccelerationStructure(this TSelf&& self, UInt32 binding) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::AccelerationStructure, binding, 0)));
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::AccelerationStructure, binding, 0, false)));
             return std::forward<TSelf>(self);
         }
 
@@ -1195,10 +1273,48 @@ namespace LiteFX::Rendering {
         /// Adds a sampler descriptor.
         /// </summary>
         /// <param name="binding">The binding point or register index of the descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the array.</param>
         template <typename TSelf>
-        [[nodiscard]] constexpr auto withSampler(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1) -> TSelf&& {
-            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::Sampler, binding, 0, descriptors)));
+        [[nodiscard]] constexpr auto withSampler(this TSelf&& self, UInt32 binding) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::Sampler, binding, 0u, 1u, false)));
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds a sampler descriptor.
+        /// </summary>
+        /// <remarks>
+        /// If the <paramref name="unbounded" /> is set to `true`, the <paramref name="descriptors" /> parameter defines the upper limit for the number of descriptors in the runtime array.
+        /// </remarks>
+        /// <param name="binding">The binding point or register index of the descriptor.</param>
+        /// <param name="descriptors">The number of descriptors in the array.</param>
+        /// <param name="unbounded">`true` if the descriptor should define an unbounded array, `false` otherwise.</param>
+        template <typename TSelf>
+        [[nodiscard]] constexpr auto withSamplerArray(this TSelf&& self, UInt32 binding, UInt32 descriptors = 1, bool unbounded = false) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::Sampler, binding, 0, descriptors, unbounded)));
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds a proxy descriptor that can be used with dynamic resource indexing.
+        /// </summary>
+        /// <param name="binding">The binding point or register index at which to create the proxy descriptor.</param>
+        /// <param name="heapSize">The number of descriptors to reserve for the proxy descriptor.</param>
+        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        template <typename TSelf>
+        [[nodiscard]] constexpr auto withResourceHeapAccess(this TSelf&& self, UInt32 binding, UInt32 heapSize) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::ResourceDescriptorHeap, binding, 0u, heapSize, false)));
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Adds a proxy descriptor that can be used with dynamic sampler indexing.
+        /// </summary>
+        /// <param name="binding">The binding point or register index at which to create the proxy descriptor.</param>
+        /// <param name="heapSize">The number of descriptors to reserve for the proxy descriptor.</param>
+        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        template <typename TSelf>
+        [[nodiscard]] constexpr auto withSamplerHeapAccess(this TSelf&& self, UInt32 binding, UInt32 heapSize) -> TSelf&& {
+            self.m_state.descriptorLayouts.push_back(std::move(static_cast<DescriptorSetLayoutBuilder&>(self).makeDescriptor(DescriptorType::SamplerDescriptorHeap, binding, 0u, heapSize, false)));
             return std::forward<TSelf>(self);
         }
 

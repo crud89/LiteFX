@@ -102,17 +102,12 @@ void VulkanBuffer::map(const void* const data, size_t size, UInt32 element)
 	if (this->size() - (element * this->alignedElementSize()) < size) [[unlikely]]
 		throw InvalidArgumentException("size", "The provided data size would overflow the buffer (buffer offset: 0x{1:X}; {2} bytes remaining but size was set to {0}).", size, element * this->alignedElementSize(), this->size() - (element * this->alignedElementSize()));
 
-	void* buffer{};		// A pointer to the whole (aligned) buffer memory.
-	void* bufferPtr = static_cast<void*>(buffer);
-	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, &bufferPtr), "Unable to map buffer memory.");
-	std::memcpy(static_cast<char*>(bufferPtr) + (element * this->alignedElementSize()), data, size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-
-	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
+	this->write(data, size, element * this->alignedElementSize());
 }
 
 void VulkanBuffer::map(Span<const void* const> data, size_t elementSize, UInt32 firstElement)
 {
-	std::ranges::for_each(data, [this, &elementSize, i = firstElement](const void* const mem) mutable { this->map(mem, elementSize, i++); });
+	std::ranges::for_each(data, [this, &elementSize, i = firstElement](auto mem) mutable { this->map(mem, elementSize, i++); });
 }
 
 void VulkanBuffer::map(void* data, size_t size, UInt32 element, bool write)
@@ -126,26 +121,25 @@ void VulkanBuffer::map(void* data, size_t size, UInt32 element, bool write)
 	if (this->size() - (element * this->alignedElementSize()) < size) [[unlikely]]
 		throw InvalidArgumentException("size", "The provided data size would overflow the buffer (buffer offset: 0x{1:X}; {2} bytes remaining but size was set to {0}).", size, element * this->alignedElementSize(), this->size() - (element * this->alignedElementSize()));
 
-	char* buffer{};		// A pointer to the whole (aligned) buffer memory.
-	void* bufferPtr = static_cast<void*>(buffer);
-	raiseIfFailed(::vmaMapMemory(m_impl->m_allocator, m_impl->m_allocation, &bufferPtr), "Unable to map buffer memory.");
-	
 	if (write)
-		std::memcpy(static_cast<char*>(bufferPtr) + (element * this->alignedElementSize()), data, size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		this->write(data, size, element * this->alignedElementSize());
 	else
-		std::memcpy(data, static_cast<char*>(bufferPtr) + (element * this->alignedElementSize()), size); // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
-
-	::vmaUnmapMemory(m_impl->m_allocator, m_impl->m_allocation);
+		this->read(data, size, element * this->alignedElementSize());
 }
 
 void VulkanBuffer::map(Span<void*> data, size_t elementSize, UInt32 firstElement, bool write)
 {
-	std::ranges::for_each(data, [this, &elementSize, &write, i = firstElement](void* mem) mutable { this->map(mem, elementSize, i++, write); });
+	std::ranges::for_each(data, [this, &elementSize, &write, i = firstElement](auto mem) mutable { this->map(mem, elementSize, i++, write); });
 }
 
-SharedPtr<IVulkanBuffer> VulkanBuffer::allocate(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+void VulkanBuffer::write(const void* const data, size_t size, size_t offset)
 {
-	return VulkanBuffer::allocate("", type, elements, elementSize, alignment, usage, device, allocator, createInfo, allocationInfo, allocationResult);
+	raiseIfFailed(::vmaCopyMemoryToAllocation(m_impl->m_allocator, data, m_impl->m_allocation, offset, size), "Unable to write to buffer.");
+}
+
+void VulkanBuffer::read(void* data, size_t size, size_t offset)
+{
+	raiseIfFailed(::vmaCopyAllocationToMemory(m_impl->m_allocator, m_impl->m_allocation, offset, data, size), "Unable to read from buffer.");
 }
 
 SharedPtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
@@ -154,9 +148,47 @@ SharedPtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, BufferType t
 	VmaAllocation allocation{};
 
 	raiseIfFailed(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate buffer.");
-	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", Vk::handleAddress(buffer)) : name, type, elements, elementSize, elements * elementSize, usage);
+
+#ifndef NDEBUG
+	VkMemoryPropertyFlags memoryProperties{};
+	::vmaGetAllocationMemoryProperties(allocator, allocation, &memoryProperties);
+
+	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5}, On GPU: {6}, CPU Access: {7} }}", 
+		name.empty() ? std::format("{0}", Vk::handleAddress(buffer)) : name, type, elements, elementSize, elements * elementSize, usage, 
+		(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+#endif
 
 	return SharedObject::create<VulkanBuffer>(buffer, type, elements, elementSize, alignment, usage, device, allocator, allocation, name);
+}
+
+bool VulkanBuffer::tryAllocate(SharedPtr<IVulkanBuffer>& buffer, const String& name, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+{
+	buffer = nullptr;
+	VkBuffer bufferHandle{};
+	VmaAllocation allocation{};
+
+	auto result = ::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &bufferHandle, &allocation, allocationResult);
+
+	if (result != VK_SUCCESS)
+	{
+		LITEFX_DEBUG(VULKAN_LOG, "Allocation for buffer {0} with {4} bytes failed: {6} {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}",
+			name.empty() ? std::format("{0}", Vk::handleAddress(bufferHandle)) : name, type, elements, elementSize, elements * elementSize, usage, result);
+		return false;
+	}
+	else
+	{
+#ifndef NDEBUG
+		VkMemoryPropertyFlags memoryProperties{};
+		::vmaGetAllocationMemoryProperties(allocator, allocation, &memoryProperties);
+
+		LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5}, On GPU: {6}, CPU Access: {7} }}",
+			name.empty() ? std::format("{0}", Vk::handleAddress(bufferHandle)) : name, type, elements, elementSize, elements * elementSize, usage,
+			(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+#endif
+
+		buffer = SharedObject::create<VulkanBuffer>(bufferHandle, type, elements, elementSize, alignment, usage, device, allocator, allocation, name);
+		return true;
+	}
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -193,20 +225,52 @@ const VulkanVertexBufferLayout& VulkanVertexBuffer::layout() const noexcept
 	return *m_impl->m_layout;
 }
 
-SharedPtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
-{
-	return VulkanVertexBuffer::allocate("", layout, elements, usage, device, allocator, createInfo, allocationInfo, allocationResult);
-}
-
 SharedPtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const String& name, const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkBuffer buffer{};
 	VmaAllocation allocation{};
 
 	raiseIfFailed(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate vertex buffer.");
-	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", Vk::handleAddress(buffer)) : name, BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements, usage);
+
+#ifndef NDEBUG
+	VkMemoryPropertyFlags memoryProperties{};
+	::vmaGetAllocationMemoryProperties(allocator, allocation, &memoryProperties);
+	
+	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5}, On GPU: {6}, CPU Access: {7} }}", 
+		name.empty() ? std::format("{0}", Vk::handleAddress(buffer)) : name, BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements, usage,
+		(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+#endif
 
 	return SharedObject::create<VulkanVertexBuffer>(buffer, layout, elements, usage, device, allocator, allocation, name);
+}
+
+bool VulkanVertexBuffer::tryAllocate(SharedPtr<IVulkanVertexBuffer>& buffer, const String& name, const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+{
+	VkBuffer bufferHandle{};
+	VmaAllocation allocation{};
+
+	auto result = ::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &bufferHandle, &allocation, allocationResult);
+
+	if (result != VK_SUCCESS)
+	{
+		LITEFX_DEBUG(VULKAN_LOG, "Allocation for buffer {0} with {4} bytes failed: {6} {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}",
+			name.empty() ? std::format("{0}", Vk::handleAddress(bufferHandle)) : name, BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements, usage, result);
+		return false;
+	}
+	else
+	{
+#ifndef NDEBUG
+		VkMemoryPropertyFlags memoryProperties{};
+		::vmaGetAllocationMemoryProperties(allocator, allocation, &memoryProperties);
+
+		LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5}, On GPU: {6}, CPU Access: {7} }}",
+			name.empty() ? std::format("{0}", Vk::handleAddress(bufferHandle)) : name, BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements, usage,
+			(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+#endif
+
+		buffer = SharedObject::create<VulkanVertexBuffer>(bufferHandle, layout, elements, usage, device, allocator, allocation, name);
+		return true;
+	}
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -243,18 +307,50 @@ const VulkanIndexBufferLayout& VulkanIndexBuffer::layout() const noexcept
 	return *m_impl->m_layout;
 }
 
-SharedPtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
-{
-	return VulkanIndexBuffer::allocate("", layout, elements, usage, device, allocator, createInfo, allocationInfo, allocationResult);
-}
-
 SharedPtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const String& name, const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkBuffer buffer{};
 	VmaAllocation allocation{};
 
 	raiseIfFailed(::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &buffer, &allocation, allocationResult), "Unable to allocate index buffer.");
-	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", Vk::handleAddress(buffer)) : name, BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements, usage);
+
+#ifndef NDEBUG
+	VkMemoryPropertyFlags memoryProperties{};
+	::vmaGetAllocationMemoryProperties(allocator, allocation, &memoryProperties);
+
+	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5}, On GPU: {6}, CPU Access: {7} }}", 
+		name.empty() ? std::format("{0}", Vk::handleAddress(buffer)) : name, BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements, usage,
+		(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+#endif
 
 	return SharedObject::create<VulkanIndexBuffer>(buffer, layout, elements, usage, device, allocator, allocation, name);
+}
+
+bool VulkanIndexBuffer::tryAllocate(SharedPtr<IVulkanIndexBuffer>& buffer, const String& name, const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
+{
+	VkBuffer bufferHandle{};
+	VmaAllocation allocation{};
+
+	auto result = ::vmaCreateBuffer(allocator, &createInfo, &allocationInfo, &bufferHandle, &allocation, allocationResult);
+
+	if (result != VK_SUCCESS)
+	{
+		LITEFX_DEBUG(VULKAN_LOG, "Allocation for buffer {0} with {4} bytes failed: {6} {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}",
+			name.empty() ? std::format("{0}", Vk::handleAddress(bufferHandle)) : name, BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements, usage, result);
+		return false;
+	}
+	else
+	{
+#ifndef NDEBUG
+		VkMemoryPropertyFlags memoryProperties{};
+		::vmaGetAllocationMemoryProperties(allocator, allocation, &memoryProperties);
+
+		LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5}, On GPU: {6}, CPU Access: {7} }}",
+			name.empty() ? std::format("{0}", Vk::handleAddress(bufferHandle)) : name, BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements, usage,
+			(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+#endif
+
+		buffer = SharedObject::create<VulkanIndexBuffer>(bufferHandle, layout, elements, usage, device, allocator, allocation, name);
+		return true;
+	}
 }

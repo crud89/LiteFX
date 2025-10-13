@@ -530,7 +530,62 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Represents a ray-tracing acceleration structure.
         /// </summary>
-        AccelerationStructure = 0x00000008
+        AccelerationStructure = 0x00000008,
+
+        /// <summary>
+        /// Special descriptor type, that can bind all resources besides constant buffers, acceleration structures and samplers, which then can be directly indexed from the global resource heap.
+        /// </summary>
+        /// <remarks>
+        /// This descriptor type does not directly map to an underlying resource type and instead denotes a descriptor binding, that accepts any resource descriptor besides constant buffers and
+        /// acceleration structures. Samplers are also disallowed, as they need to be bound to a descriptor of the <see cref="GlobalSamplerHeap" /> type. The existence of such a descriptor as a
+        /// part of a descriptor set, indicates that the pipeline layout uses direct descriptor indexing (see <see cref="IPipelineLayout::directlyIndexResources" />). A descriptor set containing
+        /// a descriptor of this type does not allocate any space on the respective global descriptor heap. Instead, it acts as a proxy set, that binds any of the aforementioned buffers. When
+        /// binding to this descriptor, a single uncached descriptor address will be allocated for the resource on the global descriptor heap. On the shader side, this descriptor can be retrieved 
+        /// by calling the <see cref="IDescriptorSet::bindToHeap" /> method.
+        /// 
+        /// As there's no underlying descriptor set or binding when using this descriptor type, you should only ever have on descriptor of this type in a <see cref="IPipelineLayout" />. In the
+        /// DirectX 12 backend, it is sufficient to have a descriptor of this type in a pipeline to access any descriptor on the global resource heap. In Vulkan, this descriptor type creates a
+        /// descriptor set containing an unbounded runtime array to emulate this behavior. This array is special, as it uses the `VK_EXT_mutable_descriptor_type` extension to bind arbitrary 
+        /// resources to a descriptor. However, this is only allowed for descriptors created this way, so indexing only works within the range of the proxy descriptor set. It is therefore good
+        /// practice not to use indices obtained outside a binding created from the proxy descriptor sets. Furthermore, the use of mutable descriptor types is considered less efficient than the
+        /// traditional binding procedure, as it might prevent certain fast paths. For this reason, consider alternative approaches, like multiple unbounded descriptor arrays first. Directly
+        /// indexing into the global descriptor heap this way can be beneficial, if it allows you to re-use the same pipeline state where you would otherwise have to switch between multiple 
+        /// states, however, especially in combination with indirect drawing.
+        /// </remarks>
+        /// <seealso cref="DescriptorType::GlobalSamplerHeap" />
+        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        ResourceDescriptorHeap = 0x00000009,
+
+        /// <summary>
+        /// A special descriptor type that allows indexed access to the a portion of the global sampler heap.
+        /// </summary>
+        /// <remarks>
+        /// This descriptor type is equivalent to <see cref="DescriptorType::GlobalResourceHeap" />, except that it enables access to the global sampler heap instead. The same conceptual design
+        /// as for the resource heap applies here, with the same limitations, listed in the remarks for the `GlobalResourceHeap` descriptor type.
+        /// </remarks>
+        /// <seealso cref="DescriptorType::GlobalResourceHeap" />
+        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        SamplerDescriptorHeap = 0x0000000A
+    };
+
+    /// <summary>
+    /// The target heap type for a descriptor.
+    /// </summary>
+    enum class DescriptorHeapType {
+        /// <summary>
+        /// Indicates an invalid heap.
+        /// </summary>
+        None = 0x00,
+
+        /// <summary>
+        /// Binds all non-sampler resource views.
+        /// </summary>
+        Resource = 0x01,
+
+        /// <summary>
+        /// Binds all sampler states.
+        /// </summary>
+        Sampler = 0x02
     };
 
     /// <summary>
@@ -678,7 +733,17 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Creates a buffer that can be written on the GPU and read by the CPU.
         /// </summary>
-        Readback = 0x00000100
+        Readback = 0x00000100,
+
+        /// <summary>
+        /// Creates a buffer that is directly allocated in GPU memory, but that can be efficiently written from the CPU.
+        /// </summary>
+        /// <remarks>
+        /// This heap uses the resizable base address register (ReBAR) of the GPU to create the buffer. However, this is only possible, if the GPU supports it. To 
+        /// check support for it, you can query <see cref="IGraphicsFactory::supportsResizableBaseAddressRegister" />. In case this feature is not supported, you may
+        /// want to fall back to a <see cref="Dynamic" /> resource.
+        /// </remarks>
+        GPUUpload = 0x00001000
     };
 
     /// <summary>
@@ -742,6 +807,28 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <seealso cref="IFrameBuffer" />
         FrameBufferImage = TransferSource | RenderTarget,
+    };
+
+    /// <summary>
+    /// Controls the allocation behavior of <see cref="IGraphicsFactory" />.
+    /// </summary>
+    enum class AllocationBehavior : UInt32 {
+        /// <summary>
+        /// Represents the default behavior, which might fall back to slower memory types, if required.
+        /// </summary>
+        Default = 0x00,
+
+        /// <summary>
+        /// Stays within heap budgets. If the desired resource heap is out of memory, allocation will fail. Use this behavior for resources that are not required to
+        /// prevent them from being allocated in potentially slower memory heaps.
+        /// </summary>
+        StayWithinBudget = 0x01,
+
+        /// <summary>
+        /// Does not resize heap cache, if no more pre-allocated memory is available and will fail, if available memory is exceeded. Use this in situations, where you 
+        /// can potentially delay an allocation to a less time-critical point.
+        /// </summary>
+        DontExpandCache = 0x02
     };
 
     /// <summary>
@@ -2743,6 +2830,40 @@ namespace LiteFX::Rendering {
         /// Stores the descriptor space (or set index) of the binding point.
         /// </summary>
         UInt32 Space { 0 };
+
+    public:
+        /// <summary>
+        /// Implements three-way comparison for descriptor binding points.
+        /// </summary>
+        /// <param name="other">The other binding point to compare against.</param>
+        /// <returns>
+        /// `less`, if the `Space` property of the instance is lower than the `Space` property of <paramref name="other" />, and `greater` if the opposite is true 
+        /// and they are not equal. If the `Space` properties are equal, the `Register` properties are compared accordingly. If both, `Space` and `Register` are 
+        /// equal, the operator returns `equal`.
+        /// </returns>
+        inline auto operator<=>(const DescriptorBindingPoint& other) const noexcept {
+            // NOLINTBEGIN(bugprone-branch-clone)
+            if (this->Space < other.Space)
+                return std::strong_ordering::less;
+            else if (this->Space > other.Space)
+                return std::strong_ordering::greater;
+            else if (this->Register < other.Register)
+                return std::strong_ordering::less;
+            else if(this->Register > other.Register)
+                return std::strong_ordering::greater;
+            else // Space and Register are equal.
+                return std::strong_ordering::equal;
+            // NOLINTEND(bugprone-branch-clone)
+        }
+
+        /// <summary>
+        /// Implements equality comparison for descriptor binding points.
+        /// </summary>
+        /// <param name="other">The other binding point to compare against.</param>
+        /// <returns>`true`, if the `Space` and `Register` values for both binding points are equal, otherwise `false`.</returns>
+        inline bool operator==(const DescriptorBindingPoint& other) const noexcept {
+            return other.Space == this->Space && other.Register == this->Register;
+        }
     };
 
     /// <summary>
@@ -3236,12 +3357,12 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// Specifies the bits to write to the stencil state (default: <c>0xFF</c>).
             /// </summary>
-            Byte WriteMask{ 0xFF }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            UInt8 WriteMask{ 0xFF }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
             /// <summary>
             /// Specifies the bits to read from the stencil state (default: <c>0xFF</c>).
             /// </summary>
-            Byte ReadMask{ 0xFF }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+            UInt8 ReadMask{ 0xFF }; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
             /// <summary>
             /// Describes the stencil test for faces that point towards the camera.
@@ -3981,12 +4102,9 @@ namespace LiteFX::Rendering {
     /// layout describes a static sampler, the <see cref="IDescriptorLayout::staticSampler" /> returns a pointer to the static sampler state.
     /// 
     /// Typically, a descriptor "points" to a singular buffer, i.e. a scalar. However, a descriptor can also resemble an array. In this case,
-    /// <see cref="IDescriptorLayout::descriptors" /> returns the number of elements in the array. If it returns `-1` (or `0xFFFFFFFF`), the descriptor 
-    /// array is called `unbounded`. In this case, the number of descriptors in the array can be specified when allocating the descriptor set. Unbounded
-    /// descriptor arrays behave different to normal descriptor arrays in different ways. They are typically used for bindless descriptors. If a descriptor
-    /// represents an unbounded array, it must be the only descriptor in this descriptor set. Furthermore, unbounded arrays are not cached by the descriptor
-    /// set layout. Descriptors within unbounded arrays may be updated after binding them to a command buffer. However, this must be done with special care,
-    /// to prevent descriptors that are in use to be overwritten. For more information on how to manage unbounded arrays, refer to 
+    /// <see cref="IDescriptorLayout::descriptors" /> returns the number of elements in the array. If the size of the array is not known beforehand, the
+    /// descriptor can be defined as unbounded, causing the <see cref="IDescriptorLayout::unbounded" /> property to return `true`. In this case, the number
+    /// of descriptors defines the upper limit for the actual descriptor count that can be allocated for the array when calling 
     /// <see cref="IDescriptorSetLayout::allocate" />.
     /// </remarks>
     /// <seealso cref="DescriptorSetLayout" />
@@ -4009,16 +4127,22 @@ namespace LiteFX::Rendering {
         virtual DescriptorType descriptorType() const noexcept = 0;
 
         /// <summary>
-        /// Returns the number of descriptors in the descriptor array, or `-1` if the array is unbounded.
+        /// Returns the number of descriptors in the descriptor array.
         /// </summary>
         /// <remarks>
-        /// If the number of descriptors is `-1` (or `0xFFFFFFFF`), the descriptor array is unbounded. In that case, the size of the array must be specified,
-        /// when allocating the descriptor set. This can be done by specifying the `descriptors` parameter when calling 
-        /// <see cref="IDescriptorSetLayout::allocate" />.
+        /// If <see cref="unbounded" /> is set to `true`, the descriptor count defines the upper limit for the number of descriptors that can be allocated 
+        /// for in the array.
         /// </remarks>
-        /// <returns>The number of descriptors in the descriptor array, or `-1` if the array is unbounded.</returns>
+        /// <returns>The number of descriptors in the descriptor array.</returns>
         /// <seealso cref="IDescriptorLayout" />
         virtual UInt32 descriptors() const noexcept = 0;
+
+        /// <summary>
+        /// Returns `true`, if the descriptor defines an unbounded descriptor array.
+        /// </summary>
+        /// <returns>`true`, if the descriptor defines an unbounded descriptor array, `false` otherwise.</returns>
+        /// <seealso cref="descriptors" />
+        virtual bool unbounded() const noexcept = 0;
 
         /// <summary>
         /// If the descriptor describes a static sampler, this method returns the state of the sampler. Otherwise, it returns <c>nullptr</c>.
@@ -4080,6 +4204,22 @@ namespace LiteFX::Rendering {
         /// <param name="firstElement">The first element of the array to map.</param>
         /// <param name="write">If `true`, <paramref name="data" /> is copied into the internal memory. If `false` the internal memory is copied into <paramref name="data" />.</param>
         virtual void map(Span<void*> data, size_t elementSize, UInt32 firstElement = 0, bool write = true) = 0;
+
+        /// <summary>
+        /// Writes a span of memory in <paramref name="data" /> into the internal memory of this object, starting at <paramref name="offset" />.
+        /// </summary>
+        /// <param name="data">The span of bytes containing the data to write.</param>
+        /// <param name="size">The size of the memory block at <paramref name="data" />.</param>
+        /// <param name="offset">The offset at which to start writing.</param>
+        virtual void write(const void* const data, size_t size, size_t offset = 0) = 0;
+
+        /// <summary>
+        /// Writes a span of memory in <paramref name="data" /> into the internal memory of this object, starting at <paramref name="offset" />.
+        /// </summary>
+        /// <param name="data">The span of bytes containing the data to write.</param>
+        /// <param name="size">The size of the memory block at <paramref name="data" />.</param>
+        /// <param name="offset">The offset at which to start writing.</param>
+        virtual void read(void* data, size_t size, size_t offset = 0) = 0;
     };
 
     /// <summary>
@@ -4893,7 +5033,7 @@ namespace LiteFX::Rendering {
             /// <summary>
             /// A user-defined mask value that is matched with another mask value during ray-tracing to include or discard the instance.
             /// </summary>
-            Byte Mask : 8 = 0xFF;
+            UInt8 Mask : 8 = 0xFF;
 
             /// <summary>
             /// An offset added to the address of the shader-local data of the shader record that is invoked for the instance, *after* the <see cref="IBottomLevelAccelerationStructure" /> indexing
@@ -4950,7 +5090,7 @@ namespace LiteFX::Rendering {
         /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
         /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
         /// <param name="flags">The flags that control the behavior of the instance.</param>
-        inline void addInstance(const SharedPtr<const IBottomLevelAccelerationStructure>& blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        inline void addInstance(const SharedPtr<const IBottomLevelAccelerationStructure>& blas, UInt32 id, UInt32 hitGroupOffset = 0, UInt8 mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
         }
         
@@ -4963,7 +5103,7 @@ namespace LiteFX::Rendering {
         /// <param name="hitGroupOffset">An offset added to the shader-local data for a hit-group shader record.</param>
         /// <param name="mask">A user defined mask value that can be used to include or exclude the instance during a ray-tracing pass.</param>
         /// <param name="flags">The flags that control the behavior of the instance.</param>
-        inline void addInstance(const SharedPtr<const IBottomLevelAccelerationStructure>& blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        inline void addInstance(const SharedPtr<const IBottomLevelAccelerationStructure>& blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, UInt8 mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             this->addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
         }
 
@@ -5039,7 +5179,7 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <returns>A reference to the current TLAS.</returns>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, const SharedPtr<const IBottomLevelAccelerationStructure>& blas, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        inline auto withInstance(this TSelf&& self, const SharedPtr<const IBottomLevelAccelerationStructure>& blas, UInt32 id, UInt32 hitGroupOffset = 0, UInt8 mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
             return std::forward<TSelf>(self);
         }
@@ -5055,7 +5195,7 @@ namespace LiteFX::Rendering {
         /// <param name="flags">The flags that control the behavior of the instance.</param>
         /// <returns>A reference to the current TLAS.</returns>
         template<typename TSelf>
-        inline auto withInstance(this TSelf&& self, const SharedPtr<const IBottomLevelAccelerationStructure>& blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, Byte mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        inline auto withInstance(this TSelf&& self, const SharedPtr<const IBottomLevelAccelerationStructure>& blas, const TMatrix3x4<Float>& transform, UInt32 id, UInt32 hitGroupOffset = 0, UInt8 mask = 0xFF, InstanceFlags flags = InstanceFlags::None) noexcept -> TSelf&& { // NOLINT(cppcoreguidelines-avoid-magic-numbers)
             self.addInstance(Instance { .BottomLevelAccelerationStructure = blas, .Transform = transform, .Id = id, .Mask = mask, .HitGroupOffset = hitGroupOffset, .Flags = flags });
             return std::forward<TSelf>(self);
         }
@@ -5263,6 +5403,89 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// Returns the offset into the global descriptor heap.
+        /// </summary>
+        /// <remarks>
+        /// The heap offset may differ between used backends and does not necessarily correspond to memory.
+        /// </remarks>
+        /// <param name="heapType">The type of the descriptor heap for which to obtain the heap offset.</param>
+        /// <returns>The offset into the global descriptor heap.</returns>
+        virtual UInt32 globalHeapOffset(DescriptorHeapType heapType) const noexcept = 0;
+
+        /// <summary>
+        /// Returns the amount size of the range in the global descriptor heap address space.
+        /// </summary>
+        /// <remarks>
+        /// The heap size may differ between used backends and does not necessarily correspond to memory.
+        /// </remarks>
+        /// <param name="heapType">The type of the descriptor heap for which to obtain the heap size.</param>
+        /// <returns>The size of the range in the global descriptor heap.</returns>
+        /// <seealso cref="globalHeapOffset" />
+        virtual UInt32 globalHeapAddressRange(DescriptorHeapType heapType) const noexcept = 0;
+
+        /// <summary>
+        /// Binds a resource directly to a descriptor heap and returns the index that can be used to access it.
+        /// </summary>
+        /// <remarks>
+        /// This method is used with the <see cref="GraphicsDeviceFeature::DynamicDescriptors" /> feature and allows to bind a descriptor to the underlying descriptor heap directly by providing 
+        /// the corresponding resource type (indicated by <paramref name="bindingType" />) at bind time. The method directly returns the global heap index of the resource, that can be used by the 
+        /// shader to access it using the `ResourceDescriptorHeap` syntax (in HLSL).
+        /// 
+        /// If the descriptor set does not contain a descriptor of type <see cref="DescriptorType::ResourceDescriptorHeap" />, this method will throw an exception.
+        /// </remarks>
+        /// <param name="bindingType">The type of the descriptor used to bind <paramref name="buffer" /> to the heap.</param>
+        /// <param name="descriptor">The index of the descriptor in the heap to bind <paramref name="buffer" /> to.</param>
+        /// <param name="buffer">The buffer to bind.</param>
+        /// <param name="bufferElement">The index of an element inside <paramref name="buffer" /> that should be bound.</param>
+        /// <param name="elements">The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at <paramref name="bufferElement" />.</param>
+        /// <param name="texelFormat">The format used to read a texel buffer. Required if <paramref name="binding" /> binds a texel buffer and ignored otherwise.</param>
+        /// <returns>The global heap index that can be used to access the resource from the shader.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by <paramref name="bindingType" />.</exception>
+        inline UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const {
+            return this->doBind(bindingType, descriptor, buffer, bufferElement, elements, texelFormat);
+        }
+
+        /// <summary>
+        /// Binds a resource directly to a descriptor heap and returns the index that can be used to access it.
+        /// </summary>
+        /// <remarks>
+        /// This method is used with the <see cref="GraphicsDeviceFeature::DynamicDescriptors" /> feature and allows to bind a descriptor to the underlying descriptor heap directly by providing 
+        /// the corresponding resource type (indicated by <paramref name="bindingType" />) at bind time. The method directly returns the global heap index of the resource, that can be used by the 
+        /// shader to access it using the `ResourceDescriptorHeap` syntax (in HLSL).
+        /// 
+        /// If the descriptor set does not contain a descriptor of type <see cref="DescriptorType::ResourceDescriptorHeap" />, this method will throw an exception.
+        /// </remarks>
+        /// <param name="bindingType">The type of the descriptor used to bind <paramref name="image" /> to the heap.</param>
+        /// <param name="descriptor">The index of the descriptor in the heap to bind <paramref name="image" /> to.</param>
+        /// <param name="image">The image to bind.</param>
+        /// <param name="firstLevel">The index of the first mip-map level to bind.</param>
+        /// <param name="levels">The number of mip-map levels to bind. A value of `0` binds all available levels, starting at <paramref name="firstLevel" />.</param>
+        /// <param name="firstLayer">The index of the first layer to bind.</param>
+        /// <param name="layers">The number of layers to bind. A value of `0` binds all available layers, starting at <paramref name="firstLayer" />.</param>
+        /// <returns>The global heap index that can be used to access the resource from the shader.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by <paramref name="bindingType" />.</exception>
+        inline UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IImage& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const {
+            return this->doBind(bindingType, descriptor, image, firstLevel, levels, firstLayer, layers);
+        }
+
+        /// <summary>
+        /// Binds a sampler directly to a descriptor heap and returns the index that can be used to access it.
+        /// </summary>
+        /// <remarks>
+        /// This method is used with the <see cref="GraphicsDeviceFeature::DynamicDescriptors" /> feature and allows to bind a descriptor to the underlying descriptor heap directly. The method 
+        /// returns the global heap index of the sampler, that can be used by the shader to access it using the `SamplerDescriptorHeap` syntax (in HLSL).
+        /// 
+        /// If the descriptor set does not contain a descriptor of type <see cref="DescriptorType::SamplerDescriptorHeap" />, this method will throw an exception.
+        /// </remarks>
+        /// <param name="descriptor">The index of the descriptor in the heap to bind <paramref name="sampler" /> to.</param>
+        /// <param name="sampler">The sampler to bind.</param>
+        /// <returns>The global heap index that can be used to access the sampler from the shader.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the descriptor set does not contain a descriptor that provides direct heap access to the underlying descriptor heap indicated by <paramref name="bindingType" />.</exception>
+        inline UInt32 bindToHeap(UInt32 descriptor, const ISampler& sampler) const {
+            return this->doBind(descriptor, sampler);
+        }
+
+        /// <summary>
         /// Updates one or more buffer descriptors within the current descriptor set.
         /// </summary>
         /// <param name="binding">The buffer binding point.</param>
@@ -5270,8 +5493,9 @@ namespace LiteFX::Rendering {
         /// <param name="bufferElement">The index of the first element in the buffer to bind to the descriptor set.</param>
         /// <param name="elements">The number of elements from the buffer to bind to the descriptor set. A value of `0` binds all available elements, starting at <paramref name="bufferElement" />.</param>
         /// <param name="firstDescriptor">The index of the first descriptor in the descriptor array to update.</param>
-        void update(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0) const {
-            this->doUpdate(binding, buffer, bufferElement, elements, firstDescriptor);
+        /// <param name="texelFormat">The format used to read a texel buffer. Required if <paramref name="binding" /> binds a texel buffer and ignored otherwise.</param>
+        inline void update(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None) const {
+            this->doUpdate(binding, buffer, bufferElement, elements, firstDescriptor, texelFormat);
         }
 
         /// <summary>
@@ -5295,7 +5519,7 @@ namespace LiteFX::Rendering {
         /// <param name="levels">The number of mip-map levels to bind. A value of `0` binds all available levels, starting at <paramref name="firstLevel" />.</param>
         /// <param name="firstLayer">The index of the first layer to bind.</param>
         /// <param name="layers">The number of layers to bind. A value of `0` binds all available layers, starting at <paramref name="firstLayer" />.</param>
-        void update(UInt32 binding, const IImage& texture, UInt32 descriptor = 0, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const {
+        inline void update(UInt32 binding, const IImage& texture, UInt32 descriptor = 0, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const {
             this->doUpdate(binding, texture, descriptor, firstLevel, levels, firstLayer, layers);
         }
 
@@ -5305,7 +5529,7 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The sampler binding point.</param>
         /// <param name="sampler">The sampler to write to the descriptor set.</param>
         /// <param name="descriptor">The index of the descriptor in the descriptor array to bind the sampler to.</param>
-        void update(UInt32 binding, const ISampler& sampler, UInt32 descriptor = 0) const {
+        inline void update(UInt32 binding, const ISampler& sampler, UInt32 descriptor = 0) const {
             this->doUpdate(binding, sampler, descriptor);
         }
 
@@ -5315,12 +5539,15 @@ namespace LiteFX::Rendering {
         /// <param name="binding">The acceleration structure binding point.</param>
         /// <param name="accelerationStructure">The acceleration structure to write to the descriptor set.</param>
         /// <param name="descriptor">The index of the descriptor in the descriptor array to bind the acceleration structure to.</param>
-        void update(UInt32 binding, const IAccelerationStructure& accelerationStructure, UInt32 descriptor = 0) const {
+        inline void update(UInt32 binding, const IAccelerationStructure& accelerationStructure, UInt32 descriptor = 0) const {
             this->doUpdate(binding, accelerationStructure, descriptor);
         }
 
     private:
-        virtual void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor) const = 0;
+        virtual UInt32 doBind(DescriptorType bindingType, UInt32 descriptor, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat) const = 0;
+        virtual UInt32 doBind(DescriptorType bindingType, UInt32 descriptor, const IImage& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const = 0;
+        virtual UInt32 doBind(UInt32 descriptor, const ISampler& sampler) const = 0;
+        virtual void doUpdate(UInt32 binding, const IBuffer& buffer, UInt32 bufferElement, UInt32 elements, UInt32 firstDescriptor, Format texelFormat) const = 0;
         virtual void doUpdate(UInt32 binding, const IImage& texture, UInt32 descriptor, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers) const = 0;
         virtual void doUpdate(UInt32 binding, const ISampler& sampler, UInt32 descriptor) const = 0;
         virtual void doUpdate(UInt32 binding, const IAccelerationStructure& accelerationStructure, UInt32 descriptor) const = 0;
@@ -5489,6 +5716,35 @@ namespace LiteFX::Rendering {
         /// <returns>The number of input attachment descriptors.</returns>
         virtual UInt32 inputAttachments() const noexcept = 0;
 
+        /// <summary>
+        /// Returns `true`, if the descriptor set layout contains an unbounded runtime array and `false` otherwise.
+        /// </summary>
+        /// <returns>`true`, if the descriptor set layout contains an unbounded runtime array and `false` otherwise</returns>
+        virtual bool containsUnboundedArray() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the offset for a descriptor within a descriptor set of this layout.
+        /// </summary>
+        /// <param name="binding">The binding point for the descriptor.</param>
+        /// <param name="element">The index of the array element of a descriptor array.</param>
+        /// <returns>The offset from the beginning of the descriptor set.</returns>
+        virtual UInt32 getDescriptorOffset(UInt32 binding, UInt32 element = 0) const = 0;
+
+        /// <summary>
+        /// Returns `true` if the descriptor set layout contains bindings for resources (i.e., bindings that aren't samplers) and `false` otherwise.
+        /// </summary>
+        /// <returns>`true` if the descriptor set layout contains bindings for resources and `false` otherwise.</returns>
+        virtual bool bindsResources() const noexcept = 0;
+
+        /// <summary>
+        /// Returns `true` if the descriptor set layout contains bindings for samplers and `false` otherwise.
+        /// </summary>
+        /// <remarks>
+        /// Note that this method only returns `true` if the layout binds samplers, that is, if they are not static/immutable.
+        /// </remarks>
+        /// <returns>`true` if the descriptor set layout contains bindings for samplers and `false` otherwise.</returns>
+        virtual bool bindsSamplers() const noexcept = 0;
+
     public:
         /// <summary>
         /// Allocates a new descriptor set or returns an instance of an unused descriptor set.
@@ -5513,6 +5769,9 @@ namespace LiteFX::Rendering {
         /// they have been bound to a command buffer or from different threads. However, you must ensure yourself not to overwrite any descriptors that are currently
         /// in use. Because unbounded arrays are not cached, freeing and re-allocating such descriptor sets may leave the descriptor heap fragmented, which might cause
         /// the allocation to fail, if the heap is full.
+        /// 
+        /// Note that providing bindings for descriptors of type <see cref="DescriptorType::ResourceDescriptorHeap" /> or 
+        /// <see cref="DescriptorType::SamplerDescriptorHeap" /> here is not supported and will cause an exception to be thrown.
         /// </remarks>
         /// <returns>The instance of the descriptor set.</returns>
         /// <seealso cref="IDescriptorLayout" />
@@ -6245,6 +6504,241 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// A hint used during shader reflection to control the pipeline layout.
+    /// </summary>
+    /// <remarks>
+    /// Hints are generally used to express the desired layout to backends that cannot infer them implicitly. They do not imply an enforcement of the layout otherwise. For example, 
+    /// hinting a push constants range when performing shader reflection in Vulkan, where push constants are supported by the reflection library, will not affect the ultimate decision on 
+    /// whether the layout will contain a push constants range. In this case, shader reflection will always emit a push constants range.
+    /// 
+    /// Backends do emit diagnostic log messages, if a hint is given that it will ignore. Hints for descriptors that are not bound will silently be ignored.
+    /// </remarks>
+    /// <seealso cref="IShaderProgram::reflectPipelineLayout" />
+    struct LITEFX_RENDERING_API PipelineBindingHint {
+
+        /// <summary>
+        /// Defines a hint that is used to mark an unbounded descriptor array.
+        /// </summary>
+        struct UnboundedArrayHint {
+            /// <summary>
+            /// If the binding point binds an array, this property can be used to turn it into an unbounded array and set the maximum number of descriptors that can be bound to the array. 
+            /// This is especially useful to comply with Vulkan device limits.
+            /// </summary>
+            UInt32 MaxDescriptors{ 0 };
+        };
+
+        /// <summary>
+        /// Defines a hint that is used to mark a push constants range.
+        /// </summary>
+        struct PushConstantsHint {
+            /// <summary>
+            /// If the binding point binds a constant or uniform buffer, setting this property to `true` will configure the binding point it as part of the root constants for the pipeline 
+            /// layout. If this property is set to `false`, the hint will have no effect.
+            /// </summary>
+            bool AsPushConstants{ false };
+        };
+
+        /// <summary>
+        /// Defines a hint that is used to bind a static sampler state to a sampler descriptor.
+        /// </summary>
+        struct StaticSamplerHint {
+            /// <summary>
+            /// If the binding point binds a sampler, setting this property will bind a static or constant sampler, if supported by the backend.
+            /// </summary>
+            SharedPtr<ISampler> StaticSampler{ nullptr };
+        };
+
+        /// <summary>
+        /// Defines a hint that is used to initialize a dynamic descriptor heap.
+        /// </summary>
+        /// <remarks>
+        /// This hint is special, as it must not be associated with an existing binding. Instead, dynamic descriptor heaps use a proxy descriptor set to bind resources to the global 
+        /// descriptor heaps, that can later be directly indexed by the shader. In the DirectX 12 backend, this hint will cause a new descriptor set to be created, that is not part of the
+        /// pipeline state. In Vulkan, this functionality is emulated using the `VK_EXT_mutable_descriptor_type` extension and binds to an existing descriptor set. DXC emits this descriptor
+        /// set automatically, if direct heap indexing is used from a shader.
+        /// </remarks>
+        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        /// <seealso cref="DescriptorType::ResourceDescriptorHeap" />
+        /// <seealso cref="DescriptorType::SamplerDescriptorHeap" />
+        struct DescriptorHeapHint {
+            /// <summary>
+            /// The desired type of the descriptor heap.
+            /// </summary>
+            DescriptorHeapType Type{ DescriptorHeapType::None };
+
+            /// <summary>
+            /// The number of descriptors allocated for the heap.
+            /// </summary>
+            UInt32 HeapSize{ 1u };
+        };
+
+        /// <summary>
+        /// Defines a hint that is used to mark additional a binding as used by certain shader stages.
+        /// </summary>
+        /// <remarks>
+        /// Shader stages are set on the descriptor set, so the binding register for this hint is ignored. If specified, this hint causes shader stages that are not found in shader reflection
+        /// to be included in the shader stage mask. Usually reflection leaves out shader stages that a descriptor set is not bound to, as this can improve performance. However, if a 
+        /// descriptor set can be re-used between compatible pipeline layouts, shader reflection may be unable to tell which shader stages the descriptor set is actually accessed from. In 
+        /// those scenarios, additional stages can be provided using this hint.
+        /// 
+        /// In the DirectX 12 backend, shader stages aren't actually masked. Rather a binding is only accessible to a single shader stage, or all shader stages. However, in Vulkan this can be
+        /// specified with finer granularity.
+        /// </remarks>
+        struct ShaderStageHint {
+            /// <summary>
+            /// A mask that contains the shader stages, that the descriptor set should be accessible from.
+            /// </summary>
+            ShaderStage Stages{ };
+        };
+
+        /// <summary>
+        /// Defines the type of the pipeline binding hint.
+        /// </summary>
+        using hint_type = Variant<std::monostate, UnboundedArrayHint, PushConstantsHint, StaticSamplerHint, DescriptorHeapHint, ShaderStageHint>;
+
+        /// <summary>
+        /// The binding point the hint applies to.
+        /// </summary>
+        DescriptorBindingPoint Binding{ };
+
+        /// <summary>
+        /// Stores the underlying hint.
+        /// </summary>
+        hint_type Hint = std::monostate{ };
+
+    public:
+        /// <summary>
+        /// Initializes a hint that binds an unbounded runtime array.
+        /// </summary>
+        /// <param name="at">The binding point the hint applies to.</param>
+        /// <param name="maxDescriptors">The maximum number of descriptors that can be bound to the runtime array at the binding point.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        static inline auto runtimeArray(DescriptorBindingPoint at, UInt32 maxDescriptors) noexcept -> PipelineBindingHint {
+            return { .Binding = at, .Hint = UnboundedArrayHint { maxDescriptors } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds an unbounded runtime array.
+        /// </summary>
+        /// <param name="space">The descriptor space of the binding point.</param>
+        /// <param name="binding">The register of the descriptor binding point.</param>
+        /// <param name="maxDescriptors">The maximum number of descriptors that can be bound to the runtime array at the binding point.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        static inline auto runtimeArray(UInt32 space, UInt32 binding, UInt32 maxDescriptors) noexcept -> PipelineBindingHint {
+            return { .Binding = { .Register = binding, .Space = space }, .Hint = UnboundedArrayHint { maxDescriptors } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds push constants.
+        /// </summary>
+        /// <param name="at">The binding point the hint applies to.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        static inline auto pushConstants(DescriptorBindingPoint at) noexcept -> PipelineBindingHint {
+            return { .Binding = at, .Hint = PushConstantsHint { true } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds push constants.
+        /// </summary>
+        /// <param name="space">The descriptor space of the binding point.</param>
+        /// <param name="binding">The register of the descriptor binding point.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        static inline auto pushConstants(UInt32 space, UInt32 binding) noexcept -> PipelineBindingHint {
+            return { .Binding = { .Register = binding, .Space = space }, .Hint = PushConstantsHint { true } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds a static sampler, if supported by the backend.
+        /// </summary>
+        /// <param name="at">The binding point the hint applies to.</param>
+        /// <param name="sampler">The sampler state used to initialize the static sampler with.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        static inline auto staticSampler(DescriptorBindingPoint at, SharedPtr<ISampler> sampler) noexcept -> PipelineBindingHint {
+            return { .Binding = at, .Hint = StaticSamplerHint { std::move(sampler) } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds a static sampler, if supported by the backend.
+        /// </summary>
+        /// <param name="space">The descriptor space of the binding point.</param>
+        /// <param name="binding">The register of the descriptor binding point.</param>
+        /// <param name="sampler">The sampler state used to initialize the static sampler with.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        static inline auto staticSampler(UInt32 space, UInt32 binding, SharedPtr<ISampler> sampler) noexcept -> PipelineBindingHint {
+            return { .Binding = { .Register = binding, .Space = space }, .Hint = StaticSamplerHint { std::move(sampler) } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds a proxy descriptor set to access the resource heap at the provided binding point.
+        /// </summary>
+        /// <param name="at">The binding point the hint applies to.</param>
+        /// <param name="heapSize">The number of descriptors allocated for the heap when creating the descriptor set.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        static inline auto resourceHeap(DescriptorBindingPoint at, UInt32 heapSize) noexcept -> PipelineBindingHint {
+            return { .Binding = at, .Hint = DescriptorHeapHint { DescriptorHeapType::Resource, heapSize } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds a proxy descriptor set to access the resource heap at the provided binding point.
+        /// </summary>
+        /// <param name="space">The descriptor space of the binding point.</param>
+        /// <param name="binding">The register of the descriptor binding point.</param>
+        /// <param name="heapSize">The number of descriptors allocated for the heap when creating the descriptor set.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        static inline auto resourceHeap(UInt32 space, UInt32 binding, UInt32 heapSize) noexcept -> PipelineBindingHint {
+            return { .Binding = { .Register = binding, .Space = space }, .Hint = DescriptorHeapHint { DescriptorHeapType::Resource, heapSize } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds a proxy descriptor set to access the sampler heap at the provided binding point.
+        /// </summary>
+        /// <param name="at">The binding point the hint applies to.</param>
+        /// <param name="heapSize">The number of descriptors allocated for the heap when creating the descriptor set.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        static inline auto samplerHeap(DescriptorBindingPoint at, UInt32 heapSize) noexcept -> PipelineBindingHint {
+            return { .Binding = at, .Hint = DescriptorHeapHint { DescriptorHeapType::Sampler, heapSize } };
+        }
+
+        /// <summary>
+        /// Initializes a hint that binds a proxy descriptor set to access the sampler heap at the provided binding point.
+        /// </summary>
+        /// <param name="space">The descriptor space of the binding point.</param>
+        /// <param name="binding">The register of the descriptor binding point.</param>
+        /// <param name="heapSize">The number of descriptors allocated for the heap when creating the descriptor set.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        static inline auto samplerHeap(UInt32 space, UInt32 binding, UInt32 heapSize) noexcept -> PipelineBindingHint {
+            return { .Binding = { .Register = binding, .Space = space }, .Hint = DescriptorHeapHint { DescriptorHeapType::Sampler, heapSize } };
+        }
+
+        /// <summary>
+        /// Initializes a hint provides additional shader stages, that may be not covered by shader reflection.
+        /// </summary>
+        /// <param name="at">The binding point the hint applies to.</param>
+        /// <param name="shaderStages">The number of descriptors allocated for the heap when creating the descriptor set.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        static inline auto shaderStage(DescriptorBindingPoint at, ShaderStage shaderStages) noexcept -> PipelineBindingHint {
+            return { .Binding = at, .Hint = ShaderStageHint { shaderStages } };
+        }
+
+        /// <summary>
+        /// Initializes a hint provides additional shader stages, that may be not covered by shader reflection.
+        /// </summary>
+        /// <param name="space">The descriptor space of the binding point.</param>
+        /// <param name="binding">The register of the descriptor binding point.</param>
+        /// <param name="shaderStages">The number of descriptors allocated for the heap when creating the descriptor set.</param>
+        /// <returns>The initialized pipeline binding hint.</returns>
+        /// <seealso cref="GraphicsDeviceFeature::DynamicDescriptors" />
+        static inline auto shaderStage(UInt32 space, UInt32 binding, ShaderStage shaderStages) noexcept -> PipelineBindingHint {
+            return { .Binding = {.Register = binding, .Space = space }, .Hint = ShaderStageHint { shaderStages } };
+        }
+    };
+
+    /// <summary>
     /// The interface for a shader program.
     /// </summary>
     /// <remarks>
@@ -6360,10 +6854,12 @@ namespace LiteFX::Rendering {
         /// </item>
         /// </list>
         /// </remarks>
+        /// <param name="hints">A series of individual binding hints to use to deduce explicit binding information.</param>
         /// <returns>The pipeline layout extracted from shader reflection.</returns>
+        /// <seealso cref="PipelineBindingHint" />
         /// <seealso href="https://github.com/crud89/LiteFX/wiki/Shader-Development" />
-        inline SharedPtr<IPipelineLayout> reflectPipelineLayout() const {
-            return this->parsePipelineLayout();
+        inline SharedPtr<IPipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints = {}) const {
+            return this->parsePipelineLayout(hints);
         };
 
         /// <summary>
@@ -6376,7 +6872,7 @@ namespace LiteFX::Rendering {
 
     private:
         virtual Enumerable<const IShaderModule&> getModules() const = 0;
-        virtual SharedPtr<IPipelineLayout> parsePipelineLayout() const = 0;
+        virtual SharedPtr<IPipelineLayout> parsePipelineLayout(Enumerable<PipelineBindingHint> hints) const = 0;
     };
 
     /// <summary>
@@ -6420,6 +6916,18 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The push constants layout, or <c>nullptr</c>, if the pipeline does not use any push constants.</returns>
         virtual const IPushConstantsLayout* pushConstants() const noexcept = 0;
+
+        /// <summary>
+        /// Returns `true`, if the pipeline supports directly indexing into a resource heap and `false` otherwise.
+        /// </summary>
+        /// <returns>`true`, if the pipeline supports directly indexing into a resource heap and `false` otherwise</returns>
+        virtual bool dynamicResourceHeapAccess() const = 0;
+
+        /// <summary>
+        /// Returns `true`, if the pipeline supports directly indexing into a sampler heap and `false` otherwise.
+        /// </summary>
+        /// <returns>`true`, if the pipeline supports directly indexing into a sampler heap and `false` otherwise</returns>
+        virtual bool dynamicSamplerHeapAccess() const = 0;
 
     private:
         virtual Enumerable<SharedPtr<const IDescriptorSetLayout>> getDescriptorSets() const = 0;
@@ -8302,6 +8810,33 @@ namespace LiteFX::Rendering {
             }
         };
 
+        /// <summary>
+        /// Event arguments for a <see cref="ISwapChain::swapped" /> event.
+        /// </summary>
+        struct BackBufferSwapEventArgs : public EventArgs {
+        private:
+            UInt32 m_backBuffer;
+
+        public:
+            explicit BackBufferSwapEventArgs(UInt32 backBuffer) noexcept :
+                EventArgs(), m_backBuffer(backBuffer) {
+            }
+            BackBufferSwapEventArgs(const BackBufferSwapEventArgs&) = default;
+            BackBufferSwapEventArgs(BackBufferSwapEventArgs&&) noexcept = default;
+            BackBufferSwapEventArgs& operator=(const BackBufferSwapEventArgs&) = default;
+            BackBufferSwapEventArgs& operator=(BackBufferSwapEventArgs&&) noexcept = default;
+            ~BackBufferSwapEventArgs() noexcept override = default;
+
+        public:
+            /// <summary>
+            /// Returns the index of the new back buffer on the swap chain.
+            /// </summary>
+            /// <returns>The index of the new back buffer on the swap chain.</returns>
+            UInt32 backBuffer() const noexcept {
+                return m_backBuffer;
+            }
+        };
+
     protected:
         ISwapChain() noexcept = default;
         ISwapChain(ISwapChain&&) noexcept = default;
@@ -8431,7 +8966,7 @@ namespace LiteFX::Rendering {
         /// Invoked, when the swap chain has swapped the back buffers.
         /// </summary>
         /// <seealso cref="swapBackBuffer" />
-        mutable Event<EventArgs> swapped;
+        mutable Event<BackBufferSwapEventArgs> swapped;
 
         /// <summary>
         /// Invoked, after the swap chain has been reseted.
@@ -8562,7 +9097,7 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <seealso cref="beginDebugRegion" />
         /// <seealso cref="setDebugMarker" />
-        static constexpr Vectors::ByteVector3 DEFAULT_DEBUG_COLOR = { 128_b, 128_b, 128_b };
+        static constexpr Vectors::ByteVector3 DEFAULT_DEBUG_COLOR = { 128_ui8, 128_ui8, 128_ui8 };
 
         /// <summary>
         /// Starts a new debug region.
@@ -8711,6 +9246,141 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Stores simple memory heap statistics, that can be quickly queried by calling <see cref="IGraphicsFactory::memoryStatistics" />
+    /// </summary>
+    struct LITEFX_RENDERING_API MemoryHeapStatistics {
+        /// <summary>
+        /// `true`, if the heap is located in video memory and `false` otherwise.
+        /// </summary>
+        bool onGpu{ false };
+
+        /// <summary>
+        /// `true`, of the heap is accessible for the CPU and `false` otherwise.
+        /// </summary>
+        bool cpuVisible{ false };
+
+        /// <summary>
+        /// Returns the number of memory blocks in the heap.
+        /// </summary>
+        UInt32 blocks{};
+
+        /// <summary>
+        /// Returns the total number of allocations in the heap.
+        /// </summary>
+        UInt32 allocations{};
+
+        /// <summary>
+        /// Returns the total size of allocated memory across all blocks in the heap.
+        /// </summary>
+        UInt64 blockSize{};
+
+        /// <summary>
+        /// Returns the total size of memory for all allocations in the heap. Always less or equal to <see cref="totalBlockSize" />.
+        /// </summary>
+        UInt64 allocationSize{};
+
+        /// <summary>
+        /// Estimated memory used by the program in the heap.
+        /// </summary>
+        /// <remarks>
+        /// This value best represents the actual memory pressure of the program in the heap, as it not only factors in allocations, but also other resources.
+        /// </remarks>
+        UInt64 usedMemory{};
+
+        /// <summary>
+        /// Estimated memory available to the program in the heap.
+        /// </summary>
+        /// <remarks>
+        /// This value best represents the actual memory available to the program in the heap
+        /// </remarks>
+        /// <seealso cref="usedMemory" />
+        UInt64 availableMemory{};
+    };
+
+    /// <summary>
+    /// Stores extended memory statistics, that can be queried by calling <see cref="IGraphicsFactory::detailedMemoryStatistics" />.
+    /// </summary>
+    /// <remarks>
+    /// Note that those statistics should only be used for debugging purposes, as their computation may be significantly slower compared to calling <see cref="IGraphicsFactory::memoryStatistics" />.
+    /// </remarks>
+    struct LITEFX_RENDERING_API DetailedMemoryStatistics {
+        /// <summary>
+        /// Defines a single statistics block.
+        /// </summary>
+        struct StatisticsBlock {
+            /// <summary>
+            /// `true`, if the heap is located in video memory and `false` otherwise.
+            /// </summary>
+            bool onGpu{ false };
+
+            /// <summary>
+            /// `true`, of the heap is accessible for the CPU and `false` otherwise.
+            /// </summary>
+            bool cpuVisible{ false };
+
+            /// <summary>
+            /// Returns the number of memory blocks in the heap.
+            /// </summary>
+            UInt32 blocks{};
+
+            /// <summary>
+            /// Returns the total number of allocations in the heap.
+            /// </summary>
+            UInt32 allocations{};
+
+            /// <summary>
+            /// Returns the total size of allocated memory across all blocks in the heap.
+            /// </summary>
+            UInt64 blockSize{};
+
+            /// <summary>
+            /// Returns the total size of memory for all allocations in the heap. Always less or equal to <see cref="totalBlockSize" />.
+            /// </summary>
+            UInt64 allocationSize{};
+
+            /// <summary>
+            /// The number of unoccupied memory ranges between allocations.
+            /// </summary>
+            UInt32 unusedRangeCount{};
+
+            /// <summary>
+            /// The size of the smallest allocation.
+            /// </summary>
+            UInt64 minAllocationSize{};
+
+            /// <summary>
+            /// The size of the largest allocation.
+            /// </summary>
+            UInt64 maxAllocationSize{};
+
+            /// <summary>
+            /// The size of the smallest unused memory range.
+            /// </summary>
+            UInt64 minUnusedRangeSize{};
+
+            /// <summary>
+            /// The size of the largest unused memory range.
+            /// </summary>
+            UInt64 maxUnusedRangeSize{};
+        };
+
+        /// <summary>
+        /// Stores the memory statistics per location (e.g., VRAM/RAM).
+        /// </summary>
+        Array<StatisticsBlock> perLocation{};
+
+        /// <summary>
+        /// Stores the memory statistics per <see cref="ResourceHeap" />.
+        /// </summary>
+        Array<StatisticsBlock> perResourceHeap{};
+
+        /// <summary>
+        /// Stores the total memory statistics.
+        /// </summary>
+        StatisticsBlock total{};
+    };
+
+    /// <summary>
     /// The interface for a graphics factory.
     /// </summary>
     class LITEFX_RENDERING_API IGraphicsFactory : public SharedObject {
@@ -8733,9 +9403,25 @@ namespace LiteFX::Rendering {
         /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getBuffer(type, heap, elementSize, elements, usage);
+        inline SharedPtr<IBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getBuffer(type, heap, elementSize, elements, usage, allocationBehavior);
+        };
+
+        /// <summary>
+        /// Tries to create a buffer of type <paramref name="type" />.
+        /// </summary>
+        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
+        /// <param name="type">The type of the buffer.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
+        /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->tryGetBuffer(buffer, type, heap, elementSize, elements, usage, allocationBehavior);
         };
 
         /// <summary>
@@ -8746,10 +9432,27 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
+        inline SharedPtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
-            return this->createBuffer(descriptor.type(), heap, descriptor.elementSize(), elements, usage);
+            return this->createBuffer(descriptor.type(), heap, descriptor.elementSize(), elements, usage, allocationBehavior);
+        };
+        
+        /// <summary>
+        /// Tries to create a buffer that can be bound to a specific descriptor.
+        /// </summary>
+        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
+        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer,const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            auto& descriptor = descriptorSet.descriptor(binding);
+            return this->tryCreateBuffer(buffer, descriptor.type(), heap, descriptor.elementSize(), elements, usage, allocationBehavior);
         };
 
         /// <summary>
@@ -8760,10 +9463,27 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
+        inline SharedPtr<IBuffer> createBuffer(const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
-            return this->createBuffer(descriptor.type(), heap, elementSize, elements, usage);
+            return this->createBuffer(descriptor.type(), heap, elementSize, elements, usage, allocationBehavior);
+        };
+
+        /// <summary>
+        /// Tries to create a buffer that can be bound to a specific descriptor.
+        /// </summary>
+        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
+        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            auto& descriptor = descriptorSet.descriptor(binding);
+            return this->tryCreateBuffer(buffer, descriptor.type(), heap, elementSize, elements, usage, allocationBehavior);
         };
 
         /// <summary>
@@ -8775,9 +9495,26 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, heap, elementSize, elements, usage);
+        inline SharedPtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, heap, elementSize, elements, usage, allocationBehavior);
+        };
+
+        /// <summary>
+        /// Tries to create a buffer that can be bound to a descriptor of a specific descriptor set.
+        /// </summary>
+        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
+        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
+        /// <param name="space">The space, the descriptor set is bound to.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->tryCreateBuffer(buffer, pipeline.layout()->descriptorSet(space), binding, heap, elementSize, elements, usage, allocationBehavior);
         };
 
         /// <summary>
@@ -8789,9 +9526,26 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, heap, elements, usage);
+        inline SharedPtr<IBuffer> createBuffer(const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->createBuffer(pipeline.layout()->descriptorSet(space), binding, heap, elements, usage, allocationBehavior);
+        };
+
+        /// <summary>
+        /// Tries to create a buffer that can be bound to a descriptor of a specific descriptor set.
+        /// </summary>
+        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
+        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
+        /// <param name="space">The space, the descriptor set is bound to.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->tryCreateBuffer(buffer, pipeline.layout()->descriptorSet(space), binding, heap, elements, usage, allocationBehavior);
         };
 
         /// <summary>
@@ -8803,9 +9557,26 @@ namespace LiteFX::Rendering {
         /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getBuffer(name, type, heap, elementSize, elements, usage);
+        inline SharedPtr<IBuffer> createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getBuffer(name, type, heap, elementSize, elements, usage, allocationBehavior);
+        };
+
+        /// <summary>
+        /// Tries to create a buffer of type <paramref name="type" />.
+        /// </summary>
+        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
+        /// <param name="name">The name of the buffer.</param>
+        /// <param name="type">The type of the buffer.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
+        /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->tryGetBuffer(buffer, name, type, heap, elementSize, elements, usage, allocationBehavior);
         };
 
         /// <summary>
@@ -8817,10 +9588,28 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
+        inline SharedPtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
-            return this->createBuffer(name, descriptor.type(), heap, descriptor.elementSize(), elements, usage);
+            return this->createBuffer(name, descriptor.type(), heap, descriptor.elementSize(), elements, usage, allocationBehavior);
+        };
+
+        /// <summary>
+        /// Tries to create a buffer that can be bound to a specific descriptor.
+        /// </summary>
+        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
+        /// <param name="name">The name of the buffer.</param>
+        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            auto& descriptor = descriptorSet.descriptor(binding);
+            return this->tryCreateBuffer(buffer, name, descriptor.type(), heap, descriptor.elementSize(), elements, usage, allocationBehavior);
         };
         
         /// <summary>
@@ -8833,10 +9622,29 @@ namespace LiteFX::Rendering {
         /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
+        inline SharedPtr<IBuffer> createBuffer(const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
             auto& descriptor = descriptorSet.descriptor(binding);
-            return this->createBuffer(name, descriptor.type(), heap, elementSize, elements, usage);
+            return this->createBuffer(name, descriptor.type(), heap, elementSize, elements, usage, allocationBehavior);
+        };
+
+        /// <summary>
+        /// Tries to create a buffer that can be bound to a specific descriptor.
+        /// </summary>
+        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
+        /// <param name="name">The name of the buffer.</param>
+        /// <param name="descriptorSet">The layout of the descriptors parent descriptor set.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
+        /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, const String& name, const IDescriptorSetLayout& descriptorSet, UInt32 binding, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            auto& descriptor = descriptorSet.descriptor(binding);
+            return this->tryCreateBuffer(buffer, name, descriptor.type(), heap, elementSize, elements, usage, allocationBehavior);
         };
 
         /// <summary>
@@ -8849,9 +9657,27 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, heap, elements, usage);
+        inline SharedPtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, heap, elements, usage, allocationBehavior);
+        };
+
+        /// <summary>
+        /// Tries to create a buffer that can be bound to a descriptor of a specific descriptor set.
+        /// </summary>
+        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
+        /// <param name="name">The name of the buffer.</param>
+        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
+        /// <param name="space">The space, the descriptor set is bound to.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->tryCreateBuffer(buffer, name, pipeline.layout()->descriptorSet(space), binding, heap, elements, usage, allocationBehavior);
         };
 
         /// <summary>
@@ -8865,13 +9691,32 @@ namespace LiteFX::Rendering {
         /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
         /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the buffer.</returns>
-        inline SharedPtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, heap, elementSize, elements, usage);
+        inline SharedPtr<IBuffer> createBuffer(const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->createBuffer(name, pipeline.layout()->descriptorSet(space), binding, heap, elementSize, elements, usage, allocationBehavior);
         };
 
         /// <summary>
-        /// Creates a vertex buffer, based on the <paramref name="layout" />
+        /// Tries to create a buffer that can be bound to a descriptor of a specific descriptor set.
+        /// </summary>
+        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
+        /// <param name="name">The name of the buffer.</param>
+        /// <param name="pipeline">The pipeline that provides the descriptor set.</param>
+        /// <param name="space">The space, the descriptor set is bound to.</param>
+        /// <param name="binding">The binding point of the descriptor within the parent descriptor set.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
+        /// <param name="elementSize">The size of an element in the buffer (in bytes).</param>
+        /// <param name="elements">The number of elements in the buffer (in case the buffer is an array).</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        inline bool tryCreateBuffer(SharedPtr<IBuffer>& buffer, const String& name, const IPipeline& pipeline, UInt32 space, UInt32 binding, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->tryCreateBuffer(buffer, name, pipeline.layout()->descriptorSet(space), binding, heap, elementSize, elements, usage, allocationBehavior);
+        };
+
+        /// <summary>
+        /// Creates a vertex buffer, based on the <paramref name="layout" />.
         /// </summary>
         /// <remarks>
         /// A vertex buffer can be used by different <see cref="RenderPipeline" />s, as long as they share a common input assembler state.
@@ -8882,13 +9727,28 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the vertex buffer.</returns>
-        inline SharedPtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getVertexBuffer(layout, heap, elements, usage);
+        inline SharedPtr<IVertexBuffer> createVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getVertexBuffer(layout, heap, elements, usage, allocationBehavior);
         }
 
         /// <summary>
-        /// Creates a vertex buffer, based on the <paramref name="layout" />
+        /// Tries to create a vertex buffer, based on the <paramref name="layout" />.
+        /// </summary>
+        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
+        /// <param name="layout">The layout of the vertex buffer.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
+        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        inline bool tryCreateVertexBuffer(SharedPtr<IVertexBuffer>& buffer, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->tryGetVertexBuffer(buffer, layout, heap, elements, usage, allocationBehavior);
+        }
+
+        /// <summary>
+        /// Creates a vertex buffer, based on the <paramref name="layout" />.
         /// </summary>
         /// <remarks>
         /// A vertex buffer can be used by different <see cref="RenderPipeline" />s, as long as they share a common input assembler state.
@@ -8900,9 +9760,25 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the vertex buffer.</returns>
-        inline SharedPtr<IVertexBuffer> createVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getVertexBuffer(name, layout, heap, elements, usage);
+        inline SharedPtr<IVertexBuffer> createVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getVertexBuffer(name, layout, heap, elements, usage, allocationBehavior);
+        }
+
+        /// <summary>
+        /// Tries to create a vertex buffer, based on the <paramref name="layout" />.
+        /// </summary>
+        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
+        /// <param name="name">The name of the buffer.</param>
+        /// <param name="layout">The layout of the vertex buffer.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
+        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of vertices).</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        inline bool tryCreateVertexBuffer(SharedPtr<IVertexBuffer>& buffer, const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->tryGetVertexBuffer(buffer, name, layout, heap, elements, usage, allocationBehavior);
         }
 
         /// <summary>
@@ -8917,9 +9793,24 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the index buffer.</returns>
-        inline SharedPtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getIndexBuffer(layout, heap, elements, usage);
+        inline SharedPtr<IIndexBuffer> createIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getIndexBuffer(layout, heap, elements, usage, allocationBehavior);
+        }
+
+        /// <summary>
+        /// Tries to create an index buffer, based on the <paramref name="layout" />.
+        /// </summary>
+        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
+        /// <param name="layout">The layout of the index buffer.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
+        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        inline bool tryCreateIndexBuffer(SharedPtr<IIndexBuffer>& buffer, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->tryGetIndexBuffer(buffer, layout, heap, elements, usage, allocationBehavior);
         }
 
         /// <summary>
@@ -8935,9 +9826,25 @@ namespace LiteFX::Rendering {
         /// <param name="heap">The heap to allocate the buffer on.</param>
         /// <param name="usage">The intended usage for the buffer.</param>
         /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the index buffer.</returns>
-        inline SharedPtr<IIndexBuffer> createIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getIndexBuffer(name, layout, heap, elements, usage);
+        inline SharedPtr<IIndexBuffer> createIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getIndexBuffer(name, layout, heap, elements, usage, allocationBehavior);
+        }
+
+        /// <summary>
+        /// Tries to create an index buffer, based on the <paramref name="layout" />.
+        /// </summary>
+        /// <param name="buffer">The instance of the buffer, or `nullptr`, if the buffer could not be allocated.</param>
+        /// <param name="name">The name of the buffer.</param>
+        /// <param name="layout">The layout of the index buffer.</param>
+        /// <param name="heap">The heap to allocate the buffer on.</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="elements">The number of elements within the vertex buffer (i.e. the number of indices).</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>`true`, if the buffer was created successfully and `false` otherwise.</returns>
+        inline bool tryCreateIndexBuffer(SharedPtr<IIndexBuffer>& buffer, const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->tryGetIndexBuffer(buffer, name, layout, heap, elements, usage, allocationBehavior);
         }
 
         /// <summary>
@@ -8954,10 +9861,28 @@ namespace LiteFX::Rendering {
         /// <param name="levels">The number of mip map levels of the texture.</param>
         /// <param name="samples">The number of samples, the texture should be sampled with.</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the texture.</returns>
         /// <seealso cref="createTextures" />
-        inline SharedPtr<IImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getTexture(format, size, dimension, levels, layers, samples, usage);
+        inline SharedPtr<IImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getTexture(format, size, dimension, levels, layers, samples, usage, allocationBehavior);
+        }
+
+        /// <summary>
+        /// Tries to create a texture.
+        /// </summary>
+        /// <param name="image">The instance of the buffer, or `nullptr`, if the texture could not be allocated.</param>
+        /// <param name="format">The format of the texture image.</param>
+        /// <param name="size">The dimensions of the texture.</param>
+        /// <param name="dimension">The dimensionality of the texture.</param>
+        /// <param name="layers">The number of layers (slices) in this texture.</param>
+        /// <param name="levels">The number of mip map levels of the texture.</param>
+        /// <param name="samples">The number of samples, the texture should be sampled with.</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>`true`, if the texture was created successfully and `false` otherwise.</returns>
+        inline bool tryCreateTexture(SharedPtr<IImage>& image, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->tryGetTexture(image, format, size, dimension, levels, layers, samples, usage, allocationBehavior);
         }
 
         /// <summary>
@@ -8975,10 +9900,29 @@ namespace LiteFX::Rendering {
         /// <param name="levels">The number of mip map levels of the texture.</param>
         /// <param name="samples">The number of samples, the texture should be sampled with.</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>The instance of the texture.</returns>
         /// <seealso cref="createTextures" />
-        inline SharedPtr<IImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getTexture(name, format, size, dimension, levels, layers, samples, usage);
+        inline SharedPtr<IImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getTexture(name, format, size, dimension, levels, layers, samples, usage, allocationBehavior);
+        }
+
+        /// <summary>
+        /// Tries to create a texture.
+        /// </summary>
+        /// <param name="image">The instance of the buffer, or `nullptr`, if the texture could not be allocated.</param>
+        /// <param name="name">The name of the texture image.</param>
+        /// <param name="format">The format of the texture image.</param>
+        /// <param name="size">The dimensions of the texture.</param>
+        /// <param name="dimension">The dimensionality of the texture.</param>
+        /// <param name="layers">The number of layers (slices) in this texture.</param>
+        /// <param name="levels">The number of mip map levels of the texture.</param>
+        /// <param name="samples">The number of samples, the texture should be sampled with.</param>
+        /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>`true`, if the texture was created successfully and `false` otherwise.</returns>
+        inline bool tryCreateTexture(SharedPtr<IImage>& image, const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->tryGetTexture(image, name, format, size, dimension, levels, layers, samples, usage, allocationBehavior);
         }
 
         /// <summary>
@@ -8990,10 +9934,11 @@ namespace LiteFX::Rendering {
         /// <param name="levels">The number of mip map levels of the textures.</param>
         /// <param name="samples">The number of samples, the textures should be sampled with.</param>
         /// <param name="usage">The intended usage for the buffer.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
         /// <returns>A generator for texture instances.</returns>
         /// <seealso cref="createTexture" />
-        inline Generator<SharedPtr<IImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const {
-            return this->getTextures(format, size, dimension, layers, levels, samples, usage);
+        inline Generator<SharedPtr<IImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            return this->getTextures(format, size, dimension, layers, levels, samples, usage, allocationBehavior);
         }
 
         /// <summary>
@@ -9108,16 +10053,50 @@ namespace LiteFX::Rendering {
             return this->getTlas(name, flags);
         }
 
+        /// <summary>
+        /// Returns `true`, if the GPU supports resizable base address register (ReBAR) and `false` otherwise.
+        /// </summary>
+        /// <remarks>
+        /// If the GPU supports resizable base address register (ReBAR), you can use <see cref="ResourceHeap::GPUUpload" /> for buffers to directly write map into GPU memory. If it is
+        /// not supported, you may want to fall back to a <see cref="ResourceHeap::Dynamic" /> resource instead.
+        /// </remarks>
+        /// <returns>`true`, if the GPU supports resizable base address register (ReBAR) and `false` otherwise.</returns>
+        virtual bool supportsResizableBaseAddressRegister() const noexcept = 0;
+
+        /// <summary>
+        /// Returns an array of objects, that contain information about the current memory usage and available memory for a memory heap.
+        /// </summary>
+        /// <returns>An array of objects, containing memory statistics for a memory heap.</returns>
+        virtual Array<MemoryHeapStatistics> memoryStatistics() const = 0;
+
+        /// <summary>
+        /// Returns detailed memory statistics.
+        /// </summary>
+        /// <remarks>
+        /// Only call this method for debugging purposes, as it is significantly slower compared to <see cref="memoryStatistics" />, which can be called multiple times every frame 
+        /// without any significant performance impact.
+        /// </remarks>
+        /// <returns>The detailed memory statistics of the application.</returns>
+        virtual DetailedMemoryStatistics detailedMemoryStatistics() const = 0;
+
     private:
-        virtual SharedPtr<IBuffer> getBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const = 0;
-        virtual SharedPtr<IBuffer> getBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const = 0;
-        virtual SharedPtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
-        virtual SharedPtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
-        virtual SharedPtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
-        virtual SharedPtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const = 0;
-        virtual SharedPtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
-        virtual SharedPtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
-        virtual Generator<SharedPtr<IImage>> getTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage) const = 0;
+        virtual SharedPtr<IBuffer> getBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual SharedPtr<IBuffer> getBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual SharedPtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual SharedPtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual SharedPtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual SharedPtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual SharedPtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual SharedPtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual bool tryGetBuffer(SharedPtr<IBuffer>& buffer, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual bool tryGetBuffer(SharedPtr<IBuffer>& buffer, const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual bool tryGetVertexBuffer(SharedPtr<IVertexBuffer>& buffer, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual bool tryGetVertexBuffer(SharedPtr<IVertexBuffer>& buffer, const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual bool tryGetIndexBuffer(SharedPtr<IIndexBuffer>& buffer, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual bool tryGetIndexBuffer(SharedPtr<IIndexBuffer>& buffer, const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual bool tryGetTexture(SharedPtr<IImage>& image, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual bool tryGetTexture(SharedPtr<IImage>& image, const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
+        virtual Generator<SharedPtr<IImage>> getTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const = 0;
         virtual SharedPtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
         virtual SharedPtr<ISampler> getSampler(const String& name, FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
         virtual Generator<SharedPtr<ISampler>> getSamplers(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const = 0;
@@ -9156,6 +10135,26 @@ namespace LiteFX::Rendering {
         /// Enables or disables support for indirect draw.
         /// </summary>
         bool DrawIndirect { false };
+
+        /// <summary>
+        /// Enables or disables support for dynamic descriptor types ([SM 6.6 dynamic resources](https://microsoft.github.io/DirectX-Specs/d3d/HLSL_SM_6_6_DynamicResources.html) and 
+        /// [VK_EXT_mutable_descriptor_type](https://registry.khronos.org/vulkan/specs/latest/man/html/VK_EXT_mutable_descriptor_type.html)).
+        /// </summary>
+        /// <remarks>
+        /// Note that support for this feature is limited in the engine. It's purpose is to bind resources of different <see cref="DescriptorType" />s within a single descriptor array.
+        /// However, you still have to allocate a <see cref="IDescriptorSet" /> to be able to bind resources and retrieve resource indices by calling 
+        /// <see cref="IDescriptorSet::bindToHeap" />.
+        /// 
+        /// If you are only using the DirectX 12 backend, you can generally index any bound resource this way. However, in the Vulkan backend, only resources within the descriptor set can be 
+        /// indexed. Descriptor sets that contain descriptors of <see cref="DescriptorType::ResourceDescriptorHeap" /> or <see cref="DescriptorType::SamplerDescriptorHeap" /> can be used to
+        /// bind those descriptors. Such descriptor sets are called proxy sets, because they do not actually occur in the shader. Instead they are directly accessed using the 
+        /// `ResourceDescriptorHeap` or `SamplerDescriptorHeap` syntax. In order to acquire a resource from those heaps, you need to provide the index, that can be retrieved as described 
+        /// above.
+        /// 
+        /// Be aware that dynamic descriptors (aka mutable descriptors) are considered inefficient in Vulkan. You should not use them, if you could instead use multiple descriptor sets 
+        /// containing unbounded descriptor arrays. They can, however, be more efficient if you can replace multiple pipeline layouts with a single one that relies on mutable type descriptors.
+        /// </remarks>
+        bool DynamicDescriptors { false };
     };
 
     /// <summary>
@@ -9331,9 +10330,71 @@ namespace LiteFX::Rendering {
             this->getAccelerationStructureSizes(tlas, bufferSize, scratchSize, forUpdate);
         }
 
+        /// <summary>
+        /// Allocates a range of descriptors in the global descriptor heaps for the provided <paramref name="descriptorSet" />.
+        /// </summary>
+        /// <param name="descriptorSet">The descriptor set containing the descriptors to update.</param>
+        /// <param name="heapType">The type of the descriptor heap to allocate descriptors on.</param>
+        /// <param name="heapOffset">The offset of the descriptor range in the global descriptor heap.</param>
+        /// <param name="heapSize">The size of the address range in the global descriptor heap.</param>
+        inline void allocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const {
+            this->doAllocateGlobalDescriptors(descriptorSet, heapType, heapOffset, heapSize);
+        }
+
+        /// <summary>
+        /// Releases a range of descriptors from the global descriptor heaps.
+        /// </summary>
+        /// <remarks>
+        /// This is done, if a descriptor set layout is destroyed, of a descriptor set, which contains an unbounded array is freed. It will cause the global 
+        /// descriptor heaps to fragment, which may result in inefficient future descriptor allocations and should be avoided. Consider caching descriptor
+        /// sets with unbounded arrays instead. Also avoid relying on creating and releasing pipeline layouts during runtime. Instead, it may be more efficient
+        /// to write shaders that support multiple pipeline variations, that can be kept alive for the lifetime of the whole application.
+        /// </remarks>
+        inline void releaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const {
+            this->doReleaseGlobalDescriptors(descriptorSet);
+        }
+
+        /// <summary>
+        /// Updates a range of descriptors in the global buffer descriptor heap with the descriptors from <paramref name="descriptorSet" />.
+        /// </summary>
+        /// <param name="descriptorSet">The descriptor set to copy the descriptors from.</param>
+        /// <param name="binding">The binding point for which to update the descriptors.</param>
+        /// <param name="offset">The index of the first descriptor in a descriptor array at the binding point.</param>
+        /// <param name="descriptors">The number of descriptors in a descriptor array to copy, starting at the offset.</param>
+        inline void updateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const {
+            this->doUpdateGlobalDescriptors(descriptorSet, binding, offset, descriptors);
+        }
+
+        /// <summary>
+        /// Binds the descriptors of the descriptor set to the global descriptor heaps.
+        /// </summary>
+        /// <remarks>
+        /// Note that after binding the descriptor set, the descriptors must not be updated anymore, unless they are elements on unbounded descriptor arrays, 
+        /// in which case you have to ensure manually to not update them, as long as they may still be in use!
+        /// </remarks>
+        /// <param name="commandBuffer">The command buffer to bind the descriptor set on.</param>
+        /// <param name="descriptorSet">The descriptor set to bind.</param>
+        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
+        inline void bindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept {
+            this->doBindDescriptorSet(commandBuffer, descriptorSet, pipeline);
+        }
+
+        /// <summary>
+        /// Binds the global descriptor heap.
+        /// </summary>
+        /// <param name="commandBuffer">The command buffer to issue the bind command on.</param>
+        inline void bindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const noexcept {
+            this->doBindGlobalDescriptorHeaps(commandBuffer);
+        }
+
     private:
         virtual void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
         virtual void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
+        virtual void doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const = 0;
+        virtual void doReleaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const = 0;
+        virtual void doUpdateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const = 0;
+        virtual void doBindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept = 0;
+        virtual void doBindGlobalDescriptorHeaps(const ICommandBuffer& commandBuffer) const noexcept = 0;
 
     public:
         /// <summary>

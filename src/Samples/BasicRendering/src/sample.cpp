@@ -105,6 +105,9 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
 void SampleApp::initBuffers(IRenderBackend* /*backend*/)
 {
+    // Prefer GPU upload heap for dynamic resources, if ReBAR is available.
+    auto preferredDynamicHeap = m_device->factory().supportsResizableBaseAddressRegister() ? ResourceHeap::GPUUpload : ResourceHeap::Dynamic;
+
     // Get a command buffer
     auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
 
@@ -129,7 +132,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, ResourceHeap::Dynamic, 3);
+    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, preferredDynamicHeap, 3);
     auto transformBindings = transformBindingLayout.allocate(3, {
         { { .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
         { { .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
@@ -242,9 +245,6 @@ void SampleApp::onInit()
 #endif // LITEFX_BUILD_VULKAN_BACKEND
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
-    // We do not need to provide a root signature for shader reflection (refer to the project wiki for more information: https://github.com/crud89/LiteFX/wiki/Shader-Development).
-    DirectX12ShaderProgram::suppressMissingRootSignatureWarning();
-
     // Register the DirectX 12 backend de-/initializer.
     this->onBackendStart<DirectX12Backend>(startCallback);
     this->onBackendStop<DirectX12Backend>(stopCallback);

@@ -53,11 +53,16 @@ IF(LITEFX_BUILD_EXAMPLES)
     ADD_SUBDIRECTORY(Samples/Multisampling)
     ADD_SUBDIRECTORY(Samples/Multithreading)
     ADD_SUBDIRECTORY(Samples/Bindless)
+    ADD_SUBDIRECTORY(Samples/DynamicDescriptors)
     ADD_SUBDIRECTORY(Samples/Compute)
     ADD_SUBDIRECTORY(Samples/Indirect)
     ADD_SUBDIRECTORY(Samples/MeshShader)
     ADD_SUBDIRECTORY(Samples/RayTracing)
     ADD_SUBDIRECTORY(Samples/RayQueries)
+
+    IF(LITEFX_BUILD_WITH_IMGUI_SAMPLE)
+        ADD_SUBDIRECTORY(Samples/ImGui)
+    ENDIF(LITEFX_BUILD_WITH_IMGUI_SAMPLE)
 ENDIF(LITEFX_BUILD_EXAMPLES)
 
 # Include tests.

@@ -15,8 +15,6 @@ consteval UInt32 FOUR_CC(char ch0, char ch1, char ch2, char ch3)
     return static_cast<UInt32>((Byte)ch0) | static_cast<UInt32>((Byte)ch1) << 8 | static_cast<UInt32>((Byte)ch2) << 16 | static_cast<UInt32>((Byte)ch3) << 24; // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 }
 
-static bool SUPPRESS_MISSING_ROOT_SIGNATURE_WARNING = false; // NOLINT(cppcoreguidelines-avoid-non-const-global-variables)
-
 constexpr BorderMode DECODE_BORDER_MODE(D3D12_TEXTURE_ADDRESS_MODE addressMode) noexcept
 {
     switch (addressMode)
@@ -45,8 +43,9 @@ private:
         UInt32 location;
         UInt32 elementSize;
         UInt32 elements;
+        bool unbounded = false;
         DescriptorType type;
-        Optional<D3D12_STATIC_SAMPLER_DESC> staticSamplerState;
+        Variant<std::monostate, D3D12_STATIC_SAMPLER_DESC, SharedPtr<DirectX12Sampler>> staticSamplerState = std::monostate{};
         bool local = false;
 
         bool equals(const DescriptorInfo& rhs)
@@ -55,6 +54,7 @@ private:
                 this->location == rhs.location &&
                 this->elements == rhs.elements &&
                 this->elementSize == rhs.elementSize &&
+                this->unbounded == rhs.unbounded &&
                 this->type == rhs.type;
         }
     };
@@ -178,7 +178,7 @@ public:
             throw InvalidArgumentException("modules", "A shader program that contains only a fragment/pixel shader is not valid.");
     }
 
-    void reflectRootSignature(const ComPtr<ID3D12RootSignatureDeserializer>& deserializer, Dictionary<UInt32, DescriptorSetInfo>& descriptorSetLayouts, Array<PushConstantRangeInfo>& pushConstantRanges)
+    void reflectRootSignature(const ComPtr<ID3D12RootSignatureDeserializer>& deserializer, Dictionary<UInt32, DescriptorSetInfo>& descriptorSetLayouts, Array<PushConstantRangeInfo>& pushConstantRanges, bool& directResourceHeapAccess, bool& directSamplerHeapAccess)
     {
         // NOLINTBEGIN(cppcoreguidelines-pro-type-union-access)
         // Collect the shader stages.
@@ -187,6 +187,8 @@ public:
 
         // Get the root signature description.
         auto description = deserializer->GetRootSignatureDesc();
+        directResourceHeapAccess = LITEFX_FLAG_IS_SET(description->Flags, D3D12_ROOT_SIGNATURE_FLAG_CBV_SRV_UAV_HEAP_DIRECTLY_INDEXED);
+        directSamplerHeapAccess = LITEFX_FLAG_IS_SET(description->Flags, D3D12_ROOT_SIGNATURE_FLAG_SAMPLER_HEAP_DIRECTLY_INDEXED);
 
         // Iterate the static samplers.
         for (UInt32 i(0); i < description->NumStaticSamplers; ++i)
@@ -267,6 +269,8 @@ public:
 
                 break;
             case D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE:
+                // All descriptors that are not root constants will be put ultimately into descriptor tables by default with the current implementation. The layout will remain compatible this way. However, 
+                // it is currently not supported to embed a descriptor table into the root signature directly.
                 throw InvalidArgumentException("modules", "The shader modules root signature defines a descriptor table for parameter {0}, which is currently not supported. Convert each parameter of the table into a separate root parameter.", i);
             default: 
                 throw InvalidArgumentException("modules", "The shader modules root signature exposes an unknown root parameter type {1} for parameter {0}.", i, rootParameter.ParameterType);
@@ -346,15 +350,23 @@ public:
             .type = type
         };
 
-        // Unbounded arrays have a bind count of -1.
+        // Unbounded arrays have a bind count of 0.
         if (inputDesc.BindCount == 0)
+        {
+            descriptor.unbounded = true;
             descriptor.elements = std::numeric_limits<UInt32>::max();
+        }
 
         return descriptor;
     }
 
-    SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout()
+    SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints)
     {
+        // Put the hints into a map so we can easier look them up.
+        auto hintsMap = hints
+            | std::views::transform([](const auto& hint) -> std::pair<DescriptorBindingPoint, PipelineBindingHint> { return { hint.Binding, hint }; })
+            | std::ranges::to<std::map>();
+
         // First, filter the descriptor sets and push constant ranges.
         Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts;
         Array<PushConstantRangeInfo> pushConstantRanges;
@@ -446,9 +458,10 @@ public:
             }
         });
 
-        // Attempt to find a shader module that exports a root signature. If none is found, issue a warning.
+        // Attempt to find a shader module that exports a root signature. A root signature ultimately overwrites any bindings emitted by reflection.
         // NOTE: Root signature is only ever expected to be provided in one shader module. If multiple are provided, it is not defined, which one will be picked.
-        bool hasRootSignature = false;
+        bool directlyAccessResourceHeap = false;
+        bool directlyAccessSamplerHeap = false;
 
         for (const auto& shaderModule : m_modules)
         {
@@ -458,15 +471,139 @@ public:
             {
                 // Reflect the root signature in order to define static samplers and push constants.
                 LITEFX_TRACE(DIRECTX12_LOG, "Found root signature in shader module {0}.", shaderModule->type());
-                this->reflectRootSignature(deserializer, descriptorSetLayouts, pushConstantRanges);
-                hasRootSignature = true;
+                this->reflectRootSignature(deserializer, descriptorSetLayouts, pushConstantRanges, directlyAccessResourceHeap, directlyAccessSamplerHeap);
                 break;
             }
         }
 
-        // Otherwise, fall back to traditional reflection to acquire the root signature.
-        if (!hasRootSignature && !SUPPRESS_MISSING_ROOT_SIGNATURE_WARNING)
-            LITEFX_WARNING(DIRECTX12_LOG, "None of the provided shader modules exports a root signature. Descriptor sets will be acquired using reflection. Some features (such as root/push constants) are not supported.");
+        // Patch the descriptor set layouts and push constant ranges based on the pipeline binding hints. This is done after shader reflection and root signature parsing.
+        std::ranges::for_each(descriptorSetLayouts | std::views::values, [&](auto& descriptorSet) {
+            for (size_t i{ 0 }; i < descriptorSet.descriptors.size(); ++i)
+            {
+                // Get the current descriptor.
+                auto& descriptor = descriptorSet.descriptors[i];
+
+                // See if there's a hint about the binding.
+                auto hint = PipelineBindingHint::hint_type{ };
+                auto binding = DescriptorBindingPoint{ .Register = descriptor.location, .Space = descriptorSet.space };
+
+                if (hintsMap.contains(binding))
+                    hint = hintsMap[binding].Hint;
+
+                // Create patch lambdas.
+                auto samplerHintCallback = [&](const PipelineBindingHint::StaticSamplerHint& hint) {
+                    // Static samplers must be bound to a sampler descriptor and we prefer static samplers from the serialized root signature.
+                    auto sampler = std::dynamic_pointer_cast<DirectX12Sampler>(hint.StaticSampler);
+
+                    if (descriptor.type != DescriptorType::Sampler)
+                        LITEFX_WARNING(DIRECTX12_LOG, "A hint for binding {0} at space {1} indicates a static sampler, but the descriptor does not bind a sampler. The hint will be ignored.", descriptor.location, descriptorSet.space);
+                    else if (!std::holds_alternative<std::monostate>(descriptor.staticSamplerState))
+                        LITEFX_INFO(DIRECTX12_LOG, "A hint for binding {0} at space {1} indicates a static sampler and one was already loaded from the root signature. The hint will be ignored.", descriptor.location, descriptorSet.space);
+                    else if (sampler != nullptr)
+                        descriptor.staticSamplerState = sampler;
+                };
+
+                auto pushConstantsHintCallback = [&](const PipelineBindingHint::PushConstantsHint& hint) {
+                    // If a push constant range should be used, we need to convert the descriptor and remove it from the descriptor set.
+                    if (hint.AsPushConstants)
+                    {
+                        if (descriptor.type != DescriptorType::ConstantBuffer)
+                            LITEFX_WARNING(DIRECTX12_LOG, "A hint for binding {0} at space {1} indicates a push constants range, but the bound descriptor type is not a constant buffer. The hint will be ignored.", descriptor.location, descriptorSet.space);
+                        else
+                        {
+                            // Lookup the last registered range to compute the highest offset.
+                            UInt32 pushConstantOffset = 0;
+
+                            if (!pushConstantRanges.empty())
+                                pushConstantOffset = pushConstantRanges.back().offset + pushConstantRanges.back().size;
+
+                            auto rangeSize = descriptor.elements * descriptor.elementSize;
+                            pushConstantRanges.push_back(PushConstantRangeInfo{ .stage = descriptorSet.stage, .offset = pushConstantOffset, .size = rangeSize, .location = descriptor.location, .space = descriptorSet.space });
+
+                            // Remove the descriptor from the descriptor set.
+                            descriptorSet.descriptors.erase(std::next(std::begin(descriptorSet.descriptors), i--));
+                        }
+                    }
+                };
+
+                auto unboundedArrayHintCallback = [&](const PipelineBindingHint::UnboundedArrayHint& hint) {
+                    // Unbounded arrays are supported by D3D12 reflection, so we just need to validate them. We also do not need to set an upper bound here, as D3D12 handles descriptors more loosely.
+                    if (!descriptor.unbounded)
+                        LITEFX_WARNING(DIRECTX12_LOG, "A hint for binding {0} at space {1} indicates an unbounded array, but the bound descriptor type either a static array or a single descriptor. The hint will be ignored.", descriptor.location, descriptorSet.space);
+                    else
+                        descriptor.elements = hint.MaxDescriptors;
+                };
+
+                auto descriptorHeapHintCallback = [&](const PipelineBindingHint::DescriptorHeapHint& hint) {
+                    // In D3D12, there is no descriptor set associated with a descriptor heap, as we instead want to index directly into the global heaps. However, we have to create a proxy heap to be able to 
+                    // dynamically bind to the heap from the host side. By default, reflection looks for the first unused space for this. However, with this hint, we can control where this proxy set is created.
+                    // If it instead happens to fall on an existing binding, this is not possible, so we ignore the hint.
+
+                    if (hint.Type != DescriptorHeapType::None)
+                        LITEFX_WARNING(DIRECTX12_LOG, "A hint for binding {0} at space {1} indicates a dynamic resource or sampler heap, but the binding is already used for another descriptor. The hint will be ignored.", descriptor.location, descriptorSet.space);
+                };
+
+                auto shaderStageHintCallback = [&](const PipelineBindingHint::ShaderStageHint& hint) {
+                    // Simply mask in the stage into the parent descriptor set mask.
+                    descriptorSet.stage |= hint.Stages;
+                };
+
+                // If the descriptor binds a sampler and the hint is a static sampler, patch it.
+                std::visit(type_switch{
+                    [](const std::monostate&) {}, // Default: don't patch anything
+                    samplerHintCallback, pushConstantsHintCallback, unboundedArrayHintCallback, descriptorHeapHintCallback, shaderStageHintCallback
+                }, hint);
+
+                // NOTE: don't do anything here, as both `descriptor` and `i` may be invalid at this point.
+            }
+        });
+
+        // Create the proxy descriptor sets if dynamic resource or sampler heaps are enabled.
+        Array<DescriptorBindingPoint> occupiedBindings{};
+
+        // First, look up if there are any hints for the heap bindings. If not, the root signature could still enable those.
+        auto resourceHeapHint = std::ranges::find_if(hints, [&](const auto& hint) { return
+            std::holds_alternative<PipelineBindingHint::DescriptorHeapHint>(hint.Hint) &&
+            std::get<PipelineBindingHint::DescriptorHeapHint>(hint.Hint).Type == DescriptorHeapType::Resource &&
+            std::ranges::none_of(occupiedBindings, [&hint](const auto& binding) { return binding == hint.Binding; }); });
+        auto samplerHeapHint = std::ranges::find_if(hints, [&](const auto& hint) { return
+            std::holds_alternative<PipelineBindingHint::DescriptorHeapHint>(hint.Hint) &&
+            std::get<PipelineBindingHint::DescriptorHeapHint>(hint.Hint).Type == DescriptorHeapType::Sampler &&
+            std::ranges::none_of(occupiedBindings, [&hint](const auto& binding) { return binding == hint.Binding; }); });
+
+        if (resourceHeapHint != hints.end())
+            directlyAccessResourceHeap = true;
+        if (samplerHeapHint != hints.end())
+            directlyAccessSamplerHeap = true;
+
+        if (directlyAccessResourceHeap || directlyAccessSamplerHeap)
+            std::ranges::for_each(descriptorSetLayouts | std::views::values, [&occupiedBindings](const auto& layout) {
+                occupiedBindings.append_range(layout.descriptors | std::views::transform([&layout](const auto& descriptorLayout) -> DescriptorBindingPoint {
+                    return { .Register = descriptorLayout.location, .Space = layout.space }; })); });
+
+        if (directlyAccessResourceHeap)
+        {
+            // Look for a hint that defines the desired binding point and does not overlay with an existing descriptor. If non is available, issue a warning.
+            if (resourceHeapHint == hints.end())
+                LITEFX_WARNING(DIRECTX12_LOG, "The root signature of the shader specifies dynamic resource descriptor heap access, but you did not provide a binding hint to initialize it.");
+            else
+            {
+                auto binding = (*resourceHeapHint).Binding;
+                descriptorSetLayouts[binding.Space].descriptors.emplace_back(binding.Register, 0u, std::get<PipelineBindingHint::DescriptorHeapHint>((*resourceHeapHint).Hint).HeapSize, false, DescriptorType::ResourceDescriptorHeap);
+            }
+        }
+
+        if (directlyAccessSamplerHeap)
+        {
+            // Look for a hint that defines the desired binding point. If non is available, issue a warning.
+            if (samplerHeapHint == hints.end())
+                LITEFX_WARNING(DIRECTX12_LOG, "The root signature of the shader specifies dynamic sampler descriptor heap access, but you did not provide a binding hint to initialize it.");
+            else
+            {
+                auto binding = (*samplerHeapHint).Binding;
+                descriptorSetLayouts[binding.Space].descriptors.emplace_back(binding.Register, 0u, std::get<PipelineBindingHint::DescriptorHeapHint>((*samplerHeapHint).Hint).HeapSize, false, DescriptorType::SamplerDescriptorHeap);
+            }
+        }
 
         // Create the descriptor set layouts.
         auto descriptorSets = [](SharedPtr<const DirectX12Device> device, Dictionary<UInt32, DescriptorSetInfo> descriptorSetLayouts) -> std::generator<SharedPtr<DirectX12DescriptorSetLayout>> {
@@ -479,24 +616,33 @@ public:
                 auto descriptors = [](DescriptorSetInfo descriptorSet) -> std::generator<DirectX12DescriptorLayout> {
                     for (auto descriptor = descriptorSet.descriptors.begin(); descriptor != descriptorSet.descriptors.end(); ++descriptor)
                     {
-                        if (descriptor->staticSamplerState.has_value())
+                        if (std::holds_alternative<D3D12_STATIC_SAMPLER_DESC>(descriptor->staticSamplerState))
                         {
+                            auto samplerState = std::get<D3D12_STATIC_SAMPLER_DESC>(descriptor->staticSamplerState);
                             auto sampler = DirectX12Sampler::allocate(
-                                D3D12_DECODE_MAG_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
-                                D3D12_DECODE_MIN_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
-                                DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressU), DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressV), DECODE_BORDER_MODE(descriptor->staticSamplerState->AddressW),
-                                D3D12_DECODE_MIP_FILTER(descriptor->staticSamplerState->Filter) == D3D12_FILTER_TYPE_POINT ? MipMapMode::Nearest : MipMapMode::Linear,
-                                descriptor->staticSamplerState->MipLODBias, descriptor->staticSamplerState->MinLOD, descriptor->staticSamplerState->MaxLOD, static_cast<Float>(descriptor->staticSamplerState->MaxAnisotropy));
+                                D3D12_DECODE_MAG_FILTER(samplerState.Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
+                                D3D12_DECODE_MIN_FILTER(samplerState.Filter) == D3D12_FILTER_TYPE_POINT ? FilterMode::Nearest : FilterMode::Linear,
+                                DECODE_BORDER_MODE(samplerState.AddressU), DECODE_BORDER_MODE(samplerState.AddressV), DECODE_BORDER_MODE(samplerState.AddressW),
+                                D3D12_DECODE_MIP_FILTER(samplerState.Filter) == D3D12_FILTER_TYPE_POINT ? MipMapMode::Nearest : MipMapMode::Linear,
+                                samplerState.MipLODBias, samplerState.MinLOD, samplerState.MaxLOD, static_cast<Float>(samplerState.MaxAnisotropy));
+                            co_yield { *sampler, descriptor->location };
+                        }
+                        else if (std::holds_alternative<SharedPtr<DirectX12Sampler>>(descriptor->staticSamplerState))
+                        {
+                            auto sampler = std::get<SharedPtr<DirectX12Sampler>>(descriptor->staticSamplerState);
                             co_yield { *sampler, descriptor->location };
                         }
                         else
                         {
-                            co_yield { descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->local };
+                            // Any other descriptor, including non-static samplers.
+                            co_yield { descriptor->type, descriptor->location, descriptor->elementSize, descriptor->elements, descriptor->unbounded, descriptor->local };
                         }
                     }
                 }(std::move(it->second)) | std::ranges::to<Array<DirectX12DescriptorLayout>>();
 
-                co_yield DirectX12DescriptorSetLayout::create(*device, descriptors, space, stage);
+                // Only yield a descriptor set layout, if there are descriptors in it. They could have been removed earlier when converting them to a push constant range after applying a hint.
+                if (!descriptors.empty())
+                    co_yield DirectX12DescriptorSetLayout::create(*device, descriptors, space, stage);
             }
         }(m_device, std::move(descriptorSetLayouts)) | std::ranges::to<Array<SharedPtr<DirectX12DescriptorSetLayout>>>();
 
@@ -513,11 +659,6 @@ public:
         return DirectX12PipelineLayout::create(*m_device, std::move(descriptorSets), std::move(pushConstantsLayout));
     }
 };
-
-void DirectX12ShaderProgram::suppressMissingRootSignatureWarning(bool disableWarning) noexcept
-{
-    SUPPRESS_MISSING_ROOT_SIGNATURE_WARNING = disableWarning;
-}
 
 // ------------------------------------------------------------------------------------------------
 // Interface.
@@ -541,9 +682,9 @@ const Array<UniquePtr<const DirectX12ShaderModule>>& DirectX12ShaderProgram::mod
     return m_impl->m_modules;
 }
 
-SharedPtr<DirectX12PipelineLayout> DirectX12ShaderProgram::reflectPipelineLayout() const
+SharedPtr<DirectX12PipelineLayout> DirectX12ShaderProgram::reflectPipelineLayout(Enumerable<PipelineBindingHint> hints) const
 {
-    return m_impl->reflectPipelineLayout();
+    return m_impl->reflectPipelineLayout(hints);
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

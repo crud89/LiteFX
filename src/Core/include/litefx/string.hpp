@@ -76,7 +76,7 @@ namespace LiteFX {
     /// <param name="string">The string to hash.</param>
     /// <param name="chars">The number of characters in the string.</param>
     /// <returns>The FNVa hash for <paramref name="string" />.</returns>
-    consteval std::uint64_t operator"" _hash(const char* string, size_t chars) noexcept 
+    consteval std::uint64_t operator ""_hash(const char* string, size_t chars) noexcept 
     {
         return hash(StringView(string, chars));
     }
@@ -87,7 +87,7 @@ namespace LiteFX {
     /// <param name="string">The string to hash.</param>
     /// <param name="chars">The number of characters in the string.</param>
     /// <returns>The FNVa hash for <paramref name="string" />.</returns>
-    consteval std::uint64_t operator"" _hash(const wchar_t* string, size_t chars) noexcept 
+    consteval std::uint64_t operator ""_hash(const wchar_t* string, size_t chars) noexcept 
     {
         return hash(WStringView(string, chars));
     }

@@ -8,8 +8,8 @@
       "name": "msvc",
       "hidden": true,
       "inherits": "windows",
-      "cacheVariables": {
-        "CMAKE_CXX_COMPILER": "cl"
+      "environment": {
+        "CXX": "cl"
       }
     },
     {
@@ -23,8 +23,8 @@
     {
       "name": "clang",
       "hidden": true,
-      "cacheVariables": {
-        "CMAKE_CXX_COMPILER": "clang++"
+      "environment": {
+        "CXX": "clang++"
       },
       "vendor": {
         "microsoft.com/VisualStudioSettings/CMake/1.0": {
@@ -35,9 +35,11 @@
     {
       "name": "clangcl",
       "hidden": true,
+      "environment": {
+        "CC": "clang-cl",
+        "CXX": "clang-cl"
+      },
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang-cl",
-        "CMAKE_CXX_COMPILER": "clang-cl",
         "CMAKE_CXX_CLANG_TIDY": "clang-tidy;--config-file=${sourceDir}/.clang-tidy;--extra-arg=/EHsc"
       },
       "vendor": {

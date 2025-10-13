@@ -25,6 +25,7 @@ private:
 	ComPtr<ID3D12DescriptorHeap> m_globalBufferHeap, m_globalSamplerHeap;
 	mutable std::mutex m_bufferBindMutex;
 	Array<std::pair<UInt32, UInt32>> m_bufferDescriptorFragments, m_samplerDescriptorFragments;
+	Array<Tuple<DescriptorHeapType, UInt32, UInt32>> m_externallyAllocatedDescriptorRanges;
 	ComPtr<ID3D12CommandSignature> m_dispatchSignature, m_drawSignature, m_drawIndexedSignature, m_dispatchMeshSignature;
 
 public:
@@ -81,19 +82,19 @@ private:
 private:
 	void checkRequiredExtensions(ID3D12Device10* device, const GraphicsDeviceFeatures& features)
 	{
-		D3D12_FEATURE_DATA_D3D12_OPTIONS5 options5 {};
-		D3D12_FEATURE_DATA_D3D12_OPTIONS7 options7 {};
-		D3D12_FEATURE_DATA_D3D12_OPTIONS12 options12 {};
-		raiseIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &options5, sizeof(options5)), "Unable to query device extensions.");
-		raiseIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS7, &options7, sizeof(options7)), "Unable to query device extensions.");
-		raiseIfFailed(device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS12, &options12, sizeof(options12)), "Unable to query device extensions.");
-		
-		if (features.RayTracing && options5.RaytracingTier < D3D12_RAYTRACING_TIER_1_0)
+		CD3DX12FeatureSupport featureSupport;
+		featureSupport.Init(device);
+
+		if (features.RayTracing && featureSupport.RaytracingTier() < D3D12_RAYTRACING_TIER_1_0)
 			throw RuntimeException("The device does not support hardware ray-tracing.");
-		if (features.RayQueries && options5.RaytracingTier < D3D12_RAYTRACING_TIER_1_1)
+		if (features.RayQueries && featureSupport.RaytracingTier() < D3D12_RAYTRACING_TIER_1_1)
 			throw RuntimeException("The device does not support ray-queries and inline ray-tracing.");
-		if (features.MeshShaders && options7.MeshShaderTier < D3D12_MESH_SHADER_TIER_1)
+		if (features.MeshShaders && featureSupport.MeshShaderTier() < D3D12_MESH_SHADER_TIER_1)
 			throw RuntimeException("The device does not support mesh shaders.");
+		if (features.DynamicDescriptors && featureSupport.HighestShaderModel() < D3D_SHADER_MODEL_6_6)
+			throw RuntimeException("The device does not support shader model 6.6 or later, which is required for the dynamic descriptors feature.");
+		if (features.DrawIndirect && featureSupport.HighestShaderModel() < D3D_SHADER_MODEL_6_8)
+			throw RuntimeException("The device does not support shader model 6.8 or later, which is required for the indirect draw feature.");
 	}
 
 public:
@@ -206,6 +207,78 @@ public:
 
 		return surfaceFormats;
 	}
+
+	Tuple<UInt32, UInt32> allocateDescriptors(DescriptorHeapType heap, UInt32 descriptors, bool external)
+	{
+		UInt32 offset{};
+
+		switch (heap)
+		{
+		case DescriptorHeapType::Resource:
+			if (m_bufferOffset + descriptors <= m_globalBufferHeapSize) [[likely]]
+			{
+				offset = m_bufferOffset;
+				m_bufferOffset += descriptors;
+			}
+			else [[unlikely]]
+			{
+				// Find a fitting offset from the fragment heap.
+				if (auto match = std::ranges::find_if(m_bufferDescriptorFragments, [&descriptors](const auto& pair) { return pair.second == descriptors; }); match != m_bufferDescriptorFragments.end())
+				{
+					offset = match->first;
+					m_bufferDescriptorFragments.erase(match);
+				}
+				else if (match = std::ranges::find_if(m_bufferDescriptorFragments, [&descriptors](const auto& pair) { return pair.second > descriptors; }); match != m_bufferDescriptorFragments.end())
+				{
+					offset = match->first;
+					match->first += descriptors;
+					match->second -= descriptors;
+				}
+				else [[unlikely]]
+				{
+					throw RuntimeException("Unable to allocate more descriptors on global buffer heap.");
+				}
+			}
+
+			break;
+		case DescriptorHeapType::Sampler:
+			if (m_samplerOffset + descriptors <= m_globalSamplerHeapSize) [[likely]]
+			{
+				offset = m_samplerOffset;
+				m_samplerOffset += descriptors;
+			}
+			else [[unlikely]]
+			{
+				// Find a fitting offset from the fragment heap.
+				if (auto match = std::ranges::find_if(m_samplerDescriptorFragments, [&descriptors](const auto& pair) { return pair.second == descriptors; }); match != m_samplerDescriptorFragments.end())
+				{
+					offset = match->first;
+					m_samplerDescriptorFragments.erase(match);
+				}
+				else if (match = std::ranges::find_if(m_samplerDescriptorFragments, [&descriptors](const auto& pair) { return pair.second > descriptors; }); match != m_samplerDescriptorFragments.end())
+				{
+					offset = match->first;
+					match->first += descriptors;
+					match->second -= descriptors;
+				}
+				else [[unlikely]]
+				{
+					throw RuntimeException("Unable to allocate more descriptors on global sampler heap.");
+				}
+			}
+
+			break;
+		default:
+			LITEFX_WARNING(DIRECTX12_LOG, "The descriptor heap type must be one of the following: {{ `Resource`, `Sampler` }}, but it was: `{0}`.", heap);
+			return { std::numeric_limits<UInt32>::max(), 0u };
+		}
+
+		// Remember the segments allocated for external use.
+		if (external)
+			m_externallyAllocatedDescriptorRanges.emplace_back(heap, offset, descriptors);
+
+		return { offset, descriptors };
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -232,9 +305,11 @@ DirectX12Device::~DirectX12Device() noexcept = default;
 SharedPtr<DirectX12Device> DirectX12Device::initialize(const DirectX12Backend& backend, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync, GraphicsDeviceFeatures features)
 {
 	this->handle() = m_impl->initialize(features);
+
+	// NOTE: The order of initialization here is important.
 	m_impl->createQueues(*this);
-	m_impl->m_factory = DirectX12GraphicsFactory::create(*this);
 	m_impl->m_swapChain = UniquePtr<DirectX12SwapChain>(new DirectX12SwapChain(*this, backend, format, renderArea, backBuffers, enableVsync));
+	m_impl->m_factory = DirectX12GraphicsFactory::create(*this);
 
 	return this->shared_from_this();
 }
@@ -257,17 +332,17 @@ void DirectX12Device::release() noexcept
 	m_impl->m_factory.reset();
 }
 
-const ID3D12DescriptorHeap* DirectX12Device::globalBufferHeap() const noexcept
+ID3D12DescriptorHeap* DirectX12Device::globalBufferHeap() const noexcept
 {
 	return m_impl->m_globalBufferHeap.Get();
 }
 
-const ID3D12DescriptorHeap* DirectX12Device::globalSamplerHeap() const noexcept
+ID3D12DescriptorHeap* DirectX12Device::globalSamplerHeap() const noexcept
 {
 	return m_impl->m_globalSamplerHeap.Get();
 }
 
-void DirectX12Device::allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32& bufferOffset, UInt32& samplerOffset) const
+void DirectX12Device::allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& offset, UInt32& size) const
 {
 	// NOTE: Freeing descriptor sets with leaves the heap(s) in fragmented state. This should be prevented, however we also keep track of the released offset/count pairs to re-allocate 
 	//       them later. Re-allocation could follow those steps:
@@ -278,143 +353,137 @@ void DirectX12Device::allocateGlobalDescriptors(const DirectX12DescriptorSet& de
 	std::lock_guard<std::mutex> lock(m_impl->m_bufferBindMutex);
 
 	// Get the current descriptor sizes and compute the offsets.
-	UInt32 buffers{ 0 }, samplers{ 0 };
+	// NOTE: The descriptor set layout checks for invalid mixture of samplers and resources, so we only get one or the other here.
+	size = descriptorSet.localHeap(heapType)->GetDesc().NumDescriptors;
+	offset = std::numeric_limits<UInt32>::max();
 
-	if (descriptorSet.bufferHeap() != nullptr)
-		buffers = descriptorSet.bufferHeap()->GetDesc().NumDescriptors;
+	if (size == 0)
+		throw InvalidArgumentException("descriptorSet", "Cannot allocate space for empty descriptor set on global descriptor heap.");
 
-	if (descriptorSet.samplerHeap() != nullptr)
-		samplers = descriptorSet.samplerHeap()->GetDesc().NumDescriptors;
+	auto [o, s] = m_impl->allocateDescriptors(heapType, size, false);
+	size = s;
+	offset = o;
+}
 
-	if (m_impl->m_bufferOffset + buffers <= m_impl->m_globalBufferHeapSize) [[likely]]
-	{
-		bufferOffset = m_impl->m_bufferOffset;
-		m_impl->m_bufferOffset += buffers;
-	}
-	else [[unlikely]]
-	{
-		m_impl->m_bufferOffset = m_impl->m_globalBufferHeapSize;
+Tuple<UInt32, UInt32> DirectX12Device::allocateGlobalDescriptors(UInt32 descriptors, DescriptorHeapType heapType) const
+{
+	std::lock_guard<std::mutex> lock(m_impl->m_bufferBindMutex);
 
-		// Find a fitting offset from the fragment heap.
-		if (auto match = std::ranges::find_if(m_impl->m_bufferDescriptorFragments, [&buffers](const auto& pair) { return pair.second == buffers; }); match != m_impl->m_bufferDescriptorFragments.end())
-		{
-			bufferOffset = match->first;
-			m_impl->m_bufferDescriptorFragments.erase(match);
-		}
-		else if (match = std::ranges::find_if(m_impl->m_bufferDescriptorFragments, [&buffers](const auto& pair) { return pair.second > buffers; }); match != m_impl->m_bufferDescriptorFragments.end())
-		{
-			bufferOffset = match->first;
-			match->first += buffers;
-			match->second -= buffers;
-		}
-		else [[unlikely]]
-		{
-			throw RuntimeException("Unable to allocate more descriptors.");
-		}
-	}
-
-	if (m_impl->m_samplerOffset + samplers <= m_impl->m_globalSamplerHeapSize) [[likely]]
-	{
-		samplerOffset = m_impl->m_samplerOffset;
-		m_impl->m_samplerOffset += samplers;
-	}
-	else [[unlikely]]
-	{
-		m_impl->m_samplerOffset = m_impl->m_globalSamplerHeapSize;
-
-		// Find a fitting offset from the fragment heap.
-		if (auto match = std::ranges::find_if(m_impl->m_samplerDescriptorFragments, [&samplers](const auto& pair) { return pair.second == samplers; }); match != m_impl->m_samplerDescriptorFragments.end())
-		{
-			samplerOffset = match->first;
-			m_impl->m_samplerDescriptorFragments.erase(match);
-		}
-		else if (match = std::ranges::find_if(m_impl->m_samplerDescriptorFragments, [&samplers](const auto& pair) { return pair.second > samplers; }); match != m_impl->m_samplerDescriptorFragments.end())
-		{
-			samplerOffset = match->first;
-			match->first += samplers;
-			match->second -= samplers;
-		}
-		else [[unlikely]]
-		{
-			throw RuntimeException("Unable to allocate more descriptors.");
-		}
-	}
+	return m_impl->allocateDescriptors(heapType, descriptors, true);
 }
 
 void DirectX12Device::releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const
 {
 	std::lock_guard<std::mutex> lock(m_impl->m_bufferBindMutex);
 
-	if (descriptorSet.bufferHeap() != nullptr)
-		m_impl->m_bufferDescriptorFragments.emplace_back(descriptorSet.bufferOffset(), descriptorSet.bufferHeap()->GetDesc().NumDescriptors);
+	if (descriptorSet.layout().bindsSamplers())
+		m_impl->m_samplerDescriptorFragments.emplace_back(descriptorSet.globalHeapOffset(DescriptorHeapType::Sampler), descriptorSet.globalHeapAddressRange(DescriptorHeapType::Sampler));
 
-	if (descriptorSet.samplerHeap() != nullptr)
-		m_impl->m_samplerDescriptorFragments.emplace_back(descriptorSet.samplerOffset(), descriptorSet.samplerHeap()->GetDesc().NumDescriptors);
+	if (descriptorSet.layout().bindsResources())
+		m_impl->m_bufferDescriptorFragments.emplace_back(descriptorSet.globalHeapOffset(DescriptorHeapType::Resource), descriptorSet.globalHeapAddressRange(DescriptorHeapType::Resource));
 }
 
-void DirectX12Device::updateBufferDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 firstDescriptor, UInt32 descriptors) const noexcept
+void DirectX12Device::releaseGlobalDescriptors(DescriptorHeapType heapType, UInt32 offset, UInt32 descriptors) const
 {
-	if (descriptors > 0) [[likely]]
-	{
-		CD3DX12_CPU_DESCRIPTOR_HANDLE targetHandle(m_impl->m_globalBufferHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(descriptorSet.bufferOffset() + firstDescriptor), m_impl->m_bufferDescriptorIncrement);
-		CD3DX12_CPU_DESCRIPTOR_HANDLE sourceHandle(descriptorSet.bufferHeap()->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(firstDescriptor), m_impl->m_bufferDescriptorIncrement);
-		this->handle()->CopyDescriptorsSimple(descriptors, targetHandle, sourceHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-	}
+	std::lock_guard<std::mutex> lock(m_impl->m_bufferBindMutex);
+
+	// Check if the address range has been externally allocated.
+	auto match = std::ranges::find_if(m_impl->m_externallyAllocatedDescriptorRanges, [heapType, offset, descriptors](const auto& range) { 
+		auto [t, o, s] = range;
+		return t == heapType && o == offset && s == descriptors;
+	});
+
+	if (match == m_impl->m_externallyAllocatedDescriptorRanges.end()) [[unlikely]]
+		throw InvalidArgumentException("offset", "No externally allocated descriptor range was found at offset {0} with {1} descriptors in heap {2}.", offset, descriptors, heapType);
+
+	if (heapType == DescriptorHeapType::Resource)
+		m_impl->m_bufferDescriptorFragments.emplace_back(offset, descriptors);
+	else if (heapType == DescriptorHeapType::Sampler)
+		m_impl->m_samplerDescriptorFragments.emplace_back(offset, descriptors);
+
+	m_impl->m_externallyAllocatedDescriptorRanges.erase(match);
 }
 
-void DirectX12Device::updateSamplerDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 firstDescriptor, UInt32 descriptors) const noexcept
+void DirectX12Device::updateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const
 {
-	if (descriptors > 0) [[likely]]
+	auto firstDescriptor = descriptorSet.layout().getDescriptorOffset(binding, offset);
+
+	// Bind the descriptor to the appropriate type. Note that static samplers aren't bound, so effectively this call is invalid. However we simply treat it as a no-op.
+	auto descriptorLayout = descriptorSet.layout().descriptor(binding);
+
+	if ((descriptorLayout.descriptorType() == DescriptorType::Sampler && descriptorLayout.staticSampler() == nullptr) || 
+		descriptorLayout.descriptorType() == DescriptorType::SamplerDescriptorHeap)
 	{
-		CD3DX12_CPU_DESCRIPTOR_HANDLE targetHandle(m_impl->m_globalSamplerHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(descriptorSet.samplerOffset() + firstDescriptor), m_impl->m_samplerDescriptorIncrement);
-		CD3DX12_CPU_DESCRIPTOR_HANDLE sourceHandle(descriptorSet.samplerHeap()->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(firstDescriptor), m_impl->m_samplerDescriptorIncrement);
+		CD3DX12_CPU_DESCRIPTOR_HANDLE targetHandle(m_impl->m_globalSamplerHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(descriptorSet.globalHeapOffset(DescriptorHeapType::Sampler) + firstDescriptor), m_impl->m_samplerDescriptorIncrement);
+		CD3DX12_CPU_DESCRIPTOR_HANDLE sourceHandle(descriptorSet.localHeap(DescriptorHeapType::Sampler)->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(firstDescriptor), m_impl->m_samplerDescriptorIncrement);
 		this->handle()->CopyDescriptorsSimple(descriptors, targetHandle, sourceHandle, D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER);
+	}
+	else if (descriptorLayout.descriptorType() != DescriptorType::Sampler && 
+		descriptorLayout.descriptorType() != DescriptorType::SamplerDescriptorHeap)
+	{
+		CD3DX12_CPU_DESCRIPTOR_HANDLE targetHandle(m_impl->m_globalBufferHeap->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(descriptorSet.globalHeapOffset(DescriptorHeapType::Resource) + firstDescriptor), m_impl->m_bufferDescriptorIncrement);
+		CD3DX12_CPU_DESCRIPTOR_HANDLE sourceHandle(descriptorSet.localHeap(DescriptorHeapType::Resource)->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(firstDescriptor), m_impl->m_bufferDescriptorIncrement);
+		this->handle()->CopyDescriptorsSimple(descriptors, targetHandle, sourceHandle, D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 	}
 }
 
 void DirectX12Device::bindDescriptorSet(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept
 {
-	UInt32 buffers = 0, samplers = 0;
-
-	if (descriptorSet.bufferHeap() != nullptr)
-		buffers = descriptorSet.bufferHeap()->GetDesc().NumDescriptors;
-
-	if (descriptorSet.samplerHeap() != nullptr)
-		samplers = descriptorSet.samplerHeap()->GetDesc().NumDescriptors;
-
-	// Get the root parameter index.
-	auto rootParameterIndex = pipeline.layout()->rootParameterIndex(descriptorSet.layout());
-
-	if (!rootParameterIndex.has_value())
-	{
-		LITEFX_WARNING(DIRECTX12_LOG, "Unable to bind descriptor set at space {}, as the parent pipeline was not defined with a descriptor set.", descriptorSet.layout().space());
-		return;
-	}
-
 	// Deduct, whether to set the graphics or compute descriptor tables.
 	// TODO: Maybe we could store a simple boolean on the pipeline state to make this easier.
 	const bool isGraphicsSet = dynamic_cast<const DirectX12RenderPipeline*>(&pipeline) != nullptr;
-	 
-	// Copy the descriptors to the global heaps and set the root table parameters.
-	if (buffers > 0)
-	{
-		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalBufferHeap->GetGPUDescriptorHandleForHeapStart(), static_cast<INT>(descriptorSet.bufferOffset()), m_impl->m_bufferDescriptorIncrement);
+	const auto& layout = descriptorSet.layout();
 
-		if (isGraphicsSet)
-			commandBuffer.handle()->SetGraphicsRootDescriptorTable(rootParameterIndex.value(), targetGpuHandle);
+	// Copy the descriptors to the global heaps and set the root table parameters.
+	if (layout.bindsSamplers())
+	{
+		// Get the root parameter index.
+		auto rootParameterIndex = pipeline.layout()->rootParameterIndex(layout, DescriptorHeapType::Sampler);
+
+		if (!rootParameterIndex.has_value())
+		{
+			// This can happen, if the descriptor set only contains resource and sampler heap descriptors, in which case the warning would be a false positive. We don't need to set any root 
+			// descriptor table in this case, as resources are accessed directly from the underlying heaps.
+			if (!std::ranges::all_of(layout.descriptors(), [](const auto& descriptorLayout) { return
+				descriptorLayout.descriptorType() == DescriptorType::ResourceDescriptorHeap ||
+				descriptorLayout.descriptorType() == DescriptorType::SamplerDescriptorHeap; }))
+				LITEFX_WARNING(DIRECTX12_LOG, "Unable to bind descriptor set at space {}, as it does not map to a root parameter of the parent pipeline. Make sure that the currently bound pipeline layout contains the descriptor sets' layout.", layout.space());
+		}
 		else
-			commandBuffer.handle()->SetComputeRootDescriptorTable(rootParameterIndex.value(), targetGpuHandle);
+		{
+			// The parameter index equals the target descriptor set space.
+			CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalSamplerHeap->GetGPUDescriptorHandleForHeapStart(), static_cast<INT>(descriptorSet.globalHeapOffset(DescriptorHeapType::Sampler)), m_impl->m_samplerDescriptorIncrement);
+
+			if (isGraphicsSet)
+				commandBuffer.handle()->SetGraphicsRootDescriptorTable(rootParameterIndex.value(), targetGpuHandle);
+			else
+				commandBuffer.handle()->SetComputeRootDescriptorTable(rootParameterIndex.value(), targetGpuHandle);
+		}
 	}
 
-	if (samplers > 0)
+	if (layout.bindsResources())
 	{
-		// The parameter index equals the target descriptor set space.
-		CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalSamplerHeap->GetGPUDescriptorHandleForHeapStart(), static_cast<INT>(descriptorSet.samplerOffset()), m_impl->m_samplerDescriptorIncrement);
+		// Get the root parameter index.
+		auto rootParameterIndex = pipeline.layout()->rootParameterIndex(layout, DescriptorHeapType::Resource);
 
-		if (isGraphicsSet)
-			commandBuffer.handle()->SetGraphicsRootDescriptorTable(rootParameterIndex.value(), targetGpuHandle);
+		if (!rootParameterIndex.has_value())
+		{
+			// This can happen, if the descriptor set only contains resource and sampler heap descriptors, in which case the warning would be a false positive. We don't need to set any root 
+			// descriptor table in this case, as resources are accessed directly from the underlying heaps.
+			if (!std::ranges::all_of(layout.descriptors(), [](const auto& descriptorLayout) { return 
+				descriptorLayout.descriptorType() == DescriptorType::ResourceDescriptorHeap || 
+				descriptorLayout.descriptorType() == DescriptorType::SamplerDescriptorHeap; }))
+				LITEFX_WARNING(DIRECTX12_LOG, "Unable to bind descriptor set at space {}, as it does not map to a root parameter of the parent pipeline. Make sure that the currently bound pipeline layout contains the descriptor sets' layout.", layout.space());
+		}
 		else
-			commandBuffer.handle()->SetComputeRootDescriptorTable(rootParameterIndex.value(), targetGpuHandle);
+		{
+			CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(m_impl->m_globalBufferHeap->GetGPUDescriptorHandleForHeapStart(), static_cast<INT>(descriptorSet.globalHeapOffset(DescriptorHeapType::Resource)), m_impl->m_bufferDescriptorIncrement);
+
+			if (isGraphicsSet)
+				commandBuffer.handle()->SetGraphicsRootDescriptorTable(rootParameterIndex.value(), targetGpuHandle);
+			else
+				commandBuffer.handle()->SetComputeRootDescriptorTable(rootParameterIndex.value(), targetGpuHandle);
+		}
 	}
 }
 

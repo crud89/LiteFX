@@ -701,11 +701,11 @@ namespace LiteFX::Rendering::Backends {
         const Array<UniquePtr<const VulkanShaderModule>>& modules() const noexcept override;
 
         /// <inheritdoc />
-        virtual SharedPtr<VulkanPipelineLayout> reflectPipelineLayout() const;
+        virtual SharedPtr<VulkanPipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints = {}) const;
 
     private:
-        SharedPtr<IPipelineLayout> parsePipelineLayout() const override {
-            return std::static_pointer_cast<IPipelineLayout>(this->reflectPipelineLayout());
+        SharedPtr<IPipelineLayout> parsePipelineLayout(Enumerable<PipelineBindingHint> hints) const override {
+            return std::static_pointer_cast<IPipelineLayout>(this->reflectPipelineLayout(hints));
         }
     };
 
@@ -713,20 +713,29 @@ namespace LiteFX::Rendering::Backends {
     /// Implements a Vulkan <see cref="DescriptorSet" />.
     /// </summary>
     /// <seealso cref="VulkanDescriptorSetLayout" />
-    class LITEFX_VULKAN_API VulkanDescriptorSet final : public DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler, IVulkanAccelerationStructure>, public Resource<VkDescriptorSet> {
+    class LITEFX_VULKAN_API VulkanDescriptorSet final : public DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler, IVulkanAccelerationStructure> {
         LITEFX_IMPLEMENTATION(VulkanDescriptorSetImpl);
+        friend class VulkanDescriptorSetLayout;
 
     public:
         using base_type = DescriptorSet<IVulkanBuffer, IVulkanImage, IVulkanSampler, IVulkanAccelerationStructure>;
         using base_type::update;
+
+    private:
+        /// <summary>
+        /// Initializes the descriptor set from a cached buffer. This is only called from the descriptor set layout.
+        /// </summary>
+        /// <param name="layout">The parent layout of the descriptor set.</param>
+        /// <param name="buffer">The buffer to take over.</param>
+        explicit VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, Array<Byte>&& buffer);
 
     public:
         /// <summary>
         /// Initializes a new descriptor set.
         /// </summary>
         /// <param name="layout">The parent descriptor set layout.</param>
-        /// <param name="descriptorSet">The descriptor set handle.</param>
-        explicit VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, VkDescriptorSet descriptorSet);
+        /// <param name="unboundedArraySize">The size of the unbounded runtime array, if available.</param>
+        explicit VulkanDescriptorSet(const VulkanDescriptorSetLayout& layout, UInt32 unboundedArraySize = std::numeric_limits<UInt32>::max());
 
         /// <inheritdoc />
         VulkanDescriptorSet(VulkanDescriptorSet&&) noexcept = delete;
@@ -750,9 +759,38 @@ namespace LiteFX::Rendering::Backends {
         /// <returns>The parent descriptor set layout.</returns>
         virtual const VulkanDescriptorSetLayout& layout() const noexcept;
 
+    private:
+        /// <summary>
+        /// Releases the underlying buffer of the descriptor set and returns it to the caller (usually the parent descriptor set layout).
+        /// </summary>
+        /// <returns>The underlying descriptor buffer.</returns>
+        Array<Byte>&& releaseBuffer() const noexcept;
+
+    public:
+        /// <summary>
+        /// Returns a view over the underlying descriptor buffer.
+        /// </summary>
+        /// <returns>A view over the underlying descriptor buffer.</returns>
+        Span<const Byte> descriptorBuffer() const noexcept;
+
     public:
         /// <inheritdoc />
-        void update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0) const override;
+        UInt32 globalHeapOffset(DescriptorHeapType heapType) const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 globalHeapAddressRange(DescriptorHeapType heapType) const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const override;
+
+        /// <inheritdoc />
+        UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanImage& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const override;
+
+        /// <inheritdoc />
+        UInt32 bindToHeap(UInt32 descriptor, const IVulkanSampler& sampler) const override;
+
+        /// <inheritdoc />
+        void update(UInt32 binding, const IVulkanBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None) const override;
 
         /// <inheritdoc />
         void update(UInt32 binding, const IVulkanImage& texture, UInt32 descriptor = 0, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const override;
@@ -782,9 +820,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="type">The type of the descriptor.</param>
         /// <param name="binding">The binding point for the descriptor.</param>
         /// <param name="elementSize">The size of the descriptor.</param>
-        /// <param name="descriptors">The number of descriptors in the descriptor array. If set to `-1`, the descriptor will be unbounded.</param>
+        /// <param name="descriptors">The number of descriptors in the descriptor array. If <paramref name="unbounded" /> is set, this value sets the upper limit for the array size.</param>
+        /// <param name="unbounded">If set to `true`, the descriptor will be defined as a runtime-allocated, unbounded array.</param>
         /// <seealso cref="descriptors" />
-        VulkanDescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1);
+        VulkanDescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1, bool unbounded = false);
 
         /// <summary>
         /// Initializes a new Vulkan descriptor layout for a static sampler.
@@ -822,6 +861,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt32 descriptors() const noexcept override;
+
+        /// <inheritdoc />
+        bool unbounded() const noexcept override;
 
         /// <inheritdoc />
         const IVulkanSampler* staticSampler() const noexcept override;
@@ -937,6 +979,12 @@ namespace LiteFX::Rendering::Backends {
         /// <returns>A reference of the device, the pipeline layout has been created from.</returns>
         const VulkanDevice& device() const noexcept;
 
+        /// <summary>
+        /// Returns the maximum allowed size for an unbounded array in a descriptor set created with this layout, or `0` if the layout does not contain an unbounded array.
+        /// </summary>
+        /// <returns>The maximum allowed size for an unbounded array in a descriptor set created with this layout</returns>
+        UInt32 maxUnboundedArraySize() const noexcept;
+
     public:
         /// <inheritdoc />
         const Array<VulkanDescriptorLayout>& descriptors() const noexcept override;
@@ -971,6 +1019,18 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         UInt32 inputAttachments() const noexcept override;
 
+        /// <inheritdoc />
+        bool containsUnboundedArray() const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 getDescriptorOffset(UInt32 binding, UInt32 element = 0) const override;
+
+        /// <inheritdoc />
+        bool bindsResources() const noexcept override;
+
+        /// <inheritdoc />
+        bool bindsSamplers() const noexcept override;
+
     public:
         /// <inheritdoc />
         UniquePtr<VulkanDescriptorSet> allocate(UInt32 descriptors, std::initializer_list<DescriptorBinding> bindings) const override;
@@ -994,15 +1054,6 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void free(const VulkanDescriptorSet& descriptorSet) const override;
-
-    public:
-        /// <summary>
-        /// Returns the number of active descriptor pools.
-        /// </summary>
-        /// <returns>The number of active descriptor pools.</returns>
-        /// <seealso cref="allocate" />
-        /// <seealso cref="free" />
-        virtual size_t pools() const noexcept;
     };
 
     /// <summary>
@@ -1183,6 +1234,12 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         const VulkanPushConstantsLayout* pushConstants() const noexcept override;
+
+        /// <inheritdoc />
+        bool dynamicResourceHeapAccess() const override;
+
+        /// <inheritdoc />
+        bool dynamicSamplerHeapAccess() const override;
     };
 
     /// <summary>
@@ -1377,17 +1434,16 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <summary>
+        /// Returns the type of the pipeline.
+        /// </summary>
+        /// <returns>The type of the pipeline.</returns>
+        virtual VkPipelineBindPoint pipelineType() const noexcept = 0;
+
+        /// <summary>
         /// Sets the current pipeline state on the <paramref name="commandBuffer" />.
         /// </summary>
         /// <param name="commandBuffer">The command buffer to set the current pipeline state on.</param>
         virtual void use(const VulkanCommandBuffer& commandBuffer) const = 0;
-
-        /// <summary>
-        /// Binds a descriptor set on a command buffer.
-        /// </summary>
-        /// <param name="commandBuffer">The command buffer to issue the bind command on.</param>
-        /// <param name="descriptorSets">The descriptor sets to bind.</param>
-        virtual void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const = 0;
     };
 
     /// <summary>
@@ -1847,10 +1903,10 @@ namespace LiteFX::Rendering::Backends {
         // VulkanPipelineState interface.
     public:
         /// <inheritdoc />
-        void use(const VulkanCommandBuffer& commandBuffer) const override;
+        VkPipelineBindPoint pipelineType() const noexcept override;
 
         /// <inheritdoc />
-        void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const override;
+        void use(const VulkanCommandBuffer& commandBuffer) const override;
     };
 
     /// <summary>
@@ -1905,10 +1961,10 @@ namespace LiteFX::Rendering::Backends {
         // VulkanPipelineState interface.
     public:
         /// <inheritdoc />
-        void use(const VulkanCommandBuffer& commandBuffer) const override;
+        VkPipelineBindPoint pipelineType() const noexcept override;
 
         /// <inheritdoc />
-        void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const override;
+        void use(const VulkanCommandBuffer& commandBuffer) const override;
     };
     
     /// <summary>
@@ -1985,10 +2041,10 @@ namespace LiteFX::Rendering::Backends {
         // VulkanPipelineState interface.
     public:
         /// <inheritdoc />
-        void use(const VulkanCommandBuffer& commandBuffer) const override;
+        VkPipelineBindPoint pipelineType() const noexcept override;
 
         /// <inheritdoc />
-        void bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const override;
+        void use(const VulkanCommandBuffer& commandBuffer) const override;
     };
 
     /// <summary>
@@ -2446,9 +2502,13 @@ namespace LiteFX::Rendering::Backends {
     public:
         using base_type = GraphicsFactory<VulkanDescriptorLayout, IVulkanBuffer, IVulkanVertexBuffer, IVulkanIndexBuffer, IVulkanImage, IVulkanSampler, VulkanBottomLevelAccelerationStructure, VulkanTopLevelAccelerationStructure>;
         using base_type::createBuffer;
+        using base_type::tryCreateBuffer;
         using base_type::createVertexBuffer;
+        using base_type::tryCreateVertexBuffer;
         using base_type::createIndexBuffer;
+        using base_type::tryCreateIndexBuffer;
         using base_type::createTexture;
+        using base_type::tryCreateTexture;
         using base_type::createTextures;
         using base_type::createSampler;
         using base_type::createSamplers;
@@ -2486,33 +2546,72 @@ namespace LiteFX::Rendering::Backends {
             return SharedObject::create<VulkanGraphicsFactory>(device);
         }
 
+        /// <summary>
+        /// Creates a descriptor heap.
+        /// </summary>
+        /// <param name="heapSize">The size of the descriptor heap buffer in bytes.</param>
+        /// <returns>A buffer that provides memory for the descriptor heap.</returns>
+        SharedPtr<IVulkanBuffer> createDescriptorHeap(size_t heapSize) const;
+
+        /// <summary>
+        /// Creates a descriptor heap.
+        /// </summary>
+        /// <param name="name">The name of the descriptor heap.</param>
+        /// <param name="heapSize">The size of the descriptor heap buffer in bytes.</param>
+        /// <returns>A buffer that provides memory for the descriptor heap.</returns>
+        SharedPtr<IVulkanBuffer> createDescriptorHeap(const String& name, size_t heapSize) const;
+
     public:
         /// <inheritdoc />
-        SharedPtr<IVulkanBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IVulkanBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
-        SharedPtr<IVulkanBuffer> createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IVulkanBuffer> createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
-        SharedPtr<IVulkanVertexBuffer> createVertexBuffer(const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IVulkanVertexBuffer> createVertexBuffer(const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
-        SharedPtr<IVulkanVertexBuffer> createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IVulkanVertexBuffer> createVertexBuffer(const String& name, const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
-        SharedPtr<IVulkanIndexBuffer> createIndexBuffer(const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IVulkanIndexBuffer> createIndexBuffer(const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
-        SharedPtr<IVulkanIndexBuffer> createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IVulkanIndexBuffer> createIndexBuffer(const String& name, const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
-        SharedPtr<IVulkanImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IVulkanImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
-        SharedPtr<IVulkanImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IVulkanImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
-        Generator<SharedPtr<IVulkanImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
+        bool tryCreateBuffer(SharedPtr<IVulkanBuffer>& buffer, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateBuffer(SharedPtr<IVulkanBuffer>& buffer, const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateVertexBuffer(SharedPtr<IVulkanVertexBuffer>& buffer, const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateVertexBuffer(SharedPtr<IVulkanVertexBuffer>& buffer, const String& name, const VulkanVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateIndexBuffer(SharedPtr<IVulkanIndexBuffer>& buffer, const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateIndexBuffer(SharedPtr<IVulkanIndexBuffer>& buffer, const String& name, const VulkanIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateTexture(SharedPtr<IVulkanImage>& image, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateTexture(SharedPtr<IVulkanImage>& image, const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        Generator<SharedPtr<IVulkanImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
         SharedPtr<IVulkanSampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
@@ -2528,6 +2627,15 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UniquePtr<VulkanTopLevelAccelerationStructure> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
+
+        /// <inheritdoc />
+        bool supportsResizableBaseAddressRegister() const noexcept override;
+
+        /// <inheritdoc />
+        Array<MemoryHeapStatistics> memoryStatistics() const override;
+
+        /// <inheritdoc />
+        DetailedMemoryStatistics detailedMemoryStatistics() const override;
     };
 
     /// <summary>
@@ -2538,6 +2646,16 @@ namespace LiteFX::Rendering::Backends {
         friend struct SharedObject::Allocator<VulkanDevice>;
         friend class VulkanBackend;
 
+    public:
+        /// <summary>
+        /// The default size for the global buffer heap in bytes.
+        /// </summary>
+        /// <remarks>
+        /// The default value represents the minimum supported value over all devices registered at GPUinfo: 
+        /// https://vulkan.gpuinfo.org/displayextensionproperty.php?extensionname=VK_EXT_descriptor_buffer&extensionproperty=descriptorBufferAddressSpaceSize&platform=all.
+        /// </remarks>
+        static const size_t DEFAULT_DESCRIPTOR_HEAP_SIZE = 134'217'728;   // equals 128 Mb
+
     private:
         /// <summary>
         /// Creates a new device instance.
@@ -2547,7 +2665,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="surface">The surface, the device should draw to.</param>
         /// <param name="features">The features that should be supported by this device.</param>
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
-        explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { });
+        /// <param name="globalDescriptorHeapSize">The size of the global descriptor heap in bytes.</param>
+        explicit VulkanDevice(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }, size_t globalDescriptorHeapSize = DEFAULT_DESCRIPTOR_HEAP_SIZE);
 
     private:
         /// <inheritdoc />
@@ -2576,9 +2695,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="surface">The surface, the device should draw to.</param>
         /// <param name="features">The features that should be supported by this device.</param>
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
+        /// <param name="globalDescriptorHeapSize">The size of the global descriptor heap in bytes.</param>
         /// <returns>A shared pointer to the new device instance.</returns>
-        static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }) {
-            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions)->initialize(Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }, size_t globalDescriptorHeapSize = DEFAULT_DESCRIPTOR_HEAP_SIZE) {
+            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions, globalDescriptorHeapSize)->initialize(Format::B8G8R8A8_SRGB, { 800, 600 }, 3, false, features); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         }
 
         /// <summary>
@@ -2593,9 +2713,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="enableVsync">The initial setting for vertical synchronization.</param>
         /// <param name="features">The features that should be supported by this device.</param>
         /// <param name="extensions">The required extensions the device gets initialized with.</param>
+        /// <param name="globalDescriptorHeapSize">The size of the global descriptor heap in bytes.</param>
         /// <returns>A shared pointer to the new device instance.</returns>
-        static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }) {
-            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions)->initialize(format, renderArea, backBuffers, enableVsync, features);
+        static inline SharedPtr<VulkanDevice> create(const VulkanBackend& backend, const VulkanGraphicsAdapter& adapter, UniquePtr<VulkanSurface>&& surface, Format format, const Size2d& renderArea, UInt32 backBuffers, bool enableVsync = false, GraphicsDeviceFeatures features = { }, Span<String> extensions = { }, size_t globalDescriptorHeapSize = DEFAULT_DESCRIPTOR_HEAP_SIZE) {
+            return SharedObject::create<VulkanDevice>(backend, adapter, std::move(surface), features, extensions, globalDescriptorHeapSize)->initialize(format, renderArea, backBuffers, enableVsync, features);
         }
 
     private:
@@ -2659,6 +2780,13 @@ namespace LiteFX::Rendering::Backends {
         /// <returns>The indices of the queue families that support queue workloads specified by <paramref name="type" />.</returns>
         Enumerable<UInt32> queueFamilyIndices(QueueType type = QueueType::None) const;
 
+        /// <summary>
+        /// Resolves the binary size for a descriptor of <paramref name="type" />.
+        /// </summary>
+        /// <param name="type">The type of the descriptor.</param>
+        /// <returns>The size of the descriptor.</returns>
+        UInt32 descriptorSize(DescriptorType type) const;
+
         // GraphicsDevice interface.
     public:
         /// <inheritdoc />
@@ -2705,6 +2833,21 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
+
+        /// <inheritdoc />
+        void allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const override;
+
+        /// <inheritdoc />
+        void releaseGlobalDescriptors(const VulkanDescriptorSet& descriptorSet) const override;
+
+        /// <inheritdoc />
+        void updateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const override;
+
+        /// <inheritdoc />
+        void bindDescriptorSet(const VulkanCommandBuffer& commandBuffer, const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const noexcept override;
+
+        /// <inheritdoc />
+        void bindGlobalDescriptorHeaps(const VulkanCommandBuffer& commandBuffer) const noexcept override;
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:

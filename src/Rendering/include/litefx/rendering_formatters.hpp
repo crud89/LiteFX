@@ -237,6 +237,22 @@ struct LITEFX_RENDERING_API std::formatter<DescriptorType> : std::formatter<std:
 		case RWByteAddressBuffer: name = "RWByteAddressBuffer"; break;
 		case InputAttachment: name = "Input Attachment"; break;
 		case AccelerationStructure: name = "Acceleration Structure"; break;
+		case ResourceDescriptorHeap: name = "Resource Descriptor Heap"; break;
+		case SamplerDescriptorHeap: name = "Sampler Descriptor Heap"; break;
+		}
+		return formatter<string_view>::format(name, ctx);
+	}
+};
+
+template <>
+struct LITEFX_RENDERING_API std::formatter<DescriptorHeapType> : std::formatter<std::string_view> {
+	auto format(DescriptorHeapType t, std::format_context& ctx) const {
+		string_view name = "Invalid";
+		switch (t) {
+		using enum DescriptorHeapType;
+		case Sampler: name = "Sampler"; break;
+		case Resource: name = "Resource"; break;
+		case None: name = "None"; break;
 		}
 		return formatter<string_view>::format(name, ctx);
 	}
@@ -298,6 +314,7 @@ struct LITEFX_RENDERING_API std::formatter<ResourceHeap> : std::formatter<std::s
 		case Resource: name = "Resource"; break;
 		case Dynamic:  name = "Dynamic";  break;
 		case Readback: name = "Readback"; break;
+		case GPUUpload: name = "GPUUpload"; break;
 		}
 		return formatter<string_view>::format(name, ctx);
 	}

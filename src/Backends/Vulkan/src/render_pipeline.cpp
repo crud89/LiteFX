@@ -267,6 +267,7 @@ public:
 		VkGraphicsPipelineCreateInfo pipelineInfo = {
 			.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
 			.pNext = &renderingInfo,
+			.flags = VK_PIPELINE_CREATE_DESCRIPTOR_BUFFER_BIT_EXT,
 			.stageCount = static_cast<UInt32>(shaderStages.size()),
 			.pStages = shaderStages.data(),
 			.pVertexInputState = &inputState,
@@ -419,7 +420,7 @@ public:
 		// Bind the input attachment sets.
 		//commandBuffer.bind(m_inputAttachmentBindings.at(interfacePointer) | std::views::transform([](auto& set) { return set.get(); }));
 		auto descriptorSets = m_inputAttachmentBindings.at(interfacePointer) | std::views::transform([](auto& set) { return set.get(); }) | std::ranges::to<Array<const VulkanDescriptorSet*>>();
-		parent.bind(commandBuffer, descriptorSets);
+		commandBuffer.bind(descriptorSets, parent);
 	}
 
 	void onFrameBufferResize(const void* sender, const IFrameBuffer::ResizeEventArgs& /*args*/)
@@ -514,6 +515,11 @@ void VulkanRenderPipeline::updateSamples(MultiSamplingLevel samples)
 	this->handle() = m_impl->initialize(*this, samples);
 }
 
+VkPipelineBindPoint VulkanRenderPipeline::pipelineType() const noexcept
+{
+	return VK_PIPELINE_BIND_POINT_GRAPHICS;
+}
+
 void VulkanRenderPipeline::use(const VulkanCommandBuffer& commandBuffer) const
 {
 	::vkCmdBindPipeline(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, this->handle());
@@ -527,34 +533,6 @@ void VulkanRenderPipeline::use(const VulkanCommandBuffer& commandBuffer) const
 
 	// Bind the input attachments and the input attachment sampler.
 	m_impl->bindInputAttachments(*this, commandBuffer);
-}
-
-void VulkanRenderPipeline::bind(const VulkanCommandBuffer& commandBuffer, Span<const VulkanDescriptorSet*> descriptorSets) const
-{
-	// Filter out uninitialized sets.
-	auto sets = descriptorSets | std::views::filter([](auto set) { return set != nullptr; }) | std::ranges::to<Array<const VulkanDescriptorSet*>>();
-
-	if (sets.empty()) [[unlikely]]
-		return; // Nothing to do on empty sets.
-	else if (sets.size() == 1)
-		::vkCmdBindDescriptorSets(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, std::as_const(*m_impl->m_layout).handle(), sets.front()->layout().space(), 1, &sets.front()->handle(), 0, nullptr);
-	else
-	{
-		// Sort the descriptor sets by space, as we might be able to pass the sets more efficiently if they are sorted and continuous.
-		std::ranges::sort(sets, [](auto lhs, auto rhs) { return lhs->layout().space() > rhs->layout().space(); });
-
-		// In a sorted range, last - (first - 1) equals the size of the range only if there are no duplicates and no gaps.
-		auto startSpace = sets.back()->layout().space();
-
-		if (startSpace - (sets.front()->layout().space() - 1) != static_cast<UInt32>(sets.size()))
-			std::ranges::for_each(sets, [&](auto set) { ::vkCmdBindDescriptorSets(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, std::as_const(*m_impl->m_layout).handle(), set->layout().space(), 1, &set->handle(), 0, nullptr); });
-		else
-		{
-			// Obtain the handles and bind the sets.
-			auto handles = sets | std::views::transform([](auto set) { return set->handle(); }) | std::ranges::to<Array<VkDescriptorSet>>();
-			::vkCmdBindDescriptorSets(commandBuffer.handle(), VK_PIPELINE_BIND_POINT_GRAPHICS, std::as_const(*m_impl->m_layout).handle(), startSpace, static_cast<UInt32>(handles.size()), handles.data(), 0, nullptr);
-		}
-	}
 }
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)

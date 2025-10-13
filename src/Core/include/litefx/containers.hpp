@@ -565,10 +565,10 @@ namespace LiteFX {
 		public:
 			virtual ~range_holder_base() noexcept = default;
 
-			virtual iterator begin() = 0;
-			virtual iterator end() = 0;
-			virtual const_iterator cbegin() = 0;
-			virtual const_iterator cend() = 0;
+			virtual iterator begin() noexcept = 0;
+			virtual iterator end() noexcept = 0;
+			virtual const_iterator cbegin() noexcept = 0;
+			virtual const_iterator cend() noexcept = 0;
 		};
 
 		template <std::ranges::viewable_range TRange>
@@ -590,19 +590,19 @@ namespace LiteFX {
 
 			inline ~range_holder() noexcept override = default;
 
-			inline iterator begin() override {
+			inline iterator begin() noexcept override {
 				return { std::ranges::begin(_stored_range) };
 			}
 
-			inline iterator end() override {
+			inline iterator end() noexcept override {
 				return { std::ranges::end(_stored_range) };
 			}
 
-			inline const_iterator cbegin() override {
+			inline const_iterator cbegin() noexcept override {
 				return { std::ranges::begin(_stored_range) };
 			}
 
-			inline const_iterator cend() override {
+			inline const_iterator cend() noexcept override {
 				return { std::ranges::end(_stored_range) };
 			}
 		};
@@ -641,7 +641,7 @@ namespace LiteFX {
 		/// Returns an iterator pointing to the start of the underlying range.
 		/// </summary>
 		/// <returns>An iterator pointing to the start of the underlying range.</returns>
-		inline auto begin() const {
+		inline auto begin() const noexcept {
 			return _range->begin();
 		}
 
@@ -649,7 +649,7 @@ namespace LiteFX {
 		/// Returns an iterator pointing to the end of the underlying range.
 		/// </summary>
 		/// <returns>An iterator pointing to the end of the underlying range.</returns>
-		inline auto end() const {
+		inline auto end() const noexcept {
 			return _range->end();
 		}
 
@@ -657,7 +657,7 @@ namespace LiteFX {
 		/// Returns a constant iterator pointing to the start of the underlying range.
 		/// </summary>
 		/// <returns>A constant iterator pointing to the start of the underlying range.</returns>
-		inline auto cbegin() const {
+		inline auto cbegin() const noexcept {
 			return _range->cbegin();
 		}
 
@@ -665,7 +665,7 @@ namespace LiteFX {
 		/// Returns a constant iterator pointing to the end of the underlying range.
 		/// </summary>
 		/// <returns>A constant iterator pointing to the end of the underlying range.</returns>
-		inline auto cend() const {
+		inline auto cend() const noexcept {
 			return _range->cend();
 		}
 
@@ -1111,7 +1111,7 @@ namespace LiteFX {
 		/// <returns>A shared pointer of the shared object.</returns>
 		/// <seealso cref="Allocator" />
 		template <typename T, typename... TArgs>
-		static inline auto create(TArgs&&... args) -> SharedPtr<T> {
+		[[nodiscard]] static inline auto create(TArgs&&... args) -> SharedPtr<T> {
 			return std::allocate_shared<T>(Allocator<T>{}, std::forward<TArgs>(args)...);
 		}
 
@@ -1120,7 +1120,7 @@ namespace LiteFX {
 		/// Returns a shared pointer to the current object instance.
 		/// </summary>
 		template <typename TSelf>
-		auto inline shared_from_this(this TSelf&& self) noexcept
+		[[nodiscard]] auto inline shared_from_this(this TSelf&& self) noexcept
 		{
 			return std::static_pointer_cast<std::remove_reference_t<TSelf>>(
 				std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::shared_from_this());
@@ -1130,7 +1130,7 @@ namespace LiteFX {
 		/// Returns a weak pointer to the current object instance.
 		/// </summary>
 		template <typename TSelf>
-		auto inline weak_from_this(this TSelf&& self) noexcept -> WeakPtr<std::remove_reference_t<TSelf>>
+		[[nodiscard]] auto inline weak_from_this(this TSelf&& self) noexcept -> WeakPtr<std::remove_reference_t<TSelf>>
 		{
 			return std::static_pointer_cast<std::remove_reference_t<TSelf>>(
 				std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::weak_from_this().lock());

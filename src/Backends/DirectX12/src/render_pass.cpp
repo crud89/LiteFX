@@ -176,24 +176,30 @@ public:
             std::get<1>(m_activeContext) = std::nullopt;
         else
         {
-            CD3DX12_CLEAR_VALUE clearValue{ DX12::getFormat(m_depthStencilTarget->format()), m_depthStencilTarget->clearValues().x(), static_cast<Byte>(m_depthStencilTarget->clearValues().y()) };
-            
-            D3D12_RENDER_PASS_ENDING_ACCESS depthEndAccess, stencilEndAccess;
-            D3D12_RENDER_PASS_BEGINNING_ACCESS depthBeginAccess = m_depthStencilTarget->clearBuffer() && ::hasDepth(m_depthStencilTarget->format()) ?
-                D3D12_RENDER_PASS_BEGINNING_ACCESS{ .Type = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, .Clear = { clearValue } } :
-                D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE, { } };
+            CD3DX12_CLEAR_VALUE clearValue{ DX12::getFormat(m_depthStencilTarget->format()), m_depthStencilTarget->clearValues().x(), static_cast<UInt8>(m_depthStencilTarget->clearValues().y()) };
 
-            depthEndAccess = m_depthStencilTarget->isVolatile() ?
-                D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, { } } :
-                D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, { } };
-
-            D3D12_RENDER_PASS_BEGINNING_ACCESS stencilBeginAccess = m_depthStencilTarget->clearStencil() && ::hasStencil(m_depthStencilTarget->format()) ?
-                D3D12_RENDER_PASS_BEGINNING_ACCESS{ .Type = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, .Clear = { clearValue } } :
-                D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE, { } };
+            D3D12_RENDER_PASS_BEGINNING_ACCESS depthBeginAccess { D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS }, stencilBeginAccess { D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS };
+            D3D12_RENDER_PASS_ENDING_ACCESS depthEndAccess { D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS }, stencilEndAccess { D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_NO_ACCESS };
             
-            stencilEndAccess = m_depthStencilTarget->isVolatile() ?
-                D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, { } } :
-                D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, { } };
+            if (::hasDepth(m_depthStencilTarget->format()))
+            {
+                depthBeginAccess = m_depthStencilTarget->clearBuffer() ?
+                    D3D12_RENDER_PASS_BEGINNING_ACCESS{ .Type = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, .Clear = { clearValue } } :
+                    D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE, { } };
+                depthEndAccess = m_depthStencilTarget->isVolatile() ?
+                    D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, { } } :
+                    D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, { } };
+            }
+
+            if (::hasStencil(m_depthStencilTarget->format()))
+            {
+                stencilBeginAccess = m_depthStencilTarget->clearStencil() ?
+                    D3D12_RENDER_PASS_BEGINNING_ACCESS{ .Type = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR, .Clear = { clearValue } } :
+                    D3D12_RENDER_PASS_BEGINNING_ACCESS{ D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_PRESERVE, { } };
+                stencilEndAccess = m_depthStencilTarget->isVolatile() ?
+                    D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_DISCARD, { } } :
+                    D3D12_RENDER_PASS_ENDING_ACCESS{ D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE, { } };
+            }
 
             std::get<1>(m_activeContext) = D3D12_RENDER_PASS_DEPTH_STENCIL_DESC{ frameBuffer.descriptorHandle(*m_depthStencilTarget), depthBeginAccess, stencilBeginAccess, depthEndAccess, stencilEndAccess };
         }

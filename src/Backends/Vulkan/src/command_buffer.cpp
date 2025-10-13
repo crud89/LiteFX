@@ -28,10 +28,12 @@ private:
 	const VulkanPipelineState* m_lastPipeline = nullptr;
 	WeakPtr<const VulkanQueue> m_queue;
 	WeakPtr<const VulkanDevice> m_device;
+	bool m_canBindDescriptorHeaps = false;
 
 public:
 	VulkanCommandBufferImpl(const VulkanQueue& queue, bool primary) :
-		m_secondary(!primary), m_queue(queue.weak_from_this()), m_device(queue.device())
+		m_secondary(!primary), m_queue(queue.weak_from_this()), m_device(queue.device()), 
+		m_canBindDescriptorHeaps(LITEFX_FLAG_IS_SET(queue.type(), QueueType::Compute) || LITEFX_FLAG_IS_SET(queue.type(), QueueType::Graphics))
 	{
 	}
 
@@ -208,6 +210,20 @@ public:
 		m_sharedResources.emplace_back(instanceBuffer);
 		m_sharedResources.emplace_back(scratchBuffer);
 	}
+
+	inline void bindDescriptorHeaps(const VulkanCommandBuffer& parent)
+	{
+		// Bind the global descriptor heaps.
+		if (m_canBindDescriptorHeaps)
+		{
+			auto device = m_device.lock();
+
+			if (device != nullptr)
+				device->bindGlobalDescriptorHeaps(parent);
+			else [[unlikely]]
+				throw RuntimeException("Cannot bind descriptor heaps on a released device instance.");
+		}
+	}
 };
 
 // ------------------------------------------------------------------------------------------------
@@ -243,6 +259,9 @@ void VulkanCommandBuffer::begin() const
 	};
 
 	raiseIfFailed(::vkBeginCommandBuffer(this->handle(), &beginInfo), "Unable to begin command recording.");
+
+	// Bind global descriptor heaps.
+	m_impl->bindDescriptorHeaps(*this);
 	m_impl->m_recording = true;
 
 	// If it was possible to reset the command buffer, we can also safely release shared resources from previous recordings.
@@ -302,6 +321,8 @@ void VulkanCommandBuffer::begin(const VulkanRenderPass& renderPass) const
 
 	raiseIfFailed(::vkBeginCommandBuffer(this->handle(), &beginInfo), "Unable to begin command recording.");
 
+	// Bind global descriptor heaps.
+	m_impl->bindDescriptorHeaps(*this);
 	m_impl->m_recording = true;
 }
 
@@ -623,31 +644,52 @@ void VulkanCommandBuffer::use(const VulkanPipelineState& pipeline) const noexcep
 
 void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet) const
 {
-	auto set = &descriptorSet;
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot bind descriptor set on a released device instance.");
 
 	if (m_impl->m_lastPipeline) [[likely]]
-		m_impl->m_lastPipeline->bind(*this, { std::addressof(set), 1});
+		device->bindDescriptorSet(*this, descriptorSet, *m_impl->m_lastPipeline);
 	else
 		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
 }
 
 void VulkanCommandBuffer::bind(Span<const VulkanDescriptorSet*> descriptorSets) const
 {
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot bind descriptor set on a released device instance.");
+
 	if (m_impl->m_lastPipeline) [[likely]]
-		m_impl->m_lastPipeline->bind(*this, descriptorSets);
+		std::ranges::for_each(descriptorSets | std::views::filter([](auto descriptorSet) { return descriptorSet != nullptr; }), [&](auto descriptorSet) { device->bindDescriptorSet(*this, *descriptorSet, *m_impl->m_lastPipeline); });
 	else
 		throw RuntimeException("No pipeline has been used on the command buffer before attempting to bind the descriptor set.");
 }
 
 void VulkanCommandBuffer::bind(const VulkanDescriptorSet& descriptorSet, const VulkanPipelineState& pipeline) const
 {
-	auto set = &descriptorSet;
-	pipeline.bind(*this, { std::addressof(set), 1 });
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot bind descriptor set on a released device instance.");
+
+	device->bindDescriptorSet(*this, descriptorSet, pipeline);
 }
 
 void VulkanCommandBuffer::bind(Span<const VulkanDescriptorSet*> descriptorSets, const VulkanPipelineState& pipeline) const
 {
-	pipeline.bind(*this, descriptorSets);
+	// Check if the device is still valid.
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		throw RuntimeException("Cannot transfer buffers on a released device instance.");
+
+	std::ranges::for_each(descriptorSets | std::views::filter([](auto descriptorSet) { return descriptorSet != nullptr; }), [&](auto descriptorSet) { device->bindDescriptorSet(*this, *descriptorSet, pipeline); });
 }
 
 void VulkanCommandBuffer::bind(const IVulkanVertexBuffer& buffer) const noexcept

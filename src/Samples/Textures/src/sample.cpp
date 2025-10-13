@@ -7,8 +7,7 @@
 enum DescriptorSets : UInt32 // NOLINT(performance-enum-size)
 {
     Constant = 0,                                       // All buffers that are immutable.
-    Samplers = 1,                                       // All samplers that are immutable.
-    PerFrame = 2,                                       // All buffers that are updated each frame.
+    PerFrame = 1,                                       // All buffers that are updated each frame.
 };
 
 const Array<Vertex> vertices =
@@ -190,8 +189,7 @@ UInt64 initBuffers(SampleApp& app, TDevice& device, const SharedPtr<IInputAssemb
     ::loadTexture<TBackend>(device, texture, sampler);
 
     // Allocate the descriptor sets.
-    auto staticBindings = staticBindingLayout.allocate({ { 0, *cameraBuffer }, { 1, *texture } });
-    auto samplerBindings = geometryPipeline.layout()->descriptorSet(DescriptorSets::Samplers).allocate({ { 0, *sampler } });
+    auto staticBindings = staticBindingLayout.allocate({ { 0, *cameraBuffer }, { 1, *texture }, { 2, *sampler } });
 
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
@@ -214,7 +212,6 @@ UInt64 initBuffers(SampleApp& app, TDevice& device, const SharedPtr<IInputAssemb
     device.state().add(std::move(texture));
     device.state().add(std::move(sampler));
     device.state().add("Static Bindings", std::move(staticBindings));
-    device.state().add("Sampler Bindings", std::move(samplerBindings));
     std::ranges::for_each(transformBindings, [&, i = 0](auto& binding) mutable { device.state().add(std::format("Transform Bindings {0}", i++), std::move(binding)); });
 
     // Return the fence.
@@ -316,9 +313,6 @@ void SampleApp::onInit()
 #endif // LITEFX_BUILD_VULKAN_BACKEND
 
 #ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
-    // We do not need to provide a root signature for shader reflection (refer to the project wiki for more information: https://github.com/crud89/LiteFX/wiki/Shader-Development).
-    DirectX12ShaderProgram::suppressMissingRootSignatureWarning();
-
     // Register the DirectX 12 backend de-/initializer.
     this->onBackendStart<DirectX12Backend>(startCallback);
     this->onBackendStop<DirectX12Backend>(stopCallback);
@@ -450,14 +444,6 @@ void SampleApp::handleEvents()
     ::glfwPollEvents();
 }
 
-inline auto test(std::ranges::input_range auto&& descriptorSets) requires
-    std::derived_from<std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>, IDescriptorSet>
-{
-    using descriptor_set_type = std::remove_cv_t<std::remove_pointer_t<std::iter_value_t<std::ranges::iterator_t<std::remove_cv_t<std::remove_reference_t<decltype(descriptorSets)>>>>>>;
-    auto sets = descriptorSets | std::ranges::to<Array<const descriptor_set_type*>>();
-    return sets;
-}
-
 void SampleApp::drawFrame()
 {
     // Store the initial time this method has been called first.
@@ -472,7 +458,6 @@ void SampleApp::drawFrame()
     auto& geometryPipeline = m_device->state().pipeline("Geometry");
     auto& transformBuffer = m_device->state().buffer("Transform");
     auto& staticBindings = m_device->state().descriptorSet("Static Bindings");
-    auto& samplerBindings = m_device->state().descriptorSet("Sampler Bindings");
     auto& transformBindings = m_device->state().descriptorSet(std::format("Transform Bindings {0}", backBuffer));
     auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
     auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
@@ -496,7 +481,7 @@ void SampleApp::drawFrame()
     transformBuffer.map(static_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
     // Bind both descriptor sets to the pipeline.
-    commandBuffer->bind({ &staticBindings, &samplerBindings, &transformBindings });
+    commandBuffer->bind({ &staticBindings, &transformBindings });
 
     // Bind the vertex and index buffers.
     commandBuffer->bind(vertexBuffer);

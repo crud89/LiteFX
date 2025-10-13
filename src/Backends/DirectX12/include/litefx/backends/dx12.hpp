@@ -675,27 +675,12 @@ namespace LiteFX::Rendering::Backends {
         const Array<UniquePtr<const DirectX12ShaderModule>>& modules() const noexcept override;
 
         /// <inheritdoc />
-        virtual SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout() const;
+        virtual SharedPtr<DirectX12PipelineLayout> reflectPipelineLayout(Enumerable<PipelineBindingHint> hints = {}) const;
 
     private:
-        SharedPtr<IPipelineLayout> parsePipelineLayout() const override {
-            return std::static_pointer_cast<IPipelineLayout>(this->reflectPipelineLayout());
+        SharedPtr<IPipelineLayout> parsePipelineLayout(Enumerable<PipelineBindingHint> hints) const override {
+            return std::static_pointer_cast<IPipelineLayout>(this->reflectPipelineLayout(hints));
         }
-
-    public:
-        /// <summary>
-        /// Suppresses the warning that is issued, if no root signature is found on a shader module when calling <see cref="reflectPipelineLayout" />.
-        /// </summary>
-        /// <remarks>
-        /// When a shader program is asked to build a pipeline layout, it first checks if a root signature is provided within the shader bytecode. If no root signature could 
-        /// be found, it falls back to using plain reflection to extract the descriptor sets. This has the drawback, that some features are not or only partially supported.
-        /// Most notably, it is not possible to reflect a pipeline layout that uses push/root constants this way. To ensure that you are not missing the root signature by 
-        /// accident, the engine warns you when it encounters this situation. However, if you are only using plain descriptor sets, this can result in noise warnings that 
-        /// clutter the log. You can call this function to disable the warnings explicitly.
-        /// </remarks>
-        /// <param name="disableWarning"><c>true</c> to stop issuing the warning or <c>false</c> to continue.</param>
-        /// <seealso cref="reflectPipelineLayout" />
-        static void suppressMissingRootSignatureWarning(bool disableWarning = true) noexcept;
     };
 
     /// <summary>
@@ -714,9 +699,9 @@ namespace LiteFX::Rendering::Backends {
         /// Initializes a new descriptor set.
         /// </summary>
         /// <param name="layout">The parent descriptor set layout.</param>
-        /// <param name="bufferHeap">A CPU-visible descriptor heap that contains all buffer descriptors of the descriptor set.</param>
-        /// <param name="samplerHeap">A CPU-visible descriptor heap that contains all sampler descriptors of the descriptor set.</param>
-        explicit DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& bufferHeap, ComPtr<ID3D12DescriptorHeap>&& samplerHeap);
+        /// <param name="resourceHeap">A CPU-visible descriptor heap that contains the descriptors for the resources of the descriptor set.</param>
+        /// <param name="samplerHeap">A CPU-visible descriptor heap that contains the descriptors for the samplers of the descriptor set.</param>
+        explicit DirectX12DescriptorSet(const DirectX12DescriptorSetLayout& layout, ComPtr<ID3D12DescriptorHeap>&& resourceHeap = nullptr, ComPtr<ID3D12DescriptorHeap>&& samplerHeap = nullptr);
 
         /// <inheritdoc />
         DirectX12DescriptorSet(DirectX12DescriptorSet&&) noexcept = delete;
@@ -742,7 +727,22 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        void update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0) const override;
+        UInt32 globalHeapOffset(DescriptorHeapType heapType) const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 globalHeapAddressRange(DescriptorHeapType heapType) const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const override;
+
+        /// <inheritdoc />
+        UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IDirectX12Image& image, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const override;
+
+        /// <inheritdoc />
+        UInt32 bindToHeap(UInt32 descriptor, const IDirectX12Sampler& sampler) const override;
+
+        /// <inheritdoc />
+        void update(UInt32 binding, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, UInt32 firstDescriptor = 0, Format texelFormat = Format::None) const override;
 
         /// <inheritdoc />
         void update(UInt32 binding, const IDirectX12Image& texture, UInt32 descriptor = 0, UInt32 firstLevel = 0, UInt32 levels = 0, UInt32 firstLayer = 0, UInt32 layers = 0) const override;
@@ -755,28 +755,11 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <summary>
-        /// Returns the local (CPU-visible) heap that contains the buffer descriptors.
+        /// Returns the local (CPU-visible) heap that contains the set's descriptors.
         /// </summary>
-        /// <returns>The local (CPU-visible) heap that contains the buffer descriptors, or <c>nullptr</c>, if the descriptor set does not contain any buffers.</returns>
-        virtual const ComPtr<ID3D12DescriptorHeap>& bufferHeap() const noexcept;
-
-        /// <summary>
-        /// Returns the offset of the buffer descriptors in the global descriptor heap.
-        /// </summary>
-        /// <returns>The offset of the buffer descriptors in the global descriptor heap.</returns>
-        virtual UInt32 bufferOffset() const noexcept;
-
-        /// <summary>
-        /// Returns the local (CPU-visible) heap that contains the sampler descriptors.
-        /// </summary>
-        /// <returns>The local (CPU-visible) heap that contains the sampler descriptors, or <c>nullptr</c>, if the descriptor set does not contain any samplers.</returns>
-        virtual const ComPtr<ID3D12DescriptorHeap>& samplerHeap() const noexcept;
-
-        /// <summary>
-        /// Returns the offset of the sampler descriptors in the global descriptor heap.
-        /// </summary>
-        /// <returns>The offset of the sampler descriptors in the global descriptor heap.</returns>
-        virtual UInt32 samplerOffset() const noexcept;
+        /// <param name="heapType">The type of the descriptor heap to obtain.</param>
+        /// <returns>The local (CPU-visible) heap that contains the set's descriptors.</returns>
+        virtual const ComPtr<ID3D12DescriptorHeap> localHeap(DescriptorHeapType heapType) const noexcept;
     };
 
     /// <summary>
@@ -797,9 +780,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="type">The type of the descriptor.</param>
         /// <param name="binding">The binding point for the descriptor.</param>
         /// <param name="elementSize">The size of the descriptor.</param>
-        /// <param name="elementSize">The number of descriptors in the descriptor array.</param>
+        /// <param name="descriptors">The number of descriptors in the descriptor array. If <paramref name="unbounded" /> is set, this value sets the upper limit for the array size.</param>
+        /// <param name="unbounded">If set to `true`, the descriptor will be defined as a runtime-allocated, unbounded array.</param>
         /// <param name="local">Determines if the descriptor is part of the local or global root signature for ray-tracing shaders.</param>
-        DirectX12DescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1, bool local = false);
+        DirectX12DescriptorLayout(DescriptorType type, UInt32 binding, size_t elementSize, UInt32 descriptors = 1, bool unbounded = false, bool local = false);
 
         /// <summary>
         /// Initializes a new DirectX 12 descriptor layout for a static sampler.
@@ -842,6 +826,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt32 descriptors() const noexcept override;
+
+        /// <inheritdoc />
+        bool unbounded() const noexcept override;
 
         /// <inheritdoc />
         const IDirectX12Sampler* staticSampler() const noexcept override;
@@ -941,29 +928,10 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <summary>
-        /// Returns the index of the first descriptor for a certain binding. The offset is relative to the heap for the descriptor (i.e. sampler for sampler descriptors and
-        /// CBV/SRV/UAV for other descriptors).
-        /// </summary>
-        /// <param name="binding">The binding of the descriptor.</param>
-        /// <returns>The index of the first descriptor for the binding.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown, if the descriptor set does not contain a descriptor bound to the binding point specified by <paramref name="binding"/>.</exception>
-        virtual UInt32 descriptorOffsetForBinding(UInt32 binding) const;
-
-        /// <summary>
         /// Returns the parent device or `nullptr`, if it has been released.
         /// </summary>
         /// <returns>A pointer to the parent device or `nullptr`, if it has been released.</returns>
         virtual SharedPtr<const DirectX12Device> device() const noexcept;
-
-    protected:
-        /// <summary>
-        /// Returns <c>true</c>, if the descriptor set contains an (unbounded) runtime array.
-        /// </summary>
-        /// <remarks>
-        /// A descriptor set is a runtime array, if it contains exactly one descriptor, which is an unbounded array, i.e. which has a descriptor count of `-1` (or `0xFFFFFFFF`).
-        /// </remarks>
-        /// <returns><c>true</c>, if the descriptor set contains an (unbounded) runtime array and <c>false</c> otherwise.</returns>
-        virtual bool isRuntimeArray() const noexcept;
 
     public:
         /// <inheritdoc />
@@ -998,6 +966,18 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt32 inputAttachments() const noexcept override;
+
+        /// <inheritdoc />
+        bool containsUnboundedArray() const noexcept override;
+
+        /// <inheritdoc />
+        UInt32 getDescriptorOffset(UInt32 binding, UInt32 element = 0) const override;
+
+        /// <inheritdoc />
+        bool bindsResources() const noexcept override;
+
+        /// <inheritdoc />
+        bool bindsSamplers() const noexcept override;
 
     public:
         /// <inheritdoc />
@@ -1216,6 +1196,12 @@ namespace LiteFX::Rendering::Backends {
         /// <inheritdoc />
         const DirectX12PushConstantsLayout* pushConstants() const noexcept override;
 
+        /// <inheritdoc />
+        bool dynamicResourceHeapAccess() const override;
+
+        /// <inheritdoc />
+        bool dynamicSamplerHeapAccess() const override;
+
     public:
         /// <summary>
         /// Returns the root parameter index for a descriptor set.
@@ -1226,10 +1212,18 @@ namespace LiteFX::Rendering::Backends {
         /// to be shared over multiple pipeline layouts, even if they are unrelated, as long as they are compatible. Compatibility must be ensured by the application.
         /// 
         /// Only if no descriptor set layout was provided for register space `1` in the example above, this method will return `std::nullopt`.
+        /// 
+        /// The <paramref name="heapType" /> determines the target descriptor heap, for which to obtain the root parameter index. This is required, as samplers bind to another 
+        /// descriptor heap as all other resources. If the descriptor set does not contain descriptors that bind to the desired descriptor heap, the method will also return 
+        /// `std::nullopt`.
         /// </remarks>
         /// <param name="layout">The layout of the descriptor set.</param>
-        /// <returns>The root parameter index for the descriptor set layout, or `std::nullopt`, if the descriptor set is not part of the pipeline layout.</returns>
-        Optional<UInt32> rootParameterIndex(const DirectX12DescriptorSetLayout& layout) const noexcept;
+        /// <param name="heapType">The type of the descriptor heap for which to obtain the root parameter index.</param>
+        /// <returns>
+        /// The root parameter index for the descriptor set layout, or `std::nullopt`, if the descriptor set is not part of the pipeline layout or does not contain descriptors that 
+        /// bind to <paramref name="heapType" />.
+        /// </returns>
+        Optional<UInt32> rootParameterIndex(const DirectX12DescriptorSetLayout& layout, DescriptorHeapType heapType) const noexcept;
 
         /// <summary>
         /// Returns the root parameter index for a push constants range
@@ -2476,9 +2470,13 @@ namespace LiteFX::Rendering::Backends {
     public:
         using base_type = GraphicsFactory<DirectX12DescriptorLayout, IDirectX12Buffer, IDirectX12VertexBuffer, IDirectX12IndexBuffer, IDirectX12Image, IDirectX12Sampler, DirectX12BottomLevelAccelerationStructure, DirectX12TopLevelAccelerationStructure>;
         using base_type::createBuffer;
+        using base_type::tryCreateBuffer;
         using base_type::createVertexBuffer;
+        using base_type::tryCreateVertexBuffer;
         using base_type::createIndexBuffer;
+        using base_type::tryCreateIndexBuffer;
         using base_type::createTexture;
+        using base_type::tryCreateTexture;
         using base_type::createTextures;
         using base_type::createSampler;
         using base_type::createSamplers;
@@ -2518,31 +2516,55 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        SharedPtr<IDirectX12Buffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IDirectX12Buffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
-        SharedPtr<IDirectX12Buffer> createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IDirectX12Buffer> createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
-        SharedPtr<IDirectX12VertexBuffer> createVertexBuffer(const DirectX12VertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IDirectX12VertexBuffer> createVertexBuffer(const DirectX12VertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
-        SharedPtr<IDirectX12VertexBuffer> createVertexBuffer(const String& name, const DirectX12VertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IDirectX12VertexBuffer> createVertexBuffer(const String& name, const DirectX12VertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
-        SharedPtr<IDirectX12IndexBuffer> createIndexBuffer(const DirectX12IndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IDirectX12IndexBuffer> createIndexBuffer(const DirectX12IndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
-        SharedPtr<IDirectX12IndexBuffer> createIndexBuffer(const String& name, const DirectX12IndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IDirectX12IndexBuffer> createIndexBuffer(const String& name, const DirectX12IndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
-        SharedPtr<IDirectX12Image> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IDirectX12Image> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
-        SharedPtr<IDirectX12Image> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
+        SharedPtr<IDirectX12Image> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
-        Generator<SharedPtr<IDirectX12Image>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const override;
+        bool tryCreateBuffer(SharedPtr<IDirectX12Buffer>& buffer, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateBuffer(SharedPtr<IDirectX12Buffer>& buffer, const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateVertexBuffer(SharedPtr<IDirectX12VertexBuffer>& buffer, const DirectX12VertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateVertexBuffer(SharedPtr<IDirectX12VertexBuffer>& buffer, const String& name, const DirectX12VertexBufferLayout& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateIndexBuffer(SharedPtr<IDirectX12IndexBuffer>& buffer, const DirectX12IndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateIndexBuffer(SharedPtr<IDirectX12IndexBuffer>& buffer, const String& name, const DirectX12IndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateTexture(SharedPtr<IDirectX12Image>& image, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        bool tryCreateTexture(SharedPtr<IDirectX12Image>& image, const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
+
+        /// <inheritdoc />
+        Generator<SharedPtr<IDirectX12Image>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
         SharedPtr<IDirectX12Sampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const override;
@@ -2558,6 +2580,15 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UniquePtr<DirectX12TopLevelAccelerationStructure> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags = AccelerationStructureFlags::None) const override;
+
+        /// <inheritdoc />
+        bool supportsResizableBaseAddressRegister() const noexcept override;
+
+        /// <inheritdoc />
+        Array<MemoryHeapStatistics> memoryStatistics() const override;
+
+        /// <inheritdoc />
+        DetailedMemoryStatistics detailedMemoryStatistics() const override;
     };
 
     /// <summary>
@@ -2655,67 +2686,14 @@ namespace LiteFX::Rendering::Backends {
         /// The DirectX 12 device uses a global heap of descriptors and samplers in a ring-buffer fashion. The heap itself is managed by the device.
         /// </remarks>
         /// <returns>A pointer to the global descriptor heap.</returns>
-        const ID3D12DescriptorHeap* globalBufferHeap() const noexcept;
+        ID3D12DescriptorHeap* globalBufferHeap() const noexcept;
 
         /// <summary>
         /// Returns the global sampler heap.
         /// </summary>
         /// <returns>A pointer to the global sampler heap.</returns>
         /// <seealso cref="globalBufferHeap" />
-        const ID3D12DescriptorHeap* globalSamplerHeap() const noexcept;
-
-        /// <summary>
-        /// Allocates a range of descriptors in the global descriptor heaps for the provided <paramref name="descriptorSet" />.
-        /// </summary>
-        /// <param name="descriptorSet">The descriptor set containing the descriptors to update.</param>
-        /// <param name="bufferOffset">The offset of the descriptor range in the buffer heap.</param>
-        /// <param name="samplerOffset">The offset of the descriptor range in the sampler heap.</param>
-        void allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32& bufferOffset, UInt32& samplerOffset) const;
-
-        /// <summary>
-        /// Releases a range of descriptors from the global descriptor heaps.
-        /// </summary>
-        /// <remarks>
-        /// This is done, if a descriptor set layout is destroyed, of a descriptor set, which contains an unbounded array is freed. It will cause the global 
-        /// descriptor heaps to fragment, which may result in inefficient future descriptor allocations and should be avoided. Consider caching descriptor
-        /// sets with unbounded arrays instead. Also avoid relying on creating and releasing pipeline layouts during runtime. Instead, it may be more efficient
-        /// to write shaders that support multiple pipeline variations, that can be kept alive for the lifetime of the whole application.
-        /// </remarks>
-        void releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const;
-
-        /// <summary>
-        /// Updates a range of descriptors in the global buffer descriptor heap with the descriptors from <paramref name="descriptorSet" />.
-        /// </summary>
-        /// <param name="descriptorSet">The descriptor set to copy the descriptors from.</param>
-        /// <param name="firstDescriptor">The index of the first descriptor to copy.</param>
-        /// <param name="descriptors">The number of descriptors to copy.</param>
-        void updateBufferDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 firstDescriptor, UInt32 descriptors) const noexcept;
-
-        /// <summary>
-        /// Updates a sampler descriptors in the global buffer descriptor heap with a descriptor from <paramref name="descriptorSet" />.
-        /// </summary>
-        /// <param name="descriptorSet">The descriptor set to copy the descriptors from.</param>
-        /// <param name="firstDescriptor">The index of the first descriptor to copy.</param>
-        /// <param name="descriptors">The number of descriptors to copy.</param>
-        void updateSamplerDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 firstDescriptor, UInt32 descriptors) const noexcept;
-
-        /// <summary>
-        /// Binds the descriptors of the descriptor set to the global descriptor heaps.
-        /// </summary>
-        /// <remarks>
-        /// Note that after binding the descriptor set, the descriptors must not be updated anymore, unless they are elements on unbounded descriptor arrays, 
-        /// in which case you have to ensure manually to not update them, as long as they may still be in use!
-        /// </remarks>
-        /// <param name="commandBuffer">The command buffer to bind the descriptor set on.</param>
-        /// <param name="descriptorSet">The descriptor set to bind.</param>
-        /// <param name="pipeline">The pipeline to bind the descriptor set to.</param>
-        void bindDescriptorSet(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept;
-
-        /// <summary>
-        /// Binds the global descriptor heap.
-        /// </summary>
-        /// <param name="commandBuffer">The command buffer to issue the bind command on.</param>
-        void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept;
+        ID3D12DescriptorHeap* globalSamplerHeap() const noexcept;
 
         /// <summary>
         /// Returns the command signatures for indirect dispatch and draw calls.
@@ -2725,6 +2703,37 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="drawSignature">The command signature used to execute indirect non-indexed draw calls.</param>
         /// <param name="drawIndexedSignature">The command signature used to execute indirect indexed draw calls.</param>
         void indirectDrawSignatures(ComPtr<ID3D12CommandSignature>& dispatchSignature, ComPtr<ID3D12CommandSignature>& dispatchMeshSignature, ComPtr<ID3D12CommandSignature>& drawSignature, ComPtr<ID3D12CommandSignature>& drawIndexedSignature) const noexcept;
+
+        /// <summary>
+        /// Allocates a <paramref name="descriptors" /> on the descriptor heap indicated by <paramref name=heapType" /> for use with external clients.
+        /// </summary>
+        /// <remarks>
+        /// This call allocates a descriptor range on one of the global descriptor heaps, that can be used with external clients and libraries. Keep in mind that you have to release 
+        /// those descriptors manually by calling the appropriate overload to <see cref="releaseGlobalDescriptors" />. The following example demonstrates how to use this function.
+        /// 
+        /// <example>
+        /// auto [offset, size] = d3dDevice.allocateGlobalDescriptors(1000, DescriptorHeapType::Resource);
+        /// // Use the descriptors.
+        /// d3dDevice.releaseGlobalDescriptors(DescriptorHeapType::Resource, offset, size);
+        /// </example>
+        /// </remarks>
+        /// <param name="descriptors">The number of descriptors to allocate.</param>
+        /// <param name="heapType">The heap type, indicating the descriptor heap to allocate the descriptors from.</param>
+        /// <returns>The offset and size of the allocated descriptor range in the global descriptor heap.</returns>
+        Tuple<UInt32, UInt32> allocateGlobalDescriptors(UInt32 descriptors, DescriptorHeapType heapType) const;
+
+        /// <summary>
+        /// Releases a manually allocated descriptor range from the descriptor heap indicated by <paramref name="heapType" />.
+        /// </summary>
+        /// <remarks>
+        /// Note that the offset and size need to match the allocated range exactly, otherwise calling this method will raise an exception.
+        /// </remarks>
+        /// <param name="heapType">The heap type, indicating the descriptor heap to release the descriptors from.</param>
+        /// <param name="offset">The offset to the beginning of the descriptor range in the heap.</param>
+        /// <param name="descriptors">The number of descriptors in the descriptor range.</param>
+        /// <exception cref="InvalidArgumentException">Thrown, if the combination of <paramref name="offset" /> and <parmref name="descriptors" /> does not match an externally allocated descriptor range on the descriptor heap indicated by <paramref name="heapType" />.</exception>
+        /// <seealso cref="allocateGlobalDescriptors(descriptors, heapType)" /> 
+        void releaseGlobalDescriptors(DescriptorHeapType heapType, UInt32 offset, UInt32 descriptors) const;
 
         // GraphicsDevice interface.
     public:
@@ -2773,6 +2782,21 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void computeAccelerationStructureSizes(const DirectX12TopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
+
+        /// <inheritdoc />
+        void allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const override;
+
+        /// <inheritdoc />
+        void releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const override;
+
+        /// <inheritdoc />
+        void updateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const override;
+
+        /// <inheritdoc />
+        void bindDescriptorSet(const DirectX12CommandBuffer& commandBuffer, const DirectX12DescriptorSet& descriptorSet, const DirectX12PipelineState& pipeline) const noexcept override;
+
+        /// <inheritdoc />
+        void bindGlobalDescriptorHeaps(const DirectX12CommandBuffer& commandBuffer) const noexcept override;
 
 #if defined(LITEFX_BUILD_DEFINE_BUILDERS)
     public:

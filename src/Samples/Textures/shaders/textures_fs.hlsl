@@ -14,7 +14,7 @@ struct FragmentData
 };
 
 Texture2D diffuseMap : register(t1, space0);
-SamplerState diffuse : register(s0, space1);
+SamplerState diffuse : register(s2, space0);
 
 FragmentData main(VertexData input)
 {
