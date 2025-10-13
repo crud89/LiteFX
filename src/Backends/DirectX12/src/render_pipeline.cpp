@@ -334,9 +334,15 @@ public:
 			}
 		});
 
+		CD3DX12_PIPELINE_STATE_STREAM2 streamDesc(pipelineStateDescription);
+		D3D12_PIPELINE_STATE_STREAM_DESC pipelineDesc = {
+			.SizeInBytes = sizeof(streamDesc),
+			.pPipelineStateSubobjectStream = &streamDesc
+		};
+
 		// Create the pipeline state instance.
 		ComPtr<ID3D12PipelineState> pipelineState;
-		raiseIfFailed(m_renderPass->device().handle()->CreateGraphicsPipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
+		raiseIfFailed(m_renderPass->device().handle()->CreatePipelineState(&pipelineDesc, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
 		
 #ifndef NDEBUG
 		pipelineState->SetName(Widen(pipeline.name()).c_str());
