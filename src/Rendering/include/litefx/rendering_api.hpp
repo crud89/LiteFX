@@ -420,6 +420,11 @@ namespace LiteFX::Rendering {
         TextureCoordinate = 0x0000000A,
 
         /// <summary>
+        /// The attribute contains arbitrary data, that does not have any semantic associated with it.
+        /// </summary>
+        Arbitrary = 0x0000000B,
+
+        /// <summary>
         /// The attribute is a generic, unknown semantic.
         /// </summary>
         Unknown = 0x7FFFFFFF
