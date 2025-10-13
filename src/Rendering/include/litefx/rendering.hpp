@@ -1276,9 +1276,13 @@ namespace LiteFX::Rendering {
     class GraphicsFactory : public IGraphicsFactory {
     public:
         using IGraphicsFactory::createBuffer;
+        using IGraphicsFactory::tryCreateBuffer;
         using IGraphicsFactory::createVertexBuffer;
+        using IGraphicsFactory::tryCreateVertexBuffer;
         using IGraphicsFactory::createIndexBuffer;
+        using IGraphicsFactory::tryCreateIndexBuffer;
         using IGraphicsFactory::createTexture;
+        using IGraphicsFactory::tryCreateTexture;
         using IGraphicsFactory::createTextures;
         using IGraphicsFactory::createSampler;
         using IGraphicsFactory::createSamplers;
@@ -1306,31 +1310,55 @@ namespace LiteFX::Rendering {
 
     public:
         /// <inheritdoc />
-        virtual SharedPtr<TBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const = 0;
+        virtual SharedPtr<TBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
         
         /// <inheritdoc />
-        virtual SharedPtr<TBuffer> createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const = 0;
+        virtual SharedPtr<TBuffer> createBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
 
         /// <inheritdoc />
-        virtual SharedPtr<TVertexBuffer> createVertexBuffer(const vertex_buffer_layout_type& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const = 0;
+        virtual SharedPtr<TVertexBuffer> createVertexBuffer(const vertex_buffer_layout_type& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
 
         /// <inheritdoc />
-        virtual SharedPtr<TVertexBuffer> createVertexBuffer(const String& name, const vertex_buffer_layout_type& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default) const = 0;
+        virtual SharedPtr<TVertexBuffer> createVertexBuffer(const String& name, const vertex_buffer_layout_type& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
 
         /// <inheritdoc />
-        virtual SharedPtr<TIndexBuffer> createIndexBuffer(const index_buffer_layout_type& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const = 0;
+        virtual SharedPtr<TIndexBuffer> createIndexBuffer(const index_buffer_layout_type& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
 
         /// <inheritdoc />
-        virtual SharedPtr<TIndexBuffer> createIndexBuffer(const String& name, const index_buffer_layout_type& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default) const = 0;
+        virtual SharedPtr<TIndexBuffer> createIndexBuffer(const String& name, const index_buffer_layout_type& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
 
         /// <inheritdoc />
-        virtual SharedPtr<TImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const = 0;
+        virtual SharedPtr<TImage> createTexture(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
 
         /// <inheritdoc />
-        virtual SharedPtr<TImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const = 0;
+        virtual SharedPtr<TImage> createTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
 
         /// <inheritdoc />
-        virtual Generator<SharedPtr<TImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default) const = 0;
+        virtual bool tryCreateBuffer(SharedPtr<TBuffer>& buffer, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
+
+        /// <inheritdoc />
+        virtual bool tryCreateBuffer(SharedPtr<TBuffer>& buffer, const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
+
+        /// <inheritdoc />
+        virtual bool tryCreateVertexBuffer(SharedPtr<TVertexBuffer>& buffer, const vertex_buffer_layout_type& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
+
+        /// <inheritdoc />
+        virtual bool tryCreateVertexBuffer(SharedPtr<TVertexBuffer>& buffer, const String& name, const vertex_buffer_layout_type& layout, ResourceHeap heap, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
+
+        /// <inheritdoc />
+        virtual bool tryCreateIndexBuffer(SharedPtr<TIndexBuffer>& buffer, const index_buffer_layout_type& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
+
+        /// <inheritdoc />
+        virtual bool tryCreateIndexBuffer(SharedPtr<TIndexBuffer>& buffer, const String& name, const index_buffer_layout_type& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
+
+        /// <inheritdoc />
+        virtual bool tryCreateTexture(SharedPtr<TImage>& image, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
+
+        /// <inheritdoc />
+        virtual bool tryCreateTexture(SharedPtr<TImage>& image, const String& name, Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 levels = 1, UInt32 layers = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
+
+        /// <inheritdoc />
+        virtual Generator<SharedPtr<TImage>> createTextures(Format format, const Size3d& size, ImageDimensions dimension = ImageDimensions::DIM_2, UInt32 layers = 1, UInt32 levels = 1, MultiSamplingLevel samples = MultiSamplingLevel::x1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const = 0;
 
         /// <inheritdoc />
         virtual SharedPtr<TSampler> createSampler(FilterMode magFilter = FilterMode::Nearest, FilterMode minFilter = FilterMode::Nearest, BorderMode borderU = BorderMode::Repeat, BorderMode borderV = BorderMode::Repeat, BorderMode borderW = BorderMode::Repeat, MipMapMode mipMapMode = MipMapMode::Nearest, Float mipMapBias = 0.f, Float maxLod = std::numeric_limits<Float>::max(), Float minLod = 0.f, Float anisotropy = 0.f) const = 0;
@@ -1358,43 +1386,99 @@ namespace LiteFX::Rendering {
         virtual UniquePtr<TTLAS> createTopLevelAccelerationStructure(StringView name, AccelerationStructureFlags flags) const = 0;
 
     private:
-        inline SharedPtr<IBuffer> getBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const override {
-            return this->createBuffer(type, heap, elementSize, elements, usage);
+        inline SharedPtr<IBuffer> getBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
+            return this->createBuffer(type, heap, elementSize, elements, usage, allocationBehavior);
         }
 
-        inline SharedPtr<IBuffer> getBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage) const override {
-            return this->createBuffer(name, type, heap, elementSize, elements, usage);
+        inline SharedPtr<IBuffer> getBuffer(const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
+            return this->createBuffer(name, type, heap, elementSize, elements, usage, allocationBehavior);
         }
 
-        inline SharedPtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const override {
-            return this->createVertexBuffer(dynamic_cast<const vertex_buffer_layout_type&>(layout), heap, elements, usage);
+        inline SharedPtr<IVertexBuffer> getVertexBuffer(const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
+            return this->createVertexBuffer(dynamic_cast<const vertex_buffer_layout_type&>(layout), heap, elements, usage, allocationBehavior);
         }
 
-        inline SharedPtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const override {
-            return this->createVertexBuffer(name, dynamic_cast<const vertex_buffer_layout_type&>(layout), heap, elements, usage);
+        inline SharedPtr<IVertexBuffer> getVertexBuffer(const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
+            return this->createVertexBuffer(name, dynamic_cast<const vertex_buffer_layout_type&>(layout), heap, elements, usage, allocationBehavior);
         }
         
-        inline SharedPtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const override {
-            return this->createIndexBuffer(dynamic_cast<const index_buffer_layout_type&>(layout), heap, elements, usage);
+        inline SharedPtr<IIndexBuffer> getIndexBuffer(const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
+            return this->createIndexBuffer(dynamic_cast<const index_buffer_layout_type&>(layout), heap, elements, usage, allocationBehavior);
         }
 
-        inline SharedPtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage) const override {
-            return this->createIndexBuffer(name, dynamic_cast<const index_buffer_layout_type&>(layout), heap, elements, usage);
+        inline SharedPtr<IIndexBuffer> getIndexBuffer(const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
+            return this->createIndexBuffer(name, dynamic_cast<const index_buffer_layout_type&>(layout), heap, elements, usage, allocationBehavior);
         }
         
-        inline SharedPtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const override {
-            return this->createTexture(format, size, dimension, levels, layers, samples, usage);
+        inline SharedPtr<IImage> getTexture(Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
+            return this->createTexture(format, size, dimension, levels, layers, samples, usage, allocationBehavior);
         }
 
-        inline SharedPtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage) const override {
-            return this->createTexture(name, format, size, dimension, levels, layers, samples, usage);
+        inline SharedPtr<IImage> getTexture(const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
+            return this->createTexture(name, format, size, dimension, levels, layers, samples, usage, allocationBehavior);
         }
 
-        inline Generator<SharedPtr<IImage>> getTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage) const override {
+        inline bool tryGetBuffer(SharedPtr<IBuffer>& buffer, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
+            SharedPtr<buffer_type> actualBuffer;
+            auto result = this->tryCreateBuffer(actualBuffer, type, heap, elementSize, elements, usage, allocationBehavior);
+            buffer = actualBuffer;
+            return result;
+        }
+
+        inline bool tryGetBuffer(SharedPtr<IBuffer>& buffer, const String& name, BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
+            SharedPtr<buffer_type> actualBuffer;
+            auto result = this->tryCreateBuffer(actualBuffer, name, type, heap, elementSize, elements, usage, allocationBehavior);
+            buffer = actualBuffer;
+            return result;
+        }
+
+        inline bool tryGetVertexBuffer(SharedPtr<IVertexBuffer>& buffer, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
+            SharedPtr<vertex_buffer_type> actualBuffer;
+            auto result = this->tryCreateVertexBuffer(actualBuffer, dynamic_cast<const vertex_buffer_layout_type&>(layout), heap, elements, usage, allocationBehavior);
+            buffer = actualBuffer;
+            return result;
+        }
+
+        inline bool tryGetVertexBuffer(SharedPtr<IVertexBuffer>& buffer, const String& name, const IVertexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
+            SharedPtr<vertex_buffer_type> actualBuffer;
+            auto result = this->tryCreateVertexBuffer(actualBuffer, name, dynamic_cast<const vertex_buffer_layout_type&>(layout), heap, elements, usage, allocationBehavior);
+            buffer = actualBuffer;
+            return result;
+        }
+
+        inline bool tryGetIndexBuffer(SharedPtr<IIndexBuffer>& buffer, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
+            SharedPtr<index_buffer_type> actualBuffer;
+            auto result = this->tryCreateIndexBuffer(actualBuffer, dynamic_cast<const index_buffer_layout_type&>(layout), heap, elements, usage, allocationBehavior);
+            buffer = actualBuffer;
+            return result;
+        }
+
+        inline bool tryGetIndexBuffer(SharedPtr<IIndexBuffer>& buffer, const String& name, const IIndexBufferLayout& layout, ResourceHeap heap, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
+            SharedPtr<index_buffer_type> actualBuffer;
+            auto result = this->tryCreateIndexBuffer(actualBuffer, name, dynamic_cast<const index_buffer_layout_type&>(layout), heap, elements, usage, allocationBehavior);
+            buffer = actualBuffer;
+            return result;
+        }
+
+        inline bool tryGetTexture(SharedPtr<IImage>& image, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
+            SharedPtr<image_type> actualImage;
+            auto result = this->tryCreateTexture(actualImage, format, size, dimension, levels, layers, samples, usage, allocationBehavior);
+            image = actualImage;
+            return result;
+        }
+
+        inline bool tryGetTexture(SharedPtr<IImage>& image, const String& name, Format format, const Size3d& size, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
+            SharedPtr<image_type> actualImage;
+            auto result = this->tryCreateTexture(actualImage, name, format, size, dimension, levels, layers, samples, usage, allocationBehavior);
+            image = actualImage;
+            return result;
+        }
+
+        inline Generator<SharedPtr<IImage>> getTextures(Format format, const Size3d& size, ImageDimensions dimension, UInt32 layers, UInt32 levels, MultiSamplingLevel samples, ResourceUsage usage, AllocationBehavior allocationBehavior) const override {
             return [](Generator<SharedPtr<TImage>> gen) -> Generator<SharedPtr<IImage>> {
                 for (auto texture : gen)
                     co_yield std::move(texture);
-            }(this->createTextures(format, size, dimension, layers, levels, samples, usage));
+            }(this->createTextures(format, size, dimension, layers, levels, samples, usage, allocationBehavior));
         }
         
         inline SharedPtr<ISampler> getSampler(FilterMode magFilter, FilterMode minFilter, BorderMode borderU, BorderMode borderV, BorderMode borderW, MipMapMode mipMapMode, Float mipMapBias, Float maxLod, Float minLod, Float anisotropy) const override {

@@ -149,3 +149,23 @@ TARGET_LINK_SHADERS(vk_reflect_dynamic_descriptors_pipeline_test
     INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
     SHADERS Tests.Vk.Shaders.DD.VS Tests.Vk.Shaders.FS
 )
+
+DEFINE_TEST("device_allocates_vk_buffers" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_alloc_buffer_test" 
+	SOURCES "common.h" "alloc_buffer.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+)
+
+DEFINE_TEST("device_allocates_vk_vertex_buffers" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_alloc_vertex_buffer_test" 
+	SOURCES "common.h" "alloc_vertex_buffer.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+)
+
+DEFINE_TEST("device_allocates_vk_index_buffers" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_alloc_index_buffer_test" 
+	SOURCES "common.h" "alloc_index_buffer.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+)
+
+DEFINE_TEST("device_allocates_vk_images" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_alloc_image_test" 
+	SOURCES "common.h" "alloc_image.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+)

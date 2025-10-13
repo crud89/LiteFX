@@ -155,6 +155,26 @@ TARGET_LINK_SHADERS(d3d12_reflect_dynamic_descriptors_pipeline_test
     SHADERS Tests.Dx.Shaders.DD.VS Tests.Dx.Shaders.PS
 )
 
+DEFINE_TEST("device_allocates_d3d12_buffers" FOLDER "Tests/Backends/D3D12" EXECUTABLE_NAME "d3d12_alloc_buffer_test" 
+	SOURCES "common.h" "alloc_buffer.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12
+)
+
+DEFINE_TEST("device_allocates_d3d12_vertex_buffers" FOLDER "Tests/Backends/D3D12" EXECUTABLE_NAME "d3d12_alloc_vertex_buffer_test" 
+	SOURCES "common.h" "alloc_vertex_buffer.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12
+)
+
+DEFINE_TEST("device_allocates_d3d12_index_buffers" FOLDER "Tests/Backends/D3D12" EXECUTABLE_NAME "d3d12_alloc_index_buffer_test" 
+	SOURCES "common.h" "alloc_index_buffer.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12
+)
+
+DEFINE_TEST("device_allocates_d3d12_images" FOLDER "Tests/Backends/D3D12" EXECUTABLE_NAME "d3d12_alloc_image_test" 
+	SOURCES "common.h" "alloc_image.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.DirectX12
+)
+
 ADD_DEPENDENCIES(d3d12_app_init_test dxwarp)
 ADD_DEPENDENCIES(d3d12_input_assembler_test dxwarp)
 ADD_DEPENDENCIES(d3d12_rasterizer_test dxwarp)
@@ -172,3 +192,7 @@ ADD_DEPENDENCIES(d3d12_ray_tracing_test dxwarp)
 ADD_DEPENDENCIES(d3d12_acceleration_structure_test dxwarp)
 ADD_DEPENDENCIES(d3d12_partial_scissor_test dxwarp)
 ADD_DEPENDENCIES(d3d12_reflect_dynamic_descriptors_pipeline_test dxwarp)
+ADD_DEPENDENCIES(d3d12_alloc_buffer_test dxwarp)
+ADD_DEPENDENCIES(d3d12_alloc_vertex_buffer_test dxwarp)
+ADD_DEPENDENCIES(d3d12_alloc_index_buffer_test dxwarp)
+ADD_DEPENDENCIES(d3d12_alloc_image_test dxwarp)
