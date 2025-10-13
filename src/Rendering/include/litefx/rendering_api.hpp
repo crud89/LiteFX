@@ -420,6 +420,11 @@ namespace LiteFX::Rendering {
         TextureCoordinate = 0x0000000A,
 
         /// <summary>
+        /// The attribute contains arbitrary data, that does not have any semantic associated with it.
+        /// </summary>
+        Arbitrary = 0x0000000B,
+
+        /// <summary>
         /// The attribute is a generic, unknown semantic.
         /// </summary>
         Unknown = 0x7FFFFFFF
@@ -844,6 +849,22 @@ namespace LiteFX::Rendering {
         /// Indices are stored as 4 byte unsigned integers.
         /// </summary>
         UInt32 = 0x00000020
+    };
+
+    /// <summary>
+    /// The rate at which a vertex buffer of a certain <see cref="IVertexBufferLayout" /> is made available for vertex shaders.
+    /// </summary>
+    /// <seealso cref="IVertexBufferLayout" />
+    enum class VertexBufferInputRate : UInt32 {
+        /// <summary>
+        /// The vertex buffer layout describes data that is made available per individual vertex.
+        /// </summary>
+        Vertex = 0,
+
+        /// <summary>
+        /// The vertex buffer layout describes data that is made available per instance.
+        /// </summary>
+        Instance = 1
     };
 
     /// <summary>
@@ -4064,6 +4085,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The vertex buffer attributes.</returns>
         virtual const Array<BufferAttribute>& attributes() const = 0;
+
+        /// <summary>
+        /// Returns the vertex buffer input rate that describes how the data is made available to the vertex shader.
+        /// </summary>
+        /// <returns>The vertex buffer input rate setting.</returns>
+        virtual VertexBufferInputRate inputRate() const noexcept = 0;
     };
 
     /// <summary>

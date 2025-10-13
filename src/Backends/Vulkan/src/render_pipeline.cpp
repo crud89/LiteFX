@@ -149,10 +149,12 @@ public:
 			LITEFX_TRACE(VULKAN_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size: {3} bytes, Binding: {4} }}...", ++l, vertexLayouts, bufferAttributes.size(), layout.elementSize(), bindingPoint);
 #endif
 
-			VkVertexInputBindingDescription binding = {};
-			binding.binding = bindingPoint;
-			binding.stride = static_cast<UInt32>(layout.elementSize());
-			binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+			VkVertexInputBindingDescription binding = {
+				.binding = bindingPoint,
+				.stride = static_cast<UInt32>(layout.elementSize()),
+				.inputRate = layout.inputRate() == VertexBufferInputRate::Vertex ?
+					VK_VERTEX_INPUT_RATE_VERTEX : VK_VERTEX_INPUT_RATE_INSTANCE
+			};
 
 			Array<VkVertexInputAttributeDescription> currentAttributes = bufferAttributes |
 				std::views::transform([&bindingPoint, attributes = bufferAttributes.size(), i = 0] (auto& attribute) mutable {
