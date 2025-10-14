@@ -64,6 +64,7 @@ namespace LiteFX::Rendering {
     class IGraphicsFactory;
     class IGraphicsDevice;
     class IRenderBackend;
+    class VirtualAllocator;
 
 #pragma region "Enumerations"
 
@@ -834,6 +835,38 @@ namespace LiteFX::Rendering {
         /// can potentially delay an allocation to a less time-critical point.
         /// </summary>
         DontExpandCache = 0x02
+    };
+
+    /// <summary>
+    /// The allocation algorithm used by <see cref="VirtualAllocator"/>s.
+    /// </summary>
+    enum class AllocationAlgorithm : UInt32 {
+        /// <summary>
+        /// The default algorithm without any constraints on the memory layout.
+        /// </summary>
+        Default = 0x01,
+
+        /// <summary>
+        /// A linear allocation algorithm, that allocates memory blocks sequentially.
+        /// </summary>
+        /// <seealso href="https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/custom_memory_pools.html#linear_algorithm" />
+        /// <seealso href="https://gpuopen-librariesandsdks.github.io/D3D12MemoryAllocator/html/linear_algorithm.html" />
+        Linear = 0x02
+    };
+
+    /// <summary>
+    /// The allocation strategy used by allocators (<see cref="IGraphicsFactory" /> and <see cref="VirtualAllocator" />) when allocating new chunks of memory.
+    /// </summary>
+    enum class AllocationStrategy : UInt32 {
+        /// <summary>
+        /// Prefers good packing over allocation time and reduces fragmentation.
+        /// </summary>
+        OptimizePacking = 0x01,
+
+        /// <summary>
+        /// Prefers allocation time over packing.
+        /// </summary>
+        OptimizeTime = 0x02,
     };
 
     /// <summary>
@@ -9422,6 +9455,14 @@ namespace LiteFX::Rendering {
         ~IGraphicsFactory() noexcept override = default;
 
     public:
+        /// <summary>
+        /// Creates a virtual allocator that can be used to manage allocation from a custom block of memory.
+        /// </summary>
+        /// <param name="overallMemory">The overall size (in bytes) of memory available to the allocator.</param>
+        /// <param name="algorithm">The algorithm used to find a suitable block in the allocator memory.</param>
+        /// <returns>The instance of the virtual allocator.</returns>
+        [[nodiscard]] virtual VirtualAllocator createAllocator(UInt64 overallMemory, AllocationAlgorithm algorithm = AllocationAlgorithm::Default) const = 0;
+
         /// <summary>
         /// Creates a buffer of type <paramref name="type" />.
         /// </summary>
