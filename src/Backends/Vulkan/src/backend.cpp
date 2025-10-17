@@ -133,7 +133,7 @@ public:
             .applicationVersion = VK_MAKE_VERSION(app.version().major(), app.version().minor(), app.version().patch()),
             .pEngineName = LITEFX_ENGINE_ID,
             .engineVersion = VK_MAKE_VERSION(LITEFX_MAJOR, LITEFX_MINOR, LITEFX_REV),
-            .apiVersion = VK_API_VERSION_1_3
+            .apiVersion = VK_API_VERSION_1_4
         };
 
         // Create Vulkan instance.
