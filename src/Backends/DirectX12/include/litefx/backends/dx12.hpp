@@ -1508,6 +1508,9 @@ namespace LiteFX::Rendering::Backends {
         void track(SharedPtr<const ISampler> sampler) const override;
 
         /// <inheritdoc />
+        void track(UniquePtr<const IDescriptorSet>&& descriptorSet) const override;
+
+        /// <inheritdoc />
         bool isSecondary() const noexcept override;
 
         /// <inheritdoc />

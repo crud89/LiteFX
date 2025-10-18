@@ -25,6 +25,7 @@ private:
 	bool m_recording{ false }, m_secondary{ false };
 	VkCommandPool m_commandPool{};
 	Array<SharedPtr<const IStateResource>> m_sharedResources;
+	Array<UniquePtr<const IDescriptorSet>> m_trackedDescriptorSets;
 	const VulkanPipelineState* m_lastPipeline = nullptr;
 	WeakPtr<const VulkanQueue> m_queue;
 	WeakPtr<const VulkanDevice> m_device;
@@ -266,6 +267,7 @@ void VulkanCommandBuffer::begin() const
 
 	// If it was possible to reset the command buffer, we can also safely release shared resources from previous recordings.
 	m_impl->m_sharedResources.clear();
+	m_impl->m_trackedDescriptorSets.clear();
 }
 
 void VulkanCommandBuffer::begin(const VulkanRenderPass& renderPass) const
@@ -360,6 +362,15 @@ void VulkanCommandBuffer::track(SharedPtr<const ISampler> sampler) const
 
 	if (sampler != nullptr)
 		m_impl->m_sharedResources.push_back(sampler);
+}
+
+void VulkanCommandBuffer::track(UniquePtr<const IDescriptorSet>&& descriptorSet) const
+{
+	if (!m_impl->m_recording)
+		throw RuntimeException("Command buffers may only start resource tracking if they are currently recording.");
+
+	if (descriptorSet != nullptr)
+		m_impl->m_trackedDescriptorSets.push_back(std::move(descriptorSet));
 }
 
 bool VulkanCommandBuffer::isSecondary() const noexcept

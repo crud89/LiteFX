@@ -7332,6 +7332,12 @@ namespace LiteFX::Rendering {
         /// <seealso cref="track(SharedPtr&le;const IBuffer&ge;)" />
         virtual void track(SharedPtr<const ISampler> sampler) const = 0;
 
+        /// <summary>
+        /// Sets up tracking for a descriptor set, so that bindings aren't released until the command buffer has been executed.
+        /// </summary>
+        /// <param name="descriptorSet">The descriptor set to track.</param>
+        virtual void track(UniquePtr<const IDescriptorSet>&& descriptorSet) const = 0;
+
     public:
         /// <summary>
         /// Gets a pointer to the command queue that this command buffer was allocated from or `nullptr`, if the queue has already been released.
