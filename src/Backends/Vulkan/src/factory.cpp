@@ -1,6 +1,7 @@
 #include <litefx/backends/vulkan.hpp>
 #include "buffer.h"
 #include "image.h"
+#include "virtual_allocator.hpp"
 
 using namespace LiteFX::Rendering::Backends;
 
@@ -421,6 +422,11 @@ VulkanGraphicsFactory::VulkanGraphicsFactory(const VulkanDevice& device) :
 }
 
 VulkanGraphicsFactory::~VulkanGraphicsFactory() noexcept = default;
+
+VirtualAllocator VulkanGraphicsFactory::createAllocator(UInt64 overallMemory, AllocationAlgorithm algorithm) const
+{
+	return VirtualAllocator::create<VulkanBackend>(overallMemory, algorithm);
+}
 
 bool VulkanGraphicsFactory::supportsResizableBaseAddressRegister() const noexcept
 {

@@ -13,7 +13,7 @@ public:
 private:
     struct LocalHeap {
         ComPtr<ID3D12DescriptorHeap> Heap{};
-        UInt32 Offset{ 0 }, Size{ 0 };
+        VirtualAllocator::Allocation Allocation;
     } m_resourceHeap{}, m_samplerHeap{};
 
     SharedPtr<const DirectX12DescriptorSetLayout> m_layout;
@@ -57,29 +57,16 @@ public:
         }
     }
 
-    inline UInt32 globalHeapOffset(DescriptorHeapType heapType) const noexcept
+    inline VirtualAllocator::Allocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept
     {
         switch (heapType)
         {
         case DescriptorHeapType::Resource:
-            return m_resourceHeap.Offset;
+            return m_resourceHeap.Allocation;
         case DescriptorHeapType::Sampler:
-            return m_samplerHeap.Offset;
+            return m_samplerHeap.Allocation;
         default:
-            return std::numeric_limits<UInt32>::max();
-        }
-    }
-
-    inline UInt32 globalHeapAddressRange(DescriptorHeapType heapType) const noexcept
-    {
-        switch (heapType)
-        {
-        case DescriptorHeapType::Resource:
-            return m_resourceHeap.Size;
-        case DescriptorHeapType::Sampler:
-            return m_samplerHeap.Size;
-        default:
-            return 0u;
+            std::unreachable();
         }
     }
 
@@ -228,7 +215,7 @@ public:
         m_layout->device()->updateGlobalDescriptors(parent, descriptorLayout.binding(), firstDescriptor, elementCount);
 
         // Return the global descriptor offset in the global descriptor heap.
-        return this->globalHeapOffset(DescriptorHeapType::Resource) + offset;
+        return static_cast<UInt32>(this->globalHeapAllocation(DescriptorHeapType::Resource).Offset) + offset;
     }
 
     UInt32 updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, DescriptorType bindingType, UInt32 descriptor, const IDirectX12Image& image, UInt32 firstLevel, UInt32 levels, UInt32 firstLayer, UInt32 layers)
@@ -404,7 +391,7 @@ public:
         m_layout->device()->updateGlobalDescriptors(parent, descriptorLayout.binding(), descriptor, 1u);
 
         // Return the global descriptor offset in the global descriptor heap.
-        return this->globalHeapOffset(DescriptorHeapType::Resource) + offset;
+        return static_cast<UInt32>(this->globalHeapAllocation(DescriptorHeapType::Resource).Offset) + offset;
     }
 
     UInt32 updateBinding(const DirectX12DescriptorSet& parent, const DirectX12DescriptorLayout& descriptorLayout, UInt32 descriptor, const IDirectX12Sampler& sampler)
@@ -446,7 +433,7 @@ public:
         device->updateGlobalDescriptors(parent, descriptorLayout.binding(), descriptor, 1u);
 
         // Return the global descriptor offset in the global descriptor heap.
-        return this->globalHeapOffset(DescriptorHeapType::Sampler) + offset;
+        return static_cast<UInt32>(this->globalHeapAllocation(DescriptorHeapType::Sampler).Offset) + offset;
     }
 };
 
@@ -458,10 +445,10 @@ DirectX12DescriptorSet::DirectX12DescriptorSet(const DirectX12DescriptorSetLayou
     m_impl(layout, std::move(resourceHeap), std::move(samplerHeap))
 {
     if (layout.bindsResources())
-        layout.device()->allocateGlobalDescriptors(*this, DescriptorHeapType::Resource, m_impl->m_resourceHeap.Offset, m_impl->m_resourceHeap.Size);
+        m_impl->m_resourceHeap.Allocation = layout.device()->allocateGlobalDescriptors(*this, DescriptorHeapType::Resource);
 
     if (layout.bindsSamplers())
-        layout.device()->allocateGlobalDescriptors(*this, DescriptorHeapType::Sampler, m_impl->m_samplerHeap.Offset, m_impl->m_samplerHeap.Size);
+        m_impl->m_samplerHeap.Allocation = layout.device()->allocateGlobalDescriptors(*this, DescriptorHeapType::Sampler);
 }
 
 DirectX12DescriptorSet::~DirectX12DescriptorSet() noexcept
@@ -475,14 +462,9 @@ const DirectX12DescriptorSetLayout& DirectX12DescriptorSet::layout() const noexc
     return *m_impl->m_layout;
 }
 
-UInt32 DirectX12DescriptorSet::globalHeapOffset(DescriptorHeapType heapType) const noexcept
+VirtualAllocator::Allocation DirectX12DescriptorSet::globalHeapAllocation(DescriptorHeapType heapType) const noexcept
 {
-    return m_impl->globalHeapOffset(heapType);
-}
-
-UInt32 DirectX12DescriptorSet::globalHeapAddressRange(DescriptorHeapType heapType) const noexcept
-{
-    return m_impl->globalHeapAddressRange(heapType);
+    return m_impl->globalHeapAllocation(heapType);
 }
 
 UInt32 DirectX12DescriptorSet::bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IDirectX12Buffer& buffer, UInt32 bufferElement, UInt32 elements, Format texelFormat) const

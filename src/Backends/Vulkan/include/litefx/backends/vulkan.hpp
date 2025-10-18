@@ -782,10 +782,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        UInt32 globalHeapOffset(DescriptorHeapType heapType) const noexcept override;
-
-        /// <inheritdoc />
-        UInt32 globalHeapAddressRange(DescriptorHeapType heapType) const noexcept override;
+        VirtualAllocator::Allocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept override;
 
         /// <inheritdoc />
         UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const override;
@@ -1544,6 +1541,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void track(SharedPtr<const ISampler> sampler) const override;
+
+        /// <inheritdoc />
+        void track(UniquePtr<const IDescriptorSet>&& descriptorSet) const override;
 
         /// <inheritdoc />
         bool isSecondary() const noexcept override;
@@ -2570,6 +2570,9 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
+        [[nodiscard]] VirtualAllocator createAllocator(UInt64 overallMemory, AllocationAlgorithm algorithm = AllocationAlgorithm::Default) const override;
+
+        /// <inheritdoc />
         SharedPtr<IVulkanBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
@@ -2842,7 +2845,7 @@ namespace LiteFX::Rendering::Backends {
         void computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
 
         /// <inheritdoc />
-        void allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const override;
+        [[nodiscard]] VirtualAllocator::Allocation allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType) const override;
 
         /// <inheritdoc />
         void releaseGlobalDescriptors(const VulkanDescriptorSet& descriptorSet) const override;

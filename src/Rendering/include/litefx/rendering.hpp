@@ -126,7 +126,7 @@ namespace LiteFX::Rendering {
     ///     with a buffer write in an earlier frame, this method provides the most efficient approach. However, it may be hard or impossible to determine the ideal size of 
     ///     the ring-buffer upfront.
     ///     </description>
-    ///   </itemattach
+    ///   </item>
     /// </list>
     /// 
     /// Note that samplers, textures and input attachments currently do not support array binding, since they are typically only updated once or require pipeline 
@@ -1631,7 +1631,7 @@ namespace LiteFX::Rendering {
         virtual void computeAccelerationStructureSizes(const top_level_acceleration_structure_type& tlas, UInt64 & bufferSize, UInt64 & scratchSize, bool forUpdate = false) const = 0;
 
         /// <inheritdoc />
-        virtual void allocateGlobalDescriptors(const descriptor_set_type& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const = 0;
+        [[nodiscard]] virtual VirtualAllocator::Allocation allocateGlobalDescriptors(const descriptor_set_type& descriptorSet, DescriptorHeapType heapType) const = 0;
 
         /// <inheritdoc />
         virtual void releaseGlobalDescriptors(const descriptor_set_type& descriptorSet) const = 0;
@@ -1654,8 +1654,8 @@ namespace LiteFX::Rendering {
             this->computeAccelerationStructureSizes(dynamic_cast<const top_level_acceleration_structure_type&>(tlas), bufferSize, scratchSize, forUpdate);
         }
         
-        inline void doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const override {
-            this->allocateGlobalDescriptors(dynamic_cast<const descriptor_set_type&>(descriptorSet), heapType, heapOffset, heapSize);
+        inline VirtualAllocator::Allocation doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const override {
+            return this->allocateGlobalDescriptors(dynamic_cast<const descriptor_set_type&>(descriptorSet), heapType);
         }
 
         inline void doReleaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const override {
