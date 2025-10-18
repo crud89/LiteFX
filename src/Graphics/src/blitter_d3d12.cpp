@@ -18,7 +18,6 @@ class Blitter<DirectX12Backend>::BlitImpl {
 private:
 	WeakPtr<const DirectX12Device> m_device;
 	UniquePtr<DirectX12ComputePipeline> m_pipeline;
-	SharedPtr<IDirectX12Sampler> m_sampler;
 
 public:
 	BlitImpl(const DirectX12Device& device) :
@@ -29,6 +28,9 @@ public:
 public:
 	void initialize(const DirectX12Device& device)
 	{
+		// Create the sampler state.
+		auto sampler = device.factory().createSampler(FilterMode::Linear, FilterMode::Linear, BorderMode::ClampToEdge, BorderMode::ClampToEdge, BorderMode::ClampToEdge);
+
 		// Allocate shader module.
 		auto blitShader = LiteFX::Graphics::Shaders::blit_dxi::open();
 		Array<UniquePtr<DirectX12ShaderModule>> modules;
@@ -37,11 +39,14 @@ public:
 
 		// Allocate descriptor set layouts.
 		// NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
-		auto bufferLayouts = Array<DirectX12DescriptorLayout>{ DirectX12DescriptorLayout{ DescriptorType::ConstantBuffer, 0, 16 }, DirectX12DescriptorLayout{ DescriptorType::Texture, 1, 0 }, DirectX12DescriptorLayout{ DescriptorType::RWTexture, 2, 0 } };
-		auto samplerLayouts = Array<DirectX12DescriptorLayout>{ DirectX12DescriptorLayout{ DescriptorType::Sampler, 0, 0 } };
+		auto bufferLayouts = Array<DirectX12DescriptorLayout>{ 
+			{ DescriptorType::ConstantBuffer, 0, 16 }, 
+			{ DescriptorType::Texture, 1, 0 }, 
+			{ DescriptorType::RWTexture, 2, 0 },
+			{ *sampler, 3 } // Static sampler at s3.
+		};
 		Array<SharedPtr<DirectX12DescriptorSetLayout>> descriptorSetLayouts;
 		descriptorSetLayouts.push_back(DirectX12DescriptorSetLayout::create(device, bufferLayouts, 0, ShaderStage::Compute));
-		descriptorSetLayouts.push_back(DirectX12DescriptorSetLayout::create(device, samplerLayouts, 1, ShaderStage::Compute));
 		// NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
 		// Create a pipeline layout.
@@ -49,9 +54,6 @@ public:
 
 		// Create the pipeline.
 		m_pipeline = makeUnique<DirectX12ComputePipeline>(device, pipelineLayout, shaderProgram, "Blit");
-
-		// Create the sampler state.
-		m_sampler = device.factory().createSampler(FilterMode::Linear, FilterMode::Linear, BorderMode::ClampToEdge, BorderMode::ClampToEdge, BorderMode::ClampToEdge);
 	}
 };
 
@@ -104,23 +106,17 @@ void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX1
 
 	// Create and bind the parameters.
 	const auto& resourceBindingsLayout = pipeline.layout()->descriptorSet(0);
-	auto resourceBindings = resourceBindingsLayout.allocate(image.levels() * image.layers());
+	auto resourceBindings = resourceBindingsLayout.allocate(image.levels() * image.layers()) | std::ranges::to<std::vector>();
 	const auto& parametersLayout = resourceBindingsLayout.descriptor(0);
 	auto parameters = device->factory().createBuffer(parametersLayout.type(), ResourceHeap::Dynamic, parametersLayout.elementSize(), image.levels());
 	parameters->map(parametersBlock, sizeof(Parameters));
 	commandBuffer.track(parameters);
 
-	// Create and bind the sampler.
-	const auto& samplerBindingsLayout = pipeline.layout()->descriptorSet(1);
-	auto samplerBindings = samplerBindingsLayout.allocate();
-	samplerBindings->update(0, *m_impl->m_sampler);
-	commandBuffer.bind(*samplerBindings, pipeline);
-
 	// Transition the texture into a read/write state.
 	DirectX12Barrier startBarrier(PipelineStage::All, PipelineStage::Compute);
 	startBarrier.transition(image, ResourceAccess::None, ResourceAccess::ShaderReadWrite, ImageLayout::Undefined, ImageLayout::ReadWrite);
 	commandBuffer.barrier(startBarrier);
-	auto resource = resourceBindings.begin();
+	auto resourceBinding = resourceBindings.begin();
 
 	for (UInt32 l(0); l < image.layers(); ++l)
 	{
@@ -128,24 +124,29 @@ void Blitter<DirectX12Backend>::generateMipMaps(IDirectX12Image& image, DirectX1
 
 		for (UInt32 i(1); i < image.levels(); ++i, size /= 2)
 		{
+			auto resource = std::move(*resourceBinding);
+
 			// Update the invocation parameters.
-			(*resource)->update(parametersLayout.binding(), *parameters, i, 1);
+			resource->update(parametersLayout.binding(), *parameters, i, 1);
 
 			// Bind the previous mip map level to the SRV at binding point 1.
-			(*resource)->update(1, image, 0, i - 1, 1, l, 1);
+			resource->update(1, image, 0, i - 1, 1, l, 1);
 
 			// Bind the current level to the UAV at binding point 2.
-			(*resource)->update(2, image, 0, i, 1, l, 1);
+			resource->update(2, image, 0, i, 1, l, 1);
 
 			// Dispatch the pipeline.
-			commandBuffer.bind(*(*resource), pipeline);
+			commandBuffer.bind(*resource, pipeline);
 			commandBuffer.dispatch({ std::max<UInt32>(static_cast<UInt32>(size.width()) / 8, 1), std::max<UInt32>(static_cast<UInt32>(size.height()) / 8, 1), 1 }); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
 			// Wait for all writes.
 			DirectX12Barrier subBarrier(PipelineStage::Compute, PipelineStage::Compute);
 			subBarrier.transition(image, i, 1, l, 1, 0, ResourceAccess::ShaderReadWrite, ResourceAccess::ShaderRead, ImageLayout::ReadWrite, ImageLayout::ShaderResource);
 			commandBuffer.barrier(subBarrier);
-			resource++;
+
+			// Advance to the next resource binding and track the current one until the command buffer finished.
+			commandBuffer.track(std::move(resource));
+			resourceBinding++;
 		}
 
 		// Original sub-resource also needs to be transitioned.
