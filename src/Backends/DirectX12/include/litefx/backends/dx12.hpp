@@ -734,10 +734,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        UInt32 globalHeapOffset(DescriptorHeapType heapType) const noexcept override;
-
-        /// <inheritdoc />
-        UInt32 globalHeapAddressRange(DescriptorHeapType heapType) const noexcept override;
+        VirtualAllocator::Allocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept override;
 
         /// <inheritdoc />
         UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IDirectX12Buffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const override;
@@ -2722,28 +2719,26 @@ namespace LiteFX::Rendering::Backends {
         /// those descriptors manually by calling the appropriate overload to <see cref="releaseGlobalDescriptors" />. The following example demonstrates how to use this function.
         /// 
         /// <example>
-        /// auto [offset, size] = d3dDevice.allocateGlobalDescriptors(1000, DescriptorHeapType::Resource);
+        /// auto allocation = d3dDevice.allocateGlobalDescriptors(1000, DescriptorHeapType::Resource);
         /// // Use the descriptors.
-        /// d3dDevice.releaseGlobalDescriptors(DescriptorHeapType::Resource, offset, size);
+        /// d3dDevice.releaseGlobalDescriptors(DescriptorHeapType::Resource, std::move(allocation));
         /// </example>
         /// </remarks>
         /// <param name="descriptors">The number of descriptors to allocate.</param>
         /// <param name="heapType">The heap type, indicating the descriptor heap to allocate the descriptors from.</param>
-        /// <returns>The offset and size of the allocated descriptor range in the global descriptor heap.</returns>
-        Tuple<UInt32, UInt32> allocateGlobalDescriptors(UInt32 descriptors, DescriptorHeapType heapType) const;
+        /// <returns>The allocation for the requested descriptors in the descriptor heap indicated by <paramref name="heapType" />.</returns>
+        [[nodiscard]] VirtualAllocator::Allocation allocateGlobalDescriptors(UInt32 descriptors, DescriptorHeapType heapType) const;
 
         /// <summary>
         /// Releases a manually allocated descriptor range from the descriptor heap indicated by <paramref name="heapType" />.
         /// </summary>
         /// <remarks>
-        /// Note that the offset and size need to match the allocated range exactly, otherwise calling this method will raise an exception.
+        /// Calling this method with an allocation that has not been allocated from the corresponding resource heap of the same device instance is undefined behavior.
         /// </remarks>
         /// <param name="heapType">The heap type, indicating the descriptor heap to release the descriptors from.</param>
-        /// <param name="offset">The offset to the beginning of the descriptor range in the heap.</param>
-        /// <param name="descriptors">The number of descriptors in the descriptor range.</param>
-        /// <exception cref="InvalidArgumentException">Thrown, if the combination of <paramref name="offset" /> and <parmref name="descriptors" /> does not match an externally allocated descriptor range on the descriptor heap indicated by <paramref name="heapType" />.</exception>
+        /// <param name="allocation">The allocation to release.</param>
         /// <seealso cref="allocateGlobalDescriptors(descriptors, heapType)" /> 
-        void releaseGlobalDescriptors(DescriptorHeapType heapType, UInt32 offset, UInt32 descriptors) const;
+        void releaseGlobalDescriptors(DescriptorHeapType heapType, VirtualAllocator::Allocation&& allocation) const;
 
         // GraphicsDevice interface.
     public:
@@ -2794,7 +2789,7 @@ namespace LiteFX::Rendering::Backends {
         void computeAccelerationStructureSizes(const DirectX12TopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
 
         /// <inheritdoc />
-        void allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const override;
+        [[nodiscard]] VirtualAllocator::Allocation allocateGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet, DescriptorHeapType heapType) const override;
 
         /// <inheritdoc />
         void releaseGlobalDescriptors(const DirectX12DescriptorSet& descriptorSet) const override;

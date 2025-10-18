@@ -782,10 +782,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        UInt32 globalHeapOffset(DescriptorHeapType heapType) const noexcept override;
-
-        /// <inheritdoc />
-        UInt32 globalHeapAddressRange(DescriptorHeapType heapType) const noexcept override;
+        VirtualAllocator::Allocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept override;
 
         /// <inheritdoc />
         UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const override;
@@ -2845,7 +2842,7 @@ namespace LiteFX::Rendering::Backends {
         void computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
 
         /// <inheritdoc />
-        void allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const override;
+        [[nodiscard]] VirtualAllocator::Allocation allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType) const override;
 
         /// <inheritdoc />
         void releaseGlobalDescriptors(const VulkanDescriptorSet& descriptorSet) const override;

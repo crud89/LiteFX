@@ -1,67 +1,7 @@
 #include <litefx/backends/dx12.hpp>
 #include "buffer.h"
 #include "image.h"
-
-using namespace LiteFX::Rendering::Backends;
-
-// ------------------------------------------------------------------------------------------------
-// Virtual Allocator.
-// ------------------------------------------------------------------------------------------------
-
-template<>
-struct VirtualAllocator::AllocatorImpl<DirectX12Backend> : public VirtualAllocator::AllocatorImplBase {
-private:
-	D3D12MA::VirtualBlock* m_block{ nullptr };
-
-public:
-	AllocatorImpl(UInt64 size, AllocationAlgorithm algorithm) :
-		AllocatorImplBase(size, algorithm)
-	{
-		D3D12MA::VIRTUAL_BLOCK_DESC blockCreateInfo = {
-			.Flags = algorithm == AllocationAlgorithm::Linear ? 
-				D3D12MA::VIRTUAL_BLOCK_FLAG_ALGORITHM_LINEAR : 
-				D3D12MA::VIRTUAL_BLOCK_FLAG_NONE,
-			.Size = size
-		};
-
-		raiseIfFailed(D3D12MA::CreateVirtualBlock(&blockCreateInfo, &m_block), "Unable to create virtual allocator.");
-	}
-
-	AllocatorImpl(const AllocatorImpl&) = delete;
-	AllocatorImpl(AllocatorImpl&&) noexcept = delete;
-	AllocatorImpl& operator=(const AllocatorImpl&) = delete;
-	AllocatorImpl& operator=(AllocatorImpl&&) noexcept = delete;
-
-	~AllocatorImpl() noexcept override 
-	{
-		m_block->Release();
-	}
-
-	inline Allocation allocate(UInt64 size, UInt32 alignment, AllocationStrategy strategy = AllocationStrategy::OptimizePacking) const override
-	{
-		D3D12MA::VIRTUAL_ALLOCATION_DESC allocDesc = {
-			.Flags = strategy == AllocationStrategy::OptimizeTime ?
-				D3D12MA::VIRTUAL_ALLOCATION_FLAG_STRATEGY_MIN_TIME :
-				D3D12MA::VIRTUAL_ALLOCATION_FLAG_STRATEGY_MIN_MEMORY,
-			.Size = size,
-			.Alignment = alignment
-		};
-
-		D3D12MA::VirtualAllocation allocation{};
-		UINT64 offset{};
-		auto result = m_block->Allocate(&allocDesc, &allocation, &offset);
-
-		if (SUCCEEDED(result))
-			return Allocation{ .Handle = allocation.AllocHandle, .Size = size, .Offset = offset };
-		else [[unlikely]]
-			throw RuntimeException("An allocation from a virtual allocator failed.");
-	}
-
-	inline void free(Allocation&& allocation) const override
-	{
-		m_block->FreeAllocation({ .AllocHandle = std::move(allocation.Handle) }); // NOLINT(performance-move-const-arg)
-	}
-};
+#include "virtual_allocator.hpp"
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -82,7 +22,8 @@ public:
 		// Initialize memory allocator.
 		D3D12MA::ALLOCATOR_DESC allocatorDesc = {};
 		//allocatorDesc.Flags = D3D12MA::ALLOCATOR_FLAG_SINGLETHREADED;
-		allocatorDesc.Flags = D3D12MA::ALLOCATOR_FLAG_DEFAULT_POOLS_NOT_ZEROED;
+		//allocatorDesc.Flags = D3D12MA::ALLOCATOR_FLAG_DEFAULT_POOLS_NOT_ZEROED;
+		allocatorDesc.Flags = D3D12MA::ALLOCATOR_FLAG_NONE;
 		allocatorDesc.pAdapter = device.adapter().handle().Get();
 		allocatorDesc.pDevice = device.handle().Get();
 		allocatorDesc.PreferredBlockSize = 0;	// TODO: Make configurable.

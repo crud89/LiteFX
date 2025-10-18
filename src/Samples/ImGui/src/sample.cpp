@@ -51,18 +51,18 @@ void SampleApp::allocImGuiD3D12DescriptorsCallback(ImGui_ImplDX12_InitInfo* cont
     auto& device = dynamic_cast<const DirectX12Device&>(*app->m_device);
 
     // Allocate an externally managed descriptor.
-    auto [offset, size] = device.allocateGlobalDescriptors(1u, DescriptorHeapType::Resource);
+    auto allocation = device.allocateGlobalDescriptors(1u, DescriptorHeapType::Resource);
 
     // Initialize the CPU and GPU handles.
     auto descriptorHandleIncrement = device.handle().Get()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
-    CD3DX12_CPU_DESCRIPTOR_HANDLE targetHandle(device.globalBufferHeap()->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), descriptorHandleIncrement);
-    CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(device.globalBufferHeap()->GetGPUDescriptorHandleForHeapStart(), static_cast<INT>(offset), descriptorHandleIncrement);
+    CD3DX12_CPU_DESCRIPTOR_HANDLE targetHandle(device.globalBufferHeap()->GetCPUDescriptorHandleForHeapStart(), static_cast<INT>(allocation.Offset), descriptorHandleIncrement);
+    CD3DX12_GPU_DESCRIPTOR_HANDLE targetGpuHandle(device.globalBufferHeap()->GetGPUDescriptorHandleForHeapStart(), static_cast<INT>(allocation.Offset), descriptorHandleIncrement);
     cpu_handle->ptr = targetHandle.ptr;
     gpu_handle->ptr = targetGpuHandle.ptr;
 
     // Store the descriptor range, so we can properly release it later.
-    app->m_d3dDescriptorRanges.emplace(targetHandle.ptr, offset);
+    app->m_d3dDescriptorAllocations.emplace(targetHandle.ptr, allocation);
 }
 
 void SampleApp::releaseImGuiD3D12DescriptorsCallback(ImGui_ImplDX12_InitInfo* context, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE /*gpu_handle*/)
@@ -72,13 +72,13 @@ void SampleApp::releaseImGuiD3D12DescriptorsCallback(ImGui_ImplDX12_InitInfo* co
     auto& device = dynamic_cast<const DirectX12Device&>(*app->m_device);
 
     // Lookup the descriptor range.
-    auto match = app->m_d3dDescriptorRanges.find(cpu_handle.ptr);
+    auto match = app->m_d3dDescriptorAllocations.find(cpu_handle.ptr);
 
-    if (match != app->m_d3dDescriptorRanges.end())
+    if (match != app->m_d3dDescriptorAllocations.end())
     {
         // Release the descriptor range.
-        device.releaseGlobalDescriptors(DescriptorHeapType::Resource, match->second, 1u);
-        app->m_d3dDescriptorRanges.erase(cpu_handle.ptr);
+        device.releaseGlobalDescriptors(DescriptorHeapType::Resource, std::move(match->second)); // NOLINT(performance-move-const-arg)
+        app->m_d3dDescriptorAllocations.erase(cpu_handle.ptr);
     }
 }
 

@@ -1254,174 +1254,6 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
-    /// Represents a virtual allocator that manages memory distribution from a piece of raw memory.
-    /// </summary>
-    /// <remarks>
-    /// Note that the virtual allocator does not actually contain memory, but rather keeps track over a range of memory that is externally managed.
-    /// </remarks>
-    class LITEFX_RENDERING_API VirtualAllocator final {
-    public:
-        /// <summary>
-        /// Represents an allocation within the memory managed by the virtual allocator.
-        /// </summary>
-        struct Allocation final {
-            /// <summary>
-            /// The handle that identifies the allocation.
-            /// </summary>
-            UInt64 Handle;
-
-            /// <summary>
-            /// The overall size of the allocation in bytes.
-            /// </summary>
-            UInt64 Size;
-
-            /// <summary>
-            /// The offset to the start of the allocation within the memory block.
-            /// </summary>
-            UInt64 Offset;
-        };
-
-    private:
-        /// <summary>
-        /// The interface for an allocator implementation.
-        /// </summary>
-        struct AllocatorImplBase {
-        private:
-            UInt64 m_size;
-            AllocationAlgorithm m_algorithm;
-
-        protected:
-            /// <summary>
-            /// Creates a new allocator instance.
-            /// </summary>
-            /// <param name="overallMemory">The overall size (in bytes) of memory available to the allocator.</param>
-            /// <param name="algorithm">The algorithm used to find a suitable block in the allocator memory.</param>
-            AllocatorImplBase(UInt64 overallMemory, AllocationAlgorithm algorithm) :
-                m_size(overallMemory), m_algorithm(algorithm)
-            {
-            }
-
-            AllocatorImplBase(const AllocatorImplBase&) = delete;
-            AllocatorImplBase(AllocatorImplBase&&) noexcept = delete;
-            AllocatorImplBase& operator=(const AllocatorImplBase&) = delete;
-            AllocatorImplBase& operator=(AllocatorImplBase&&) noexcept = delete;
-
-        public:
-            virtual ~AllocatorImplBase() noexcept = default;
-
-        public:
-            /// <summary>
-            /// Returns the size of the memory managed by the virtual allocator.
-            /// </summary>
-            /// <returns>The size (in bytes) of the memory managed by the virtual allocator.</returns>
-            inline UInt64 size() const noexcept {
-                return m_size;
-            }
-
-            /// <summary>
-            /// Returns the algorithm used by the allocator.
-            /// </summary>
-            /// <returns>The algorithm used by the allocator.</returns>
-            inline AllocationAlgorithm algorithm() const noexcept {
-                return m_algorithm;
-            }
-
-            /// <summary>
-            /// Allocates a piece of memory of <paramref name="size" /> bytes, aligned to <paramref name="alignment" />.
-            /// </summary>
-            /// <param name="size">The size (in bytes) of the resource to place in the allocation.</param>
-            /// <param name="alignment">The alignment requirements of the resource.</param>
-            /// <param name="strategy">The strategy to look for a place to put the allocation in.</param>
-            /// <returns>An object that contains details about the allocation.</returns>
-            [[nodiscard]] virtual Allocation allocate(UInt64 size, UInt32 alignment, AllocationStrategy strategy = AllocationStrategy::OptimizePacking) const = 0;
-
-            /// <summary>
-            /// Releases an allocation from the allocator, so that its memory can be re-used later.
-            /// </summary>
-            /// <param name="allocation">The allocation to release.</param>
-            virtual void free(Allocation&& allocation) const = 0;
-        };
-
-        /// <summary>
-        /// Implements a specific allocator.
-        /// </summary>
-        /// <typeparam name="TBackend">The backend, for which the allocator is implemented</typeparam>
-        template <typename TBackend>
-        struct AllocatorImpl final : public AllocatorImplBase { 
-            static_assert(false, "Attempting to use a non-specialized virtual allocator is invalid.");
-        };
-
-        /// <summary>
-        /// Stores the allocator implementation.
-        /// </summary>
-        UniquePtr<AllocatorImplBase> m_impl;
-
-        /// <summary>
-        /// Creates a new virtual allocator instance.
-        /// </summary>
-        /// <param name="pImpl">The pointer to the allocator implementation.</param>
-        VirtualAllocator(UniquePtr<AllocatorImplBase>&& pImpl) :
-            m_impl(std::move(pImpl))
-        {
-        }
-
-    public:
-        VirtualAllocator(const VirtualAllocator&) = delete;
-        VirtualAllocator(VirtualAllocator&&) noexcept = delete;
-        VirtualAllocator& operator=(const VirtualAllocator&) = delete;
-        VirtualAllocator& operator=(VirtualAllocator&&) noexcept = delete;
-        ~VirtualAllocator() noexcept = default;
-
-    public:
-        /// <summary>
-        /// Creates a new virtual allocator instance.
-        /// </summary>
-        /// <param name="overallMemory">The overall size (in bytes) of memory available to the allocator.</param>
-        /// <param name="algorithm">The algorithm used to find a suitable block in the allocator memory.</param>
-        /// <returns>The instance of the virtual allocator.</returns>
-        template <typename TBackend>
-        [[nodiscard]] static inline VirtualAllocator create(UInt64 overallMemory, AllocationAlgorithm algorithm = AllocationAlgorithm::Default) {
-            return VirtualAllocator(UniquePtr<AllocatorImplBase>(new AllocatorImpl<TBackend>(overallMemory, algorithm)));
-        }
-
-    public:
-        /// <summary>
-        /// Returns the size of the memory managed by the virtual allocator.
-        /// </summary>
-        /// <returns>The size (in bytes) of the memory managed by the virtual allocator.</returns>
-        inline UInt64 size() const noexcept {
-            return m_impl->size();
-        }
-
-        /// <summary>
-        /// Returns the algorithm used by the allocator.
-        /// </summary>
-        /// <returns>The algorithm used by the allocator.</returns>
-        inline AllocationAlgorithm algorithm() const noexcept {
-            return m_impl->algorithm();
-        }
-
-        /// <summary>
-        /// Allocates a piece of memory of <paramref name="size" /> bytes, aligned to <paramref name="alignment" />.
-        /// </summary>
-        /// <param name="size">The size (in bytes) of the resource to place in the allocation.</param>
-        /// <param name="alignment">The alignment requirements of the resource.</param>
-        /// <param name="strategy">The strategy to look for a place to put the allocation in.</param>
-        /// <returns>An object that contains details about the allocation.</returns>
-        [[nodiscard]] inline Allocation allocate(UInt64 size, UInt32 alignment, AllocationStrategy strategy = AllocationStrategy::OptimizePacking) const {
-            return m_impl->allocate(size, alignment, strategy);
-        }
-
-        /// <summary>
-        /// Releases an allocation from the allocator, so that its memory can be re-used later.
-        /// </summary>
-        /// <param name="allocation">The allocation to release.</param>
-        inline void free(Allocation&& allocation) const { // NOLINT(cppcoreguidelines-rvalue-reference-param-not-moved)
-            m_impl->free(std::forward<Allocation>(allocation));
-        }
-    };
-
-    /// <summary>
     /// Describes a factory that creates objects for a <see cref="GraphicsDevice" />.
     /// </summary>
     /// <typeparam name="TDescriptorLayout">The type of the descriptor layout. Must implement <see cref="IDescriptorLayout" />.</typeparam>
@@ -1799,7 +1631,7 @@ namespace LiteFX::Rendering {
         virtual void computeAccelerationStructureSizes(const top_level_acceleration_structure_type& tlas, UInt64 & bufferSize, UInt64 & scratchSize, bool forUpdate = false) const = 0;
 
         /// <inheritdoc />
-        virtual void allocateGlobalDescriptors(const descriptor_set_type& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const = 0;
+        [[nodiscard]] virtual VirtualAllocator::Allocation allocateGlobalDescriptors(const descriptor_set_type& descriptorSet, DescriptorHeapType heapType) const = 0;
 
         /// <inheritdoc />
         virtual void releaseGlobalDescriptors(const descriptor_set_type& descriptorSet) const = 0;
@@ -1822,8 +1654,8 @@ namespace LiteFX::Rendering {
             this->computeAccelerationStructureSizes(dynamic_cast<const top_level_acceleration_structure_type&>(tlas), bufferSize, scratchSize, forUpdate);
         }
         
-        inline void doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const override {
-            this->allocateGlobalDescriptors(dynamic_cast<const descriptor_set_type&>(descriptorSet), heapType, heapOffset, heapSize);
+        inline VirtualAllocator::Allocation doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const override {
+            return this->allocateGlobalDescriptors(dynamic_cast<const descriptor_set_type&>(descriptorSet), heapType);
         }
 
         inline void doReleaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const override {
