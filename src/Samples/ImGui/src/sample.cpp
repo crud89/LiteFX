@@ -44,6 +44,7 @@ template<>
 const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
 void SampleApp::allocImGuiD3D12DescriptorsCallback(ImGui_ImplDX12_InitInfo* context, D3D12_CPU_DESCRIPTOR_HANDLE* cpu_handle, D3D12_GPU_DESCRIPTOR_HANDLE* gpu_handle)
 {
     // Get the app and device reference.
@@ -81,6 +82,7 @@ void SampleApp::releaseImGuiD3D12DescriptorsCallback(ImGui_ImplDX12_InitInfo* co
         app->m_d3dDescriptorAllocations.erase(cpu_handle.ptr);
     }
 }
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
 template<typename TRenderBackend> requires
     meta::implements<TRenderBackend, IRenderBackend>
@@ -269,6 +271,7 @@ void SampleApp::onInit()
         this->initBuffers(backend);
 
         // Initialize UI state.
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
         if constexpr (std::is_same<TBackend, DirectX12Backend>())
         {
             // Setup D3D12 init info.
@@ -297,7 +300,9 @@ void SampleApp::onInit()
                 ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), dynamic_cast<const DirectX12CommandBuffer&>(commandBuffer).handle().Get());
             };
         }
-        else if constexpr (std::is_same<TBackend, VulkanBackend>())
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
+        if constexpr (std::is_same<TBackend, VulkanBackend>())
         {
             // The Vulkan backend uses dynamic rendering and ImGui requires us to provide a pipeline rendering info in this case, so we build one from the render pass, that 
             // renders the UI. In our simple example, we only have one render pass, so we use this to set it up.
@@ -350,6 +355,7 @@ void SampleApp::onInit()
                 ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), dynamic_cast<const VulkanCommandBuffer&>(commandBuffer).handle());
             };
         }
+#endif // LITEFX_BUILD_VULKAN_BACKEND
 
         return true;
     };
@@ -359,16 +365,20 @@ void SampleApp::onInit()
         m_device->wait();
 
         // Release ImGui.
+#ifdef LITEFX_BUILD_DIRECTX_12_BACKEND
         if constexpr (std::is_same<TBackend, DirectX12Backend>())
         {
             ImGui_ImplDX12_Shutdown();
             ImGui_ImplGlfw_Shutdown();
         }
-        else if constexpr (std::is_same<TBackend, VulkanBackend>())
+#endif // LITEFX_BUILD_DIRECTX_12_BACKEND
+#ifdef LITEFX_BUILD_VULKAN_BACKEND
+        if constexpr (std::is_same<TBackend, VulkanBackend>())
         {
             ImGui_ImplVulkan_Shutdown();
             ImGui_ImplGlfw_Shutdown();
         }
+#endif // LITEFX_BUILD_VULKAN_BACKEND
 
         // Release the device.
         backend->releaseDevice("Default");
