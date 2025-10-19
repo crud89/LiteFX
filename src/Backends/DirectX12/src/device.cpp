@@ -104,6 +104,8 @@ private:
 			throw RuntimeException("The device does not support shader model 6.6 or later, which is required for the dynamic descriptors feature.");
 		if (features.DrawIndirect && featureSupport.HighestShaderModel() < D3D_SHADER_MODEL_6_8)
 			throw RuntimeException("The device does not support shader model 6.8 or later, which is required for the indirect draw feature.");
+		if (features.DepthBoundsTest && !featureSupport.DepthBoundsTestSupported())
+			throw RuntimeException("The device does not support depth bounds test.");
 	}
 
 public:
