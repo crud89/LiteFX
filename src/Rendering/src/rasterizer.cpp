@@ -15,11 +15,12 @@ private:
     CullMode m_cullMode{ CullMode::BackFaces };
     CullOrder m_cullOrder{ CullOrder::CounterClockWise };
     Float m_lineWidth{ 1.f };
+    bool m_depthClip{ true };
     DepthStencilState m_depthStencilState{};
 
 public:
-    RasterizerImpl(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth, DepthStencilState depthStencilState) :
-        m_polygonMode(polygonMode), m_cullMode(cullMode), m_cullOrder(cullOrder), m_lineWidth(lineWidth), m_depthStencilState(std::move(depthStencilState))
+    RasterizerImpl(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth, bool depthClip, DepthStencilState depthStencilState) :
+        m_polygonMode(polygonMode), m_cullMode(cullMode), m_cullOrder(cullOrder), m_lineWidth(lineWidth), m_depthClip(depthClip), m_depthStencilState(std::move(depthStencilState))
     {
     }
 };
@@ -28,8 +29,8 @@ public:
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-Rasterizer::Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth, const DepthStencilState& depthStencilState) noexcept :
-    m_impl(polygonMode, cullMode, cullOrder, lineWidth, depthStencilState)
+Rasterizer::Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth, bool depthClip, const DepthStencilState& depthStencilState) noexcept :
+    m_impl(polygonMode, cullMode, cullOrder, lineWidth, depthClip, depthStencilState)
 {
 }
 
@@ -64,6 +65,11 @@ const DepthStencilState& Rasterizer::depthStencilState() const noexcept
     return m_impl->m_depthStencilState;
 }
 
+bool Rasterizer::depthClip() const noexcept
+{
+    return m_impl->m_depthClip;
+}
+
 PolygonMode& Rasterizer::polygonMode() noexcept
 {
     return m_impl->m_polygonMode;
@@ -82,6 +88,11 @@ CullOrder& Rasterizer::cullOrder() noexcept
 Float& Rasterizer::lineWidth() noexcept
 {
     return m_impl->m_lineWidth;
+}
+
+bool& Rasterizer::depthClip() noexcept
+{
+    return m_impl->m_depthClip;
 }
 
 DepthStencilState& Rasterizer::depthStencilState() noexcept
