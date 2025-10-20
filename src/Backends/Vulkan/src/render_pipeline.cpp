@@ -105,8 +105,15 @@ public:
 
 		// Setup rasterizer state.
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
+
+		VkPipelineRasterizationConservativeStateCreateInfoEXT conservativeRasterizationInfo = {
+			.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_CONSERVATIVE_STATE_CREATE_INFO_EXT,
+			.conservativeRasterizationMode = VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT
+		};
+
 		VkPipelineRasterizationStateCreateInfo rasterizerState = {};
 		rasterizerState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+		rasterizerState.pNext = &conservativeRasterizationInfo;
 		rasterizerState.depthClampEnable = VK_FALSE;
 		rasterizerState.rasterizerDiscardEnable = VK_FALSE;
 		rasterizerState.polygonMode = Vk::getPolygonMode(rasterizer.polygonMode());
@@ -118,7 +125,7 @@ public:
 		rasterizerState.depthBiasConstantFactor = rasterizer.depthStencilState().depthBias().ConstantFactor;
 		rasterizerState.depthBiasSlopeFactor = rasterizer.depthStencilState().depthBias().SlopeFactor;
 
-		LITEFX_TRACE(VULKAN_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3} }}", rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth());
+		LITEFX_TRACE(VULKAN_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3}, Conservative Rasterization: {4} }}", rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth(), rasterizer.conservativeRasterization());
 
 		if (rasterizer.depthStencilState().depthBias().Enable)
 			LITEFX_TRACE(VULKAN_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer.depthStencilState().depthBias().Clamp, rasterizer.depthStencilState().depthBias().ConstantFactor, rasterizer.depthStencilState().depthBias().SlopeFactor);

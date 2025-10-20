@@ -189,6 +189,9 @@ private:
         if (features.DynamicDescriptors)
             m_extensions.emplace_back(VK_EXT_MUTABLE_DESCRIPTOR_TYPE_EXTENSION_NAME);
 
+        if (features.ConservativeRasterization)
+            m_extensions.emplace_back(VK_EXT_CONSERVATIVE_RASTERIZATION_EXTENSION_NAME);
+
 #if defined(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN) && defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
         // Interop swap chain requires external memory access.
         m_extensions.emplace_back(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
@@ -208,15 +211,15 @@ private:
         // Required to set debug names.
         if (auto match = std::ranges::find_if(availableExtensions, [](const String& extension) { return extension == VK_EXT_DEBUG_MARKER_EXTENSION_NAME; }); match != availableExtensions.end())
             m_extensions.emplace_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+#endif
 
         // Required for native budget info by VMA - if not availabe VMA emulates this behavior.
-        if (auto match = std::ranges::find_if(availableExtensions, [](const String& extension) { return extension == VK_EXT_MEMORY_BUDGET_EXTENSION_NAME ; }); match != availableExtensions.end())
+        if (auto match = std::ranges::find_if(availableExtensions, [](const String& extension) { return extension == VK_EXT_MEMORY_BUDGET_EXTENSION_NAME; }); match != availableExtensions.end())
             m_extensions.emplace_back(VK_EXT_MEMORY_BUDGET_EXTENSION_NAME);
 
         // Query maintenance 5 extension as well as win32 external memory, so that we can let VMA support it.
         if (auto match = std::ranges::find_if(availableExtensions, [](const String& extension) { return extension == VK_KHR_MAINTENANCE_5_EXTENSION_NAME; }); match != availableExtensions.end())
             m_extensions.emplace_back(VK_KHR_MAINTENANCE_5_EXTENSION_NAME);
-#endif
     }
 
 public:

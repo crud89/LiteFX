@@ -77,9 +77,9 @@ public:
 		rasterizerState.MultisampleEnable = FALSE;
 		rasterizerState.AntialiasedLineEnable = FALSE;
 		rasterizerState.ForcedSampleCount = 0;
-		rasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+		rasterizerState.ConservativeRaster = rasterizer.conservativeRasterization() ? D3D12_CONSERVATIVE_RASTERIZATION_MODE_ON : D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
-		LITEFX_TRACE(DIRECTX12_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3} }}", rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth());
+		LITEFX_TRACE(DIRECTX12_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3}, Conservative Rasterization: {4} }}", rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth(), rasterizer.conservativeRasterization());
 
 		if (!rasterizer.depthStencilState().depthState().Enable)
 			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias disabled.");

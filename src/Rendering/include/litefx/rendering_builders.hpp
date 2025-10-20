@@ -837,6 +837,11 @@ namespace LiteFX::Rendering {
             /// The stencil state.
             /// </summary>
             DepthStencilState::StencilState stencilState{ };
+
+            /// <summary>
+            /// Toggles conservative rasterization in the rasterizer.
+            /// </summary>
+            bool conservativeRasterization{ false };
         } m_state;
 
     protected:
@@ -886,6 +891,16 @@ namespace LiteFX::Rendering {
         template<typename TSelf>
         [[nodiscard]] constexpr auto lineWidth(this TSelf&& self, Float width) noexcept -> TSelf&& {
             self.m_state.lineWidth = width;
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Initializes the rasterizer state with conservative rasterization.
+        /// </summary>
+        /// <param name="enable">`true`, if the rasterizer should use conservative rasterization and `false` otherwise.</param>
+        template<typename TSelf>
+        [[nodiscard]] constexpr auto conservativeRasterization(this TSelf&& self, bool enable) noexcept -> TSelf&& {
+            self.m_state.conservativeRasterization = enable;
             return std::forward<TSelf>(self);
         }
 
