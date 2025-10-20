@@ -418,6 +418,11 @@ void VulkanCommandBuffer::setStencilRef(UInt32 stencilRef) const noexcept
 	::vkCmdSetStencilReference(this->handle(), VK_STENCIL_FACE_FRONT_AND_BACK, stencilRef);
 }
 
+void VulkanCommandBuffer::setDepthBounds(Float minBounds, Float maxBounds) const noexcept
+{
+	::vkCmdSetDepthBounds(this->handle(), minBounds, maxBounds);
+}
+
 UInt64 VulkanCommandBuffer::submit() const 
 {
 	auto queue = m_impl->m_queue.lock();

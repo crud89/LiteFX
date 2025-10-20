@@ -296,6 +296,11 @@ void DirectX12CommandBuffer::setStencilRef(UInt32 stencilRef) const noexcept
 	this->handle()->OMSetStencilRef(stencilRef);
 }
 
+void DirectX12CommandBuffer::setDepthBounds(Float minBounds, Float maxBounds) const noexcept
+{
+	this->handle()->OMSetDepthBounds(minBounds, maxBounds);
+}
+
 UInt64 DirectX12CommandBuffer::submit() const
 {
 	// Check if the queue is still valid.

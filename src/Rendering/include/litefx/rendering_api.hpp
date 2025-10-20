@@ -3527,6 +3527,18 @@ namespace LiteFX::Rendering {
             /// The compare operation used to pass the depth test (default: <c>CompareOperation::Always</c>).
             /// </summary>
             CompareOperation Operation{ CompareOperation::Always };
+
+            /// <summary>
+            /// Enables the depth bounds test.
+            /// </summary>
+            /// <remarks>
+            /// Enabling the depth bounds test allows to supply a depth range to the command buffer by calling <see cref="ICommandBuffer::setDepthBounds" />, which 
+            /// will cause an rasterization operation to exit early, if the resulting depth lies outside of the provided range. To use this test, the 
+            /// <see cref="GraphicsDeviceFeatures::DepthBoundsTest" /> must be enabled on the device.
+            /// </remarks>
+            /// <seealso cref="GraphicsDeviceFeatures::DepthBoundsTest" />
+            /// <seealso cref="ICommandBuffer::setDepthBounds" />
+            bool DepthBoundsTestEnable{ false };
         };
 
         /// <summary>
@@ -8108,6 +8120,19 @@ namespace LiteFX::Rendering {
         virtual void setStencilRef(UInt32 stencilRef) const noexcept = 0;
 
         /// <summary>
+        /// Sets the depth range for the depth bounds test.
+        /// </summary>
+        /// <remarks>
+        /// In order to use the depth bounds test, the currently bound render pipeline must have been created with the depth bounds test enabled, which requires the device to be created with the
+        /// <see cref="GraphicsDeviceFeatures::DepthBoundsTest" /> enabled.
+        /// </remarks>
+        /// <param name="minBounds"></param>
+        /// <param name="maxBounds"></param>
+        /// <seealso cref="GraphicsDeviceFeatures::DepthBoundsTest" />
+        /// <seealso cref="DepthStencilState::DepthState::DepthBoundsTestEnable" />
+        virtual void setDepthBounds(Float minBounds, Float maxBounds) const noexcept = 0;
+
+        /// <summary>
         /// Submits the command buffer to parent command
         /// </summary>
         /// <exception cref="RuntimeException">Thrown, if the command buffer is a secondary command buffer.</exception>
@@ -10404,6 +10429,13 @@ namespace LiteFX::Rendering {
         /// containing unbounded descriptor arrays. They can, however, be more efficient if you can replace multiple pipeline layouts with a single one that relies on mutable type descriptors.
         /// </remarks>
         bool DynamicDescriptors { false };
+
+        /// <summary>
+        /// Enables support for enabling depth bounds test on <see cref="IRenderPipeline" /> creation.
+        /// </summary>
+        /// <seealso href="https://microsoft.github.io/DirectX-Specs/d3d/DepthBoundsTest.html" />
+        /// <seealso href="https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html#features-depthBounds" />
+        bool DepthBoundsTest { false };
     };
 
     /// <summary>
