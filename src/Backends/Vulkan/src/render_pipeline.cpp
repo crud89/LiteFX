@@ -114,8 +114,8 @@ public:
 		VkPipelineRasterizationStateCreateInfo rasterizerState = {
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
 			.pNext = &depthClipState,
-			.depthClampEnable = VK_FALSE,
-			.rasterizerDiscardEnable = VK_FALSE,
+			.depthClampEnable = VK_TRUE,			// Default behavior in DirectX 12.
+			.rasterizerDiscardEnable = VK_FALSE,	// Not available in DirectX 12.
 			.polygonMode = Vk::getPolygonMode(rasterizer.polygonMode()),
 			.cullMode = Vk::getCullMode(rasterizer.cullMode()),
 			.frontFace = rasterizer.cullOrder() == CullOrder::ClockWise ? VK_FRONT_FACE_CLOCKWISE : VK_FRONT_FACE_COUNTER_CLOCKWISE,
