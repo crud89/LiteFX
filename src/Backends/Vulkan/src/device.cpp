@@ -368,7 +368,8 @@ public:
                 .tessellationShader = true,
 #endif // LITEFX_BUILD_TESTS
                 .drawIndirectFirstInstance = features.DrawIndirect,
-                .samplerAnisotropy = true
+                .depthBounds = features.DepthBoundsTest,
+                .samplerAnisotropy = true,
             }
         };
 

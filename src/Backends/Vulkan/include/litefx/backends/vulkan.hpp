@@ -1569,6 +1569,9 @@ namespace LiteFX::Rendering::Backends {
         void setStencilRef(UInt32 stencilRef) const noexcept override;
 
         /// <inheritdoc />
+        void setDepthBounds(Float minBounds, Float maxBounds) const noexcept override;
+
+        /// <inheritdoc />
         UInt64 submit() const override;
 
         /// <inheritdoc />

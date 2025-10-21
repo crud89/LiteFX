@@ -70,6 +70,9 @@ public:
 			VkDynamicState::VK_DYNAMIC_STATE_BLEND_CONSTANTS,
 			VkDynamicState::VK_DYNAMIC_STATE_STENCIL_REFERENCE
 		};
+
+		if (std::as_const(*m_rasterizer).depthStencilState().depthState().DepthBoundsTestEnable)
+			dynamicStates.emplace_back(VK_DYNAMIC_STATE_DEPTH_BOUNDS);
 		
 		VkPipelineDynamicStateCreateInfo dynamicState = {};
 		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
@@ -235,7 +238,7 @@ public:
 		// Setup depth/stencil state.
 		VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
 		depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-		depthStencilState.depthBoundsTestEnable = VK_FALSE;
+		depthStencilState.depthBoundsTestEnable = rasterizer.depthStencilState().depthState().DepthBoundsTestEnable;
 		depthStencilState.depthTestEnable = rasterizer.depthStencilState().depthState().Enable;
 		depthStencilState.depthWriteEnable = rasterizer.depthStencilState().depthState().Write;
 		depthStencilState.depthCompareOp = Vk::getCompareOp(rasterizer.depthStencilState().depthState().Operation);
