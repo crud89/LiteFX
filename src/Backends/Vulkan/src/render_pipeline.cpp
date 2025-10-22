@@ -106,20 +106,20 @@ public:
 		// Setup rasterizer state.
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
 
-		VkPipelineRasterizationDepthClipStateCreateInfoEXT depthClipState = {
-			.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT,
-			.depthClipEnable = rasterizer.depthClip()
-		};
-
 		VkPipelineRasterizationConservativeStateCreateInfoEXT conservativeRasterizationInfo = {
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_CONSERVATIVE_STATE_CREATE_INFO_EXT,
-			.pNext = &depthClipState,
-			.conservativeRasterizationMode = VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT
+			.conservativeRasterizationMode = VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT,
+		};
+
+		VkPipelineRasterizationDepthClipStateCreateInfoEXT depthClipState = {
+			.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT,
+			.pNext = rasterizer.conservativeRasterization() ? &conservativeRasterizationInfo : nullptr,
+			.depthClipEnable = rasterizer.depthClip()
 		};
 
 		VkPipelineRasterizationStateCreateInfo rasterizerState = {
 			.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-			.pNext = &conservativeRasterizationInfo,
+			.pNext = &depthClipState,
 			.depthClampEnable = VK_TRUE,			// Default behavior in DirectX 12.
 			.rasterizerDiscardEnable = VK_FALSE,	// Not available in DirectX 12.
 			.polygonMode = Vk::getPolygonMode(rasterizer.polygonMode()),
