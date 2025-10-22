@@ -1,8 +1,7 @@
 #include <litefx/backends/dx12.hpp>
 #include "buffer.h"
 #include "image.h"
-
-using namespace LiteFX::Rendering::Backends;
+#include "virtual_allocator.hpp"
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -23,7 +22,8 @@ public:
 		// Initialize memory allocator.
 		D3D12MA::ALLOCATOR_DESC allocatorDesc = {};
 		//allocatorDesc.Flags = D3D12MA::ALLOCATOR_FLAG_SINGLETHREADED;
-		allocatorDesc.Flags = D3D12MA::ALLOCATOR_FLAG_DEFAULT_POOLS_NOT_ZEROED;
+		//allocatorDesc.Flags = D3D12MA::ALLOCATOR_FLAG_DEFAULT_POOLS_NOT_ZEROED;
+		allocatorDesc.Flags = D3D12MA::ALLOCATOR_FLAG_NONE;
 		allocatorDesc.pAdapter = device.adapter().handle().Get();
 		allocatorDesc.pDevice = device.handle().Get();
 		allocatorDesc.PreferredBlockSize = 0;	// TODO: Make configurable.
@@ -295,6 +295,11 @@ DirectX12GraphicsFactory::DirectX12GraphicsFactory(const DirectX12Device& device
 }
 
 DirectX12GraphicsFactory::~DirectX12GraphicsFactory() noexcept = default;
+
+VirtualAllocator DirectX12GraphicsFactory::createAllocator(UInt64 overallMemory, AllocationAlgorithm algorithm) const
+{
+	return VirtualAllocator::create<DirectX12Backend>(overallMemory, algorithm);
+}
 
 bool DirectX12GraphicsFactory::supportsResizableBaseAddressRegister() const noexcept
 {

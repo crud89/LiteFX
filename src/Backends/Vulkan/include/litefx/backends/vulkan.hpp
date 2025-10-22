@@ -29,7 +29,8 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="vertexSize">The overall size of a single vertex.</param>
         /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
-        explicit VulkanVertexBufferLayout(size_t vertexSize, UInt32 binding = 0);
+        /// <param name="inputRate">The rate at which the vertex buffer is made available to the vertex shader.</param>
+        explicit VulkanVertexBufferLayout(size_t vertexSize, UInt32 binding = 0, VertexBufferInputRate inputRate = VertexBufferInputRate::Vertex);
 
         /// <summary>
         /// Initializes a new vertex buffer layout.
@@ -37,7 +38,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="vertexSize">The overall size of a single vertex.</param>
         /// <param name="attributes">The vertex attributes.</param>
         /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
-        explicit VulkanVertexBufferLayout(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding = 0);
+        /// <param name="inputRate">The rate at which the vertex buffer is made available to the vertex shader.</param>
+        explicit VulkanVertexBufferLayout(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding = 0, VertexBufferInputRate inputRate = VertexBufferInputRate::Vertex);
 
     private:
         /// <inheritdoc />
@@ -62,9 +64,10 @@ namespace LiteFX::Rendering::Backends {
         /// </summary>
         /// <param name="vertexSize">The overall size of a single vertex.</param>
         /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
+        /// <param name="inputRate">The rate at which the vertex buffer is made available to the vertex shader.</param>
         /// <returns>A shared pointer to the newly created vertex buffer layout.</returns>
-        static inline auto create(size_t vertexSize, UInt32 binding = 0) {
-            return SharedObject::create<VulkanVertexBufferLayout>(vertexSize, binding);
+        static inline auto create(size_t vertexSize, UInt32 binding = 0, VertexBufferInputRate inputRate = VertexBufferInputRate::Vertex) {
+            return SharedObject::create<VulkanVertexBufferLayout>(vertexSize, binding, inputRate);
         }
 
         /// <summary>
@@ -73,9 +76,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="vertexSize">The overall size of a single vertex.</param>
         /// <param name="binding">The binding point of the vertex buffers using this layout.</param>
         /// <param name="attributes">The vertex attributes.</param>
+        /// <param name="inputRate">The rate at which the vertex buffer is made available to the vertex shader.</param>
         /// <returns>A shared pointer to the newly created vertex buffer layout.</returns>
-        static inline auto create(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding = 0) {
-            return SharedObject::create<VulkanVertexBufferLayout>(vertexSize, attributes, binding);
+        static inline auto create(size_t vertexSize, const Enumerable<BufferAttribute>& attributes, UInt32 binding = 0, VertexBufferInputRate inputRate = VertexBufferInputRate::Vertex) {
+            return SharedObject::create<VulkanVertexBufferLayout>(vertexSize, attributes, binding, inputRate);
         }
 
         /// <summary>
@@ -91,6 +95,9 @@ namespace LiteFX::Rendering::Backends {
     public:
         /// <inheritdoc />
         const Array<BufferAttribute>& attributes() const override;
+
+        /// <inheritdoc />
+        VertexBufferInputRate inputRate() const noexcept override;
 
         // IBufferLayout interface.
     public:
@@ -775,10 +782,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        UInt32 globalHeapOffset(DescriptorHeapType heapType) const noexcept override;
-
-        /// <inheritdoc />
-        UInt32 globalHeapAddressRange(DescriptorHeapType heapType) const noexcept override;
+        VirtualAllocator::Allocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept override;
 
         /// <inheritdoc />
         UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const override;
@@ -1342,8 +1346,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="cullMode">The cull mode used by the pipeline.</param>
         /// <param name="cullOrder">The cull order used by the pipeline.</param>
         /// <param name="lineWidth">The line width used by the pipeline.</param>
+        /// <param name="depthClip">The depth clip toggle of the rasterizer state.</param>
         /// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
-        explicit VulkanRasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
+        /// <param name="conservativeRasterization">Toggles the use of conservative rasterization in the rasterizer.</param>
+        explicit VulkanRasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, bool depthClip = true, const DepthStencilState& depthStencilState = {}, bool conservativeRasterization = false) noexcept;
 
         /// <summary>
         /// Initializes a new Vulkan rasterizer state.
@@ -1375,10 +1381,12 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="cullMode">The cull mode used by the pipeline.</param>
         /// <param name="cullOrder">The cull order used by the pipeline.</param>
         /// <param name="lineWidth">The line width used by the pipeline.</param>
+        /// <param name="depthClip">The depth clip toggle of the rasterizer state.</param>
         /// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
+        /// <param name="conservativeRasterization">Toggles the use of conservative rasterization in the rasterizer.</param>
         /// <returns>A shared pointer to the newly created rasterizer instance.</returns>
-        static inline auto create(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) {
-            return SharedObject::create<VulkanRasterizer>(polygonMode, cullMode, cullOrder, lineWidth, depthStencilState);
+        static inline auto create(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, bool depthClip = true, const DepthStencilState& depthStencilState = {}, bool conservativeRasterization = false) {
+            return SharedObject::create<VulkanRasterizer>(polygonMode, cullMode, cullOrder, lineWidth, depthClip, depthStencilState, conservativeRasterization);
         }
 
         /// <summary>
@@ -1539,6 +1547,9 @@ namespace LiteFX::Rendering::Backends {
         void track(SharedPtr<const ISampler> sampler) const override;
 
         /// <inheritdoc />
+        void track(UniquePtr<const IDescriptorSet>&& descriptorSet) const override;
+
+        /// <inheritdoc />
         bool isSecondary() const noexcept override;
 
         /// <inheritdoc />
@@ -1558,6 +1569,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void setStencilRef(UInt32 stencilRef) const noexcept override;
+
+        /// <inheritdoc />
+        void setDepthBounds(Float minBounds, Float maxBounds) const noexcept override;
 
         /// <inheritdoc />
         UInt64 submit() const override;
@@ -2563,6 +2577,9 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
+        [[nodiscard]] VirtualAllocator createAllocator(UInt64 overallMemory, AllocationAlgorithm algorithm = AllocationAlgorithm::Default) const override;
+
+        /// <inheritdoc />
         SharedPtr<IVulkanBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
         /// <inheritdoc />
@@ -2835,7 +2852,7 @@ namespace LiteFX::Rendering::Backends {
         void computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
 
         /// <inheritdoc />
-        void allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const override;
+        [[nodiscard]] VirtualAllocator::Allocation allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType) const override;
 
         /// <inheritdoc />
         void releaseGlobalDescriptors(const VulkanDescriptorSet& descriptorSet) const override;

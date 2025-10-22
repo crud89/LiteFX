@@ -617,6 +617,7 @@ struct LITEFX_RENDERING_API std::formatter<AttributeSemantic> : std::formatter<s
 		case PointSize: name = "PointSize"; break;
 		case Tangent: name = "Tangent"; break;
 		case TextureCoordinate: name = "TextureCoordinate"; break;
+		case Arbitrary: name = "Arbitrary"; break;
 		default: name = "Unknown"; break;
 		}
 

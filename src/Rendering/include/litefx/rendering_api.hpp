@@ -64,6 +64,7 @@ namespace LiteFX::Rendering {
     class IGraphicsFactory;
     class IGraphicsDevice;
     class IRenderBackend;
+    class VirtualAllocator;
 
 #pragma region "Enumerations"
 
@@ -418,6 +419,11 @@ namespace LiteFX::Rendering {
         /// The attribute contains a texture coordinate.
         /// </summary>
         TextureCoordinate = 0x0000000A,
+
+        /// <summary>
+        /// The attribute contains arbitrary data, that does not have any semantic associated with it.
+        /// </summary>
+        Arbitrary = 0x0000000B,
 
         /// <summary>
         /// The attribute is a generic, unknown semantic.
@@ -832,6 +838,38 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// The allocation algorithm used by <see cref="VirtualAllocator"/>s.
+    /// </summary>
+    enum class AllocationAlgorithm : UInt32 {
+        /// <summary>
+        /// The default algorithm without any constraints on the memory layout.
+        /// </summary>
+        Default = 0x01,
+
+        /// <summary>
+        /// A linear allocation algorithm, that allocates memory blocks sequentially.
+        /// </summary>
+        /// <seealso href="https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/custom_memory_pools.html#linear_algorithm" />
+        /// <seealso href="https://gpuopen-librariesandsdks.github.io/D3D12MemoryAllocator/html/linear_algorithm.html" />
+        Linear = 0x02
+    };
+
+    /// <summary>
+    /// The allocation strategy used by allocators (<see cref="IGraphicsFactory" /> and <see cref="VirtualAllocator" />) when allocating new chunks of memory.
+    /// </summary>
+    enum class AllocationStrategy : UInt32 {
+        /// <summary>
+        /// Prefers good packing over allocation time and reduces fragmentation.
+        /// </summary>
+        OptimizePacking = 0x01,
+
+        /// <summary>
+        /// Prefers allocation time over packing.
+        /// </summary>
+        OptimizeTime = 0x02,
+    };
+
+    /// <summary>
     /// Describes the element type of an index buffer.
     /// </summary>
     enum class IndexType : UInt32 {
@@ -844,6 +882,22 @@ namespace LiteFX::Rendering {
         /// Indices are stored as 4 byte unsigned integers.
         /// </summary>
         UInt32 = 0x00000020
+    };
+
+    /// <summary>
+    /// The rate at which a vertex buffer of a certain <see cref="IVertexBufferLayout" /> is made available for vertex shaders.
+    /// </summary>
+    /// <seealso cref="IVertexBufferLayout" />
+    enum class VertexBufferInputRate : UInt32 {
+        /// <summary>
+        /// The vertex buffer layout describes data that is made available per individual vertex.
+        /// </summary>
+        Vertex = 0,
+
+        /// <summary>
+        /// The vertex buffer layout describes data that is made available per instance.
+        /// </summary>
+        Instance = 1
     };
 
     /// <summary>
@@ -2726,6 +2780,195 @@ namespace LiteFX::Rendering {
     };
 
     /// <summary>
+    /// Represents a virtual allocator that manages memory distribution from a piece of raw memory.
+    /// </summary>
+    /// <remarks>
+    /// Note that the virtual allocator does not actually contain memory, but rather keeps track over a range of memory that is externally managed.
+    /// </remarks>
+    class LITEFX_RENDERING_API VirtualAllocator final {
+    public:
+        /// <summary>
+        /// Represents an allocation within the memory managed by the virtual allocator.
+        /// </summary>
+        struct Allocation final {
+            /// <summary>
+            /// The handle that identifies the allocation.
+            /// </summary>
+            UInt64 Handle { 0u };
+
+            /// <summary>
+            /// The overall size of the allocation in bytes.
+            /// </summary>
+            UInt64 Size { 0u };
+
+            /// <summary>
+            /// The offset to the start of the allocation within the memory block.
+            /// </summary>
+            UInt64 Offset { std::numeric_limits<UInt64>::max() };
+        };
+
+    private:
+        /// <summary>
+        /// The interface for an allocator implementation.
+        /// </summary>
+        struct AllocatorImplBase {
+        private:
+            UInt64 m_size;
+            AllocationAlgorithm m_algorithm;
+
+        protected:
+            /// <summary>
+            /// Creates a new allocator instance.
+            /// </summary>
+            /// <param name="overallMemory">The overall size (in bytes) of memory available to the allocator.</param>
+            /// <param name="algorithm">The algorithm used to find a suitable block in the allocator memory.</param>
+            AllocatorImplBase(UInt64 overallMemory, AllocationAlgorithm algorithm) :
+                m_size(overallMemory), m_algorithm(algorithm)
+            {
+            }
+
+            AllocatorImplBase(const AllocatorImplBase&) = delete;
+            AllocatorImplBase(AllocatorImplBase&&) noexcept = delete;
+            AllocatorImplBase& operator=(const AllocatorImplBase&) = delete;
+            AllocatorImplBase& operator=(AllocatorImplBase&&) noexcept = delete;
+
+        public:
+            virtual ~AllocatorImplBase() noexcept = default;
+
+        public:
+            /// <summary>
+            /// Returns the size of the memory managed by the virtual allocator.
+            /// </summary>
+            /// <returns>The size (in bytes) of the memory managed by the virtual allocator.</returns>
+            inline UInt64 size() const noexcept {
+                return m_size;
+            }
+
+            /// <summary>
+            /// Returns the algorithm used by the allocator.
+            /// </summary>
+            /// <returns>The algorithm used by the allocator.</returns>
+            inline AllocationAlgorithm algorithm() const noexcept {
+                return m_algorithm;
+            }
+
+            /// <summary>
+            /// Allocates a piece of memory of <paramref name="size" /> bytes, aligned to <paramref name="alignment" />.
+            /// </summary>
+            /// <param name="size">The size (in bytes) of the resource to place in the allocation.</param>
+            /// <param name="alignment">The alignment requirements of the resource.</param>
+            /// <param name="strategy">The strategy to look for a place to put the allocation in.</param>
+            /// <param name="privateData">A pointer to an object that should be internally associated with the allocation.</param>
+            /// <returns>An object that contains details about the allocation.</returns>
+            [[nodiscard]] virtual Allocation allocate(UInt64 size, UInt32 alignment = 1u, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const = 0;
+
+            /// <summary>
+            /// Releases an allocation from the allocator, so that its memory can be re-used later.
+            /// </summary>
+            /// <param name="allocation">The allocation to release.</param>
+            virtual void free(Allocation&& allocation) const = 0;
+
+            /// <summary>
+            /// Returns the private data associated with an allocation.
+            /// </summary>
+            /// <param name="allocation">The allocation for which to obtain the private data.</param>
+            /// <returns>A pointer that references the private data associated with the allocation.</returns>
+            virtual void* privateData(const Allocation& allocation) const = 0;
+        };
+
+        /// <summary>
+        /// Implements a specific allocator.
+        /// </summary>
+        /// <typeparam name="TBackend">The backend, for which the allocator is implemented</typeparam>
+        template <typename TBackend>
+        struct AllocatorImpl final : public AllocatorImplBase { 
+            static_assert(false, "Attempting to use a non-specialized virtual allocator is invalid.");
+        };
+
+        /// <summary>
+        /// Stores the allocator implementation.
+        /// </summary>
+        UniquePtr<AllocatorImplBase> m_impl;
+
+        /// <summary>
+        /// Creates a new virtual allocator instance.
+        /// </summary>
+        /// <param name="pImpl">The pointer to the allocator implementation.</param>
+        VirtualAllocator(UniquePtr<AllocatorImplBase>&& pImpl) :
+            m_impl(std::move(pImpl))
+        {
+        }
+
+    public:
+        VirtualAllocator(const VirtualAllocator&) = delete;
+        VirtualAllocator(VirtualAllocator&&) noexcept = delete;
+        VirtualAllocator& operator=(const VirtualAllocator&) = delete;
+        VirtualAllocator& operator=(VirtualAllocator&&) noexcept = delete;
+        ~VirtualAllocator() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Creates a new virtual allocator instance.
+        /// </summary>
+        /// <param name="overallMemory">The overall size (in bytes) of memory available to the allocator.</param>
+        /// <param name="algorithm">The algorithm used to find a suitable block in the allocator memory.</param>
+        /// <returns>The instance of the virtual allocator.</returns>
+        template <typename TBackend>
+        [[nodiscard]] static inline VirtualAllocator create(UInt64 overallMemory, AllocationAlgorithm algorithm = AllocationAlgorithm::Default) {
+            return VirtualAllocator(UniquePtr<AllocatorImplBase>(new AllocatorImpl<TBackend>(overallMemory, algorithm)));
+        }
+
+    public:
+        /// <summary>
+        /// Returns the size of the memory managed by the virtual allocator.
+        /// </summary>
+        /// <returns>The size (in bytes) of the memory managed by the virtual allocator.</returns>
+        inline UInt64 size() const noexcept {
+            return m_impl->size();
+        }
+
+        /// <summary>
+        /// Returns the algorithm used by the allocator.
+        /// </summary>
+        /// <returns>The algorithm used by the allocator.</returns>
+        inline AllocationAlgorithm algorithm() const noexcept {
+            return m_impl->algorithm();
+        }
+
+        /// <summary>
+        /// Allocates a piece of memory of <paramref name="size" /> bytes, aligned to <paramref name="alignment" />.
+        /// </summary>
+        /// <param name="size">The size (in bytes) of the resource to place in the allocation.</param>
+        /// <param name="alignment">The alignment requirements of the resource.</param>
+        /// <param name="strategy">The strategy to look for a place to put the allocation in.</param>
+        /// <param name="privateData">A pointer to an object that should be internally associated with the allocation.</param>
+        /// <returns>An object that contains details about the allocation.</returns>
+        [[nodiscard]] inline Allocation allocate(UInt64 size, UInt32 alignment = 1u, AllocationStrategy strategy = AllocationStrategy::OptimizePacking, void* privateData = nullptr) const {
+            return m_impl->allocate(size, alignment, strategy, privateData);
+        }
+
+        /// <summary>
+        /// Releases an allocation from the allocator, so that its memory can be re-used later.
+        /// </summary>
+        /// <remarks>
+        /// Releasing an allocation that was not allocated from the virtual allocator is undefined behavior.
+        /// </remarks>
+        /// <param name="allocation">The allocation to release.</param>
+        inline void free(Allocation&& allocation) const { // NOLINT(cppcoreguidelines-rvalue-reference-param-not-moved)
+            m_impl->free(std::forward<Allocation>(allocation));
+        }
+
+        /// <summary>
+        /// Returns the private data associated with an allocation.
+        /// </summary>
+        /// <param name="allocation">The allocation for which to obtain the private data.</param>
+        /// <returns>A pointer that references the private data associated with the allocation.</returns>
+        inline void* privateData(const Allocation& allocation) const {
+            return m_impl->privateData(allocation);
+        };
+    };
+
+    /// <summary>
     /// Represents a physical graphics adapter.
     /// </summary>
     /// <remarks>
@@ -3284,6 +3527,18 @@ namespace LiteFX::Rendering {
             /// The compare operation used to pass the depth test (default: <c>CompareOperation::Always</c>).
             /// </summary>
             CompareOperation Operation{ CompareOperation::Always };
+
+            /// <summary>
+            /// Enables the depth bounds test.
+            /// </summary>
+            /// <remarks>
+            /// Enabling the depth bounds test allows to supply a depth range to the command buffer by calling <see cref="ICommandBuffer::setDepthBounds" />, which 
+            /// will cause an rasterization operation to exit early, if the resulting depth lies outside of the provided range. To use this test, the 
+            /// <see cref="GraphicsDeviceFeatures::DepthBoundsTest" /> must be enabled on the device.
+            /// </remarks>
+            /// <seealso cref="GraphicsDeviceFeatures::DepthBoundsTest" />
+            /// <seealso cref="ICommandBuffer::setDepthBounds" />
+            bool DepthBoundsTestEnable{ false };
         };
 
         /// <summary>
@@ -3484,6 +3739,21 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The depth/stencil state of the rasterizer.</returns>
         virtual const DepthStencilState& depthStencilState() const noexcept = 0;
+
+        /// <summary>
+        /// Returns `true`, if z-clipping should be used during distance clipping.
+        /// </summary>
+        /// <returns>`true`, if z-clipping should be used during distance clipping and `false` otherwise.</returns>
+        virtual bool depthClip() const noexcept = 0;
+
+        /// <summary>
+        /// Returns `true`, if conservative rasterization is enabled and `false` otherwise.
+        /// </summary>
+        /// <remarks>
+        /// This setting requires the <see cref="GraphicsDeviceFeatures::ConservativeRasterization" /> feature to be enabled.
+        /// </remarks>
+        /// <returns>`true`, if conservative rasterization is enabled and `false` otherwise.</returns>
+        virtual bool conservativeRasterization() const noexcept = 0;
     };
 
     /// <summary>
@@ -3500,8 +3770,10 @@ namespace LiteFX::Rendering {
         /// <param name="cullMode">The cull mode of the rasterizer state.</param>
         /// <param name="cullOrder">The cull order of the rasterizer state.</param>
         /// <param name="lineWidth">The line width of the rasterizer state.</param>
+        /// <param name="depthClip">The depth clip toggle of the rasterizer state.</param>
         /// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
-        explicit Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
+        /// <param name="conservativeRasterization">Toggles the use of conservative rasterization in the rasterizer.</param>
+        explicit Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, bool depthClip = true, const DepthStencilState& depthStencilState = {}, bool conservativeRasterization = false) noexcept;
 
         /// <summary>
         /// Creates a copy of a rasterizer.
@@ -3551,12 +3823,20 @@ namespace LiteFX::Rendering {
         /// <inheritdoc />
         const DepthStencilState& depthStencilState() const noexcept override;
 
+        /// <inheritdoc />
+        bool depthClip() const noexcept override;
+
+        /// <inheritdoc />
+        bool conservativeRasterization() const noexcept override;
+
     protected:
         virtual PolygonMode& polygonMode() noexcept;
         virtual CullMode& cullMode() noexcept;
         virtual CullOrder& cullOrder() noexcept;
         virtual Float& lineWidth() noexcept;
+        virtual bool& depthClip() noexcept;
         virtual DepthStencilState& depthStencilState() noexcept;
+        virtual bool& conservativeRasterization() noexcept;
     };
 
     /// <summary>
@@ -4064,6 +4344,12 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The vertex buffer attributes.</returns>
         virtual const Array<BufferAttribute>& attributes() const = 0;
+
+        /// <summary>
+        /// Returns the vertex buffer input rate that describes how the data is made available to the vertex shader.
+        /// </summary>
+        /// <returns>The vertex buffer input rate setting.</returns>
+        virtual VertexBufferInputRate inputRate() const noexcept = 0;
     };
 
     /// <summary>
@@ -5403,25 +5689,11 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
-        /// Returns the offset into the global descriptor heap.
+        /// Returns the allocation information for the descriptor set in the global descriptor heap indicated by <paramref name="heapType" />.
         /// </summary>
-        /// <remarks>
-        /// The heap offset may differ between used backends and does not necessarily correspond to memory.
-        /// </remarks>
-        /// <param name="heapType">The type of the descriptor heap for which to obtain the heap offset.</param>
-        /// <returns>The offset into the global descriptor heap.</returns>
-        virtual UInt32 globalHeapOffset(DescriptorHeapType heapType) const noexcept = 0;
-
-        /// <summary>
-        /// Returns the amount size of the range in the global descriptor heap address space.
-        /// </summary>
-        /// <remarks>
-        /// The heap size may differ between used backends and does not necessarily correspond to memory.
-        /// </remarks>
-        /// <param name="heapType">The type of the descriptor heap for which to obtain the heap size.</param>
-        /// <returns>The size of the range in the global descriptor heap.</returns>
-        /// <seealso cref="globalHeapOffset" />
-        virtual UInt32 globalHeapAddressRange(DescriptorHeapType heapType) const noexcept = 0;
+        /// <param name="heapType">The type of the descriptor heap for which to obtain the heap allocation.</param>
+        /// <returns>The allocation for the descriptor set in the global descriptor heap.</returns>
+        virtual VirtualAllocator::Allocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept = 0;
 
         /// <summary>
         /// Binds a resource directly to a descriptor heap and returns the index that can be used to access it.
@@ -7097,6 +7369,12 @@ namespace LiteFX::Rendering {
         /// <seealso cref="track(SharedPtr&le;const IBuffer&ge;)" />
         virtual void track(SharedPtr<const ISampler> sampler) const = 0;
 
+        /// <summary>
+        /// Sets up tracking for a descriptor set, so that bindings aren't released until the command buffer has been executed.
+        /// </summary>
+        /// <param name="descriptorSet">The descriptor set to track.</param>
+        virtual void track(UniquePtr<const IDescriptorSet>&& descriptorSet) const = 0;
+
     public:
         /// <summary>
         /// Gets a pointer to the command queue that this command buffer was allocated from or `nullptr`, if the queue has already been released.
@@ -7865,6 +8143,19 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="stencilRef">The stencil reference for the subsequent draw calls.</param>
         virtual void setStencilRef(UInt32 stencilRef) const noexcept = 0;
+
+        /// <summary>
+        /// Sets the depth range for the depth bounds test.
+        /// </summary>
+        /// <remarks>
+        /// In order to use the depth bounds test, the currently bound render pipeline must have been created with the depth bounds test enabled, which requires the device to be created with the
+        /// <see cref="GraphicsDeviceFeatures::DepthBoundsTest" /> enabled.
+        /// </remarks>
+        /// <param name="minBounds"></param>
+        /// <param name="maxBounds"></param>
+        /// <seealso cref="GraphicsDeviceFeatures::DepthBoundsTest" />
+        /// <seealso cref="DepthStencilState::DepthState::DepthBoundsTestEnable" />
+        virtual void setDepthBounds(Float minBounds, Float maxBounds) const noexcept = 0;
 
         /// <summary>
         /// Submits the command buffer to parent command
@@ -9396,6 +9687,14 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
+        /// Creates a virtual allocator that can be used to manage allocation from a custom block of memory.
+        /// </summary>
+        /// <param name="overallMemory">The overall size (in bytes) of memory available to the allocator.</param>
+        /// <param name="algorithm">The algorithm used to find a suitable block in the allocator memory.</param>
+        /// <returns>The instance of the virtual allocator.</returns>
+        [[nodiscard]] virtual VirtualAllocator createAllocator(UInt64 overallMemory, AllocationAlgorithm algorithm = AllocationAlgorithm::Default) const = 0;
+
+        /// <summary>
         /// Creates a buffer of type <paramref name="type" />.
         /// </summary>
         /// <param name="type">The type of the buffer.</param>
@@ -10155,6 +10454,20 @@ namespace LiteFX::Rendering {
         /// containing unbounded descriptor arrays. They can, however, be more efficient if you can replace multiple pipeline layouts with a single one that relies on mutable type descriptors.
         /// </remarks>
         bool DynamicDescriptors { false };
+
+        /// <summary>
+        /// Enables support for enabling depth bounds test on <see cref="IRenderPipeline" /> creation.
+        /// </summary>
+        /// <seealso href="https://microsoft.github.io/DirectX-Specs/d3d/DepthBoundsTest.html" />
+        /// <seealso href="https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html#features-depthBounds" />
+        bool DepthBoundsTest { false };
+
+        /// <summary>
+        /// Enables support for conservative rasterization.
+        /// </summary>
+        /// <seealso href="https://learn.microsoft.com/en-us/windows/win32/direct3d12/conservative-rasterization" />
+        /// <seealso href="https://registry.khronos.org/vulkan/specs/latest/man/html/VK_EXT_conservative_rasterization.html" />
+        bool ConservativeRasterization { false };
     };
 
     /// <summary>
@@ -10335,10 +10648,9 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <param name="descriptorSet">The descriptor set containing the descriptors to update.</param>
         /// <param name="heapType">The type of the descriptor heap to allocate descriptors on.</param>
-        /// <param name="heapOffset">The offset of the descriptor range in the global descriptor heap.</param>
-        /// <param name="heapSize">The size of the address range in the global descriptor heap.</param>
-        inline void allocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const {
-            this->doAllocateGlobalDescriptors(descriptorSet, heapType, heapOffset, heapSize);
+        /// <returns>The allocation for the descriptor set at the descriptor heap indicated by <paramref name="heapType" />.</returns>
+        [[nodiscard]] inline VirtualAllocator::Allocation allocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const {
+            return this->doAllocateGlobalDescriptors(descriptorSet, heapType);
         }
 
         /// <summary>
@@ -10390,7 +10702,7 @@ namespace LiteFX::Rendering {
     private:
         virtual void getAccelerationStructureSizes(const IBottomLevelAccelerationStructure& blas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
         virtual void getAccelerationStructureSizes(const ITopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate) const = 0;
-        virtual void doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const = 0;
+        virtual VirtualAllocator::Allocation doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const = 0;
         virtual void doReleaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const = 0;
         virtual void doUpdateGlobalDescriptors(const IDescriptorSet& descriptorSet, UInt32 binding, UInt32 offset, UInt32 descriptors) const = 0;
         virtual void doBindDescriptorSet(const ICommandBuffer& commandBuffer, const IDescriptorSet& descriptorSet, const IPipeline& pipeline) const noexcept = 0;

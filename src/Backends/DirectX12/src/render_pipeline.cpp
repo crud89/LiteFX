@@ -69,23 +69,26 @@ public:
 
 		// Setup rasterizer state.
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
-		D3D12_RASTERIZER_DESC rasterizerState = {};
-		rasterizerState.DepthClipEnable = FALSE;
-		rasterizerState.FillMode = DX12::getPolygonMode(rasterizer.polygonMode());
-		rasterizerState.CullMode = DX12::getCullMode(rasterizer.cullMode());
-		rasterizerState.FrontCounterClockwise = rasterizer.cullOrder() == CullOrder::CounterClockWise;
-		rasterizerState.MultisampleEnable = FALSE;
-		rasterizerState.AntialiasedLineEnable = FALSE;
-		rasterizerState.ForcedSampleCount = 0;
-		rasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+		D3D12_RASTERIZER_DESC rasterizerState = {
+			.FillMode = DX12::getPolygonMode(rasterizer.polygonMode()),
+			.CullMode = DX12::getCullMode(rasterizer.cullMode()),
+			.FrontCounterClockwise = rasterizer.cullOrder() == CullOrder::CounterClockWise,
+			.DepthClipEnable = rasterizer.depthClip(),
+			.MultisampleEnable = FALSE,
+			.AntialiasedLineEnable = FALSE,
+			.ForcedSampleCount = 0,
+			.ConservativeRaster = rasterizer.conservativeRasterization() ? D3D12_CONSERVATIVE_RASTERIZATION_MODE_ON : D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF
+		};
 
-		LITEFX_TRACE(DIRECTX12_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3} }}", rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth());
+		LITEFX_TRACE(DIRECTX12_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3}, Depth Clip: {4}, Conservative Rasterization: {5} }}", 
+			rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth(), rasterizer.depthClip(), rasterizer.conservativeRasterization());
 
-		if (!rasterizer.depthStencilState().depthState().Enable)
+		if (!rasterizer.depthStencilState().depthBias().Enable)
 			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias disabled.");
 		else
 		{
-			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer.depthStencilState().depthBias().Clamp, rasterizer.depthStencilState().depthBias().ConstantFactor, rasterizer.depthStencilState().depthBias().SlopeFactor);
+			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", 
+				rasterizer.depthStencilState().depthBias().Clamp, rasterizer.depthStencilState().depthBias().ConstantFactor, rasterizer.depthStencilState().depthBias().SlopeFactor);
 			rasterizerState.DepthBiasClamp = rasterizer.depthStencilState().depthBias().Clamp;
 			rasterizerState.DepthBias = static_cast<Int32>(rasterizer.depthStencilState().depthBias().ConstantFactor);
 			rasterizerState.SlopeScaledDepthBias = rasterizer.depthStencilState().depthBias().SlopeFactor;
@@ -111,14 +114,17 @@ public:
 #endif
 
 			std::ranges::for_each(bufferAttributes, [&](auto& attribute) {
-				D3D12_INPUT_ELEMENT_DESC elementDescriptor = {};
-				elementDescriptor.SemanticName = DX12::getSemanticName(attribute.semantic());
-				elementDescriptor.SemanticIndex = attribute.semanticIndex();
-				elementDescriptor.Format = DX12::getFormat(attribute.format());
-				elementDescriptor.InputSlot = bindingPoint;
-				elementDescriptor.InputSlotClass = D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
-				elementDescriptor.AlignedByteOffset = attribute.offset();	// TODO: May not include packing, but packing is required - need to test this!
-				elementDescriptor.InstanceDataStepRate = 0;
+				D3D12_INPUT_ELEMENT_DESC elementDescriptor = {
+					.SemanticName = DX12::getSemanticName(attribute.semantic()),
+					.SemanticIndex = attribute.semanticIndex(),
+					.Format = DX12::getFormat(attribute.format()),
+					.InputSlot = bindingPoint,
+					.AlignedByteOffset = attribute.offset(),	// TODO: May not include packing, but packing is required - need to test this!
+					.InputSlotClass = layout.inputRate() == VertexBufferInputRate::Vertex ?
+						D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA :
+						D3D12_INPUT_CLASSIFICATION::D3D12_INPUT_CLASSIFICATION_PER_INSTANCE_DATA,
+					.InstanceDataStepRate = layout.inputRate() == VertexBufferInputRate::Vertex ? 0u : 1u
+				};
 
 				inputLayoutElements.push_back(elementDescriptor);
 			});
@@ -134,7 +140,7 @@ public:
 		// Setup render target states.
 		// NOTE: We assume, that the targets are returned sorted by location and the location range is contiguous.
 		D3D12_BLEND_DESC blendState = {};
-		D3D12_DEPTH_STENCIL_DESC depthStencilState = {};
+		D3D12_DEPTH_STENCIL_DESC1 depthStencilState = {};
 		auto targets = m_renderPass->renderTargets();
 		UInt32 renderTargets = static_cast<UInt32>(std::ranges::count_if(targets, [](auto& renderTarget) { return renderTarget.type() != RenderTargetType::DepthStencil; }));
 		UInt32 depthStencilTargets = static_cast<UInt32>(targets.size()) - renderTargets;
@@ -159,6 +165,7 @@ public:
 				depthStencilState.DepthEnable = rasterizer.depthStencilState().depthState().Enable;
 				depthStencilState.DepthWriteMask = rasterizer.depthStencilState().depthState().Write ? D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK::D3D12_DEPTH_WRITE_MASK_ZERO;
 				depthStencilState.DepthFunc = DX12::getCompareOp(rasterizer.depthStencilState().depthState().Operation);
+				depthStencilState.DepthBoundsTestEnable = rasterizer.depthStencilState().depthState().DepthBoundsTestEnable;
 
 				depthStencilState.StencilEnable = rasterizer.depthStencilState().stencilState().Enable;
 				depthStencilState.StencilReadMask = rasterizer.depthStencilState().stencilState().ReadMask;
@@ -206,7 +213,7 @@ public:
 
 	}
 
-	ComPtr<ID3D12PipelineState> initializeMeshPipeline([[maybe_unused]] const DirectX12RenderPipeline& pipeline, const D3D12_BLEND_DESC& blendState, const D3D12_RASTERIZER_DESC& rasterizerState, const D3D12_DEPTH_STENCIL_DESC& depthStencilState, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, UINT renderTargets, const std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>& renderTargetFormats, DXGI_FORMAT depthStencilFormat, const DXGI_SAMPLE_DESC& multisamplingState)
+	ComPtr<ID3D12PipelineState> initializeMeshPipeline([[maybe_unused]] const DirectX12RenderPipeline& pipeline, const D3D12_BLEND_DESC& blendState, const D3D12_RASTERIZER_DESC& rasterizerState, const D3D12_DEPTH_STENCIL_DESC1& depthStencilState, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, UINT renderTargets, const std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>& renderTargetFormats, DXGI_FORMAT depthStencilFormat, const DXGI_SAMPLE_DESC& multisamplingState)
 	{
 		// Create a pipeline state description.
 		D3DX12_MESH_SHADER_PIPELINE_STATE_DESC pipelineStateDescription = {
@@ -214,7 +221,6 @@ public:
 			.BlendState = blendState,
 			.SampleMask = std::numeric_limits<UInt32>::max(),
 			.RasterizerState = rasterizerState,
-			.DepthStencilState = depthStencilState,
 			.PrimitiveTopologyType = topologyType,
 			.NumRenderTargets = renderTargets,
 			.DSVFormat = depthStencilFormat,
@@ -256,8 +262,10 @@ public:
 				throw InvalidArgumentException("shaderProgram", "Trying to bind shader to unsupported shader stage '{0}'.", shaderModule.type());
 			}
 		});
-
+		
 		CD3DX12_PIPELINE_STATE_STREAM2 streamDesc(pipelineStateDescription);
+		streamDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC1(depthStencilState);
+
 		D3D12_PIPELINE_STATE_STREAM_DESC pipelineDesc = {
 			.SizeInBytes = sizeof(streamDesc),
 			.pPipelineStateSubobjectStream = &streamDesc
@@ -274,7 +282,7 @@ public:
 		return pipelineState;
 	}
 
-	ComPtr<ID3D12PipelineState> initializeGraphicsPipeline([[maybe_unused]] const DirectX12RenderPipeline& pipeline, const D3D12_BLEND_DESC& blendState, const D3D12_RASTERIZER_DESC& rasterizerState, const D3D12_DEPTH_STENCIL_DESC& depthStencilState, const D3D12_INPUT_LAYOUT_DESC& inputLayout, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, UINT renderTargets, const std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>& renderTargetFormats, DXGI_FORMAT depthStencilFormat, const DXGI_SAMPLE_DESC& multisamplingState)
+	ComPtr<ID3D12PipelineState> initializeGraphicsPipeline([[maybe_unused]] const DirectX12RenderPipeline& pipeline, const D3D12_BLEND_DESC& blendState, const D3D12_RASTERIZER_DESC& rasterizerState, const D3D12_DEPTH_STENCIL_DESC1& depthStencilState, const D3D12_INPUT_LAYOUT_DESC& inputLayout, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, UINT renderTargets, const std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>& renderTargetFormats, DXGI_FORMAT depthStencilFormat, const DXGI_SAMPLE_DESC& multisamplingState)
 	{
 		// Create a pipeline state description.
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDescription = {
@@ -282,7 +290,6 @@ public:
 			.BlendState = blendState,
 			.SampleMask = std::numeric_limits<UInt32>::max(),
 			.RasterizerState = rasterizerState,
-			.DepthStencilState = depthStencilState,
 			.InputLayout = inputLayout,
 			.PrimitiveTopologyType = topologyType,
 			.NumRenderTargets = renderTargets,
@@ -334,9 +341,17 @@ public:
 			}
 		});
 
+		CD3DX12_PIPELINE_STATE_STREAM2 streamDesc(pipelineStateDescription);
+		streamDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC1(depthStencilState);
+
+		D3D12_PIPELINE_STATE_STREAM_DESC pipelineDesc = {
+			.SizeInBytes = sizeof(streamDesc),
+			.pPipelineStateSubobjectStream = &streamDesc
+		};
+
 		// Create the pipeline state instance.
 		ComPtr<ID3D12PipelineState> pipelineState;
-		raiseIfFailed(m_renderPass->device().handle()->CreateGraphicsPipelineState(&pipelineStateDescription, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
+		raiseIfFailed(m_renderPass->device().handle()->CreatePipelineState(&pipelineDesc, IID_PPV_ARGS(&pipelineState)), "Unable to create render pipeline state.");
 		
 #ifndef NDEBUG
 		pipelineState->SetName(Widen(pipeline.name()).c_str());

@@ -54,6 +54,7 @@ SET(VULKAN_BACKEND_SOURCES
     "src/push_constants_layout.cpp"
     "src/blas.cpp"
     "src/tlas.cpp"
+    "src/virtual_allocator.hpp"
 
     ".natvis"
 )
