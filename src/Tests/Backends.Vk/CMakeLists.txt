@@ -10,6 +10,7 @@ ADD_SHADER_MODULE(Tests.Vk.Shaders.VS    SOURCE "shaders/test_vs.hlsl"    LANGUA
 ADD_SHADER_MODULE(Tests.Vk.Shaders.PC.VS SOURCE "shaders/test_pc_vs.hlsl" LANGUAGE HLSL TYPE VERTEX   COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_TEST_HLSL_SHADER_MODEL} COMPILER DXC)
 ADD_SHADER_MODULE(Tests.Vk.Shaders.DD.VS SOURCE "shaders/test_dd_vs.hlsl" LANGUAGE HLSL TYPE VERTEX   COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_TEST_HLSL_SHADER_MODEL} COMPILER DXC)
 ADD_SHADER_MODULE(Tests.Vk.Shaders.FS    SOURCE "shaders/test_fs.hlsl"    LANGUAGE HLSL TYPE FRAGMENT COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_TEST_HLSL_SHADER_MODEL} COMPILER DXC)
+ADD_SHADER_MODULE(Tests.Vk.Shaders.CR.FS SOURCE "shaders/test_cr_fs.hlsl" LANGUAGE HLSL TYPE FRAGMENT COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_TEST_HLSL_SHADER_MODEL} COMPILER DXC)
 ADD_SHADER_MODULE(Tests.Vk.Shaders.CS    SOURCE "shaders/test_Cs.hlsl"    LANGUAGE HLSL TYPE COMPUTE  COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_TEST_HLSL_SHADER_MODEL} COMPILER DXC)
 ADD_SHADER_MODULE(Tests.Vk.Shaders.RG    SOURCE "shaders/raytracing_gen.hlsl"  LANGUAGE HLSL TYPE RAYTRACING COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_TEST_HLSL_SHADER_MODEL} COMPILER DXC COMPILE_OPTIONS "-fspv-extension=SPV_KHR_ray_tracing -fspv-extension=SPV_EXT_descriptor_indexing -disable-payload-qualifiers" INCLUDES "shaders/raytracing_common.hlsli")
 ADD_SHADER_MODULE(Tests.Vk.Shaders.RH    SOURCE "shaders/raytracing_hit.hlsl"  LANGUAGE HLSL TYPE RAYTRACING COMPILE_AS SPIRV SHADER_MODEL ${LITEFX_TEST_HLSL_SHADER_MODEL} COMPILER DXC COMPILE_OPTIONS "-fspv-extension=SPV_KHR_ray_tracing -fspv-extension=SPV_EXT_descriptor_indexing -disable-payload-qualifiers" INCLUDES "shaders/raytracing_common.hlsli")
@@ -168,4 +169,14 @@ DEFINE_TEST("device_allocates_vk_index_buffers" FOLDER "Tests/Backends/Vk" EXECU
 DEFINE_TEST("device_allocates_vk_images" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_alloc_image_test" 
 	SOURCES "common.h" "alloc_image.cpp"
 	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+)
+
+DEFINE_TEST("vk_backend_sets_up_conservative_raterization" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_conservative_rasterization_test" 
+	SOURCES "common.h" "conservative_rasterization.cpp"
+	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+)
+
+TARGET_LINK_SHADERS(vk_conservative_rasterization_test
+    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
+    SHADERS Tests.Vk.Shaders.VS Tests.Vk.Shaders.CR.FS
 )
