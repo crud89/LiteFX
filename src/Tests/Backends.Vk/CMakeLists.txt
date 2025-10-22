@@ -171,12 +171,13 @@ DEFINE_TEST("device_allocates_vk_images" FOLDER "Tests/Backends/Vk" EXECUTABLE_N
 	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
 )
 
-DEFINE_TEST("vk_backend_sets_up_conservative_raterization" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_conservative_rasterization_test" 
-	SOURCES "common.h" "conservative_rasterization.cpp"
-	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
-)
+# Unfortunately, VK_EXT_conservative_rasterization is currently unsupported by llvmpipe, so we'll disable it for now.
+#DEFINE_TEST("vk_backend_sets_up_conservative_raterization" FOLDER "Tests/Backends/Vk" EXECUTABLE_NAME "vk_conservative_rasterization_test" 
+#	SOURCES "common.h" "conservative_rasterization.cpp"
+#	DEPENDENCIES LiteFX.AppModel LiteFX.Rendering LiteFX.Logging LiteFX.Backends.Vulkan
+#)
 
-TARGET_LINK_SHADERS(vk_conservative_rasterization_test
-    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
-    SHADERS Tests.Vk.Shaders.VS Tests.Vk.Shaders.CR.FS
-)
+#TARGET_LINK_SHADERS(vk_conservative_rasterization_test
+#    INSTALL_DESTINATION "${CMAKE_INSTALL_BINARY_DIR}/${SHADER_DEFAULT_SUBDIR}"
+#    SHADERS Tests.Vk.Shaders.VS Tests.Vk.Shaders.CR.FS
+#)
