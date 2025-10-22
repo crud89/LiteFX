@@ -208,9 +208,9 @@ private:
         m_extensions.emplace_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 #endif // defined(LITEFX_BUILD_VULKAN_INTEROP_SWAP_CHAIN) && defined(LITEFX_BUILD_DIRECTX_12_BACKEND)
 
-#ifndef NDEBUG
         auto availableExtensions = m_adapter->getAvailableDeviceExtensions();
 
+#ifndef NDEBUG
         // Required to set debug names.
         if (auto match = std::ranges::find_if(availableExtensions, [](const String& extension) { return extension == VK_EXT_DEBUG_MARKER_EXTENSION_NAME; }); match != availableExtensions.end())
             m_extensions.emplace_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
