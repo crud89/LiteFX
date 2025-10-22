@@ -106,6 +106,8 @@ private:
 			throw RuntimeException("The device does not support shader model 6.8 or later, which is required for the indirect draw feature.");
 		if (features.DepthBoundsTest && !featureSupport.DepthBoundsTestSupported())
 			throw RuntimeException("The device does not support depth bounds test.");
+		if (features.ConservativeRasterization && featureSupport.ConservativeRasterizationTier() < D3D12_CONSERVATIVE_RASTERIZATION_TIER_3)
+			throw RuntimeException("The device does not support conservative rasterization tier 3 (or higher).");
 	}
 
 public:

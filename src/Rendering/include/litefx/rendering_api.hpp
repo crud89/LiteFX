@@ -3745,6 +3745,15 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>`true`, if z-clipping should be used during distance clipping and `false` otherwise.</returns>
         virtual bool depthClip() const noexcept = 0;
+
+        /// <summary>
+        /// Returns `true`, if conservative rasterization is enabled and `false` otherwise.
+        /// </summary>
+        /// <remarks>
+        /// This setting requires the <see cref="GraphicsDeviceFeatures::ConservativeRasterization" /> feature to be enabled.
+        /// </remarks>
+        /// <returns>`true`, if conservative rasterization is enabled and `false` otherwise.</returns>
+        virtual bool conservativeRasterization() const noexcept = 0;
     };
 
     /// <summary>
@@ -3763,7 +3772,8 @@ namespace LiteFX::Rendering {
         /// <param name="lineWidth">The line width of the rasterizer state.</param>
         /// <param name="depthClip">The depth clip toggle of the rasterizer state.</param>
         /// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
-        explicit Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, bool depthClip = true, const DepthStencilState& depthStencilState = {}) noexcept;
+        /// <param name="conservativeRasterization">Toggles the use of conservative rasterization in the rasterizer.</param>
+        explicit Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, bool depthClip = true, const DepthStencilState& depthStencilState = {}, bool conservativeRasterization = false) noexcept;
 
         /// <summary>
         /// Creates a copy of a rasterizer.
@@ -3816,6 +3826,9 @@ namespace LiteFX::Rendering {
         /// <inheritdoc />
         bool depthClip() const noexcept override;
 
+        /// <inheritdoc />
+        bool conservativeRasterization() const noexcept override;
+
     protected:
         virtual PolygonMode& polygonMode() noexcept;
         virtual CullMode& cullMode() noexcept;
@@ -3823,6 +3836,7 @@ namespace LiteFX::Rendering {
         virtual Float& lineWidth() noexcept;
         virtual bool& depthClip() noexcept;
         virtual DepthStencilState& depthStencilState() noexcept;
+        virtual bool& conservativeRasterization() noexcept;
     };
 
     /// <summary>
@@ -10447,6 +10461,13 @@ namespace LiteFX::Rendering {
         /// <seealso href="https://microsoft.github.io/DirectX-Specs/d3d/DepthBoundsTest.html" />
         /// <seealso href="https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html#features-depthBounds" />
         bool DepthBoundsTest { false };
+
+        /// <summary>
+        /// Enables support for conservative rasterization.
+        /// </summary>
+        /// <seealso href="https://learn.microsoft.com/en-us/windows/win32/direct3d12/conservative-rasterization" />
+        /// <seealso href="https://registry.khronos.org/vulkan/specs/latest/man/html/VK_EXT_conservative_rasterization.html" />
+        bool ConservativeRasterization { false };
     };
 
     /// <summary>

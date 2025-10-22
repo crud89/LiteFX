@@ -69,23 +69,26 @@ public:
 
 		// Setup rasterizer state.
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
-		D3D12_RASTERIZER_DESC rasterizerState = {};
-		rasterizerState.DepthClipEnable = rasterizer.depthClip();
-		rasterizerState.FillMode = DX12::getPolygonMode(rasterizer.polygonMode());
-		rasterizerState.CullMode = DX12::getCullMode(rasterizer.cullMode());
-		rasterizerState.FrontCounterClockwise = rasterizer.cullOrder() == CullOrder::CounterClockWise;
-		rasterizerState.MultisampleEnable = FALSE;
-		rasterizerState.AntialiasedLineEnable = FALSE;
-		rasterizerState.ForcedSampleCount = 0;
-		rasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
+		D3D12_RASTERIZER_DESC rasterizerState = {
+			.FillMode = DX12::getPolygonMode(rasterizer.polygonMode()),
+			.CullMode = DX12::getCullMode(rasterizer.cullMode()),
+			.FrontCounterClockwise = rasterizer.cullOrder() == CullOrder::CounterClockWise,
+			.DepthClipEnable = rasterizer.depthClip(),
+			.MultisampleEnable = FALSE,
+			.AntialiasedLineEnable = FALSE,
+			.ForcedSampleCount = 0,
+			.ConservativeRaster = rasterizer.conservativeRasterization() ? D3D12_CONSERVATIVE_RASTERIZATION_MODE_ON : D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF
+		};
 
-		LITEFX_TRACE(DIRECTX12_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3}, Depth Clip: {4} }}", rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth(), rasterizer.depthClip());
+		LITEFX_TRACE(DIRECTX12_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3}, Depth Clip: {4}, Conservative Rasterization: {5} }}", 
+			rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth(), rasterizer.depthClip(), rasterizer.conservativeRasterization());
 
 		if (!rasterizer.depthStencilState().depthBias().Enable)
 			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias disabled.");
 		else
 		{
-			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer.depthStencilState().depthBias().Clamp, rasterizer.depthStencilState().depthBias().ConstantFactor, rasterizer.depthStencilState().depthBias().SlopeFactor);
+			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", 
+				rasterizer.depthStencilState().depthBias().Clamp, rasterizer.depthStencilState().depthBias().ConstantFactor, rasterizer.depthStencilState().depthBias().SlopeFactor);
 			rasterizerState.DepthBiasClamp = rasterizer.depthStencilState().depthBias().Clamp;
 			rasterizerState.DepthBias = static_cast<Int32>(rasterizer.depthStencilState().depthBias().ConstantFactor);
 			rasterizerState.SlopeScaledDepthBias = rasterizer.depthStencilState().depthBias().SlopeFactor;

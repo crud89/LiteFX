@@ -7,8 +7,8 @@ using namespace LiteFX::Rendering::Backends;
 // Shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanRasterizer::VulkanRasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth, bool depthClip, const DepthStencilState& depthStencilState) noexcept :
-    Rasterizer(polygonMode, cullMode, cullOrder, lineWidth, depthClip, depthStencilState)
+VulkanRasterizer::VulkanRasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth, bool depthClip, const DepthStencilState& depthStencilState, bool conservativeRasterization) noexcept :
+    Rasterizer(polygonMode, cullMode, cullOrder, lineWidth, depthClip, depthStencilState, conservativeRasterization)
 {
 }
 
@@ -43,6 +43,7 @@ void VulkanRasterizerBuilder::build()
     this->instance()->cullOrder() = this->state().cullOrder;
     this->instance()->lineWidth() = this->state().lineWidth;
     this->instance()->depthClip() = this->state().depthClip;
+    this->instance()->conservativeRasterization() = this->state().conservativeRasterization;
     this->instance()->depthStencilState().depthBias() = this->state().depthBias;
     this->instance()->depthStencilState().depthState() = this->state().depthState;
     this->instance()->depthStencilState().stencilState() = this->state().stencilState;
