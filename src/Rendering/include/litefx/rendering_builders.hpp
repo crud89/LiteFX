@@ -824,6 +824,11 @@ namespace LiteFX::Rendering {
             Float lineWidth{ 1.0f };
 
             /// <summary>
+            /// The depth clip setting for the rasterizer state.
+            /// </summary>
+            bool depthClip{ true };
+
+            /// <summary>
             /// The depth bias state.
             /// </summary>
             DepthStencilState::DepthBias depthBias{ };
@@ -891,6 +896,16 @@ namespace LiteFX::Rendering {
         template<typename TSelf>
         [[nodiscard]] constexpr auto lineWidth(this TSelf&& self, Float width) noexcept -> TSelf&& {
             self.m_state.lineWidth = width;
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Initializes the depth clip toggle for the rasterizer state.
+        /// </summary>
+        /// <param name="depthClip">The depth clip toggle for the rasterizer state.</param>
+        template<typename TSelf>
+        [[nodiscard]] constexpr auto depthClip(this TSelf&& self, bool depthClip) noexcept -> TSelf&& {
+            self.m_state.depthClip = depthClip;
             return std::forward<TSelf>(self);
         }
 

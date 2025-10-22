@@ -3741,6 +3741,12 @@ namespace LiteFX::Rendering {
         virtual const DepthStencilState& depthStencilState() const noexcept = 0;
 
         /// <summary>
+        /// Returns `true`, if z-clipping should be used during distance clipping.
+        /// </summary>
+        /// <returns>`true`, if z-clipping should be used during distance clipping and `false` otherwise.</returns>
+        virtual bool depthClip() const noexcept = 0;
+
+        /// <summary>
         /// Returns `true`, if conservative rasterization is enabled and `false` otherwise.
         /// </summary>
         /// <remarks>
@@ -3764,9 +3770,10 @@ namespace LiteFX::Rendering {
         /// <param name="cullMode">The cull mode of the rasterizer state.</param>
         /// <param name="cullOrder">The cull order of the rasterizer state.</param>
         /// <param name="lineWidth">The line width of the rasterizer state.</param>
+        /// <param name="depthClip">The depth clip toggle of the rasterizer state.</param>
         /// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
         /// <param name="conservativeRasterization">Toggles the use of conservative rasterization in the rasterizer.</param>
-        explicit Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, const DepthStencilState& depthStencilState = {}, bool conservativeRasterization = false) noexcept;
+        explicit Rasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, bool depthClip = true, const DepthStencilState& depthStencilState = {}, bool conservativeRasterization = false) noexcept;
 
         /// <summary>
         /// Creates a copy of a rasterizer.
@@ -3817,6 +3824,9 @@ namespace LiteFX::Rendering {
         const DepthStencilState& depthStencilState() const noexcept override;
 
         /// <inheritdoc />
+        bool depthClip() const noexcept override;
+
+        /// <inheritdoc />
         bool conservativeRasterization() const noexcept override;
 
     protected:
@@ -3824,6 +3834,7 @@ namespace LiteFX::Rendering {
         virtual CullMode& cullMode() noexcept;
         virtual CullOrder& cullOrder() noexcept;
         virtual Float& lineWidth() noexcept;
+        virtual bool& depthClip() noexcept;
         virtual DepthStencilState& depthStencilState() noexcept;
         virtual bool& conservativeRasterization() noexcept;
     };

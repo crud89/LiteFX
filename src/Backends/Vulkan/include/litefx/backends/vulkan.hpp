@@ -1346,9 +1346,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="cullMode">The cull mode used by the pipeline.</param>
         /// <param name="cullOrder">The cull order used by the pipeline.</param>
         /// <param name="lineWidth">The line width used by the pipeline.</param>
+        /// <param name="depthClip">The depth clip toggle of the rasterizer state.</param>
         /// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
         /// <param name="conservativeRasterization">Toggles the use of conservative rasterization in the rasterizer.</param>
-        explicit VulkanRasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, const DepthStencilState& depthStencilState = {}, bool conservativeRasterization = false) noexcept;
+        explicit VulkanRasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, bool depthClip = true, const DepthStencilState& depthStencilState = {}, bool conservativeRasterization = false) noexcept;
 
         /// <summary>
         /// Initializes a new Vulkan rasterizer state.
@@ -1380,11 +1381,12 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="cullMode">The cull mode used by the pipeline.</param>
         /// <param name="cullOrder">The cull order used by the pipeline.</param>
         /// <param name="lineWidth">The line width used by the pipeline.</param>
+        /// <param name="depthClip">The depth clip toggle of the rasterizer state.</param>
         /// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
         /// <param name="conservativeRasterization">Toggles the use of conservative rasterization in the rasterizer.</param>
         /// <returns>A shared pointer to the newly created rasterizer instance.</returns>
-        static inline auto create(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, const DepthStencilState& depthStencilState = {}, bool conservativeRasterization = false) {
-            return SharedObject::create<VulkanRasterizer>(polygonMode, cullMode, cullOrder, lineWidth, depthStencilState, conservativeRasterization);
+        static inline auto create(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, bool depthClip = true, const DepthStencilState& depthStencilState = {}, bool conservativeRasterization = false) {
+            return SharedObject::create<VulkanRasterizer>(polygonMode, cullMode, cullOrder, lineWidth, depthClip, depthStencilState, conservativeRasterization);
         }
 
         /// <summary>
