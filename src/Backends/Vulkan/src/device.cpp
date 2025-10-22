@@ -169,6 +169,9 @@ private:
         // Required for improved descriptor management.
         m_extensions.emplace_back(VK_EXT_DESCRIPTOR_BUFFER_EXTENSION_NAME);
 
+        // Improved compatibility between Vulkan and DirectX 12 backends
+        m_extensions.emplace_back(VK_EXT_DEPTH_CLIP_ENABLE_EXTENSION_NAME);
+        
         // Required for mesh shading.
         if (features.MeshShaders)
             m_extensions.emplace_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
@@ -365,8 +368,9 @@ public:
                 .tessellationShader = true,
 #endif // LITEFX_BUILD_TESTS
                 .drawIndirectFirstInstance = features.DrawIndirect,
+                .depthClamp = true,
                 .depthBounds = features.DepthBoundsTest,
-                .samplerAnisotropy = true,
+                .samplerAnisotropy = true
             }
         };
 
@@ -418,11 +422,18 @@ public:
             .pNext = &deviceFeatures12,
             .shaderDrawParameters = true
         };
+        
+        // Enable explicit depth clip toggle.
+        VkPhysicalDeviceDepthClipEnableFeaturesEXT depthClipEnableFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DEPTH_CLIP_ENABLE_FEATURES_EXT,
+            .pNext = &deviceFeatures11,
+            .depthClipEnable = true
+        };
 
         // Enable extended dynamic state.
         VkPhysicalDeviceExtendedDynamicStateFeaturesEXT extendedDynamicStateFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_EXTENDED_DYNAMIC_STATE_FEATURES_EXT,
-            .pNext = &deviceFeatures11,
+            .pNext = &depthClipEnableFeatures,
             .extendedDynamicState = true
         };
 

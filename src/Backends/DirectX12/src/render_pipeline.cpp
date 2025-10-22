@@ -70,7 +70,7 @@ public:
 		// Setup rasterizer state.
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
 		D3D12_RASTERIZER_DESC rasterizerState = {};
-		rasterizerState.DepthClipEnable = FALSE;
+		rasterizerState.DepthClipEnable = rasterizer.depthClip();
 		rasterizerState.FillMode = DX12::getPolygonMode(rasterizer.polygonMode());
 		rasterizerState.CullMode = DX12::getCullMode(rasterizer.cullMode());
 		rasterizerState.FrontCounterClockwise = rasterizer.cullOrder() == CullOrder::CounterClockWise;
@@ -79,9 +79,9 @@ public:
 		rasterizerState.ForcedSampleCount = 0;
 		rasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
 
-		LITEFX_TRACE(DIRECTX12_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3} }}", rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth());
+		LITEFX_TRACE(DIRECTX12_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3}, Depth Clip: {4} }}", rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth(), rasterizer.depthClip());
 
-		if (!rasterizer.depthStencilState().depthState().Enable)
+		if (!rasterizer.depthStencilState().depthBias().Enable)
 			LITEFX_TRACE(DIRECTX12_LOG, "\tRasterizer depth bias disabled.");
 		else
 		{
