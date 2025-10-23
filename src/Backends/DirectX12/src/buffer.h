@@ -27,7 +27,7 @@ namespace LiteFX::Rendering::Backends {
 		friend struct SharedObject::Allocator<DirectX12Buffer>;
 
 	protected:
-		explicit DirectX12Buffer(ComPtr<ID3D12Resource>&& buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr, const String& name = "");
+		explicit DirectX12Buffer(ComPtr<ID3D12Resource>&& buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, AllocatorPtr allocator = nullptr, AllocationPtr&& allocation = nullptr, const String& name = "");
 		
 		DirectX12Buffer(DirectX12Buffer&&) noexcept = delete;
 		DirectX12Buffer(const DirectX12Buffer&) = delete;
@@ -87,8 +87,8 @@ namespace LiteFX::Rendering::Backends {
 
 		// DirectX 12 buffer.
 	protected:
-		virtual AllocatorPtr allocator() const noexcept;
-		virtual const D3D12MA::Allocation* allocationInfo() const noexcept;
+		AllocatorPtr allocator() const noexcept;
+		const D3D12MA::Allocation* allocationInfo() const noexcept;
 
 	public:
 		static SharedPtr<IDirectX12Buffer> allocate(const String& name, AllocatorPtr allocator, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
@@ -103,7 +103,7 @@ namespace LiteFX::Rendering::Backends {
 		friend struct SharedObject::Allocator<DirectX12VertexBuffer>;
 
 	private:
-		explicit DirectX12VertexBuffer(ComPtr<ID3D12Resource>&& buffer, const DirectX12VertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name = "");
+		explicit DirectX12VertexBuffer(ComPtr<ID3D12Resource>&& buffer, const DirectX12VertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name = "");
 
 		DirectX12VertexBuffer(DirectX12VertexBuffer&&) noexcept = delete;
 		DirectX12VertexBuffer(const DirectX12VertexBuffer&) = delete;
@@ -136,7 +136,7 @@ namespace LiteFX::Rendering::Backends {
 		friend struct SharedObject::Allocator<DirectX12IndexBuffer>;
 
 	private:
-		explicit DirectX12IndexBuffer(ComPtr<ID3D12Resource>&& buffer, const DirectX12IndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name = "");
+		explicit DirectX12IndexBuffer(ComPtr<ID3D12Resource>&& buffer, const DirectX12IndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name = "");
 
 		DirectX12IndexBuffer(DirectX12IndexBuffer&&) noexcept = delete;
 		DirectX12IndexBuffer(const DirectX12IndexBuffer&) = delete;

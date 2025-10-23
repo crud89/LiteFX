@@ -34,7 +34,12 @@ VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, si
 	Resource<VkBuffer>(buffer), m_impl(type, elements, elementSize, alignment, usage, allocator, allocation)
 {
 	if (!name.empty())
+	{
 		this->name() = name;
+#ifndef NDEBUG
+		::vmaSetAllocationName(allocator, allocation, name.c_str());
+#endif
+	}
 
 	// Store the virtual address.
 	VkBufferDeviceAddressInfo info{
@@ -43,6 +48,9 @@ VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, si
 	};
 
 	m_impl->m_virtualAddress = static_cast<UInt64>(::vkGetBufferDeviceAddress(device.handle(), &info));
+
+	// Store a pointer to the current image as the private allocation data.
+	::vmaSetAllocationUserData(allocator, allocation, this);
 }
 
 VulkanBuffer::~VulkanBuffer() noexcept
