@@ -15,17 +15,18 @@ public:
 
 private:
 	VmaAllocator m_allocator;
-	VmaAllocation m_allocationInfo;
+	VmaAllocation m_allocation;
 	Format m_format;
 	Size3d m_extent;
 	UInt32 m_elements, m_layers, m_levels, m_planes;
 	ImageDimensions m_dimensions;
 	ResourceUsage m_usage;
 	MultiSamplingLevel m_samples;
+	const VkImageCreateInfo m_createInfo;
 
 public:
-	VulkanImageImpl(Size3d extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator, VmaAllocation allocation) :
-		m_allocator(allocator), m_allocationInfo(allocation), m_format(format), m_extent(std::move(extent)), m_layers(layers), m_levels(levels), m_planes(::hasDepth(format) && ::hasStencil(format) ? 2 : 1), m_dimensions(dimensions), m_usage(usage), m_samples(samples)
+	VulkanImageImpl(Size3d extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator, VmaAllocation allocation, const VkImageCreateInfo& createInfo) :
+		m_allocator(allocator), m_allocation(allocation), m_format(format), m_extent(std::move(extent)), m_layers(layers), m_levels(levels), m_planes(::hasDepth(format) && ::hasStencil(format) ? 2 : 1), m_dimensions(dimensions), m_usage(usage), m_samples(samples), m_createInfo(createInfo)
 	{
 		// Note: Currently no multi-planar images are supported. Planes have a two-fold meaning in this context. Multi-planar images are images, which have a format with `_2PLANE` or `_3PLANE` in the name, or
 		//       which are listed here: https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#formats-requiring-sampler-ycbcr-conversion.
@@ -40,18 +41,26 @@ public:
 // Image Base shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanImage::VulkanImage(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator, VmaAllocation allocation, const String& name) :
-	Resource<VkImage>(image), m_impl(extent, format, dimensions, levels, layers, samples, usage, allocator, allocation)
+VulkanImage::VulkanImage(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const VkImageCreateInfo& createInfo, VmaAllocator allocator, VmaAllocation allocation, const String& name) :
+	Resource<VkImage>(image), m_impl(extent, format, dimensions, levels, layers, samples, usage, allocator, allocation, createInfo)
 {
 	if (!name.empty())
+	{
 		this->name() = name;
+#ifndef NDEBUG
+		::vmaSetAllocationName(allocator, allocation, name.c_str());
+#endif
+	}
+
+	if (m_impl->m_allocator != nullptr && m_impl->m_allocation != nullptr)
+		::vmaSetAllocationUserData(m_impl->m_allocator, m_impl->m_allocation, static_cast<IDeviceMemory*>(this));
 }
 
 VulkanImage::~VulkanImage() noexcept 
 {
-	if (m_impl->m_allocator != nullptr && m_impl->m_allocationInfo != nullptr)
+	if (m_impl->m_allocator != nullptr && m_impl->m_allocation != nullptr)
 	{
-		::vmaDestroyImage(m_impl->m_allocator, this->handle(), m_impl->m_allocationInfo);
+		::vmaDestroyImage(m_impl->m_allocator, this->handle(), m_impl->m_allocation);
 		LITEFX_TRACE(VULKAN_LOG, "Destroyed image {0}", Vk::handleAddress(this->handle()));
 	}
 }
@@ -63,8 +72,8 @@ UInt32 VulkanImage::elements() const noexcept
 
 size_t VulkanImage::size() const noexcept
 {
-	if (m_impl->m_allocationInfo) [[likely]]
-		return static_cast<size_t>(m_impl->m_allocationInfo->GetSize());
+	if (m_impl->m_allocation) [[likely]]
+		return static_cast<size_t>(m_impl->m_allocation->GetSize());
 	else
 	{
 		size_t pixelSize{ 0 };
@@ -103,8 +112,8 @@ size_t VulkanImage::elementSize() const noexcept
 
 size_t VulkanImage::elementAlignment() const noexcept
 {
-	if (m_impl->m_allocationInfo) [[likely]]
-		return static_cast<size_t>(m_impl->m_allocationInfo->GetAlignment());
+	if (m_impl->m_allocation) [[likely]]
+		return static_cast<size_t>(m_impl->m_allocation->GetAlignment());
 	else
 		return 0;	// Not sure about the alignment. Probably need to query from device limits.
 }
@@ -289,7 +298,14 @@ VmaAllocator& VulkanImage::allocator() const noexcept
 
 VmaAllocation& VulkanImage::allocationInfo() const noexcept
 {
-	return m_impl->m_allocationInfo;
+	return m_impl->m_allocation;
+}
+
+void VulkanImage::reset(VkImage image, VmaAllocation allocation)
+{
+	this->handle() = image;
+	m_impl->m_allocation = allocation;
+	::vmaSetAllocationUserData(m_impl->m_allocator, m_impl->m_allocation, static_cast<IDeviceMemory*>(this));
 }
 
 SharedPtr<IVulkanImage> VulkanImage::allocate(const String& name, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
@@ -300,7 +316,7 @@ SharedPtr<IVulkanImage> VulkanImage::allocate(const String& name, const Size3d& 
 	raiseIfFailed(::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult), "Unable to allocate texture.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}", name.empty() ? std::format("{0}", Vk::handleAddress(image)) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples);
 
-	return SharedObject::create<VulkanImage>(image, extent, format, dimensions, levels, layers, samples, usage, allocator, allocation, name);
+	return SharedObject::create<VulkanImage>(image, extent, format, dimensions, levels, layers, samples, usage, createInfo, allocator, allocation, name);
 }
 
 bool VulkanImage::tryAllocate(SharedPtr<IVulkanImage>& image, const String& name, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
@@ -321,9 +337,79 @@ bool VulkanImage::tryAllocate(SharedPtr<IVulkanImage>& image, const String& name
 		LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}",
 			name.empty() ? std::format("{0}", Vk::handleAddress(imageHandle)) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples);
 
-		image = SharedObject::create<VulkanImage>(imageHandle, extent, format, dimensions, levels, layers, samples, usage, allocator, allocation, name);
+		image = SharedObject::create<VulkanImage>(imageHandle, extent, format, dimensions, levels, layers, samples, usage, createInfo, allocator, allocation, name);
 		return true;
 	}
+}
+
+bool VulkanImage::move(SharedPtr<IVulkanImage> image, VmaAllocation to, const VulkanCommandBuffer& commandBuffer)
+{
+	// NOTES: If this method returns true, the command buffer must be executed and all bindings to the image must be updated afterwards, otherwise the result of this operation is undefined behavior.
+
+	if (image == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("image");
+
+	if (to == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("to");
+
+	auto& source = dynamic_cast<VulkanImage&>(*image);
+	const auto device = commandBuffer.queue()->device();
+	const auto& createInfo = source.m_impl->m_createInfo;
+	auto allocator = source.m_impl->m_allocator;
+
+	VkImage imageHandle{};
+	auto result = ::vkCreateImage(device->handle(), &createInfo, nullptr, &imageHandle);
+
+	if (result != VK_SUCCESS) [[unlikely]]
+		return false;
+
+	result = ::vmaBindImageMemory(allocator, to, imageHandle);
+
+	if (result != VK_SUCCESS) [[unlikely]]
+	{
+		::vkDestroyImage(device->handle(), imageHandle, nullptr);
+		return false;
+	}
+
+	// Transfer the image.
+	if (!image->volatileMove())
+	{
+		Array<VkImageCopy> copyInfos(source.m_impl->m_elements);
+		std::ranges::generate(copyInfos, [&, i = 0]() mutable {
+			UInt32 sourceRsc = i, sourceLayer = 0, sourceLevel = 0, sourcePlane = 0;
+			source.resolveSubresource(sourceRsc, sourcePlane, sourceLayer, sourceLevel);
+			i++;
+
+			return VkImageCopy {
+				.srcSubresource = VkImageSubresourceLayers {
+					.aspectMask = source.aspectMask(sourcePlane),
+					.mipLevel = sourceLevel,
+					.baseArrayLayer = sourceLayer,
+					.layerCount = 1
+				},
+				.srcOffset = { 0, 0, 0 },
+				.dstSubresource = VkImageSubresourceLayers {
+					.aspectMask = source.aspectMask(sourcePlane),
+					.mipLevel = sourceLevel,
+					.baseArrayLayer = sourceLayer,
+					.layerCount = 1
+				},
+				.dstOffset = { 0, 0, 0 },
+				.extent = { static_cast<UInt32>(source.extent().width()), static_cast<UInt32>(source.extent().height()), static_cast<UInt32>(source.extent().depth()) }
+			};
+		});
+
+		::vkCmdCopyImage(commandBuffer.handle(), std::as_const(source).handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, imageHandle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<UInt32>(copyInfos.size()), copyInfos.data());
+	}
+
+	// Reset the image.
+	// NOTE: At this point, the previous resource does still exist, but is inaccessible through the current instance. The only remaining reference should be stored by the source allocation during 
+	//       defragmentation. After the command buffer executed, the resource will be destroyed. If a reference is stored somewhere else it will get invalid, but you should never store the 
+	//       reference obtained by calling `handle` manually.
+	//       The new resource handle is valid beyond this point, but may contain uninitialized data. Any attempt of using the resource must be properly synchronized to execute after the submission
+	//       of `commandBuffer`.
+	source.reset(imageHandle, to);
+	return true;
 }
 
 // ------------------------------------------------------------------------------------------------
