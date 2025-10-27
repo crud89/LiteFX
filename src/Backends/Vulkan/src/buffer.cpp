@@ -15,10 +15,10 @@ private:
 	UInt32 m_elements;
 	size_t m_elementSize, m_alignment;
 	ResourceUsage m_usage;
+	VkBufferCreateInfo m_createInfo;
 	VmaAllocator m_allocator;
 	VmaAllocation m_allocation;
 	UInt64 m_virtualAddress{0};
-	VkBufferCreateInfo m_createInfo;
 
 public:
 	VulkanBufferImpl(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VmaAllocator& allocator, const VmaAllocation& allocation) :
@@ -218,7 +218,7 @@ bool VulkanBuffer::tryAllocate(SharedPtr<IVulkanBuffer>& buffer, const String& n
 	}
 }
 
-bool VulkanBuffer::move(SharedPtr<IVulkanBuffer> buffer, VmaAllocation to, const VulkanCommandBuffer& commandBuffer)
+bool VulkanBuffer::move(SharedPtr<IVulkanBuffer> buffer, VmaAllocation to, const VulkanCommandBuffer& commandBuffer) // NOLINT(performance-unnecessary-value-param)
 {
 	// NOTES: If this method returns true, the command buffer must be executed and all bindings to the image must be updated afterwards, otherwise the result of this operation is undefined behavior.
 	// TODO: Handle host-visible copies

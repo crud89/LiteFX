@@ -493,8 +493,8 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 	for (UInt32 i{ 0u }; i < pass.moveCount; ++i)
 	{
 		// Get the source allocation.
-		auto sourceAllocation = pass.pMoves[i].srcAllocation;
-		auto targetAllocation = pass.pMoves[i].dstTmpAllocation;
+		auto sourceAllocation = pass.pMoves[i].srcAllocation;    // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		auto targetAllocation = pass.pMoves[i].dstTmpAllocation; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 
 		VmaAllocationInfo allocationInfo{};
 		::vmaGetAllocationInfo(m_impl->m_allocator, sourceAllocation, &allocationInfo);
@@ -508,14 +508,14 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 			if (VulkanBuffer::move(buffer->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
 				m_impl->m_destroyedResources.emplace(std::as_const(*buffer).handle(), sourceAllocation);
 			else
-				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE;
+				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		}
 		else if (auto image = dynamic_cast<VulkanImage*>(deviceMemory); image != nullptr)
 		{
 			if (VulkanImage::move(image->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
 				m_impl->m_destroyedResources.emplace(std::as_const(*image).handle(), sourceAllocation);
 			else
-				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE;
+				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		}
 	}
 
@@ -553,7 +553,7 @@ bool VulkanGraphicsFactory::endDefragmentationPass() const
 		deviceMemory->moved(this, {});
 
 		// Store the resource just so it can be destroyed after ending the pass.
-		resources.emplace_back(std::move(resource.resource));
+		resources.emplace_back(resource.resource);
 
 		// Erase the allocation from the queue.
 		m_impl->m_destroyedResources.pop();

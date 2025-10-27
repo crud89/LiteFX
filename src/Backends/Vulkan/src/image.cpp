@@ -22,7 +22,7 @@ private:
 	ImageDimensions m_dimensions;
 	ResourceUsage m_usage;
 	MultiSamplingLevel m_samples;
-	const VkImageCreateInfo m_createInfo;
+	VkImageCreateInfo m_createInfo;
 
 public:
 	VulkanImageImpl(Size3d extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator, VmaAllocation allocation, const VkImageCreateInfo& createInfo) :
@@ -342,7 +342,7 @@ bool VulkanImage::tryAllocate(SharedPtr<IVulkanImage>& image, const String& name
 	}
 }
 
-bool VulkanImage::move(SharedPtr<IVulkanImage> image, VmaAllocation to, const VulkanCommandBuffer& commandBuffer)
+bool VulkanImage::move(SharedPtr<IVulkanImage> image, VmaAllocation to, const VulkanCommandBuffer& commandBuffer) // NOLINT(performance-unnecessary-value-param)
 {
 	// NOTES: If this method returns true, the command buffer must be executed and all bindings to the image must be updated afterwards, otherwise the result of this operation is undefined behavior.
 

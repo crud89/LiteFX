@@ -4560,7 +4560,7 @@ namespace LiteFX::Rendering {
             /// <param name="queue">The queue that executes the resource move.</param>
             /// <param name="fence">The fence value on <paramref name="queue" /> after which the resource can be used.</param>
             ResourceMovingEventArgs(SharedPtr<const ICommandQueue> queue, UInt64 fence) noexcept :
-                m_queue(queue), m_fence(fence)
+                m_queue(std::move(queue)), m_fence(fence)
             {
             }
 

@@ -261,7 +261,7 @@ bool DirectX12Image::tryAllocate(SharedPtr<IDirectX12Image>& image, const String
 	}
 }
 
-bool DirectX12Image::move(SharedPtr<IDirectX12Image> image, D3D12MA::Allocation* to, const DirectX12CommandBuffer& commandBuffer)
+bool DirectX12Image::move(SharedPtr<IDirectX12Image> image, D3D12MA::Allocation* to, const DirectX12CommandBuffer& commandBuffer) // NOLINT(performance-unnecessary-value-param)
 {
 	// NOTES: If this method returns true, the command buffer must be executed and all bindings to the image must be updated afterwards, otherwise the result of this operation is undefined behavior.
 

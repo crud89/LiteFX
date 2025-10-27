@@ -362,8 +362,8 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 	for (UInt32 i{ 0u }; i < pass.MoveCount; ++i)
 	{
 		// Get the source allocation.
-		auto sourceAllocation = pass.pMoves[i].pSrcAllocation;
-		auto targetAllocation = pass.pMoves[i].pDstTmpAllocation;
+		auto sourceAllocation = pass.pMoves[i].pSrcAllocation;    // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		auto targetAllocation = pass.pMoves[i].pDstTmpAllocation; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		IDeviceMemory* deviceMemory = static_cast<IDeviceMemory*>(sourceAllocation->GetPrivateData());
 		resources.emplace_back(deviceMemory);
 
@@ -373,14 +373,14 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 			if (DirectX12Buffer::move(buffer->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
 				m_impl->m_destroyedResources.emplace(std::as_const(*buffer).handle().Get(), sourceAllocation);
 			else
-				pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE;
+				pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		}
 		else if (auto image = dynamic_cast<DirectX12Image*>(deviceMemory); image != nullptr)
 		{
 			if (DirectX12Image::move(image->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
 				m_impl->m_destroyedResources.emplace(std::as_const(*image).handle().Get(), sourceAllocation);
 			else
-				pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE;
+				pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		}
 	}
 
