@@ -26,6 +26,10 @@ public:
 		m_allocator(std::move(allocator)), m_allocation(std::move(allocation)), m_format(format), m_extent(std::move(extent)), m_levels(levels), m_layers(layers), m_planes{ ::D3D12GetFormatPlaneCount(device.handle().Get(), DX12::getFormat(format)) }, m_dimensions(dimension), m_usage(usage), m_samples(samples), m_resourceDesc(resourceDesc)
 	{
 		m_elements = m_planes * m_layers * m_levels;
+
+		// Patch alignment.
+		if (m_allocation != nullptr)
+			m_resourceDesc.Alignment = m_allocation->GetAlignment();
 	}
 };
 
@@ -101,13 +105,15 @@ size_t DirectX12Image::elementSize() const noexcept
 
 size_t DirectX12Image::elementAlignment() const noexcept
 {
-	// TODO: Support for 64 byte packed "small" resources.
+	if (m_impl->m_allocation) [[likely]]
+		return static_cast<size_t>(m_impl->m_allocation->GetAlignment());
+	else
 	return D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
 }
 
 size_t DirectX12Image::alignedElementSize() const noexcept
 {
-	// TODO: Align this by `elementAlignment`.
+	return align(this->elementSize(), this->elementAlignment());
 	return this->elementSize();
 }
 

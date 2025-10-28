@@ -120,8 +120,7 @@ size_t VulkanImage::elementAlignment() const noexcept
 
 size_t VulkanImage::alignedElementSize() const noexcept
 {
-	// TODO: Align this by `elementAlignment`.
-	return this->elementSize();
+	return align(this->elementSize(), this->elementAlignment());
 }
 
 ResourceUsage VulkanImage::usage() const noexcept
