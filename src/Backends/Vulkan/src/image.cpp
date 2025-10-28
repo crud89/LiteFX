@@ -301,13 +301,6 @@ VmaAllocation& VulkanImage::allocationInfo() const noexcept
 	return m_impl->m_allocation;
 }
 
-void VulkanImage::reset(VkImage image, VmaAllocation allocation)
-{
-	this->handle() = image;
-	m_impl->m_allocation = allocation;
-	::vmaSetAllocationUserData(m_impl->m_allocator, m_impl->m_allocation, static_cast<IDeviceMemory*>(this));
-}
-
 SharedPtr<IVulkanImage> VulkanImage::allocate(const String& name, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkImage image{};
@@ -408,7 +401,7 @@ bool VulkanImage::move(SharedPtr<IVulkanImage> image, VmaAllocation to, const Vu
 	//       reference obtained by calling `handle` manually.
 	//       The new resource handle is valid beyond this point, but may contain uninitialized data. Any attempt of using the resource must be properly synchronized to execute after the submission
 	//       of `commandBuffer`.
-	source.reset(imageHandle, to);
+	source.handle() = imageHandle;
 	return true;
 }
 

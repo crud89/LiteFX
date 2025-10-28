@@ -505,15 +505,19 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 		// Figure out the resource type.
 		if (auto buffer = dynamic_cast<VulkanBuffer*>(deviceMemory); buffer != nullptr)
 		{
+			auto oldHandle = std::as_const(*buffer).handle();
+
 			if (VulkanBuffer::move(buffer->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
-				m_impl->m_destroyedResources.emplace(std::as_const(*buffer).handle(), sourceAllocation);
+				m_impl->m_destroyedResources.emplace(oldHandle, sourceAllocation);
 			else
 				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		}
 		else if (auto image = dynamic_cast<VulkanImage*>(deviceMemory); image != nullptr)
 		{
+			auto oldHandle = std::as_const(*image).handle();
+
 			if (VulkanImage::move(image->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
-				m_impl->m_destroyedResources.emplace(std::as_const(*image).handle(), sourceAllocation);
+				m_impl->m_destroyedResources.emplace(oldHandle, sourceAllocation);
 			else
 				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		}
@@ -539,8 +543,6 @@ bool VulkanGraphicsFactory::endDefragmentationPass() const
 
 	m_impl->m_defragmentationCommandBuffer->queue()->waitFor(m_impl->m_defragmentationFence);
 
-	Array<Variant<VkBuffer, VkImage>> resources{};
-
 	while (!m_impl->m_destroyedResources.empty())
 	{
 		// Get the resource to remove.
@@ -552,8 +554,11 @@ bool VulkanGraphicsFactory::endDefragmentationPass() const
 		auto deviceMemory = static_cast<IDeviceMemory*>(allocationInfo.pUserData);
 		deviceMemory->moved(this, {});
 
-		// Store the resource just so it can be destroyed after ending the pass.
-		resources.emplace_back(resource.resource);
+		// Destroy the old resource.
+		std::visit(type_switch {
+			[device](VkBuffer buffer) { ::vkDestroyBuffer(device->handle(), buffer, nullptr); },
+			[device](VkImage image) { ::vkDestroyImage(device->handle(), image, nullptr); }
+		}, resource.resource);
 
 		// Erase the allocation from the queue.
 		m_impl->m_destroyedResources.pop();
@@ -563,12 +568,6 @@ bool VulkanGraphicsFactory::endDefragmentationPass() const
 
 	if (result != VK_SUCCESS && result != VK_INCOMPLETE) [[unlikely]]
 		throw VulkanPlatformException(result, "Unable to end defragmentation pass.");
-
-	for (auto& resource : resources)
-		std::visit(type_switch{
-			[device](VkBuffer buffer) { ::vkDestroyBuffer(device->handle(), buffer, nullptr); },
-			[device](VkImage image) { ::vkDestroyImage(device->handle(), image, nullptr); }
-		}, resource);
 
 	if (result == VK_SUCCESS)
 	{

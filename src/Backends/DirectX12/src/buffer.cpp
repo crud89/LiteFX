@@ -159,13 +159,6 @@ const D3D12MA::Allocation* DirectX12Buffer::allocationInfo() const noexcept
 	return m_impl->m_allocation.get();
 }
 
-void DirectX12Buffer::reset(ComPtr<ID3D12Resource>&& image, AllocationPtr&& allocation)
-{
-	this->handle() = std::move(image);
-	m_impl->m_allocation = std::move(allocation);
-	m_impl->m_allocation->SetPrivateData(static_cast<IDeviceMemory*>(this));
-}
-
 SharedPtr<IDirectX12Buffer> DirectX12Buffer::allocate(const String& name, AllocatorPtr allocator, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
 {
 	if (allocator == nullptr) [[unlikely]]
@@ -239,7 +232,7 @@ bool DirectX12Buffer::move(SharedPtr<IDirectX12Buffer> buffer, D3D12MA::Allocati
 	//       calling `handle` manually.
 	//       The new resource handle is valid beyond this point, but may contain uninitialized data. Any attempt of using the resource must be properly synchronized to execute after the submission
 	//       of `commandBuffer`.
-	source.reset(std::move(resource), AllocationPtr(to));
+	source.handle() = std::move(resource);
 	return true;
 }
 

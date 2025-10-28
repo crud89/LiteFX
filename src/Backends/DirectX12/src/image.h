@@ -81,7 +81,6 @@ namespace LiteFX::Rendering::Backends {
 	public:
 		AllocatorPtr allocator() const noexcept;
 		const D3D12MA::Allocation* allocationInfo() const noexcept;
-		void reset(ComPtr<ID3D12Resource>&& image, AllocationPtr&& allocation);
 
 	private:
 		static inline auto create(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const AllocatorPtr& allocator = nullptr, AllocationPtr&& allocation = nullptr, const String& name = "") {

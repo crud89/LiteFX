@@ -370,15 +370,19 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 		// Figure out the resource type.
 		if (auto buffer = dynamic_cast<DirectX12Buffer*>(deviceMemory); buffer != nullptr)
 		{
+			auto oldHandle = std::as_const(*buffer).handle();
+
 			if (DirectX12Buffer::move(buffer->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
-				m_impl->m_destroyedResources.emplace(std::as_const(*buffer).handle().Get(), sourceAllocation);
+				m_impl->m_destroyedResources.emplace(std::move(oldHandle), sourceAllocation);
 			else
 				pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		}
 		else if (auto image = dynamic_cast<DirectX12Image*>(deviceMemory); image != nullptr)
 		{
+			auto oldHandle = std::as_const(*image).handle();
+
 			if (DirectX12Image::move(image->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
-				m_impl->m_destroyedResources.emplace(std::as_const(*image).handle().Get(), sourceAllocation);
+				m_impl->m_destroyedResources.emplace(std::move(oldHandle), sourceAllocation);
 			else
 				pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		}

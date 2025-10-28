@@ -161,14 +161,6 @@ VmaAllocation& VulkanBuffer::allocationInfo() const noexcept
 	return m_impl->m_allocation;
 }
 
-void VulkanBuffer::reset(VkBuffer buffer, VmaAllocation allocation)
-{
-	this->handle() = buffer;
-	m_impl->m_allocation = allocation;
-	::vmaSetAllocationUserData(m_impl->m_allocator, m_impl->m_allocation, static_cast<IDeviceMemory*>(this));
-}
-
-
 SharedPtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkBuffer buffer{};
@@ -263,7 +255,7 @@ bool VulkanBuffer::move(SharedPtr<IVulkanBuffer> buffer, VmaAllocation to, const
 	//       reference obtained by calling `handle` manually.
 	//       The new resource handle is valid beyond this point, but may contain uninitialized data. Any attempt of using the resource must be properly synchronized to execute after the submission
 	//       of `commandBuffer`.
-	source.reset(bufferHandle, to);
+	source.handle() = bufferHandle;
 	return true;
 }
 

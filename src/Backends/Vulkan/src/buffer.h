@@ -79,7 +79,6 @@ namespace LiteFX::Rendering::Backends {
 	protected:
 		VmaAllocator& allocator() const noexcept;
 		VmaAllocation& allocationInfo() const noexcept;
-		void reset(VkBuffer buffer, VmaAllocation allocation);
 
 		// VulkanBuffer.
 	public:

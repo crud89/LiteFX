@@ -86,7 +86,6 @@ namespace LiteFX::Rendering::Backends {
 	protected:
 		VmaAllocator& allocator() const noexcept;
 		VmaAllocation& allocationInfo() const noexcept;
-		void reset(VkImage image, VmaAllocation allocation);
 
 	private:
 		static inline auto create(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const VkImageCreateInfo& createInfo, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr, const String& name = "") {

@@ -89,7 +89,6 @@ namespace LiteFX::Rendering::Backends {
 	protected:
 		AllocatorPtr allocator() const noexcept;
 		const D3D12MA::Allocation* allocationInfo() const noexcept;
-		void reset(ComPtr<ID3D12Resource>&& image, AllocationPtr&& allocation);
 
 	public:
 		static SharedPtr<IDirectX12Buffer> allocate(const String& name, AllocatorPtr allocator, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc);
