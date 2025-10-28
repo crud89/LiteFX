@@ -517,7 +517,7 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 			// TODO: Moving render targets is currently unsupported, as it introduces way to many unpredictable synchronization issues. We should 
 			//       improve this in the future. As an alternative, we could create render targets from a separate pool.
 			if (LITEFX_FLAG_IS_SET(image->usage(), ResourceUsage::RenderTarget))
-				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE;
+				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			else
 			{
 				auto oldHandle = std::as_const(*image).handle();

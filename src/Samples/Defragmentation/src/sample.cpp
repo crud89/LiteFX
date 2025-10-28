@@ -23,13 +23,13 @@ struct Allocation {
     UInt32 lifetime{};
 };
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
+
 Array<::Allocation> allocations{};
 
 std::random_device rnd;
 std::mt19937 rng{ rnd() };
 bool isDefragmenting = false;
-
-// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 
 static struct CameraBuffer {
     glm::mat4 ViewProjection;
@@ -388,11 +388,13 @@ void SampleApp::drawFrame()
 {
     // Generate new resources.
     {
+        // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
         static std::uniform_int_distribution<std::mt19937::result_type> imageDice(0, 2); // Generate between 0 and 2 images per frame.
         static std::uniform_int_distribution<std::mt19937::result_type> bufferDice(0, 5); // Generate between 0 and 5 buffers per frame.
         static std::uniform_int_distribution<std::mt19937::result_type> resolutionDice(1, 1024);
         static std::uniform_int_distribution<std::mt19937::result_type> frameDice(1, 10);
         static const size_t maxResources = 1'000u;
+        // NOLINTEND(cppcoreguidelines-avoid-magic-numbers)
 
         // Remove all resources that are too old.
         std::ranges::for_each(allocations, [](auto& allocation) { allocation.lifetime--; });
@@ -433,7 +435,7 @@ void SampleApp::drawFrame()
 
     // Begin defragmentation.
     if (!isDefragmenting)
-        m_device->factory().beginDefragmentation(transferQueue, DefragmentationStrategy::Balanced, 0u, 10u);
+        m_device->factory().beginDefragmentation(transferQueue, DefragmentationStrategy::Balanced, 0u, 10u); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
     m_device->factory().beginDefragmentationPass();
 
