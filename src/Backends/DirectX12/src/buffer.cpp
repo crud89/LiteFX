@@ -17,10 +17,11 @@ private:
 	UInt32 m_elements;
 	size_t m_elementSize, m_alignment;
 	ResourceUsage m_usage;
+	D3D12_RESOURCE_DESC1 m_resourceDesc;
 
 public:
-	DirectX12BufferImpl(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation) :
-		m_allocator(std::move(allocator)), m_allocation(std::move(allocation)), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_usage(usage)
+	DirectX12BufferImpl(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const D3D12_RESOURCE_DESC1& resourceDesc) :
+		m_allocator(std::move(allocator)), m_allocation(std::move(allocation)), m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_usage(usage), m_resourceDesc(resourceDesc)
 	{
 	}
 };
@@ -29,8 +30,8 @@ public:
 // Buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Buffer::DirectX12Buffer(ComPtr<ID3D12Resource>&& buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
-	ComResource<ID3D12Resource>(nullptr), m_impl(type, elements, elementSize, alignment, usage, std::move(allocator), std::move(allocation))
+DirectX12Buffer::DirectX12Buffer(ComPtr<ID3D12Resource>&& buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
+	ComResource<ID3D12Resource>(nullptr), m_impl(type, elements, elementSize, alignment, usage, std::move(allocator), std::move(allocation), resourceDesc)
 {
 	this->handle() = std::move(buffer);
 
@@ -42,6 +43,9 @@ DirectX12Buffer::DirectX12Buffer(ComPtr<ID3D12Resource>&& buffer, BufferType typ
 		this->handle()->SetName(Widen(name).c_str());
 #endif
 	}
+
+	if (m_impl->m_allocation != nullptr)
+		m_impl->m_allocation->SetPrivateData(static_cast<IDeviceMemory*>(this));
 }
 
 DirectX12Buffer::~DirectX12Buffer() noexcept = default;
@@ -165,7 +169,7 @@ SharedPtr<IDirectX12Buffer> DirectX12Buffer::allocate(const String& name, Alloca
 	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate buffer.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(resource.Get())) : name, type, elements, elementSize, elements * elementSize, usage);
 
-	return SharedObject::create<DirectX12Buffer>(std::move(resource), type, elements, elementSize, alignment, usage, std::move(allocator), AllocationPtr(allocation), name);
+	return SharedObject::create<DirectX12Buffer>(std::move(resource), type, elements, elementSize, alignment, usage, resourceDesc, std::move(allocator), AllocationPtr(allocation), name);
 }
 
 bool DirectX12Buffer::tryAllocate(SharedPtr<IDirectX12Buffer>& buffer, const String& name, AllocatorPtr allocator, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
@@ -188,9 +192,48 @@ bool DirectX12Buffer::tryAllocate(SharedPtr<IDirectX12Buffer>& buffer, const Str
 	{
 		LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(resource.Get())) : name, type, elements, elementSize, elements * elementSize, usage);
 
-		buffer = SharedObject::create<DirectX12Buffer>(std::move(resource), type, elements, elementSize, alignment, usage, std::move(allocator), AllocationPtr(allocation), name);
+		buffer = SharedObject::create<DirectX12Buffer>(std::move(resource), type, elements, elementSize, alignment, usage, resourceDesc, std::move(allocator), AllocationPtr(allocation), name);
 		return true;
 	}
+}
+
+bool DirectX12Buffer::move(SharedPtr<IDirectX12Buffer> buffer, D3D12MA::Allocation* to, const DirectX12CommandBuffer& commandBuffer) // NOLINT(performance-unnecessary-value-param)
+{
+	// NOTES: If this method returns true, the command buffer must be executed and all bindings to the image must be updated afterwards, otherwise the result of this operation is undefined behavior.
+	
+	if (buffer == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("buffer");
+
+	if (to == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("to");
+
+	auto& source = dynamic_cast<DirectX12Buffer&>(*buffer);
+	const auto device = commandBuffer.queue()->device();
+	const auto& resourceDesc = source.m_impl->m_resourceDesc;
+	auto allocator = source.m_impl->m_allocator;
+
+	ComPtr<ID3D12Resource> resource;
+	auto result = (*device).handle()->CreatePlacedResource2(to->GetHeap(), to->GetOffset(), std::addressof(resourceDesc), D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, 0, nullptr, IID_PPV_ARGS(&resource));
+
+	if (FAILED(result)) [[unlikely]]
+		return false;
+
+	to->SetResource(resource.Get());
+
+	// NOTE: Buffers in the READBACK heap can be copied synchronously using a usual `memcpy`
+	// if (to->GetHeap()->GetDesc().Properties.Type == D3D12_HEAP_TYPE_READBACK) ...
+
+	if (!buffer->volatileMove())
+		commandBuffer.handle()->CopyResource(resource.Get(), source.handle().Get());
+
+	// Reset the resource and return.
+	// NOTE: At this point, the previous resource does still exist, but is inaccessible through the current instance. The only remaining reference should be stored by the source allocation during 
+	//       defragmentation. After it gets released, the resource should also be removed. If a reference is stored somewhere else this leaks, but you should never store the reference obtained by
+	//       calling `handle` manually.
+	//       The new resource handle is valid beyond this point, but may contain uninitialized data. Any attempt of using the resource must be properly synchronized to execute after the submission
+	//       of `commandBuffer`.
+	source.handle() = std::move(resource);
+	return true;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -227,8 +270,8 @@ public:
 // Vertex buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12VertexBuffer::DirectX12VertexBuffer(ComPtr<ID3D12Resource>&& buffer, const DirectX12VertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
-	DirectX12Buffer(std::move(buffer), BufferType::Vertex, elements, layout.elementSize(), 0, usage, std::move(allocator), std::move(allocation), name), m_impl(layout)
+DirectX12VertexBuffer::DirectX12VertexBuffer(ComPtr<ID3D12Resource>&& buffer, const DirectX12VertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
+	DirectX12Buffer(std::move(buffer), BufferType::Vertex, elements, layout.elementSize(), 0, usage, resourceDesc, std::move(allocator), std::move(allocation), name), m_impl(layout)
 {
 	m_impl->initialize(*this);
 }
@@ -255,7 +298,7 @@ SharedPtr<IDirectX12VertexBuffer> DirectX12VertexBuffer::allocate(const String& 
 	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(resource.Get())) : name, BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements, usage);
 
-	return SharedObject::create<DirectX12VertexBuffer>(std::move(resource), layout, elements, usage, std::move(allocator), AllocationPtr(allocation), name);
+	return SharedObject::create<DirectX12VertexBuffer>(std::move(resource), layout, elements, usage, resourceDesc, std::move(allocator), AllocationPtr(allocation), name);
 }
 
 bool DirectX12VertexBuffer::tryAllocate(SharedPtr<IDirectX12VertexBuffer>& buffer, const String& name, const DirectX12VertexBufferLayout& layout, AllocatorPtr allocator, UInt32 elements, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
@@ -278,7 +321,7 @@ bool DirectX12VertexBuffer::tryAllocate(SharedPtr<IDirectX12VertexBuffer>& buffe
 	{
 		LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(resource.Get())) : name, BufferType::Vertex, elements, layout.elementSize(), layout.elementSize() * elements, usage);
 		
-		buffer = SharedObject::create<DirectX12VertexBuffer>(std::move(resource), layout, elements, usage, std::move(allocator), AllocationPtr(allocation), name);
+		buffer = SharedObject::create<DirectX12VertexBuffer>(std::move(resource), layout, elements, usage, resourceDesc, std::move(allocator), AllocationPtr(allocation), name);
 		return true;
 	}
 }
@@ -317,8 +360,8 @@ public:
 // Index buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12IndexBuffer::DirectX12IndexBuffer(ComPtr<ID3D12Resource>&& buffer, const DirectX12IndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
-	DirectX12Buffer(std::move(buffer), BufferType::Index, elements, layout.elementSize(), 0, usage, std::move(allocator), std::move(allocation), name), m_impl(layout)
+DirectX12IndexBuffer::DirectX12IndexBuffer(ComPtr<ID3D12Resource>&& buffer, const DirectX12IndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
+	DirectX12Buffer(std::move(buffer), BufferType::Index, elements, layout.elementSize(), 0, usage, resourceDesc, std::move(allocator), std::move(allocation), name), m_impl(layout)
 {
 	m_impl->initialize(*this);
 }
@@ -345,7 +388,7 @@ SharedPtr<IDirectX12IndexBuffer> DirectX12IndexBuffer::allocate(const String& na
 	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, D3D12_BARRIER_LAYOUT_UNDEFINED, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to allocate vertex buffer.");
 	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(resource.Get())) : name, BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements, usage);
 
-	return SharedObject::create<DirectX12IndexBuffer>(std::move(resource), layout, elements, usage, std::move(allocator), AllocationPtr(allocation), name);
+	return SharedObject::create<DirectX12IndexBuffer>(std::move(resource), layout, elements, usage, resourceDesc, std::move(allocator), AllocationPtr(allocation), name);
 }
 
 bool DirectX12IndexBuffer::tryAllocate(SharedPtr<IDirectX12IndexBuffer>& buffer, const String& name, const DirectX12IndexBufferLayout& layout, AllocatorPtr allocator, UInt32 elements, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
@@ -368,7 +411,7 @@ bool DirectX12IndexBuffer::tryAllocate(SharedPtr<IDirectX12IndexBuffer>& buffer,
 	{
 		LITEFX_DEBUG(DIRECTX12_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}", name.empty() ? std::format("{0}", static_cast<void*>(resource.Get())) : name, BufferType::Index, elements, layout.elementSize(), layout.elementSize() * elements, usage);
 
-		buffer = SharedObject::create<DirectX12IndexBuffer>(std::move(resource), layout, elements, usage, std::move(allocator), AllocationPtr(allocation), name);
+		buffer = SharedObject::create<DirectX12IndexBuffer>(std::move(resource), layout, elements, usage, resourceDesc, std::move(allocator), AllocationPtr(allocation), name);
 		return true;
 	}
 }

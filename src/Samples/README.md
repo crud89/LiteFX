@@ -6,6 +6,7 @@ This folder contains various samples that demonstrate how to use the LiteFX engi
 
 All samples can be controlled using the following keys:
 
+- `F7`: Toggle V-Sync.
 - `F8`: Toggle full-screen.
 - `F9`: Switch to Vulkan backend (if supported).
 - `F10`: Switch to DirectX 12 backend (if supported).
@@ -32,3 +33,4 @@ Note that `F11` and `F12` are reserved keys, for example to be used by debuggers
 |   13   | Indirect        | This sample demonstrates indirect rendering. It sets up a series of dummy objects, that are frustum culled in a GPU compute pass, which then fills an indirect draw buffer. This buffer is then used to draw only the objects that are inside the frustum. |
 |   14   | DynamicDescriptors | This sample demonstrates the use of dynamic descriptor bindings, i.e., bindings whose type is only determined at bind time, rather than pipeline creation time. It is similar to the *Bindless* sample, but instead of binding an unbounded runtime array, resources are accessed using the `ResourceDescriptorHeap` syntax introduced by shader model 6.6. When binding the instance data, instead of calling `update` on the descriptor set, the same binds dynamic descriptors using the `bindToHeap` method. This method returns the index to the first descriptor bound, which can directly be passed to the resource descriptor heap from the shader. For this, it needs to be passed to the shader first. In the sample this is done by providing it as a base offset for the instance ID, which is queried using the `SV_StartInstanceLocation` syntax. |
 |   15   | ImGui           |  This sample demonstrates how to integrate *DearImGui*. This was previously already possible in the Vulkan backend, however, in the DirectX 12 backend it involved some boilerplate code, creating a dummy descriptor set to be able to allocate descriptors. This sample now uses the externally allocated descriptor range feature available on the `DirectX12Device`. Using this feature, it is possible to allocate descriptors from the global descriptor heaps directly. ImGui provides callbacks for this case, which are then used to manage the descriptor ranges. |
+|  16    | Defragmentation | This sample demonstrates how to use resource defragmentation to optimize memory packing for allocated resources. |

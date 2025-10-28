@@ -13,7 +13,19 @@ public:
 
 private:
 	WeakPtr<const DirectX12Device> m_device;
-	AllocatorPtr m_allocator;
+	AllocatorPtr m_allocator; 
+
+	// Defragmentation state.
+	struct DefragResource {
+		ComPtr<ID3D12Resource> resourceHandle;
+		SharedPtr<IDeviceMemory> resource;
+	};
+
+	D3D12MA::DefragmentationContext* m_defragmentationContext{ nullptr };
+	D3D12MA::DEFRAGMENTATION_PASS_MOVE_INFO m_defragmentationPass{};
+	SharedPtr<DirectX12CommandBuffer> m_defragmentationCommandBuffer{ nullptr };
+	Queue<DefragResource> m_destroyedResources{};
+	UInt64 m_defragmentationFence{ 0u };
 
 public:
 	DirectX12GraphicsFactoryImpl(const DirectX12Device& device) :
@@ -299,6 +311,139 @@ DirectX12GraphicsFactory::~DirectX12GraphicsFactory() noexcept = default;
 VirtualAllocator DirectX12GraphicsFactory::createAllocator(UInt64 overallMemory, AllocationAlgorithm algorithm) const
 {
 	return VirtualAllocator::create<DirectX12Backend>(overallMemory, algorithm);
+}
+
+void DirectX12GraphicsFactory::beginDefragmentation(const ICommandQueue& queue, DefragmentationStrategy strategy, UInt64 maxBytesToMove, UInt32 maxAllocationsToMove) const
+{
+	if (m_impl->m_defragmentationContext) [[unlikely]]
+		throw RuntimeException("Another defragmentation process has been previously started and has not yet finished.");
+
+	// Initialize a defragmentation context.
+	D3D12MA::DEFRAGMENTATION_DESC defragDesc = {
+		.MaxBytesPerPass = maxBytesToMove,
+		.MaxAllocationsPerPass = maxAllocationsToMove
+	};
+
+	switch (strategy)
+	{
+	case DefragmentationStrategy::Fast:
+		defragDesc.Flags = D3D12MA::DEFRAGMENTATION_FLAG_ALGORITHM_FAST;
+		break;
+	case DefragmentationStrategy::Balanced:
+		defragDesc.Flags = D3D12MA::DEFRAGMENTATION_FLAG_ALGORITHM_BALANCED;
+		break;
+	case DefragmentationStrategy::Full:
+		defragDesc.Flags = D3D12MA::DEFRAGMENTATION_FLAG_ALGORITHM_FULL;
+		break;
+	}
+
+	m_impl->m_allocator->BeginDefragmentation(&defragDesc, &m_impl->m_defragmentationContext);
+
+	// Allocate a command buffer to record the transfer commands to.
+	m_impl->m_defragmentationCommandBuffer = std::dynamic_pointer_cast<DirectX12CommandBuffer>(queue.createCommandBuffer(false));
+}
+
+UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
+{
+	if (!m_impl->m_defragmentationContext) [[unlikely]]
+		throw RuntimeException("There is currently no active defragmentation process.");
+
+	auto& pass = m_impl->m_defragmentationPass;
+	HRESULT result = m_impl->m_defragmentationContext->BeginPass(&pass);
+
+	if (result == S_OK)
+		return 0u;
+	else if (result != S_FALSE) [[unlikely]]
+		throw DX12PlatformException(result, "Unable to begin new defragmentation pass.");
+
+	m_impl->m_defragmentationCommandBuffer->begin();
+	Array<IDeviceMemory*> resources;
+
+	for (UInt32 i{ 0u }; i < pass.MoveCount; ++i)
+	{
+		// Get the source allocation.
+		auto sourceAllocation = pass.pMoves[i].pSrcAllocation;    // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		auto targetAllocation = pass.pMoves[i].pDstTmpAllocation; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		IDeviceMemory* deviceMemory = static_cast<IDeviceMemory*>(sourceAllocation->GetPrivateData());
+		resources.emplace_back(deviceMemory);
+
+		// Figure out the resource type.
+		if (auto buffer = dynamic_cast<DirectX12Buffer*>(deviceMemory); buffer != nullptr)
+		{
+			auto oldHandle = std::as_const(*buffer).handle();
+
+			if (DirectX12Buffer::move(buffer->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
+				m_impl->m_destroyedResources.emplace(std::move(oldHandle), buffer->shared_from_this());
+			else
+				pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		}
+		else if (auto image = dynamic_cast<DirectX12Image*>(deviceMemory); image != nullptr)
+		{
+			// TODO: Moving render targets is currently unsupported, as it introduces way to many unpredictable synchronization issues. We should 
+			//       improve this in the future. As an alternative, we could create render targets from a separate pool.
+			if (LITEFX_FLAG_IS_SET(image->usage(), ResourceUsage::RenderTarget))
+				pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			else
+			{
+				auto oldHandle = std::as_const(*image).handle();
+
+				if (DirectX12Image::move(image->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
+					m_impl->m_destroyedResources.emplace(std::move(oldHandle), image->shared_from_this());
+				else
+					pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			}
+		}
+	}
+
+	m_impl->m_defragmentationFence = m_impl->m_defragmentationCommandBuffer->submit();
+
+	for (auto resource : resources)
+		resource->moving(this, { m_impl->m_defragmentationCommandBuffer->queue(), m_impl->m_defragmentationFence });
+
+	return m_impl->m_defragmentationFence;
+}
+
+bool DirectX12GraphicsFactory::endDefragmentationPass() const
+{
+	if (!m_impl->m_defragmentationContext) [[unlikely]]
+		throw RuntimeException("There is currently no active defragmentation process.");
+
+	m_impl->m_defragmentationCommandBuffer->queue()->waitFor(m_impl->m_defragmentationFence);
+
+	Array<ComPtr<ID3D12Resource>> resources{};
+
+	while (!m_impl->m_destroyedResources.empty())
+	{
+		// Get the resource to remove.
+		auto& resource = m_impl->m_destroyedResources.front();
+
+		// Invoke the `moved` event.
+		resource.resource->moved(this, {});
+
+		// Store the resource just so it can be destroyed after ending the pass.
+		resources.emplace_back(std::move(resource.resourceHandle));
+
+		// Erase the allocation from the queue.
+		m_impl->m_destroyedResources.pop();
+	}
+
+	auto result = m_impl->m_defragmentationContext->EndPass(&m_impl->m_defragmentationPass);
+
+	if (result != S_OK && result != S_FALSE) [[unlikely]]
+		throw DX12PlatformException(result, "Unable to end defragmentation pass.");
+
+	resources.clear();
+
+	if (result == S_OK)
+	{
+		m_impl->m_defragmentationContext->Release();
+		m_impl->m_defragmentationContext = nullptr;
+		return true;
+	}
+	else // if (result == S_FALSE)
+	{
+		return false;
+	}
 }
 
 bool DirectX12GraphicsFactory::supportsResizableBaseAddressRegister() const noexcept

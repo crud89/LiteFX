@@ -1831,6 +1831,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt64 currentFence() const noexcept override;
+        
+        /// <inheritdoc />
+        UInt64 lastCompletedFence() const noexcept override;
 
     private:
         inline void waitForQueue(const ICommandQueue& queue, UInt64 fence) const override {
@@ -2578,6 +2581,15 @@ namespace LiteFX::Rendering::Backends {
     public:
         /// <inheritdoc />
         [[nodiscard]] VirtualAllocator createAllocator(UInt64 overallMemory, AllocationAlgorithm algorithm = AllocationAlgorithm::Default) const override;
+
+        /// <inheritdoc />
+        void beginDefragmentation(const ICommandQueue& queue, DefragmentationStrategy strategy = DefragmentationStrategy::Balanced, UInt64 maxBytesToMove = 0u, UInt32 maxAllocationsToMove = 0u) const override;
+
+        /// <inheritdoc />
+        UInt64 beginDefragmentationPass() const override;
+
+        /// <inheritdoc />
+        bool endDefragmentationPass() const override;
 
         /// <inheritdoc />
         SharedPtr<IVulkanBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;

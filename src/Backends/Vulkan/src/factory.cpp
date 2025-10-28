@@ -17,6 +17,18 @@ private:
 	WeakPtr<const VulkanDevice> m_device;
 	VmaAllocator m_allocator{ nullptr };
 
+	// Defragmentation state.
+	struct DefragResource {
+		std::function<void(VkDevice)> deleter;
+		SharedPtr<IDeviceMemory> resource;
+	};
+
+	VmaDefragmentationContext m_defragmentationContext{ nullptr };
+	VmaDefragmentationPassMoveInfo m_defragmentationPass{};
+	SharedPtr<VulkanCommandBuffer> m_defragmentationCommandBuffer{ nullptr };
+	Queue<DefragResource> m_destroyedResources{};
+	UInt64 m_defragmentationFence{ 0u };
+
 public:
 	VulkanGraphicsFactoryImpl(const VulkanDevice& device) :
 		m_device(device.weak_from_this())
@@ -426,6 +438,148 @@ VulkanGraphicsFactory::~VulkanGraphicsFactory() noexcept = default;
 VirtualAllocator VulkanGraphicsFactory::createAllocator(UInt64 overallMemory, AllocationAlgorithm algorithm) const
 {
 	return VirtualAllocator::create<VulkanBackend>(overallMemory, algorithm);
+}
+
+void VulkanGraphicsFactory::beginDefragmentation(const ICommandQueue& queue, DefragmentationStrategy strategy, UInt64 maxBytesToMove, UInt32 maxAllocationsToMove) const
+{
+	if (m_impl->m_defragmentationContext) [[unlikely]]
+		throw RuntimeException("Another defragmentation process has been previously started and has not yet finished.");
+
+	// Initialize a defragmentation context.
+	VmaDefragmentationInfo defragDesc = {
+		.maxBytesPerPass = maxBytesToMove,
+		.maxAllocationsPerPass = maxAllocationsToMove
+	};
+
+	switch (strategy)
+	{
+	case DefragmentationStrategy::Fast:
+		defragDesc.flags = VMA_DEFRAGMENTATION_FLAG_ALGORITHM_FAST_BIT;
+		break;
+	case DefragmentationStrategy::Balanced:
+		defragDesc.flags = VMA_DEFRAGMENTATION_FLAG_ALGORITHM_BALANCED_BIT;
+		break;
+	case DefragmentationStrategy::Full:
+		defragDesc.flags = VMA_DEFRAGMENTATION_FLAG_ALGORITHM_FULL_BIT;
+		break;
+	}
+
+	auto result = ::vmaBeginDefragmentation(m_impl->m_allocator, &defragDesc, &m_impl->m_defragmentationContext);
+
+	if (result != VK_SUCCESS)
+		throw VulkanPlatformException(result, "Unable to start defragmentation process.");
+
+	// Allocate a command buffer to record the transfer commands to.
+	m_impl->m_defragmentationCommandBuffer = std::dynamic_pointer_cast<VulkanCommandBuffer>(queue.createCommandBuffer(false));
+}
+
+UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
+{
+	if (!m_impl->m_defragmentationContext) [[unlikely]]
+		throw RuntimeException("There is currently no active defragmentation process.");
+
+	auto& pass = m_impl->m_defragmentationPass;
+
+	auto result = ::vmaBeginDefragmentationPass(m_impl->m_allocator, m_impl->m_defragmentationContext, &pass);
+
+	if (result == VK_SUCCESS)
+		return 0u;
+	else if (result != VK_INCOMPLETE) [[unlikely]]
+		throw VulkanPlatformException(result, "Unable to begin new defragmentation pass.");
+
+	m_impl->m_defragmentationCommandBuffer->begin();
+	Array<IDeviceMemory*> resources;
+
+	for (UInt32 i{ 0u }; i < pass.moveCount; ++i)
+	{
+		// Get the source allocation.
+		auto sourceAllocation = pass.pMoves[i].srcAllocation;    // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		auto targetAllocation = pass.pMoves[i].dstTmpAllocation; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+
+		VmaAllocationInfo allocationInfo{};
+		::vmaGetAllocationInfo(m_impl->m_allocator, sourceAllocation, &allocationInfo);
+		
+		auto deviceMemory = static_cast<IDeviceMemory*>(allocationInfo.pUserData);
+		resources.emplace_back(deviceMemory);
+
+		// Figure out the resource type.
+		if (auto buffer = dynamic_cast<VulkanBuffer*>(deviceMemory); buffer != nullptr)
+		{
+			auto oldHandle = std::as_const(*buffer).handle();
+
+			if (VulkanBuffer::move(buffer->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
+				m_impl->m_destroyedResources.emplace([oldHandle](VkDevice device) { ::vkDestroyBuffer(device, oldHandle, nullptr); }, buffer->shared_from_this());
+			else
+				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+		}
+		else if (auto image = dynamic_cast<VulkanImage*>(deviceMemory); image != nullptr)
+		{
+			// TODO: Moving render targets is currently unsupported, as it introduces way to many unpredictable synchronization issues. We should 
+			//       improve this in the future. As an alternative, we could create render targets from a separate pool.
+			if (LITEFX_FLAG_IS_SET(image->usage(), ResourceUsage::RenderTarget))
+				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			else
+			{
+				auto oldHandle = std::as_const(*image).handle();
+
+				if (VulkanImage::move(image->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
+					m_impl->m_destroyedResources.emplace([oldHandle](VkDevice device) { ::vkDestroyImage(device, oldHandle, nullptr); }, image->shared_from_this());
+				else
+					pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			}
+		}
+	}
+
+	m_impl->m_defragmentationFence = m_impl->m_defragmentationCommandBuffer->submit();
+
+	for (auto resource : resources)
+		resource->moving(this, { m_impl->m_defragmentationCommandBuffer->queue(), m_impl->m_defragmentationFence });
+
+	return m_impl->m_defragmentationFence;
+}
+
+bool VulkanGraphicsFactory::endDefragmentationPass() const
+{
+	if (!m_impl->m_defragmentationContext) [[unlikely]]
+		throw RuntimeException("There is currently no active defragmentation process.");
+
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr)
+		throw RuntimeException("Unable to acquire instance from an already released device.");
+
+	m_impl->m_defragmentationCommandBuffer->queue()->waitFor(m_impl->m_defragmentationFence);
+
+	auto result = ::vmaEndDefragmentationPass(m_impl->m_allocator, m_impl->m_defragmentationContext, &m_impl->m_defragmentationPass);
+
+	if (result != VK_SUCCESS && result != VK_INCOMPLETE) [[unlikely]]
+		throw VulkanPlatformException(result, "Unable to end defragmentation pass.");
+
+	while (!m_impl->m_destroyedResources.empty())
+	{
+		// Get the resource to remove.
+		auto& resource = m_impl->m_destroyedResources.front();
+
+		// Invoke the `moved` event.
+		resource.resource->moved(this, {});
+
+		// Destroy the old resource.
+		resource.deleter(device->handle());
+
+		// Erase the allocation from the queue.
+		m_impl->m_destroyedResources.pop();
+	}
+
+	if (result == VK_SUCCESS)
+	{
+		vmaEndDefragmentation(m_impl->m_allocator, m_impl->m_defragmentationContext, nullptr);
+		m_impl->m_defragmentationContext = nullptr;
+		return true;
+	}
+	else // if (result == VK_INCOMPLETE)
+	{
+		return false;
+	}
 }
 
 bool VulkanGraphicsFactory::supportsResizableBaseAddressRegister() const noexcept

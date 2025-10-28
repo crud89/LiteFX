@@ -813,6 +813,15 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <seealso cref="IFrameBuffer" />
         FrameBufferImage = TransferSource | RenderTarget,
+
+        /// <summary>
+        /// Causes the contents of the resource to not be copied during defragmentation.
+        /// </summary>
+        /// <seealso cref="IGraphicsFactory::beginDefragmentation" />
+        /// <seealso cref="IDeviceMemory::volatileMove" />
+        /// <seealso cref="IDeviceMemory::moving" />
+        /// <seealso cref="IDeviceMemory::moved" />
+        Volatile = 0x1000
     };
 
     /// <summary>
@@ -867,6 +876,28 @@ namespace LiteFX::Rendering {
         /// Prefers allocation time over packing.
         /// </summary>
         OptimizeTime = 0x02,
+    };
+
+    /// <summary>
+    /// The strategy to apply to a defragmentation pass.
+    /// </summary>
+    /// <seealso cref="IGraphicsFactory::beginDefragmentation" />
+    /// <seealso cref="IGraphicsFactory::defragment" />
+    enum class DefragmentationStrategy : UInt32 {
+        /// <summary>
+        /// Provides fast fragment computation, but potentially suboptimal packing.
+        /// </summary>
+        Fast = 0x01,
+
+        /// <summary>
+        /// Provides a balance between fragment computation time and packing efficiency.
+        /// </summary>
+        Balanced = 0x02,
+
+        /// <summary>
+        /// Provides optimal packing at the cost of potentially more copies.
+        /// </summary>
+        Full = 0x03
     };
 
     /// <summary>
@@ -4512,6 +4543,51 @@ namespace LiteFX::Rendering {
     /// Describes a chunk of device memory.
     /// </summary>
     class LITEFX_RENDERING_API IDeviceMemory {
+    public:
+        /// <summary>
+        /// Stores the fence and the command queue to wait on for the fence before a moved resource can be used.
+        /// </summary>
+        /// <seealso cref="IDeviceMemory::moving" />
+        struct ResourceMovingEventArgs final {
+        private:
+            SharedPtr<const ICommandQueue> m_queue{};
+            UInt64 m_fence{};
+
+        public:
+            /// <summary>
+            /// Creates a new instance of the resource moving event arguments.
+            /// </summary>
+            /// <param name="queue">The queue that executes the resource move.</param>
+            /// <param name="fence">The fence value on <paramref name="queue" /> after which the resource can be used.</param>
+            ResourceMovingEventArgs(SharedPtr<const ICommandQueue> queue, UInt64 fence) noexcept :
+                m_queue(std::move(queue)), m_fence(fence)
+            {
+            }
+
+            ResourceMovingEventArgs(const ResourceMovingEventArgs&) = default;
+            ResourceMovingEventArgs(ResourceMovingEventArgs&&) noexcept = default;
+            ResourceMovingEventArgs& operator=(const ResourceMovingEventArgs&) = default;
+            ResourceMovingEventArgs& operator=(ResourceMovingEventArgs&&) noexcept = default;
+            ~ResourceMovingEventArgs() noexcept = default;
+
+        public:
+            /// <summary>
+            /// Returns the queue that executes the resource move.
+            /// </summary>
+            /// <returns>A pointer to the queue that executes the resource move.</returns>
+            SharedPtr<const ICommandQueue> queue() const noexcept {
+                return m_queue;
+            }
+
+            /// <summary>
+            /// Returns the fence on <see cref="queue" /> after which the resource can be used.
+            /// </summary>
+            /// <returns></returns>
+            UInt64 fence() const noexcept {
+                return m_fence;
+            }
+        };
+
     protected:
         IDeviceMemory() noexcept = default;
         IDeviceMemory(IDeviceMemory&&) noexcept = default;
@@ -4521,6 +4597,37 @@ namespace LiteFX::Rendering {
 
     public:
         virtual ~IDeviceMemory() noexcept = default;
+
+    public:
+        /// <summary>
+        /// An event that gets invoked before a resource is copied during a move.
+        /// </summary>
+        /// <remarks>
+        /// This event gets invoked during defragmentation to inform any subscribers about the relocation. Moving a resource involves an asynchronous copy-command. This event
+        /// is invoked after this command has been submitted, but before it has been executed. The <see cref="moved" /> event executes after the resource has been copied to the
+        /// new location.
+        /// 
+        /// Note that this event is invoked on the thread that executes the defragmentation process, which means you potentially might want to synchronize the handler with other
+        /// potential resource accesses.
+        /// </remarks>
+        /// <seealso cref="moved" />
+        /// <seealso cref="IGraphicsFactory::defragment" />
+        mutable Event<ResourceMovingEventArgs> moving;
+
+        /// <summary>
+        /// An event that gets invoked, after the resource has been moved to a different location, but before the old resource gets destroyed.
+        /// </summary>
+        /// <remarks>
+        /// This event gets invoked during defragmentation to inform any subscribers about a relocation. You might want to subscribe to this event is to update any descriptor 
+        /// bindings, as they become invalid after the previous resource gets removed. Additionally, you may want to insert barriers to transition the resource back into the 
+        /// desired layout.
+        /// 
+        /// Note that this event is invoked on the thread that executes the defragmentation process, which means you potentially might want to synchronize the handler with other
+        /// resource accesses.
+        /// </remarks>
+        /// <seealso cref="moving" />
+        /// <seealso cref="IGraphicsFactory::defragment" />
+        mutable Event<EventArgs> moved;
 
     public:
         /// <summary>
@@ -4586,17 +4693,6 @@ namespace LiteFX::Rendering {
         virtual ResourceUsage usage() const noexcept = 0;
 
         /// <summary>
-        /// Returns <c>true</c>, if the resource can be bound to a read/write descriptor.
-        /// </summary>
-        /// <remarks>
-        /// If the resource is not writable, attempting to bind it to a writable descriptor will result in an exception.
-        /// </remarks>
-        /// <returns><c>true</c>, if the resource can be bound to a read/write descriptor.</returns>
-        inline bool writable() const noexcept {
-            return LITEFX_FLAG_IS_SET(this->usage(), ResourceUsage::AllowWrite);
-        }
-
-        /// <summary>
         /// Gets the address of the resource in GPU memory.
         /// </summary>
         /// <remarks>
@@ -4604,6 +4700,31 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The address of the resource in GPU memory.</returns>
         virtual UInt64 virtualAddress() const noexcept = 0;
+
+        /// <summary>
+        /// Returns <c>true</c>, if the resource can be bound to a read/write descriptor.
+        /// </summary>
+        /// <remarks>
+        /// If the resource is not writable, attempting to bind it to a writable descriptor will result in an exception.
+        /// </remarks>
+        /// <returns><c>true</c>, if the resource can be bound to a read/write descriptor.</returns>
+        virtual inline bool writable() const noexcept {
+            return LITEFX_FLAG_IS_SET(this->usage(), ResourceUsage::AllowWrite);
+        }
+
+        /// <summary>
+        /// Returns `true`, if the contents of the resource should not be copied during a move.
+        /// </summary>
+        /// <remarks>
+        /// To set this flag, include <see cref="ResourceUsage::Volatile" /> in the resource usage flags.
+        /// </remarks>
+        /// <returns>`true`, if the contents of the resource should not be copied during a move and `false` otherwise.</returns>
+        /// <seealso cref="moving" />
+        /// <seealso cref="usage" />
+        /// <seealso cref="ResourceUsage::Volatile" />
+        virtual inline bool volatileMove() const noexcept {
+            return LITEFX_FLAG_IS_SET(this->usage(), ResourceUsage::Volatile);
+        }
     };
 
     /// <summary>
@@ -9522,7 +9643,15 @@ namespace LiteFX::Rendering {
         /// </summary>
         /// <returns>The value of the latest fence inserted into the queue.</returns>
         /// <seealso cref="waitFor" />
+        /// <seealso cref="lastCompletedFence" />
         virtual UInt64 currentFence() const noexcept = 0;
+
+        /// <summary>
+        /// Returns the last fence that was completed on the queue.
+        /// </summary>
+        /// <returns>The last fence that was completed on the queue.</returns>
+        /// <seealso cref="currentFence" />
+        virtual UInt64 lastCompletedFence() const noexcept = 0;
 
     private:
         virtual SharedPtr<ICommandBuffer> getCommandBuffer(bool beginRecording, bool secondary) const = 0;
@@ -9693,6 +9822,71 @@ namespace LiteFX::Rendering {
         /// <param name="algorithm">The algorithm used to find a suitable block in the allocator memory.</param>
         /// <returns>The instance of the virtual allocator.</returns>
         [[nodiscard]] virtual VirtualAllocator createAllocator(UInt64 overallMemory, AllocationAlgorithm algorithm = AllocationAlgorithm::Default) const = 0;
+
+        /// <summary>
+        /// Starts a defragmentation process for the resources allocated from the factory.
+        /// </summary>
+        /// <remarks>
+        /// Defragmentation is an iterative process. Calling this method starts defragmentation, which is then advanced by alternating calls to 
+        /// <see cref="beginDefragmentationPass" /> and <see cref="endDefragmentationPass" />. The process ends if <see cref="endDefragmentationPass" /> returns `true`.
+        /// 
+        /// During a defragmentation pass, a number of resources may get allocated and the memory and filled with memory from resources that will later be destroyed. 
+        /// Each iteration will only create a certain number of such move events, which is mainly influenced by the <paramref name="maxBytesToMove" /> and 
+        /// <paramref name="maxAllocationsToMove" /> parameters, as well as the provided <paramref name="strategy" />. This way, the number of moves per frame can be 
+        /// limited, which helps with keeping a steady frame rate.
+        /// 
+        /// Moving a resource happens by recording copy commands on a command buffer created from <paramref name="queue" />. If a resource does not need to be copied,
+        /// for example because it only contains temporary data, you can set the <see cref="IDeviceMemory::volatileMove" /> property to `true`. This will only allocate
+        /// a new resource, but wont copy the contents of the old allocation.
+        /// 
+        /// Calling <see cref="beginDefragmentationPass" /> returns the fence on that queue after which the move commands have been executed. You can either manually 
+        /// wait for the fence (e.g., by calling <see cref="ICommandQueue::lastCompletedFence" />) or call <see cref="endDefragmentationPass" /> directly. Keep in mind 
+        /// that <see cref="endDefragmentationPass" /> blocks to wait for the last fence to finish, so you might want to consider the alternative approach if you are 
+        /// doing per-frame defragmentation.
+        /// 
+        /// Calling this method while another defragmentation process is active will raise an exception.
+        /// </remarks>
+        /// <param name="queue">The queue to execute the move commands on.</param>
+        /// <param name="strategy">The strategy to pack the fragmented memory.</param>
+        /// <param name="maxBytesToMove">The maximum number of bytes to move during this pass or `0`, if no limitation should be imposed.</param>
+        /// <param name="maxAllocationsToMove">The maximum number of allocations to move during this pass or `0`, if no limitation should be imposed.</param>
+        /// <exception cref="RuntimeException">Thrown, if another defragmentation process is currently running and has not yet finished.</exception>
+        virtual void beginDefragmentation(const ICommandQueue& queue, DefragmentationStrategy strategy = DefragmentationStrategy::Balanced, UInt64 maxBytesToMove = 0u, UInt32 maxAllocationsToMove = 0u) const = 0;
+
+        /// <summary>
+        /// Starts a new defragmentation pass.
+        /// </summary>
+        /// <remarks>
+        /// Before calling this method, make sure you have started a defragmentation process by calling <see cref="beginDefragmentation" />. If no defragmentation
+        /// process is currently started, calling this method raises an exception.
+        /// 
+        /// You are expected to issue alternating calls to this method and <see cref="endDefragmentationPass" />. This can happen either at the beginning or end of a 
+        /// frame, or on a separate thread.
+        /// 
+        /// In between a call to this method and <see cref="endDefragmentationPass" />, the moved-from resources remain valid. Only after the move has finished and 
+        /// <see cref="endDefragmentationPass" /> has been called, they will get invalidated. This means, that you might have to update descriptor bindings for the 
+        /// resource. You can subscribe to the <see cref="IDeviceMemory::moved" /> event for this purpose. You might also want to issue a barrier to transition an 
+        /// image resource back into the required layout. Calling this method will leave the new resource in a <see cref="ImageLayout::Common" /> state.
+        /// </remarks>
+        /// <seealso cref="beginDefragmentation" />
+        /// <seealso cref="endDefragmentationPass" />
+        /// <exception cref="RuntimeException">Thrown, if no defragmentation process is currently active.</exception>
+        virtual UInt64 beginDefragmentationPass() const = 0;
+
+        /// <summary>
+        /// Ends a defragmentation pass.
+        /// </summary>
+        /// <remarks>
+        /// Before calling this method, make sure you have started a defragmentation process by calling <see cref="beginDefragmentation" />. If no defragmentation
+        /// process is currently started, calling this method raises an exception.
+        /// 
+        /// This method waits for the fence issued by the last call to <see cref="beginDefragmentation" /> before first invoking the <see cref="IDeviceMemory::moved" />
+        /// event on all affected resources and finally destroying the moved-from resources.
+        /// </remarks>
+        /// <seealso cref="beginDefragmentation" />
+        /// <seealso cref="beginDefragmentationPass" />
+        /// <exception cref="RuntimeException">Thrown, if no defragmentation process is currently active.</exception>
+        virtual bool endDefragmentationPass() const = 0;
 
         /// <summary>
         /// Creates a buffer of type <paramref name="type" />.

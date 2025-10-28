@@ -15,13 +15,14 @@ private:
 	UInt32 m_elements;
 	size_t m_elementSize, m_alignment;
 	ResourceUsage m_usage;
+	VkBufferCreateInfo m_createInfo;
 	VmaAllocator m_allocator;
 	VmaAllocation m_allocation;
 	UInt64 m_virtualAddress{0};
 
 public:
-	VulkanBufferImpl(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VmaAllocator& allocator, const VmaAllocation& allocation) :
-		m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_usage(usage), m_allocator(allocator), m_allocation(allocation)
+	VulkanBufferImpl(BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VmaAllocator& allocator, const VmaAllocation& allocation) :
+		m_type(type), m_elements(elements), m_elementSize(elementSize), m_alignment(alignment), m_usage(usage), m_createInfo(createInfo), m_allocator(allocator), m_allocation(allocation)
 	{
 	}
 };
@@ -30,11 +31,16 @@ public:
 // Buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
-	Resource<VkBuffer>(buffer), m_impl(type, elements, elementSize, alignment, usage, allocator, allocation)
+VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
+	Resource<VkBuffer>(buffer), m_impl(type, elements, elementSize, alignment, usage, createInfo, allocator, allocation)
 {
 	if (!name.empty())
+	{
 		this->name() = name;
+#ifndef NDEBUG
+		::vmaSetAllocationName(allocator, allocation, name.c_str());
+#endif
+	}
 
 	// Store the virtual address.
 	VkBufferDeviceAddressInfo info{
@@ -43,6 +49,9 @@ VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, si
 	};
 
 	m_impl->m_virtualAddress = static_cast<UInt64>(::vkGetBufferDeviceAddress(device.handle(), &info));
+
+	if (m_impl->m_allocator != nullptr && m_impl->m_allocation != nullptr)
+		::vmaSetAllocationUserData(m_impl->m_allocator, m_impl->m_allocation, static_cast<IDeviceMemory*>(this));
 }
 
 VulkanBuffer::~VulkanBuffer() noexcept
@@ -142,6 +151,16 @@ void VulkanBuffer::read(void* data, size_t size, size_t offset)
 	raiseIfFailed(::vmaCopyAllocationToMemory(m_impl->m_allocator, m_impl->m_allocation, offset, data, size), "Unable to read from buffer.");
 }
 
+VmaAllocator& VulkanBuffer::allocator() const noexcept
+{
+	return m_impl->m_allocator;
+}
+
+VmaAllocation& VulkanBuffer::allocationInfo() const noexcept
+{
+	return m_impl->m_allocation;
+}
+
 SharedPtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
 {
 	VkBuffer buffer{};
@@ -158,7 +177,7 @@ SharedPtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, BufferType t
 		(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
-	return SharedObject::create<VulkanBuffer>(buffer, type, elements, elementSize, alignment, usage, device, allocator, allocation, name);
+	return SharedObject::create<VulkanBuffer>(buffer, type, elements, elementSize, alignment, usage, createInfo, device, allocator, allocation, name);
 }
 
 bool VulkanBuffer::tryAllocate(SharedPtr<IVulkanBuffer>& buffer, const String& name, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
@@ -186,9 +205,58 @@ bool VulkanBuffer::tryAllocate(SharedPtr<IVulkanBuffer>& buffer, const String& n
 			(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
-		buffer = SharedObject::create<VulkanBuffer>(bufferHandle, type, elements, elementSize, alignment, usage, device, allocator, allocation, name);
+		buffer = SharedObject::create<VulkanBuffer>(bufferHandle, type, elements, elementSize, alignment, usage, createInfo, device, allocator, allocation, name);
 		return true;
 	}
+}
+
+bool VulkanBuffer::move(SharedPtr<IVulkanBuffer> buffer, VmaAllocation to, const VulkanCommandBuffer& commandBuffer) // NOLINT(performance-unnecessary-value-param)
+{
+	// NOTES: If this method returns true, the command buffer must be executed and all bindings to the image must be updated afterwards, otherwise the result of this operation is undefined behavior.
+	// TODO: Handle host-visible copies
+
+	if (buffer == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("buffer");
+
+	if (to == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("to");
+
+	auto& source = dynamic_cast<VulkanBuffer&>(*buffer);
+	const auto device = commandBuffer.queue()->device();
+	const auto& createInfo = source.m_impl->m_createInfo;
+	auto allocator = source.m_impl->m_allocator;
+
+	VkBuffer bufferHandle{};
+	auto result = ::vkCreateBuffer(device->handle(), &createInfo, nullptr, &bufferHandle);
+
+	if (result != VK_SUCCESS) [[unlikely]]
+		return false;
+
+	result = ::vmaBindBufferMemory(allocator, to, bufferHandle);
+
+	if (result != VK_SUCCESS) [[unlikely]]
+	{
+		::vkDestroyBuffer(device->handle(), bufferHandle, nullptr);
+		return false;
+	}
+
+	// NOTE: Buffers in the HOST_VISIBLE and HOST_CACHED memory can be copied synchronously using a usual `memcpy`
+	
+	// Transfer the buffer.
+	if (!buffer->volatileMove())
+	{
+		VkBufferCopy copyInfo { .size = buffer->elements() * buffer->alignedElementSize() };
+		::vkCmdCopyBuffer(commandBuffer.handle(), std::as_const(*buffer).handle(), bufferHandle, 1u, &copyInfo);
+	}
+
+	// Reset the buffer.
+	// NOTE: At this point, the previous resource does still exist, but is inaccessible through the current instance. The only remaining reference should be stored by the source allocation during 
+	//       defragmentation. After the command buffer executed, the resource will be destroyed. If a reference is stored somewhere else it will get invalid, but you should never store the 
+	//       reference obtained by calling `handle` manually.
+	//       The new resource handle is valid beyond this point, but may contain uninitialized data. Any attempt of using the resource must be properly synchronized to execute after the submission
+	//       of `commandBuffer`.
+	source.handle() = bufferHandle;
+	return true;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -213,8 +281,8 @@ public:
 // Vertex buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanVertexBuffer::VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
-	VulkanBuffer(buffer, BufferType::Vertex, elements, layout.elementSize(), 0, usage, device, allocator, allocation, name), m_impl(layout)
+VulkanVertexBuffer::VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
+	VulkanBuffer(buffer, BufferType::Vertex, elements, layout.elementSize(), 0, usage, createInfo, device, allocator, allocation, name), m_impl(layout)
 {
 }
 
@@ -241,7 +309,7 @@ SharedPtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const String& name, 
 		(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
-	return SharedObject::create<VulkanVertexBuffer>(buffer, layout, elements, usage, device, allocator, allocation, name);
+	return SharedObject::create<VulkanVertexBuffer>(buffer, layout, elements, usage, createInfo, device, allocator, allocation, name);
 }
 
 bool VulkanVertexBuffer::tryAllocate(SharedPtr<IVulkanVertexBuffer>& buffer, const String& name, const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
@@ -268,7 +336,7 @@ bool VulkanVertexBuffer::tryAllocate(SharedPtr<IVulkanVertexBuffer>& buffer, con
 			(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
-		buffer = SharedObject::create<VulkanVertexBuffer>(bufferHandle, layout, elements, usage, device, allocator, allocation, name);
+		buffer = SharedObject::create<VulkanVertexBuffer>(bufferHandle, layout, elements, usage, createInfo, device, allocator, allocation, name);
 		return true;
 	}
 }
@@ -295,8 +363,8 @@ public:
 // Index buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanIndexBuffer::VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
-	VulkanBuffer(buffer, BufferType::Index, elements, layout.elementSize(), 0, usage, device, allocator, allocation, name), m_impl(layout)
+VulkanIndexBuffer::VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name) :
+	VulkanBuffer(buffer, BufferType::Index, elements, layout.elementSize(), 0, usage, createInfo, device, allocator, allocation, name), m_impl(layout)
 {
 }
 
@@ -323,7 +391,7 @@ SharedPtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const String& name, co
 		(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
-	return SharedObject::create<VulkanIndexBuffer>(buffer, layout, elements, usage, device, allocator, allocation, name);
+	return SharedObject::create<VulkanIndexBuffer>(buffer, layout, elements, usage, createInfo, device, allocator, allocation, name);
 }
 
 bool VulkanIndexBuffer::tryAllocate(SharedPtr<IVulkanIndexBuffer>& buffer, const String& name, const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
@@ -350,7 +418,7 @@ bool VulkanIndexBuffer::tryAllocate(SharedPtr<IVulkanIndexBuffer>& buffer, const
 			(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
-		buffer = SharedObject::create<VulkanIndexBuffer>(bufferHandle, layout, elements, usage, device, allocator, allocation, name);
+		buffer = SharedObject::create<VulkanIndexBuffer>(bufferHandle, layout, elements, usage, createInfo, device, allocator, allocation, name);
 		return true;
 	}
 }
