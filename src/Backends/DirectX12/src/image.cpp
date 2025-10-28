@@ -108,13 +108,12 @@ size_t DirectX12Image::elementAlignment() const noexcept
 	if (m_impl->m_allocation) [[likely]]
 		return static_cast<size_t>(m_impl->m_allocation->GetAlignment());
 	else
-	return D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
+		return D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
 }
 
 size_t DirectX12Image::alignedElementSize() const noexcept
 {
 	return align(this->elementSize(), this->elementAlignment());
-	return this->elementSize();
 }
 
 ResourceUsage DirectX12Image::usage() const noexcept
@@ -275,8 +274,10 @@ bool DirectX12Image::move(SharedPtr<IDirectX12Image> image, D3D12MA::Allocation*
 	const auto& resourceDesc = source.m_impl->m_resourceDesc;
 	auto allocator = source.m_impl->m_allocator;
 
+	bool isDepthStencil = ::hasDepth(image->format()) || ::hasStencil(image->format());
+
 	ComPtr<ID3D12Resource> resource;
-	auto result = (*device).handle()->CreatePlacedResource2(to->GetHeap(), to->GetOffset(), std::addressof(resourceDesc), D3D12_BARRIER_LAYOUT_COMMON, nullptr, 0, nullptr, IID_PPV_ARGS(&resource));
+	auto result = (*device).handle()->CreatePlacedResource2(to->GetHeap(), to->GetOffset(), std::addressof(resourceDesc), isDepthStencil ? D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ : D3D12_BARRIER_LAYOUT_COMMON, nullptr, 0, nullptr, IID_PPV_ARGS(&resource));
 
 	if (FAILED(result)) [[unlikely]]
 		return false;

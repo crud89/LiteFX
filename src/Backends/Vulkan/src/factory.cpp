@@ -19,8 +19,8 @@ private:
 
 	// Defragmentation state.
 	struct DefragResource {
-		Variant<VkBuffer, VkImage> resource;
-		VmaAllocation allocation;
+		Variant<VkBuffer, VkImage> resourceHandle;
+		SharedPtr<IDeviceMemory> resource;
 	};
 
 	VmaDefragmentationContext m_defragmentationContext{ nullptr };
@@ -508,18 +508,25 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 			auto oldHandle = std::as_const(*buffer).handle();
 
 			if (VulkanBuffer::move(buffer->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
-				m_impl->m_destroyedResources.emplace(oldHandle, sourceAllocation);
+				m_impl->m_destroyedResources.emplace(oldHandle, buffer->shared_from_this());
 			else
 				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		}
 		else if (auto image = dynamic_cast<VulkanImage*>(deviceMemory); image != nullptr)
 		{
-			auto oldHandle = std::as_const(*image).handle();
-
-			if (VulkanImage::move(image->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
-				m_impl->m_destroyedResources.emplace(oldHandle, sourceAllocation);
+			// TODO: Moving render targets is currently unsupported, as it introduces way to many unpredictable synchronization issues. We should 
+			//       improve this in the future. As an alternative, we could create render targets from a separate pool.
+			if (LITEFX_FLAG_IS_SET(image->usage(), ResourceUsage::RenderTarget))
+				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE;
 			else
-				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			{
+				auto oldHandle = std::as_const(*image).handle();
+
+				if (VulkanImage::move(image->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
+					m_impl->m_destroyedResources.emplace(oldHandle, image->shared_from_this());
+				else
+					pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			}
 		}
 	}
 
@@ -543,31 +550,28 @@ bool VulkanGraphicsFactory::endDefragmentationPass() const
 
 	m_impl->m_defragmentationCommandBuffer->queue()->waitFor(m_impl->m_defragmentationFence);
 
+	auto result = ::vmaEndDefragmentationPass(m_impl->m_allocator, m_impl->m_defragmentationContext, &m_impl->m_defragmentationPass);
+
+	if (result != VK_SUCCESS && result != VK_INCOMPLETE) [[unlikely]]
+		throw VulkanPlatformException(result, "Unable to end defragmentation pass.");
+
 	while (!m_impl->m_destroyedResources.empty())
 	{
 		// Get the resource to remove.
 		auto& resource = m_impl->m_destroyedResources.front();
 
 		// Invoke the `moved` event.
-		VmaAllocationInfo allocationInfo{};
-		::vmaGetAllocationInfo(m_impl->m_allocator, resource.allocation, &allocationInfo);
-		auto deviceMemory = static_cast<IDeviceMemory*>(allocationInfo.pUserData);
-		deviceMemory->moved(this, {});
+		resource.resource->moved(this, {});
 
 		// Destroy the old resource.
-		std::visit(type_switch {
+		std::visit(type_switch{
 			[device](VkBuffer buffer) { ::vkDestroyBuffer(device->handle(), buffer, nullptr); },
 			[device](VkImage image) { ::vkDestroyImage(device->handle(), image, nullptr); }
-		}, resource.resource);
+		}, resource.resourceHandle);
 
 		// Erase the allocation from the queue.
 		m_impl->m_destroyedResources.pop();
 	}
-
-	auto result = ::vmaEndDefragmentationPass(m_impl->m_allocator, m_impl->m_defragmentationContext, &m_impl->m_defragmentationPass);
-
-	if (result != VK_SUCCESS && result != VK_INCOMPLETE) [[unlikely]]
-		throw VulkanPlatformException(result, "Unable to end defragmentation pass.");
 
 	if (result == VK_SUCCESS)
 	{

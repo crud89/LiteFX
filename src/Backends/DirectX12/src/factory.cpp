@@ -17,8 +17,8 @@ private:
 
 	// Defragmentation state.
 	struct DefragResource {
-		ComPtr<ID3D12Resource> resource;
-		D3D12MA::Allocation* allocation;
+		ComPtr<ID3D12Resource> resourceHandle;
+		SharedPtr<IDeviceMemory> resource;
 	};
 
 	D3D12MA::DefragmentationContext* m_defragmentationContext{ nullptr };
@@ -373,18 +373,25 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 			auto oldHandle = std::as_const(*buffer).handle();
 
 			if (DirectX12Buffer::move(buffer->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
-				m_impl->m_destroyedResources.emplace(std::move(oldHandle), sourceAllocation);
+				m_impl->m_destroyedResources.emplace(std::move(oldHandle), buffer->shared_from_this());
 			else
 				pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		}
 		else if (auto image = dynamic_cast<DirectX12Image*>(deviceMemory); image != nullptr)
 		{
-			auto oldHandle = std::as_const(*image).handle();
-
-			if (DirectX12Image::move(image->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
-				m_impl->m_destroyedResources.emplace(std::move(oldHandle), sourceAllocation);
+			// TODO: Moving render targets is currently unsupported, as it introduces way to many unpredictable synchronization issues. We should 
+			//       improve this in the future. As an alternative, we could create render targets from a separate pool.
+			if (LITEFX_FLAG_IS_SET(image->usage(), ResourceUsage::RenderTarget))
+				pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE;
 			else
-				pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			{
+				auto oldHandle = std::as_const(*image).handle();
+
+				if (DirectX12Image::move(image->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
+					m_impl->m_destroyedResources.emplace(std::move(oldHandle), image->shared_from_this());
+				else
+					pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+			}
 		}
 	}
 
@@ -411,11 +418,10 @@ bool DirectX12GraphicsFactory::endDefragmentationPass() const
 		auto& resource = m_impl->m_destroyedResources.front();
 
 		// Invoke the `moved` event.
-		auto deviceMemory = static_cast<IDeviceMemory*>(resource.allocation->GetPrivateData());
-		deviceMemory->moved(this, {});
+		resource.resource->moved(this, {});
 
 		// Store the resource just so it can be destroyed after ending the pass.
-		resources.emplace_back(std::move(resource.resource));
+		resources.emplace_back(std::move(resource.resourceHandle));
 
 		// Erase the allocation from the queue.
 		m_impl->m_destroyedResources.pop();
