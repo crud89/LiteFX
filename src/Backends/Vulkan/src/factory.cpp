@@ -19,7 +19,7 @@ private:
 
 	// Defragmentation state.
 	struct DefragResource {
-		Variant<VkBuffer, VkImage> resourceHandle;
+		std::function<void(VkDevice)> deleter;
 		SharedPtr<IDeviceMemory> resource;
 	};
 
@@ -508,7 +508,7 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 			auto oldHandle = std::as_const(*buffer).handle();
 
 			if (VulkanBuffer::move(buffer->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
-				m_impl->m_destroyedResources.emplace(oldHandle, buffer->shared_from_this());
+				m_impl->m_destroyedResources.emplace([oldHandle](VkDevice device) { ::vkDestroyBuffer(device, oldHandle, nullptr); }, buffer->shared_from_this());
 			else
 				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		}
@@ -523,7 +523,7 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 				auto oldHandle = std::as_const(*image).handle();
 
 				if (VulkanImage::move(image->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
-					m_impl->m_destroyedResources.emplace(oldHandle, image->shared_from_this());
+					m_impl->m_destroyedResources.emplace([oldHandle](VkDevice device) { ::vkDestroyImage(device, oldHandle, nullptr); }, image->shared_from_this());
 				else
 					pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 			}
@@ -564,10 +564,7 @@ bool VulkanGraphicsFactory::endDefragmentationPass() const
 		resource.resource->moved(this, {});
 
 		// Destroy the old resource.
-		std::visit(type_switch{
-			[device](VkBuffer buffer) { ::vkDestroyBuffer(device->handle(), buffer, nullptr); },
-			[device](VkImage image) { ::vkDestroyImage(device->handle(), image, nullptr); }
-		}, resource.resourceHandle);
+		resource.deleter(device->handle());
 
 		// Erase the allocation from the queue.
 		m_impl->m_destroyedResources.pop();
