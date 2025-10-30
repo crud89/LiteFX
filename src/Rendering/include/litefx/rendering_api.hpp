@@ -2404,6 +2404,217 @@ namespace LiteFX::Rendering {
         UInt32 Z{ 1 };
     };
 #pragma warning(pop)
+
+    /// <summary>
+    /// Contains the parameters for a resource allocation.
+    /// </summary>
+    /// <seealso cref="IGraphicsFactory" />
+    /// <seealso cref="ResourceAllocationResult" />
+    struct LITEFX_RENDERING_API ResourceAllocationInfo final {
+    public:
+        /// <summary>
+        /// Stores information about a buffer resource allocation.
+        /// </summary>
+        struct BufferInfo 
+        {
+            /// <summary>
+            /// Stores the buffer type.
+            /// </summary>
+            BufferType Type{ BufferType::Uniform };
+
+            /// <summary>
+            /// Stores the size of a single element within the buffer.
+            /// </summary>
+            size_t ElementSize{ 0u };
+
+            /// <summary>
+            /// Stores the number of elements in the buffer.
+            /// </summary>
+            UInt32 Elements{ 1u };
+            
+            /// <summary>
+            /// Stores the resource heap on which to allocate the resource.
+            /// </summary>
+            ResourceHeap Heap{ ResourceHeap::Dynamic };
+
+            /// <summary>
+            /// The layout of a vertex buffer.
+            /// </summary>
+            /// <remarks>
+            /// If <see cref="Type" /> is <see cref="BufferType::Vertex" />, setting this property creates a <see cref="IVertexBuffer" />, otherwise a usual 
+            /// <see cref="IBuffer" /> is created. If <see cref="Type" /> is not <see cref="BufferType::Vertex" />, this property is ignored.
+            /// </remarks>
+            SharedPtr<IVertexBufferLayout> VertexBufferLayout{ nullptr };
+
+            /// <summary>
+            /// The layout of a index buffer.
+            /// </summary>
+            /// <remarks>
+            /// If <see cref="Type" /> is <see cref="BufferType::Index" />, setting this property creates a <see cref="IIndexBuffer" />, otherwise a usual 
+            /// <see cref="IBuffer" /> is created. If <see cref="Type" /> is not <see cref="BufferType::Index" />, this property is ignored.
+            /// </remarks>
+            SharedPtr<IIndexBufferLayout> IndexBufferLayout{ nullptr };
+        };
+
+        /// <summary>
+        /// Stores information about an image resource allocation.
+        /// </summary>
+        struct ImageInfo 
+        {
+            /// <summary>
+            /// Stores the desired format of the image.
+            /// </summary>
+            Format Format{ Format::R8G8B8A8_SRGB };
+
+            /// <summary>
+            /// Stores the dimensions of the image.
+            /// </summary>
+            ImageDimensions Dimensions{ ImageDimensions::DIM_2 };
+
+            /// <summary>
+            /// Stores the size of the image.
+            /// </summary>
+            Size3d Size{ };
+
+            /// <summary>
+            /// Stores the number of mip-map levels in the image.
+            /// </summary>
+            UInt32 Levels{ 1u };
+
+            /// <summary>
+            /// Stores the number of layers in the image.
+            /// </summary>
+            UInt32 Layers{ 1u };
+
+            /// <summary>
+            /// Stores the number of multi-samples in the image.
+            /// </summary>
+            MultiSamplingLevel Samples{ MultiSamplingLevel::x1 };
+        };
+
+    public:
+        /// <summary>
+        /// Stores the buffer or image info associated with the allocation info.
+        /// </summary>
+        Variant<BufferInfo, ImageInfo> ResourceInfo;
+
+        /// <summary>
+        /// Stores the resource usage flags for the allocation info.
+        /// </summary>
+        ResourceUsage Usage{ ResourceUsage::Default };
+
+        /// <summary>
+        /// Stores the desired name of the allocated resource.
+        /// </summary>
+        String Name{ };
+
+        /// <summary>
+        /// An optional offset that is used to place the resource in a block of allocated memory when allocating overlapping resources.
+        /// </summary>
+        /// <seealso cref="IGraphicsFactory::allocate" />
+        size_t AliasingOffset{ 0u };
+
+    public:
+        /// <summary>
+        /// Creates a new resource allocation info instance.
+        /// </summary>
+        ResourceAllocationInfo() = default;
+
+        /// <summary>
+        /// Creates a new resource allocation info instance for a buffer resource.
+        /// </summary>
+        /// <param name="bufferInfo">The details about the buffer.</param>
+        /// <param name="usage">The usage flags for the buffer.</param>
+        /// <param name="name">The name of the buffer resource.</param>
+        explicit ResourceAllocationInfo(const BufferInfo& bufferInfo, ResourceUsage usage = ResourceUsage::Default, const String& name = "") :
+            ResourceInfo(bufferInfo), Usage(usage), Name(name) { }
+
+        /// <summary>
+        /// Creates a new resource allocation info instance for an image resource.
+        /// </summary>
+        /// <param name="imageInfo">The details about the image.</param>
+        /// <param name="usage">The usage flags for the image.</param>
+        /// <param name="name">The name of the image resource.</param>
+        explicit ResourceAllocationInfo(const ImageInfo& imageInfo, ResourceUsage usage = ResourceUsage::Default, const String& name = "") :
+            ResourceInfo(imageInfo), Usage(usage), Name(name) { }
+        
+        ResourceAllocationInfo(const ResourceAllocationInfo&) = default;
+        ResourceAllocationInfo(ResourceAllocationInfo&&) noexcept = default;
+        ResourceAllocationInfo& operator=(const ResourceAllocationInfo&) = default;
+        ResourceAllocationInfo& operator=(ResourceAllocationInfo&&) noexcept = default;
+        ~ResourceAllocationInfo() noexcept = default;
+    };
+
+    /// <summary>
+    /// Stores the result of a resource allocation.
+    /// </summary>
+    /// <seealso cref="IGraphicsFactory" />
+    /// <seealso cref="ResourceAllocationInfo" />
+    struct LITEFX_RENDERING_API ResourceAllocationResult final {
+    private:
+        Variant<SharedPtr<IImage>, SharedPtr<IBuffer>> m_resource;
+
+    public:
+        /// <summary>
+        /// Initializes an allocation result for an image resource.
+        /// </summary>
+        /// <param name="image">The allocate image resource.</param>
+        ResourceAllocationResult(SharedPtr<IImage>&& image) noexcept :
+            m_resource(std::move(image)) { }
+        
+        /// <summary>
+        /// Initializes an allocation result for a buffer resource.
+        /// </summary>
+        /// <param name="buffer">The allocated buffer resource.</param>
+        ResourceAllocationResult(SharedPtr<IBuffer>&& buffer) noexcept :
+            m_resource(std::move(buffer)) { }
+
+        ResourceAllocationResult() = delete;
+        ResourceAllocationResult(const ResourceAllocationResult&) = delete;
+        ResourceAllocationResult(ResourceAllocationResult&&) noexcept = default;
+        ResourceAllocationResult& operator=(const ResourceAllocationResult&) = delete;
+        ResourceAllocationResult& operator=(ResourceAllocationResult&&) noexcept = default;
+        ~ResourceAllocationResult() noexcept = default;
+
+    public:
+        /// <summary>
+        /// Returns the allocated image resource, or raises an exception if the allocation does not contain an image resource, or the image resource is not of <typeparamref name="TImage" />.
+        /// </summary>
+        /// <typeparam name="TImage">The type of the image.</typeparam>
+        /// <returns>The pointer to the image resource.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the allocated resource is not an image, or if the allocated image does not implement <typeparamref name="TImage"/>.</exception>
+        template <std::derived_from<IImage> TImage>
+        constexpr SharedPtr<TImage> image() const {
+            if constexpr (!std::holds_alternative<SharedPtr<IImage>>(m_resource))
+                throw RuntimeException("The allocation result does not contain an image.");
+            
+            auto image = std::dynamic_pointer_cast<TImage>(std::get<SharedPtr<IImage>>(m_resource));
+
+            if (image == nullptr)
+                throw RuntimeException("The allocated image resource is not of the requested image type.");
+            
+            return image;
+        }
+
+        /// <summary>
+        /// Returns the allocated buffer resource, or raises an exception if the allocation does not contain a buffer resource, or the buffer resource is not of <typeparamref name="TBuffer" />.
+        /// </summary>
+        /// <typeparam name="TBuffer">The type of the buffer.</typeparam>
+        /// <returns>The pointer to the buffer resource.</returns>
+        /// <exception cref="RuntimeException">Thrown, if the allocated resource is not a buffer, or if the allocated buffer does not implement <typeparamref name="TBuffer"/>.</exception>
+        template <std::derived_from<IBuffer> TBuffer>
+        constexpr SharedPtr<TBuffer> image() const {
+            if constexpr (!std::holds_alternative<SharedPtr<IBuffer>>(m_resource))
+                throw RuntimeException("The allocation result does not contain a buffer.");
+
+            auto buffer = std::dynamic_pointer_cast<TBuffer>(std::get<SharedPtr<IBuffer>>(m_resource));
+
+            if (buffer == nullptr)
+                throw RuntimeException("The allocated buffer resource is not of the requested buffer type.");
+
+            return buffer;
+        }
+    };
 #pragma endregion
 
     /// <summary>
@@ -9887,6 +10098,65 @@ namespace LiteFX::Rendering {
         /// <seealso cref="beginDefragmentationPass" />
         /// <exception cref="RuntimeException">Thrown, if no defragmentation process is currently active.</exception>
         virtual bool endDefragmentationPass() const = 0;
+
+        /// <summary>
+        /// Allocates a single resource as described by <paramref name="allocationInfo" />.
+        /// </summary>
+        /// <param name="allocationInfo">The description of the resource to allocate.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <returns>The resource allocation result.</returns>
+        virtual ResourceAllocationResult allocate(const ResourceAllocationInfo& allocationInfo, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const {
+            if (std::holds_alternative<ResourceAllocationInfo::ImageInfo>(allocationInfo.ResourceInfo))
+            {
+                auto& imageInfo = std::get<ResourceAllocationInfo::ImageInfo>(allocationInfo.ResourceInfo);
+                return this->createTexture(allocationInfo.Name, imageInfo.Format, imageInfo.Size, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, allocationInfo.Usage, allocationBehavior);
+            }
+            else
+            {
+                auto& bufferInfo = std::get<ResourceAllocationInfo::BufferInfo>(allocationInfo.ResourceInfo);
+
+                if (bufferInfo.Type == BufferType::Vertex && bufferInfo.VertexBufferLayout != nullptr)
+                    return std::dynamic_pointer_cast<IBuffer>(
+                        this->createVertexBuffer(allocationInfo.Name, *bufferInfo.VertexBufferLayout, bufferInfo.Heap, bufferInfo.Elements, allocationInfo.Usage, allocationBehavior));
+                else if (bufferInfo.Type == BufferType::Index && bufferInfo.IndexBufferLayout != nullptr)
+                    return std::dynamic_pointer_cast<IBuffer>(
+                        this->createIndexBuffer(allocationInfo.Name, *bufferInfo.IndexBufferLayout, bufferInfo.Heap, bufferInfo.Elements, allocationInfo.Usage, allocationBehavior));
+                else
+                    return this->createBuffer(allocationInfo.Name, bufferInfo.Type, bufferInfo.Heap, bufferInfo.ElementSize, bufferInfo.Elements, allocationInfo.Usage, allocationBehavior);
+            }
+        }
+
+        /// <summary>
+        /// Allocates a set of resources as described by <paramref name="allocationInfos" />.
+        /// </summary>
+        /// <remarks>
+        /// If the <paramref name="alias" /> parameter is set to `true`, the allocator attempts to overlap the resources in a single allocation, which saves memory. 
+        /// However, this implies that the resources must be properly synchronized and accessed according to the aliasing rules imposed by the backend. Most notably,
+        /// you have to manually insert aliasing barriers to isolate access.
+        /// 
+        /// Note that overlapping arbitrary resource types might not be possible on each GPU. You can check if aliasing is supported for the desired resources by
+        /// calling <see cref="canAlias" /> first. If aliasing is not possible, you can instead fallback to non-overlapping resources by setting the 
+        /// <paramref name="alias" /> parameter to `false` accordingly. If you attempt to allocate aliasing resources on an unsupported GPU directly, this method
+        /// will raise an error.
+        /// </remarks>
+        /// <param name="allocationInfos">The description of the resources to allocate.</param>
+        /// <param name="allocationBehavior">The behavior controlling what happens if currently there is not enough memory available for the resource.</param>
+        /// <param name="alias">`true` if the allocator should attempt to overlap the allocations and `false` otherwise.</param>
+        /// <returns>A generator that returns the individual resources that have been allocated.</returns>
+        /// <seealso cref="canAlias" />
+        /// <seealso href="https://gpuopen-librariesandsdks.github.io/D3D12MemoryAllocator/html/resource_aliasing.html" />
+        /// <seealso href="https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/resource_aliasing.html" />
+        /// <exception cref="InvalidArgumentException">Thrown, if the <paramref name="alias" /> parameter is set to `true`, but the provided <paramref name="allocationInfos" /> cannot be overlapped on the system's GPU.</exception>
+        virtual Generator<ResourceAllocationResult> allocate(Enumerable<const ResourceAllocationInfo&> allocationInfos, AllocationBehavior allocationBehavior = AllocationBehavior::Default, bool alias = false) const = 0;
+
+        /// <summary>
+        /// Checks if the resources described by <paramref name="allocationInfos" /> can be overlapped.
+        /// </summary>
+        /// <param name="allocationInfos">The resource descriptions to check.</param>
+        /// <returns>`true`, if the resources described by  <paramref name="allocationInfos" /> can be overlapped and `false` otherwise.</returns>
+        /// <seealso cref="allocate" />
+        /// <seealso cref="ResourceAllocationInfo::AliasingOffset" />
+        virtual bool canAlias(Enumerable<const ResourceAllocationInfo&> allocationInfos) const noexcept = 0;
 
         /// <summary>
         /// Creates a buffer of type <paramref name="type" />.
