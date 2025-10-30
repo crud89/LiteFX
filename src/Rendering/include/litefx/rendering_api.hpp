@@ -2444,7 +2444,7 @@ namespace LiteFX::Rendering {
             /// If <see cref="Type" /> is <see cref="BufferType::Vertex" />, setting this property creates a <see cref="IVertexBuffer" />, otherwise a usual 
             /// <see cref="IBuffer" /> is created. If <see cref="Type" /> is not <see cref="BufferType::Vertex" />, this property is ignored.
             /// </remarks>
-            SharedPtr<IVertexBufferLayout> VertexBufferLayout{ nullptr };
+            SharedPtr<const IVertexBufferLayout> VertexBufferLayout{ nullptr };
 
             /// <summary>
             /// The layout of a index buffer.
@@ -2453,7 +2453,7 @@ namespace LiteFX::Rendering {
             /// If <see cref="Type" /> is <see cref="BufferType::Index" />, setting this property creates a <see cref="IIndexBuffer" />, otherwise a usual 
             /// <see cref="IBuffer" /> is created. If <see cref="Type" /> is not <see cref="BufferType::Index" />, this property is ignored.
             /// </remarks>
-            SharedPtr<IIndexBufferLayout> IndexBufferLayout{ nullptr };
+            SharedPtr<const IIndexBufferLayout> IndexBufferLayout{ nullptr };
         };
 
         /// <summary>
@@ -2496,7 +2496,7 @@ namespace LiteFX::Rendering {
         /// <summary>
         /// Stores the buffer or image info associated with the allocation info.
         /// </summary>
-        Variant<BufferInfo, ImageInfo> ResourceInfo;
+        Variant<BufferInfo, ImageInfo> ResourceInfo{};
 
         /// <summary>
         /// Stores the resource usage flags for the allocation info.
@@ -2526,8 +2526,8 @@ namespace LiteFX::Rendering {
         /// <param name="bufferInfo">The details about the buffer.</param>
         /// <param name="usage">The usage flags for the buffer.</param>
         /// <param name="name">The name of the buffer resource.</param>
-        explicit ResourceAllocationInfo(const BufferInfo& bufferInfo, ResourceUsage usage = ResourceUsage::Default, const String& name = "") :
-            ResourceInfo(bufferInfo), Usage(usage), Name(name) { }
+        explicit ResourceAllocationInfo(const BufferInfo& bufferInfo, ResourceUsage usage = ResourceUsage::Default, String name = "") :
+            ResourceInfo(bufferInfo), Usage(usage), Name(std::move(name)) { }
 
         /// <summary>
         /// Creates a new resource allocation info instance for an image resource.
@@ -2535,8 +2535,8 @@ namespace LiteFX::Rendering {
         /// <param name="imageInfo">The details about the image.</param>
         /// <param name="usage">The usage flags for the image.</param>
         /// <param name="name">The name of the image resource.</param>
-        explicit ResourceAllocationInfo(const ImageInfo& imageInfo, ResourceUsage usage = ResourceUsage::Default, const String& name = "") :
-            ResourceInfo(imageInfo), Usage(usage), Name(name) { }
+        explicit ResourceAllocationInfo(const ImageInfo& imageInfo, ResourceUsage usage = ResourceUsage::Default, String name = "") :
+            ResourceInfo(imageInfo), Usage(usage), Name(std::move(name)) { }
         
         ResourceAllocationInfo(const ResourceAllocationInfo&) = default;
         ResourceAllocationInfo(ResourceAllocationInfo&&) noexcept = default;
@@ -2584,8 +2584,8 @@ namespace LiteFX::Rendering {
         /// <returns>The pointer to the image resource.</returns>
         /// <exception cref="RuntimeException">Thrown, if the allocated resource is not an image, or if the allocated image does not implement <typeparamref name="TImage"/>.</exception>
         template <std::derived_from<IImage> TImage>
-        constexpr SharedPtr<TImage> image() const {
-            if constexpr (!std::holds_alternative<SharedPtr<IImage>>(m_resource))
+        SharedPtr<TImage> image() const {
+            if (!std::holds_alternative<SharedPtr<IImage>>(m_resource)) [[unlikely]]
                 throw RuntimeException("The allocation result does not contain an image.");
             
             auto image = std::dynamic_pointer_cast<TImage>(std::get<SharedPtr<IImage>>(m_resource));
@@ -2603,8 +2603,8 @@ namespace LiteFX::Rendering {
         /// <returns>The pointer to the buffer resource.</returns>
         /// <exception cref="RuntimeException">Thrown, if the allocated resource is not a buffer, or if the allocated buffer does not implement <typeparamref name="TBuffer"/>.</exception>
         template <std::derived_from<IBuffer> TBuffer>
-        constexpr SharedPtr<TBuffer> image() const {
-            if constexpr (!std::holds_alternative<SharedPtr<IBuffer>>(m_resource))
+        SharedPtr<TBuffer> image() const {
+            if (!std::holds_alternative<SharedPtr<IBuffer>>(m_resource)) [[unlikely]]
                 throw RuntimeException("The allocation result does not contain a buffer.");
 
             auto buffer = std::dynamic_pointer_cast<TBuffer>(std::get<SharedPtr<IBuffer>>(m_resource));
@@ -10156,7 +10156,7 @@ namespace LiteFX::Rendering {
         /// <returns>`true`, if the resources described by  <paramref name="allocationInfos" /> can be overlapped and `false` otherwise.</returns>
         /// <seealso cref="allocate" />
         /// <seealso cref="ResourceAllocationInfo::AliasingOffset" />
-        virtual bool canAlias(Enumerable<const ResourceAllocationInfo&> allocationInfos) const noexcept = 0;
+        virtual bool canAlias(Enumerable<const ResourceAllocationInfo&> allocationInfos) const = 0;
 
         /// <summary>
         /// Creates a buffer of type <paramref name="type" />.

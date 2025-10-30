@@ -61,7 +61,7 @@ VulkanImage::~VulkanImage() noexcept
 	if (m_impl->m_allocator != nullptr && m_impl->m_allocation != nullptr)
 	{
 		::vmaDestroyImage(m_impl->m_allocator, this->handle(), m_impl->m_allocation);
-		LITEFX_TRACE(VULKAN_LOG, "Destroyed image {0}", Vk::handleAddress(this->handle()));
+		LITEFX_TRACE(VULKAN_LOG, "Destroyed image 0x{0:X}", Vk::handleAddress(this->handle()));
 	}
 }
 
@@ -306,7 +306,7 @@ SharedPtr<IVulkanImage> VulkanImage::allocate(const String& name, const Size3d& 
 	VmaAllocation allocation{};
 
 	raiseIfFailed(::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult), "Unable to allocate texture.");
-	LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}", name.empty() ? std::format("{0}", Vk::handleAddress(image)) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples);
+	LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}", name.empty() ? std::format("0x{0:X}", Vk::handleAddress(image)) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples);
 
 	return SharedObject::create<VulkanImage>(image, extent, format, dimensions, levels, layers, samples, usage, createInfo, allocator, allocation, name);
 }
@@ -321,13 +321,13 @@ bool VulkanImage::tryAllocate(SharedPtr<IVulkanImage>& image, const String& name
 	if (result != VK_SUCCESS)
 	{
 		LITEFX_DEBUG(VULKAN_LOG, "Allocation for image {0} with {1} bytes failed: {8} {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}",
-			name.empty() ? std::format("{0}", Vk::handleAddress(imageHandle)) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples, result);
+			name.empty() ? std::format("0x{0:X}", Vk::handleAddress(imageHandle)) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples, result);
 		return false;
 	}
 	else
 	{
 		LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}",
-			name.empty() ? std::format("{0}", Vk::handleAddress(imageHandle)) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples);
+			name.empty() ? std::format("0x{0:X}", Vk::handleAddress(imageHandle)) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples);
 
 		image = SharedObject::create<VulkanImage>(imageHandle, extent, format, dimensions, levels, layers, samples, usage, createInfo, allocator, allocation, name);
 		return true;

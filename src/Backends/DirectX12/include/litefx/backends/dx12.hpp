@@ -2497,6 +2497,7 @@ namespace LiteFX::Rendering::Backends {
         using base_type::createTextures;
         using base_type::createSampler;
         using base_type::createSamplers;
+        using base_type::allocate;
 
     private:
         /// <summary>
@@ -2543,6 +2544,12 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         bool endDefragmentationPass() const override;
+
+        /// <inheritdoc />
+        Generator<ResourceAllocationResult> allocate(Enumerable<const ResourceAllocationInfo&> allocationInfos, AllocationBehavior allocationBehavior = AllocationBehavior::Default, bool alias = false) const override;
+
+        /// <inheritdoc />
+        bool canAlias(Enumerable<const ResourceAllocationInfo&> allocationInfos) const override;
 
         /// <inheritdoc />
         SharedPtr<IDirectX12Buffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;

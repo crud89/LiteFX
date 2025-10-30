@@ -16,6 +16,7 @@ namespace LiteFX::Rendering::Backends {
 	class VulkanBuffer : public virtual IVulkanBuffer, public Resource<VkBuffer>, public virtual StateResource {
 		LITEFX_IMPLEMENTATION(VulkanBufferImpl);
 		friend struct SharedObject::Allocator<VulkanBuffer>;
+		friend class VulkanGraphicsFactory;
 
 	protected:
 		explicit VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name);
@@ -80,10 +81,15 @@ namespace LiteFX::Rendering::Backends {
 		VmaAllocator& allocator() const noexcept;
 		VmaAllocation& allocationInfo() const noexcept;
 
+	private:
+		static inline auto create(VkBuffer buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator = nullptr, const VmaAllocation& allocation = nullptr, const String& name = "") {
+			return SharedObject::create<VulkanBuffer>(buffer, type, elements, elementSize, alignment, usage, createInfo, device, allocator, allocation, name);
+		}
+
 		// VulkanBuffer.
 	public:
-		static SharedPtr<IVulkanBuffer> allocate(const String& name, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
-		static bool tryAllocate(SharedPtr<IVulkanBuffer>& buffer, const String& name, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static SharedPtr<IVulkanBuffer> allocate(const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static bool tryAllocate(SharedPtr<IVulkanBuffer>& buffer, const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 
 		static bool move(SharedPtr<IVulkanBuffer> buffer, VmaAllocation to, const VulkanCommandBuffer& commandBuffer);
 	};
@@ -94,9 +100,10 @@ namespace LiteFX::Rendering::Backends {
 	class VulkanVertexBuffer : public VulkanBuffer, public virtual IVulkanVertexBuffer {
 		LITEFX_IMPLEMENTATION(VulkanVertexBufferImpl);
 		friend struct SharedObject::Allocator<VulkanVertexBuffer>;
+		friend class VulkanGraphicsFactory;
 
 	private:
-		explicit VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name = "");
+		explicit VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, UInt32 elements, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name = "");
 		
 		VulkanVertexBuffer(VulkanVertexBuffer&&) noexcept = delete;
 		VulkanVertexBuffer(const VulkanVertexBuffer&) = delete;
@@ -111,10 +118,15 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		const VulkanVertexBufferLayout& layout() const noexcept override;
 
+	private:
+		static inline auto create(VkBuffer buffer, const VulkanVertexBufferLayout& layout, UInt32 elements, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator = nullptr, const VmaAllocation& allocation = nullptr, const String& name = "") {
+			return SharedObject::create<VulkanVertexBuffer>(buffer, layout, elements, alignment, usage, createInfo, device, allocator, allocation, name);
+		}
+
 		// VulkanVertexBuffer.
 	public:
-		static SharedPtr<IVulkanVertexBuffer> allocate(const String& name, const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
-		static bool tryAllocate(SharedPtr<IVulkanVertexBuffer>& buffer, const String& name, const VulkanVertexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static SharedPtr<IVulkanVertexBuffer> allocate(const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static bool tryAllocate(SharedPtr<IVulkanVertexBuffer>& buffer, const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 
 	/// <summary>
@@ -123,9 +135,10 @@ namespace LiteFX::Rendering::Backends {
 	class VulkanIndexBuffer : public VulkanBuffer, public virtual IVulkanIndexBuffer {
 		LITEFX_IMPLEMENTATION(VulkanIndexBufferImpl);
 		friend struct SharedObject::Allocator<VulkanIndexBuffer>;
+		friend class VulkanGraphicsFactory;
 
 	private:
-		explicit VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name = "");
+		explicit VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, UInt32 elements, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, const VmaAllocation& allocation, const String& name = "");
 		
 		VulkanIndexBuffer(VulkanIndexBuffer&&) noexcept = delete;
 		VulkanIndexBuffer(const VulkanIndexBuffer&) = delete;
@@ -140,10 +153,15 @@ namespace LiteFX::Rendering::Backends {
 		/// <inheritdoc />
 		const VulkanIndexBufferLayout& layout() const noexcept override;
 
+	private:
+		static inline auto create(VkBuffer buffer, const VulkanIndexBufferLayout& layout, UInt32 elements, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator = nullptr, const VmaAllocation& allocation = nullptr, const String& name = "") {
+			return SharedObject::create<VulkanIndexBuffer>(buffer, layout, elements, alignment, usage, createInfo, device, allocator, allocation, name);
+		}
+
 		// VulkanIndexBuffer.
 	public:
-		static SharedPtr<IVulkanIndexBuffer> allocate(const String& name, const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
-		static bool tryAllocate(SharedPtr<IVulkanIndexBuffer>& buffer, const String& name, const VulkanIndexBufferLayout& layout, UInt32 elements, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static SharedPtr<IVulkanIndexBuffer> allocate(const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
+		static bool tryAllocate(SharedPtr<IVulkanIndexBuffer>& buffer, const String& name, const ResourceAllocationInfo::BufferInfo& bufferInfo, size_t alignment, ResourceUsage usage, const VulkanDevice& device, const VmaAllocator& allocator, const VkBufferCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult = nullptr);
 	};
 }
 

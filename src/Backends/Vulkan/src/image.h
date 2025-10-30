@@ -17,6 +17,7 @@ namespace LiteFX::Rendering::Backends {
 		LITEFX_IMPLEMENTATION(VulkanImageImpl);
 		friend class VulkanSwapChain::VulkanSwapChainImpl;
 		friend struct SharedObject::Allocator<VulkanImage>;
+		friend class VulkanGraphicsFactory;
 
 	private:
 		explicit VulkanImage(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const VkImageCreateInfo& createInfo, VmaAllocator allocator = nullptr, VmaAllocation allocation = nullptr, const String& name = "");
