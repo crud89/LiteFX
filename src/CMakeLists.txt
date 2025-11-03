@@ -60,6 +60,7 @@ IF(LITEFX_BUILD_EXAMPLES)
     ADD_SUBDIRECTORY(Samples/RayTracing)
     ADD_SUBDIRECTORY(Samples/RayQueries)
     ADD_SUBDIRECTORY(Samples/Defragmentation)
+    ADD_SUBDIRECTORY(Samples/ResourceAliasing)
 
     IF(LITEFX_BUILD_WITH_IMGUI_SAMPLE)
         ADD_SUBDIRECTORY(Samples/ImGui)
