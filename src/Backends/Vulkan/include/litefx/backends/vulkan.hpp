@@ -2073,6 +2073,7 @@ namespace LiteFX::Rendering::Backends {
         friend struct SharedObject::Allocator<VulkanFrameBuffer>;
 
     public:
+        using FrameBuffer::allocation_callback_type;
         using FrameBuffer::addImage;
         using FrameBuffer::mapRenderTarget;
         using FrameBuffer::mapRenderTargets;
@@ -2085,6 +2086,16 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="renderArea">The initial size of the render area.</param>
         /// <param name="name">The name of the frame buffer.</param>
         VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea, StringView name = "");
+
+        /// <summary>
+        /// Initializes a Vulkan frame buffer.
+        /// </summary>
+        /// <param name="device">The device the frame buffer is allocated on.</param>
+        /// <param name="renderArea">The initial size of the render area.</param>
+        /// <param name="allocationCallback">A callback that gets invoked, when the frame buffer allocates a new image.</param>
+        /// <param name="name">The name of the frame buffer.</param>
+        /// <seealso cref="IFrameBuffer::allocation_callback_type" />
+        VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea, allocation_callback_type allocationCallback, StringView name = "");
 
     private:
         /// <inheritdoc />

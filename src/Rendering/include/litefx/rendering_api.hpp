@@ -8836,8 +8836,41 @@ namespace LiteFX::Rendering {
     /// the render targets must first be mapped to the images in the frame buffer by calling <see cref="IFrameBuffer::mapRenderTarget" />. Calling this method multiple times will
     /// overwrite the mapping. It is also possible to remove a render target mapping by calling <see cref="IFrameBuffer::unmapRenderTarget" />. This will result in future attempts
     /// to resolve this render target using the frame buffer instance to fail.
+    /// 
+    /// The images in the frame buffer can be resized by calling <see cref="IFrameBuffer::resize" />. As this involves re-creating the images, it is important to properly 
+    /// synchronize resizing with rendering, i.e., resizing while a frame is still being rendered is not allowed. Calling <see cref="IFrameBuffer::resize" /> invokes two events,
+    /// <see cref="IFrameBuffer::resizing" /> before the actual resize occurs and <see cref="IFrameBuffer::resized" /> afterwards.
+    /// 
+    /// The main purpose of those events is to provide convenient points for manually controlling image allocation for the frame buffer. Whenever the frame buffer needs to create
+    /// a new image instance, it checks, if a <see cref="IFrameBuffer::allocation_callback_type" /> has been provided during initialization. If provided, this callback is invoked
+    /// instead of directly creating the image. Only if the callback returns `nullptr`, the frame buffer will proceed with the default behavior of allocating the image itself. 
+    /// This way, it is possible to selectively deviate from the default image allocation behavior, for example to allocate a fixed-size image or to provide pre-allocated images, 
+    /// which can be helpful if render targets should be aliased.
     /// </remarks>
     class LITEFX_RENDERING_API IFrameBuffer : public virtual IStateResource, public SharedObject {
+    public:
+        /// <summary>
+        /// A function that gets invoked as a callback, if the frame buffer needs to allocate an image. 
+        /// </summary>
+        /// <remarks>
+        /// A frame buffer may allocate image resources, during it's initialization stage, as well as during resize events. The default behavior, if no callback is provided, is
+        /// to re-create the image resource with the same parameters as it has been initialized with, except a different resolution. The resolution in this case is always equal 
+        /// to the frame buffer extent.
+        /// 
+        /// Defining render-targets that render at a different resolution is possible by providing an allocation callback that creates the resource externally. Another use case
+        /// for this callback is to re-use images from a pool of potentially aliasing image resources. Only in case this callback returns `nullptr` the default behavior gets 
+        /// invoked.
+        /// 
+        /// <example>
+        /// auto callback = [this](UInt64 renderTargetId, Size2d size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String& name) {
+        ///     return m_device->factory().createTexture(name, format, size, ImageDimensions::DIM_2, 1u, 1u, samples, usage); // Emulates the default behavior.
+        /// };
+        /// </example>
+        /// </remarks>
+        /// <see cref="resize" />
+        template <typename TImage>
+        using allocation_callback_type = std::function<SharedPtr<const TImage>(UInt64, Size2d, ResourceUsage, Format, MultiSamplingLevel, const String&)>;
+
     public:
         /// <summary>
         /// Event arguments that are published to subscribers when a frame buffer gets resized.

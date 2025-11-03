@@ -1079,6 +1079,7 @@ namespace LiteFX::Rendering {
     class FrameBuffer : public virtual StateResource, public IFrameBuffer {
     public:
         using image_type = TImage;
+        using allocation_callback_type = IFrameBuffer::allocation_callback_type<image_type>;
 
     public:
         using IFrameBuffer::addImage;

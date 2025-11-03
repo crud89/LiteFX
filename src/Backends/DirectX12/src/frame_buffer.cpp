@@ -18,11 +18,25 @@ private:
     UInt32 m_renderTargetDescriptorSize{}, m_depthStencilDescriptorSize{};
     Size2d m_size;
     WeakPtr<const DirectX12Device> m_device;
+    Optional<allocation_callback_type> m_allocationCallback;
 
 public:
-    DirectX12FrameBufferImpl(const DirectX12Device& device, Size2d renderArea) :
-        m_size(std::move(renderArea)), m_device(device.weak_from_this())
+    DirectX12FrameBufferImpl(const DirectX12Device& device, Size2d renderArea, Optional<allocation_callback_type> allocationCallback = std::nullopt) :
+        m_size(std::move(renderArea)), m_device(device.weak_from_this()), m_allocationCallback(allocationCallback)
     {
+    }
+
+private:
+    inline SharedPtr<const IDirectX12Image> createImage(const DirectX12Device& device, UInt64 renderTargetId, Size2d size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String& name) const {
+        if (this->m_allocationCallback.has_value())
+        {
+            auto image = m_allocationCallback.value()(renderTargetId, size, usage, format, samples, name);
+
+            if (image != nullptr)
+                return image;
+        }
+
+        return device.factory().createTexture(name, format, size, ImageDimensions::DIM_2, 1u, 1u, samples, usage);
     }
 
 public:
@@ -106,10 +120,11 @@ public:
         m_size = renderArea;
 
         // Recreate all resources.
-        Dictionary<const IDirectX12Image*, SharedPtr<IDirectX12Image>> imageReplacements;
+        Dictionary<const IDirectX12Image*, SharedPtr<const IDirectX12Image>> imageReplacements;
 
-        auto images = m_images | std::views::transform([&](const auto& image) { 
-                return imageReplacements[image.get()] = device->factory().createTexture(image->name(), image->format(), renderArea, image->dimensions(), image->levels(), image->layers(), image->samples(), image->usage());
+        auto images = m_mappedRenderTargets | std::views::transform([&](const auto& resource) {
+                const auto& [renderTargetId, image] = resource;
+                return imageReplacements[image.get()] = this->createImage(*device, renderTargetId, renderArea, image->usage(), image->format(), image->samples(), image->name());
             }) | std::views::as_rvalue | std::ranges::to<Array<SharedPtr<const IDirectX12Image>>>();
 
         // Update the mappings.
@@ -129,6 +144,12 @@ public:
 
 DirectX12FrameBuffer::DirectX12FrameBuffer(const DirectX12Device& device, const Size2d& renderArea, StringView name) :
     StateResource(name), m_impl(device, renderArea)
+{
+    m_impl->initialize();
+}
+
+DirectX12FrameBuffer::DirectX12FrameBuffer(const DirectX12Device& device, const Size2d& renderArea, allocation_callback_type allocationCallback, StringView name) :
+    StateResource(name), m_impl(device, renderArea, allocationCallback)
 {
     m_impl->initialize();
 }
@@ -246,7 +267,7 @@ void DirectX12FrameBuffer::addImage(const String& name, Format format, MultiSamp
         throw InvalidArgumentException("name", "Another image with the name {0} does already exist within the frame buffer.", name);
 
     // Add a new image.
-    m_impl->m_images.push_back(device->factory().createTexture(name, format, m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage));
+    m_impl->m_images.push_back(m_impl->createImage(*device, nameHash, m_impl->m_size, usage, format, samples, name));
     
     // Re-initialize to reset descriptor heaps and allocate descriptors.
     m_impl->initialize();
@@ -268,7 +289,7 @@ void DirectX12FrameBuffer::addImage(const String& name, const RenderTarget& rend
 
     // Add a new image.
     auto index = m_impl->m_images.size();
-    m_impl->m_images.push_back(device->factory().createTexture(name, renderTarget.format(), m_impl->m_size, ImageDimensions::DIM_2, 1u, 1u, samples, usage));
+    m_impl->m_images.push_back(m_impl->createImage(*device, nameHash, m_impl->m_size, usage, renderTarget.format(), samples, name));
 
     // Re-initialize to reset descriptor heaps and allocate descriptors.
     m_impl->initialize();
