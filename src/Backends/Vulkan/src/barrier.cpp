@@ -4,8 +4,8 @@
 using namespace LiteFX::Rendering::Backends;
 
 using GlobalBarrier = Tuple<ResourceAccess, ResourceAccess>;
-using BufferBarrier = Tuple<ResourceAccess, ResourceAccess, const IVulkanBuffer&, UInt32>;
-using ImageBarrier = Tuple<ResourceAccess, ResourceAccess, const IVulkanImage&, Optional<ImageLayout>, ImageLayout, UInt32, UInt32, UInt32, UInt32, UInt32>;
+using BufferBarrier = Tuple<ResourceAccess, ResourceAccess, SharedPtr<const IVulkanBuffer>, UInt32>;
+using ImageBarrier = Tuple<ResourceAccess, ResourceAccess, SharedPtr<const IVulkanImage>, Optional<ImageLayout>, ImageLayout, UInt32, UInt32, UInt32, UInt32, UInt32>;
 
 // ------------------------------------------------------------------------------------------------
 // Implementation.
@@ -75,32 +75,32 @@ void VulkanBarrier::wait(ResourceAccess accessBefore, ResourceAccess accessAfter
 
 void VulkanBarrier::transition(const IVulkanBuffer& buffer, ResourceAccess accessBefore, ResourceAccess accessAfter)
 {
-    m_impl->m_bufferBarriers.emplace_back(accessBefore, accessAfter, buffer, std::numeric_limits<UInt32>::max());
+    m_impl->m_bufferBarriers.emplace_back(accessBefore, accessAfter, buffer.shared_from_this(), std::numeric_limits<UInt32>::max());
 }
 
 void VulkanBarrier::transition(const IVulkanBuffer& buffer, UInt32 element, ResourceAccess accessBefore, ResourceAccess accessAfter)
 {
-    m_impl->m_bufferBarriers.emplace_back(accessBefore, accessAfter, buffer, element);
+    m_impl->m_bufferBarriers.emplace_back(accessBefore, accessAfter, buffer.shared_from_this(), element);
 }
 
 void VulkanBarrier::transition(const IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout)
 {
-    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image, std::nullopt, layout, 0, image.levels(), 0, image.layers(), 0);
+    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image.shared_from_this(), std::nullopt, layout, 0, image.levels(), 0, image.layers(), 0);
 }
 
 void VulkanBarrier::transition(const IVulkanImage& image, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout)
 {
-    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image, fromLayout, toLayout, 0, image.levels(), 0, image.layers(), 0);
+    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image.shared_from_this(), fromLayout, toLayout, 0, image.levels(), 0, image.layers(), 0);
 }
 
 void VulkanBarrier::transition(const IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout layout)
 {
-    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image, std::nullopt, layout, level, levels, layer, layers, plane);
+    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image.shared_from_this(), std::nullopt, layout, level, levels, layer, layers, plane);
 }
 
 void VulkanBarrier::transition(const IVulkanImage& image, UInt32 level, UInt32 levels, UInt32 layer, UInt32 layers, UInt32 plane, ResourceAccess accessBefore, ResourceAccess accessAfter, ImageLayout fromLayout, ImageLayout toLayout)
 {
-    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image, fromLayout, toLayout, level, levels, layer, layers, plane);
+    m_impl->m_imageBarriers.emplace_back(accessBefore, accessAfter, image.shared_from_this(), fromLayout, toLayout, level, levels, layer, layers, plane);
 }
 
 void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const
@@ -111,53 +111,55 @@ void VulkanBarrier::execute(const VulkanCommandBuffer& commandBuffer) const
     // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers)
 	// Global barriers.
 	auto globalBarriers = m_impl->m_globalBarriers | std::views::transform([syncBefore, syncAfter](auto& barrier) { 
+        auto [accessBefore, accessAfter] = barrier;
+
         return VkMemoryBarrier2 {
             .sType = VK_STRUCTURE_TYPE_MEMORY_BARRIER_2,
             .srcStageMask = syncBefore,
-            .srcAccessMask = Vk::getResourceAccess(std::get<0>(barrier)),
+            .srcAccessMask = Vk::getResourceAccess(accessBefore),
             .dstStageMask = syncAfter,
-            .dstAccessMask = Vk::getResourceAccess(std::get<1>(barrier))
+            .dstAccessMask = Vk::getResourceAccess(accessAfter)
         };
 	}) | std::ranges::to<Array<VkMemoryBarrier2>>();
 
 	// Buffer barriers.
 	auto bufferBarriers = m_impl->m_bufferBarriers | std::views::transform([syncBefore, syncAfter](auto& barrier) {
+        auto [accessBefore, accessAfter, buffer, element] = barrier;
+
         return VkBufferMemoryBarrier2 {
             .sType = VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER_2,
             .srcStageMask = syncBefore,
-            .srcAccessMask = Vk::getResourceAccess(std::get<0>(barrier)),
+            .srcAccessMask = Vk::getResourceAccess(accessBefore),
             .dstStageMask = syncAfter,
-            .dstAccessMask = Vk::getResourceAccess(std::get<1>(barrier)),
+            .dstAccessMask = Vk::getResourceAccess(accessAfter),
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .buffer = std::as_const(std::get<2>(barrier)).handle(),
-            .size = std::get<2>(barrier).size()
+            .buffer = std::as_const(*buffer).handle(),
+            .size = buffer->size()
         };
 	}) | std::ranges::to<Array<VkBufferMemoryBarrier2>>();
 
 	// Image barriers.
 	auto imageBarriers = m_impl->m_imageBarriers | std::views::transform([syncBefore, syncAfter](auto& barrier) {
-		auto& image = std::get<2>(barrier);
-		auto currentLayout = Vk::getImageLayout(std::get<3>(barrier).value_or(ImageLayout::Undefined));
-		auto targetLayout = Vk::getImageLayout(std::get<4>(barrier));
-        
+        auto [accessBefore, accessAfter, image, currentLayout, targetLayout, firstLevel, levels, firstLayer, layers, plane] = barrier;
+
         return VkImageMemoryBarrier2 {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
             .srcStageMask = syncBefore,
-            .srcAccessMask = Vk::getResourceAccess(std::get<0>(barrier)),
+            .srcAccessMask = Vk::getResourceAccess(accessBefore),
             .dstStageMask = syncAfter,
-            .dstAccessMask = Vk::getResourceAccess(std::get<1>(barrier)),
-            .oldLayout = currentLayout,
-            .newLayout = targetLayout,
+            .dstAccessMask = Vk::getResourceAccess(accessAfter),
+            .oldLayout = Vk::getImageLayout(currentLayout.value_or(ImageLayout::Undefined)),
+            .newLayout = Vk::getImageLayout(targetLayout),
             .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
             .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = std::as_const(image).handle(),
+            .image = std::as_const(*image).handle(),
             .subresourceRange = VkImageSubresourceRange {
-                .aspectMask = image.aspectMask(std::get<9>(barrier)),
-                .baseMipLevel = std::get<5>(barrier),
-                .levelCount = std::get<6>(barrier),
-                .baseArrayLayer = std::get<7>(barrier),
-                .layerCount = std::get<8>(barrier)
+                .aspectMask = image->aspectMask(plane),
+                .baseMipLevel = firstLevel,
+                .levelCount = levels,
+                .baseArrayLayer = firstLayer,
+                .layerCount = layers
             }
         };
 	}) | std::ranges::to<Array<VkImageMemoryBarrier2>>();
