@@ -340,7 +340,7 @@ void VulkanFrameBuffer::addImage(const String& name, const RenderTarget& renderT
 
 void VulkanFrameBuffer::resize(const Size2d& renderArea)
 {
-    // Reset the size and re-initialize the frame buffer.
+    this->resizing(this, { renderArea });
     m_impl->resize(renderArea);
     this->resized(this, { renderArea });
 }

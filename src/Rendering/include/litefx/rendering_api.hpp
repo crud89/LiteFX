@@ -8900,9 +8900,17 @@ namespace LiteFX::Rendering {
 
     public:
         /// <summary>
-        /// Invoked when the frame buffer gets resized.
+        /// Invoked if the frame buffer gets resized.
         /// </summary>
         /// <seealso cref="resize" />
+        /// <seealso cref="resized" />
+        mutable Event<ResizeEventArgs> resizing;
+
+        /// <summary>
+        /// Invoked after the frame buffer has been resized.
+        /// </summary>
+        /// <seealso cref="resize" />
+        /// <seealso cref="resizing" />
         mutable Event<ResizeEventArgs> resized;
 
         /// <summary>
@@ -9184,6 +9192,8 @@ namespace LiteFX::Rendering {
         /// Causes the frame buffer to be invalidated and recreated with a new size.
         /// </summary>
         /// <param name="renderArea">The new dimensions of the frame buffer.</param>
+        /// <seealso cref="resizing" />
+        /// <seealso cref="resized" />
         virtual void resize(const Size2d& renderArea) = 0;
 
     private:

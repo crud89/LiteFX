@@ -279,6 +279,7 @@ void DirectX12FrameBuffer::addImage(const String& name, const RenderTarget& rend
 
 void DirectX12FrameBuffer::resize(const Size2d& renderArea)
 {
+    this->resizing(this, { renderArea });
     m_impl->resize(renderArea);
     this->resized(this, { renderArea });
 }
