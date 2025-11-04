@@ -366,6 +366,37 @@ bool VulkanImage::move(SharedPtr<IVulkanImage> image, VmaAllocation to, const Vu
 	// Transfer the image.
 	if (!image->volatileMove())
 	{
+		// We need to include a barrier for initialization first.
+		static VkImageMemoryBarrier2 imageInitialization = {
+			.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2,
+			.srcStageMask = Vk::getPipelineStage(PipelineStage::None),
+			.srcAccessMask = Vk::getResourceAccess(ResourceAccess::None),
+			.dstStageMask = Vk::getPipelineStage(PipelineStage::Transfer),
+			.dstAccessMask = Vk::getResourceAccess(ResourceAccess::TransferWrite),
+			.oldLayout = Vk::getImageLayout(ImageLayout::Undefined),
+			.newLayout = Vk::getImageLayout(ImageLayout::Common),
+			.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+			.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED
+		};
+
+		imageInitialization.image = imageHandle;
+		imageInitialization.subresourceRange = {
+			.aspectMask = image->aspectMask(),
+			.baseMipLevel = 0u,
+			.levelCount = image->levels(),
+			.baseArrayLayer = 0u,
+			.layerCount = image->layers()
+		};
+
+		static const VkDependencyInfo barrier = {
+			.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO,
+			.imageMemoryBarrierCount = 1u,
+			.pImageMemoryBarriers = &imageInitialization
+		};
+
+		::vkCmdPipelineBarrier2(commandBuffer.handle(), &barrier);
+
+		// Copy the image contents.
 		Array<VkImageCopy> copyInfos(source.m_impl->m_elements);
 		std::ranges::generate(copyInfos, [&, i = 0]() mutable {
 			UInt32 sourceRsc = i, sourceLayer = 0, sourceLevel = 0, sourcePlane = 0;
@@ -391,7 +422,7 @@ bool VulkanImage::move(SharedPtr<IVulkanImage> image, VmaAllocation to, const Vu
 			};
 		});
 
-		::vkCmdCopyImage(commandBuffer.handle(), std::as_const(source).handle(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, imageHandle, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<UInt32>(copyInfos.size()), copyInfos.data());
+		::vkCmdCopyImage(commandBuffer.handle(), std::as_const(source).handle(), VK_IMAGE_LAYOUT_GENERAL, imageHandle, VK_IMAGE_LAYOUT_GENERAL, static_cast<UInt32>(copyInfos.size()), copyInfos.data());
 	}
 
 	// Reset the image.

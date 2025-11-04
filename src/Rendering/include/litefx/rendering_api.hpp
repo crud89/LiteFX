@@ -4758,6 +4758,43 @@ namespace LiteFX::Rendering {
     class LITEFX_RENDERING_API IDeviceMemory {
     public:
         /// <summary>
+        /// Stores a reference to a barrier that can be used to synchronize accesses to the resource with a move operation.
+        /// </summary>
+        /// <seealso cref="IDeviceMemory::prepareMove" />
+        struct PrepareMoveEventArgs final {
+        private:
+            /// <summary>
+            /// Stores a reference to the underlying barrier.
+            /// </summary>
+            IBarrier& m_barrier;
+
+        public:
+            PrepareMoveEventArgs() = delete;
+            PrepareMoveEventArgs(const PrepareMoveEventArgs&) = delete;
+            PrepareMoveEventArgs(PrepareMoveEventArgs&&) noexcept = delete;
+            PrepareMoveEventArgs& operator=(const PrepareMoveEventArgs&) = delete;
+            PrepareMoveEventArgs& operator=(PrepareMoveEventArgs&&) noexcept = delete;
+            ~PrepareMoveEventArgs() noexcept = default;
+            
+            /// <summary>
+            /// Creates a new instance of the event arguments.
+            /// </summary>
+            /// <param name="barrier">A reference to the underlying barrier, that is used to synchronize the move operation with other accesses to the resource.</param>
+            PrepareMoveEventArgs(IBarrier& barrier) :
+                m_barrier(barrier) { 
+            }
+
+        public:
+            /// <summary>
+            /// Returns a reference of the barrier that is used to synchronize the move operation with other accesses to the resource.
+            /// </summary>
+            /// <returns>A reference to the underlying barrier.</returns>
+            IBarrier& barrier() const noexcept {
+                return m_barrier;
+            }
+        };
+
+        /// <summary>
         /// Stores the fence and the command queue to wait on for the fence before a moved resource can be used.
         /// </summary>
         /// <seealso cref="IDeviceMemory::moving" />
@@ -4812,6 +4849,20 @@ namespace LiteFX::Rendering {
         virtual ~IDeviceMemory() noexcept = default;
 
     public:
+        /// <summary>
+        /// An event that gets invoked to prepare a resource for a move operation.
+        /// </summary>
+        /// <remarks>
+        /// The purpose of this event is to prepare a barrier that synchronizes the resource with other accesses. The event arguments of this event contain a reference to a 
+        /// barrier instance, that can be used to insert a barrier for the resource. Note that the transition must be supported on the underlying command queue that executes
+        /// the move.
+        /// 
+        /// Note that both, the DirectX 12 as well as the Vulkan backend expect images to be in <see cref="ImageLayout::Common" /> layout before moving them.
+        /// </remarks>
+        /// <seealso cref="IGraphicsFactory::defragment" />
+        /// <seealso href="https://microsoft.github.io/DirectX-Specs/d3d/D3D12EnhancedBarriers.html#command-queue-layout-compatibility" />
+        mutable Event<const PrepareMoveEventArgs&> prepareMove;
+
         /// <summary>
         /// An event that gets invoked before a resource is copied during a move.
         /// </summary>

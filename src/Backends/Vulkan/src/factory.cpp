@@ -423,9 +423,32 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 	else if (result != VK_INCOMPLETE) [[unlikely]]
 		throw VulkanPlatformException(result, "Unable to begin new defragmentation pass.");
 
-	m_impl->m_defragmentationCommandBuffer->begin();
+	// Begin recording a command buffer for defragmentation.
 	Array<IDeviceMemory*> resources;
+	auto& commandBuffer = *m_impl->m_defragmentationCommandBuffer;
+	commandBuffer.begin();
 
+	// Prepare the move operation on each resource, i.e., create a barrier to allow then to synchronize the move with their current usage.
+	VulkanBarrier barrier(PipelineStage::All, PipelineStage::Transfer);
+	IDeviceMemory::PrepareMoveEventArgs eventArgs(barrier);
+
+	for (UInt32 i{ 0u }; i < pass.moveCount; ++i)
+	{
+		// Get the source allocation.
+		auto sourceAllocation = pass.pMoves[i].srcAllocation;    // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+
+		// Acquire the underlying resource device memory instance.
+		VmaAllocationInfo allocationInfo{};
+		::vmaGetAllocationInfo(m_impl->m_allocator, sourceAllocation, &allocationInfo);
+
+		// Invoke the `prepareMove` event.
+		static_cast<IDeviceMemory*>(allocationInfo.pUserData)->prepareMove(this, eventArgs);
+	}
+
+	// Issue a barrier to transition the resources that requested it.
+	commandBuffer.barrier(barrier);
+
+	// Perform the actual move operations.
 	for (UInt32 i{ 0u }; i < pass.moveCount; ++i)
 	{
 		// Get the source allocation.
@@ -434,7 +457,8 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 
 		VmaAllocationInfo allocationInfo{};
 		::vmaGetAllocationInfo(m_impl->m_allocator, sourceAllocation, &allocationInfo);
-		
+
+		// Acquire the underlying resource device memory instance and add it to the list of moved-from resources.
 		auto deviceMemory = static_cast<IDeviceMemory*>(allocationInfo.pUserData);
 		resources.emplace_back(deviceMemory);
 
@@ -443,7 +467,7 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 		{
 			auto oldHandle = std::as_const(*buffer).handle();
 
-			if (VulkanBuffer::move(buffer->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
+			if (VulkanBuffer::move(buffer->shared_from_this(), targetAllocation, commandBuffer))
 				m_impl->m_destroyedResources.emplace([oldHandle](VkDevice device) { ::vkDestroyBuffer(device, oldHandle, nullptr); }, buffer->shared_from_this());
 			else
 				pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -458,7 +482,7 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 			{
 				auto oldHandle = std::as_const(*image).handle();
 
-				if (VulkanImage::move(image->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
+				if (VulkanImage::move(image->shared_from_this(), targetAllocation, commandBuffer))
 					m_impl->m_destroyedResources.emplace([oldHandle](VkDevice device) { ::vkDestroyImage(device, oldHandle, nullptr); }, image->shared_from_this());
 				else
 					pass.pMoves[i].operation = VMA_DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -466,12 +490,15 @@ UInt64 VulkanGraphicsFactory::beginDefragmentationPass() const
 		}
 	}
 
-	m_impl->m_defragmentationFence = m_impl->m_defragmentationCommandBuffer->submit();
+	// Submit de command buffer and store the fence.
+	auto fence = m_impl->m_defragmentationFence = commandBuffer.submit();
 
+	// Invoke the `moving` event.
 	for (auto resource : resources)
-		resource->moving(this, { m_impl->m_defragmentationCommandBuffer->queue(), m_impl->m_defragmentationFence });
+		resource->moving(this, { commandBuffer.queue(), fence });
 
-	return m_impl->m_defragmentationFence;
+	// Return the current fence value.
+	return fence;
 }
 
 bool VulkanGraphicsFactory::endDefragmentationPass() const
