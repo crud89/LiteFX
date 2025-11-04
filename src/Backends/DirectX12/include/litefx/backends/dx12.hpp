@@ -2075,6 +2075,18 @@ namespace LiteFX::Rendering::Backends {
             return SharedObject::create<DirectX12FrameBuffer>(device, renderArea, name);
         }
 
+        /// <summary>
+        /// Initializes a DirectX 12 frame buffer.
+        /// </summary>
+        /// <param name="device">The device the frame buffer is allocated on.</param>
+        /// <param name="renderArea">The initial size of the render area.</param>
+        /// <param name="allocationCallback">A callback that gets invoked, when the frame buffer allocates a new image.</param>
+        /// <param name="name">The name of the frame buffer.</param>
+        /// <returns>A pointer to the newly created frame buffer instance.</returns>
+        static inline SharedPtr<DirectX12FrameBuffer> create(const DirectX12Device& device, const Size2d& renderArea, allocation_callback_type allocationCallback, StringView name = "") {
+            return SharedObject::create<DirectX12FrameBuffer>(device, renderArea, allocationCallback, name);
+        }
+
         // DirectX 12 FrameBuffer
     public:
         /// <summary>
@@ -2811,6 +2823,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         [[nodiscard]] SharedPtr<DirectX12FrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const override;
+
+        /// <inheritdoc />
+        [[nodiscard]] virtual SharedPtr<DirectX12FrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea, DirectX12FrameBuffer::allocation_callback_type allocationCallback) const override;
 
         /// <inheritdoc />
         /// <seealso href="https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_standard_multisample_quality_levels" />

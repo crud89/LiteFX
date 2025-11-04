@@ -1605,7 +1605,17 @@ namespace LiteFX::Rendering {
         }
 
         /// <inheritdoc />
+        /// <param name="allocationCallback">A callback that gets invoked, when the frame buffer allocates a new image.</param>
+        [[nodiscard]] inline SharedPtr<frame_buffer_type> makeFrameBuffer(const Size2d& renderArea, frame_buffer_type::allocation_callback_type allocationCallback) const {
+            return this->makeFrameBuffer("", renderArea, allocationCallback);
+        }
+
+        /// <inheritdoc />
         [[nodiscard]] virtual SharedPtr<frame_buffer_type> makeFrameBuffer(StringView name, const Size2d& renderArea) const = 0;
+
+        /// <inheritdoc />
+        /// <param name="allocationCallback">A callback that gets invoked, when the frame buffer allocates a new image.</param>
+        [[nodiscard]] virtual SharedPtr<frame_buffer_type> makeFrameBuffer(StringView name, const Size2d& renderArea, frame_buffer_type::allocation_callback_type allocationCallback) const = 0;
 
     private:
         inline UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const override {

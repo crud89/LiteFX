@@ -924,6 +924,11 @@ SharedPtr<VulkanFrameBuffer> VulkanDevice::makeFrameBuffer(StringView name, cons
     return VulkanFrameBuffer::create(*this, renderArea, name);
 }
 
+SharedPtr<VulkanFrameBuffer> VulkanDevice::makeFrameBuffer(StringView name, const Size2d& renderArea, VulkanFrameBuffer::allocation_callback_type allocationCallback) const
+{
+    return VulkanFrameBuffer::create(*this, renderArea, allocationCallback, name);
+}
+
 MultiSamplingLevel VulkanDevice::maximumMultiSamplingLevel(Format format) const noexcept
 {
     auto limits = m_impl->m_adapter->limits();

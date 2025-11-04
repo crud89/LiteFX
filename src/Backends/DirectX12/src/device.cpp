@@ -572,6 +572,11 @@ SharedPtr<DirectX12FrameBuffer> DirectX12Device::makeFrameBuffer(StringView name
 	return DirectX12FrameBuffer::create(*this, renderArea, name);
 }
 
+SharedPtr<DirectX12FrameBuffer> DirectX12Device::makeFrameBuffer(StringView name, const Size2d& renderArea, DirectX12FrameBuffer::allocation_callback_type allocationCallback) const
+{
+	return DirectX12FrameBuffer::create(*this, renderArea, allocationCallback, name);
+}
+
 MultiSamplingLevel DirectX12Device::maximumMultiSamplingLevel(Format format) const noexcept
 {
 	constexpr auto allLevels = std::array { MultiSamplingLevel::x64, MultiSamplingLevel::x32, MultiSamplingLevel::x16, MultiSamplingLevel::x8, MultiSamplingLevel::x4, MultiSamplingLevel::x2, MultiSamplingLevel::x1 };
