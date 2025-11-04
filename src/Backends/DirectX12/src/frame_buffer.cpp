@@ -27,7 +27,7 @@ public:
     }
 
 private:
-    inline SharedPtr<const IDirectX12Image> createImage(const DirectX12Device& device, UInt64 renderTargetId, const Size2d& size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String& name) const {
+    inline SharedPtr<const IDirectX12Image> createImage(const DirectX12Device& device, Optional<UInt64> renderTargetId, const Size2d& size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String& name) const {
         if (this->m_allocationCallback.has_value())
         {
             auto image = m_allocationCallback.value()(renderTargetId, size, usage, format, samples, name);
@@ -122,8 +122,12 @@ public:
         // Recreate all resources.
         Dictionary<const IDirectX12Image*, SharedPtr<const IDirectX12Image>> imageReplacements;
 
-        auto images = m_mappedRenderTargets | std::views::transform([&](const auto& resource) {
-                const auto& [renderTargetId, image] = resource;
+        auto images = m_images | std::views::transform([&](const auto& image) {
+                Optional<UInt64> renderTargetId{};
+
+                if (auto renderTarget = std::ranges::find_if(m_mappedRenderTargets, [image](const auto& resource) { return std::get<1>(resource) == image; }); renderTarget != m_mappedRenderTargets.end())
+                    renderTargetId = renderTarget->first;
+
                 return imageReplacements[image.get()] = this->createImage(*device, renderTargetId, renderArea, image->usage(), image->format(), image->samples(), image->name());
             }) | std::views::as_rvalue | std::ranges::to<Array<SharedPtr<const IDirectX12Image>>>();
 

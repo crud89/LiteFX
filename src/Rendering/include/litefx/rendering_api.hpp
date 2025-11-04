@@ -8864,14 +8864,14 @@ namespace LiteFX::Rendering {
         /// invoked.
         /// 
         /// <example>
-        /// auto callback = [this](UInt64 renderTargetId, Size2d size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String& name) {
+        /// auto callback = [this](Optional<UInt64> renderTargetId, Size2d size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String& name) {
         ///     return m_device->factory().createTexture(name, format, size, ImageDimensions::DIM_2, 1u, 1u, samples, usage); // Emulates the default behavior.
         /// };
         /// </example>
         /// </remarks>
         /// <see cref="resize" />
         template <typename TImage>
-        using allocation_callback_type = std::function<SharedPtr<const TImage>(UInt64, Size2d, ResourceUsage, Format, MultiSamplingLevel, const String&)>;
+        using allocation_callback_type = std::function<SharedPtr<const TImage>(Optional<UInt64>, Size2d, ResourceUsage, Format, MultiSamplingLevel, const String&)>;
 
     public:
         /// <summary>

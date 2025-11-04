@@ -143,8 +143,8 @@ public:
 	
 	template <typename TRenderBackend> requires
 		meta::implements<TRenderBackend, IRenderBackend>
-	SharedPtr<const typename TRenderBackend::image_type> frameBufferAllocationCallback(UInt64 renderTargetId, const Size2d& /*renderArea*/, ResourceUsage /*usage*/, Format /*format*/, MultiSamplingLevel /*samples*/, const String& /*name*/) const {
-		switch (renderTargetId)
+	SharedPtr<const typename TRenderBackend::image_type> frameBufferAllocationCallback(Optional<UInt64> renderTargetId, const Size2d& /*renderArea*/, ResourceUsage /*usage*/, Format /*format*/, MultiSamplingLevel /*samples*/, const String& name) const {
+		switch (renderTargetId.value_or(hash(name)))
 		{
 		case hash("Depth"):
 			return std::dynamic_pointer_cast<const typename TRenderBackend::image_type>(m_depthBuffer);

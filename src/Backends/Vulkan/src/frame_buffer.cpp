@@ -41,7 +41,7 @@ public:
     }
 
 private:
-    inline SharedPtr<const IVulkanImage> createImage(const VulkanDevice& device, UInt64 renderTargetId, const Size2d& size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String& name) const {
+    inline SharedPtr<const IVulkanImage> createImage(const VulkanDevice& device, Optional<UInt64> renderTargetId, const Size2d& size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String& name) const {
         if (this->m_allocationCallback.has_value())
         {
             auto image = m_allocationCallback.value()(renderTargetId, size, usage, format, samples, name);
@@ -138,9 +138,13 @@ public:
         auto commandBuffer = queue.createCommandBuffer(true);
         auto barrier = commandBuffer->makeBarrier(PipelineStage::None, PipelineStage::None);
 
-        auto images = m_mappedRenderTargets |
-            std::views::transform([&](const auto& resource) { 
-                const auto& [renderTargetId, image] = resource;
+        auto images = m_images 
+            | std::views::transform([&](const auto& image) {
+                Optional<UInt64> renderTargetId{};
+
+                if (auto renderTarget = std::ranges::find_if(m_mappedRenderTargets, [image](const auto& resource) { return std::get<1>(resource) == image; }); renderTarget != m_mappedRenderTargets.end())
+                    renderTargetId = renderTarget->first;
+
                 auto format = image->format();
                 auto newImage = this->createImage(*device, renderTargetId, renderArea, image->usage(), format, image->samples(), image->name());
                 imageReplacements[image.get()] = newImage;
@@ -151,7 +155,9 @@ public:
                     barrier->transition(*newImage, ResourceAccess::None, ResourceAccess::None, ImageLayout::ShaderResource);
 
                 return newImage;
-            }) | std::views::as_rvalue | std::ranges::to<Array<SharedPtr<const IVulkanImage>>>();
+            }) 
+            | std::views::as_rvalue 
+            | std::ranges::to<Array<SharedPtr<const IVulkanImage>>>();
 
         // Transition the image layouts into their expected states.
         commandBuffer->barrier(*barrier);
