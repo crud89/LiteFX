@@ -2022,6 +2022,7 @@ namespace LiteFX::Rendering::Backends {
         friend struct SharedObject::Allocator<DirectX12FrameBuffer>;
 
     public:
+        using FrameBuffer::allocation_callback_type;
         using FrameBuffer::addImage;
         using FrameBuffer::mapRenderTarget;
         using FrameBuffer::mapRenderTargets;
@@ -2034,6 +2035,16 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="renderArea">The initial size of the render area.</param>
         /// <param name="name">The name of the frame buffer.</param>
         DirectX12FrameBuffer(const DirectX12Device& device, const Size2d& renderArea, StringView name = "");
+
+        /// <summary>
+        /// Initializes a DirectX 12 frame buffer.
+        /// </summary>
+        /// <param name="device">The device the frame buffer is allocated on.</param>
+        /// <param name="renderArea">The initial size of the render area.</param>
+        /// <param name="allocationCallback">A callback that gets invoked, when the frame buffer allocates a new image.</param>
+        /// <param name="name">The name of the frame buffer.</param>
+        /// <seealso cref="IFrameBuffer::allocation_callback_type" />
+        DirectX12FrameBuffer(const DirectX12Device& device, const Size2d& renderArea, allocation_callback_type allocationCallback, StringView name = "");
 
     private:
         /// <inheritdoc />
@@ -2062,6 +2073,18 @@ namespace LiteFX::Rendering::Backends {
         /// <returns>A pointer to the newly created frame buffer instance.</returns>
         static inline SharedPtr<DirectX12FrameBuffer> create(const DirectX12Device& device, const Size2d& renderArea, StringView name = "") {
             return SharedObject::create<DirectX12FrameBuffer>(device, renderArea, name);
+        }
+
+        /// <summary>
+        /// Initializes a DirectX 12 frame buffer.
+        /// </summary>
+        /// <param name="device">The device the frame buffer is allocated on.</param>
+        /// <param name="renderArea">The initial size of the render area.</param>
+        /// <param name="allocationCallback">A callback that gets invoked, when the frame buffer allocates a new image.</param>
+        /// <param name="name">The name of the frame buffer.</param>
+        /// <returns>A pointer to the newly created frame buffer instance.</returns>
+        static inline SharedPtr<DirectX12FrameBuffer> create(const DirectX12Device& device, const Size2d& renderArea, allocation_callback_type allocationCallback, StringView name = "") {
+            return SharedObject::create<DirectX12FrameBuffer>(device, renderArea, std::move(allocationCallback), name);
         }
 
         // DirectX 12 FrameBuffer
@@ -2497,6 +2520,7 @@ namespace LiteFX::Rendering::Backends {
         using base_type::createTextures;
         using base_type::createSampler;
         using base_type::createSamplers;
+        using base_type::allocate;
 
     private:
         /// <summary>
@@ -2543,6 +2567,12 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         bool endDefragmentationPass() const override;
+
+        /// <inheritdoc />
+        Generator<ResourceAllocationResult> allocate(Enumerable<const ResourceAllocationInfo&> allocationInfos, AllocationBehavior allocationBehavior = AllocationBehavior::Default, bool alias = false) const override;
+
+        /// <inheritdoc />
+        bool canAlias(Enumerable<const ResourceAllocationInfo&> allocationInfos) const override;
 
         /// <inheritdoc />
         SharedPtr<IDirectX12Buffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
@@ -2793,6 +2823,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         [[nodiscard]] SharedPtr<DirectX12FrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const override;
+
+        /// <inheritdoc />
+        [[nodiscard]] SharedPtr<DirectX12FrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea, DirectX12FrameBuffer::allocation_callback_type allocationCallback) const override;
 
         /// <inheritdoc />
         /// <seealso href="https://docs.microsoft.com/en-us/windows/win32/api/d3d11/ne-d3d11-d3d11_standard_multisample_quality_levels" />
