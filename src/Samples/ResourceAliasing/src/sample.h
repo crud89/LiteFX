@@ -107,6 +107,56 @@ private:
 	void onShutdown();
 	void onResize(const void* sender, const ResizeEventArgs& e);
 
+private:
+	/// <summary>
+	/// Stores temporary resource handles to render targets allocated during the frame buffer `resizing` event and returns them to the frame buffer in the allocation callback.
+	/// </summary>
+	SharedPtr<const IImage> m_depthBuffer, m_postColorBuffer;
+
+public:
+	/// <summary>
+	/// Initializes the overlapping resources.
+	/// </summary>
+	/// <param name="renderArea">The render area that determines the size of the resources.</param>
+	void initAliasingBuffers(Size2d renderArea) {
+		// NOTE: Automatically mapping render targets to images relies on resource names, so it's important to use the same names here as for the render targets later.
+		auto resourceInfos = std::array {
+			ResourceAllocationInfo(ResourceAllocationInfo::ImageInfo { .Format = Format::D32_SFLOAT, .Size = renderArea }, ResourceUsage::FrameBufferImage, "Depth"),
+			ResourceAllocationInfo(ResourceAllocationInfo::ImageInfo { .Format = Format::B8G8R8A8_UNORM, .Size = renderArea }, ResourceUsage::FrameBufferImage, "Post Color")
+		};
+
+		auto canAlias = m_device->factory().canAlias(resourceInfos);
+
+		if (!canAlias)
+			LITEFX_WARNING("SampleApp"sv, "Render targets can't be aliased and will be created as non-overlapping images.");
+		
+		auto resources = m_device->factory().allocate(resourceInfos, AllocationBehavior::Default, canAlias)
+			| std::views::take(2)
+			| std::ranges::to<std::vector>();
+		m_depthBuffer = resources[0].image<const IImage>();
+		m_postColorBuffer = resources[1].image<const IImage>();
+	}
+
+	void onFrameBufferResizing(const void* /*sender*/, IFrameBuffer::ResizeEventArgs e) {
+		this->initAliasingBuffers(e.newSize());
+	}
+	
+	template <typename TRenderBackend> requires
+		meta::implements<TRenderBackend, IRenderBackend>
+	SharedPtr<const typename TRenderBackend::image_type> frameBufferAllocationCallback(UInt64 renderTargetId, Size2d /*renderArea*/, ResourceUsage /*usage*/, Format /*format*/, MultiSamplingLevel /*samples*/, const String& /*name*/) const {
+		switch (renderTargetId)
+		{
+		case hash("Depth"):
+			return std::dynamic_pointer_cast<const typename TRenderBackend::image_type>(m_depthBuffer);
+		case hash("Post Color"):
+			return std::dynamic_pointer_cast<const typename TRenderBackend::image_type>(m_postColorBuffer);
+		default:
+			// Let the frame buffer perform the allocation using the default behavior.
+			// Note that we could also call `device->factory().createTexture()` from here instead.
+			return nullptr;
+		}
+	}
+
 public:
 	void keyDown(int key, int scancode, int action, int mods);
 	void handleEvents();

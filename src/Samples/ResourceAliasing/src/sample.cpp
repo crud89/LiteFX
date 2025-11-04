@@ -54,9 +54,9 @@ template<>
 const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
-template<typename TRenderBackend> requires
+template <typename TRenderBackend> requires
     meta::implements<TRenderBackend, IRenderBackend>
-void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState)
+void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState, SampleApp& app)
 {
     using RenderPass = TRenderBackend::render_pass_type;
     using RenderPipeline = TRenderBackend::render_pipeline_type;
@@ -70,14 +70,26 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
     // Create the frame buffers for all back buffers.
     auto frameBuffers = std::views::iota(0u, device->swapChain().buffers()) |
         std::views::transform([&](UInt32 index) { 
-            auto frameBuffer = device->makeFrameBuffer(std::format("Frame Buffer {0}", index), device->swapChain().renderArea());
+            // This sample uses a combination of the `resizing` event on the frame buffer alongside an allocation callback. The allocation callback is
+            // invoked for each resource, but does not actually need to perform the allocation. Instead, we want to alias some render targets, which
+            // means that we have to allocate them together in one pass. We do this during the `resizing` event before the actual resize happens. Then,
+            // during the allocation callback we merely return the resource pointers accordingly.
+            auto frameBuffer = device->makeFrameBuffer(std::format("Frame Buffer {0}", index), device->swapChain().renderArea(), std::bind_front(&SampleApp::frameBufferAllocationCallback<TRenderBackend>, &app));
+            frameBuffer->resizing += std::bind_front(&SampleApp::onFrameBufferResizing, &app);
+
+            // Initialize a set of aliasing resources, so that we can return it on adding the images.
+            app.initAliasingBuffers(device->swapChain().renderArea());
 
             // NOTE: In this example we manually add the images to the frame buffers and map them later. This demonstrates how to share the same image 
             //       on multiple render targets. Note that the formats must match. If you intend to use multi-sampling you also have to keep the sample
             //       level in mind!
-            frameBuffer->addImage("G-Buffer Color", Format::B8G8R8A8_UNORM); // Written in first render pass, read in second render pass.
-            frameBuffer->addImage("Color", Format::B8G8R8A8_UNORM); // Written in second and third render pass.
-            frameBuffer->addImage("Depth", Format::D32_SFLOAT); // Written first, read in third render pass for depth test.
+            // NOTE: Keep in mind that this is an example and the implementation is non-optimal. The render passes are laid out as follows:
+            //       - Render Pass 1 writes Color and Depth
+            //       - Render Pass 2 writes Post Color and reads Color
+            //       Post Color and Depth overlap, i.e., they are allocated as aliasing resources. (See `frameBufferAllocationCallback`).
+            frameBuffer->addImage("Color", Format::B8G8R8A8_UNORM);
+            frameBuffer->addImage("Post Color", Format::B8G8R8A8_UNORM);
+            frameBuffer->addImage("Depth", Format::D32_SFLOAT);
 
             return std::move(frameBuffer);
         }) | std::ranges::to<Array<SharedPtr<FrameBuffer>>>();
@@ -94,39 +106,31 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
     inputAssemblerState = std::static_pointer_cast<IInputAssembler>(inputAssembler);
 
-    // Create three render passes:
-    // - The first render pass draws geometry into "G-Buffer Color" image and "Depth" image.
-    // - The second is a screen-space pass, that samples "G-Buffer Color" and writes it into "Color", but does not use "Depth".
-    // - The third render pass again draws geometry, but directly into "Color". It uses "Depth" as a render target, but does not write to it (see it's 
-    //   rasterizer depth state for more info).
+    // Create three render passes.
     // Note that using the same names for render targets and image resources makes mapping render targets easier, as we can call the `mapRenderTargets`.
     SharedPtr<RenderPass> firstPass = device->buildRenderPass("First Pass")
-        .renderTarget("G-Buffer Color", 0, RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f }) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        .renderTarget("Color", 0, RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f }) // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         .renderTarget("Depth", 1, RenderTargetType::DepthStencil, Format::D32_SFLOAT, RenderTargetFlags::Clear | RenderTargetFlags::ClearStencil, { 1.f, 0.f, 0.f, 0.f });
     
     SharedPtr<RenderPass> secondPass = device->buildRenderPass("Second Pass")
         .inputAttachmentSamplerBinding(DescriptorBindingPoint { .Register = 0, .Space = 1 })
         .inputAttachment(DescriptorBindingPoint { .Register = 0, .Space = 0 }, *firstPass, 0)  // Map color attachment from geometry pass render target 0.
-        .renderTarget("Color", RenderTargetType::Color, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f }); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-
-    SharedPtr<RenderPass> thirdPass = device->buildRenderPass("Third Pass")
-        .renderTarget("Color", 0, RenderTargetType::Present, Format::B8G8R8A8_UNORM)
-        .renderTarget("Depth", 1, RenderTargetType::DepthStencil, Format::D32_SFLOAT);
+        .renderTarget("Post Color", RenderTargetType::Present, Format::B8G8R8A8_UNORM, RenderTargetFlags::Clear, { 0.1f, 0.1f, 0.1f, 1.f }); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
 
     // Map all render targets to the frame buffer.
     // NOTE: As we use name matching for mapping, we do not need to map the second render pass, as the "Color" target will be mapped properly. The 
     //       "Depth" target will actually be mapped twice, so that the second mapping overwrites the first one, but the mappings are equal anyway.
-    std::ranges::for_each(frameBuffers, [&firstPass, &thirdPass](auto& frameBuffer) { 
+    std::ranges::for_each(frameBuffers, [&firstPass, &secondPass](auto& frameBuffer) { 
         frameBuffer->mapRenderTargets(firstPass->renderTargets()); 
-        frameBuffer->mapRenderTargets(thirdPass->renderTargets());
+        frameBuffer->mapRenderTargets(secondPass->renderTargets());
     });
 
     // Create the shader programs.
-    SharedPtr<ShaderProgram> geometryPassShader = device->buildShaderProgram()
+    SharedPtr<ShaderProgram> firstPassShader = device->buildShaderProgram()
         .withVertexShaderModule("shaders/ra_pass1_vs." + FileExtensions<TRenderBackend>::SHADER)
         .withFragmentShaderModule("shaders/ra_pass1_fs." + FileExtensions<TRenderBackend>::SHADER);
 
-    SharedPtr<ShaderProgram> samplingPassShader = device->buildShaderProgram()
+    SharedPtr<ShaderProgram> secondPassShader = device->buildShaderProgram()
         .withVertexShaderModule("shaders/ra_pass2_vs." + FileExtensions<TRenderBackend>::SHADER)
         .withFragmentShaderModule("shaders/ra_pass2_fs." + FileExtensions<TRenderBackend>::SHADER);
 
@@ -138,35 +142,22 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
             .cullMode(CullMode::BackFaces)
             .cullOrder(CullOrder::ClockWise)
             .lineWidth(1.f))
-        .layout(geometryPassShader->reflectPipelineLayout())
-        .shaderProgram(geometryPassShader);
+        .layout(firstPassShader->reflectPipelineLayout())
+        .shaderProgram(firstPassShader);
 
     UniquePtr<RenderPipeline> secondPipeline = device->buildRenderPipeline(*secondPass, "Second Pass Pipeline")
         .inputAssembler(inputAssembler)
         .rasterizer(device->buildRasterizer()
             .polygonMode(PolygonMode::Solid)
             .cullMode(CullMode::Disabled))
-        .layout(samplingPassShader->reflectPipelineLayout())
-        .shaderProgram(samplingPassShader);
-
-    UniquePtr<RenderPipeline> thirdPipeline = device->buildRenderPipeline(*thirdPass, "Third Pass Pipeline")
-        .inputAssembler(inputAssembler)
-        .rasterizer(device->buildRasterizer()
-            .polygonMode(PolygonMode::Solid)
-            .cullMode(CullMode::BackFaces)
-            .cullOrder(CullOrder::ClockWise)
-            .lineWidth(1.f)
-            .depthState(DepthStencilState::DepthState { .Write = false, .Operation = CompareOperation::Less }))
-        .layout(geometryPassShader->reflectPipelineLayout())
-        .shaderProgram(geometryPassShader);
+        .layout(secondPassShader->reflectPipelineLayout())
+        .shaderProgram(secondPassShader);
 
     // Add the resources to the device state.
     device->state().add(std::move(firstPass));
     device->state().add(std::move(secondPass));
-    device->state().add(std::move(thirdPass));
     device->state().add(std::move(firstPipeline));
     device->state().add(std::move(secondPipeline));
-    device->state().add(std::move(thirdPipeline));
     std::ranges::for_each(frameBuffers, [device](auto& frameBuffer) { device->state().add(std::move(frameBuffer)); });
 }
 
@@ -292,13 +283,18 @@ void SampleApp::onInit()
         m_device = std::addressof(backend->createDevice("Default", *adapter, std::move(surface), Format::B8G8R8A8_UNORM, m_viewport->getRectangle().extent(), 3, false));
 
         // Initialize resources.
-        ::initRenderGraph(backend, m_inputAssembler);
+        ::initRenderGraph(backend, m_inputAssembler, *this);
         this->initBuffers(backend);
 
         return true;
     };
 
-    auto stopCallback = []<typename TBackend>(TBackend* backend) {
+    auto stopCallback = [this]<typename TBackend>(TBackend* backend) {
+        // We need to release the temporary resources, if they have been initialized.
+        m_depthBuffer = nullptr;
+        m_postColorBuffer = nullptr;
+
+        // Release the device.
         backend->releaseDevice("Default");
     };
 
@@ -475,7 +471,7 @@ void SampleApp::drawFrame()
         auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
 
         // Compute world transform and update the transform buffer.
-        transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(-1.0f, 0.0f, 0.0f)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
+        transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
         transformBuffer.map(static_cast<const void*>(&transform), sizeof(transform), backBuffer);
 
         // Bind both descriptor sets to the pipeline.
@@ -512,43 +508,5 @@ void SampleApp::drawFrame()
 
         // End the lighting pass.
         fence = renderPass.end();
-    }
-
-    {
-        // Query state.
-        auto& renderPass = m_device->state().renderPass("Third Pass");
-        auto& pipeline = m_device->state().pipeline("Third Pass Pipeline");
-        auto& transformBuffer = m_device->state().buffer("Transform");
-        auto& cameraBindings = m_device->state().descriptorSet("Camera Bindings");
-        auto& transformBindings = m_device->state().descriptorSet(std::format("Transform Bindings {0}", backBuffer));
-        auto& vertexBuffer = m_device->state().vertexBuffer("Vertex Buffer");
-        auto& indexBuffer = m_device->state().indexBuffer("Index Buffer");
-
-        // Begin rendering on the render pass and use the only pipeline we've created for it.
-        renderPass.commandQueue().waitFor(fence);
-        renderPass.begin(frameBuffer);
-        auto commandBuffer = renderPass.commandBuffer(0);
-        commandBuffer->use(pipeline);
-        commandBuffer->setViewports(m_viewport.get());
-        commandBuffer->setScissors(m_scissor.get());
-
-        // Get the amount of time that has passed since the first frame.
-        auto now = std::chrono::high_resolution_clock::now();
-        auto time = std::chrono::duration<float, std::chrono::seconds::period>(now - start).count();
-
-        // Bind both descriptor sets to the pipeline.
-        commandBuffer->bind({ &cameraBindings, &transformBindings });
-
-        // Bind the vertex and index buffers.
-        commandBuffer->bind(vertexBuffer);
-        commandBuffer->bind(indexBuffer);
-
-        // Draw an additional instance of the object on top of the existing contents.
-        transform.World = glm::rotate(glm::mat4(1.0f), time * glm::radians(42.0f), glm::vec3(0.0f, 0.0f, 1.0f)) * glm::translate(glm::mat4(1.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // NOLINT(cppcoreguidelines-avoid-magic-numbers)
-        transformBuffer.map(static_cast<const void*>(&transform), sizeof(transform), backBuffer);
-        commandBuffer->drawIndexed(indexBuffer.elements());
-
-        // Present the frame by ending the render pass.
-        renderPass.end();
     }
 }
