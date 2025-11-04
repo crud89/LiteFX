@@ -78,7 +78,7 @@ private:
 	}
 
 public:
-	inline VmaAllocationCreateInfo getAllocationCreateInfo(ResourceHeap heap, AllocationBehavior allocationBehavior) const
+	inline VmaAllocationCreateInfo getAllocationCreateInfo(ResourceHeap heap, AllocationBehavior allocationBehavior, bool manualAlloc = false) const
 	{
 		VmaAllocationCreateInfo allocInfo{};
 
@@ -90,22 +90,37 @@ public:
 		switch (heap)
 		{
 		case ResourceHeap::Staging:
-			allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+			if (!manualAlloc)
+				allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+
 			allocInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
 			break;
 		case ResourceHeap::Resource:
-			allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+			if (manualAlloc)
+				allocInfo.preferredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+			else
+				allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
 			break;
 		case ResourceHeap::Dynamic:
-			allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+			if (!manualAlloc)
+				allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_HOST;
+
 			allocInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
 			break;
 		case ResourceHeap::Readback:
-			allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+			if (manualAlloc)
+				allocInfo.preferredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+			else
+				allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+
 			allocInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
 			break;
 		case ResourceHeap::GPUUpload:
-			allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+			if (manualAlloc)
+				allocInfo.preferredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+			else
+				allocInfo.usage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
+
 			allocInfo.flags |= VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT;
 			break;
 		}
@@ -716,15 +731,14 @@ Generator<ResourceAllocationResult> VulkanGraphicsFactory::allocate(Enumerable<c
 			| std::views::take(1)
 			| std::ranges::to<std::vector>();
 
-		auto allocationDesc = m_impl->getAllocationCreateInfo(resourceHeaps.front(), allocationBehavior);
+		auto allocationDesc = m_impl->getAllocationCreateInfo(resourceHeaps.front(), allocationBehavior, true);
 
 		// Acquire memory requirements for each resource.
-		auto memoryRequirements = std::ranges::fold_right(
+		auto memoryRequirements = std::ranges::fold_left_first(
 			allocationInfos | std::views::transform([this](auto& allocationInfo) { return m_impl->getMemoryRequirements(allocationInfo); }) | std::ranges::to<std::vector>(),
-			VkMemoryRequirements{},
 			[](const VkMemoryRequirements& accumulated, const VkMemoryRequirements& current) -> VkMemoryRequirements {
 				return { std::max(accumulated.size, current.size), std::max(accumulated.alignment, current.alignment), accumulated.memoryTypeBits & current.memoryTypeBits };
-			});
+			}).value_or({});
 		 
 		// Allocate the memory.
 		VmaAllocation allocation{};
@@ -734,6 +748,8 @@ Generator<ResourceAllocationResult> VulkanGraphicsFactory::allocate(Enumerable<c
 			throw VulkanPlatformException(result, "Unable to allocate memory for aliasing resources.");
 
 		// Create the buffers and images on the allocation.
+		AllocationPtr allocationPtr(allocation, VmaAllocationDeleter{ m_impl->m_allocator });
+
 		for (auto& allocationInfo : allocationInfos)
 		{
 			if (std::holds_alternative<ResourceAllocationInfo::BufferInfo>(allocationInfo.ResourceInfo))
@@ -749,11 +765,11 @@ Generator<ResourceAllocationResult> VulkanGraphicsFactory::allocate(Enumerable<c
 					throw VulkanPlatformException(result, "Unable to allocate resource from memory reserved for aliasing resource block.");
 
 				if (bufferInfo.Type == BufferType::Vertex && bufferInfo.VertexBufferLayout != nullptr)
-					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanVertexBuffer::create(buffer, dynamic_cast<const VulkanVertexBufferLayout&>(*bufferInfo.VertexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, *device, m_impl->m_allocator, allocation, allocationInfo.Name));
+					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanVertexBuffer::create(buffer, dynamic_cast<const VulkanVertexBufferLayout&>(*bufferInfo.VertexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, *device, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 				else if (bufferInfo.Type == BufferType::Index && bufferInfo.IndexBufferLayout != nullptr)
-					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanIndexBuffer::create(buffer, dynamic_cast<const VulkanIndexBufferLayout&>(*bufferInfo.IndexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, *device, m_impl->m_allocator, allocation, allocationInfo.Name));
+					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanIndexBuffer::create(buffer, dynamic_cast<const VulkanIndexBufferLayout&>(*bufferInfo.IndexBufferLayout), bufferInfo.Elements, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, *device, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 				else [[likely]]
-					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanBuffer::create(buffer, bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, *device, m_impl->m_allocator, allocation, allocationInfo.Name));
+					co_yield std::dynamic_pointer_cast<IBuffer>(VulkanBuffer::create(buffer, bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, static_cast<size_t>(elementAlignment), allocationInfo.Usage, resourceDescription, *device, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 			}
 			else if (std::holds_alternative<ResourceAllocationInfo::ImageInfo>(allocationInfo.ResourceInfo))
 			{
@@ -766,7 +782,7 @@ Generator<ResourceAllocationResult> VulkanGraphicsFactory::allocate(Enumerable<c
 				if (result != VK_SUCCESS) [[unlikely]]
 					throw VulkanPlatformException(result, "Unable to allocate resource from memory reserved for aliasing resource block.");
 
-				co_yield std::dynamic_pointer_cast<IImage>(VulkanImage::create(image, imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, allocationInfo.Usage, resourceDescription, m_impl->m_allocator, allocation, allocationInfo.Name));
+				co_yield std::dynamic_pointer_cast<IImage>(VulkanImage::create(image, imageInfo.Size, imageInfo.Format, imageInfo.Dimensions, imageInfo.Levels, imageInfo.Layers, imageInfo.Samples, allocationInfo.Usage, resourceDescription, m_impl->m_allocator, allocationPtr, allocationInfo.Name));
 			}
 		}
 	}
@@ -793,10 +809,14 @@ bool VulkanGraphicsFactory::canAlias(Enumerable<const ResourceAllocationInfo&> a
 		return false;
 
 	// Find if there's at least one memory type that can store all requested resources.
-	return 0 != std::ranges::fold_right(
-		allocationInfos | std::views::transform([this](auto& allocationInfo) { return m_impl->getMemoryRequirements(allocationInfo); }) | std::ranges::to<std::vector>(),
-		UInt32{},
-		[](auto& current, UInt32 accumulated) { return accumulated & current.memoryTypeBits; });
+	auto memoryType = std::ranges::fold_left_first(
+		allocationInfos 
+			| std::views::transform([this](auto& allocationInfo) { 
+					auto requirements = m_impl->getMemoryRequirements(allocationInfo); return requirements.memoryTypeBits; 
+				}) 
+			| std::ranges::to<std::vector>(), std::bit_and{});
+
+	return memoryType.value_or(0) != 0;
 }
 
 SharedPtr<IVulkanBuffer> VulkanGraphicsFactory::createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements, ResourceUsage usage, AllocationBehavior allocationBehavior) const

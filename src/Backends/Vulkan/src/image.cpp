@@ -15,7 +15,7 @@ public:
 
 private:
 	VmaAllocator m_allocator;
-	VmaAllocation m_allocation;
+	AllocationPtr m_allocation;
 	Format m_format;
 	Size3d m_extent;
 	UInt32 m_elements, m_layers, m_levels, m_planes;
@@ -25,8 +25,8 @@ private:
 	VkImageCreateInfo m_createInfo;
 
 public:
-	VulkanImageImpl(Size3d extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator, VmaAllocation allocation, const VkImageCreateInfo& createInfo) :
-		m_allocator(allocator), m_allocation(allocation), m_format(format), m_extent(std::move(extent)), m_layers(layers), m_levels(levels), m_planes(::hasDepth(format) && ::hasStencil(format) ? 2 : 1), m_dimensions(dimensions), m_usage(usage), m_samples(samples), m_createInfo(createInfo)
+	VulkanImageImpl(Size3d extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator, AllocationPtr allocation, const VkImageCreateInfo& createInfo) :
+		m_allocator(allocator), m_allocation(std::move(allocation)), m_format(format), m_extent(std::move(extent)), m_layers(layers), m_levels(levels), m_planes(::hasDepth(format) && ::hasStencil(format) ? 2 : 1), m_dimensions(dimensions), m_usage(usage), m_samples(samples), m_createInfo(createInfo)
 	{
 		// Note: Currently no multi-planar images are supported. Planes have a two-fold meaning in this context. Multi-planar images are images, which have a format with `_2PLANE` or `_3PLANE` in the name, or
 		//       which are listed here: https://www.khronos.org/registry/vulkan/specs/1.2-extensions/html/vkspec.html#formats-requiring-sampler-ycbcr-conversion.
@@ -41,27 +41,28 @@ public:
 // Image Base shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanImage::VulkanImage(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const VkImageCreateInfo& createInfo, VmaAllocator allocator, VmaAllocation allocation, const String& name) :
+VulkanImage::VulkanImage(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const VkImageCreateInfo& createInfo, VmaAllocator allocator, AllocationPtr allocation, const String& name) :
 	Resource<VkImage>(image), m_impl(extent, format, dimensions, levels, layers, samples, usage, allocator, allocation, createInfo)
 {
 	if (!name.empty())
 	{
 		this->name() = name;
 #ifndef NDEBUG
-		::vmaSetAllocationName(allocator, allocation, name.c_str());
+		::vmaSetAllocationName(allocator, allocation.get(), name.c_str());
 #endif
 	}
 
 	if (m_impl->m_allocator != nullptr && m_impl->m_allocation != nullptr)
-		::vmaSetAllocationUserData(m_impl->m_allocator, m_impl->m_allocation, static_cast<IDeviceMemory*>(this));
+		::vmaSetAllocationUserData(m_impl->m_allocator, m_impl->m_allocation.get(), static_cast<IDeviceMemory*>(this));
 }
 
 VulkanImage::~VulkanImage() noexcept 
 {
-	if (m_impl->m_allocator != nullptr && m_impl->m_allocation != nullptr)
+	if (m_impl->m_allocator != nullptr)
 	{
-		::vmaDestroyImage(m_impl->m_allocator, this->handle(), m_impl->m_allocation);
-		LITEFX_TRACE(VULKAN_LOG, "Destroyed image 0x{0:X}", Vk::handleAddress(this->handle()));
+		auto& name = this->name();
+		LITEFX_TRACE(VULKAN_LOG, "Destroyed image {}", name.empty() ? std::format("0x{0:X}", Vk::handleAddress(this->handle())) : name);
+		::vmaDestroyImage(m_impl->m_allocator, this->handle(), nullptr);
 	}
 }
 
@@ -290,14 +291,14 @@ VkImageAspectFlags VulkanImage::aspectMask(UInt32 plane) const
 	}
 }
 
-VmaAllocator& VulkanImage::allocator() const noexcept
+VmaAllocator VulkanImage::allocator() const noexcept
 {
 	return m_impl->m_allocator;
 }
 
-VmaAllocation& VulkanImage::allocationInfo() const noexcept
+VmaAllocation VulkanImage::allocationInfo() const noexcept
 {
-	return m_impl->m_allocation;
+	return m_impl->m_allocation.get();
 }
 
 SharedPtr<IVulkanImage> VulkanImage::allocate(const String& name, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
@@ -308,7 +309,7 @@ SharedPtr<IVulkanImage> VulkanImage::allocate(const String& name, const Size3d& 
 	raiseIfFailed(::vmaCreateImage(allocator, &createInfo, &allocationInfo, &image, &allocation, allocationResult), "Unable to allocate texture.");
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}", name.empty() ? std::format("0x{0:X}", Vk::handleAddress(image)) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples);
 
-	return SharedObject::create<VulkanImage>(image, extent, format, dimensions, levels, layers, samples, usage, createInfo, allocator, allocation, name);
+	return SharedObject::create<VulkanImage>(image, extent, format, dimensions, levels, layers, samples, usage, createInfo, allocator, AllocationPtr(allocation, VmaAllocationDeleter{ allocator }), name);
 }
 
 bool VulkanImage::tryAllocate(SharedPtr<IVulkanImage>& image, const String& name, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator& allocator, const VkImageCreateInfo& createInfo, const VmaAllocationCreateInfo& allocationInfo, VmaAllocationInfo* allocationResult)
@@ -329,7 +330,7 @@ bool VulkanImage::tryAllocate(SharedPtr<IVulkanImage>& image, const String& name
 		LITEFX_DEBUG(VULKAN_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}",
 			name.empty() ? std::format("0x{0:X}", Vk::handleAddress(imageHandle)) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples);
 
-		image = SharedObject::create<VulkanImage>(imageHandle, extent, format, dimensions, levels, layers, samples, usage, createInfo, allocator, allocation, name);
+		image = SharedObject::create<VulkanImage>(imageHandle, extent, format, dimensions, levels, layers, samples, usage, createInfo, allocator, AllocationPtr(allocation, VmaAllocationDeleter{ allocator }), name);
 		return true;
 	}
 }
