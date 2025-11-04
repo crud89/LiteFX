@@ -48,7 +48,11 @@ DirectX12Buffer::DirectX12Buffer(ComPtr<ID3D12Resource>&& buffer, BufferType typ
 		m_impl->m_allocation->SetPrivateData(static_cast<IDeviceMemory*>(this));
 }
 
-DirectX12Buffer::~DirectX12Buffer() noexcept = default;
+DirectX12Buffer::~DirectX12Buffer() noexcept
+{
+	auto name = this->name();
+	LITEFX_TRACE(DIRECTX12_LOG, "Destroyed buffer {}", name.empty() ? std::format("{}", static_cast<void*>(this->handle().Get())) : name);
+}
 
 BufferType DirectX12Buffer::type() const noexcept
 {

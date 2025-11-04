@@ -55,7 +55,11 @@ DirectX12Image::DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resou
 		m_impl->m_allocation->SetPrivateData(static_cast<IDeviceMemory*>(this));
 }
 
-DirectX12Image::~DirectX12Image() noexcept = default;
+DirectX12Image::~DirectX12Image() noexcept
+{
+	auto name = this->name();
+	LITEFX_TRACE(DIRECTX12_LOG, "Destroyed image {}", name.empty() ? std::format("{}", static_cast<void*>(this->handle().Get())) : name);
+}
 
 UInt32 DirectX12Image::elements() const noexcept
 {
