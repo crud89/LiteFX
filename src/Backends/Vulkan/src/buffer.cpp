@@ -58,8 +58,7 @@ VulkanBuffer::~VulkanBuffer() noexcept
 {	
 	if (m_impl->m_allocator != nullptr)
 	{
-		auto name = this->name();
-		LITEFX_TRACE(VULKAN_LOG, "Destroyed buffer {}", name.empty() ? std::format("0x{0:X}", Vk::handleAddress(this->handle())) : name);
+		LITEFX_TRACE(VULKAN_LOG, "Destroyed buffer {}", this->name());
 		::vmaDestroyBuffer(m_impl->m_allocator, this->handle(), nullptr);
 	}
 }
@@ -177,7 +176,7 @@ SharedPtr<IVulkanBuffer> VulkanBuffer::allocate(const String& name, const Resour
 	::vmaGetAllocationMemoryProperties(allocator, allocation, &memoryProperties);
 
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5}, On GPU: {6}, CPU Access: {7} }}",
-		name.empty() ? std::format("0x{0:X}", Vk::handleAddress(buffer)) : name, bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, bufferInfo.Elements * bufferInfo.ElementSize, usage,
+		name.empty() ? std::format("0x{0:X} (Unnamed Resource)", Vk::handleAddress(buffer)) : name, bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, bufferInfo.Elements * bufferInfo.ElementSize, usage,
 		(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
@@ -195,7 +194,7 @@ bool VulkanBuffer::tryAllocate(SharedPtr<IVulkanBuffer>& buffer, const String& n
 	if (result != VK_SUCCESS)
 	{
 		LITEFX_DEBUG(VULKAN_LOG, "Allocation for buffer {0} with {4} bytes failed: {6} {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}",
-			name.empty() ? std::format("0x{0:X}", Vk::handleAddress(bufferHandle)) : name, bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, bufferInfo.Elements * bufferInfo.ElementSize, usage, result);
+			name.empty() ? std::format("0x{0:X} (Unnamed Resource)", Vk::handleAddress(bufferHandle)) : name, bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, bufferInfo.Elements * bufferInfo.ElementSize, usage, result);
 		return false;
 	}
 	else
@@ -205,7 +204,7 @@ bool VulkanBuffer::tryAllocate(SharedPtr<IVulkanBuffer>& buffer, const String& n
 		::vmaGetAllocationMemoryProperties(allocator, allocation, &memoryProperties);
 
 		LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5}, On GPU: {6}, CPU Access: {7} }}",
-			name.empty() ? std::format("0x{0:X}", Vk::handleAddress(bufferHandle)) : name, bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, bufferInfo.Elements * bufferInfo.ElementSize, usage,
+			name.empty() ? std::format("0x{0:X} (Unnamed Resource)", Vk::handleAddress(bufferHandle)) : name, bufferInfo.Type, bufferInfo.Elements, bufferInfo.ElementSize, bufferInfo.Elements * bufferInfo.ElementSize, usage,
 			(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
@@ -312,7 +311,7 @@ SharedPtr<IVulkanVertexBuffer> VulkanVertexBuffer::allocate(const String& name, 
 	::vmaGetAllocationMemoryProperties(allocator, allocation, &memoryProperties);
 	
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5}, On GPU: {6}, CPU Access: {7} }}", 
-		name.empty() ? std::format("0x{0:X}", Vk::handleAddress(buffer)) : name, BufferType::Vertex, bufferInfo.Elements, bufferInfo.VertexBufferLayout->elementSize(), bufferInfo.VertexBufferLayout->elementSize() * bufferInfo.Elements, usage,
+		name.empty() ? std::format("0x{0:X} (Unnamed Resource)", Vk::handleAddress(buffer)) : name, BufferType::Vertex, bufferInfo.Elements, bufferInfo.VertexBufferLayout->elementSize(), bufferInfo.VertexBufferLayout->elementSize() * bufferInfo.Elements, usage,
 		(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
@@ -332,7 +331,7 @@ bool VulkanVertexBuffer::tryAllocate(SharedPtr<IVulkanVertexBuffer>& buffer, con
 	if (result != VK_SUCCESS)
 	{
 		LITEFX_DEBUG(VULKAN_LOG, "Allocation for buffer {0} with {4} bytes failed: {6} {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}",
-			name.empty() ? std::format("0x{0:X}", Vk::handleAddress(bufferHandle)) : name, BufferType::Vertex, bufferInfo.Elements, bufferInfo.VertexBufferLayout->elementSize(), bufferInfo.VertexBufferLayout->elementSize() * bufferInfo.Elements, usage, result);
+			name.empty() ? std::format("0x{0:X} (Unnamed Resource)", Vk::handleAddress(bufferHandle)) : name, BufferType::Vertex, bufferInfo.Elements, bufferInfo.VertexBufferLayout->elementSize(), bufferInfo.VertexBufferLayout->elementSize() * bufferInfo.Elements, usage, result);
 		return false;
 	}
 	else
@@ -342,7 +341,7 @@ bool VulkanVertexBuffer::tryAllocate(SharedPtr<IVulkanVertexBuffer>& buffer, con
 		::vmaGetAllocationMemoryProperties(allocator, allocation, &memoryProperties);
 
 		LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5}, On GPU: {6}, CPU Access: {7} }}",
-			name.empty() ? std::format("0x{0:X}", Vk::handleAddress(bufferHandle)) : name, BufferType::Vertex, bufferInfo.Elements, bufferInfo.VertexBufferLayout->elementSize(), bufferInfo.VertexBufferLayout->elementSize() * bufferInfo.Elements, usage,
+			name.empty() ? std::format("0x{0:X} (Unnamed Resource)", Vk::handleAddress(bufferHandle)) : name, BufferType::Vertex, bufferInfo.Elements, bufferInfo.VertexBufferLayout->elementSize(), bufferInfo.VertexBufferLayout->elementSize() * bufferInfo.Elements, usage,
 			(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
@@ -400,7 +399,7 @@ SharedPtr<IVulkanIndexBuffer> VulkanIndexBuffer::allocate(const String& name, co
 	::vmaGetAllocationMemoryProperties(allocator, allocation, &memoryProperties);
 
 	LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5}, On GPU: {6}, CPU Access: {7} }}", 
-		name.empty() ? std::format("0x{0:X}", Vk::handleAddress(buffer)) : name, BufferType::Index, bufferInfo.Elements, bufferInfo.IndexBufferLayout->elementSize(), bufferInfo.IndexBufferLayout->elementSize() * bufferInfo.Elements, usage,
+		name.empty() ? std::format("0x{0:X} (Unnamed Resource)", Vk::handleAddress(buffer)) : name, BufferType::Index, bufferInfo.Elements, bufferInfo.IndexBufferLayout->elementSize(), bufferInfo.IndexBufferLayout->elementSize() * bufferInfo.Elements, usage,
 		(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
@@ -420,7 +419,7 @@ bool VulkanIndexBuffer::tryAllocate(SharedPtr<IVulkanIndexBuffer>& buffer, const
 	if (result != VK_SUCCESS)
 	{
 		LITEFX_DEBUG(VULKAN_LOG, "Allocation for buffer {0} with {4} bytes failed: {6} {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5} }}",
-			name.empty() ? std::format("0x{0:X}", Vk::handleAddress(bufferHandle)) : name, BufferType::Index, bufferInfo.Elements, bufferInfo.IndexBufferLayout->elementSize(), bufferInfo.IndexBufferLayout->elementSize() * bufferInfo.Elements, usage, result);
+			name.empty() ? std::format("0x{0:X} (Unnamed Resource)", Vk::handleAddress(bufferHandle)) : name, BufferType::Index, bufferInfo.Elements, bufferInfo.IndexBufferLayout->elementSize(), bufferInfo.IndexBufferLayout->elementSize() * bufferInfo.Elements, usage, result);
 		return false;
 	}
 	else
@@ -430,7 +429,7 @@ bool VulkanIndexBuffer::tryAllocate(SharedPtr<IVulkanIndexBuffer>& buffer, const
 		::vmaGetAllocationMemoryProperties(allocator, allocation, &memoryProperties);
 
 		LITEFX_DEBUG(VULKAN_LOG, "Allocated buffer {0} with {4} bytes {{ Type: {1}, Elements: {2}, Element Size: {3}, Usage: {5}, On GPU: {6}, CPU Access: {7} }}",
-			name.empty() ? std::format("0x{0:X}", Vk::handleAddress(bufferHandle)) : name, BufferType::Index, bufferInfo.Elements, bufferInfo.IndexBufferLayout->elementSize(), bufferInfo.IndexBufferLayout->elementSize() * bufferInfo.Elements, usage,
+			name.empty() ? std::format("0x{0:X} (Unnamed Resource)", Vk::handleAddress(bufferHandle)) : name, BufferType::Index, bufferInfo.Elements, bufferInfo.IndexBufferLayout->elementSize(), bufferInfo.IndexBufferLayout->elementSize() * bufferInfo.Elements, usage,
 			(memoryProperties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT) == VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, (memoryProperties & VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT) == VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 #endif
 
