@@ -25,7 +25,7 @@ private:
 	VkImageCreateInfo m_createInfo;
 
 public:
-	VulkanImageImpl(Size3d extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator, AllocationPtr allocation, const VkImageCreateInfo& createInfo) :
+	VulkanImageImpl(Size3d extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, VmaAllocator allocator, AllocationPtr allocation, VkImageCreateInfo createInfo) :
 		m_allocator(allocator), m_allocation(std::move(allocation)), m_format(format), m_extent(std::move(extent)), m_layers(layers), m_levels(levels), m_planes(::hasDepth(format) && ::hasStencil(format) ? 2 : 1), m_dimensions(dimensions), m_usage(usage), m_samples(samples), m_createInfo(createInfo)
 	{
 		// Note: Currently no multi-planar images are supported. Planes have a two-fold meaning in this context. Multi-planar images are images, which have a format with `_2PLANE` or `_3PLANE` in the name, or
@@ -41,7 +41,7 @@ public:
 // Image Base shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanImage::VulkanImage(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const VkImageCreateInfo& createInfo, VmaAllocator allocator, AllocationPtr allocation, const String& name) :
+VulkanImage::VulkanImage(VkImage image, const Size3d& extent, Format format, ImageDimensions dimensions, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const VkImageCreateInfo& createInfo, VmaAllocator allocator, const AllocationPtr& allocation, const String& name) :
 	Resource<VkImage>(image), m_impl(extent, format, dimensions, levels, layers, samples, usage, allocator, allocation, createInfo)
 {
 	if (!name.empty())

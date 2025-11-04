@@ -2135,7 +2135,7 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="name">The name of the frame buffer.</param>
         /// <returns>A pointer to the newly created frame buffer instance.</returns>
         static inline SharedPtr<VulkanFrameBuffer> create(const VulkanDevice& device, const Size2d& renderArea, allocation_callback_type allocationCallback, StringView name = "") {
-            return SharedObject::create<VulkanFrameBuffer>(device, renderArea, allocationCallback, name);
+            return SharedObject::create<VulkanFrameBuffer>(device, renderArea, std::move(allocationCallback), name);
         }
 
         // Vulkan frame buffer interface.
@@ -2879,7 +2879,7 @@ namespace LiteFX::Rendering::Backends {
         [[nodiscard]] SharedPtr<VulkanFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const override;
 
         /// <inheritdoc />
-        [[nodiscard]] virtual SharedPtr<VulkanFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea, VulkanFrameBuffer::allocation_callback_type allocationCallback) const override;
+        [[nodiscard]] SharedPtr<VulkanFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea, VulkanFrameBuffer::allocation_callback_type allocationCallback) const override;
 
         /// <inheritdoc />
         MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept override;

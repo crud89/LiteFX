@@ -31,7 +31,7 @@ public:
 // Buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, AllocationPtr allocation, const String& name) :
+VulkanBuffer::VulkanBuffer(VkBuffer buffer, BufferType type, UInt32 elements, size_t elementSize, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, const AllocationPtr& allocation, const String& name) :
 	Resource<VkBuffer>(buffer), m_impl(type, elements, elementSize, alignment, usage, createInfo, allocator, allocation)
 {
 	if (!name.empty())
@@ -284,7 +284,7 @@ public:
 // Vertex buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanVertexBuffer::VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, UInt32 elements, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, AllocationPtr allocation, const String& name) :
+VulkanVertexBuffer::VulkanVertexBuffer(VkBuffer buffer, const VulkanVertexBufferLayout& layout, UInt32 elements, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, const AllocationPtr& allocation, const String& name) :
 	VulkanBuffer(buffer, BufferType::Vertex, elements, layout.elementSize(), alignment, usage, createInfo, device, allocator, allocation, name), m_impl(layout)
 {
 }
@@ -372,7 +372,7 @@ public:
 // Index buffer shared interface.
 // ------------------------------------------------------------------------------------------------
 
-VulkanIndexBuffer::VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, UInt32 elements, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, AllocationPtr allocation, const String& name) :
+VulkanIndexBuffer::VulkanIndexBuffer(VkBuffer buffer, const VulkanIndexBufferLayout& layout, UInt32 elements, size_t alignment, ResourceUsage usage, const VkBufferCreateInfo& createInfo, const VulkanDevice& device, const VmaAllocator& allocator, const AllocationPtr& allocation, const String& name) :
 	VulkanBuffer(buffer, BufferType::Index, elements, layout.elementSize(), alignment, usage, createInfo, device, allocator, allocation, name), m_impl(layout)
 {
 }

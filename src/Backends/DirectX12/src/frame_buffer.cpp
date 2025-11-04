@@ -22,12 +22,12 @@ private:
 
 public:
     DirectX12FrameBufferImpl(const DirectX12Device& device, Size2d renderArea, Optional<allocation_callback_type> allocationCallback = std::nullopt) :
-        m_size(std::move(renderArea)), m_device(device.weak_from_this()), m_allocationCallback(allocationCallback)
+        m_size(std::move(renderArea)), m_device(device.weak_from_this()), m_allocationCallback(std::move(allocationCallback))
     {
     }
 
 private:
-    inline SharedPtr<const IDirectX12Image> createImage(const DirectX12Device& device, UInt64 renderTargetId, Size2d size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String& name) const {
+    inline SharedPtr<const IDirectX12Image> createImage(const DirectX12Device& device, UInt64 renderTargetId, const Size2d& size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String& name) const {
         if (this->m_allocationCallback.has_value())
         {
             auto image = m_allocationCallback.value()(renderTargetId, size, usage, format, samples, name);
