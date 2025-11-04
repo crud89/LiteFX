@@ -2526,8 +2526,9 @@ namespace LiteFX::Rendering {
         /// <param name="bufferInfo">The details about the buffer.</param>
         /// <param name="usage">The usage flags for the buffer.</param>
         /// <param name="name">The name of the buffer resource.</param>
-        explicit ResourceAllocationInfo(const BufferInfo& bufferInfo, ResourceUsage usage = ResourceUsage::Default, String name = "") :
-            ResourceInfo(bufferInfo), Usage(usage), Name(std::move(name)) { }
+        /// <param name="aliasingOffset">An optional offset that is used to place the resource in a block of allocated memory when allocating overlapping resources.</param>
+        explicit ResourceAllocationInfo(const BufferInfo& bufferInfo, ResourceUsage usage = ResourceUsage::Default, String name = "", size_t aliasingOffset = 0u) :
+            ResourceInfo(bufferInfo), Usage(usage), Name(std::move(name)), AliasingOffset(aliasingOffset) { }
 
         /// <summary>
         /// Creates a new resource allocation info instance for an image resource.
@@ -2535,8 +2536,9 @@ namespace LiteFX::Rendering {
         /// <param name="imageInfo">The details about the image.</param>
         /// <param name="usage">The usage flags for the image.</param>
         /// <param name="name">The name of the image resource.</param>
-        explicit ResourceAllocationInfo(const ImageInfo& imageInfo, ResourceUsage usage = ResourceUsage::Default, String name = "") :
-            ResourceInfo(imageInfo), Usage(usage), Name(std::move(name)) { }
+        /// <param name="aliasingOffset">An optional offset that is used to place the resource in a block of allocated memory when allocating overlapping resources.</param>
+        explicit ResourceAllocationInfo(const ImageInfo& imageInfo, ResourceUsage usage = ResourceUsage::Default, String name = "", size_t aliasingOffset = 0u) :
+            ResourceInfo(imageInfo), Usage(usage), Name(std::move(name)), AliasingOffset(aliasingOffset) { }
         
         ResourceAllocationInfo(const ResourceAllocationInfo&) = default;
         ResourceAllocationInfo(ResourceAllocationInfo&&) noexcept = default;
@@ -2603,7 +2605,7 @@ namespace LiteFX::Rendering {
         /// <returns>The pointer to the buffer resource.</returns>
         /// <exception cref="RuntimeException">Thrown, if the allocated resource is not a buffer, or if the allocated buffer does not implement <typeparamref name="TBuffer"/>.</exception>
         template <std::derived_from<IBuffer> TBuffer>
-        SharedPtr<TBuffer> image() const {
+        SharedPtr<TBuffer> buffer() const {
             if (!std::holds_alternative<SharedPtr<IBuffer>>(m_resource)) [[unlikely]]
                 throw RuntimeException("The allocation result does not contain a buffer.");
 
