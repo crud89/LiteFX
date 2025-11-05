@@ -566,6 +566,7 @@ void VulkanRenderPassBuilder::build()
     instance->m_impl->mapInputAttachments(this->state().inputAttachments);
     instance->m_impl->m_inputAttachmentSamplerBinding = this->state().inputAttachmentSamplerBinding;
     instance->m_impl->m_secondaryCommandBufferCount = this->state().commandBufferCount;
+    instance->m_impl->m_viewMask = this->state().viewMask;
 }
 
 RenderPassDependency VulkanRenderPassBuilder::makeInputAttachment(DescriptorBindingPoint binding, const RenderTarget& renderTarget)
