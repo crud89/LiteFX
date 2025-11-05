@@ -56,7 +56,7 @@ template<>
 const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
-static inline void setupPrepareMoveHandler(SharedPtr<const IBuffer> resource, ResourceAccess beforeAccess) {
+static inline void setupPrepareMoveHandler(const SharedPtr<const IBuffer>& resource, ResourceAccess beforeAccess) {
     resource->prepareMove += [buffer = resource->weak_from_this(), beforeAccess](const void* /*sender*/, const IDeviceMemory::PrepareMoveEventArgs& e) {
         auto resource = buffer.lock();
 
@@ -65,7 +65,7 @@ static inline void setupPrepareMoveHandler(SharedPtr<const IBuffer> resource, Re
     };
 }
 
-static inline void setupPrepareMoveHandler(SharedPtr<const IImage> resource, ResourceAccess beforeAccess, ImageLayout layout) {
+static inline void setupPrepareMoveHandler(const SharedPtr<const IImage>& resource, ResourceAccess beforeAccess, ImageLayout layout) {
     resource->prepareMove += [image = resource->weak_from_this(), beforeAccess, layout](const void* /*sender*/, const IDeviceMemory::PrepareMoveEventArgs& e) {
         auto resource = image.lock();
 
