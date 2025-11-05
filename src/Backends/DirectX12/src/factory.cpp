@@ -275,14 +275,38 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 	else if (result != S_FALSE) [[unlikely]]
 		throw DX12PlatformException(result, "Unable to begin new defragmentation pass.");
 
-	m_impl->m_defragmentationCommandBuffer->begin();
+	// Begin recording a command buffer for defragmentation.
 	Array<IDeviceMemory*> resources;
+	auto& commandBuffer = *m_impl->m_defragmentationCommandBuffer;
+	commandBuffer.begin();
+
+	// Prepare the move operation on each resource, i.e., create a barrier to allow then to synchronize the move with their current usage.
+	DirectX12Barrier barrier(PipelineStage::All, PipelineStage::Transfer);
+	IDeviceMemory::PrepareMoveEventArgs eventArgs(barrier);
 
 	for (UInt32 i{ 0u }; i < pass.MoveCount; ++i)
 	{
 		// Get the source allocation.
 		auto sourceAllocation = pass.pMoves[i].pSrcAllocation;    // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+
+		// Acquire the underlying resource device memory instance.
+		auto deviceMemory = static_cast<IDeviceMemory*>(sourceAllocation->GetPrivateData());
+
+		// Invoke the `prepareMove` event.
+		deviceMemory->prepareMove(this, eventArgs);
+	}
+
+	// Issue a barrier to transition the resources that requested it.
+	commandBuffer.barrier(barrier);
+
+	// Perform the actual move operations.
+	for (UInt32 i{ 0u }; i < pass.MoveCount; ++i)
+	{
+		// Get the source allocation.
+		auto sourceAllocation = pass.pMoves[i].pSrcAllocation;    // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
 		auto targetAllocation = pass.pMoves[i].pDstTmpAllocation; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
+
+		// Acquire the underlying resource device memory instance and add it to the list of moved-from resources.
 		IDeviceMemory* deviceMemory = static_cast<IDeviceMemory*>(sourceAllocation->GetPrivateData());
 		resources.emplace_back(deviceMemory);
 
@@ -291,7 +315,7 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 		{
 			auto oldHandle = std::as_const(*buffer).handle();
 
-			if (DirectX12Buffer::move(buffer->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
+			if (DirectX12Buffer::move(buffer->shared_from_this(), targetAllocation, commandBuffer))
 				m_impl->m_destroyedResources.emplace(std::move(oldHandle), buffer->shared_from_this());
 			else
 				pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -306,7 +330,7 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 			{
 				auto oldHandle = std::as_const(*image).handle();
 
-				if (DirectX12Image::move(image->shared_from_this(), targetAllocation, *m_impl->m_defragmentationCommandBuffer))
+				if (DirectX12Image::move(image->shared_from_this(), targetAllocation, commandBuffer))
 					m_impl->m_destroyedResources.emplace(std::move(oldHandle), image->shared_from_this());
 				else
 					pass.pMoves[i].Operation = D3D12MA::DEFRAGMENTATION_MOVE_OPERATION_IGNORE; // NOLINT(cppcoreguidelines-pro-bounds-pointer-arithmetic)
@@ -314,12 +338,15 @@ UInt64 DirectX12GraphicsFactory::beginDefragmentationPass() const
 		}
 	}
 
-	m_impl->m_defragmentationFence = m_impl->m_defragmentationCommandBuffer->submit();
+	// Submit de command buffer and store the fence.
+	auto fence = m_impl->m_defragmentationFence = commandBuffer.submit();
 
+	// Invoke the `moving` event.
 	for (auto resource : resources)
-		resource->moving(this, { m_impl->m_defragmentationCommandBuffer->queue(), m_impl->m_defragmentationFence });
+		resource->moving(this, { commandBuffer.queue(), fence });
 
-	return m_impl->m_defragmentationFence;
+	// Return the current fence value.
+	return fence;
 }
 
 bool DirectX12GraphicsFactory::endDefragmentationPass() const

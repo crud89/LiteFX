@@ -56,6 +56,24 @@ template<>
 const String FileExtensions<DirectX12Backend>::SHADER = "dxi";
 #endif // LITEFX_BUILD_DIRECTX_12_BACKEND
 
+static inline void setupPrepareMoveHandler(const SharedPtr<const IBuffer>& resource, ResourceAccess beforeAccess) {
+    resource->prepareMove += [buffer = resource->weak_from_this(), beforeAccess](const void* /*sender*/, const IDeviceMemory::PrepareMoveEventArgs& e) {
+        auto resource = buffer.lock();
+
+        if (resource)
+            e.barrier().transition(*resource, beforeAccess, ResourceAccess::TransferRead);
+    };
+}
+
+static inline void setupPrepareMoveHandler(const SharedPtr<const IImage>& resource, ResourceAccess beforeAccess, ImageLayout layout) {
+    resource->prepareMove += [image = resource->weak_from_this(), beforeAccess, layout](const void* /*sender*/, const IDeviceMemory::PrepareMoveEventArgs& e) {
+        auto resource = image.lock();
+
+        if (resource)
+            e.barrier().transition(*resource, beforeAccess, ResourceAccess::TransferRead, layout);
+    };
+}
+
 template<typename TRenderBackend> requires
     meta::implements<TRenderBackend, IRenderBackend>
 void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputAssemblerState)
@@ -117,8 +135,7 @@ void initRenderGraph(TRenderBackend* backend, SharedPtr<IInputAssembler>& inputA
 
 void SampleApp::initBuffers(IRenderBackend* /*backend*/)
 {
-    // Prefer GPU upload heap for dynamic resources, if ReBAR is available.
-    auto preferredDynamicHeap = m_device->factory().supportsResizableBaseAddressRegister() ? ResourceHeap::GPUUpload : ResourceHeap::Dynamic;
+    // NOTE: We setup the `prepareMove` event for each of the resources allocated below, as we need to make sure they are properly synchronized, in case defragmentation attempts to move them.
 
     // Get a command buffer
     auto commandBuffer = m_device->defaultQueue(QueueType::Transfer).createCommandBuffer(true);
@@ -126,10 +143,12 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // Create the vertex buffer and transfer the staging buffer into it.
     auto vertexBuffer = m_device->factory().createVertexBuffer("Vertex Buffer", m_inputAssembler->vertexBufferLayout(0), ResourceHeap::Resource, static_cast<UInt32>(vertices.size()));
     commandBuffer->transfer(vertices.data(), vertices.size() * sizeof(::Vertex), *vertexBuffer, 0, static_cast<UInt32>(vertices.size()));
+    ::setupPrepareMoveHandler(vertexBuffer, ResourceAccess::VertexBuffer);
 
     // Create the index buffer and transfer the staging buffer into it.
     auto indexBuffer = m_device->factory().createIndexBuffer("Index Buffer", *m_inputAssembler->indexBufferLayout(), ResourceHeap::Resource, static_cast<UInt32>(indices.size()));
     commandBuffer->transfer(indices.data(), indices.size() * m_inputAssembler->indexBufferLayout()->elementSize(), *indexBuffer, 0, static_cast<UInt32>(indices.size()));
+    ::setupPrepareMoveHandler(indexBuffer, ResourceAccess::IndexBuffer);
 
     // Initialize the camera buffer. The camera buffer is constant, so we only need to create one buffer, that can be read from all frames. Since this is a 
     // write-once/read-multiple scenario, we also transfer the buffer to the more efficient memory heap on the GPU.
@@ -137,6 +156,7 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     auto& cameraBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::Constant);
     auto cameraBuffer = m_device->factory().createBuffer("Camera", cameraBindingLayout, 0, ResourceHeap::Resource);
     auto cameraBindings = cameraBindingLayout.allocate({ { .resource = *cameraBuffer } });
+    ::setupPrepareMoveHandler(cameraBuffer, ResourceAccess::TransferWrite | ResourceAccess::ShaderRead);
 
     // Update the camera. Since the descriptor set already points to the proper buffer, all changes are implicitly visible.
     this->updateCamera(*commandBuffer, *cameraBuffer);
@@ -144,12 +164,14 @@ void SampleApp::initBuffers(IRenderBackend* /*backend*/)
     // Next, we create the descriptor sets for the transform buffer. The transform changes with every frame. Since we have three frames in flight, we
     // create a buffer with three elements and bind the appropriate element to the descriptor set for every frame.
     auto& transformBindingLayout = geometryPipeline.layout()->descriptorSet(DescriptorSets::PerFrame);
-    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, preferredDynamicHeap, 3);
+    auto transformBuffer = m_device->factory().createBuffer("Transform", transformBindingLayout, 0, ResourceHeap::Dynamic, 3);
     auto transformBindings = transformBindingLayout.allocate(3, {
         { { .resource = *transformBuffer, .firstElement = 0, .elements = 1 } },
         { { .resource = *transformBuffer, .firstElement = 1, .elements = 1 } },
         { { .resource = *transformBuffer, .firstElement = 2, .elements = 1 } }
     }) | std::ranges::to<Array<UniquePtr<IDescriptorSet>>>();
+
+    ::setupPrepareMoveHandler(transformBuffer, ResourceAccess::ShaderRead);
     
     // End and submit the command buffer.
     m_transferFence = commandBuffer->submit();
@@ -404,13 +426,19 @@ void SampleApp::drawFrame()
         auto images = imageDice(rng);
 
         for (UInt32 i{}; i < images && allocations.size() < maxResources; ++i)
-            allocations.emplace_back(m_device->factory().createTexture(Format::R8G8B8A8_SRGB, { resolutionDice(rng), resolutionDice(rng) , 1u }), frameDice(rng));
+        {
+            auto& allocation = allocations.emplace_back(m_device->factory().createTexture(Format::R8G8B8A8_SRGB, { resolutionDice(rng), resolutionDice(rng) , 1u }), frameDice(rng));
+            ::setupPrepareMoveHandler(std::get<SharedPtr<IImage>>(allocation.resource), ResourceAccess::None, ImageLayout::Common);
+        }
 
         // Generate new buffers.
         auto buffers = bufferDice(rng);
 
         for (UInt32 i{}; i < buffers && allocations.size() < maxResources; ++i)
-            allocations.emplace_back(m_device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, resolutionDice(rng)), frameDice(rng));
+        {
+            auto& allocation = allocations.emplace_back(m_device->factory().createBuffer(BufferType::Storage, ResourceHeap::Resource, resolutionDice(rng)), frameDice(rng));
+            ::setupPrepareMoveHandler(std::get<SharedPtr<IBuffer>>(allocation.resource), ResourceAccess::None);
+        }
     }
 
     // Store the initial time this method has been called first.

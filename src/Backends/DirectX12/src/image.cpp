@@ -280,10 +280,8 @@ bool DirectX12Image::move(SharedPtr<IDirectX12Image> image, D3D12MA::Allocation*
 	const auto& resourceDesc = source.m_impl->m_resourceDesc;
 	auto allocator = source.m_impl->m_allocator;
 
-	bool isDepthStencil = ::hasDepth(image->format()) || ::hasStencil(image->format());
-
 	ComPtr<ID3D12Resource> resource;
-	auto result = (*device).handle()->CreatePlacedResource2(to->GetHeap(), to->GetOffset(), std::addressof(resourceDesc), isDepthStencil ? D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ : D3D12_BARRIER_LAYOUT_COMMON, nullptr, 0, nullptr, IID_PPV_ARGS(&resource));
+	auto result = (*device).handle()->CreatePlacedResource2(to->GetHeap(), to->GetOffset(), std::addressof(resourceDesc), D3D12_BARRIER_LAYOUT_COMMON, nullptr, 0, nullptr, IID_PPV_ARGS(&resource));
 
 	if (FAILED(result)) [[unlikely]]
 		return false;
