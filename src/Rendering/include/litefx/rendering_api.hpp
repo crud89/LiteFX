@@ -9412,6 +9412,13 @@ namespace LiteFX::Rendering {
         /// <returns>The value of the fence that indicates the end of the render pass.</returns>
         virtual UInt64 end() const = 0;
 
+        /// <summary>
+        /// Returns the mask that identifies the views that are enabled during rendering.
+        /// </summary>
+        /// <returns>A mask that identifies the views that are enabled during rendering.</returns>
+        /// <seealso cref="GraphicsDeviceFeatures::ViewInstancing" />
+        virtual UInt32 viewMask() const noexcept = 0;
+
     private:
         virtual SharedPtr<const IFrameBuffer> getActiveFrameBuffer() const noexcept = 0;
         virtual void beginRenderPass(const IFrameBuffer& frameBuffer) const = 0;
@@ -10977,6 +10984,13 @@ namespace LiteFX::Rendering {
         /// <seealso href="https://learn.microsoft.com/en-us/windows/win32/direct3d12/conservative-rasterization" />
         /// <seealso href="https://registry.khronos.org/vulkan/specs/latest/man/html/VK_EXT_conservative_rasterization.html" />
         bool ConservativeRasterization { false };
+
+        /// <summary>
+        /// Enables support for view instancing/multi-view.
+        /// </summary>
+        /// <seealso href="https://microsoft.github.io/DirectX-Specs/d3d/ViewInstancing.html#view-instance-masking" />
+        /// <seealso href="https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_multiview.html" />
+        bool ViewInstancing { false };
     };
 
     /// <summary>
