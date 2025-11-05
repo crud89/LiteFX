@@ -1607,7 +1607,7 @@ namespace LiteFX::Rendering {
         /// <inheritdoc />
         /// <param name="allocationCallback">A callback that gets invoked, when the frame buffer allocates a new image.</param>
         [[nodiscard]] inline SharedPtr<frame_buffer_type> makeFrameBuffer(const Size2d& renderArea, frame_buffer_type::allocation_callback_type allocationCallback) const {
-            return this->makeFrameBuffer("", renderArea, allocationCallback);
+            return this->makeFrameBuffer("", renderArea, std::move(allocationCallback));
         }
 
         /// <inheritdoc />

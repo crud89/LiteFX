@@ -118,7 +118,7 @@ public:
 	/// Initializes the overlapping resources.
 	/// </summary>
 	/// <param name="renderArea">The render area that determines the size of the resources.</param>
-	void initAliasingBuffers(Size2d renderArea) {
+	void initAliasingBuffers(const Size2d& renderArea) {
 		// NOTE: Automatically mapping render targets to images relies on resource names, so it's important to use the same names here as for the render targets later.
 		auto resourceInfos = std::array {
 			ResourceAllocationInfo(ResourceAllocationInfo::ImageInfo { .Format = Format::D32_SFLOAT, .Size = renderArea }, ResourceUsage::FrameBufferImage, "Depth"),
@@ -137,14 +137,14 @@ public:
 		m_postColorBuffer = resources[1].image<const IImage>();
 	}
 
-	void onFrameBufferResizing(const void* /*sender*/, IFrameBuffer::ResizeEventArgs e) {
+	void onFrameBufferResizing(const void* /*sender*/, const IFrameBuffer::ResizeEventArgs& e) {
 		this->initAliasingBuffers(e.newSize());
 	}
 	
 	template <typename TRenderBackend> requires
 		meta::implements<TRenderBackend, IRenderBackend>
-	SharedPtr<const typename TRenderBackend::image_type> frameBufferAllocationCallback(UInt64 renderTargetId, Size2d /*renderArea*/, ResourceUsage /*usage*/, Format /*format*/, MultiSamplingLevel /*samples*/, const String& /*name*/) const {
-		switch (renderTargetId)
+	SharedPtr<const typename TRenderBackend::image_type> frameBufferAllocationCallback(Optional<UInt64> renderTargetId, const Size2d& /*renderArea*/, ResourceUsage /*usage*/, Format /*format*/, MultiSamplingLevel /*samples*/, const String& name) const {
+		switch (renderTargetId.value_or(hash(name)))
 		{
 		case hash("Depth"):
 			return std::dynamic_pointer_cast<const typename TRenderBackend::image_type>(m_depthBuffer);

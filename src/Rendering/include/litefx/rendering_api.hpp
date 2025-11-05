@@ -8915,14 +8915,14 @@ namespace LiteFX::Rendering {
         /// invoked.
         /// 
         /// <example>
-        /// auto callback = [this](UInt64 renderTargetId, Size2d size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String& name) {
+        /// auto callback = [this](Optional<UInt64> renderTargetId, Size2d size, ResourceUsage usage, Format format, MultiSamplingLevel samples, const String& name) {
         ///     return m_device->factory().createTexture(name, format, size, ImageDimensions::DIM_2, 1u, 1u, samples, usage); // Emulates the default behavior.
         /// };
         /// </example>
         /// </remarks>
         /// <see cref="resize" />
         template <typename TImage>
-        using allocation_callback_type = std::function<SharedPtr<const TImage>(UInt64, Size2d, ResourceUsage, Format, MultiSamplingLevel, const String&)>;
+        using allocation_callback_type = std::function<SharedPtr<const TImage>(Optional<UInt64>, Size2d, ResourceUsage, Format, MultiSamplingLevel, const String&)>;
 
     public:
         /// <summary>
@@ -9462,6 +9462,13 @@ namespace LiteFX::Rendering {
         /// </remarks>
         /// <returns>The value of the fence that indicates the end of the render pass.</returns>
         virtual UInt64 end() const = 0;
+
+        /// <summary>
+        /// Returns the mask that identifies the views that are enabled during rendering.
+        /// </summary>
+        /// <returns>A mask that identifies the views that are enabled during rendering.</returns>
+        /// <seealso cref="GraphicsDeviceFeatures::ViewInstancing" />
+        virtual UInt32 viewMask() const noexcept = 0;
 
     private:
         virtual SharedPtr<const IFrameBuffer> getActiveFrameBuffer() const noexcept = 0;
@@ -11028,6 +11035,13 @@ namespace LiteFX::Rendering {
         /// <seealso href="https://learn.microsoft.com/en-us/windows/win32/direct3d12/conservative-rasterization" />
         /// <seealso href="https://registry.khronos.org/vulkan/specs/latest/man/html/VK_EXT_conservative_rasterization.html" />
         bool ConservativeRasterization { false };
+
+        /// <summary>
+        /// Enables support for view instancing/multi-view.
+        /// </summary>
+        /// <seealso href="https://microsoft.github.io/DirectX-Specs/d3d/ViewInstancing.html#view-instance-masking" />
+        /// <seealso href="https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_multiview.html" />
+        bool ViewInstancing { false };
     };
 
     /// <summary>

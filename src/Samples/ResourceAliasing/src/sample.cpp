@@ -507,6 +507,6 @@ void SampleApp::drawFrame()
         commandBuffer->drawIndexed(viewPlaneIndexBuffer.elements());
 
         // End the lighting pass.
-        fence = renderPass.end();
+        renderPass.end();
     }
 }

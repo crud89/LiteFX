@@ -205,15 +205,35 @@ public:
 		blendState.AlphaToCoverageEnable = m_alphaToCoverage;
 		blendState.IndependentBlendEnable = TRUE;
 
+		// Initialize view instancing state.
+		// Each view by default maps to the same render target and viewport. To overwrite this, output `SV_RenderTargetArrayIndex` and `SV_ViewportArrayIndex` from the
+		// pre-rasterizer shader stages accordingly. This emulates Vulkan behavior.
+		// See: https://microsoft.github.io/DirectX-Specs/d3d/ViewInstancing.html#view-instance-locations (last paragraph)
+		constinit static auto viewInstanceLocations = []() {
+			std::array<D3D12_VIEW_INSTANCE_LOCATION, D3D12_MAX_VIEW_INSTANCE_COUNT> locations{};
+			locations.fill({ 0u, 0u });
+			return locations;
+		}();
+
+		constinit static D3D12_VIEW_INSTANCING_DESC viewInstancingDesc = {
+			.ViewInstanceCount = static_cast<UInt32>(viewInstanceLocations.size()),
+			.pViewInstanceLocations = viewInstanceLocations.data(),
+			.Flags = D3D12_VIEW_INSTANCING_FLAG_ENABLE_VIEW_INSTANCE_MASKING
+		};
+
+		Optional<D3D12_VIEW_INSTANCING_DESC> viewInstancingDescParam{ std::nullopt };
+
+		if (m_renderPass->viewMask() != 0)
+			viewInstancingDescParam = viewInstancingDesc;
+
 		// Initialize the remainder depending on the pipeline type.
 		if (hasMeshShaders)
-			return this->initializeMeshPipeline(pipeline, blendState, rasterizerState, depthStencilState, topologyType, renderTargets, rtvFormats, dsvFormat, multisamplingState);
+			return this->initializeMeshPipeline(pipeline, blendState, rasterizerState, depthStencilState, topologyType, renderTargets, rtvFormats, dsvFormat, multisamplingState, viewInstancingDescParam);
 		else
-			return this->initializeGraphicsPipeline(pipeline, blendState, rasterizerState, depthStencilState, inputLayout, topologyType, renderTargets, rtvFormats, dsvFormat, multisamplingState);
-
+			return this->initializeGraphicsPipeline(pipeline, blendState, rasterizerState, depthStencilState, inputLayout, topologyType, renderTargets, rtvFormats, dsvFormat, multisamplingState, viewInstancingDescParam);
 	}
 
-	ComPtr<ID3D12PipelineState> initializeMeshPipeline([[maybe_unused]] const DirectX12RenderPipeline& pipeline, const D3D12_BLEND_DESC& blendState, const D3D12_RASTERIZER_DESC& rasterizerState, const D3D12_DEPTH_STENCIL_DESC1& depthStencilState, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, UINT renderTargets, const std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>& renderTargetFormats, DXGI_FORMAT depthStencilFormat, const DXGI_SAMPLE_DESC& multisamplingState)
+	ComPtr<ID3D12PipelineState> initializeMeshPipeline([[maybe_unused]] const DirectX12RenderPipeline& pipeline, const D3D12_BLEND_DESC& blendState, const D3D12_RASTERIZER_DESC& rasterizerState, const D3D12_DEPTH_STENCIL_DESC1& depthStencilState, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, UINT renderTargets, const std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>& renderTargetFormats, DXGI_FORMAT depthStencilFormat, const DXGI_SAMPLE_DESC& multisamplingState, const Optional<D3D12_VIEW_INSTANCING_DESC>& viewInstancingDesc)
 	{
 		// Create a pipeline state description.
 		D3DX12_MESH_SHADER_PIPELINE_STATE_DESC pipelineStateDescription = {
@@ -266,6 +286,9 @@ public:
 		CD3DX12_PIPELINE_STATE_STREAM2 streamDesc(pipelineStateDescription);
 		streamDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC1(depthStencilState);
 
+		if (viewInstancingDesc.has_value())
+			streamDesc.ViewInstancingDesc = CD3DX12_VIEW_INSTANCING_DESC(viewInstancingDesc.value());
+
 		D3D12_PIPELINE_STATE_STREAM_DESC pipelineDesc = {
 			.SizeInBytes = sizeof(streamDesc),
 			.pPipelineStateSubobjectStream = &streamDesc
@@ -282,7 +305,7 @@ public:
 		return pipelineState;
 	}
 
-	ComPtr<ID3D12PipelineState> initializeGraphicsPipeline([[maybe_unused]] const DirectX12RenderPipeline& pipeline, const D3D12_BLEND_DESC& blendState, const D3D12_RASTERIZER_DESC& rasterizerState, const D3D12_DEPTH_STENCIL_DESC1& depthStencilState, const D3D12_INPUT_LAYOUT_DESC& inputLayout, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, UINT renderTargets, const std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>& renderTargetFormats, DXGI_FORMAT depthStencilFormat, const DXGI_SAMPLE_DESC& multisamplingState)
+	ComPtr<ID3D12PipelineState> initializeGraphicsPipeline([[maybe_unused]] const DirectX12RenderPipeline& pipeline, const D3D12_BLEND_DESC& blendState, const D3D12_RASTERIZER_DESC& rasterizerState, const D3D12_DEPTH_STENCIL_DESC1& depthStencilState, const D3D12_INPUT_LAYOUT_DESC& inputLayout, D3D12_PRIMITIVE_TOPOLOGY_TYPE topologyType, UINT renderTargets, const std::array<DXGI_FORMAT, D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT>& renderTargetFormats, DXGI_FORMAT depthStencilFormat, const DXGI_SAMPLE_DESC& multisamplingState, const Optional<D3D12_VIEW_INSTANCING_DESC>& viewInstancingDesc)
 	{
 		// Create a pipeline state description.
 		D3D12_GRAPHICS_PIPELINE_STATE_DESC pipelineStateDescription = {
@@ -343,6 +366,9 @@ public:
 
 		CD3DX12_PIPELINE_STATE_STREAM2 streamDesc(pipelineStateDescription);
 		streamDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC1(depthStencilState);
+
+		if (viewInstancingDesc.has_value())
+			streamDesc.ViewInstancingDesc = CD3DX12_VIEW_INSTANCING_DESC(viewInstancingDesc.value());
 
 		D3D12_PIPELINE_STATE_STREAM_DESC pipelineDesc = {
 			.SizeInBytes = sizeof(streamDesc),

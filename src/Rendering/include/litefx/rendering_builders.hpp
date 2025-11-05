@@ -1925,6 +1925,12 @@ namespace LiteFX::Rendering {
             /// The binding point for input attachment samplers, if required.
             /// </summary>
             Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding{ std::nullopt };
+
+            /// <summary>
+            /// A mask that indicates the enabled view instances during rendering, if view instancing is enabled.
+            /// </summary>
+            /// <seealso cref="GraphicsDeviceFeatures::ViewInstancing" />
+            UInt32 viewMask{ 0b0000 };
         } m_state;
 
     protected:
@@ -2055,6 +2061,16 @@ namespace LiteFX::Rendering {
         template <typename TSelf>
         constexpr auto inputAttachmentSamplerBinding(this TSelf&& self, const DescriptorBindingPoint& bindingPoint) -> TSelf&& {
             self.m_state.inputAttachmentSamplerBinding = bindingPoint;
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Specifies the mask of enabled view instances.
+        /// </summary>
+        /// <param name="viewMask">A mask that indicates the enabled view instances for the render pass.</param>
+        template <typename TSelf>
+        constexpr auto inputAttachmentSamplerBinding(this TSelf&& self, UInt32 viewMask) -> TSelf&& {
+            self.m_state.viewMask = viewMask;
             return std::forward<TSelf>(self);
         }
     };
