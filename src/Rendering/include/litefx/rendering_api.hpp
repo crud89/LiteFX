@@ -9412,6 +9412,13 @@ namespace LiteFX::Rendering {
         /// <returns>The value of the fence that indicates the end of the render pass.</returns>
         virtual UInt64 end() const = 0;
 
+        /// <summary>
+        /// Returns the mask that identifies the views that are enabled during rendering.
+        /// </summary>
+        /// <returns>A mask that identifies the views that are enabled during rendering.</returns>
+        /// <seealso cref="GraphicsDeviceFeatures::ViewInstancing" />
+        virtual UInt32 viewMask() const noexcept = 0;
+
     private:
         virtual SharedPtr<const IFrameBuffer> getActiveFrameBuffer() const noexcept = 0;
         virtual void beginRenderPass(const IFrameBuffer& frameBuffer) const = 0;
