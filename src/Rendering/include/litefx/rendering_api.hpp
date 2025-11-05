@@ -10977,6 +10977,13 @@ namespace LiteFX::Rendering {
         /// <seealso href="https://learn.microsoft.com/en-us/windows/win32/direct3d12/conservative-rasterization" />
         /// <seealso href="https://registry.khronos.org/vulkan/specs/latest/man/html/VK_EXT_conservative_rasterization.html" />
         bool ConservativeRasterization { false };
+
+        /// <summary>
+        /// Enables support for view instancing/multi-view.
+        /// </summary>
+        /// <seealso href="https://microsoft.github.io/DirectX-Specs/d3d/ViewInstancing.html#view-instance-masking" />
+        /// <seealso href="https://docs.vulkan.org/refpages/latest/refpages/source/VK_KHR_multiview.html" />
+        bool ViewInstancing { false };
     };
 
     /// <summary>

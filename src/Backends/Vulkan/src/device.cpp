@@ -341,6 +341,7 @@ public:
         if (features.MeshShaders)
             lastFeature = &meshShaderFeatures;
 
+        // Enable mutable descriptor types.
         VkPhysicalDeviceMutableDescriptorTypeFeaturesEXT mutableDescriptorTypeFeatures = {
             .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MUTABLE_DESCRIPTOR_TYPE_FEATURES_EXT,
             .pNext = lastFeature,
@@ -349,6 +350,20 @@ public:
 
         if (features.DynamicDescriptors)
             lastFeature = &mutableDescriptorTypeFeatures;
+
+        // Enable multi-view/view instancing.
+        VkPhysicalDeviceMultiviewFeatures multiViewFeatures = {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MULTIVIEW_FEATURES,
+            .pNext = lastFeature,
+            .multiview = features.ViewInstancing,
+#ifndef LITEFX_BUILD_TESTS
+            .multiviewGeometryShader = features.ViewInstancing,
+            .multiviewTessellationShader = features.ViewInstancing
+#endif // LITEFX_BUILD_TESTS
+        };
+
+        if (features.ViewInstancing)
+            lastFeature = &multiViewFeatures;
 
         // Enable maintenance 5 extension, if supported.
         VkPhysicalDeviceMaintenance5FeaturesKHR maintenance5Features = {
@@ -425,7 +440,9 @@ public:
             .separateDepthStencilLayouts = true,
             .hostQueryReset = true,
             .timelineSemaphore = true,
-            .bufferDeviceAddress = true
+            .bufferDeviceAddress = true,
+            .shaderOutputViewportIndex = features.ViewInstancing,
+            .shaderOutputLayer = features.ViewInstancing
         };
 
         // Enable shader draw parameters, if we use indirect draw.
