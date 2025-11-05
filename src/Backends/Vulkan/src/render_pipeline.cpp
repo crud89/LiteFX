@@ -70,6 +70,9 @@ public:
 			VkDynamicState::VK_DYNAMIC_STATE_BLEND_CONSTANTS,
 			VkDynamicState::VK_DYNAMIC_STATE_STENCIL_REFERENCE
 		};
+
+		if (std::as_const(*m_rasterizer).depthStencilState().depthState().DepthBoundsTestEnable)
+			dynamicStates.emplace_back(VK_DYNAMIC_STATE_DEPTH_BOUNDS);
 		
 		VkPipelineDynamicStateCreateInfo dynamicState = {};
 		dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
@@ -102,23 +105,39 @@ public:
 
 		// Setup rasterizer state.
 		auto& rasterizer = std::as_const(*m_rasterizer.get());
-		VkPipelineRasterizationStateCreateInfo rasterizerState = {};
-		rasterizerState.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-		rasterizerState.depthClampEnable = VK_FALSE;
-		rasterizerState.rasterizerDiscardEnable = VK_FALSE;
-		rasterizerState.polygonMode = Vk::getPolygonMode(rasterizer.polygonMode());
-		rasterizerState.lineWidth = rasterizer.lineWidth();
-		rasterizerState.cullMode = Vk::getCullMode(rasterizer.cullMode());
-		rasterizerState.frontFace = rasterizer.cullOrder() == CullOrder::ClockWise ? VK_FRONT_FACE_CLOCKWISE : VK_FRONT_FACE_COUNTER_CLOCKWISE;
-		rasterizerState.depthBiasEnable = rasterizer.depthStencilState().depthBias().Enable;
-		rasterizerState.depthBiasClamp = rasterizer.depthStencilState().depthBias().Clamp;
-		rasterizerState.depthBiasConstantFactor = rasterizer.depthStencilState().depthBias().ConstantFactor;
-		rasterizerState.depthBiasSlopeFactor = rasterizer.depthStencilState().depthBias().SlopeFactor;
 
-		LITEFX_TRACE(VULKAN_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3} }}", rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth());
+		VkPipelineRasterizationConservativeStateCreateInfoEXT conservativeRasterizationInfo = {
+			.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_CONSERVATIVE_STATE_CREATE_INFO_EXT,
+			.conservativeRasterizationMode = VK_CONSERVATIVE_RASTERIZATION_MODE_OVERESTIMATE_EXT,
+		};
+
+		VkPipelineRasterizationDepthClipStateCreateInfoEXT depthClipState = {
+			.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_DEPTH_CLIP_STATE_CREATE_INFO_EXT,
+			.pNext = rasterizer.conservativeRasterization() ? &conservativeRasterizationInfo : nullptr,
+			.depthClipEnable = rasterizer.depthClip()
+		};
+
+		VkPipelineRasterizationStateCreateInfo rasterizerState = {
+			.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+			.pNext = &depthClipState,
+			.depthClampEnable = VK_TRUE,			// Default behavior in DirectX 12.
+			.rasterizerDiscardEnable = VK_FALSE,	// Not available in DirectX 12.
+			.polygonMode = Vk::getPolygonMode(rasterizer.polygonMode()),
+			.cullMode = Vk::getCullMode(rasterizer.cullMode()),
+			.frontFace = rasterizer.cullOrder() == CullOrder::ClockWise ? VK_FRONT_FACE_CLOCKWISE : VK_FRONT_FACE_COUNTER_CLOCKWISE,
+			.depthBiasEnable = rasterizer.depthStencilState().depthBias().Enable,
+			.depthBiasConstantFactor = rasterizer.depthStencilState().depthBias().ConstantFactor,
+			.depthBiasClamp = rasterizer.depthStencilState().depthBias().Clamp,
+			.depthBiasSlopeFactor = rasterizer.depthStencilState().depthBias().SlopeFactor,
+			.lineWidth = rasterizer.lineWidth()
+		};
+
+		LITEFX_TRACE(VULKAN_LOG, "Rasterizer state: {{ PolygonMode: {0}, CullMode: {1}, CullOrder: {2}, LineWidth: {3}, Depth Clip: {4}, Conservative Rasterization: {5} }}", 
+			rasterizer.polygonMode(), rasterizer.cullMode(), rasterizer.cullOrder(), rasterizer.lineWidth(), rasterizer.depthClip(), rasterizer.conservativeRasterization());
 
 		if (rasterizer.depthStencilState().depthBias().Enable)
-			LITEFX_TRACE(VULKAN_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", rasterizer.depthStencilState().depthBias().Clamp, rasterizer.depthStencilState().depthBias().ConstantFactor, rasterizer.depthStencilState().depthBias().SlopeFactor);
+			LITEFX_TRACE(VULKAN_LOG, "\tRasterizer depth bias: {{ Clamp: {0}, ConstantFactor: {1}, SlopeFactor: {2} }}", 
+				rasterizer.depthStencilState().depthBias().Clamp, rasterizer.depthStencilState().depthBias().ConstantFactor, rasterizer.depthStencilState().depthBias().SlopeFactor);
 		else
 			LITEFX_TRACE(VULKAN_LOG, "\tRasterizer depth bias disabled.");
 
@@ -149,10 +168,12 @@ public:
 			LITEFX_TRACE(VULKAN_LOG, "Defining vertex buffer layout {0}/{1} {{ Attributes: {2}, Size: {3} bytes, Binding: {4} }}...", ++l, vertexLayouts, bufferAttributes.size(), layout.elementSize(), bindingPoint);
 #endif
 
-			VkVertexInputBindingDescription binding = {};
-			binding.binding = bindingPoint;
-			binding.stride = static_cast<UInt32>(layout.elementSize());
-			binding.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+			VkVertexInputBindingDescription binding = {
+				.binding = bindingPoint,
+				.stride = static_cast<UInt32>(layout.elementSize()),
+				.inputRate = layout.inputRate() == VertexBufferInputRate::Vertex ?
+					VK_VERTEX_INPUT_RATE_VERTEX : VK_VERTEX_INPUT_RATE_INSTANCE
+			};
 
 			Array<VkVertexInputAttributeDescription> currentAttributes = bufferAttributes |
 				std::views::transform([&bindingPoint, attributes = bufferAttributes.size(), i = 0] (auto& attribute) mutable {
@@ -225,7 +246,7 @@ public:
 		// Setup depth/stencil state.
 		VkPipelineDepthStencilStateCreateInfo depthStencilState = {};
 		depthStencilState.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-		depthStencilState.depthBoundsTestEnable = VK_FALSE;
+		depthStencilState.depthBoundsTestEnable = rasterizer.depthStencilState().depthState().DepthBoundsTestEnable;
 		depthStencilState.depthTestEnable = rasterizer.depthStencilState().depthState().Enable;
 		depthStencilState.depthWriteEnable = rasterizer.depthStencilState().depthState().Write;
 		depthStencilState.depthCompareOp = Vk::getCompareOp(rasterizer.depthStencilState().depthState().Operation);

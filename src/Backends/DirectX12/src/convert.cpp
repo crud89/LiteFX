@@ -513,6 +513,8 @@ LPCTSTR LITEFX_DIRECTX12_API LiteFX::Rendering::Backends::DX12::getSemanticName(
 		return "TANGENT";
 	case LiteFX::Rendering::AttributeSemantic::TextureCoordinate: 
 		return "TEXCOORD";
+	case LiteFX::Rendering::AttributeSemantic::Arbitrary:
+		return "ARBITRARY";
 	default: [[unlikely]]
 		throw InvalidArgumentException("semantic", "Unsupported semantic {0}.", std::to_underlying(semantic));
 	}

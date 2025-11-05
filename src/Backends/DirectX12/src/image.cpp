@@ -19,12 +19,17 @@ private:
 	ImageDimensions m_dimensions;
 	ResourceUsage m_usage;
 	MultiSamplingLevel m_samples;
+	D3D12_RESOURCE_DESC1 m_resourceDesc;
 
 public:
-	DirectX12ImageImpl(const DirectX12Device& device, Size3d extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation) :
-		m_allocator(std::move(allocator)), m_allocation(std::move(allocation)), m_format(format), m_extent(std::move(extent)), m_levels(levels), m_layers(layers), m_planes{ ::D3D12GetFormatPlaneCount(device.handle().Get(), DX12::getFormat(format)) }, m_dimensions(dimension), m_usage(usage), m_samples(samples)
+	DirectX12ImageImpl(const DirectX12Device& device, Size3d extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr allocation, const D3D12_RESOURCE_DESC1& resourceDesc) :
+		m_allocator(std::move(allocator)), m_allocation(std::move(allocation)), m_format(format), m_extent(std::move(extent)), m_levels(levels), m_layers(layers), m_planes{ ::D3D12GetFormatPlaneCount(device.handle().Get(), DX12::getFormat(format)) }, m_dimensions(dimension), m_usage(usage), m_samples(samples), m_resourceDesc(resourceDesc)
 	{
 		m_elements = m_planes * m_layers * m_levels;
+
+		// Patch alignment.
+		if (m_allocation != nullptr)
+			m_resourceDesc.Alignment = m_allocation->GetAlignment();
 	}
 };
 
@@ -32,8 +37,8 @@ public:
 // Image Base shared interface.
 // ------------------------------------------------------------------------------------------------
 
-DirectX12Image::DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, AllocatorPtr allocator, AllocationPtr&& allocation, const String& name) :
-	ComResource<ID3D12Resource>(nullptr), m_impl(device, extent, format, dimension, levels, layers, samples, usage, std::move(allocator), std::move(allocation))
+DirectX12Image::DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resource>&& image, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, AllocatorPtr allocator, AllocationPtr allocation, const String& name) :
+	ComResource<ID3D12Resource>(nullptr), m_impl(device, extent, format, dimension, levels, layers, samples, usage, std::move(allocator), std::move(allocation), resourceDesc)
 {
 	this->handle() = std::move(image);
 
@@ -45,9 +50,15 @@ DirectX12Image::DirectX12Image(const DirectX12Device& device, ComPtr<ID3D12Resou
 		this->handle()->SetName(Widen(name).c_str());
 #endif
 	}
+
+	if (m_impl->m_allocation != nullptr)
+		m_impl->m_allocation->SetPrivateData(static_cast<IDeviceMemory*>(this));
 }
 
-DirectX12Image::~DirectX12Image() noexcept = default;
+DirectX12Image::~DirectX12Image() noexcept
+{
+	LITEFX_TRACE(DIRECTX12_LOG, "Destroyed image {}", this->name());
+}
 
 UInt32 DirectX12Image::elements() const noexcept
 {
@@ -97,14 +108,15 @@ size_t DirectX12Image::elementSize() const noexcept
 
 size_t DirectX12Image::elementAlignment() const noexcept
 {
-	// TODO: Support for 64 byte packed "small" resources.
-	return D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
+	if (m_impl->m_allocation) [[likely]]
+		return static_cast<size_t>(m_impl->m_allocation->GetAlignment());
+	else
+		return D3D12_TEXTURE_DATA_PLACEMENT_ALIGNMENT;
 }
 
 size_t DirectX12Image::alignedElementSize() const noexcept
 {
-	// TODO: Align this by `elementAlignment`.
-	return this->elementSize();
+	return align(this->elementSize(), this->elementAlignment());
 }
 
 ResourceUsage DirectX12Image::usage() const noexcept
@@ -208,12 +220,7 @@ const D3D12MA::Allocation* DirectX12Image::allocationInfo() const noexcept
 	return m_impl->m_allocation.get();
 }
 
-SharedPtr<DirectX12Image> DirectX12Image::allocate(const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
-{
-	return DirectX12Image::allocate("", device, std::move(allocator), extent, format, dimension, levels, layers, samples, usage, resourceDesc, allocationDesc);
-}
-
-SharedPtr<DirectX12Image> DirectX12Image::allocate(const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
+SharedPtr<IDirectX12Image> DirectX12Image::allocate(const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
 {
 	if (allocator == nullptr) [[unlikely]]
 		throw ArgumentNotInitializedException("allocator", "The allocator must be initialized.");
@@ -223,9 +230,77 @@ SharedPtr<DirectX12Image> DirectX12Image::allocate(const String& name, const Dir
 	ComPtr<ID3D12Resource> resource;
 	D3D12MA::Allocation* allocation{};
 	raiseIfFailed(allocator->CreateResource3(&allocationDesc, &resourceDesc, isDepthStencil ? D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ : D3D12_BARRIER_LAYOUT_COMMON, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource)), "Unable to create image resource.");
-	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}", name.empty() ? std::format("{0}", static_cast<void*>(resource.Get())) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples);
+	LITEFX_DEBUG(DIRECTX12_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}", 
+		name.empty() ? std::format("{0} (Unnamed Resource)", static_cast<void*>(resource.Get())) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples);
 	
-	return SharedObject::create<DirectX12Image>(device, std::move(resource), extent, format, dimension, levels, layers, samples, usage, std::move(allocator), AllocationPtr(allocation), name);
+	return SharedObject::create<DirectX12Image>(device, std::move(resource), extent, format, dimension, levels, layers, samples, usage, resourceDesc, std::move(allocator), AllocationPtr(allocation, D3D12MADeleter{}), name);
+}
+
+bool DirectX12Image::tryAllocate(SharedPtr<IDirectX12Image>& image, const String& name, const DirectX12Device& device, AllocatorPtr allocator, const Size3d& extent, Format format, ImageDimensions dimension, UInt32 levels, UInt32 layers, MultiSamplingLevel samples, ResourceUsage usage, const D3D12_RESOURCE_DESC1& resourceDesc, const D3D12MA::ALLOCATION_DESC& allocationDesc)
+{
+	image = nullptr;
+
+	if (allocator == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("allocator", "The allocator must be initialized.");
+
+	bool isDepthStencil = ::hasDepth(format) || ::hasStencil(format);
+
+	ComPtr<ID3D12Resource> resource;
+	D3D12MA::Allocation* allocation{};
+	auto result = allocator->CreateResource3(&allocationDesc, &resourceDesc, isDepthStencil ? D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ : D3D12_BARRIER_LAYOUT_COMMON, nullptr, 0, nullptr, &allocation, IID_PPV_ARGS(&resource));
+
+	if (FAILED(result))
+	{
+		LITEFX_DEBUG(DIRECTX12_LOG, "Allocation for image {0} with {1} bytes failed: 0x{9:08X} {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}", 
+			name.empty() ? std::format("{0} (Unnamed Resource)", static_cast<void*>(resource.Get())) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples, result);
+		return false;
+	}
+	else
+	{
+		LITEFX_DEBUG(DIRECTX12_LOG, "Allocated image {0} with {1} bytes {{ Extent: {2}x{3} Px, Format: {4}, Levels: {5}, Layers: {6}, Samples: {8}, Usage: {7} }}", 
+			name.empty() ? std::format("{0} (Unnamed Resource)", static_cast<void*>(resource.Get())) : name, ::getSize(format) * extent.width() * extent.height(), extent.width(), extent.height(), format, levels, layers, usage, samples);
+
+		image = SharedObject::create<DirectX12Image>(device, std::move(resource), extent, format, dimension, levels, layers, samples, usage, resourceDesc, std::move(allocator), AllocationPtr(allocation, D3D12MADeleter{}), name);
+		return true;
+	}
+}
+
+bool DirectX12Image::move(SharedPtr<IDirectX12Image> image, D3D12MA::Allocation* to, const DirectX12CommandBuffer& commandBuffer) // NOLINT(performance-unnecessary-value-param)
+{
+	// NOTES: If this method returns true, the command buffer must be executed and all bindings to the image must be updated afterwards, otherwise the result of this operation is undefined behavior.
+
+	if (image == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("image");
+	
+	if (to == nullptr) [[unlikely]]
+		throw ArgumentNotInitializedException("to");
+
+	auto& source = dynamic_cast<DirectX12Image&>(*image);
+	const auto device = commandBuffer.queue()->device();
+	const auto& resourceDesc = source.m_impl->m_resourceDesc;
+	auto allocator = source.m_impl->m_allocator;
+
+	bool isDepthStencil = ::hasDepth(image->format()) || ::hasStencil(image->format());
+
+	ComPtr<ID3D12Resource> resource;
+	auto result = (*device).handle()->CreatePlacedResource2(to->GetHeap(), to->GetOffset(), std::addressof(resourceDesc), isDepthStencil ? D3D12_BARRIER_LAYOUT_DEPTH_STENCIL_READ : D3D12_BARRIER_LAYOUT_COMMON, nullptr, 0, nullptr, IID_PPV_ARGS(&resource));
+
+	if (FAILED(result)) [[unlikely]]
+		return false;
+
+	to->SetResource(resource.Get());
+
+	if (!image->volatileMove())
+		commandBuffer.handle()->CopyResource(resource.Get(), source.handle().Get());
+
+	// Reset the resource and return.
+	// NOTE: At this point, the previous resource does still exist, but is inaccessible through the current instance. The only remaining reference should be stored by the source allocation during 
+	//       defragmentation. After it gets released, the resource should also be removed. If a reference is stored somewhere else this leaks, but you should never store the reference obtained by
+	//       calling `handle` manually.
+	//       The new resource handle is valid beyond this point, but may contain uninitialized data. Any attempt of using the resource must be properly synchronized to execute after the submission
+	//       of `commandBuffer`.
+	source.handle() = std::move(resource);
+	return true;
 }
 
 // ------------------------------------------------------------------------------------------------

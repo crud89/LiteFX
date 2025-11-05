@@ -1111,7 +1111,7 @@ namespace LiteFX {
 		/// <returns>A shared pointer of the shared object.</returns>
 		/// <seealso cref="Allocator" />
 		template <typename T, typename... TArgs>
-		static inline auto create(TArgs&&... args) -> SharedPtr<T> {
+		[[nodiscard]] static inline auto create(TArgs&&... args) -> SharedPtr<T> {
 			return std::allocate_shared<T>(Allocator<T>{}, std::forward<TArgs>(args)...);
 		}
 
@@ -1120,9 +1120,11 @@ namespace LiteFX {
 		/// Returns a shared pointer to the current object instance.
 		/// </summary>
 		template <typename TSelf>
-		auto inline shared_from_this(this TSelf&& self) noexcept
+		[[nodiscard]] auto inline shared_from_this(this TSelf&& self) noexcept
 		{
-			return std::static_pointer_cast<std::remove_reference_t<TSelf>>(
+			// TODO: In C++26 we should be able to use `std::is_virtual_base_of<SharedObject, TSelf>` here to prefer a `static_pointer_cast`, if possible.
+
+			return std::dynamic_pointer_cast<std::remove_reference_t<TSelf>>(
 				std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::shared_from_this());
 		}
 		
@@ -1130,9 +1132,11 @@ namespace LiteFX {
 		/// Returns a weak pointer to the current object instance.
 		/// </summary>
 		template <typename TSelf>
-		auto inline weak_from_this(this TSelf&& self) noexcept -> WeakPtr<std::remove_reference_t<TSelf>>
+		[[nodiscard]] auto inline weak_from_this(this TSelf&& self) noexcept -> WeakPtr<std::remove_reference_t<TSelf>>
 		{
-			return std::static_pointer_cast<std::remove_reference_t<TSelf>>(
+			// TODO: In C++26 we should be able to use `std::is_virtual_base_of<SharedObject, TSelf>` here to prefer a `static_pointer_cast`, if possible.
+
+			return std::dynamic_pointer_cast<std::remove_reference_t<TSelf>>(
 				std::forward<TSelf>(self).std::template enable_shared_from_this<SharedObject>::weak_from_this().lock());
 		}
 	};

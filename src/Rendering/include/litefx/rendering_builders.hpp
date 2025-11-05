@@ -824,6 +824,11 @@ namespace LiteFX::Rendering {
             Float lineWidth{ 1.0f };
 
             /// <summary>
+            /// The depth clip setting for the rasterizer state.
+            /// </summary>
+            bool depthClip{ true };
+
+            /// <summary>
             /// The depth bias state.
             /// </summary>
             DepthStencilState::DepthBias depthBias{ };
@@ -837,6 +842,11 @@ namespace LiteFX::Rendering {
             /// The stencil state.
             /// </summary>
             DepthStencilState::StencilState stencilState{ };
+
+            /// <summary>
+            /// Toggles conservative rasterization in the rasterizer.
+            /// </summary>
+            bool conservativeRasterization{ false };
         } m_state;
 
     protected:
@@ -886,6 +896,26 @@ namespace LiteFX::Rendering {
         template<typename TSelf>
         [[nodiscard]] constexpr auto lineWidth(this TSelf&& self, Float width) noexcept -> TSelf&& {
             self.m_state.lineWidth = width;
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Initializes the depth clip toggle for the rasterizer state.
+        /// </summary>
+        /// <param name="depthClip">The depth clip toggle for the rasterizer state.</param>
+        template<typename TSelf>
+        [[nodiscard]] constexpr auto depthClip(this TSelf&& self, bool depthClip) noexcept -> TSelf&& {
+            self.m_state.depthClip = depthClip;
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Initializes the rasterizer state with conservative rasterization.
+        /// </summary>
+        /// <param name="enable">`true`, if the rasterizer should use conservative rasterization and `false` otherwise.</param>
+        template<typename TSelf>
+        [[nodiscard]] constexpr auto conservativeRasterization(this TSelf&& self, bool enable) noexcept -> TSelf&& {
+            self.m_state.conservativeRasterization = enable;
             return std::forward<TSelf>(self);
         }
 
@@ -941,6 +971,11 @@ namespace LiteFX::Rendering {
             /// The vertex buffer attributes of the layout.
             /// </summary>
             Array<BufferAttribute> attributes{ };
+
+            /// <summary>
+            /// The vertex buffer input rate of the layout.
+            /// </summary>
+            VertexBufferInputRate inputRate{ VertexBufferInputRate::Vertex };
         } m_state;
 
     protected:
@@ -974,7 +1009,7 @@ namespace LiteFX::Rendering {
         /// <param name="semantic">The semantic of the attribute.</param>
         /// <param name="semanticIndex">The semantic index of the attribute.</param>
         template <typename TSelf>
-        [[nodiscard]] constexpr auto withAttribute(this TSelf&& self, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf&& {
+        [[nodiscard]] constexpr auto withAttribute(this TSelf&& self, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Arbitrary, UInt32 semanticIndex = 0) -> TSelf&& {
             return std::forward<TSelf>(self).withAttribute({ static_cast<UInt32>(self.m_state.attributes.size()), offset, format, semantic, semanticIndex });
         }
 
@@ -987,8 +1022,18 @@ namespace LiteFX::Rendering {
         /// <param name="semantic">The semantic of the attribute.</param>
         /// <param name="semanticIndex">The semantic index of the attribute.</param>
         template <typename TSelf>
-        [[nodiscard]] constexpr auto withAttribute(this TSelf&& self, UInt32 location, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Unknown, UInt32 semanticIndex = 0) -> TSelf&& {
+        [[nodiscard]] constexpr auto withAttribute(this TSelf&& self, UInt32 location, BufferFormat format, UInt32 offset, AttributeSemantic semantic = AttributeSemantic::Arbitrary, UInt32 semanticIndex = 0) -> TSelf&& {
             return std::forward<TSelf>(self).withAttribute({ location, offset, format, semantic, semanticIndex });
+        }
+
+        /// <summary>
+        /// Specifies the input rate for the vertex buffer layout.
+        /// </summary>
+        /// <param name="inputRate">The rate at which data of the vertex buffer is made available to the vertex shader.</param>
+        template <typename TSelf>
+        [[nodiscard]] constexpr auto atRate(this TSelf&& self, VertexBufferInputRate inputRate) -> TSelf&& {
+            self.m_state.inputRate = inputRate;
+            return std::forward<TSelf>(self);
         }
     };
 
