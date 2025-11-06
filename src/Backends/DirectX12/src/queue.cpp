@@ -253,3 +253,8 @@ UInt64 DirectX12Queue::currentFence() const noexcept
 {
 	return m_impl->m_fenceValue;
 }
+
+UInt64 DirectX12Queue::lastCompletedFence() const noexcept
+{
+	return m_impl->m_fence->GetCompletedValue();
+}

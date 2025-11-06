@@ -8,7 +8,7 @@ struct BlitParameters
 ConstantBuffer<BlitParameters> input	: register(b0, space0);
 Texture2D<float4>		parent			: register(t1, space0);
 RWTexture2D<float4>		result			: register(u2, space0);
-SamplerState			linearFilter	: register(s0, space1);
+SamplerState			linearFilter	: register(s3, space0);
 
 float3 applySRGB(float3 x)
 {

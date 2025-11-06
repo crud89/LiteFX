@@ -824,6 +824,11 @@ namespace LiteFX::Rendering {
             Float lineWidth{ 1.0f };
 
             /// <summary>
+            /// The depth clip setting for the rasterizer state.
+            /// </summary>
+            bool depthClip{ true };
+
+            /// <summary>
             /// The depth bias state.
             /// </summary>
             DepthStencilState::DepthBias depthBias{ };
@@ -837,6 +842,11 @@ namespace LiteFX::Rendering {
             /// The stencil state.
             /// </summary>
             DepthStencilState::StencilState stencilState{ };
+
+            /// <summary>
+            /// Toggles conservative rasterization in the rasterizer.
+            /// </summary>
+            bool conservativeRasterization{ false };
         } m_state;
 
     protected:
@@ -886,6 +896,26 @@ namespace LiteFX::Rendering {
         template<typename TSelf>
         [[nodiscard]] constexpr auto lineWidth(this TSelf&& self, Float width) noexcept -> TSelf&& {
             self.m_state.lineWidth = width;
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Initializes the depth clip toggle for the rasterizer state.
+        /// </summary>
+        /// <param name="depthClip">The depth clip toggle for the rasterizer state.</param>
+        template<typename TSelf>
+        [[nodiscard]] constexpr auto depthClip(this TSelf&& self, bool depthClip) noexcept -> TSelf&& {
+            self.m_state.depthClip = depthClip;
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Initializes the rasterizer state with conservative rasterization.
+        /// </summary>
+        /// <param name="enable">`true`, if the rasterizer should use conservative rasterization and `false` otherwise.</param>
+        template<typename TSelf>
+        [[nodiscard]] constexpr auto conservativeRasterization(this TSelf&& self, bool enable) noexcept -> TSelf&& {
+            self.m_state.conservativeRasterization = enable;
             return std::forward<TSelf>(self);
         }
 
@@ -1895,6 +1925,12 @@ namespace LiteFX::Rendering {
             /// The binding point for input attachment samplers, if required.
             /// </summary>
             Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding{ std::nullopt };
+
+            /// <summary>
+            /// A mask that indicates the enabled view instances during rendering, if view instancing is enabled.
+            /// </summary>
+            /// <seealso cref="GraphicsDeviceFeatures::ViewInstancing" />
+            UInt32 viewMask{ 0b0000 };
         } m_state;
 
     protected:
@@ -2025,6 +2061,16 @@ namespace LiteFX::Rendering {
         template <typename TSelf>
         constexpr auto inputAttachmentSamplerBinding(this TSelf&& self, const DescriptorBindingPoint& bindingPoint) -> TSelf&& {
             self.m_state.inputAttachmentSamplerBinding = bindingPoint;
+            return std::forward<TSelf>(self);
+        }
+
+        /// <summary>
+        /// Specifies the mask of enabled view instances.
+        /// </summary>
+        /// <param name="viewMask">A mask that indicates the enabled view instances for the render pass.</param>
+        template <typename TSelf>
+        constexpr auto inputAttachmentSamplerBinding(this TSelf&& self, UInt32 viewMask) -> TSelf&& {
+            self.m_state.viewMask = viewMask;
             return std::forward<TSelf>(self);
         }
     };

@@ -342,3 +342,16 @@ UInt64 VulkanQueue::currentFence() const noexcept
 {
 	return m_impl->m_fenceValue;
 }
+
+UInt64 VulkanQueue::lastCompletedFence() const noexcept
+{
+	auto device = m_impl->m_device.lock();
+
+	if (device == nullptr) [[unlikely]]
+		return std::numeric_limits<UInt64>::max();
+
+	UInt64 completedValue{ 0 };
+	vkGetSemaphoreCounterValue(device->handle(), m_impl->m_timelineSemaphore, &completedValue);
+
+	return completedValue;
+}

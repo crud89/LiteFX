@@ -126,7 +126,7 @@ namespace LiteFX::Rendering {
     ///     with a buffer write in an earlier frame, this method provides the most efficient approach. However, it may be hard or impossible to determine the ideal size of 
     ///     the ring-buffer upfront.
     ///     </description>
-    ///   </itemattach
+    ///   </item>
     /// </list>
     /// 
     /// Note that samplers, textures and input attachments currently do not support array binding, since they are typically only updated once or require pipeline 
@@ -1079,6 +1079,7 @@ namespace LiteFX::Rendering {
     class FrameBuffer : public virtual StateResource, public IFrameBuffer {
     public:
         using image_type = TImage;
+        using allocation_callback_type = IFrameBuffer::allocation_callback_type<image_type>;
 
     public:
         using IFrameBuffer::addImage;
@@ -1604,7 +1605,17 @@ namespace LiteFX::Rendering {
         }
 
         /// <inheritdoc />
+        /// <param name="allocationCallback">A callback that gets invoked, when the frame buffer allocates a new image.</param>
+        [[nodiscard]] inline SharedPtr<frame_buffer_type> makeFrameBuffer(const Size2d& renderArea, frame_buffer_type::allocation_callback_type allocationCallback) const {
+            return this->makeFrameBuffer("", renderArea, std::move(allocationCallback));
+        }
+
+        /// <inheritdoc />
         [[nodiscard]] virtual SharedPtr<frame_buffer_type> makeFrameBuffer(StringView name, const Size2d& renderArea) const = 0;
+
+        /// <inheritdoc />
+        /// <param name="allocationCallback">A callback that gets invoked, when the frame buffer allocates a new image.</param>
+        [[nodiscard]] virtual SharedPtr<frame_buffer_type> makeFrameBuffer(StringView name, const Size2d& renderArea, frame_buffer_type::allocation_callback_type allocationCallback) const = 0;
 
     private:
         inline UniquePtr<IBarrier> getNewBarrier(PipelineStage syncBefore, PipelineStage syncAfter) const override {
@@ -1631,7 +1642,7 @@ namespace LiteFX::Rendering {
         virtual void computeAccelerationStructureSizes(const top_level_acceleration_structure_type& tlas, UInt64 & bufferSize, UInt64 & scratchSize, bool forUpdate = false) const = 0;
 
         /// <inheritdoc />
-        virtual void allocateGlobalDescriptors(const descriptor_set_type& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const = 0;
+        [[nodiscard]] virtual VirtualAllocator::Allocation allocateGlobalDescriptors(const descriptor_set_type& descriptorSet, DescriptorHeapType heapType) const = 0;
 
         /// <inheritdoc />
         virtual void releaseGlobalDescriptors(const descriptor_set_type& descriptorSet) const = 0;
@@ -1654,8 +1665,8 @@ namespace LiteFX::Rendering {
             this->computeAccelerationStructureSizes(dynamic_cast<const top_level_acceleration_structure_type&>(tlas), bufferSize, scratchSize, forUpdate);
         }
         
-        inline void doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const override {
-            this->allocateGlobalDescriptors(dynamic_cast<const descriptor_set_type&>(descriptorSet), heapType, heapOffset, heapSize);
+        inline VirtualAllocator::Allocation doAllocateGlobalDescriptors(const IDescriptorSet& descriptorSet, DescriptorHeapType heapType) const override {
+            return this->allocateGlobalDescriptors(dynamic_cast<const descriptor_set_type&>(descriptorSet), heapType);
         }
 
         inline void doReleaseGlobalDescriptors(const IDescriptorSet& descriptorSet) const override {

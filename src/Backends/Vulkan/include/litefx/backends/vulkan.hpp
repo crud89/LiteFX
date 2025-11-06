@@ -782,10 +782,7 @@ namespace LiteFX::Rendering::Backends {
 
     public:
         /// <inheritdoc />
-        UInt32 globalHeapOffset(DescriptorHeapType heapType) const noexcept override;
-
-        /// <inheritdoc />
-        UInt32 globalHeapAddressRange(DescriptorHeapType heapType) const noexcept override;
+        VirtualAllocator::Allocation globalHeapAllocation(DescriptorHeapType heapType) const noexcept override;
 
         /// <inheritdoc />
         UInt32 bindToHeap(DescriptorType bindingType, UInt32 descriptor, const IVulkanBuffer& buffer, UInt32 bufferElement = 0, UInt32 elements = 0, Format texelFormat = Format::None) const override;
@@ -1349,8 +1346,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="cullMode">The cull mode used by the pipeline.</param>
         /// <param name="cullOrder">The cull order used by the pipeline.</param>
         /// <param name="lineWidth">The line width used by the pipeline.</param>
+        /// <param name="depthClip">The depth clip toggle of the rasterizer state.</param>
         /// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
-        explicit VulkanRasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) noexcept;
+        /// <param name="conservativeRasterization">Toggles the use of conservative rasterization in the rasterizer.</param>
+        explicit VulkanRasterizer(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, bool depthClip = true, const DepthStencilState& depthStencilState = {}, bool conservativeRasterization = false) noexcept;
 
         /// <summary>
         /// Initializes a new Vulkan rasterizer state.
@@ -1382,10 +1381,12 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="cullMode">The cull mode used by the pipeline.</param>
         /// <param name="cullOrder">The cull order used by the pipeline.</param>
         /// <param name="lineWidth">The line width used by the pipeline.</param>
+        /// <param name="depthClip">The depth clip toggle of the rasterizer state.</param>
         /// <param name="depthStencilState">The rasterizer depth/stencil state.</param>
+        /// <param name="conservativeRasterization">Toggles the use of conservative rasterization in the rasterizer.</param>
         /// <returns>A shared pointer to the newly created rasterizer instance.</returns>
-        static inline auto create(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, const DepthStencilState& depthStencilState = {}) {
-            return SharedObject::create<VulkanRasterizer>(polygonMode, cullMode, cullOrder, lineWidth, depthStencilState);
+        static inline auto create(PolygonMode polygonMode, CullMode cullMode, CullOrder cullOrder, Float lineWidth = 1.f, bool depthClip = true, const DepthStencilState& depthStencilState = {}, bool conservativeRasterization = false) {
+            return SharedObject::create<VulkanRasterizer>(polygonMode, cullMode, cullOrder, lineWidth, depthClip, depthStencilState, conservativeRasterization);
         }
 
         /// <summary>
@@ -1546,6 +1547,9 @@ namespace LiteFX::Rendering::Backends {
         void track(SharedPtr<const ISampler> sampler) const override;
 
         /// <inheritdoc />
+        void track(UniquePtr<const IDescriptorSet>&& descriptorSet) const override;
+
+        /// <inheritdoc />
         bool isSecondary() const noexcept override;
 
         /// <inheritdoc />
@@ -1565,6 +1569,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         void setStencilRef(UInt32 stencilRef) const noexcept override;
+
+        /// <inheritdoc />
+        void setDepthBounds(Float minBounds, Float maxBounds) const noexcept override;
 
         /// <inheritdoc />
         UInt64 submit() const override;
@@ -1824,6 +1831,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt64 currentFence() const noexcept override;
+        
+        /// <inheritdoc />
+        UInt64 lastCompletedFence() const noexcept override;
 
     private:
         inline void waitForQueue(const ICommandQueue& queue, UInt64 fence) const override {
@@ -2063,6 +2073,7 @@ namespace LiteFX::Rendering::Backends {
         friend struct SharedObject::Allocator<VulkanFrameBuffer>;
 
     public:
+        using FrameBuffer::allocation_callback_type;
         using FrameBuffer::addImage;
         using FrameBuffer::mapRenderTarget;
         using FrameBuffer::mapRenderTargets;
@@ -2075,6 +2086,16 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="renderArea">The initial size of the render area.</param>
         /// <param name="name">The name of the frame buffer.</param>
         VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea, StringView name = "");
+
+        /// <summary>
+        /// Initializes a Vulkan frame buffer.
+        /// </summary>
+        /// <param name="device">The device the frame buffer is allocated on.</param>
+        /// <param name="renderArea">The initial size of the render area.</param>
+        /// <param name="allocationCallback">A callback that gets invoked, when the frame buffer allocates a new image.</param>
+        /// <param name="name">The name of the frame buffer.</param>
+        /// <seealso cref="IFrameBuffer::allocation_callback_type" />
+        VulkanFrameBuffer(const VulkanDevice& device, const Size2d& renderArea, allocation_callback_type allocationCallback, StringView name = "");
 
     private:
         /// <inheritdoc />
@@ -2103,6 +2124,18 @@ namespace LiteFX::Rendering::Backends {
         /// <returns>A pointer to the newly created frame buffer instance.</returns>
         static inline SharedPtr<VulkanFrameBuffer> create(const VulkanDevice& device, const Size2d& renderArea, StringView name = "") {
             return SharedObject::create<VulkanFrameBuffer>(device, renderArea, name);
+        }
+
+        /// <summary>
+        /// Initializes a Vulkan frame buffer.
+        /// </summary>
+        /// <param name="device">The device the frame buffer is allocated on.</param>
+        /// <param name="renderArea">The initial size of the render area.</param>
+        /// <param name="allocationCallback">A callback that gets invoked, when the frame buffer allocates a new image.</param>
+        /// <param name="name">The name of the frame buffer.</param>
+        /// <returns>A pointer to the newly created frame buffer instance.</returns>
+        static inline SharedPtr<VulkanFrameBuffer> create(const VulkanDevice& device, const Size2d& renderArea, allocation_callback_type allocationCallback, StringView name = "") {
+            return SharedObject::create<VulkanFrameBuffer>(device, renderArea, std::move(allocationCallback), name);
         }
 
         // Vulkan frame buffer interface.
@@ -2214,7 +2247,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
-        explicit VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u);
+        /// <param name="viewMask">A mask that identifies the enabled view instances for this render pass.</param>
+        explicit VulkanRenderPass(const VulkanDevice& device, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u, UInt32 viewMask = 0b0000);
 
         /// <summary>
         /// Creates and initializes a new Vulkan render pass instance that executes on the default graphics queue.
@@ -2225,8 +2259,9 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
-        explicit VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u);
-        
+        /// <param name="viewMask">A mask that identifies the enabled view instances for this render pass.</param>
+        explicit VulkanRenderPass(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u, UInt32 viewMask = 0b0000);
+
         /// <summary>
         /// Creates and initializes a new Vulkan render pass instance.
         /// </summary>
@@ -2236,7 +2271,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
-        explicit VulkanRenderPass(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u);
+        /// <param name="viewMask">A mask that identifies the enabled view instances for this render pass.</param>
+        explicit VulkanRenderPass(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u, UInt32 viewMask = 0b0000);
 
         /// <summary>
         /// Creates and initializes a new Vulkan render pass instance.
@@ -2248,7 +2284,8 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
-        explicit VulkanRenderPass(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u);
+        /// <param name="viewMask">A mask that identifies the enabled view instances for this render pass.</param>
+        explicit VulkanRenderPass(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u, UInt32 viewMask = 0b0000);
 
     private:
         /// <inheritdoc />
@@ -2276,9 +2313,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <param name="viewMask">A mask that identifies the enabled view instances for this render pass.</param>
         /// <returns>A pointer to the newly created render pass instance.</returns>
-        static inline SharedPtr<VulkanRenderPass> create(const VulkanDevice& device, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
-            return SharedObject::create<VulkanRenderPass>(device, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
+        static inline SharedPtr<VulkanRenderPass> create(const VulkanDevice& device, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u, UInt32 viewMask = 0b0000) {
+            return SharedObject::create<VulkanRenderPass>(device, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers, viewMask);
         }
 
         /// <summary>
@@ -2290,9 +2328,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <param name="viewMask">A mask that identifies the enabled view instances for this render pass.</param>
         /// <returns>A pointer to the newly created render pass instance.</returns>
-        static inline SharedPtr<VulkanRenderPass> create(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
-            return SharedObject::create<VulkanRenderPass>(device, name, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
+        static inline SharedPtr<VulkanRenderPass> create(const VulkanDevice& device, const String& name, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u, UInt32 viewMask = 0b0000) {
+            return SharedObject::create<VulkanRenderPass>(device, name, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers, viewMask);
         }
 
         /// <summary>
@@ -2304,9 +2343,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <param name="viewMask">A mask that identifies the enabled view instances for this render pass.</param>
         /// <returns>A pointer to the newly created render pass instance.</returns>
-        static inline SharedPtr<VulkanRenderPass> create(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
-            return SharedObject::create<VulkanRenderPass>(device, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
+        static inline SharedPtr<VulkanRenderPass> create(const VulkanDevice& device, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u, UInt32 viewMask = 0b0000) {
+            return SharedObject::create<VulkanRenderPass>(device, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers, viewMask);
         }
 
         /// <summary>
@@ -2319,9 +2359,10 @@ namespace LiteFX::Rendering::Backends {
         /// <param name="inputAttachments">The input attachments that are read by the render pass.</param>
         /// <param name="inputAttachmentSamplerBinding">The binding point for the input attachment sampler.</param>
         /// <param name="secondaryCommandBuffers">The number of command buffers that can be used for recording multi-threaded commands during the render pass.</param>
+        /// <param name="viewMask">A mask that identifies the enabled view instances for this render pass.</param>
         /// <returns>A pointer to the newly created render pass instance.</returns>
-        static inline SharedPtr<VulkanRenderPass> create(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u) {
-            return SharedObject::create<VulkanRenderPass>(device, name, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers);
+        static inline SharedPtr<VulkanRenderPass> create(const VulkanDevice& device, const String& name, const VulkanQueue& queue, Span<RenderTarget> renderTargets, Span<RenderPassDependency> inputAttachments = { }, Optional<DescriptorBindingPoint> inputAttachmentSamplerBinding = std::nullopt, UInt32 secondaryCommandBuffers = 1u, UInt32 viewMask = 0b0000) {
+            return SharedObject::create<VulkanRenderPass>(device, name, queue, renderTargets, inputAttachments, inputAttachmentSamplerBinding, secondaryCommandBuffers, viewMask);
         }
 
     private:
@@ -2392,6 +2433,9 @@ namespace LiteFX::Rendering::Backends {
 
         /// <inheritdoc />
         UInt64 end() const override;
+
+        /// <inheritdoc />
+        UInt32 viewMask() const noexcept override;
     };
 
     /// <summary>
@@ -2519,6 +2563,7 @@ namespace LiteFX::Rendering::Backends {
         using base_type::createTextures;
         using base_type::createSampler;
         using base_type::createSamplers;
+        using base_type::allocate;
 
     private:
         /// <summary>
@@ -2569,6 +2614,24 @@ namespace LiteFX::Rendering::Backends {
         SharedPtr<IVulkanBuffer> createDescriptorHeap(const String& name, size_t heapSize) const;
 
     public:
+        /// <inheritdoc />
+        [[nodiscard]] VirtualAllocator createAllocator(UInt64 overallMemory, AllocationAlgorithm algorithm = AllocationAlgorithm::Default) const override;
+
+        /// <inheritdoc />
+        void beginDefragmentation(const ICommandQueue& queue, DefragmentationStrategy strategy = DefragmentationStrategy::Balanced, UInt64 maxBytesToMove = 0u, UInt32 maxAllocationsToMove = 0u) const override;
+
+        /// <inheritdoc />
+        UInt64 beginDefragmentationPass() const override;
+
+        /// <inheritdoc />
+        bool endDefragmentationPass() const override;
+
+        /// <inheritdoc />
+        Generator<ResourceAllocationResult> allocate(Enumerable<const ResourceAllocationInfo&> allocationInfos, AllocationBehavior allocationBehavior = AllocationBehavior::Default, bool alias = false) const override;
+
+        /// <inheritdoc />
+        bool canAlias(Enumerable<const ResourceAllocationInfo&> allocationInfos) const override;
+
         /// <inheritdoc />
         SharedPtr<IVulkanBuffer> createBuffer(BufferType type, ResourceHeap heap, size_t elementSize, UInt32 elements = 1, ResourceUsage usage = ResourceUsage::Default, AllocationBehavior allocationBehavior = AllocationBehavior::Default) const override;
 
@@ -2827,6 +2890,9 @@ namespace LiteFX::Rendering::Backends {
         [[nodiscard]] SharedPtr<VulkanFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea) const override;
 
         /// <inheritdoc />
+        [[nodiscard]] SharedPtr<VulkanFrameBuffer> makeFrameBuffer(StringView name, const Size2d& renderArea, VulkanFrameBuffer::allocation_callback_type allocationCallback) const override;
+
+        /// <inheritdoc />
         MultiSamplingLevel maximumMultiSamplingLevel(Format format) const noexcept override;
 
         /// <inheritdoc />
@@ -2842,7 +2908,7 @@ namespace LiteFX::Rendering::Backends {
         void computeAccelerationStructureSizes(const VulkanTopLevelAccelerationStructure& tlas, UInt64& bufferSize, UInt64& scratchSize, bool forUpdate = false) const override;
 
         /// <inheritdoc />
-        void allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType, UInt32& heapOffset, UInt32& heapSize) const override;
+        [[nodiscard]] VirtualAllocator::Allocation allocateGlobalDescriptors(const VulkanDescriptorSet& descriptorSet, DescriptorHeapType heapType) const override;
 
         /// <inheritdoc />
         void releaseGlobalDescriptors(const VulkanDescriptorSet& descriptorSet) const override;
